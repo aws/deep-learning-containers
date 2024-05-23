@@ -20,7 +20,7 @@
     "skip": "True"
   },
   "pyopenssl": {
-    "version_specifier": ">=24.0.0"
+    "version_specifier": ">=24.1.0"
   },
   "cryptography": {
     "version_specifier": ">=42.0.5"
@@ -34,10 +34,16 @@
   "urllib3": {
     "version_specifier": ">=1.26.18,<2"
   },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
   "torchserve": {
-    "version_specifier": "==0.9.0"
+    "version_specifier": "==0.11.0"
   },
   "torch-model-archiver": {
-    "version_specifier": "==0.9.0"
+    "version_specifier": "==0.11.0"
   }
 }

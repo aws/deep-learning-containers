@@ -9,7 +9,7 @@ from test.dlc_tests.ec2 import smclarify_cases
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("PT21_general")
+@pytest.mark.integration("pytorch_gpu_tests")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize(
@@ -31,7 +31,7 @@ def test_pytorch_2_1_gpu(
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
-        (common_cases.nvapex, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_nvapex, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
@@ -47,6 +47,36 @@ def test_pytorch_2_1_gpu(
         test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.1 GPU")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("pytorch_gpu_heavy_tests")
+@pytest.mark.model("N/A")
+@pytest.mark.team("conda")
+@pytest.mark.parametrize(
+    "ec2_instance_type, region",
+    common_cases.PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION,
+    indirect=True,
+)
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not ec2.are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip GPU Heavy tests in PR context unless explicitly enabled",
+)
+def test_pytorch_2_1_gpu_heavy(
+    pytorch_training___2__1, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    pytorch_training = pytorch_training___2__1
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+
+    test_cases = [
+        (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
+    ]
+
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.1 GPU Heavy")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -78,7 +108,7 @@ def test_pytorch_2_1_gpu_inductor(
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("pytorch_sanity_test")
+@pytest.mark.integration("pytorch_cpu_tests")
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
