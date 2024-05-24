@@ -17,26 +17,23 @@ import concurrent.futures
 import datetime
 import os
 import re
-import json
 import tempfile
 
 from copy import deepcopy
 
 import constants
 import utils
-import boto3
 import itertools
 import patch_helper
 
 from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import parse_dlc_developer_configs, is_build_enabled, is_autopatch_build_enabled
+from config import is_build_enabled, is_autopatch_build_enabled
 from context import Context
 from metrics import Metrics
 from image import DockerImage
 from common_stage_image import CommonStageImage
 from buildspec import Buildspec
 from output import OutputFormatter
-from invoke import run
 from utils import get_dummy_boto_client
 
 
@@ -146,6 +143,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             # set image_tag to have datetime
             no_datetime = image_tag
             additional_image_tags.append(no_datetime)
+            if build_context == "MAINLINE":
+                additional_image_tags.append(tag_image_with_initiator(no_datetime))
             image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
@@ -625,6 +624,13 @@ def tag_image_with_date(image_tag):
 def tag_image_with_datetime(image_tag):
     datetime_suffix = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     return f"{image_tag}-{datetime_suffix}"
+
+
+def tag_image_with_initiator(image_tag):
+    """
+    Add additional debug tags
+    """
+    return f"{image_tag}-{os.getenv('CODEBUILD_INITIATOR', '').split('/')[-1]}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', '')[:7]}"
 
 
 def append_tag(image_tag, append_str):

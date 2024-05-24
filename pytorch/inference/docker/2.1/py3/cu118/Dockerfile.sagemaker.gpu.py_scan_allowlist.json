@@ -1,0 +1,4 @@
+{
+  "70612": "This Jinja2 CVE is disputed and has no fix.",
+  "71064": "Requests >=2.32.0 fixes CVE-2024-35195, but it causes https://github.com/psf/requests/issues/6707. So we allowlist this finding for now."
+}
