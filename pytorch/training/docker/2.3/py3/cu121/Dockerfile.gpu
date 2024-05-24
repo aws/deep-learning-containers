@@ -372,6 +372,9 @@ WORKDIR /
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
 # PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
