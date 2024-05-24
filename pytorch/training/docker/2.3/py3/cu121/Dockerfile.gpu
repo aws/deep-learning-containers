@@ -129,7 +129,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     cython \
     cryptography \
     pyopenssl \
-    requests \
     libgcc \
     pybind11 \
     cmake \
@@ -156,6 +155,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
