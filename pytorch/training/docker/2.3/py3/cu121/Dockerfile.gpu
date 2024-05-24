@@ -364,6 +364,9 @@ ARG GDRCOPY_VERSION
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
 
+# SageMaker DataParallel Binary
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.3.0/cu121/2024-05-23/smdistributed_dataparallel-2.3.0-cp311-cp311-linux_x86_64.whl
+
 WORKDIR /
 
 # Install SageMaker Profiler Binary
@@ -455,6 +458,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # pin cloudpickle for sagemaker==2.220.0
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
+
+# Add SageMaker DataParallel to LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
