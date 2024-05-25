@@ -45,5 +45,8 @@
   },
   "boto3": {
     "version_specifier": "==1.28.60"
+  },
+  "triton": {
+    "version_specifier": "==2.1.0"
   }
 }

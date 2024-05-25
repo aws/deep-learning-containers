@@ -172,7 +172,7 @@ RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-ser
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir -U \
     # triton required for torch inductor
-    triton \
+    triton==2.1.0 \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}

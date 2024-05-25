@@ -116,7 +116,7 @@ RUN rm -rf /root/.ssh/ \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-# for conda ssl verification
+# For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
@@ -132,7 +132,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     cython \
     cryptography \
     pyopenssl \
-    requests \
     pybind11 \
     cmake \
     curl \
@@ -158,6 +157,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -171,7 +171,7 @@ ENV PATH="/home/.openmpi/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/home/.openmpi/lib/:${LD_LIBRARY_PATH}"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# needed by torchdata
+# Needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
@@ -197,11 +197,11 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
-
-# PyTorch Binaries
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
+
+WORKDIR /
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
@@ -255,7 +255,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# PyTorch Binaries
+ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
@@ -280,15 +280,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
  && pip uninstall -y dataclasses \
  && /opt/conda/bin/mamba clean -afy
 
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
-
-WORKDIR /root
-
-# install SM packages
+# Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
@@ -306,9 +298,15 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
+    # pin cloudpickle for sagemaker==2.220.0
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
-WORKDIR /
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
