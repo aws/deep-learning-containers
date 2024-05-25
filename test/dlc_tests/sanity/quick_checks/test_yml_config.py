@@ -86,6 +86,36 @@ def test_release_images_numbering():
                     )
 
 
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("release_images_no_overlaps")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="This test is only needed to validate release_images configs in PRs.",
+)
+def test_release_images_no_overlaps():
+    release_yamls = [
+        "release_images_patches.yml",
+        "release_images_training.yml",
+        "release_images_inference.yml",
+    ]
+    dlc_base_dir = get_repository_local_path()
+
+    configs = []
+
+    for release_yaml in release_yamls:
+        yaml_path = os.path.join(dlc_base_dir, release_yaml)
+
+        with open(yaml_path, "r") as rf:
+            contents = yaml.safe_load(rf)
+            for num, imgs in contents["release_images"].items():
+                if imgs in configs:
+                    raise RuntimeError(
+                        f"Found duplicate configs for {imgs} in {release_yaml}. These could be coming from another release yaml or the same file - please double check."
+                    )
+                configs.append(imgs)
+
+
 def _release_images_yml_verifier(image_type, excluded_image_type):
     """
     Simple test to ensure release images yml file is loadable
