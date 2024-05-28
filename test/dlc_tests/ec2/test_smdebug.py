@@ -167,7 +167,7 @@ def run_smdebug_test(
     test_script=SMDEBUG_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -207,7 +207,7 @@ def run_smprofiler_test(
     test_script=SMPROFILER_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")

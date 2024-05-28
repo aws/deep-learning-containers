@@ -312,10 +312,15 @@ def _validate_p4de_usage(request, instance_type):
 
 
 def _restrict_instance_usage(instance_type):
-    if "c4." in instance_type:
-        raise RuntimeError(
-            "C4-family instances are no longer supported in our system. Please use a different instance type (i.e. C5, or another C series instance type)."
-        )
+    restricted_instances = {"c": ["c4"], "m": ["m4"], "p": ["p2"]}
+
+    for instance_serie, instance_list in restricted_instances.items():
+        for instance_family in instance_list:
+            if f"{instance_family}." in instance_type:
+                raise RuntimeError(
+                    f"{instance_family.upper()}-family instances are no longer supported in our system."
+                    f"Please use a different instance type (i.e. another {instance_serie.upper()} series instance type)."
+                )
     return
 
 
