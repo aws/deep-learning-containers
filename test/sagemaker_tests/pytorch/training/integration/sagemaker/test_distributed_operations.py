@@ -107,7 +107,7 @@ def test_dist_operations_gpu(
     """
     Test is run as multinode
     """
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p3.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
