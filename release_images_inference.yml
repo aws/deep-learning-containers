@@ -116,8 +116,8 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
-      tensorrtllm_version: "0.8.0"
-      cuda_version: "cu122"
+      deepspeed_version: "0.12.6"
+      cuda_version: "cu121"
       example: False
       disable_sm_tag: True
       force_release: False
