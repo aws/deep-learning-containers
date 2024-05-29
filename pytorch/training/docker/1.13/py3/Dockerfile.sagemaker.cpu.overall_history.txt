@@ -3,7 +3,11 @@
 pip install cryptography==42.0.7 fastapi==0.110.3 idna==3.7 jinja2==3.1.4 pillow==10.3.0 pyopenssl==24.1.0 sagemaker==2.219.0 spacy==3.7.4 starlette==0.37.2 tqdm==4.66.4 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount1 libnghttp2-14 libpam-modules-bin libpam-modules libpam-runtime libpam0g libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Current Patch contents ####
+#### Patch contents for patch-2: sha256:568f7cddccfba162b6e5d3147218a508af30a23d62113a8973b537f858b75929 ####
 pip install cryptography==42.0.7 fastapi==0.110.3 idna==3.7 jinja2==3.1.4 pillow==10.3.0 pyopenssl==24.1.0 sagemaker==2.221.0 spacy==3.7.4 starlette==0.37.2 tqdm==4.66.4 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount1 libnghttp2-14 libpam-modules-bin libpam-modules libpam-runtime libpam0g libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openssl passwd util-linux vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install cryptography==42.0.7 fastapi==0.110.3 idna==3.7 jinja2==3.1.4 pillow==10.3.0 pyopenssl==24.1.0 requests==2.32.2 sagemaker==2.221.1 spacy==3.7.4 starlette==0.37.2 tqdm==4.66.4 werkzeug==3.0.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount1 libnghttp2-14 libpam-modules-bin libpam-modules libpam-runtime libpam0g libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openssl passwd python3-idna util-linux vim-common vim-runtime vim xxd
