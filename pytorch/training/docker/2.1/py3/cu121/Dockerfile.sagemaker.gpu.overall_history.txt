@@ -1,5 +1,13 @@
 #### First image: sha256:6baf716e0ff64d5dbb47d744f16696e78f7799253400938a92364456db1bef62 ####
-#### Current Patch contents ####
+#### Patch contents for patch-1: sha256:22bf82faecc6288cb3abfd6f599d5e288e02ac366f673848b72e56de45e43f38 ####
 pip install argparse==1.4.0 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:4c3b859747d553b824490cc1975414013eda9466a5cf841667292fc2e8bc512a ####
+pip install argparse==1.4.0 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.2 sagemaker==2.221.0 tqdm==4.66.4 werkzeug==3.0.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
