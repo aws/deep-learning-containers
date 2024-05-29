@@ -1,13 +1,5 @@
-#### First image: sha256:d6344a1c254a71cae1f39de2d2ec72022e42209ee487ee83dca4a2bdd11bee02 ####
-#### Patch contents for patch-1: sha256:8c47844db34f2184059aee1fbd04bf25819333664a213f9067c87842b1ff62ac ####
-pip install cryptography==42.0.5 idna==3.7 jinja2==3.1.3 pillow==10.3.0 pyopenssl==24.1.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnss3 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-2: sha256:736f4faf43a0ef1a8ea21bb058011e485a1eff012be56342f4fa5c751623d07f ####
-pip install cryptography==42.0.5 idna==3.7 jinja2==3.1.3 pillow==10.3.0 pyopenssl==24.1.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libpam-modules libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+#### First image: sha256:523796063cbf47fc45e91e812b3019379723c1ee346cd1b2f4c1a448ff65542f ####
 #### Current Patch contents ####
-pip install cryptography==42.0.7 idna==3.7 jinja2==3.1.4 pillow==10.3.0 pyopenssl==24.1.0 tqdm==4.66.4 
+pip install requests==2.32.2 
 python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libpam-modules-bin libpam-modules libpam-runtime libpam0g libsmartcols1 libssh-4 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+echo N/A
