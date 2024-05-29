@@ -32,7 +32,7 @@ context:
       target: deep_learning_container.py
 
 images:
-    BuildSageMakerCPUPTTrainPy3DockerImage:
+  BuildSageMakerCPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
     image_size_baseline: 6200
