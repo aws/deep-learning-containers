@@ -61,8 +61,8 @@ ENV PATH=/opt/conda/bin:$PATH
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=8.9.2.26
-ENV NCCL_VERSION=2.19.4
-ENV EFA_VERSION=1.30.0
+ENV NCCL_VERSION=2.21.5
+ENV EFA_VERSION=1.31.0
 ENV GDRCOPY_VERSION=2.4.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -70,7 +70,6 @@ ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
 ENV DGLBACKEND=pytorch
 ENV MANUAL_BUILD=0
-ENV RDMAV_FORK_SAFE=1
 ENV DLC_CONTAINER_TYPE=training
 
 RUN apt-get update \
@@ -131,7 +130,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     cmake \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -153,6 +152,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
+    "tqdm>=4.66.3" \
+    "zstandard>=0.22.0" \
   && /opt/conda/bin/mamba clean -afy \
   && rm -rf /etc/apt/sources.list.d/*
 
@@ -213,7 +214,7 @@ RUN rm -rf /root/.ssh/ && \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -278,7 +279,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -293,18 +294,14 @@ RUN cd /tmp \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
-ENV LD_PRELOAD="${CUDA_HOME}/lib/libnccl-net.so"
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
+ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \
@@ -411,7 +408,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow opencv-python
+RUN pip install pillow opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -426,18 +423,14 @@ RUN cd /tmp \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
-# makes AllToAll complete successfully. Update will be included in NCCL 2.20.*
-ENV NCCL_CUMEM_ENABLE=0
 # Install NCCL
 RUN cd /tmp \
   && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
   && cd nccl \
-  # fix for AllReduce regression. https://github.com/NVIDIA/nccl/pull/1112
-  && curl https://github.com/liralon/nccl/commit/505aa4b048c3824060332fe3652605e1b33108c8.patch | git apply --reject \
   && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
   && rm -rf /tmp/nccl
-# preload to system nccl for PyTorch to use its statically linked NCCL
-ENV LD_PRELOAD="${CUDA_HOME}/lib/libnccl-net.so"
+# preload to system nccl for PyTorch to use instead of its statically linked NCCL
+ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install packaging \

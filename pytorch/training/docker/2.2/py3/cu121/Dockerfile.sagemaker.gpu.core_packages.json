@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.14",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "flash-attn": {
@@ -24,7 +24,7 @@
     "skip": "True"
   },
   "torchtnt": {
-    "version_specifier": "==0.2.2",
+    "version_specifier": "==0.2.3",
     "skip": "True"
   },
   "torchvision": {
@@ -55,5 +55,14 @@
   },
   "sagemaker-experiments": {
     "version_specifier": "<1"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "zstandard": {
+    "version_specifier": ">=0.22.0"
   }
 }

@@ -61,7 +61,7 @@ def test_smdebug_gpu(
         ec2_connection,
         region,
         ec2_instance_type,
-        docker_executable="nvidia-docker",
+        docker_runtime="--runtime=nvidia --gpus all",
         container_name="smdebug-gpu",
         timeout=smdebug_test_timeout,
     )
@@ -106,7 +106,7 @@ def test_smprofiler_gpu(
         ec2_connection,
         region,
         ec2_instance_type,
-        docker_executable="nvidia-docker",
+        docker_runtime="--runtime=nvidia --gpus all",
         container_name="smdebug-gpu",
         timeout=smdebug_test_timeout,
     )
@@ -162,12 +162,12 @@ def run_smdebug_test(
     ec2_connection,
     region,
     ec2_instance_type,
-    docker_executable="docker",
+    docker_runtime="",
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -178,7 +178,7 @@ def run_smdebug_test(
 
     try:
         ec2_connection.run(
-            f"{docker_executable} run --name {container_name} -v "
+            f"docker run {docker_runtime} --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,
@@ -202,12 +202,12 @@ def run_smprofiler_test(
     ec2_connection,
     region,
     ec2_instance_type,
-    docker_executable="docker",
+    docker_runtime="",
     container_name="smdebug",
     test_script=SMPROFILER_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -218,7 +218,7 @@ def run_smprofiler_test(
 
     try:
         ec2_connection.run(
-            f"{docker_executable} run --name {container_name} -v "
+            f"docker run {docker_runtime} --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,

@@ -98,12 +98,12 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     # are a patch version or two ahead of the corresponding TF version.
     upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} "
+        f"docker run --runtime=nvidia --gpus all --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
         f"python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
-        f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
+        f"docker run --runtime=nvidia --gpus all -id --name {serving_container_name} -p 8501:8501 "
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
@@ -229,7 +229,8 @@ def run_ec2_tensorflow_inference(
     is_neuron_x = "neuronx" in image_uri
     is_graviton = "graviton" in image_uri
 
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
+
     if is_neuron:
         # For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -242,7 +243,7 @@ def run_ec2_tensorflow_inference(
             dst_port = "8500"
 
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {src_port}:{dst_port} "
+            f"docker run {docker_runtime} -id --name {container_name} -p {src_port}:{dst_port} "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name} "
             f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
@@ -250,7 +251,7 @@ def run_ec2_tensorflow_inference(
         )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"docker run {docker_runtime} -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
