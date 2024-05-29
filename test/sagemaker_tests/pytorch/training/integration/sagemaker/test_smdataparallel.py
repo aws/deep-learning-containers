@@ -61,6 +61,7 @@ def can_run_smdataparallel_efa(ecr_image):
         image_cuda_version.strip("cu")
     ) >= Version("110")
 
+
 @pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
@@ -104,6 +105,7 @@ def test_smdataparallel_throughput(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
 
+
 @pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
@@ -135,6 +137,7 @@ def test_smdataparallel_mnist_script_mode_multigpu(
         invoke_pytorch_estimator(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
+
 
 @pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_py2_containers
@@ -173,6 +176,7 @@ def test_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type, t
         invoke_pytorch_estimator(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
+
 
 @pytest.mark.skip_smddataparallel_test
 @pytest.mark.skip_py2_containers
