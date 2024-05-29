@@ -15,6 +15,10 @@ apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid
 pip install idna==3.7 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-5: sha256:10512caad008eae4c71e7348491ddfba148dd77f9b606c64b765d7229501aabb ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
 #### Current Patch contents ####
 pip install idna==3.7 
 python -m pip install --upgrade pip
