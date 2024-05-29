@@ -133,7 +133,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310"],
+        choices=["2", "3", "37", "38", "39", "310", "311"],
         default=str(sys.version_info.major),
     )
     parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
@@ -549,7 +549,7 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.3": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):

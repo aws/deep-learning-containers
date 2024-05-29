@@ -604,7 +604,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
-        2. p2.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
+        2. p3.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -624,7 +624,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "mxnet"
         and get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
-        and ec2_instance_type in ["p2.8xlarge"]
+        and ec2_instance_type in ["p3.8xlarge"]
     )
     incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
@@ -632,7 +632,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "pytorch"
         and Version(framework_version) in SpecifierSet("==1.11.*")
         and get_processor_from_image_uri(image_uri) == "gpu"
-        and ec2_instance_type in ["p2.8xlarge"]
+        and ec2_instance_type in ["p3.8xlarge"]
     )
     incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
 

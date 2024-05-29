@@ -48,7 +48,7 @@ def test_ecs_mxnet_training_mnist_gpu(
     """
     GPU mnist test for MXNet Training
 
-    Instance Type - p2.8xlarge
+    Instance Type - p3.8xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -96,7 +96,7 @@ def test_ecs_mxnet_training_dgl_cpu(
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p2.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.team("dgl")
 def test_ecs_mxnet_training_dgl_gpu(
@@ -105,7 +105,7 @@ def test_ecs_mxnet_training_dgl_gpu(
     """
     GPU DGL test for MXNet Training
 
-    Instance Type - p2.xlarge
+    Instance Type - p3.8xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.
@@ -165,7 +165,7 @@ def test_ecs_mxnet_training_gluonnlp_gpu(
     """
     GPU Gluon NLP test for MXNet Training
 
-    Instance Type - p2.16xlarge
+    Instance Type - p3.16xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.
