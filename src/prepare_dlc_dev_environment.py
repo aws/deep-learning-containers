@@ -72,6 +72,10 @@ class TomlOverrider:
     @property
     def overrides(self):
         return self._overrides
+    
+
+def write_toml(toml_path, overrides):
+    pass
 
 
 def main():
