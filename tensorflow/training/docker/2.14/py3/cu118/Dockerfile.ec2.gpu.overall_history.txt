@@ -23,7 +23,11 @@ apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86
 pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 linux-libc-dev login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
-#### Current Patch contents ####
+#### Patch contents for patch-7: sha256:fff71f089aba015d4ddc7863b5588e2e394d699db95c95878bdf9b3e7aca5eba ####
 pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 werkzeug==3.0.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 linux-libc-dev login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install idna==3.7 pillow==10.3.0 requests==2.32.2 tqdm==4.66.4 werkzeug==3.0.3 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk less libbinutils libblkid-dev libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libglib2.0-bin libgnutls30 libmount-dev libmount1 libnghttp2-14 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libxml2-utils libxml2 linux-libc-dev login mount openssl passwd util-linux uuid-dev vim-common vim-runtime vim xxd
