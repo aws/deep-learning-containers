@@ -70,10 +70,10 @@ ec2_tests_on_heavy_instances = true
 
 ### SM specific tests
 ### Off by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = false
+sagemaker_remote_tests = true
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
