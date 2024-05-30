@@ -5,6 +5,9 @@ ARG MINIFORGE3_VERSION=23.11.0-0
 ARG PYTORCH_VERSION=2.2.0
 ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
 
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.2.0/cu121/2024-03-04/smdistributed_dataparallel-2.2.0-cp310-cp310-linux_x86_64.whl
+
+
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -367,9 +370,10 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
-
+ARG SMD_DATA_PARALLEL_URL
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 WORKDIR /
 
@@ -410,7 +414,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.0" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -477,6 +481,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
 
