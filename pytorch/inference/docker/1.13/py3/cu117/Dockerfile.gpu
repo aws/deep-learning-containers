@@ -61,7 +61,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 ENV LANG C.UTF-8
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV PATH /opt/conda/bin:$PATH
-ENV TEMP=/home/model-server/tmp
+ENV TEMP=/tmp
 # Set MKL_THREADING_LAYER=GNU to prevent issues between torch and numpy/mkl
 ENV MKL_THREADING_LAYER=GNU
 ENV DLC_CONTAINER_TYPE=inference
@@ -188,6 +188,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     libgcc \
+    "zstandard>=0.21.0" \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
@@ -212,6 +213,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
     "pillow>=10.0.1" \
+    "pyopenssl>=24.1.0" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
@@ -236,7 +238,7 @@ RUN cd tmp/ \
  && rm -rf tmp*
 
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && mkdir -p /tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
 COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
@@ -298,6 +300,8 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
+## Latest SM Toolkit needs numpy>=1.24.4 hence the latest version of numpy is installed in SM containers
+## Latest SM Toolkit does not install sagemaker-inference as its dependency
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py

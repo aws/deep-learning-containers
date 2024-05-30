@@ -34,8 +34,8 @@ if [ ${PYTORCH_VERSION_2} -eq 1 ]; then
 fi
 
 if [ ${PYTHON_VERSION_CHECK} -eq 1 ]; then
-    sed -i 's/async=True/non_blocking=True/g' dlbs/python/pytorch_benchmarks/dataset_factory.py
-    echo "Python version greater than or equal to 3.7, replacing asyc with non_blocking in test script"
+  sed -i 's/async=True/non_blocking=True/g' dlbs/python/pytorch_benchmarks/dataset_factory.py
+  echo "Python version greater than or equal to 3.7, replacing asyc with non_blocking in test script"
 fi
 
 export OMP_NUM_THREADS=8
