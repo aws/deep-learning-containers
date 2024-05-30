@@ -10,21 +10,23 @@ from test.test_utils import (
     login_to_ecr_registry,
     get_account_id_from_image_uri,
 )
-from test.test_utils.ec2 import (
-    get_ec2_instance_type,
-    execute_ec2_inference_test,
-    get_ec2_accelerator_type,
-)
+from test.test_utils.ec2 import get_ec2_instance_type, filter_only_single_gpu
 from test.dlc_tests.conftest import LOGGER
 
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
-PT_EC2_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
-PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["p3.2xlarge", "g4dn.4xlarge", "g5.4xlarge"]
+PT_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+)
+PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="p3.2xlarge",
+    processor="gpu",
+    filter_function=filter_only_single_gpu,
+)
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("training-compiler")
 def test_ec2_pytorch_inference_gpu_inductor(
     pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
@@ -50,7 +52,7 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.team("training-compiler")
 def test_ec2_pytorch_inference_graviton_compilation(
