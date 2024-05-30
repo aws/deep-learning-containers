@@ -39,5 +39,8 @@
   },
   "cloudpickle": {
     "version_specifier": ">=2.2.1"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
   }
 }
