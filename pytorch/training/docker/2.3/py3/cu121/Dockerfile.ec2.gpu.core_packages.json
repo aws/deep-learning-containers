@@ -42,5 +42,8 @@
   },
   "requests": {
     "version_specifier": ">=2.32.0"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
   }
 }
