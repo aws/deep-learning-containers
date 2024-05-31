@@ -56,7 +56,7 @@
          "specs":[
             "<24"
          ],
-         "advisory":"Being used by DLC team for upgrades."
+         "advisory":"Being used by DLC team to handle mismatches with upstream versions."
       }
    ]
  }
