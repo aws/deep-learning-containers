@@ -218,7 +218,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    LOGGER.info(f"\n\n===ALLOWLIST===\n{image_scan_allowlist.get_summarized_info() if image_scan_allowlist else "None"}\n===============\n\n")
+    LOGGER.info(f"\n\n===ALLOWLIST===\n{image_scan_allowlist.get_summarized_info()}\n===============\n\n")
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
@@ -239,7 +239,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
-        LOGGER.info(f"\n\n===FUTURE ALLOWLIST===\n{future_allowlist.get_summarized_info() if future_allowlist else "None"}\n===============\n\n")
+        LOGGER.info(f"\n\n===FUTURE ALLOWLIST===\n{future_allowlist.get_summarized_info()}\n===============\n\n")
 
         # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
         # as we want to upload the allowlist to the location that has repo of the actual image.
@@ -302,7 +302,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         image, remove_non_patchable_vulns="autopatch" in image
     )
-    LOGGER.info(f"\n\n===REMAINING VULNS===\n{remaining_vulnerabilities.get_summarized_info() if remaining_vulnerabilities else "None"}\n===============\n\n")
+    LOGGER.info(f"\n\n===REMAINING VULNS===\n{remaining_vulnerabilities.get_summarized_info()}\n===============\n\n")
     if remaining_vulnerabilities:
         LOGGER.info(
             f"Total of {len(remaining_vulnerabilities.vulnerability_list)} vulnerabilities need to be fixed on {image}:\n"
