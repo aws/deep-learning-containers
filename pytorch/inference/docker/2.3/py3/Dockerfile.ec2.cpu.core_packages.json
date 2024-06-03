@@ -4,15 +4,15 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.3.0+cu121",
+    "version_specifier": "==2.3.0+cpu",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.18.0+cu121",
+    "version_specifier": "==0.18.0+cpu",
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.18.0+cu121",
+    "version_specifier": "==0.18.0+cpu",
     "skip": "True"
   },
   "awscli": {
