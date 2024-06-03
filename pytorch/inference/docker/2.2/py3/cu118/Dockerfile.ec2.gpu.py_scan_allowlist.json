@@ -1,4 +1,3 @@
 {
-  "70612": "In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the \"source\" parameter as a template object, renders it, and then returns it. The attacker can exploit it with {{INJECTION COMMANDS}} in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
-  "71064": "Requests >=2.32.0 fixes CVE-2024-35195, but it causes https://github.com/psf/requests/issues/6707. So we allowlist this finding for now."
+    "70612": "[Package: jinja2] Conflicts for: jinja2"
 }
