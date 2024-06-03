@@ -376,20 +376,19 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     """
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
-    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()            # runs above command
+    container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
     install_safety_cmd = "pip install 'safety>=2.2.0,<3'"
     docker_exec_cmd = f"docker exec -i {container_id}"
-    ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)                    # runs 380 in the container ran on 379
+    ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)                    
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    LOGGER.info(f"\n\n\n===IGNORE LIST===\n{ignore_dict}\n\n\n")
-    # ^^^ Get a dict of known safety check issue IDs to ignore, if specified in file ../data/ignore_ids_safety_scan.json.
+    LOGGER.info(f"\n\n===IGNORE LIST===\n{ignore_dict}\n===============\n\n")
     safety_report_generator_object = SafetyReportGenerator(
         container_id, ignore_dict=ignore_dict, image_uri=image_uri, image_info=image_info
     )
     safety_scan_output = safety_report_generator_object.generate()
-    LOGGER.info(f"\n\n\n===SAFETY REPORT===\n{safety_scan_output}\n\n\n")
+    LOGGER.info(f"\n\n===SAFETY REPORT===\n{safety_scan_output}\n===============\n\n")
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
