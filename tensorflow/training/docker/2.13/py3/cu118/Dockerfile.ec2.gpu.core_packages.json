@@ -13,8 +13,5 @@
     },
     "tensorflow-gpu": {
         "version_specifier": "==2.13.0"
-    },
-    "jinja2": {
-        "version_specifier": ">=3.1.4"
     }
 }
