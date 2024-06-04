@@ -147,8 +147,6 @@ RUN cd /tmp \
  && rm -rf /tmp/nccl
 # preload to system nccl for PyTorch to use its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
-# fix for https://stackoverflow.com/questions/74003230/runtimeerror-nccl-error-2-unhandled-system-error
-ENV NCCL_SHM_DISABLE=1
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
@@ -195,10 +193,10 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     packaging \
     conda-content-trust \
     charset-normalizer \
+    requests \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
     "zstandard>=0.22.0" \
-    "requests>=2.32.0" \
  && /opt/conda/bin/conda clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -299,6 +297,9 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+
+###
+LABEL com.amazonaws.sagemaker.inference.cuda.version=12.1
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
