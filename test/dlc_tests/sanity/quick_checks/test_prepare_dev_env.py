@@ -10,7 +10,7 @@ def test_build_frameworks():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_build_frameworks(("pytorch", "tensorflow"))
 
-    assert overrider.overrides == {"build_frameworks": ["pytorch", "tensorflow"]}
+    assert overrider.overrides == {"build":{"build_frameworks": ["pytorch", "tensorflow"]}}
 
 
 @pytest.mark.quick_checks
@@ -21,27 +21,35 @@ def test_build_job_types():
     overrider.set_job_type(("inference", "training"))
 
     assert overrider.overrides == {
-        "build_training": True,
-        "build_inference": True,
+        "build": {
+            "build_training": True,
+            "build_inference": True,
+        }
     }
 
     overrider.set_job_type(["inference"])
 
     assert overrider.overrides == {
-        "build_training": False,
-        "build_inference": True,
+        "build": {
+            "build_training": False,
+            "build_inference": True,
+        }
     }
 
     overrider.set_job_type(["training"])
 
     assert overrider.overrides == {
-        "build_training": True,
-        "build_inference": False,
+        "build": {
+            "build_training": True,
+            "build_inference": False,
+        }
     }
 
-    overrider.set_job_type([""])
+    overrider.set_job_type([])
 
     assert overrider.overrides == {
-        "build_training": False,
-        "build_inference": False,
+        "build": {
+            "build_training": False,
+            "build_inference": False,
+        }
     }
