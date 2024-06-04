@@ -46,8 +46,8 @@ class TomlOverrider:
 
     def set_build_frameworks(self, frameworks):
         """
-        This method takes a list of frameworks as input and assembles a dictionary with the key 
-        'build_frameworks' and the value as a list of unique framework names. The resulting 
+        This method takes a list of frameworks as input and assembles a dictionary with the key
+        'build_frameworks' and the value as a list of unique framework names. The resulting
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
         unique_frameworks = list(set(frameworks))
