@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import toml
 
 from config import get_dlc_developer_config_path
 
@@ -41,7 +42,7 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {}
+        self._overrides = {"build": {}}
 
     def set_build_frameworks(self, frameworks):
         """
@@ -54,7 +55,7 @@ class TomlOverrider:
         return a dictionary object
         """
         unique_frameworks = list(set(frameworks))
-        self._overrides["build_frameworks"] = unique_frameworks
+        self._overrides["build"]["build_frameworks"] = unique_frameworks
 
     def set_job_type(self, job_types):
         """
@@ -66,8 +67,8 @@ class TomlOverrider:
         """
         build_training = "training" in job_types
         build_inference = "inference" in job_types
-        self._overrides["build_training"] = build_training
-        self._overrides["build_inference"] = build_inference
+        self._overrides["build"]["build_training"] = build_training
+        self._overrides["build"]["build_inference"] = build_inference
 
     @property
     def overrides(self):
@@ -75,13 +76,22 @@ class TomlOverrider:
     
 
 def write_toml(toml_path, overrides):
-    pass
+    with open(toml_path, "r") as toml_file_reader:
+        loaded_toml = toml.load(toml_file_reader)
+    for key, value in overrides.items():
+        for k, v in value.items():
+            loaded_toml[key][k] = v
+    with open(toml_path, "w") as toml_file_writer:
+        output = toml.dumps(loaded_toml).split("\n")
+        for line in output:
+            toml_file_writer.write(f"{line}\n")
 
 
 def main():
     args = get_args()
     frameworks = args.frameworks
     job_types = args.job_types
+    toml_path = args.partner_toml
 
     LOGGER.info(f"Inferring framework to be {frameworks}...")
 
@@ -92,6 +102,7 @@ def main():
     overrider.set_job_type(job_types=job_types)
 
     LOGGER.info(overrider.overrides)
+    write_toml(toml_path, overrides=overrider.overrides)
 
 if __name__ == "__main__":
     main()
