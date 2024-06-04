@@ -73,7 +73,7 @@ class TomlOverrider:
     @property
     def overrides(self):
         return self._overrides
-    
+
 
 def write_toml(toml_path, overrides):
     with open(toml_path, "r") as toml_file_reader:
@@ -103,6 +103,7 @@ def main():
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
+
 
 if __name__ == "__main__":
     main()
