@@ -46,13 +46,9 @@ class TomlOverrider:
 
     def set_build_frameworks(self, frameworks):
         """
-        Write a function that, given a list of frameworks, assembles a dictionary with key/value pairs:
-        {"build_frameworks": ["framework1", "framework2"]}
-
-        Make sure there are no repeats
-
-        frameworks is a list
-        return a dictionary object
+        This method takes a list of frameworks as input and assembles a dictionary with the key 
+        'build_frameworks' and the value as a list of unique framework names. The resulting 
+        dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
         unique_frameworks = list(set(frameworks))
         self._overrides["build"]["build_frameworks"] = unique_frameworks
