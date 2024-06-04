@@ -10,7 +10,7 @@ def test_build_frameworks():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_build_frameworks(("pytorch", "tensorflow"))
 
-    assert overrider.overrides == {"build":{"build_frameworks": ["pytorch", "tensorflow"]}}
+    assert overrider.overrides == {"build": {"build_frameworks": ["pytorch", "tensorflow"]}}
 
 
 @pytest.mark.quick_checks
