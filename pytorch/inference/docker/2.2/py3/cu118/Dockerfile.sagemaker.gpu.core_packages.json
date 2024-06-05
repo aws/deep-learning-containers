@@ -53,7 +53,7 @@
     "version_specifier": "==0.11.0"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.23"
+    "version_specifier": "==2.0.24"
   },
   "triton": {
     "version_specifier": "==2.2.0"
