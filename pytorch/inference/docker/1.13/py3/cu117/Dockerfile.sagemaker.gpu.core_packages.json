@@ -53,5 +53,8 @@
    },
    "zstandard": {
       "version_specifier": ">=0.21.0"
+   },
+   "requests": {
+      "version_specifier": ">=2.32.3"
    }
 }
