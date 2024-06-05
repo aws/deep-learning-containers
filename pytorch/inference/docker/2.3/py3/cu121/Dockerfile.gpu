@@ -145,8 +145,7 @@ RUN cd /tmp \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
-###
-# preload to system nccl for PyTorch to use its statically linked NCCL
+# preload system nccl for PyTorch to use if it is dynamically linking NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install OpenMPI
@@ -228,14 +227,10 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 RUN pip install --no-cache-dir -U \
     # triton required for torch inductor
     triton==${TRITON_VERSION} \
-    torch==2.3.0 \
-    torchvision \
-    torchaudio \
-    torchtext
-    # ${TORCH_URL} \
-    # ${TORCHVISION_URL} \
-    # ${TORCHAUDIO_URL} \
-    # ${TORCHTEXT_URL}
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
@@ -302,7 +297,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
-###
 LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG PYTHON
