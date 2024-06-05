@@ -190,7 +190,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     pyarrow \
     typing \
     h5py \
-    requests \
+    "requests>=2.32.3" \
     libgcc \
     cmake \
     packaging \

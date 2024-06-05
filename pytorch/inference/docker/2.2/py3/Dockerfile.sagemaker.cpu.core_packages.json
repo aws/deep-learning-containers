@@ -19,6 +19,9 @@
     "version_specifier": "==0.17.0+cpu",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.3"
+  },
   "awscli": {
     "version_specifier": "<2"
   },

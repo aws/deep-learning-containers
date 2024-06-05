@@ -125,7 +125,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     numpy \
     typing \
     h5py \
-    requests \
+    "requests>=2.32.3" \
     libgcc \
     cmake \
     packaging \
