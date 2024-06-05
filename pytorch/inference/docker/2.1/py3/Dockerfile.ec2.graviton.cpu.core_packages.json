@@ -20,7 +20,7 @@
     "skip": "True"
   },
   "requests": {
-    "version_specifier": ">=2.32.2"
+    "version_specifier": ">=2.32.3"
   },
   "pyopenssl": {
     "version_specifier": ">=24.1.0"
