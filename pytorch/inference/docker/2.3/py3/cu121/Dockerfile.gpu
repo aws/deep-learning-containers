@@ -228,10 +228,14 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 RUN pip install --no-cache-dir -U \
     # triton required for torch inductor
     triton==${TRITON_VERSION} \
-    ${TORCH_URL} \
-    ${TORCHVISION_URL} \
-    ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
+    torch==2.3.0 \
+    torchvision \
+    torchaudio \
+    torchtext
+    # ${TORCH_URL} \
+    # ${TORCHVISION_URL} \
+    # ${TORCHAUDIO_URL} \
+    # ${TORCHTEXT_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
