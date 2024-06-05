@@ -158,7 +158,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
-    "requests>=2.32.3" \
     cython \
     "mkl>=2023.2.0,<2024" \
     "mkl-include>=2023.2.0,<2024" \
@@ -166,11 +165,12 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     scipy \
     typing \
     h5py \
+    requests \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
     "conda-content-trust>=0.2.0" \
     "zstandard>=0.21.0" \
-    "charset-normalizer>=3.3.2" \
+    charset-normalizer \
  && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
  && /opt/conda/bin/conda clean -ya
 
@@ -217,6 +217,9 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     numpy \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Patches
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
