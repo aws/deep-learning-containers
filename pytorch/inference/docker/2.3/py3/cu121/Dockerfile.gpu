@@ -145,6 +145,7 @@ RUN cd /tmp \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
+###
 # preload to system nccl for PyTorch to use its statically linked NCCL
 ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
@@ -297,6 +298,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+###
 LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG PYTHON
