@@ -22,9 +22,6 @@
   "requests": {
     "version_specifier": ">=2.32.3"
   },
-  "charset-normalizer": {
-    "version_specifier": ">=3.3.2"
-  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },
