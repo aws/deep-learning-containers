@@ -165,7 +165,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     scipy \
     typing \
     h5py \
-    "requests>=2.32.3" \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
     "conda-content-trust>=0.2.0" \
@@ -186,6 +185,7 @@ RUN pip install --no-cache-dir -U \
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
     # due to incompatibility with SM hosts
     nvgpu \
+    "requests>=2.32.3" \
     "pyOpenSSL>=24.0.0" \
     "cryptography>=42.0.5" \
     "ipython>=8.10.0,<9.0" \
