@@ -19,6 +19,9 @@
     "version_specifier": "==0.16.0+cpu",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.1.0"
   },
