@@ -36,6 +36,13 @@ def get_args():
         default=["training", "inference"],
         help="Training and inference containers to prepare developer environment",
     )
+    parser.add_argument(
+        "--tests",
+        nargs="+",
+        choices=["unit", "integration", "all"],
+        default=[],
+        help="Types of tests to run",
+    )
 
     return parser.parse_args()
 
@@ -65,6 +72,15 @@ class TomlOverrider:
         build_inference = "inference" in job_types
         self._overrides["build"]["build_training"] = build_training
         self._overrides["build"]["build_inference"] = build_inference
+
+    def set_test_types(self, test_types):
+        """
+        This method takes a list of test types as input and assembles a dictionary with the key
+        'test_types' and the value as a list of unique test type names. The resulting dictionary
+        is stored in the _overrides attribute of the TomlOverrider object.
+        """
+        unique_test_types = list(set(test_types))
+        self._overrides["build"]["test_types"] = unique_test_types
 
     @property
     def overrides(self):
@@ -96,6 +112,7 @@ def main():
     # Handle frameworks to build
     overrider.set_build_frameworks(frameworks=frameworks)
     overrider.set_job_type(job_types=job_types)
+    overrider.set_test_types(test_types=args.tests)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
