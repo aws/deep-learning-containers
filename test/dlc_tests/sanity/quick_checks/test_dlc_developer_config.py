@@ -24,7 +24,7 @@ def test_developer_configuration():
     assert config.is_deep_canary_mode_enabled() is False
 
     # Check build settings
-    assert config.parse_dlc_developer_configs("build", "build_frameworks") == ["pytorch"]
+    assert config.parse_dlc_developer_configs("build", "build_frameworks") == []
     assert config.parse_dlc_developer_configs("build", "build_training") is True
     assert config.parse_dlc_developer_configs("build", "build_inference") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
