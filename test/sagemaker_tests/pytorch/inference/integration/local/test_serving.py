@@ -79,7 +79,7 @@ def test_serve_json_npy(
 
 @pytest.mark.model("mnist")
 @pytest.mark.team("inference-toolkit")
-@pytest.mark.skip(reason="Temp skip while investigating failure, might need to update the model")
+# @pytest.mark.skip(reason="Temp skip while investigating failure, might need to update the model")
 def test_serve_csv(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
