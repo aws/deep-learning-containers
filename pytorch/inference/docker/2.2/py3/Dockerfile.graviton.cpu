@@ -159,6 +159,7 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # Patches
+# py-vuln: 71064
 RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
