@@ -54,49 +54,50 @@ def test_build_job_types():
         }
     }
 
+
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
 def test_set_test_types():
-        overrider = prepare_dlc_dev_environment.TomlOverrider()
-        overrider.set_test_types(["unit", "integration", "all"])
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+    overrider.set_test_types(["unit", "integration", "all"])
 
-        # Test with a single test type
-        overrider.set_test_types(["unit"])
-        assert overrider.overrides == {"build": {"test_types": ["unit"]}}
+    # Test with a single test type
+    overrider.set_test_types(["unit"])
+    assert overrider.overrides == {"build": {"test_types": ["unit"]}}
 
-        overrider.set_test_types(["integration"])
-        assert overrider.overrides == {"build": {"test_types": ["integration"]}}
+    overrider.set_test_types(["integration"])
+    assert overrider.overrides == {"build": {"test_types": ["integration"]}}
 
-        overrider.set_test_types(["all"])
-        assert overrider.overrides == {"build": {"test_types": ["all"]}}
+    overrider.set_test_types(["all"])
+    assert overrider.overrides == {"build": {"test_types": ["all"]}}
 
-        # Test with multiple test types
-        overrider.set_test_types(["unit", "integration", "all"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
+    # Test with multiple test types
+    overrider.set_test_types(["unit", "integration", "all"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
 
-        overrider.set_test_types(["unit", "integration"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
+    overrider.set_test_types(["unit", "integration"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
 
-        overrider.set_test_types(["integration", "all"])
-        assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
+    overrider.set_test_types(["integration", "all"])
+    assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
 
-        overrider.set_test_types(["unit", "all"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "all"]}}
+    overrider.set_test_types(["unit", "all"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "all"]}}
 
-        # Test with an empty list
-        overrider.set_test_types([])
-        assert overrider.overrides == {"build": {"test_types": []}}
+    # Test with an empty list
+    overrider.set_test_types([])
+    assert overrider.overrides == {"build": {"test_types": []}}
 
-        # Test with duplicates
-        overrider.set_test_types(["unit", "unit", "integration"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
+    # Test with duplicates
+    overrider.set_test_types(["unit", "unit", "integration"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
 
-        overrider.set_test_types(["unit", "integration", "integration"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
+    overrider.set_test_types(["unit", "integration", "integration"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
 
-        overrider.set_test_types(["integration", "all", "all"])
-        assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
+    overrider.set_test_types(["integration", "all", "all"])
+    assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
 
-        overrider.set_test_types(["unit", "unit", "integration", "integration", "all", "all"])
-        assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
+    overrider.set_test_types(["unit", "unit", "integration", "integration", "all", "all"])
+    assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
