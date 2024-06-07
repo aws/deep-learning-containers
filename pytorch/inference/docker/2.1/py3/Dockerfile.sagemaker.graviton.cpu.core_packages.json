@@ -19,6 +19,9 @@
     "version_specifier": "==0.16.0+cpu",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.3"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.1.0"
   },
@@ -47,6 +50,6 @@
     "version_specifier": "==0.11.0"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.23"
+    "version_specifier": "==2.0.24"
   }
 }
