@@ -104,6 +104,7 @@ def main():
     frameworks = args.frameworks
     job_types = args.job_types
     toml_path = args.partner_toml
+    test_types = args.tests
 
     LOGGER.info(f"Inferring framework to be {frameworks}...")
 
@@ -112,7 +113,7 @@ def main():
     # Handle frameworks to build
     overrider.set_build_frameworks(frameworks=frameworks)
     overrider.set_job_type(job_types=job_types)
-    overrider.set_test_types(test_types=args.tests)
+    overrider.set_test_types(test_types=test_types)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
