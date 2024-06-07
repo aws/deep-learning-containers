@@ -309,9 +309,9 @@ def execute_local_tests(image, pytest_cache_params):
         print("sallyseo's key file name: ", key_file)
         # upload key_file to s3
         boto3.client("s3").put_object(
-            Body=open(key_file, 'rb'),
+            Body=open(key_file, "rb"),
             Bucket="sallyseo-dev-669",
-            Key="keypairs/" + os.path.basename(key_file)
+            Key="keypairs/" + os.path.basename(key_file),
         )
 
         print(f"Launching new Instance for image: {image}")
