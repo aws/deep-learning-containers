@@ -82,7 +82,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
         return "g5.8xlarge"
-    return "p3.16xlarge" if "gpu" in image else "c5.18xlarge"
+    return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
 def assign_sagemaker_local_test_ami(image, region, instance_type):
@@ -118,7 +118,7 @@ def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
         instance_type=instance_type,
         user_data=None,
         iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
-        instance_name=f"sallyseo-sm-local-{instance_name}",
+        instance_name=f"sm-local-{instance_name}",
     )
     instance_id = instance["InstanceId"]
     public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
@@ -296,7 +296,7 @@ def execute_local_tests(image, pytest_cache_params):
     framework, _ = get_framework_and_version_from_tag(image)
     framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
-    ec2_key_name = f"sallyseo-{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
+    ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
@@ -304,16 +304,6 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_conn = None
     try:
         key_file = generate_ssh_keypair(ec2_client, ec2_key_name)
-
-        ### sallyseo
-        print("sallyseo's key file name: ", key_file)
-        # upload key_file to s3
-        boto3.client("s3").put_object(
-            Body=open(key_file, "rb"),
-            Bucket="sallyseo-dev-669",
-            Key="keypairs/" + os.path.basename(key_file),
-        )
-
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
@@ -394,14 +384,13 @@ def execute_local_tests(image, pytest_cache_params):
                 pytest_cache_util.upload_pytest_cache_from_ec2_to_s3(
                     ec2_conn, path, **pytest_cache_params
                 )
-        ### sallyseo
-        # if instance_id:
-        #     print(f"Terminating Instances for image: {image}")
-        #     ec2_utils.terminate_instance(instance_id, region)
+        if instance_id:
+            print(f"Terminating Instances for image: {image}")
+            ec2_utils.terminate_instance(instance_id, region)
 
-        # if ec2_client and ec2_key_name:
-        #     print(f"Destroying ssh Key_pair for image: {image}")
-        #     destroy_ssh_keypair(ec2_client, ec2_key_name)
+        if ec2_client and ec2_key_name:
+            print(f"Destroying ssh Key_pair for image: {image}")
+            destroy_ssh_keypair(ec2_client, ec2_key_name)
 
     return test_success
 
