@@ -19,7 +19,6 @@ def test_build_frameworks():
 def test_build_job_types():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_job_type(("inference", "training"))
-
     assert overrider.overrides == {
         "build": {
             "build_training": True,
@@ -28,7 +27,6 @@ def test_build_job_types():
     }
 
     overrider.set_job_type(["inference"])
-
     assert overrider.overrides == {
         "build": {
             "build_training": False,
@@ -37,7 +35,6 @@ def test_build_job_types():
     }
 
     overrider.set_job_type(["training"])
-
     assert overrider.overrides == {
         "build": {
             "build_training": True,
@@ -46,7 +43,6 @@ def test_build_job_types():
     }
 
     overrider.set_job_type([])
-
     assert overrider.overrides == {
         "build": {
             "build_training": False,
@@ -58,49 +54,77 @@ def test_build_job_types():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
-def test_set_test_types():
+def test_set_test_types_single():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
-    overrider.set_test_types(["unit", "integration", "all"])
 
-    # Test with a single test type
-    overrider.set_test_types(["unit"])
-    assert overrider.overrides == {"build": {"test_types": ["unit"]}}
+    for test_type in [
+        "benchmark",
+        "container_tests",
+        "ec2",
+        "ecs",
+        "eks",
+        "release_candidate_integration",
+        "sanity",
+    ]:
+        overrider.set_test_types([test_type])
+        assert overrider.overrides == {"build": {"test_types": [test_type]}}
 
-    overrider.set_test_types(["integration"])
-    assert overrider.overrides == {"build": {"test_types": ["integration"]}}
+    overrider.set_test_types(
+        [
+            "benchmark",
+            "container_tests",
+            "ec2",
+            "ecs",
+            "eks",
+            "release_candidate_integration",
+            "sanity",
+        ]
+    )
+    assert overrider.overrides == {
+        "build": {
+            "test_types": [
+                "benchmark",
+                "container_tests",
+                "ec2",
+                "ecs",
+                "eks",
+                "release_candidate_integration",
+                "sanity",
+            ]
+        }
+    }
 
-    overrider.set_test_types(["all"])
-    assert overrider.overrides == {"build": {"test_types": ["all"]}}
+    overrider.set_test_types(["benchmark", "benchmark", "container_tests"])
+    assert overrider.overrides == {"build": {"test_types": ["benchmark", "container_tests"]}}
 
-    # Test with multiple test types
-    overrider.set_test_types(["unit", "integration", "all"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
 
-    overrider.set_test_types(["unit", "integration"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
-
-    overrider.set_test_types(["integration", "all"])
-    assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
-
-    overrider.set_test_types(["unit", "all"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "all"]}}
-
-    # Test with an empty list
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("test_types")
+def test_set_test_types_empty():
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_test_types([])
     assert overrider.overrides == {"build": {"test_types": []}}
 
-    # Test with duplicates
-    overrider.set_test_types(["unit", "unit", "integration"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
 
-    overrider.set_test_types(["unit", "integration", "integration"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "integration"]}}
-
-    overrider.set_test_types(["integration", "all", "all"])
-    assert overrider.overrides == {"build": {"test_types": ["integration", "all"]}}
-
-    overrider.set_test_types(["unit", "unit", "integration", "integration", "all", "all"])
-    assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("test_types")
+def test_set_test_types_default():
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+    overrider.set_test_types([])
+    assert overrider.overrides == {
+        "build": {
+            "test_types": [
+                "container_tests",
+                "ec2",
+                "ecs",
+                "eks",
+                "release_candidate_integration",
+                "sanity",
+            ]
+        }
+    }
 
 
 @pytest.mark.quick_checks

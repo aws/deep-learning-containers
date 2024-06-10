@@ -39,8 +39,16 @@ def get_args():
     parser.add_argument(
         "--tests",
         nargs="+",
-        choices=["unit", "integration", "all"],
-        default=[],
+        choices=[
+            "benchmark",
+            "container_tests",
+            "ec2",
+            "ecs",
+            "eks",
+            "release_candidate_integration",
+            "sanity",
+        ],
+        default=["container_tests", "ec2", "ecs", "eks", "release_candidate_integration", "sanity"],
         help="Types of tests to run",
     )
     parser.add_argument(
