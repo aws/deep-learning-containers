@@ -41,14 +41,13 @@ def get_args():
         nargs="+",
         choices=[
             "benchmark",
-            "container_tests",
             "ec2",
             "ecs",
             "eks",
-            "release_candidate_integration",
-            "sanity",
+            "sagemaker_remote",
+            "sagemaker_local",
         ],
-        default=["container_tests", "ec2", "ecs", "eks", "release_candidate_integration", "sanity"],
+        default=["ec2", "ecs", "eks", "sagemaker_remote", "sagemaker_local"],
         help="Types of tests to run",
     )
     parser.add_argument(

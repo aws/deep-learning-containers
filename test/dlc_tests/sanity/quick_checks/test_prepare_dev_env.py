@@ -59,12 +59,11 @@ def test_set_test_types_single():
 
     for test_type in [
         "benchmark",
-        "container_tests",
         "ec2",
         "ecs",
         "eks",
-        "release_candidate_integration",
-        "sanity",
+        "sagemaker_remote",
+        "sagemaker_local",
     ]:
         overrider.set_test_types([test_type])
         assert overrider.overrides == {"build": {"test_types": [test_type]}}
@@ -72,36 +71,34 @@ def test_set_test_types_single():
     overrider.set_test_types(
         [
             "benchmark",
-            "container_tests",
             "ec2",
             "ecs",
             "eks",
-            "release_candidate_integration",
-            "sanity",
+            "sagemaker_remote",
+            "sagemaker_local",
         ]
     )
     assert overrider.overrides == {
         "build": {
             "test_types": [
                 "benchmark",
-                "container_tests",
                 "ec2",
                 "ecs",
                 "eks",
-                "release_candidate_integration",
-                "sanity",
+                "sagemaker_remote",
+                "sagemaker_local",
             ]
         }
     }
 
-    overrider.set_test_types(["benchmark", "benchmark", "container_tests"])
-    assert overrider.overrides == {"build": {"test_types": ["benchmark", "container_tests"]}}
+    overrider.set_test_types(["benchmark", "benchmark", "sagemaker_local"])
+    assert overrider.overrides == {"build": {"test_types": ["benchmark", "sagemaker_local"]}}
 
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
-def test_set_test_types_empty():
+def test_set_test_types_empty():  # no tests
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_test_types([])
     assert overrider.overrides == {"build": {"test_types": []}}
@@ -110,18 +107,17 @@ def test_set_test_types_empty():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
-def test_set_test_types_default():
+def test_set_test_types_default():  # default tests
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_test_types([])
     assert overrider.overrides == {
         "build": {
             "test_types": [
-                "container_tests",
                 "ec2",
                 "ecs",
                 "eks",
-                "release_candidate_integration",
-                "sanity",
+                "sagemaker_remote",
+                "sagemaker_local",
             ]
         }
     }
