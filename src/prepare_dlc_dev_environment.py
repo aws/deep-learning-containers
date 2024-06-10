@@ -43,6 +43,12 @@ def get_args():
         default=[],
         help="Types of tests to run",
     )
+    parser.add_argument(
+        "--dev_mode",
+        choices=["graviton", "neuron", "deep_canary"],
+        default=None,
+        help="Enable developer mode for specific hardware targets",
+    )
 
     return parser.parse_args()
 
@@ -82,6 +88,24 @@ class TomlOverrider:
         unique_test_types = list(set(test_types))
         self._overrides["build"]["test_types"] = unique_test_types
 
+    def set_dev_mode(self, dev_mode):
+        """
+        Set the dev mode based on the user input.
+        Valid choices are 'graviton', 'neuron', and 'deep_canary'.
+        """
+        self._overrides["dev"]["graviton_mode"] = False
+        self._overrides["dev"]["neuron_mode"] = False
+        self._overrides["dev"]["deep_canary_mode"] = False
+
+        mode_mapping = {
+            "graviton": "graviton_mode",
+            "neuron": "neuron_mode",
+            "deep_canary": "deep_canary_mode",
+        }
+
+        if dev_mode in mode_mapping:
+            self._overrides["dev"][mode_mapping[dev_mode]] = True
+
     @property
     def overrides(self):
         return self._overrides
@@ -105,6 +129,7 @@ def main():
     job_types = args.job_types
     toml_path = args.partner_toml
     test_types = args.tests
+    dev_mode = args.dev_mode
 
     LOGGER.info(f"Inferring framework to be {frameworks}...")
 
@@ -114,6 +139,7 @@ def main():
     overrider.set_build_frameworks(frameworks=frameworks)
     overrider.set_job_type(job_types=job_types)
     overrider.set_test_types(test_types=test_types)
+    overrider.set_dev_mode(dev_mode=dev_mode)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
