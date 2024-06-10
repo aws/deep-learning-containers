@@ -961,7 +961,9 @@ def request_pytorch_inference_densenet(
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
-        LOGGER.error(f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead. {run_out.return_code=}")
+        LOGGER.error(
+            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead. {run_out.return_code=}"
+        )
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
