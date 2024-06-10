@@ -102,6 +102,7 @@ def test_set_test_types():
     overrider.set_test_types(["unit", "unit", "integration", "integration", "all", "all"])
     assert overrider.overrides == {"build": {"test_types": ["unit", "integration", "all"]}}
 
+
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("dev_mode")
@@ -109,13 +110,21 @@ def test_set_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     overrider.set_dev_mode(None)
-    assert overrider.overrides == {"dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": False}}
+    assert overrider.overrides == {
+        "dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": False}
+    }
 
     overrider.set_dev_mode("graviton")
-    assert overrider.overrides == {"dev": {"graviton_mode": True, "neuron_mode": False, "deep_canary_mode": False}}
+    assert overrider.overrides == {
+        "dev": {"graviton_mode": True, "neuron_mode": False, "deep_canary_mode": False}
+    }
 
     overrider.set_dev_mode("neuron")
-    assert overrider.overrides == {"dev": {"graviton_mode": False, "neuron_mode": True, "deep_canary_mode": False}}
+    assert overrider.overrides == {
+        "dev": {"graviton_mode": False, "neuron_mode": True, "deep_canary_mode": False}
+    }
 
     overrider.set_dev_mode("deep_canary")
-    assert overrider.overrides == {"dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": True}}
+    assert overrider.overrides == {
+        "dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": True}
+    }
