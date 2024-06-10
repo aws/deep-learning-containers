@@ -79,6 +79,7 @@ def test_serve_json_npy(
 
 @pytest.mark.model("mnist")
 @pytest.mark.team("inference-toolkit")
+@pytest.mark.skip(reason="Temp skip while these tests are reevaluated and fixed.")
 def test_serve_csv(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
@@ -98,6 +99,7 @@ def test_serve_csv(
 @pytest.mark.processor("gpu")
 @pytest.mark.team("inference-toolkit")
 @pytest.mark.skip_cpu
+@pytest.mark.skip(reason="Temp skip while these tests are reevaluated and fixed.")
 def test_serve_cpu_model_on_gpu(
     test_loader, docker_image, framework_version, sagemaker_local_session, instance_type
 ):

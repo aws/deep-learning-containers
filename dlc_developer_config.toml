@@ -69,7 +69,7 @@ ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
-### Off by default
+### On by default
 sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
