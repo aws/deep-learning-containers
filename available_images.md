@@ -177,6 +177,8 @@ https://github.com/aws/amazon-sagemaker-examples/blob/main/sagemaker-triton/resn
 
 Large Model Inference Containers
 ===============================
+With LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LMI (LargeModelInference). As part of this change, we have decided to discontinue integration with DeepSpeed library into the container. You can continue to use vLLM or LMi-dist Library with the LMI container. If you plan to use DeepSpeed Library, please follow the steps [here](https://github.com/deepjavalibrary/djl-serving/blob/master/serving/docs/lmi/announcements/deepspeed-deprecation.md) or use LMI V9 (0.27.0). 
+
 | Framework                                                                                                                    | Job Type  | Accelerator | Python Version Options | Example URL                                                                              |
 |------------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|------------------------------------------------------------------------------------------|
 | DJLServing 0.28.0 with TensorRT-LLM 0.9.0, HuggingFace Transformers 4.40.0, and HuggingFace Accelerate 0.29.3                | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-tensorrtllm0.9.0-cu122 |
