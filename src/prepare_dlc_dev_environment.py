@@ -52,7 +52,7 @@ def get_args():
     )
     parser.add_argument(
         "--dev_mode",
-        choices=["graviton", "neuron", "deep_canary"],
+        choices=["graviton_mode", "neuron_mode", "deep_canary_mode"],
         default=None,
         help="Enable developer mode for specific hardware targets",
     )
@@ -137,24 +137,14 @@ class TomlOverrider:
     def set_dev_mode(self, dev_mode):
         """
         Set the dev mode based on the user input.
-        Valid choices are 'graviton', 'neuron', and 'deep_canary'.
+        Valid choices are 'graviton_mode', 'neuron_mode', and 'deep_canary_mode'.
         """
         self._overrides["dev"]["graviton_mode"] = False
         self._overrides["dev"]["neuron_mode"] = False
         self._overrides["dev"]["deep_canary_mode"] = False
 
-        mode_mapping = {
-            "graviton": "graviton_mode",
-            "neuron": "neuron_mode",
-            "deep_canary": "deep_canary_mode",
-        }
-
-        if dev_mode in mode_mapping:
-            self._overrides["dev"][mode_mapping[dev_mode]] = True
-
-    @property
-    def overrides(self):
-        return self._overrides
+        if dev_mode:
+            self._overrides["dev"][dev_mode] = True
 
 
 def write_toml(toml_path, overrides):

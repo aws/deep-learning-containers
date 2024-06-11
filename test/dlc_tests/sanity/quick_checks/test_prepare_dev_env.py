@@ -164,17 +164,17 @@ def test_set_dev_mode():
         "dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": False}
     }
 
-    overrider.set_dev_mode("graviton")
+    overrider.set_dev_mode("graviton_mode")
     assert overrider.overrides == {
         "dev": {"graviton_mode": True, "neuron_mode": False, "deep_canary_mode": False}
     }
 
-    overrider.set_dev_mode("neuron")
+    overrider.set_dev_mode("neuron_mode")
     assert overrider.overrides == {
         "dev": {"graviton_mode": False, "neuron_mode": True, "deep_canary_mode": False}
     }
 
-    overrider.set_dev_mode("deep_canary")
+    overrider.set_dev_mode("deep_canary_mode")
     assert overrider.overrides == {
         "dev": {"graviton_mode": False, "neuron_mode": False, "deep_canary_mode": True}
     }
