@@ -233,6 +233,35 @@
             "status": "ACTIVE",
             "title": "CVE-2023-48022 - ray",
             "reason_to_ignore": "fix not available yet"
+        },
+        {
+            "description": "Anyscale Ray 2.6.3 and 2.8.0 allows a remote attacker to execute arbitrary code via the job submission API. NOTE: the vendor's position is that this report is irrelevant because Ray, as stated in its documentation, is not intended for use outside of a strictly controlled network environment",
+            "vulnerability_id": "CVE-2023-48022",
+            "name": "CVE-2023-48022",
+            "package_name": "ray",
+            "package_details": {
+              "file_path": "opt/conda/lib/python3.10/site-packages/ray-2.10.0.dist-info/METADATA",
+              "name": "ray",
+              "package_manager": "PYTHONPKG",
+              "version": "2.10.0",
+              "release": null
+            },
+            "remediation": {
+              "recommendation": {
+                "text": "None Provided"
+              }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-48022",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2023-48022 - ray",
+            "reason_to_ignore": "fix not available yet"
         }
     ]
 }
