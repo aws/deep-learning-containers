@@ -40,19 +40,26 @@ def get_args():
         "--tests",
         nargs="+",
         choices=[
-            "benchmark",
-            "ec2",
-            "ecs",
-            "eks",
-            "sagemaker_remote",
-            "sagemaker_local",
+            "sanity_tests",
+            "ec2_tests",
+            "ecs_tests",
+            "eks_tests",
+            "sagemaker_remote_tests",
+            "sagemaker_local_tests",
         ],
-        default=["ec2", "ecs", "eks", "sagemaker_remote", "sagemaker_local"],
+        default=[
+            "sanity_tests",
+            "ec2_tests",
+            "ecs_tests",
+            "eks_tests",
+            "sagemaker_remote_tests",
+            "sagemaker_local_tests",
+        ],
         help="Types of tests to run",
     )
     parser.add_argument(
         "--dev_mode",
-        choices=["graviton_mode", "neuron_mode", "deep_canary_mode"],
+        choices=["graviton_mode", "neuronx_mode", "deep_canary_mode"],
         default=None,
         help="Enable developer mode for specific hardware targets",
     )
@@ -88,61 +95,24 @@ class TomlOverrider:
 
     def set_test_types(self, test_types):
         """
-        This method takes a list of test types as input and generates the test overrides dictionary
-        based on the provided test types. It focuses on the main five test cases: ec2, ecs, eks,
-        sagemaker_remote, sagemaker_local. If no test types are provided, it sets all tests except
-        benchmark to True by default. The benchmark test is intentionally disabled by default in
-        this case.
+        This method takes a list of test types as input and updates the test overrides dictionary
+        based on the provided test types. It assumes that all tests are enabled by default, except
+        for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        if not test_types:
-            # If the test_types list is empty (no test types provided)
-            # Set all tests except benchmark to True by default
-            self._overrides["test"] = {
-                "sanity_tests": True,  # sanity_tests are always True
-                "safety_check_test": False,
-                "ecr_scan_allowlist_feature": False,
-                "ecs_tests": True,  # ecs_tests set to True by default
-                "eks_tests": True,  # eks_tests set to True by default
-                "ec2_tests": True,  # ec2_tests set to True by default
-                "ec2_benchmark_tests": False,  # ec2_benchmark_tests set to False by default
-                "ec2_tests_on_heavy_instances": False,
-                "sagemaker_local_tests": True,  # sagemaker_local_tests set to True by default
-                "sagemaker_remote_tests": True,  # sagemaker_remote_tests set to True by default
-                "sagemaker_efa_tests": False,
-                "sagemaker_rc_tests": False,
-                "sagemaker_benchmark_tests": False,
-                "nightly_pr_test_mode": False,
-                "use_scheduler": False,
-            }
-        else:
-            # If the test_types list is not empty (test types are provided)
-            self._overrides["test"] = {
-                "sanity_tests": True,  # sanity_tests are always True
-                "safety_check_test": False,
-                "ecr_scan_allowlist_feature": False,
-                "ecs_tests": "ecs" in test_types,  # ecs_tests set to True if "ecs" is in test_types
-                "eks_tests": "eks" in test_types,  # eks_tests set to True if "eks" is in test_types
-                "ec2_tests": "ec2" in test_types,  # ec2_tests set to True if "ec2" is in test_types
-                "ec2_benchmark_tests": "benchmark" in test_types,  # ec2_benchmark_tests set to True if "benchmark" is in test_types
-                "ec2_tests_on_heavy_instances": False,
-                "sagemaker_local_tests": "sagemaker_local" in test_types,  # sagemaker_local_tests set to True if "sagemaker_local" is in test_types
-                "sagemaker_remote_tests": "sagemaker_remote" in test_types,  # sagemaker_remote_tests set to True if "sagemaker_remote" is in test_types
-                "sagemaker_efa_tests": False,
-                "sagemaker_rc_tests": False,
-                "sagemaker_benchmark_tests": False,
-                "nightly_pr_test_mode": False,
-                "use_scheduler": False,
-            }
+        always_enabled_tests = {"sanity_tests"}
+
+        # Enable the provided test types and the always_enabled_tests
+        for test_type in test_types | always_enabled_tests:
+            self._overrides["test"][test_type] = True
+
+        # Disable ec2_benchmark_tests by default
+        self._overrides["test"]["ec2_benchmark_tests"] = False
 
     def set_dev_mode(self, dev_mode):
         """
         Set the dev mode based on the user input.
         Valid choices are 'graviton_mode', 'neuron_mode', and 'deep_canary_mode'.
         """
-        self._overrides["dev"]["graviton_mode"] = False
-        self._overrides["dev"]["neuron_mode"] = False
-        self._overrides["dev"]["deep_canary_mode"] = False
-
         if dev_mode:
             self._overrides["dev"][dev_mode] = True
 
@@ -171,7 +141,7 @@ def main():
 
     overrider = TomlOverrider()
 
-    # Handle frameworks to build
+    # handle frameworks to build
     overrider.set_build_frameworks(frameworks=frameworks)
     overrider.set_job_type(job_types=job_types)
     overrider.set_test_types(test_types=test_types)
