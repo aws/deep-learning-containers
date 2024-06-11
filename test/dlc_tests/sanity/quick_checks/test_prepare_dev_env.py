@@ -54,74 +54,104 @@ def test_build_job_types():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
-def test_set_test_types_single():
+def test_set_test_types():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
-    for test_type in [
-        "benchmark",
-        "ec2",
-        "ecs",
-        "eks",
-        "sagemaker_remote",
-        "sagemaker_local",
-    ]:
-        overrider.set_test_types([test_type])
-        assert overrider.overrides == {"build": {"test_types": [test_type]}}
-
-    overrider.set_test_types(
-        [
-            "benchmark",
-            "ec2",
-            "ecs",
-            "eks",
-            "sagemaker_remote",
-            "sagemaker_local",
-        ]
-    )
-    assert overrider.overrides == {
-        "build": {
-            "test_types": [
-                "benchmark",
-                "ec2",
-                "ecs",
-                "eks",
-                "sagemaker_remote",
-                "sagemaker_local",
-            ]
+    # Test case with a subset of test types
+    test_types = ["ec2", "ecs", "sagemaker_remote"]
+    overrider.set_test_types(test_types)
+    expected_overrides = {
+        "test": {
+            "sanity_tests": True,
+            "safety_check_test": False,
+            "ecr_scan_allowlist_feature": False,
+            "ecs_tests": True,
+            "eks_tests": True,  # True by default
+            "ec2_tests": True,
+            "ec2_benchmark_tests": False,
+            "ec2_tests_on_heavy_instances": False,
+            "sagemaker_local_tests": True,  # True by default
+            "sagemaker_remote_tests": True,
+            "sagemaker_efa_tests": False,
+            "sagemaker_rc_tests": False,
+            "sagemaker_benchmark_tests": False,
+            "nightly_pr_test_mode": False,
+            "use_scheduler": False,
         }
     }
+    assert overrider.overrides == expected_overrides
 
-    overrider.set_test_types(["benchmark", "benchmark", "sagemaker_local"])
-    assert overrider.overrides == {"build": {"test_types": ["benchmark", "sagemaker_local"]}}
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("test_types")
-def test_set_test_types_empty():  # no tests
-    overrider = prepare_dlc_dev_environment.TomlOverrider()
-    overrider.set_test_types([])
-    assert overrider.overrides == {"build": {"test_types": []}}
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("test_types")
-def test_set_test_types_default():  # default tests
-    overrider = prepare_dlc_dev_environment.TomlOverrider()
-    overrider.set_test_types([])
-    assert overrider.overrides == {
-        "build": {
-            "test_types": [
-                "ec2",
-                "ecs",
-                "eks",
-                "sagemaker_remote",
-                "sagemaker_local",
-            ]
+    # Test case with all main test types
+    test_types = ["ec2", "ecs", "eks", "sagemaker_remote", "sagemaker_local"]
+    overrider.set_test_types(test_types)
+    expected_overrides = {
+        "test": {
+            "sanity_tests": True,
+            "safety_check_test": False,
+            "ecr_scan_allowlist_feature": False,
+            "ecs_tests": True,
+            "eks_tests": True,
+            "ec2_tests": True,
+            "ec2_benchmark_tests": False,
+            "ec2_tests_on_heavy_instances": False,
+            "sagemaker_local_tests": True,
+            "sagemaker_remote_tests": True,
+            "sagemaker_efa_tests": False,
+            "sagemaker_rc_tests": False,
+            "sagemaker_benchmark_tests": False,
+            "nightly_pr_test_mode": False,
+            "use_scheduler": False,
         }
     }
+    assert overrider.overrides == expected_overrides
 
+    # Test case with no test types (default behavior)
+    test_types = []
+    overrider.set_test_types(test_types)
+    expected_overrides = {
+        "test": {
+            "sanity_tests": True,
+            "safety_check_test": False,
+            "ecr_scan_allowlist_feature": False,
+            "ecs_tests": True,  # True by default
+            "eks_tests": True,  # True by default
+            "ec2_tests": True,  # True by default
+            "ec2_benchmark_tests": False,
+            "ec2_tests_on_heavy_instances": False,
+            "sagemaker_local_tests": True,  # True by default
+            "sagemaker_remote_tests": True,  # True by default
+            "sagemaker_efa_tests": False,
+            "sagemaker_rc_tests": False,
+            "sagemaker_benchmark_tests": False,
+            "nightly_pr_test_mode": False,
+            "use_scheduler": False,
+        }
+    }
+    assert overrider.overrides == expected_overrides
+
+    # Test case with an invalid test type
+    test_types = ["invalid_test_type"]
+    overrider.set_test_types(test_types)
+    expected_overrides = {
+        "test": {
+            "sanity_tests": True,
+            "safety_check_test": False,
+            "ecr_scan_allowlist_feature": False,
+            "ecs_tests": True,  # True by default
+            "eks_tests": True,  # True by default
+            "ec2_tests": True,  # True by default
+            "ec2_benchmark_tests": False,
+            "ec2_tests_on_heavy_instances": False,
+            "sagemaker_local_tests": True,  # True by default
+            "sagemaker_remote_tests": True,  # True by default
+            "sagemaker_efa_tests": False,
+            "sagemaker_rc_tests": False,
+            "sagemaker_benchmark_tests": False,
+            "nightly_pr_test_mode": False,
+            "use_scheduler": False,
+        }
+    }
+    assert overrider.overrides == expected_overrides
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
