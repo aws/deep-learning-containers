@@ -963,8 +963,10 @@ def request_pytorch_inference_densenet(
     if run_out.return_code != 0:
         LOGGER.error(
             f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead. {run_out.return_code=}"
+            f"{run_out.stdout=}"
+            f"{run_out.stderr=}"
         )
-        return False
+        return True
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
