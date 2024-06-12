@@ -6,10 +6,12 @@ import re
 
 from config import get_dlc_developer_config_path
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 # LOGGER.addHandler(logging.StreamHandler(sys.stderr))
+
 
 def get_args():
     """
