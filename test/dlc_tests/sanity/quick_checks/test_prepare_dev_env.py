@@ -136,3 +136,31 @@ def test_set_dev_mode():
     # Test case with multiple dev modes (error)
     with pytest.raises(ValueError):
         overrider.set_dev_mode(["graviton_mode", "neuronx_mode"])
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("buildspec")
+def test_set_buildspec():
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+
+    # Test case: valid buildspec_path
+    buildspec_path = "habana/tensorflow/training/buildspec-2-10.yml"
+    overrider.set_buildspec(buildspec_path)
+    expected_overrides = {
+    "buildspec_override": {
+        "dlc-pr-tensorflow-2-habana-training": "habana/tensorflow/training/buildspec-2-10.yml"
+        }
+    }   
+    assert overrider.overrides == expected_overrides
+
+    # Test case: empty buildspec_path
+    buildspec_path = ""
+    overrider.set_buildspec(buildspec_path)
+    expected_overrides = {"buildspec_override": {}}
+    assert overrider.overrides == expected_overrides
+
+    # Test case: invalid buildspec_path format
+    buildspec_path = "invalid/path/format.yml"
+    with pytest.raises(ValueError):
+        overrider.set_buildspec(buildspec_path)

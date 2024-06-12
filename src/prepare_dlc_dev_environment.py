@@ -183,7 +183,7 @@ def main():
     overrider.set_job_type(job_types=job_types)
     overrider.set_test_types(test_types=test_types)
     overrider.set_dev_mode(dev_mode=dev_mode)
-    overrider.set_buildspec(buildspec_path)
+    overrider.set_buildspec(buildspec_path=buildspec_path)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
