@@ -32,9 +32,12 @@
     "version_specifier": ">=1.26.18,<2"
   },
   "torchserve": {
-    "version_specifier": "==0.8.2"
+    "version_specifier": "==0.11.0"
   },
   "torch-model-archiver": {
-    "version_specifier": "==0.8.2"
+    "version_specifier": "==0.11.0"
+  },
+  "triton": {
+    "version_specifier": "==2.1.0"
   }
 }
