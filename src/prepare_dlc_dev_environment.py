@@ -2,6 +2,7 @@ import argparse
 import logging
 import sys
 import toml
+import re
 
 from config import get_dlc_developer_config_path
 
@@ -123,17 +124,26 @@ class TomlOverrider:
         This method takes a buildspec path as input and updates the corresponding key in the
         buildspec_override section of the TOML file.
         """
+        # define the expected file path syntax:
+        # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
+        buildspec_pattern = r"^(\w+)/(\w+)/(training|inference)/buildspec-(\d+)-(\d+)\.yml$"
+
         if not buildspec_path:
             return
 
-        # Infer the build job from the buildspec path
-        # Example: "habana/tensorflow/training/buildspec-2-10.yml" -> "dlc-pr-tensorflow-2-habana-training"
-        parts = buildspec_path.split("/")
-        framework = parts[0]
-        job_type = parts[2]
-        build_job = f"dlc-pr-{framework}-{job_type}"
+        # validate the buildspec_path format
+        match = re.match(buildspec_pattern, buildspec_path)
+        if not match:
+            raise ValueError(f"Invalid buildspec_path format: {buildspec_path}")
 
-        # Update the corresponding key in the buildspec_override section
+        # extract the framework, job_type, and version from the buildspec_path
+        framework = match.group(1)
+        job_type = match.group(3)
+        version = f"{match.group(4)}-{match.group(5)}"
+
+        # construct the build_job name using the extracted information
+        build_job = f"dlc-pr-{framework}-{job_type}-{version}"
+
         self._overrides["buildspec_override"][build_job] = buildspec_path
 
 
