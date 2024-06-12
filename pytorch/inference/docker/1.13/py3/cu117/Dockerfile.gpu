@@ -214,6 +214,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "awscli<2" \
     "pillow>=10.0.1" \
     "pyopenssl>=24.1.0" \
+    "setuptools<70.0.0" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \

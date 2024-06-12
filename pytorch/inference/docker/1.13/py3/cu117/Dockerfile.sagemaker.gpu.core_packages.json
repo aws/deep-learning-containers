@@ -56,5 +56,8 @@
    },
    "requests": {
       "version_specifier": ">=2.32.3"
+   },
+   "setuptools": {
+      "version_specifier": "<=70.0.0"
    }
 }
