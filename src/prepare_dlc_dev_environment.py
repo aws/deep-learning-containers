@@ -113,7 +113,7 @@ class TomlOverrider:
     def set_dev_mode(self, dev_mode):
         """
         Set the dev mode based on the user input.
-        Valid choices are 'graviton_mode', 'neuron_mode', and 'deep_canary_mode'.
+        Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
         if dev_mode:
             self._overrides["dev"][dev_mode] = True
@@ -147,8 +147,8 @@ def write_toml(toml_path, overrides):
                 loaded_toml["buildspec_override"][k] = v
         else:
             for k, v in value.items():
-              loaded_toml[key][k] = v
-            
+                loaded_toml[key][k] = v
+
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
         for line in output:
