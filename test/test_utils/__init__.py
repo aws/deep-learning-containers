@@ -966,7 +966,7 @@ def request_pytorch_inference_densenet(
             f"Return Code: {run_out.return_code=}\n",
             f"Error: {run_out.stderr=}"
         )
-        return True
+        return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
         if not (
