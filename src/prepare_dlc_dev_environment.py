@@ -63,6 +63,10 @@ def get_args():
         default=None,
         help="Enable developer mode for specific hardware targets",
     )
+    parser.add_argument(
+        "--buildspec",
+        help="Path to a buildspec file from the deep-learning-containers folder",
+    )
 
     return parser.parse_args()
 
@@ -99,14 +103,15 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        always_enabled_tests = {"sanity_tests"}
 
         # Enable the provided test types and the always_enabled_tests
-        for test_type in test_types | always_enabled_tests:
+        for test_type in test_types:
             self._overrides["test"][test_type] = True
 
         # Disable ec2_benchmark_tests by default
-        self._overrides["test"]["ec2_benchmark_tests"] = False
+        #self._overrides["test"]["ec2_benchmark_tests"] = False
+        #global variable (list) store choices, refernece global v here and if not there then se
+        #2: set false then iterate to find True
 
     def set_dev_mode(self, dev_mode):
         """
@@ -116,13 +121,37 @@ class TomlOverrider:
         if dev_mode:
             self._overrides["dev"][dev_mode] = True
 
+    def set_buildspec(self, buildspec_path):
+        """
+        This method takes a buildspec path as input and updates the corresponding key in the
+        buildspec_override section of the TOML file.
+        """
+        if not buildspec_path:
+            return
+
+        # Infer the build job from the buildspec path
+        # Example: "habana/tensorflow/training/buildspec-2-10.yml" -> "dlc-pr-tensorflow-2-habana-training"
+        parts = buildspec_path.split("/")
+        framework = parts[0]
+        job_type = parts[2]
+        build_job = f"dlc-pr-{framework}-{job_type}"
+
+        # Update the corresponding key in the buildspec_override section
+        self._overrides["buildspec_override"][build_job] = buildspec_path
+
 
 def write_toml(toml_path, overrides):
     with open(toml_path, "r") as toml_file_reader:
         loaded_toml = toml.load(toml_file_reader)
+
     for key, value in overrides.items():
-        for k, v in value.items():
-            loaded_toml[key][k] = v
+        if key == "buildspec_override":
+            for k, v in value.items():
+                loaded_toml["buildspec_override"][k] = v
+        else:
+            for k, v in value.items():
+              loaded_toml[key][k] = v
+            
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
         for line in output:
@@ -136,6 +165,7 @@ def main():
     toml_path = args.partner_toml
     test_types = args.tests
     dev_mode = args.dev_mode
+    buildspec_path = args.buildspec
 
     LOGGER.info(f"Inferring framework to be {frameworks}...")
 
@@ -146,6 +176,7 @@ def main():
     overrider.set_job_type(job_types=job_types)
     overrider.set_test_types(test_types=test_types)
     overrider.set_dev_mode(dev_mode=dev_mode)
+    overrider.set_buildspec(buildspec_path)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
