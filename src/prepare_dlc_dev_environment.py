@@ -186,7 +186,7 @@ def main():
     overrider.set_buildspec(buildspec_path=buildspec_path)
 
     LOGGER.info(overrider.overrides)
-    write_toml(toml_path, overrides=overrider.overrides)
+    write_toml(toml_path, overrides=overrider._overrides)
 
 
 if __name__ == "__main__":
