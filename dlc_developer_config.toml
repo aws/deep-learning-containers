@@ -46,7 +46,7 @@ do_build = true
 
 [notify]
 ### Notify on test failures
-### Off by default
+### On by default
 notify_test_failures = false
   # Valid values: medium or high
   notification_severity = "medium"
