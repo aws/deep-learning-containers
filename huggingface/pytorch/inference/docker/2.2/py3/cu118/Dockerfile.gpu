@@ -238,7 +238,7 @@ RUN pip install --no-cache-dir \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
 	"protobuf>=3.19.5,<=3.20.2" \
-	"numpy>=1.22.2,<1.23" \
+	"numpy>=1.22.2,<=1.24.4" \
 	"sagemaker-huggingface-inference-toolkit==2.3"
 
 RUN HOME_DIR=/root \
