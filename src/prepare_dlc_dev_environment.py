@@ -7,6 +7,8 @@ import re
 
 from config import get_dlc_developer_config_path
 from collections import OrderedDict
+from toml.decoder import Superscript
+
 
 
 LOGGER = logging.getLogger(__name__)
@@ -164,7 +166,7 @@ def write_toml(toml_path, overrides):
                 loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
-        toml_file_writer.writelines(toml.encoder.TomlEncoder().dump_sections(loaded_toml))
+        toml_file_writer.writelines(toml.encoder.TomlEncoder().dump_sections(loaded_toml, Superscript()))
 
 
 def main():
