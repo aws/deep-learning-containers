@@ -5,6 +5,7 @@ import toml
 import re
 
 from config import get_dlc_developer_config_path
+from collections import OrderedDict
 
 
 LOGGER = logging.getLogger(__name__)
@@ -149,7 +150,7 @@ class TomlOverrider:
 
 def write_toml(toml_path, overrides):
     with open(toml_path, "r") as toml_file_reader:
-        loaded_toml = toml.load(toml_file_reader)
+        loaded_toml = toml.load(toml_file_reader, object_pairs_hook=OrderedDict)
 
     for key, value in overrides.items():
         if key == "buildspec_override":
@@ -160,9 +161,7 @@ def write_toml(toml_path, overrides):
                 loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
-        output = toml.dumps(loaded_toml).split("\n")
-        for line in output:
-            toml_file_writer.write(f"{line}\n")
+        toml.dump(loaded_toml, toml_file_writer)
 
 
 def main():
