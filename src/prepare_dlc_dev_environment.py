@@ -185,7 +185,7 @@ def main():
     overrider.set_dev_mode(dev_mode=dev_mode)
     overrider.set_buildspec(buildspec_path=buildspec_path)
 
-    LOGGER.info(overrider.overrides)
+    LOGGER.info(overrider._overrides)
     write_toml(toml_path, overrides=overrider._overrides)
 
 
