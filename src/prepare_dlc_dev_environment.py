@@ -103,15 +103,12 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-
-        # Enable the provided test types and the always_enabled_tests
+        # disable all test types by default
+        for test_type in self._overrides["test"].keys():
+            self._overrides["test"][test_type] = False
+        # enable the provided test types
         for test_type in test_types:
             self._overrides["test"][test_type] = True
-
-        # Disable ec2_benchmark_tests by default
-        #self._overrides["test"]["ec2_benchmark_tests"] = False
-        #global variable (list) store choices, refernece global v here and if not there then se
-        #2: set false then iterate to find True
 
     def set_dev_mode(self, dev_mode):
         """
