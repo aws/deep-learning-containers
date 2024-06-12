@@ -74,7 +74,12 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {"build": {}}
+        self._overrides = {
+            "build": {},
+            "test": {},
+            "dev": {}
+            }
+        
 
     def set_build_frameworks(self, frameworks):
         """
