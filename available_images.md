@@ -88,7 +88,7 @@ DLC Available Image User Guide
 
 To use the following tables, select your desired framework, the kind of job you're starting, and your desired Python version. Your
 job type is either ``training`` or ``inference``. Your Python version is
-either ``py37``, ``py38``, ``py39``, or ``py310`` depending on availability. Plug this information into the replaceable portions of the URL as shown in the example URL.
+either ``py37``, ``py38``, ``py39``, ``py310``, or ``py311`` depending on availability. Plug this information into the replaceable portions of the URL as shown in the example URL.
 
 You can pin your version by adding the version tag to your URL as follows:
 
@@ -101,8 +101,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 |-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
 | PyTorch 2.3.0     |training	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.3.0-cpu-py311-ubuntu20.04-ec2             |
 | PyTorch 2.3.0     |training	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-ec2       |
-| PyTorch 2.2.0     |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-ec2            |
-| PyTorch 2.2.0     |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-ec2      |
+| PyTorch 2.3.0     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.3.0-cpu-py311-ubuntu20.04-ec2            |
+| PyTorch 2.3.0     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.3.0-gpu-py311-cu121-ubuntu20.04-ec2      |
 | TensorFlow 2.14.1 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-cpu-py310-ubuntu20.04-ec2		       |
 | TensorFlow 2.14.1 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-gpu-py310-cu118-ubuntu20.04-ec2	  |
 | TensorFlow 2.14.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-cpu-py310-ubuntu20.04-ec2		      |
@@ -116,8 +116,8 @@ SageMaker Framework Containers (SM support only)
 |-------------------|-----------|-----------------|-----------|------------------------|----------------------------------------------------------------------------------------------------------------|
 | PyTorch 2.3.0     |training	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.3.0-cpu-py311-ubuntu20.04-sagemaker             |
 | PyTorch 2.3.0     |training	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker       |
-| PyTorch 2.2.0     | inference	| No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-sagemaker           |
-| PyTorch 2.2.0     | inference	| No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+| PyTorch 2.3.0     | inference	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.3.0-cpu-py311-ubuntu20.04-sagemaker           |
+| PyTorch 2.3.0     | inference	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker     |
 | TensorFlow 2.14.1 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-cpu-py310-ubuntu20.04-sagemaker		      |
 | TensorFlow 2.14.1 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-gpu-py310-cu118-ubuntu20.04-sagemaker  |
 | TensorFlow 2.14.1 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-cpu-py310-ubuntu20.04-sagemaker	      |
@@ -308,6 +308,8 @@ Prior EC2 Framework Container Versions
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
 | PyTorch 2.2.0     |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-ec2             |
 | PyTorch 2.2.0     |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2       |
+| PyTorch 2.2.0     |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-ec2            |
+| PyTorch 2.2.0     |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-ec2      |
 | PyTorch 2.1.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-cpu-py310-ubuntu20.04-ec2             |
 | PyTorch 2.1.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-gpu-py310-cu121-ubuntu20.04-ec2       |
 | PyTorch 2.1.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-cpu-py310-ubuntu20.04-ec2             |
@@ -327,6 +329,8 @@ Prior SageMaker Framework Container Versions
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
 | PyTorch 2.2.0     | training   | No 			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-cpu-py310-ubuntu20.04-sagemaker            |
 | PyTorch 2.2.0     | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker      |
+| PyTorch 2.2.0     | inference	| No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-sagemaker           |
+| PyTorch 2.2.0     | inference	| No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker     |
 | PyTorch 2.1.0    | training   | No 			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-cpu-py310-ubuntu20.04-sagemaker           |
 | PyTorch 2.1.0    | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.1.0-gpu-py310-cu121-ubuntu20.04-sagemaker    |
 | PyTorch 2.1.0    | inference	| No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.1.0-cpu-py310-ubuntu20.04-sagemaker          |
