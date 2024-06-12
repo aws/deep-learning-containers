@@ -23,9 +23,9 @@ ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.27.2
-ARG PEFT_VERSION=0.10.0
-ARG ACCELERATE_VERSION=0.29.3
+ARG DIFFUSERS_VERSION=0.28.2
+ARG PEFT_VERSION=0.11.1
+ARG ACCELERATE_VERSION=0.31.0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
