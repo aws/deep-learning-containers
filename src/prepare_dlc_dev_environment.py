@@ -2,13 +2,9 @@ import argparse
 import logging
 import sys
 import toml
-import toml.encoder
 import re
 
 from config import get_dlc_developer_config_path
-from collections import OrderedDict
-from toml.decoder import Superscript
-
 
 
 LOGGER = logging.getLogger(__name__)
@@ -153,9 +149,7 @@ class TomlOverrider:
 
 def write_toml(toml_path, overrides):
     with open(toml_path, "r") as toml_file_reader:
-        toml_lines = toml_file_reader.readlines()
-
-    loaded_toml = toml.loads("".join(toml_lines))
+        loaded_toml = toml.load(toml_file_reader)
 
     for key, value in overrides.items():
         if key == "buildspec_override":
@@ -166,7 +160,9 @@ def write_toml(toml_path, overrides):
                 loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
-        toml_file_writer.writelines(toml.encoder.TomlEncoder().dump_sections(loaded_toml, Superscript()))
+        output = toml.dumps(loaded_toml).split("\n")
+        for line in output:
+            toml_file_writer.write(f"{line}\n")
 
 
 def main():
