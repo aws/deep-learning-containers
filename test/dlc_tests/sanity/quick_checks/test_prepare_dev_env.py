@@ -148,10 +148,10 @@ def test_set_buildspec():
     buildspec_path = "habana/tensorflow/training/buildspec-2-10.yml"
     overrider.set_buildspec(buildspec_path)
     expected_overrides = {
-    "buildspec_override": {
-        "dlc-pr-tensorflow-2-habana-training": "habana/tensorflow/training/buildspec-2-10.yml"
+        "buildspec_override": {
+            "dlc-pr-tensorflow-2-habana-training": "habana/tensorflow/training/buildspec-2-10.yml"
         }
-    }   
+    }
     assert overrider.overrides == expected_overrides
 
     # Test case: empty buildspec_path
