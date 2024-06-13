@@ -98,7 +98,6 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
-
 @pytest.mark.skipif(
     not is_pr_context(), reason="Skip this test. It is already tested under PR context"
 )

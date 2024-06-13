@@ -548,7 +548,6 @@ def test_pytorch_amp_inductor(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
 
 
-
 @pytest.mark.skip_serialized_release_pt_test
 @pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
