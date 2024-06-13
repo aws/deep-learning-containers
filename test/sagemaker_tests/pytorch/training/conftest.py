@@ -476,6 +476,21 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
+def skip_s3plugin_test(request):
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
+    else:
+        return
+    if request.node.get_closest_marker("skip_s3plugin_test"):
+        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
+            pytest.skip(
+                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
+            )
+
+
+@pytest.fixture(autouse=True)
 def skip_smdebug_v1_test(
     request,
     processor,
