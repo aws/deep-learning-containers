@@ -13,6 +13,16 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 # LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
+VALID_TEST_TYPES = [
+    "sanity_tests",
+    "ec2_tests",
+    "ecs_tests",
+    "eks_tests",
+    "sagemaker_remote_tests",
+    "sagemaker_local_tests",
+]
+
+
 def get_args():
     """
     Manage arguments to this script when called directly
@@ -40,22 +50,8 @@ def get_args():
     parser.add_argument(
         "--tests",
         nargs="+",
-        choices=[
-            "sanity_tests",
-            "ec2_tests",
-            "ecs_tests",
-            "eks_tests",
-            "sagemaker_remote_tests",
-            "sagemaker_local_tests",
-        ],
-        default=[
-            "sanity_tests",
-            "ec2_tests",
-            "ecs_tests",
-            "eks_tests",
-            "sagemaker_remote_tests",
-            "sagemaker_local_tests",
-        ],
+        choices=VALID_TEST_TYPES,
+        default=VALID_TEST_TYPES,
         help="Types of tests to run",
     )
     parser.add_argument(
@@ -105,7 +101,7 @@ class TomlOverrider:
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
         # disable all test types by default
-        for test_type in self._overrides["test"].keys():
+        for test_type in VALID_TEST_TYPES:
             self._overrides["test"][test_type] = False
         # enable the provided test types
         for test_type in test_types:
@@ -126,7 +122,7 @@ class TomlOverrider:
         """
         # define the expected file path syntax:
         # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-        buildspec_pattern = r"^(\w+)/(\w+)/(training|inference)/buildspec-(\d+)-(\d+)\.yml$"
+        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
 
         if not buildspec_path:
             return
@@ -139,12 +135,14 @@ class TomlOverrider:
         # extract the framework, job_type, and version from the buildspec_path
         framework = match.group(1)
         job_type = match.group(3)
-        version = f"{match.group(4)}-{match.group(5)}"
-
         # construct the build_job name using the extracted information
-        build_job = f"dlc-pr-{framework}-{job_type}-{version}"
+        build_job = f"dlc-pr-{framework}-{job_type}"
 
         self._overrides["buildspec_override"][build_job] = buildspec_path
+
+    @property
+    def overrides(self):
+        return self._overrides
 
 
 def write_toml(toml_path, overrides):
@@ -185,8 +183,8 @@ def main():
     overrider.set_dev_mode(dev_mode=dev_mode)
     overrider.set_buildspec(buildspec_path=buildspec_path)
 
-    LOGGER.info(overrider._overrides)
-    write_toml(toml_path, overrides=overrider._overrides)
+    LOGGER.info(overrider.overrides)
+    write_toml(toml_path, overrides=overrider.overrides)
 
 
 if __name__ == "__main__":
