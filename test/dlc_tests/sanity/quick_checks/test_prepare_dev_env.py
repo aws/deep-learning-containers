@@ -52,7 +52,7 @@ def test_set_test_types():
     # Test case with a subset of test types
     test_types = ["ec2_tests", "ecs_tests", "sagemaker_remote_tests"]
     overrider.set_test_types(test_types)
-    assert overrider.overrides["test"]["sanity_tests"] == True
+    assert overrider.overrides["test"]["sanity_tests"] == False
     assert overrider.overrides["test"]["safety_check_test"] == False
     assert overrider.overrides["test"]["ecr_scan_allowlist_feature"] == False
     assert overrider.overrides["test"]["ecs_tests"] == True

@@ -70,7 +70,16 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {"build": {}, "test": {}, "dev": {}, "buildspec_override": {}}
+        self._overrides = {
+            "build": {},
+            "test": {},
+            "dev": {
+                "graviton_mode": False,
+                "neuronx_mode": False,
+                "deep_canary_mode": False,
+            },
+            "buildspec_override": {},
+        }
 
     def set_build_frameworks(self, frameworks):
         """
@@ -79,7 +88,7 @@ class TomlOverrider:
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
         unique_frameworks = list(set(frameworks))
-        self._overrides["build"]["build_frameworks"] = unique_frameworks
+        self._overrides["build"]["build_frameworks"] = sorted(unique_frameworks)
 
     def set_job_type(self, job_types):
         """
