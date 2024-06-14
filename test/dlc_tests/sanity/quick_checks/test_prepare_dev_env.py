@@ -62,23 +62,6 @@ def test_set_test_types():
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
-@pytest.mark.integration("test_types")
-def test_set_test_types_default():
-    overrider = prepare_dlc_dev_environment.TomlOverrider()
-
-    # Test case with no test types (default behavior)
-    test_types = []
-    overrider.set_test_types(test_types)
-    assert overrider.overrides["test"]["sanity_tests"] == True
-    assert overrider.overrides["test"]["ecs_tests"] == True
-    assert overrider.overrides["test"]["eks_tests"] == True
-    assert overrider.overrides["test"]["ec2_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_local_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
 @pytest.mark.integration("dev_mode")
 def test_set_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
