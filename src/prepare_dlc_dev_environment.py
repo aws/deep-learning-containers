@@ -73,11 +73,7 @@ class TomlOverrider:
         self._overrides = {
             "build": {},
             "test": {},
-            "dev": {
-                "graviton_mode": False,
-                "neuronx_mode": False,
-                "deep_canary_mode": False,
-            },
+            "dev": {},
             "buildspec_override": {},
         }
 
@@ -109,10 +105,7 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        # disable all test types by default
-        for test_type in VALID_TEST_TYPES:
-            self._overrides["test"][test_type] = False
-        # enable the provided test types
+        self._overrides["test"] = {test_type: False for test_type in VALID_TEST_TYPES}
         for test_type in test_types:
             self._overrides["test"][test_type] = True
 
@@ -121,6 +114,11 @@ class TomlOverrider:
         Set the dev mode based on the user input.
         Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
+        # Reset all dev modes to False
+        self._overrides["dev"]["graviton_mode"] = False
+        self._overrides["dev"]["neuronx_mode"] = False
+        self._overrides["dev"]["deep_canary_mode"] = False
+
         if dev_mode:
             self._overrides["dev"][dev_mode] = True
 
