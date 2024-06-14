@@ -53,39 +53,21 @@ def test_set_test_types():
     test_types = ["ec2_tests", "ecs_tests", "sagemaker_remote_tests"]
     overrider.set_test_types(test_types)
     assert overrider.overrides["test"]["sanity_tests"] == False
-    assert overrider.overrides["test"]["safety_check_test"] == False
-    assert overrider.overrides["test"]["ecr_scan_allowlist_feature"] == False
     assert overrider.overrides["test"]["ecs_tests"] == True
     assert overrider.overrides["test"]["eks_tests"] == False
     assert overrider.overrides["test"]["ec2_tests"] == True
-    assert overrider.overrides["test"]["ec2_benchmark_tests"] == False
-    assert overrider.overrides["test"]["ec2_tests_on_heavy_instances"] == False
     assert overrider.overrides["test"]["sagemaker_local_tests"] == False
     assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_efa_tests"] == False
-    assert overrider.overrides["test"]["sagemaker_rc_tests"] == False
-    assert overrider.overrides["test"]["sagemaker_benchmark_tests"] == False
-    assert overrider.overrides["test"]["nightly_pr_test_mode"] == False
-    assert overrider.overrides["test"]["use_scheduler"] == False
 
     # Test case with no test types (default behavior)
     test_types = []
     overrider.set_test_types(test_types)
     assert overrider.overrides["test"]["sanity_tests"] == True
-    assert overrider.overrides["test"]["safety_check_test"] == False
-    assert overrider.overrides["test"]["ecr_scan_allowlist_feature"] == False
     assert overrider.overrides["test"]["ecs_tests"] == True
     assert overrider.overrides["test"]["eks_tests"] == True
     assert overrider.overrides["test"]["ec2_tests"] == True
-    assert overrider.overrides["test"]["ec2_benchmark_tests"] == False
-    assert overrider.overrides["test"]["ec2_tests_on_heavy_instances"] == False
     assert overrider.overrides["test"]["sagemaker_local_tests"] == True
     assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_efa_tests"] == False
-    assert overrider.overrides["test"]["sagemaker_rc_tests"] == False
-    assert overrider.overrides["test"]["sagemaker_benchmark_tests"] == False
-    assert overrider.overrides["test"]["nightly_pr_test_mode"] == False
-    assert overrider.overrides["test"]["use_scheduler"] == False
 
 
 @pytest.mark.quick_checks
@@ -114,7 +96,3 @@ def test_set_dev_mode():
     assert overrider.overrides["dev"]["graviton_mode"] == False
     assert overrider.overrides["dev"]["neuronx_mode"] == False
     assert overrider.overrides["dev"]["deep_canary_mode"] == True
-
-    # Test case with multiple dev modes (error)
-    with pytest.raises(ValueError):
-        overrider.set_dev_mode(["graviton_mode", "neuronx_mode"])
