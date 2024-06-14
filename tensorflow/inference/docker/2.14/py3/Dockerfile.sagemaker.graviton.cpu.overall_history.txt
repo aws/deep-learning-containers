@@ -1,0 +1,21 @@
+#### First image: sha256:3c350bf4d1802bd845424b2b65546cd2411ad945c7a84a568cc6d881aa41f4e4 ####
+#### Patch contents for patch-1: sha256:2245ca8965cdf0f491a5685d30e01425fe70f2c350ccf395ddb54a43216ad5d7 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-2: sha256:fc1705d0c850da08205fa23ae2e732735effab608a44b8ee4ef2b5292423765c ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-3: sha256:9377f39a88ab1a74fcdea00a21b3b5ade92c1bba770ac6e261376524d640fcad ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-4: sha256:35fe316ba21c2c98d9b46c2d409ec0acfa15e1bed8f5658ac3b0d45637753fa8 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Current Patch contents ####
+pip install idna==3.7 requests==2.32.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
