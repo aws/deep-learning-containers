@@ -22,6 +22,7 @@ VALID_TEST_TYPES = [
     "sagemaker_local_tests",
 ]
 
+
 VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 
@@ -44,8 +45,8 @@ def get_args():
     )
     parser.add_argument(
         "--buildspecs",
-        nargs="+",
         required=True,
+        nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
     )
 
@@ -54,12 +55,7 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {
-            "build": {},
-            "test": {},
-            "dev": {},
-            "buildspec_override": {},
-        }
+        self._overrides = {"build": {}, "test": {}, "dev": {}, "buildspec_override": {}}
 
     def set_build_frameworks(self, frameworks):
         """
@@ -67,8 +63,9 @@ class TomlOverrider:
         'build_frameworks' and the value as a list of unique framework names. The resulting
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
-        unique_frameworks = list(set(frameworks))
-        self._overrides["build"]["build_frameworks"] = sorted(unique_frameworks)
+        if frameworks:
+            unique_frameworks = list(set(frameworks))
+            self._overrides["build"]["build_frameworks"] = unique_frameworks
 
     def set_job_type(self, job_types):
         """
@@ -89,7 +86,10 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        self._overrides["test"] = {test_type: False for test_type in VALID_TEST_TYPES}
+        # disable all tests
+        for test_type in VALID_TEST_TYPES:
+            self._overrides["test"][test_type] = False
+        # enable corresponding tests
         for test_type in test_types:
             self._overrides["test"][test_type] = True
 
@@ -98,24 +98,18 @@ class TomlOverrider:
         Set the dev mode based on the user input.
         Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
-        # Reset all dev modes to False
-        self._overrides["dev"]["graviton_mode"] = False
-        self._overrides["dev"]["neuronx_mode"] = False
-        self._overrides["dev"]["deep_canary_mode"] = False
-
         if dev_mode:
             self._overrides["dev"][dev_mode] = True
 
     def set_buildspec(self, buildspec_paths):
         """
-        WARNING: This method is not fully implemented
-
         This method takes a buildspec path as input and updates the corresponding key in the
         buildspec_override section of the TOML file.
         """
         frameworks = []
         job_types = []
         dev_modes = []
+
         for buildspec_path in buildspec_paths:
             # define the expected file path syntax:
             # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
@@ -139,7 +133,7 @@ class TomlOverrider:
 
             dev_mode = None
             for dm in VALID_DEV_MODES:
-                if dm.replace("mode", "") in buildspec_info:
+                if dm.replace("_mode", "") in buildspec_info:
                     dev_mode = dm
                     break
             dev_modes.append(dev_mode)
