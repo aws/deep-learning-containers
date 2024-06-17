@@ -44,6 +44,7 @@ from test.test_utils.security import (
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
     generate_future_allowlist,
+    save_scan_vulnerability_list_object_to_s3_in_json_format,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
@@ -220,6 +221,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
+    allowlist_for_daily_scans = image_scan_allowlist
 
     if remove_non_patchable_vulns:
         non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
@@ -238,6 +240,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
+        allowlist_for_daily_scans = future_allowlist
 
         # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
         # as we want to upload the allowlist to the location that has repo of the actual image.
@@ -272,6 +275,9 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
+    save_scan_vulnerability_list_object_to_s3_in_json_format(
+        image, allowlist_for_daily_scans, "", "trshanta-bucket"
+    )
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 
