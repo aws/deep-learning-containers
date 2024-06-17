@@ -100,7 +100,10 @@ class TomlOverrider:
         Set the dev mode based on the user input.
         Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
-        if dev_mode:
+        # Reset all dev modes to False
+        for mode in VALID_DEV_MODES:
+            self._overrides["dev"][mode] = False
+        if dev_mode and dev_mode in VALID_DEV_MODES:
             self._overrides["dev"][dev_mode] = True
 
     def set_buildspec(self, buildspec_paths):
