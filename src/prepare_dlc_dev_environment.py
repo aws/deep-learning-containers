@@ -56,6 +56,8 @@ def get_args():
 class TomlOverrider:
     def __init__(self):
         self._overrides = {"build": {}, "test": {}, "dev": {}, "buildspec_override": {}}
+        for dev_mode in VALID_DEV_MODES:
+            self._overrides["dev"][dev_mode] = False
 
     def set_build_frameworks(self, frameworks):
         """
