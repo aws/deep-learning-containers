@@ -59,6 +59,16 @@ def test_set_test_types():
     assert overrider.overrides["test"]["sagemaker_local_tests"] == False
     assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
 
+    # Test case with no test types (default behavior)
+    test_types = []
+    overrider.set_test_types(test_types)
+    assert overrider.overrides["test"]["sanity_tests"] == True
+    assert overrider.overrides["test"]["ecs_tests"] == True
+    assert overrider.overrides["test"]["eks_tests"] == True
+    assert overrider.overrides["test"]["ec2_tests"] == True
+    assert overrider.overrides["test"]["sagemaker_local_tests"] == True
+    assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
+
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
@@ -86,3 +96,7 @@ def test_set_dev_mode():
     assert overrider.overrides["dev"]["graviton_mode"] == False
     assert overrider.overrides["dev"]["neuronx_mode"] == False
     assert overrider.overrides["dev"]["deep_canary_mode"] == True
+
+    # Test case with multiple dev modes (error)
+    with pytest.raises(ValueError):
+        overrider.set_dev_mode(["graviton_mode", "neuronx_mode"])

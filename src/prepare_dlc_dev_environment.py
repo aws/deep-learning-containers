@@ -13,16 +13,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 # LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-VALID_TEST_TYPES = [
-    "sanity_tests",
-    "ec2_tests",
-    "ecs_tests",
-    "eks_tests",
-    "sagemaker_remote_tests",
-    "sagemaker_local_tests",
-]
-
-
 def get_args():
     """
     Manage arguments to this script when called directly
@@ -50,8 +40,22 @@ def get_args():
     parser.add_argument(
         "--tests",
         nargs="+",
-        choices=VALID_TEST_TYPES,
-        default=VALID_TEST_TYPES,
+        choices=[
+            "sanity_tests",
+            "ec2_tests",
+            "ecs_tests",
+            "eks_tests",
+            "sagemaker_remote_tests",
+            "sagemaker_local_tests",
+        ],
+        default=[
+            "sanity_tests",
+            "ec2_tests",
+            "ecs_tests",
+            "eks_tests",
+            "sagemaker_remote_tests",
+            "sagemaker_local_tests",
+        ],
         help="Types of tests to run",
     )
     parser.add_argument(
@@ -70,12 +74,7 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {
-            "build": {},
-            "test": {},
-            "dev": {},
-            "buildspec_override": {},
-        }
+        self._overrides = {"build": {}, "test": {}, "dev": {}, "buildspec_override": {}}
 
     def set_build_frameworks(self, frameworks):
         """
@@ -84,7 +83,7 @@ class TomlOverrider:
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
         unique_frameworks = list(set(frameworks))
-        self._overrides["build"]["build_frameworks"] = sorted(unique_frameworks)
+        self._overrides["build"]["build_frameworks"] = unique_frameworks
 
     def set_job_type(self, job_types):
         """
@@ -105,7 +104,10 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        self._overrides["test"] = {test_type: False for test_type in VALID_TEST_TYPES}
+        # disable all test types by default
+        for test_type in self._overrides["test"].keys():
+            self._overrides["test"][test_type] = False
+        # enable the provided test types
         for test_type in test_types:
             self._overrides["test"][test_type] = True
 
@@ -131,7 +133,7 @@ class TomlOverrider:
         """
         # define the expected file path syntax:
         # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
+        buildspec_pattern = r"^(\w+)/(\w+)/(training|inference)/buildspec-(\d+)-(\d+)\.yml$"
 
         if not buildspec_path:
             return
@@ -144,14 +146,12 @@ class TomlOverrider:
         # extract the framework, job_type, and version from the buildspec_path
         framework = match.group(1)
         job_type = match.group(3)
+        version = f"{match.group(4)}-{match.group(5)}"
+
         # construct the build_job name using the extracted information
-        build_job = f"dlc-pr-{framework}-{job_type}"
+        build_job = f"dlc-pr-{framework}-{job_type}-{version}"
 
         self._overrides["buildspec_override"][build_job] = buildspec_path
-
-    @property
-    def overrides(self):
-        return self._overrides
 
 
 def write_toml(toml_path, overrides):
@@ -192,8 +192,8 @@ def main():
     overrider.set_dev_mode(dev_mode=dev_mode)
     overrider.set_buildspec(buildspec_path=buildspec_path)
 
-    LOGGER.info(overrider.overrides)
-    write_toml(toml_path, overrides=overrider.overrides)
+    LOGGER.info(overrider._overrides)
+    write_toml(toml_path, overrides=overrider._overrides)
 
 
 if __name__ == "__main__":
