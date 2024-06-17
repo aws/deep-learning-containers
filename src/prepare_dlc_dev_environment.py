@@ -22,11 +22,7 @@ VALID_TEST_TYPES = [
     "sagemaker_local_tests",
 ]
 
-VALID_DEV_MODES = [
-    "graviton_mode",
-    "neuronx_mode",
-    "deep_canary_mode"
-]
+VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 
 def get_args():
@@ -38,7 +34,7 @@ def get_args():
         "--partner_toml",
         default=get_dlc_developer_config_path(),
         help="TOML file with partner developer information",
-    ) 
+    )
     parser.add_argument(
         "--tests",
         nargs="+",
@@ -118,13 +114,13 @@ class TomlOverrider:
         buildspec_override section of the TOML file.
         """
         frameworks = []
-        job_types = [] 
+        job_types = []
         dev_modes = []
         for buildspec_path in buildspec_paths:
             # define the expected file path syntax:
             # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
             buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
- 
+
             if not buildspec_path:
                 return
 
@@ -142,20 +138,22 @@ class TomlOverrider:
             buildspec_info = match.group(3)
 
             dev_mode = None
-            for dm in VALID_DEV_MODES: 
+            for dm in VALID_DEV_MODES:
                 if dm.replace("mode", "") in buildspec_info:
                     dev_mode = dm
                     break
             dev_modes.append(dev_mode)
 
-            #construct the build_job name using the extracted info
+            # construct the build_job name using the extracted info
             dev_mode_str = f"-{dev_mode. replace(' _mode', '')}" if dev_mode else ""
             build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
 
         if len(set(dev_modes)) > 1:
-            LOGGER.warning(f"Hey only 1 dev mode is allowed, selecting the first mode I see {dev_modes[0] }")
+            LOGGER.warning(
+                f"Hey only 1 dev mode is allowed, selecting the first mode I see {dev_modes[0] }"
+            )
         self.set_dev_mode(dev_mode=dev_modes[0])
         self.set_build_frameworks(frameworks=frameworks)
         self.set_job_type(job_types=job_types)
@@ -188,7 +186,7 @@ def main():
     toml_path = args.partner_toml
     test_types = args.tests
     buildspec_paths = args.buildspecs
- 
+
     overrider = TomlOverrider()
 
     # handle frameworks to build
