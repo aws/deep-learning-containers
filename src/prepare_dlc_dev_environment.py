@@ -103,6 +103,8 @@ class TomlOverrider:
         # Reset all dev modes to False
         for mode in VALID_DEV_MODES:
             self._overrides["dev"][mode] = False
+        if isinstance(dev_mode, list):
+            raise ValueError("Only one dev mode is allowed at a time.")
         if dev_mode and dev_mode in VALID_DEV_MODES:
             self._overrides["dev"][dev_mode] = True
 
