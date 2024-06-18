@@ -88,14 +88,18 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default.
         The provided test types will be kept enabled.
         """
-        # Enable all tests by default
+        # Disable all tests
         for test_type in VALID_TEST_TYPES:
+            self._overrides["test"][test_type] = False
+
+        # Enable the provided test types
+        for test_type in test_types:
             self._overrides["test"][test_type] = True
 
-        # Disable the test types not present in the provided list
-        for test_type in VALID_TEST_TYPES:
-            if test_type not in test_types:
-                self._overrides["test"][test_type] = False
+        # Enable all tests if an empty list is provided
+        if not test_types:
+            for test_type in VALID_TEST_TYPES:
+                self._overrides["test"][test_type] = True
 
     def set_dev_mode(self, dev_mode):
         """
