@@ -85,7 +85,7 @@ class TomlOverrider:
     def set_test_types(self, test_types):
         """
         This method takes a list of test types as input and updates the test overrides dictionary
-        based on the provided test types. It assumes that all tests are enabled by default. 
+        based on the provided test types. It assumes that all tests are enabled by default.
         The provided test types will be kept enabled.
         """
         # Enable all tests by default
