@@ -1,7 +1,6 @@
 import pytest
 
 from src import prepare_dlc_dev_environment
-from unittest.mock import patch
 
 
 @pytest.mark.quick_checks
@@ -21,26 +20,26 @@ def test_build_job_types():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_job_type(("inference", "training"))
     assert (
-        overrider.overrides["build"]["build_training"] == True
-        and overrider.overrides["build"]["build_inference"] == True
+        overrider.overrides["build"]["build_training"] is True
+        and overrider.overrides["build"]["build_inference"] is True
     )
 
     overrider.set_job_type(["inference"])
     assert (
-        overrider.overrides["build"]["build_training"] == False
-        and overrider.overrides["build"]["build_inference"] == True
+        overrider.overrides["build"]["build_training"] is False
+        and overrider.overrides["build"]["build_inference"] is True
     )
 
     overrider.set_job_type(["training"])
     assert (
-        overrider.overrides["build"]["build_training"] == True
-        and overrider.overrides["build"]["build_inference"] == False
+        overrider.overrides["build"]["build_training"] is True
+        and overrider.overrides["build"]["build_inference"] is False
     )
 
     overrider.set_job_type([])
     assert (
-        overrider.overrides["build"]["build_training"] == False
-        and overrider.overrides["build"]["build_inference"] == False
+        overrider.overrides["build"]["build_training"] is False
+        and overrider.overrides["build"]["build_inference"] is False
     )
 
 
@@ -53,22 +52,22 @@ def test_set_test_types():
     # Test case with a subset of test types
     test_types = ["ec2_tests", "ecs_tests", "sagemaker_remote_tests"]
     overrider.set_test_types(test_types)
-    assert overrider.overrides["test"]["sanity_tests"] == False
-    assert overrider.overrides["test"]["ecs_tests"] == True
-    assert overrider.overrides["test"]["eks_tests"] == False
-    assert overrider.overrides["test"]["ec2_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_local_tests"] == False
-    assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
+    assert overrider.overrides["test"]["sanity_tests"] is False
+    assert overrider.overrides["test"]["ecs_tests"] is True
+    assert overrider.overrides["test"]["eks_tests"] is False
+    assert overrider.overrides["test"]["ec2_tests"] is True
+    assert overrider.overrides["test"]["sagemaker_local_tests"] is False
+    assert overrider.overrides["test"]["sagemaker_remote_tests"] is True
 
     # Test case with no test types (default behavior)
     test_types = []
     overrider.set_test_types(test_types)
-    assert overrider.overrides["test"]["sanity_tests"] == True
-    assert overrider.overrides["test"]["ecs_tests"] == True
-    assert overrider.overrides["test"]["eks_tests"] == True
-    assert overrider.overrides["test"]["ec2_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_local_tests"] == True
-    assert overrider.overrides["test"]["sagemaker_remote_tests"] == True
+    assert overrider.overrides["test"]["sanity_tests"] is True
+    assert overrider.overrides["test"]["ecs_tests"] is True
+    assert overrider.overrides["test"]["eks_tests"] is True
+    assert overrider.overrides["test"]["ec2_tests"] is True
+    assert overrider.overrides["test"]["sagemaker_local_tests"] is True
+    assert overrider.overrides["test"]["sagemaker_remote_tests"] is True
 
 
 @pytest.mark.quick_checks
@@ -79,24 +78,24 @@ def test_set_dev_mode():
 
     # test with no dev mode provided
     overrider.set_dev_mode(None)
-    assert overrider.overrides["dev"]["graviton_mode"] == False
-    assert overrider.overrides["dev"]["neuronx_mode"] == False
-    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+    assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
+    assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("graviton_mode")
-    assert overrider.overrides["dev"]["graviton_mode"] == True
-    assert overrider.overrides["dev"]["neuronx_mode"] == False
-    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+    assert overrider.overrides["dev"]["graviton_mode"] is True
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
+    assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("neuronx_mode")
-    assert overrider.overrides["dev"]["graviton_mode"] == False
-    assert overrider.overrides["dev"]["neuronx_mode"] == True
-    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+    assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["neuronx_mode"] is True
+    assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("deep_canary_mode")
-    assert overrider.overrides["dev"]["graviton_mode"] == False
-    assert overrider.overrides["dev"]["neuronx_mode"] == False
-    assert overrider.overrides["dev"]["deep_canary_mode"] == True
+    assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
+    assert overrider.overrides["dev"]["deep_canary_mode"] is True
 
     # Test case with multiple dev modes (error)
     with pytest.raises(ValueError):
@@ -138,7 +137,7 @@ def test_set_buildspec_invalid_path():
         "tensorflow/inference/buildspec-aws-neuronx.yml",
     ]
 
-    with pytest.raises(ValueError):
+    with pytest.raises(RuntimeError):
         overrider.set_buildspec(invalid_buildspec_paths)
 
 
@@ -149,16 +148,14 @@ def test_set_buildspec_updates_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     valid_buildspec_paths = [
-        "pytorch/training/buildspec-aws-graviton2.yml",
-        "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
-        "huggingface/training/buildspec-aws-depcanary.yml",
+        "pytorch/training/buildspec-graviton.yml",
+        "tensorflow/inference/buildspec-neuronx.yml",
     ]
 
     overrider.set_buildspec(valid_buildspec_paths)
 
-    assert overrider.overrides["dev"]["graviton_mode"] == True
-    assert overrider.overrides["dev"]["neuronx_mode"] == False
-    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+    assert overrider.overrides["dev"]["graviton_mode"] is True
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
 
 
 @pytest.mark.quick_checks
@@ -192,8 +189,8 @@ def test_set_buildspec_updates_build_training_only():
 
     overrider.set_buildspec(buildspec_paths)
 
-    assert overrider.overrides["build"]["build_training"] == True
-    assert overrider.overrides["build"]["build_inference"] == False
+    assert overrider.overrides["build"]["build_training"] is True
+    assert overrider.overrides["build"]["build_inference"] is False
 
 
 @pytest.mark.quick_checks
@@ -208,5 +205,5 @@ def test_set_buildspec_updates_build_inference_only():
 
     overrider.set_buildspec(buildspec_paths)
 
-    assert overrider.overrides["build"]["build_training"] == False
-    assert overrider.overrides["build"]["build_inference"] == True
+    assert overrider.overrides["build"]["build_training"] is False
+    assert overrider.overrides["build"]["build_inference"] is True

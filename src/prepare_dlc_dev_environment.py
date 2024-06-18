@@ -1,3 +1,4 @@
+import os
 import argparse
 import logging
 import sys
@@ -123,18 +124,21 @@ class TomlOverrider:
         job_types = []
         dev_modes = []
 
+        invalid_paths = []
+
+        # define the expected file path syntax:
+        # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
+        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
+
         for buildspec_path in buildspec_paths:
-            # define the expected file path syntax:
-            # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-            buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
-
-            if not buildspec_path:
-                return
-
             # validate the buildspec_path format
             match = re.match(buildspec_pattern, buildspec_path)
-            if not match:
-                raise ValueError(f"Invalid buildspec_path format: {buildspec_path}")
+            if not match or not os.path.exists(buildspec_path):
+                LOGGER.warning(
+                    f"WARNING! {buildspec_path} does not exist. Moving on to the next one..."
+                )
+                invalid_paths.append(buildspec_path)
+                continue
 
             # extract the framework, job_type, and version from the buildspec_path
             framework = match.group(1).replace("/", "_")
@@ -152,10 +156,17 @@ class TomlOverrider:
             dev_modes.append(dev_mode)
 
             # construct the build_job name using the extracted info
-            dev_mode_str = f"-{dev_mode. replace(' _mode', '')}" if dev_mode else ""
+            dev_mode_str = (
+                f"-{dev_mode.replace('_mode', '').replace('neuronx', 'neuron')}" if dev_mode else ""
+            )
             build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
+
+        if invalid_paths:
+            raise RuntimeError(
+                f"Found buildspecs that either do not match regex {buildspec_pattern} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
+            )
 
         if len(set(dev_modes)) > 1:
             LOGGER.warning(
