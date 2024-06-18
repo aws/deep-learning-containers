@@ -156,8 +156,30 @@ def test_set_buildspec_updates_dev_mode():
 
     overrider.set_buildspec(valid_buildspec_paths)
 
+    # Only the first dev mode should be set to True
     assert overrider.overrides["dev"]["graviton_mode"] == True
+    assert overrider.overrides["dev"]["neuronx_mode"] == False
+    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+
+    # Test case with only graviton buildspec path
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+    overrider.set_buildspec(["pytorch/training/buildspec-aws-graviton2.yml"])
+    assert overrider.overrides["dev"]["graviton_mode"] == True
+    assert overrider.overrides["dev"]["neuronx_mode"] == False
+    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+
+    # Test case with only neuronx buildspec path
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+    overrider.set_buildspec(["tensorflow/inference/buildspec-aws-neuronx-py38.yml"])
+    assert overrider.overrides["dev"]["graviton_mode"] == False
     assert overrider.overrides["dev"]["neuronx_mode"] == True
+    assert overrider.overrides["dev"]["deep_canary_mode"] == False
+
+    # Test case with only deep canary buildspec path
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+    overrider.set_buildspec(["huggingface/training/buildspec-aws-depcanary.yml"])
+    assert overrider.overrides["dev"]["graviton_mode"] == False
+    assert overrider.overrides["dev"]["neuronx_mode"] == False
     assert overrider.overrides["dev"]["deep_canary_mode"] == True
 
 
