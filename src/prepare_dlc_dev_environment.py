@@ -122,49 +122,46 @@ class TomlOverrider:
         frameworks = []
         job_types = []
         dev_modes = []
-        invalid_paths = []
 
         for buildspec_path in buildspec_paths:
-            # Define the expected file path syntax:
-            # <framework>/<job_type>/buildspec(-<additional_info>)?\.yml
-            buildspec_pattern = (
-                r"^(\S+)/(training|inference)/buildspec(-\S*(graviton|neuronx|dep\S*))?\.yml$"
-            )
+            # define the expected file path syntax:
+            # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
+            buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
 
             if not buildspec_path:
-                continue
+                return
 
-            # Match the buildspec_path format
+            # validate the buildspec_path format
             match = re.match(buildspec_pattern, buildspec_path)
             if not match:
-                invalid_paths.append(buildspec_path)
-                continue
+                raise ValueError(f"Invalid buildspec_path format: {buildspec_path}")
 
-            # Extract the framework, job_type, and additional_info from the buildspec_path
+            # extract the framework, job_type, and version from the buildspec_path
             framework = match.group(1).replace("/", "_")
             frameworks.append(framework)
             framework_str = framework if framework != "tensorflow" else "tensorflow-2"
             job_type = match.group(2)
             job_types.append(job_type)
-            additional_info = match.group(3) or ""
+            buildspec_info = match.group(3)
 
             dev_mode = None
-            if "dep" in additional_info or "depcanary" in additional_info:
-                dev_mode = "deep_canary_mode"
+            for dm in VALID_DEV_MODES:
+                if dm.replace("_mode", "") in buildspec_info:
+                    dev_mode = dm
+                    break
             dev_modes.append(dev_mode)
 
-            # Construct the build_job name using the extracted info
-            build_job = f"dlc-pr-{framework_str}-{job_type}"
+            # construct the build_job name using the extracted info
+            dev_mode_str = f"-{dev_mode. replace(' _mode', '')}" if dev_mode else ""
+            build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
-
-        if invalid_paths:
-            raise ValueError(f"Invalid buildspec_paths: {', '.join(invalid_paths)}")
 
         if len(set(dev_modes)) > 1:
             LOGGER.warning(
                 f"Hey only 1 dev mode is allowed, selecting the first mode I see {dev_modes[0]}"
             )
+
         self.set_dev_mode(dev_mode=dev_modes[0])
         self.set_build_frameworks(frameworks=frameworks)
         self.set_job_type(job_types=job_types)
