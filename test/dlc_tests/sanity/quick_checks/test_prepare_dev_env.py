@@ -125,6 +125,7 @@ def test_set_buildspec_updates_buildspec_override():
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
 
+
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")

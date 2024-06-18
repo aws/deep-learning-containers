@@ -171,7 +171,8 @@ class TomlOverrider:
             return
 
         for mode in VALID_DEV_MODES:
-            self._overrides["dev"][mode] = (mode == dev_mode)
+            self._overrides["dev"][mode] = mode == dev_mode
+
     @property
     def overrides(self):
         return self._overrides
