@@ -110,7 +110,7 @@ def test_set_buildspec_updates_buildspec_override():
 
     valid_buildspec_paths = [
         "pytorch/inference/buildspec-graviton.yml",
-        "tensorflow/training/buildspec-neuronx.yml",
+        "tensorflow/inference/buildspec-neuronx.yml",
         "huggingface/pytorch/training/buildspec.yml",
     ]
 
@@ -119,7 +119,7 @@ def test_set_buildspec_updates_buildspec_override():
     expected_buildspec_override = {
         "dlc-pr-huggingface-pytorch-training": "huggingface/pytorch/training/buildspec.yml",
         "dlc-pr-pytorch-inference": "pytorch/inference/buildspec-graviton.yml",
-        "dlc-pr-tensorflow-2-training": "tensorflow/training/buildspec-neuronx.yml",
+        "dlc-pr-tensorflow-2-inference": "tensorflow/inference/buildspec-neuronx.yml",
     }
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
@@ -149,7 +149,7 @@ def test_set_buildspec_updates_dev_mode():
 
     valid_buildspec_paths = [
         "pytorch/inference/buildspec-graviton.yml",
-        "tensorflow/training/buildspec-neuronx.yml",
+        "tensorflow/inference/buildspec-neuronx.yml",
     ]
 
     overrider.set_buildspec(valid_buildspec_paths)
@@ -167,7 +167,7 @@ def test_set_buildspec_updates_build_frameworks():
 
     valid_buildspec_paths = [
         "pytorch/inference/buildspec-graviton.yml",
-        "tensorflow/training/buildspec-neuronx.yml",
+        "tensorflow/inference/buildspec-neuronx.yml",
         "huggingface/pytorch/training/buildspec.yml",
     ]
 

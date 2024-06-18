@@ -2,8 +2,9 @@ import os
 import argparse
 import logging
 import sys
-import toml
 import re
+
+import toml
 
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
@@ -12,7 +13,6 @@ from codebuild_environment import get_cloned_folder_path
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-# LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 VALID_TEST_TYPES = [
@@ -190,12 +190,12 @@ def write_toml(toml_path, overrides):
         loaded_toml = toml.load(toml_file_reader)
 
     for key, value in overrides.items():
-        if key == "buildspec_override":
-            for k, v in value.items():
-                loaded_toml["buildspec_override"][k] = v
-        else:
-            for k, v in value.items():
-                loaded_toml[key][k] = v
+        for k, v in value.items():
+            if loaded_toml.get(key, {}).get(k, None) is None:
+                LOGGER.warning(
+                    f"WARNING: Writing unrecognized key {key} {k} with value {v} to {toml_path}"
+                )
+            loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
