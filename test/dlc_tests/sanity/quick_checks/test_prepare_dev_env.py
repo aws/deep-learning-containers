@@ -109,17 +109,17 @@ def test_set_buildspec_updates_buildspec_override():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     valid_buildspec_paths = [
-        "pytorch/training/buildspec-aws-graviton2.yml",
-        "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
-        "huggingface/training/buildspec-aws-depcanary.yml",
+        "pytorch/inference/buildspec-graviton.yml",
+        "tensorflow/training/buildspec-neuronx.yml",
+        "huggingface/pytorch/training/buildspec.yml",
     ]
 
     overrider.set_buildspec(valid_buildspec_paths)
 
     expected_buildspec_override = {
-        "dlc-pr-huggingface-training": "huggingface/training/buildspec-aws-depcanary.yml",
-        "dlc-pr-pytorch-training": "pytorch/training/buildspec-aws-graviton2.yml",
-        "dlc-pr-tensorflow-2-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
+        "dlc-pr-huggingface-pytorch-training": "huggingface/pytorch/training/buildspec.yml",
+        "dlc-pr-pytorch-inference": "pytorch/inference/buildspec-graviton.yml",
+        "dlc-pr-tensorflow-2-training": "tensorflow/training/buildspec-neuronx.yml",
     }
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
@@ -148,13 +148,14 @@ def test_set_buildspec_updates_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     valid_buildspec_paths = [
-        "pytorch/training/buildspec-graviton.yml",
-        "tensorflow/inference/buildspec-neuronx.yml",
+        "pytorch/inference/buildspec-graviton.yml",
+        "tensorflow/training/buildspec-neuronx.yml",
     ]
 
     overrider.set_buildspec(valid_buildspec_paths)
 
     assert overrider.overrides["dev"]["graviton_mode"] is True
+    # Only the first dev mode is used, so neuronx is set to False
     assert overrider.overrides["dev"]["neuronx_mode"] is False
 
 
@@ -165,14 +166,14 @@ def test_set_buildspec_updates_build_frameworks():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     valid_buildspec_paths = [
-        "pytorch/training/buildspec-aws-graviton2.yml",
-        "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
-        "huggingface/training/buildspec-aws-depcanary.yml",
+        "pytorch/inference/buildspec-graviton.yml",
+        "tensorflow/training/buildspec-neuronx.yml",
+        "huggingface/pytorch/training/buildspec.yml",
     ]
 
     overrider.set_buildspec(valid_buildspec_paths)
 
-    expected_build_frameworks = ["pytorch", "tensorflow", "huggingface"]
+    expected_build_frameworks = ["pytorch", "tensorflow", "huggingface_pytorch"]
     assert overrider.overrides["build"]["build_frameworks"] == expected_build_frameworks
 
 
@@ -183,14 +184,14 @@ def test_set_buildspec_updates_build_training_only():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     buildspec_paths = [
-        "pytorch/training/buildspec-aws-graviton2.yml",
-        "huggingface/training/buildspec-aws-depcanary.yml",
+        "pytorch/training/buildspec.yml",
+        "huggingface/pytorch/inference/buildspec.yml",
     ]
 
     overrider.set_buildspec(buildspec_paths)
 
     assert overrider.overrides["build"]["build_training"] is True
-    assert overrider.overrides["build"]["build_inference"] is False
+    assert overrider.overrides["build"]["build_inference"] is True
 
 
 @pytest.mark.quick_checks
@@ -200,7 +201,7 @@ def test_set_buildspec_updates_build_inference_only():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     buildspec_paths = [
-        "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
+        "tensorflow/inference/buildspec-neuronx.yml",
     ]
 
     overrider.set_buildspec(buildspec_paths)

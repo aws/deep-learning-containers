@@ -6,6 +6,7 @@ import toml
 import re
 
 from config import get_dlc_developer_config_path
+from codebuild_environment import get_cloned_folder_path
 
 
 LOGGER = logging.getLogger(__name__)
@@ -133,7 +134,9 @@ class TomlOverrider:
         for buildspec_path in buildspec_paths:
             # validate the buildspec_path format
             match = re.match(buildspec_pattern, buildspec_path)
-            if not match or not os.path.exists(buildspec_path):
+            if not match or not os.path.exists(
+                os.path.join(get_cloned_folder_path(), buildspec_path)
+            ):
                 LOGGER.warning(
                     f"WARNING! {buildspec_path} does not exist. Moving on to the next one..."
                 )
@@ -143,7 +146,9 @@ class TomlOverrider:
             # extract the framework, job_type, and version from the buildspec_path
             framework = match.group(1).replace("/", "_")
             frameworks.append(framework)
-            framework_str = framework if framework != "tensorflow" else "tensorflow-2"
+            framework_str = (
+                framework.replace("_", "-") if framework != "tensorflow" else "tensorflow-2"
+            )
             job_type = match.group(2)
             job_types.append(job_type)
             buildspec_info = match.group(3)
@@ -156,9 +161,7 @@ class TomlOverrider:
             dev_modes.append(dev_mode)
 
             # construct the build_job name using the extracted info
-            dev_mode_str = (
-                f"-{dev_mode.replace('_mode', '').replace('neuronx', 'neuron')}" if dev_mode else ""
-            )
+            dev_mode_str = f"-{dev_mode.replace('_mode', '')}" if dev_mode else ""
             build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
