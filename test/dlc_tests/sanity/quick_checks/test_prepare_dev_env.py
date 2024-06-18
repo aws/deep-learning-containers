@@ -118,9 +118,9 @@ def test_set_buildspec_updates_buildspec_override():
     overrider.set_buildspec(valid_buildspec_paths)
 
     expected_buildspec_override = {
-        "dlc-pr-pytorch-training": "pytorch/training/buildspec-aws-graviton2.yml",
-        "dlc-pr-tensorflow-2-neuronx-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
         "dlc-pr-huggingface-depcanary-training": "huggingface/training/buildspec-aws-depcanary.yml",
+        "dlc-pr-pytorch-graviton_mode-training": "pytorch/training/buildspec-aws-graviton2.yml",
+        "dlc-pr-tensorflow-2-neuronx_mode-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
     }
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
