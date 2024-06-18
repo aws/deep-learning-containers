@@ -145,6 +145,29 @@ def test_set_buildspec_invalid_path():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+def test_set_buildspec_updates_buildspec_override():
+    overrider = prepare_dlc_dev_environment.TomlOverrider()
+
+    valid_buildspec_paths = [
+        "pytorch/training/buildspec-aws-graviton2.yml",
+        "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
+        "huggingface/training/buildspec-aws-depcanary.yml",
+    ]
+
+    overrider.set_buildspec(valid_buildspec_paths)
+
+    expected_buildspec_override = {
+        "dlc-pr-pytorch-training": "pytorch/training/buildspec-aws-graviton2.yml",
+        "dlc-pr-tensorflow-2-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
+        "dlc-pr-huggingface-training": "huggingface/training/buildspec-aws-depcanary.yml",
+    }
+
+    assert overrider.overrides["buildspec_override"] == expected_buildspec_override
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("set_buildspec")
 def test_set_buildspec_updates_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 

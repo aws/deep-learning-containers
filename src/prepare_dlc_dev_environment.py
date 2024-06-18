@@ -154,7 +154,7 @@ class TomlOverrider:
 
             # Construct the build_job name using the extracted info
             dev_mode_str = f"-{dev_mode.replace('_mode', '')}" if dev_mode else ""
-            build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
+            build_job = f"dlc-pr-{framework_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
 
