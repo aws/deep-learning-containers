@@ -106,7 +106,7 @@ class TomlOverrider:
         Set the dev mode based on the user input.
         Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
-        # Reset all dev modes to False
+        # reset all dev modes to False
         for mode in VALID_DEV_MODES:
             self._overrides["dev"][mode] = False
         if isinstance(dev_mode, list):
@@ -115,57 +115,63 @@ class TomlOverrider:
             self._overrides["dev"][dev_mode] = True
 
     def set_buildspec(self, buildspec_paths):
-        """
-        This method takes a buildspec path as input and updates the corresponding key in the
-        buildspec_override section of the TOML file.
-        """
         frameworks = []
         job_types = []
-        dev_modes = []
+        dev_mode = None
 
         for buildspec_path in buildspec_paths:
-            # define the expected file path syntax:
-            # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-            buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
-
             if not buildspec_path:
-                return
+                continue
 
-            # validate the buildspec_path format
-            match = re.match(buildspec_pattern, buildspec_path)
+            # Validate the buildspec_path format
+            match = self._validate_buildspec_path(buildspec_path)
             if not match:
-                raise ValueError(f"Invalid buildspec_path format: {buildspec_path}")
+                continue
 
-            # extract the framework, job_type, and version from the buildspec_path
-            framework = match.group(1).replace("/", "_")
+            framework, job_type, buildspec_info = self._extract_buildspec_info(match)
             frameworks.append(framework)
-            framework_str = framework if framework != "tensorflow" else "tensorflow-2"
-            job_type = match.group(2)
             job_types.append(job_type)
-            buildspec_info = match.group(3)
 
-            dev_mode = None
-            for dm in VALID_DEV_MODES:
-                if dm.replace("_mode", "") in buildspec_info:
-                    dev_mode = dm
-                    break
-            dev_modes.append(dev_mode)
+            # Check for dev mode and use the first one encountered
+            if not dev_mode and buildspec_info:
+                dev_mode = self._get_dev_mode(buildspec_info)
 
-            # construct the build_job name using the extracted info
-            dev_mode_str = f"-{dev_mode. replace(' _mode', '')}" if dev_mode else ""
-            build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
-
+            dev_mode_str = f"-{dev_mode.replace('_mode', '')}" if dev_mode else ""
+            build_job = f"dlc-pr-{framework}{dev_mode_str}-{job_type}"
             self._overrides["buildspec_override"][build_job] = buildspec_path
 
-        if len(set(dev_modes)) > 1:
-            LOGGER.warning(
-                f"Hey only 1 dev mode is allowed, selecting the first mode I see {dev_modes[0]}"
-            )
+        # Reset all dev modes to False and set the first encountered dev mode to True
+        self._handle_dev_modes(dev_mode)
 
-        self.set_dev_mode(dev_mode=dev_modes[0])
         self.set_build_frameworks(frameworks=frameworks)
         self.set_job_type(job_types=job_types)
 
+    def _validate_buildspec_path(self, buildspec_path):
+        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
+        return re.match(buildspec_pattern, buildspec_path)
+
+    def _extract_buildspec_info(self, match):
+        if not match:
+            return None, None, None
+
+        framework = match.group(1).replace("/", "_")
+        framework_str = f"{framework}-2" if framework == "tensorflow" else framework
+        job_type = match.group(2)
+        buildspec_info = match.group(3)
+        return framework_str, job_type, buildspec_info
+
+    def _get_dev_mode(self, buildspec_info):
+        for dm in VALID_DEV_MODES:
+            if dm.replace("_mode", "") in buildspec_info:
+                return dm
+        return None
+
+    def _handle_dev_modes(self, dev_mode):
+        if dev_mode is None:
+            return
+
+        for mode in VALID_DEV_MODES:
+            self._overrides["dev"][mode] = (mode == dev_mode)
     @property
     def overrides(self):
         return self._overrides

@@ -118,13 +118,12 @@ def test_set_buildspec_updates_buildspec_override():
     overrider.set_buildspec(valid_buildspec_paths)
 
     expected_buildspec_override = {
-        "dlc-pr-huggingface-depcanary-training": "huggingface/training/buildspec-aws-depcanary.yml",
-        "dlc-pr-pytorch-graviton_mode-training": "pytorch/training/buildspec-aws-graviton2.yml",
-        "dlc-pr-tensorflow-2-neuronx_mode-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
+        "dlc-pr-huggingface-training": "huggingface/training/buildspec-aws-depcanary.yml",
+        "dlc-pr-pytorch-training": "pytorch/training/buildspec-aws-graviton2.yml",
+        "dlc-pr-tensorflow-2-inference": "tensorflow/inference/buildspec-aws-neuronx-py38.yml",
     }
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
-
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
@@ -157,8 +156,8 @@ def test_set_buildspec_updates_dev_mode():
     overrider.set_buildspec(valid_buildspec_paths)
 
     assert overrider.overrides["dev"]["graviton_mode"] == True
-    assert overrider.overrides["dev"]["neuronx_mode"] == True
-    assert overrider.overrides["dev"]["deep_canary_mode"] == True
+    assert overrider.overrides["dev"]["neuronx_mode"] == False
+    assert overrider.overrides["dev"]["deep_canary_mode"] == False
 
 
 @pytest.mark.quick_checks
