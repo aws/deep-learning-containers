@@ -118,8 +118,8 @@ def test_set_buildspec_updates_buildspec_override():
 
     expected_buildspec_override = {
         "dlc-pr-huggingface-pytorch-training": "huggingface/pytorch/training/buildspec.yml",
-        "dlc-pr-pytorch-inference": "pytorch/inference/buildspec-graviton.yml",
-        "dlc-pr-tensorflow-2-inference": "tensorflow/inference/buildspec-neuronx.yml",
+        "dlc-pr-pytorch-graviton-inference": "pytorch/inference/buildspec-graviton.yml",
+        "dlc-pr-tensorflow-2-neuronx-inference": "tensorflow/inference/buildspec-neuronx.yml",
     }
 
     assert overrider.overrides["buildspec_override"] == expected_buildspec_override
