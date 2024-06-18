@@ -173,7 +173,7 @@ class TomlOverrider:
 
         if len(set(dev_modes)) > 1:
             LOGGER.warning(
-                f"Hey only 1 dev mode is allowed, selecting the first mode I see {dev_modes[0]}"
+                f"Only 1 dev mode is allowed, selecting the first mode in the list: {dev_modes[0]}"
             )
 
         self.set_dev_mode(dev_mode=dev_modes[0])
