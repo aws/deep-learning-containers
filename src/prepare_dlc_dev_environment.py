@@ -66,7 +66,7 @@ class TomlOverrider:
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
         if frameworks:
-            unique_frameworks = list(set(frameworks))
+            unique_frameworks = list(dict.fromkeys(frameworks))
             self._overrides["build"]["build_frameworks"] = unique_frameworks
 
     def set_job_type(self, job_types):
@@ -85,16 +85,17 @@ class TomlOverrider:
     def set_test_types(self, test_types):
         """
         This method takes a list of test types as input and updates the test overrides dictionary
-        based on the provided test types. It assumes that all tests are enabled by default, except
-        for ec2_benchmark_tests. The provided test types will be kept enabled.
+        based on the provided test types. It assumes that all tests are enabled by default. 
+        The provided test types will be kept enabled.
         """
-        # disable all tests if list is not empty
-        if test_types:
-            for test_type in VALID_TEST_TYPES:
-                self._overrides["test"][test_type] = False
-        # enable corresponding tests
-        for test_type in test_types:
+        # Enable all tests by default
+        for test_type in VALID_TEST_TYPES:
             self._overrides["test"][test_type] = True
+
+        # Disable the test types not present in the provided list
+        for test_type in VALID_TEST_TYPES:
+            if test_type not in test_types:
+                self._overrides["test"][test_type] = False
 
     def set_dev_mode(self, dev_mode):
         """
