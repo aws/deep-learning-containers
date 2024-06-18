@@ -125,10 +125,8 @@ class TomlOverrider:
 
         for buildspec_path in buildspec_paths:
             # Define the expected file path syntax:
-            # <framework>/<job_type>/buildspec(-<additional_info>)?\.yml
-            buildspec_pattern = (
-                r"^(\S+)/(training|inference)/buildspec(-\S*(graviton|neuronx|dep\S*))?\.yml$"
-            )
+            # <framework>/<job_type>/buildspec-<additional_info>.yml
+            buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(-\S*)?\.yml$"
 
             if not buildspec_path:
                 continue
@@ -148,11 +146,14 @@ class TomlOverrider:
             additional_info = match.group(3) or ""
 
             dev_mode = None
-            if "dep" in additional_info or "depcanary" in additional_info:
-                dev_mode = "deep_canary_mode"
+            for dm in VALID_DEV_MODES:
+                if dm.replace("_mode", "") in additional_info:
+                    dev_mode = dm
+                    break
             dev_modes.append(dev_mode)
 
             # Construct the build_job name using the extracted info
+            dev_mode_str = f"-{dev_mode.replace('_mode', '')}" if dev_mode else ""
             build_job = f"dlc-pr-{framework_str}-{job_type}"
 
             self._overrides["buildspec_override"][build_job] = buildspec_path
