@@ -88,9 +88,10 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default, except
         for ec2_benchmark_tests. The provided test types will be kept enabled.
         """
-        # disable all tests
-        for test_type in VALID_TEST_TYPES:
-            self._overrides["test"][test_type] = False
+        # disable all tests if list is not empty
+        if test_types:
+            for test_type in VALID_TEST_TYPES:
+                self._overrides["test"][test_type] = False
         # enable corresponding tests
         for test_type in test_types:
             self._overrides["test"][test_type] = True
