@@ -56,6 +56,7 @@ def get_args():
         help="TOML file with partner developer information",
     )
     parser.add_argument(
+        "-t",
         "--tests",
         nargs="+",
         choices=VALID_TEST_TYPES,
@@ -63,12 +64,13 @@ def get_args():
         help="Types of tests to run",
     )
     parser.add_argument(
+        "-b",
         "--buildspecs",
-        required=True,
         nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
     )
     parser.add_argument(
+        "-r",
         "--restore",
         action="store_true",
         help="Restore the TOML file to its default state",
@@ -232,8 +234,17 @@ def main():
     buildspec_paths = args.buildspecs
     restore = args.restore
 
+    if not buildspec_paths and not restore:
+        LOGGER.error(
+            "The developer environment prepare script requires either buildspec or restore options. Please use the '-h' flag to list all options and retry."
+        )
+        exit(1)
+    restore_default_toml(toml_path)
     if restore:
-        restore_default_toml(toml_path)
+        LOGGER.info(
+            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
+        )
+        return
 
     overrider = TomlOverrider()
 
