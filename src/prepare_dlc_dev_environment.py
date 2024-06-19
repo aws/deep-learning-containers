@@ -6,6 +6,8 @@ import re
 import requests
 
 import toml
+import pprint
+import git
 
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
@@ -29,6 +31,8 @@ VALID_TEST_TYPES = [
 VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
+
+REPO = git.Repo(os.getcwd(), search_parent_directories=True)
 
 
 def restore_default_toml(toml_path):
@@ -74,6 +78,12 @@ def get_args():
         "--restore",
         action="store_true",
         help="Restore the TOML file to its default state",
+    )
+    parser.add_argument(
+        "-c",
+        "--commit",
+        action="store_true",
+        help="Adds files changed, commits them locally",
     )
 
     return parser.parse_args()
@@ -227,12 +237,26 @@ def write_toml(toml_path, overrides):
             toml_file_writer.write(f"{line}\n")
 
 
+def commit_changes(changes):
+    commit_message = (
+        f"Updated {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
+    )
+    for file_name, overrides in changes.items():
+        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
+        REPO.git.add(file_name)
+    REPO.git.commit("-m", commit_message)
+
+    LOGGER.info(f"Commited change\n{commit_message}")
+    return commit_message
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
     test_types = args.tests
     buildspec_paths = args.buildspecs
     restore = args.restore
+    to_commit = args.commit
 
     if not buildspec_paths and not restore:
         LOGGER.error(
@@ -244,6 +268,8 @@ def main():
         LOGGER.info(
             f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
         )
+        if to_commit:
+            commit_changes({toml_path: f"Reverted to {DEFAULT_TOML_URL}"})
         return
 
     overrider = TomlOverrider()
@@ -254,6 +280,8 @@ def main():
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
+    if to_commit:
+        commit_changes({toml_path: overrider.overrides})
 
 
 if __name__ == "__main__":
