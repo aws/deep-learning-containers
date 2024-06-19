@@ -30,6 +30,7 @@ from test.test_utils import (
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
     get_ecr_scan_allowlist_path,
+    get_sha_of_an_image_from_ecr,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -275,8 +276,20 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
+    LOGGER.info(
+        f"[ALLOWLIST_FOR_DAILY_SCANS] {json.dumps(allowlist_for_daily_scans.vulnerability_list)}"
+    )  
+    LOGGER.info(
+        f"[ALLOWLIST] {json.dumps(image_scan_allowlist.vulnerability_list)}"
+    )
+    LOGGER.info(
+        f"[FUTURE_ALLOWLIST] {json.dumps(future_allowlist.vulnerability_list) if future_allowlist else "None"}"
+    )  
+    # methods that help with tracking image sha. need to use image sha because image uri changes after release
+    # using s3, not a database. want to come up with strategy maps image sha directly to the file
+    image_sha = get_sha_of_an_image_from_ecr(ecr_client_for_enhanced_scanning_repo, image)
     save_scan_vulnerability_list_object_to_s3_in_json_format(
-        image, allowlist_for_daily_scans, "", "trshanta-bucket"
+        image_sha, allowlist_for_daily_scans, "", "trshanta-bucket"
     )
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
