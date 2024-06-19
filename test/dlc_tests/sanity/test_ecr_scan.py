@@ -288,7 +288,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     LOGGER.info(f"[IMAGESHA] {image_sha}")
 
     s3_resource = boto3.resource("s3")
-    s3object = s3_resource.Object("trshanta-bucket", image_sha)
+    s3object = s3_resource.Object("trshanta-bucket", image_sha + ".json")
     s3object.put(
         Body=(bytes(json.dumps(allowlist_for_daily_scans.vulnerability_list).encode("UTF-8")))
     )
