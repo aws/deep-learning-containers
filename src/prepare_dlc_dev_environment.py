@@ -1,16 +1,18 @@
+import os
 import argparse
 import logging
 import sys
-import toml
 import re
 
+import toml
+
 from config import get_dlc_developer_config_path
+from codebuild_environment import get_cloned_folder_path
 
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
-# LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 VALID_TEST_TYPES = [
@@ -21,6 +23,9 @@ VALID_TEST_TYPES = [
     "sagemaker_remote_tests",
     "sagemaker_local_tests",
 ]
+
+
+VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 
 def get_args():
@@ -34,20 +39,6 @@ def get_args():
         help="TOML file with partner developer information",
     )
     parser.add_argument(
-        "--frameworks",
-        nargs="+",
-        choices=["pytorch", "tensorflow"],
-        required=True,
-        help="ML Framework for which to prepare developer enviornment",
-    )
-    parser.add_argument(
-        "--job_types",
-        nargs="+",
-        choices=["training", "inference"],
-        default=["training", "inference"],
-        help="Training and inference containers to prepare developer environment",
-    )
-    parser.add_argument(
         "--tests",
         nargs="+",
         choices=VALID_TEST_TYPES,
@@ -55,13 +46,9 @@ def get_args():
         help="Types of tests to run",
     )
     parser.add_argument(
-        "--dev_mode",
-        choices=["graviton_mode", "neuronx_mode", "deep_canary_mode"],
-        default=None,
-        help="Enable developer mode for specific hardware targets",
-    )
-    parser.add_argument(
-        "--buildspec",
+        "--buildspecs",
+        required=True,
+        nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
     )
 
@@ -70,12 +57,9 @@ def get_args():
 
 class TomlOverrider:
     def __init__(self):
-        self._overrides = {
-            "build": {},
-            "test": {},
-            "dev": {},
-            "buildspec_override": {},
-        }
+        self._overrides = {"build": {}, "test": {}, "dev": {}, "buildspec_override": {}}
+        for dev_mode in VALID_DEV_MODES:
+            self._overrides["dev"][dev_mode] = False
 
     def set_build_frameworks(self, frameworks):
         """
@@ -83,8 +67,9 @@ class TomlOverrider:
         'build_frameworks' and the value as a list of unique framework names. The resulting
         dictionary is stored in the _overrides attribute of the TomlOverrider object
         """
-        unique_frameworks = list(set(frameworks))
-        self._overrides["build"]["build_frameworks"] = sorted(unique_frameworks)
+        if frameworks:
+            unique_frameworks = list(dict.fromkeys(frameworks))
+            self._overrides["build"]["build_frameworks"] = unique_frameworks
 
     def set_job_type(self, job_types):
         """
@@ -102,12 +87,21 @@ class TomlOverrider:
     def set_test_types(self, test_types):
         """
         This method takes a list of test types as input and updates the test overrides dictionary
-        based on the provided test types. It assumes that all tests are enabled by default, except
-        for ec2_benchmark_tests. The provided test types will be kept enabled.
+        based on the provided test types. It assumes that all tests are enabled by default.
+        The provided test types will be kept enabled.
         """
-        self._overrides["test"] = {test_type: False for test_type in VALID_TEST_TYPES}
+        # Disable all tests
+        for test_type in VALID_TEST_TYPES:
+            self._overrides["test"][test_type] = False
+
+        # Enable the provided test types
         for test_type in test_types:
             self._overrides["test"][test_type] = True
+
+        # Enable all tests if an empty list is provided
+        if not test_types:
+            for test_type in VALID_TEST_TYPES:
+                self._overrides["test"][test_type] = True
 
     def set_dev_mode(self, dev_mode):
         """
@@ -115,39 +109,76 @@ class TomlOverrider:
         Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
         # Reset all dev modes to False
-        self._overrides["dev"]["graviton_mode"] = False
-        self._overrides["dev"]["neuronx_mode"] = False
-        self._overrides["dev"]["deep_canary_mode"] = False
-
-        if dev_mode:
+        for mode in VALID_DEV_MODES:
+            self._overrides["dev"][mode] = False
+        if isinstance(dev_mode, list):
+            raise ValueError("Only one dev mode is allowed at a time.")
+        if dev_mode and dev_mode in VALID_DEV_MODES:
             self._overrides["dev"][dev_mode] = True
 
-    def set_buildspec(self, buildspec_path):
+    def set_buildspec(self, buildspec_paths):
         """
-        WARNING: This method is not fully implemented
-
         This method takes a buildspec path as input and updates the corresponding key in the
         buildspec_override section of the TOML file.
         """
+        frameworks = []
+        job_types = []
+        dev_modes = []
+
+        invalid_paths = []
+
         # define the expected file path syntax:
         # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
         buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
 
-        if not buildspec_path:
-            return
+        for buildspec_path in buildspec_paths:
+            # validate the buildspec_path format
+            match = re.match(buildspec_pattern, buildspec_path)
+            if not match or not os.path.exists(
+                os.path.join(get_cloned_folder_path(), buildspec_path)
+            ):
+                LOGGER.warning(
+                    f"WARNING! {buildspec_path} does not exist. Moving on to the next one..."
+                )
+                invalid_paths.append(buildspec_path)
+                continue
 
-        # validate the buildspec_path format
-        match = re.match(buildspec_pattern, buildspec_path)
-        if not match:
-            raise ValueError(f"Invalid buildspec_path format: {buildspec_path}")
+            # extract the framework, job_type, and version from the buildspec_path
+            framework = match.group(1).replace("/", "_")
+            frameworks.append(framework)
+            framework_str = (
+                framework.replace("_", "-") if framework != "tensorflow" else "tensorflow-2"
+            )
+            job_type = match.group(2)
+            job_types.append(job_type)
+            buildspec_info = match.group(3)
 
-        # extract the framework, job_type, and version from the buildspec_path
-        framework = match.group(1)
-        job_type = match.group(3)
-        # construct the build_job name using the extracted information
-        build_job = f"dlc-pr-{framework}-{job_type}"
+            dev_mode = None
+            for dm in VALID_DEV_MODES:
+                if dm.replace("_mode", "") in buildspec_info:
+                    dev_mode = dm
+                    break
+            dev_modes.append(dev_mode)
 
-        self._overrides["buildspec_override"][build_job] = buildspec_path
+            # construct the build_job name using the extracted info
+            dev_mode_str = f"-{dev_mode.replace('_mode', '')}" if dev_mode else ""
+            build_job = f"dlc-pr-{framework_str}{dev_mode_str}-{job_type}"
+
+            self._overrides["buildspec_override"][build_job] = buildspec_path
+
+        if invalid_paths:
+            raise RuntimeError(
+                f"Found buildspecs that either do not match regex {buildspec_pattern} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
+            )
+
+        if len(set(dev_modes)) > 1:
+            LOGGER.warning(
+                f"Only 1 dev mode is allowed, selecting the first mode in the list: {dev_modes[0]}"
+            )
+
+        self.set_dev_mode(dev_mode=dev_modes[0])
+        self.set_build_frameworks(frameworks=frameworks)
+        self.set_job_type(job_types=job_types)
 
     @property
     def overrides(self):
@@ -159,12 +190,12 @@ def write_toml(toml_path, overrides):
         loaded_toml = toml.load(toml_file_reader)
 
     for key, value in overrides.items():
-        if key == "buildspec_override":
-            for k, v in value.items():
-                loaded_toml["buildspec_override"][k] = v
-        else:
-            for k, v in value.items():
-                loaded_toml[key][k] = v
+        for k, v in value.items():
+            if loaded_toml.get(key, {}).get(k, None) is None:
+                LOGGER.warning(
+                    f"WARNING: Writing unrecognized key {key} {k} with value {v} to {toml_path}"
+                )
+            loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
@@ -174,23 +205,15 @@ def write_toml(toml_path, overrides):
 
 def main():
     args = get_args()
-    frameworks = args.frameworks
-    job_types = args.job_types
     toml_path = args.partner_toml
     test_types = args.tests
-    dev_mode = args.dev_mode
-    buildspec_path = args.buildspec
-
-    LOGGER.info(f"Inferring framework to be {frameworks}...")
+    buildspec_paths = args.buildspecs
 
     overrider = TomlOverrider()
 
     # handle frameworks to build
-    overrider.set_build_frameworks(frameworks=frameworks)
-    overrider.set_job_type(job_types=job_types)
     overrider.set_test_types(test_types=test_types)
-    overrider.set_dev_mode(dev_mode=dev_mode)
-    overrider.set_buildspec(buildspec_path=buildspec_path)
+    overrider.set_buildspec(buildspec_paths=buildspec_paths)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
