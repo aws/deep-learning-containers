@@ -283,7 +283,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         f"[ALLOWLIST] {json.dumps(image_scan_allowlist.vulnerability_list)}"
     )
     LOGGER.info(
-        f"[FUTURE_ALLOWLIST] {json.dumps(future_allowlist.vulnerability_list) if future_allowlist else "None"}"
+        f"[FUTURE_ALLOWLIST] {json.dumps(future_allowlist.vulnerability_list) if future_allowlist else False}"
     )  
     # methods that help with tracking image sha. need to use image sha because image uri changes after release
     # using s3, not a database. want to come up with strategy maps image sha directly to the file
