@@ -85,6 +85,11 @@ def get_args():
         action="store_true",
         help="Adds files changed, commits them locally",
     )
+    parser.add_argument(
+        "-p",
+        "--push",
+        help="Push change to remote specified (i.e. origin)",
+    )
 
     return parser.parse_args()
 
@@ -237,7 +242,7 @@ def write_toml(toml_path, overrides):
             toml_file_writer.write(f"{line}\n")
 
 
-def commit_changes(changes):
+def commit_and_push_changes(changes, remote_push=None):
     commit_message = (
         f"Updated {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
     )
@@ -245,8 +250,13 @@ def commit_changes(changes):
         commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
         REPO.git.add(file_name)
     REPO.git.commit("-m", commit_message)
-
     LOGGER.info(f"Commited change\n{commit_message}")
+
+    if remote_push:
+        branch = REPO.active_branch.name
+        REPO.remotes[remote_push].push(branch)
+        LOGGER.info(f"Pushed change to {remote_push}/{branch}")
+
     return commit_message
 
 
@@ -257,6 +267,7 @@ def main():
     buildspec_paths = args.buildspecs
     restore = args.restore
     to_commit = args.commit
+    to_push = args.push
 
     if not buildspec_paths and not restore:
         LOGGER.error(
@@ -269,7 +280,9 @@ def main():
             f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
         )
         if to_commit:
-            commit_changes({toml_path: f"Reverted to {DEFAULT_TOML_URL}"})
+            commit_and_push_changes(
+                {toml_path: f"Reverted to {DEFAULT_TOML_URL}"}, remote_push=to_push
+            )
         return
 
     overrider = TomlOverrider()
@@ -281,7 +294,7 @@ def main():
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
     if to_commit:
-        commit_changes({toml_path: overrider.overrides})
+        commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
 
 
 if __name__ == "__main__":
