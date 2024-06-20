@@ -283,14 +283,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     #     f"[ALLOWLIST_FOR_DAILY_SCANS] {json.dumps(allowlist_for_daily_scans.vulnerability_list)}"
     # )
     # LOGGER.info(f"[ALLOWLIST] {json.dumps(image_scan_allowlist.vulnerability_list)}")
-    # methods that help with tracking image sha. need to use image sha because image uri changes after release
-    # using s3, not a database. want to come up with strategy maps image sha directly to the file
-
-    # create image sha as the folder name
-    # in folder have file named ecrscan_allowlist.json
-    # if (allowlist_for_daily_scans.vulnerability_list): no more!
-
-    # TODO: do_build flag as false.
+    
     if not is_generic_image():
         image_sha = get_sha_of_an_image_from_ecr(
             ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
