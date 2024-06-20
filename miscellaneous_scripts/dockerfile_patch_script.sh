@@ -45,6 +45,14 @@ fi
 
 pip cache purge
 
+## Update GPG key in case Nginx exists
+VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && \
+if [ $VARIABLE != 0 ]; then \
+    echo "Nginx exists, thus upgrade" && \
+    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && \
+    apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg;
+fi
+
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_os.sh
 

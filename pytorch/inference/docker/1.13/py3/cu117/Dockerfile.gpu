@@ -23,7 +23,7 @@ ARG SM_TOOLKIT_VERSION
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -214,6 +214,7 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "awscli<2" \
     "pillow>=10.0.1" \
     "pyopenssl>=24.1.0" \
+    "setuptools<70.0.0" \
     ${TORCH_URL} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
@@ -228,6 +229,10 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     "pyyaml>=6.0" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Patches
+# py-vuln: 71064
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt

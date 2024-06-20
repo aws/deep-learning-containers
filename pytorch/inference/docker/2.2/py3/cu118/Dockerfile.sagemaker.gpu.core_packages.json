@@ -19,6 +19,9 @@
     "version_specifier": "==0.17.0+cu118",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.3"
+  },
   "awscli": {
     "version_specifier": "<2"
   },
@@ -53,7 +56,7 @@
     "version_specifier": "==0.11.0"
   },
   "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.23"
+    "version_specifier": "==2.0.24"
   },
   "triton": {
     "version_specifier": "==2.2.0"
