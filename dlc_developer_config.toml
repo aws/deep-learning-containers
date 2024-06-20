@@ -1,4 +1,5 @@
-# WARNING: UNRECOGNIZED OPTIONS[dev]
+# WARNING: UNRECOGNIZED OPTIONS
+[dev]
 partner_developer = ""
 ei_mode = false
 neuron_mode = false
