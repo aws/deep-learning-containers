@@ -3,6 +3,7 @@ import argparse
 import logging
 import sys
 import re
+import requests
 
 import toml
 
@@ -27,6 +28,22 @@ VALID_TEST_TYPES = [
 
 VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
+DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
+
+
+def restore_default_toml(toml_path):
+    """
+    Restore the TOML file to its default state from the specified URL
+    """
+    try:
+        response = requests.get(DEFAULT_TOML_URL)
+        response.raise_for_status()
+        with open(toml_path, "w") as toml_file:
+            toml_file.write(response.text)
+        LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {toml_path}: {e}")
+
 
 def get_args():
     """
@@ -39,6 +56,7 @@ def get_args():
         help="TOML file with partner developer information",
     )
     parser.add_argument(
+        "-t",
         "--tests",
         nargs="+",
         choices=VALID_TEST_TYPES,
@@ -46,10 +64,16 @@ def get_args():
         help="Types of tests to run",
     )
     parser.add_argument(
+        "-b",
         "--buildspecs",
-        required=True,
         nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
+    )
+    parser.add_argument(
+        "-r",
+        "--restore",
+        action="store_true",
+        help="Restore the TOML file to its default state",
     )
 
     return parser.parse_args()
@@ -208,6 +232,19 @@ def main():
     toml_path = args.partner_toml
     test_types = args.tests
     buildspec_paths = args.buildspecs
+    restore = args.restore
+
+    if not buildspec_paths and not restore:
+        LOGGER.error(
+            "The developer environment prepare script requires either buildspec or restore options. Please use the '-h' flag to list all options and retry."
+        )
+        exit(1)
+    restore_default_toml(toml_path)
+    if restore:
+        LOGGER.info(
+            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
+        )
+        return
 
     overrider = TomlOverrider()
 
