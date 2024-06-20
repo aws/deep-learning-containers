@@ -246,10 +246,9 @@ def write_toml(toml_path, overrides):
             toml_file_writer.write(f"{line}\n")
 
 
-def commit_and_push_changes(changes, remote_push=None):
-    commit_message = (
-        f"Updated {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
-    )
+def commit_and_push_changes(changes, remote_push=None, restore=False):
+    update_or_restore = "Restore" if restore else "Update"
+    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
     for file_name, overrides in changes.items():
         commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
         REPO.git.add(file_name)
@@ -285,7 +284,7 @@ def main():
         )
         if to_commit:
             commit_and_push_changes(
-                {toml_path: f"Reverted to {DEFAULT_TOML_URL}"}, remote_push=to_push
+                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
             )
         return
 
