@@ -71,5 +71,6 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
+# WARNING: Unrecognized key generated below
 dlc-pr-pytorch-neuronx-inference = "pytorch/inference/buildspec-neuronx.yml"
 
