@@ -31,6 +31,7 @@ from test.test_utils import (
     get_allowlist_path_for_enhanced_scan_from_env_variable,
     get_ecr_scan_allowlist_path,
     get_sha_of_an_image_from_ecr,
+    is_mainline_context,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -276,7 +277,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    if not is_generic_image():
+    if is_mainline_context() and not is_generic_image():
         image_sha = get_sha_of_an_image_from_ecr(
             ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
         )
