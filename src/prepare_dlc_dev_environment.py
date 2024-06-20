@@ -32,8 +32,6 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
-REPO = git.Repo(os.getcwd(), search_parent_directories=True)
-
 
 def restore_default_toml(toml_path):
     """
@@ -129,6 +127,8 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default.
         The provided test types will be kept enabled.
         """
+        if not test_types:
+            return
         # Disable all tests
         for test_type in VALID_TEST_TYPES:
             self._overrides["test"][test_type] = False
@@ -136,11 +136,6 @@ class TomlOverrider:
         # Enable the provided test types
         for test_type in test_types:
             self._overrides["test"][test_type] = True
-
-        # Enable all tests if an empty list is provided
-        if not test_types:
-            for test_type in VALID_TEST_TYPES:
-                self._overrides["test"][test_type] = True
 
     def set_dev_mode(self, dev_mode):
         """
@@ -247,17 +242,18 @@ def write_toml(toml_path, overrides):
 
 
 def commit_and_push_changes(changes, remote_push=None, restore=False):
+    dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
     update_or_restore = "Restore" if restore else "Update"
     commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
     for file_name, overrides in changes.items():
         commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
-        REPO.git.add(file_name)
-    REPO.git.commit("--allow-empty", "-m", commit_message)
-    LOGGER.info(f"Commited change\n{commit_message}")
+        dlc_repo.git.add(file_name)
+    dlc_repo.git.commit("--allow-empty", "-m", commit_message)
+    LOGGER.info(f"Committed change\n{commit_message}")
 
     if remote_push:
-        branch = REPO.active_branch.name
-        REPO.remotes[remote_push].push(branch)
+        branch = dlc_repo.active_branch.name
+        dlc_repo.remotes[remote_push].push(branch)
         LOGGER.info(f"Pushed change to {remote_push}/{branch}")
 
     return commit_message
