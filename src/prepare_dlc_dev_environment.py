@@ -225,6 +225,7 @@ class TomlOverrider:
 
 
 def write_toml(toml_path, overrides):
+    unrecognized_options = set()
     with open(toml_path, "r") as toml_file_reader:
         loaded_toml = toml.load(toml_file_reader)
 
@@ -234,11 +235,14 @@ def write_toml(toml_path, overrides):
                 LOGGER.warning(
                     f"WARNING: Writing unrecognized key {key} {k} with value {v} to {toml_path}"
                 )
+                unrecognized_options.add(k)
             loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
         for line in output:
+            if line.split("=")[0].strip() in unrecognized_options:
+                toml_file_writer.write("# WARNING: Unrecognized key generated below\n")
             toml_file_writer.write(f"{line}\n")
 
 
@@ -249,7 +253,7 @@ def commit_and_push_changes(changes, remote_push=None):
     for file_name, overrides in changes.items():
         commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
         REPO.git.add(file_name)
-    REPO.git.commit("-m", commit_message)
+    REPO.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Commited change\n{commit_message}")
 
     if remote_push:
