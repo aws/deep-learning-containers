@@ -275,23 +275,17 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
-    # LOGGER.info(
-    #     f"[ALLOWLIST_FOR_DAILY_SCANS] {json.dumps(allowlist_for_daily_scans.vulnerability_list)}"
-    # )
-    # LOGGER.info(f"[ALLOWLIST] {json.dumps(image_scan_allowlist.vulnerability_list)}")
-    # LOGGER.info(
-    #     f"[ALLOWLIST_FOR_DAILY_SCANS] {json.dumps(allowlist_for_daily_scans.vulnerability_list)}"
-    # )
-    # LOGGER.info(f"[ALLOWLIST] {json.dumps(image_scan_allowlist.vulnerability_list)}")
-    
+
     if not is_generic_image():
         image_sha = get_sha_of_an_image_from_ecr(
             ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
         )
-        LOGGER.info(f"[IMAGESHA] {image_sha}")
-
         s3_resource = boto3.resource("s3")
-        s3object = s3_resource.Object("trshanta-bucket", image_sha + "/ecr_allowlist.json")
+        sts_client = boto3.client("sts")
+        account_id = sts_client.get_caller_identity().get("Account")
+        s3object = s3_resource.Object(
+            f"image-data-storage-{account_id}", image_sha + "/ecr_allowlist.json"
+        )
         s3object.put(
             Body=(
                 bytes(
@@ -302,7 +296,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
                 )
             )
         )
-        LOGGER.info(f"[ALLOWLIST_S3] uploaded allowlist to trshanta-bucket")
+        LOGGER.info(f"ECR allowlist uploaded to S3 Bucket")
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
