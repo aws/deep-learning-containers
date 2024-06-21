@@ -87,6 +87,15 @@ def get_minimum_sev_threshold_level(image):
 def upload_allowlist_to_image_data_storage_bucket(
     ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
 ):
+    """
+    This method gets the unique identifier of the image from ecr and uses it as the path to
+    upload image's allowlisted vulnerabilities to the image-data-storage s3 bucket. This
+    information is used for the scanning dashboard to identify allowlisted vulnerabilities.
+
+    :param ecr_client_for_enhanced_scanning_repo: ecr boto3 client for image
+    :param ecr_enhanced_repo_uri: str Image URI from ecr
+    :param allowlist_for_daily_scans: list of allowlisted vulnerabilities for the image
+    """
     image_sha = get_sha_of_an_image_from_ecr(
         ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
     )
@@ -101,6 +110,7 @@ def upload_allowlist_to_image_data_storage_bucket(
             bytes(
                 json.dumps(
                     allowlist_for_daily_scans.vulnerability_list,
+                    indent=4,
                     cls=test_utils.EnhancedJSONEncoder,
                 ).encode("UTF-8")
             )
