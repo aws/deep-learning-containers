@@ -32,6 +32,7 @@ from test.test_utils import (
     get_ecr_scan_allowlist_path,
     get_sha_of_an_image_from_ecr,
     is_mainline_context,
+    is_test_phase,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -81,6 +82,31 @@ def get_minimum_sev_threshold_level(image):
     if is_image_covered_by_allowlist_feature(image):
         return "MEDIUM"
     return "HIGH"
+
+
+def upload_allowlist_to_image_data_storage_bucket(
+    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
+):
+    image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
+    )
+    s3_resource = boto3.resource("s3")
+    sts_client = boto3.client("sts")
+    account_id = sts_client.get_caller_identity().get("Account")
+    s3object = s3_resource.Object(
+        f"image-data-storage-{account_id}", image_sha + "/ecr_allowlist.json"
+    )
+    s3object.put(
+        Body=(
+            bytes(
+                json.dumps(
+                    allowlist_for_daily_scans.vulnerability_list,
+                    cls=test_utils.EnhancedJSONEncoder,
+                ).encode("UTF-8")
+            )
+        )
+    )
+    LOGGER.info(f"ECR allowlist uploaded to image-data-storage s3 bucket")
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -277,27 +303,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    if is_mainline_context() and not is_generic_image():
-        image_sha = get_sha_of_an_image_from_ecr(
-            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
+    if is_mainline_context() and is_test_phase() and not is_generic_image():
+        upload_allowlist_to_image_data_storage_bucket(
+            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
         )
-        s3_resource = boto3.resource("s3")
-        sts_client = boto3.client("sts")
-        account_id = sts_client.get_caller_identity().get("Account")
-        s3object = s3_resource.Object(
-            f"image-data-storage-{account_id}", image_sha + "/ecr_allowlist.json"
-        )
-        s3object.put(
-            Body=(
-                bytes(
-                    json.dumps(
-                        allowlist_for_daily_scans.vulnerability_list,
-                        cls=test_utils.EnhancedJSONEncoder,
-                    ).encode("UTF-8")
-                )
-            )
-        )
-        LOGGER.info(f"ECR allowlist uploaded to S3 Bucket")
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
