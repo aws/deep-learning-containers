@@ -101,8 +101,8 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-2.yml"
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-13.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-2-sm.yml"
+dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-13-sm.yml"
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
@@ -130,8 +130,8 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-2.yml"
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-13.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-2-sm.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-13-sm.yml"
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
