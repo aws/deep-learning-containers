@@ -11,5 +11,8 @@
     "tensorflow-serving-api": {
         "version_specifier": "==2.14.1",
         "skip": "True"
+    },
+    "urllib3": {
+        "version_specifier": ">=2.0.7",
     }
 }

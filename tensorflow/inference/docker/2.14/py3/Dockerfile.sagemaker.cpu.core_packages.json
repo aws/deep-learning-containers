@@ -17,5 +17,8 @@
     },
     "gunicorn":{
         "version_specifier":"==20.1.0"
+    },
+    "urllib3": {
+        "version_specifier": ">=2.0.7",
     }
 }
