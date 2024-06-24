@@ -1,6 +1,6 @@
 {
    "awscli":{
-      "version_specifier":"<2"
+      "version_specifier": ">=1.33.13,<2"
    },
    "pyyaml":{
       "version_specifier":">=6.0,<6.1"
