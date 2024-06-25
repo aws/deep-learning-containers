@@ -64,7 +64,7 @@ PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "te
     not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
     reason="This test only needs to run in deep-canary context in us-west-2",
 )
-@pytest.mark.deep_canary("Reason: This test is a simple pytorch training mnist test")
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
@@ -83,7 +83,7 @@ def test_ec2_pytorch_inference_gpu_deep_canary(
     not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
     reason="This test only needs to run in deep-canary context in us-west-2",
 )
-@pytest.mark.deep_canary("Reason: This test is a simple pytorch training mnist test")
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")

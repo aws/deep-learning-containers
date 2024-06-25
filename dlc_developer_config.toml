@@ -10,7 +10,7 @@ trcomp_mode = false
 deep_canary_mode = true
 
 [build]
-build_frameworks = [ "pytorch",]
+build_frameworks = ["tensorflow"]
 build_training = true
 build_inference = true
 do_build = true
