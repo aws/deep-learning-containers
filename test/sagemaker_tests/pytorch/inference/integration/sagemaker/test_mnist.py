@@ -46,6 +46,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 @pytest.mark.team("conda")
+@pytest.mark.deep_canary("Run simple mnist test as canary")
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.c5.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
@@ -64,6 +65,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
+@pytest.mark.deep_canary("Run simple mnist test as canary")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
     instance_type = instance_type or "ml.p3.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
