@@ -72,6 +72,7 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
+    linux-libc-dev \
     zlib1g-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
