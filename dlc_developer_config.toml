@@ -3,15 +3,15 @@ partner_developer = ""
 ei_mode = false
 neuron_mode = false
 neuronx_mode = false
-graviton_mode = false
+graviton_mode = true
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
 deep_canary_mode = true
 
 [build]
-build_frameworks = ["tensorflow"]
-build_training = true
+build_frameworks = ["pytorch", "tensorflow"]
+build_training = false
 build_inference = true
 do_build = true
 

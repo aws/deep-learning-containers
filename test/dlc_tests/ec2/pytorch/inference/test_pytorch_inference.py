@@ -92,6 +92,21 @@ def test_ec2_pytorch_inference_cpu_deep_canary(pytorch_inference, ec2_connection
 
 
 @pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_pytorch_inference_graviton_cpu_deep_canary(
+    pytorch_inference_graviton, ec2_connection, region, cpu_only
+):
+    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
+
+
+@pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet")
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.NEURON_INF1_AMI_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INSTANCE_TYPE, indirect=True)
