@@ -59,15 +59,11 @@ def test_set_test_types():
     assert overrider.overrides["test"]["sagemaker_local_tests"] is False
     assert overrider.overrides["test"]["sagemaker_remote_tests"] is True
 
-    # Test case with no test types (default behavior)
-    test_types = []
-    overrider.set_test_types(test_types)
-    assert overrider.overrides["test"]["sanity_tests"] is True
-    assert overrider.overrides["test"]["ecs_tests"] is True
-    assert overrider.overrides["test"]["eks_tests"] is True
-    assert overrider.overrides["test"]["ec2_tests"] is True
-    assert overrider.overrides["test"]["sagemaker_local_tests"] is True
-    assert overrider.overrides["test"]["sagemaker_remote_tests"] is True
+    # Test case with no test types (default behavior); Should not override anything
+    empty_overrider = prepare_dlc_dev_environment.TomlOverrider()
+    empty_test_types = []
+    empty_overrider.set_test_types(empty_test_types)
+    assert not empty_overrider.overrides["test"]
 
 
 @pytest.mark.quick_checks
