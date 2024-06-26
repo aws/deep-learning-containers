@@ -18,9 +18,7 @@ from packaging.specifiers import SpecifierSet
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skip(
-    "Skip this test. Does not pertain to s3 plugin deprecation"
-)
+@pytest.mark.skip("Skip this test. Does not pertain to s3 plugin deprecation")
 @pytest.mark.skipif(
     not is_pr_context(),
     reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
