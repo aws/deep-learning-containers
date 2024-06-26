@@ -88,12 +88,13 @@ def test_eks_pytorch_single_node_training(pytorch_training):
 
         if eks_utils.is_eks_training_complete(pod_name):
             pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
+            __import__('pprint').pprint(pytorch_out)
             if "Accuracy" in pytorch_out:
                 training_result = True
             else:
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(pytorch_out)
-        assert training_result, f"Training failed"
+        assert training_result, f"Training failed\n logs: {pytorch_out}"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -156,9 +157,8 @@ def test_eks_pytorch_dgl_single_node_training(pytorch_training, py3_only):
                 training_result = True
             else:
                 eks_utils.LOGGER.info("**** training output ****")
-                eks_utils.LOGGER.debug(dgl_out)
 
-        assert training_result, f"Training failed"
+        assert training_result, f"Training failed\n logs: {dgl_out}"
     finally:
         run("kubectl delete pods {}".format(pod_name))
 
@@ -229,7 +229,7 @@ def run_eks_pytorch_multi_node_training(namespace, job_name, remote_yaml_file_pa
             else:
                 eks_utils.LOGGER.info("**** training output ****")
                 eks_utils.LOGGER.debug(run_out)
-        assert training_result, f"Training for eks pytorch multinode failed"
+        assert training_result, f"Training for eks pytorch multinode failed\n: logs: {run_out}"
     finally:
         eks_utils.eks_multinode_cleanup(remote_yaml_file_path, namespace)
 
