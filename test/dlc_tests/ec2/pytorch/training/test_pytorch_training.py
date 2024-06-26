@@ -85,6 +85,38 @@ PT_EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch training mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
+def test_pytorch_train_mnist_gpu_deep_canary(
+    pytorch_training, ec2_connection, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch training mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
+def test_pytorch_train_mnist_cpu_deep_canary(pytorch_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
+
+
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
