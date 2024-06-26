@@ -6,6 +6,8 @@ import re
 import requests
 
 import toml
+import pprint
+import git
 
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
@@ -75,6 +77,17 @@ def get_args():
         action="store_true",
         help="Restore the TOML file to its default state",
     )
+    parser.add_argument(
+        "-c",
+        "--commit",
+        action="store_true",
+        help="Adds files changed, commits them locally",
+    )
+    parser.add_argument(
+        "-p",
+        "--push",
+        help="Push change to remote specified (i.e. origin)",
+    )
 
     return parser.parse_args()
 
@@ -114,6 +127,8 @@ class TomlOverrider:
         based on the provided test types. It assumes that all tests are enabled by default.
         The provided test types will be kept enabled.
         """
+        if not test_types:
+            return
         # Disable all tests
         for test_type in VALID_TEST_TYPES:
             self._overrides["test"][test_type] = False
@@ -121,11 +136,6 @@ class TomlOverrider:
         # Enable the provided test types
         for test_type in test_types:
             self._overrides["test"][test_type] = True
-
-        # Enable all tests if an empty list is provided
-        if not test_types:
-            for test_type in VALID_TEST_TYPES:
-                self._overrides["test"][test_type] = True
 
     def set_dev_mode(self, dev_mode):
         """
@@ -210,6 +220,7 @@ class TomlOverrider:
 
 
 def write_toml(toml_path, overrides):
+    unrecognized_options = set()
     with open(toml_path, "r") as toml_file_reader:
         loaded_toml = toml.load(toml_file_reader)
 
@@ -219,12 +230,33 @@ def write_toml(toml_path, overrides):
                 LOGGER.warning(
                     f"WARNING: Writing unrecognized key {key} {k} with value {v} to {toml_path}"
                 )
+                unrecognized_options.add(k)
             loaded_toml[key][k] = v
 
     with open(toml_path, "w") as toml_file_writer:
         output = toml.dumps(loaded_toml).split("\n")
         for line in output:
+            if line.split("=")[0].strip() in unrecognized_options:
+                toml_file_writer.write("# WARNING: Unrecognized key generated below\n")
             toml_file_writer.write(f"{line}\n")
+
+
+def commit_and_push_changes(changes, remote_push=None, restore=False):
+    dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
+    update_or_restore = "Restore" if restore else "Update"
+    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
+    for file_name, overrides in changes.items():
+        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
+        dlc_repo.git.add(file_name)
+    dlc_repo.git.commit("--allow-empty", "-m", commit_message)
+    LOGGER.info(f"Committed change\n{commit_message}")
+
+    if remote_push:
+        branch = dlc_repo.active_branch.name
+        dlc_repo.remotes[remote_push].push(branch)
+        LOGGER.info(f"Pushed change to {remote_push}/{branch}")
+
+    return commit_message
 
 
 def main():
@@ -233,6 +265,8 @@ def main():
     test_types = args.tests
     buildspec_paths = args.buildspecs
     restore = args.restore
+    to_commit = args.commit
+    to_push = args.push
 
     if not buildspec_paths and not restore:
         LOGGER.error(
@@ -244,6 +278,10 @@ def main():
         LOGGER.info(
             f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
         )
+        if to_commit:
+            commit_and_push_changes(
+                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
+            )
         return
 
     overrider = TomlOverrider()
@@ -254,6 +292,8 @@ def main():
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
+    if to_commit:
+        commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
 
 
 if __name__ == "__main__":
