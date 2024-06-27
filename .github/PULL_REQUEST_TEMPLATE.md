@@ -8,6 +8,32 @@
 ### Description
 
 ### Tests run
+Using the DLC TOML Helper Script
+The dlc_toml_helper.py script provides several features to streamline working with TOML configuration files for Deep Learning Containers (DLCs).
+Note: If python fails, try python3.
+
+- Extracting Data from Buildspec
+--buildspec/-b: Automatically populate a TOML file with data extracted from a buildspec file.
+'python src/prepare_dlc_dev_environment.py --buildspec /path/to/buildspec.yml'
+- Replace /path/to/buildspec.yml with the actual file path of your buildspec.yml file.
+
+- Enable Tests
+--tests/-t: Enable test types (test must include buildspec)
+'python src/prepare_dlc_dev_environment.py -b /path/to/buildspec.yml -t sanity_tests
+
+- Restore TOML File
+--restore/-r: Restore TOML file to original state
+'python src/prepare_dlc_dev_environment.py --restore'
+
+- Commit changes
+-c: Commits changes for review/PR
+'python src/prepare_dlc_dev_environment.py -c'
+
+- Push changes
+-p: Push changes to review/PR
+'python src/prepare_dlc_dev_environment.py -p <remote name>'
+-Use git remote -v to find remote name
+
 
 **NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
 - [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
