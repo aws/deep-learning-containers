@@ -1,7 +1,6 @@
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.3.0-cpu-py311-ubuntu20.04-sagemaker
+
 ARG PYTHON_VERSION=3.10.8
-
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.1.0-cpu-py310-ubuntu20.04-sagemaker
-
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -19,7 +18,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=1.1.0
+ARG AUTOGLUON_VERSION=1.1.1
 
 # Upgrading pip and installing/updating Python dependencies
 # Comments are added to explain the reason behind each update
