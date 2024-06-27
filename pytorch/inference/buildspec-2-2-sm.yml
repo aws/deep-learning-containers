@@ -41,7 +41,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.11.0
-    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.23
+    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.24
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     # build_tag_override: "beta:2.2.0-cpu-py310-ubuntu20.04-sagemaker"
@@ -59,7 +59,7 @@ images:
     cuda_version: &CUDA_VERSION cu118
     os_version: &OS_VERSION ubuntu20.04
     torch_serve_version: &TORCHSERVE_VERSION 0.11.0
-    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.23
+    tool_kit_version: &SM_TOOLKIT_VERSION 2.0.24
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     # build_tag_override: "beta:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker"

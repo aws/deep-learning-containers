@@ -34,8 +34,6 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && mim install -q mmcv==2.1.0 --timeout 600 \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
  && pip install --no-cache-dir -U "mmengine" \
-# Update ray to a secure version that fixes CVE-2023-48022
- && pip install --no-cache-dir -U ray>=2.10.0 \
 # Update transformers to secure versions that fixes CVE-2023-7018
  && pip install --no-cache-dir -U setuptools>=65.5.1 \  
  # Update pillow to a secure version that fixes CVE-2023-50447
