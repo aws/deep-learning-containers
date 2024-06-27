@@ -11,11 +11,8 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.skip(
-    "Skip test due to all tested PT images are now out of support. Pending deprecation with partner teams. See https://github.com/aws/deep-learning-containers/pull/4005#issuecomment-2166591338"
-)
 @pytest.mark.usefixtures("feature_s3_plugin_present")
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("huggingface_only")
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
 def test_pt_s3_sanity(pytorch_training, outside_versions_skip):
