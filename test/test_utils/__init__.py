@@ -395,8 +395,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
 
     short_framework_version = re.search(r"(\d+\.\d+)", image_uri).group(1)
 
-    print(f"Image URI 1 : {image_uri}")
-    print(f"Short Framework Version Path : {short_framework_version}")
     framework_version_path = os.path.join(
         github_repo_path, framework_path, job_type, "docker", short_framework_version
     )
@@ -410,8 +408,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
     if not python_version:
         python_version = re.search(r"py\d+", image_uri).group()
 
-    print(f"Framework Version Path : {framework_version_path}")
-    print(f"Python Version : {python_version}")
     python_version_path = os.path.join(framework_version_path, python_version)
     if not os.path.isdir(python_version_path):
         python_version_path = os.path.join(framework_version_path, "py3")
@@ -429,9 +425,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
     ]
 
     if device_type in ["gpu", "hpu", "neuron", "neuronx"]:
-        print("\nDevice Type: ", device_type)
-        print("\nDockerfiles List: ", dockerfiles_list)
-        print("\nDockerfile name: ", dockerfile_name)
         if len(dockerfiles_list) > 1:
             if device_type == "gpu" and not cuda_version:
                 raise LookupError(
@@ -473,7 +466,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
 
 
 def get_expected_dockerfile_filename(device_type, image_uri):
-    print("\nImage URI: ", image_uri)
     if is_covered_by_ec2_sm_split(image_uri):
         if "graviton" in image_uri:
             return f"Dockerfile.graviton.{device_type}"
