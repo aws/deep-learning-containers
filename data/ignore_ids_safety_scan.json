@@ -1416,7 +1416,9 @@
                 "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
                 "67895": "CVE-2024-3651 impacts the idna.encode() function",
                 "71601": "Transformers version upgrade needs to be handled in a separate image",
-                "71670": "Pytorch version upgrade needs to be handled in a separate image"
+                "71670": "Pytorch version upgrade needs to be handled in a separate image",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference-neuron": {
