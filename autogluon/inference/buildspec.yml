@@ -41,7 +41,7 @@ images:
   BuildAutogluonGPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &AUTOGLUON_GPU_INFERENCE_PY3 false
-    image_size_baseline: 19456
+    image_size_baseline: 1700
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
