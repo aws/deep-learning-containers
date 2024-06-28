@@ -39,7 +39,6 @@ PT_AMP_INDUCTOR_CMD = os.path.join(
 PT_TELEMETRY_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
 )
-PT_S3_PLUGIN_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchS3Plugin")
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
@@ -579,55 +578,6 @@ def test_pytorch_amp_inductor(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
-
-
-@pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.skip_s3plugin_test
-@pytest.mark.usefixtures("feature_s3_plugin_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("pt_s3_plugin_gpu")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
-def test_pytorch_s3_plugin_gpu(
-    pytorch_training,
-    ec2_connection,
-    gpu_only,
-    ec2_instance_type,
-    pt18_and_above_only,
-    below_pt113_only,  # PyTorch S3 Plugin has been deprecated for PT 1.13 and above
-):
-    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
-    if "trcomp" in pytorch_training and Version(image_framework_version) in SpecifierSet("<2.0"):
-        pytest.skip(f"Image {pytorch_training} doesn't support s3. Hence test is skipped.")
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
-
-
-@pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.skip_s3plugin_test
-@pytest.mark.usefixtures("feature_s3_plugin_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("pt_s3_plugin_cpu")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
-def test_pytorch_s3_plugin_cpu(
-    pytorch_training,
-    ec2_connection,
-    cpu_only,
-    ec2_instance_type,
-    pt18_and_above_only,
-    below_pt113_only,  # PyTorch S3 Plugin has been deprecated for PT 1.13 and above
-):
-    if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
-        pytest.skip(
-            f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
-        )
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_S3_PLUGIN_CMD)
 
 
 @pytest.mark.skip_serialized_release_pt_test
