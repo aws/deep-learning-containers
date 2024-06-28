@@ -55,7 +55,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___2__2",
     "pytorch_training___2__1",
     "pytorch_training___2__0",
-    "pytorch_training___1__3",
+    "pytorch_training___1__13",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
