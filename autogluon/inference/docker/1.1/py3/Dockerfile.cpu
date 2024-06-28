@@ -1,6 +1,7 @@
+ARG PYTHON_VERSION=3.11.9
+
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.3.0-cpu-py311-ubuntu20.04-sagemaker
 
-ARG PYTHON_VERSION=3.10.8
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -34,7 +35,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
  && pip install --no-cache-dir -U "mmengine" \
 # Update transformers to secure versions that fixes CVE-2023-7018
- && pip install --no-cache-dir -U setuptools>=65.5.1 \  
+ && pip install --no-cache-dir setuptools==69.5.1 \  
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \
  # Update Jinja2 to a secure version that fixes vulnerability id 64227

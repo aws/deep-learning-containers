@@ -364,7 +364,7 @@ def test_framework_version_cpu(image):
         if tested_framework == "autogluon.core":
             versions_map = {
                 # container version -> autogluon version
-                '1.1.0': '1.1.1',
+                # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
             assert output.startswith(version_to_check)
