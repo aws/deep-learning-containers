@@ -27,7 +27,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26884 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     },
     {
       "description": " In the Linux kernel, the following vulnerability has been resolved: aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts This patch is against CVE-2023-6270. The description of cve is: A flaw was found in the ATA over Ethernet (AoE) driver in the Linux kernel. The aoecmd_cfg_pkts() function improperly updates the refcnt on `struct net_device`, and a use-after-free can be triggered by racing between the free on the struct and the access through the `skbtxq` global queue. This could lead to a denial of service condition or potential code execution. In aoecmd_cfg_pkts(), it always calls dev_put(ifp) when skb initial code is finished. But the net_device ifp will still be used in later tx()->dev_queue_xmit() in kthread. Which means that the dev_put(ifp) should NOT be called in the success path of skb initial code in aoecmd_cfg_pkts(). Otherwise tx() may run into use-after-free because the net_device is freed. This patch removed the dev_put(ifp) in the success path in aoecmd_cfg_pkts(), and added dev_p",
@@ -56,7 +56,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26898 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     },
     {
       "description": " In the Linux kernel, the following vulnerability has been resolved: net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv() Apply the same fix than ones found in : 8d975c15c0cd (\"ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()\") 1ca1ba465e55 (\"geneve: make sure to pull inner header in geneve_rx()\") We have to save skb->network_header in a temporary variable in order to be able to recompute the network_header pointer after a pskb_inet_may_pull() call. pskb_inet_may_pull() makes sure the needed headers are in skb->head. syzbot reported: BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] BUG: KMSAN: uninit-value in INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] BUG: KMSAN: uninit-value in IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline] BUG: KMSAN: uninit-value in ip_tunnel_rcv+0xed9/0x2ed0 net/ipv4/ip_tunnel.c:409 __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] IP_ECN_",
@@ -85,7 +85,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26882 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     }
   ],
   "ray": [
@@ -116,7 +116,7 @@
       "severity": "CRITICAL",
       "status": "ACTIVE",
       "title": "CVE-2023-48022 - ray",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "fix not available yet, autogluon uses Ray < 2.11"
     }
   ]
 }

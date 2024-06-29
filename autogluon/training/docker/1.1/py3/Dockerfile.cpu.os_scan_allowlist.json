@@ -27,7 +27,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26882 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     },
     {
       "description": " In the Linux kernel, the following vulnerability has been resolved: aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts This patch is against CVE-2023-6270. The description of cve is: A flaw was found in the ATA over Ethernet (AoE) driver in the Linux kernel. The aoecmd_cfg_pkts() function improperly updates the refcnt on `struct net_device`, and a use-after-free can be triggered by racing between the free on the struct and the access through the `skbtxq` global queue. This could lead to a denial of service condition or potential code execution. In aoecmd_cfg_pkts(), it always calls dev_put(ifp) when skb initial code is finished. But the net_device ifp will still be used in later tx()->dev_queue_xmit() in kthread. Which means that the dev_put(ifp) should NOT be called in the success path of skb initial code in aoecmd_cfg_pkts(). Otherwise tx() may run into use-after-free because the net_device is freed. This patch removed the dev_put(ifp) in the success path in aoecmd_cfg_pkts(), and added dev_p",
@@ -56,7 +56,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26898 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     },
     {
       "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Fix hashtab overflow check on 32-bit arches The hashtab code relies on roundup_pow_of_two() to compute the number of hash buckets, and contains an overflow check by checking if the resulting value is 0. However, on 32-bit arches, the roundup code itself can overflow by doing a 32-bit left-shift of an unsigned long value, which is undefined behaviour, so it is not guaranteed to truncate neatly. This was triggered by syzbot on the DEVMAP_HASH type, which contains the same check, copied from the hashtab code. So apply the same fix to hashtab, by moving the overflow check to before the roundup.",
@@ -85,7 +85,7 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-26884 - linux",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
     }
   ],
   "ray": [
@@ -116,7 +116,7 @@
       "severity": "CRITICAL",
       "status": "ACTIVE",
       "title": "CVE-2023-48022 - ray",
-      "reason_to_ignore": "N/A"
+      "reason_to_ignore": "fix not available yet, autogluon uses Ray < 2.11"
     }
   ]
 }
