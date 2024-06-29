@@ -48,6 +48,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U joblib==1.4.2 \
  # update tqdm to a secure version that fixes CVE-2024-34062
  && pip install --no-cache-dir -U tqdm>=4.66.3
+ # update urllib3 to fix vulnerability id 71608
+ && pip install --no-cache-dir -U urllib3
 
 
 
