@@ -1,0 +1,5 @@
+#### First image: sha256:bdf9ef797758ed8d46fe52ee94fa98188c86d6f3502c700aff9366956659c72a ####
+#### Current Patch contents ####
+pip install requests==2.32.2 triton==2.1.0 
+python -m pip install --upgrade pip
+echo N/A
