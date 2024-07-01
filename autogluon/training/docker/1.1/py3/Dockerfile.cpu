@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \
  && pip install --no-cache-dir -U pyOpenSSL>=23.2.0 \
- # Update transformers to secure versions that fixes CVE-2023-7018
+ # Capping setuptools to 69.5.1 to fix AutoMM tests
  && pip install --no-cache-dir setuptools==69.5.1 \
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \

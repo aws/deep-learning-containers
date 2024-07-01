@@ -1,5 +1,5 @@
 ARG CUDA_VER=12.1
-ARG PYTHON_VERSION=3.10.8
+ARG PYTHON_VERSION=3.11.9
 
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker
 
@@ -32,7 +32,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U "mmengine" \
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \
- # Update transformers to secure versions that fixes CVE-2023-7018
+ # Capping setuptools to 69.5.1 to fix AutoMM tests
  && pip install --no-cache-dir setuptools==69.5.1 \
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \ 
