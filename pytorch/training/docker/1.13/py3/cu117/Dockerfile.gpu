@@ -61,7 +61,8 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
-ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+# ENV TORCH_CUDA_ARCH_LIST="3.7 5.0 7.0+PTX 8.0"
+ENV TORCH_CUDA_ARCH_LIST="3.7;5.0;5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV CUDNN_VERSION=8.5.0.96
@@ -286,7 +287,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    FORCE_CUDA=1 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -421,7 +422,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
-    pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    FORCE_CUDA=1 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
