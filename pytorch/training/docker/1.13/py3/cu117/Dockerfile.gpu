@@ -287,7 +287,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
-    FORCE_CUDA=1 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
@@ -422,7 +422,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
 RUN git clone https://github.com/NVIDIA/apex && \
     cd apex && \
     git checkout aa756ce && \
-    FORCE_CUDA=1 pip install -v --no-cache-dir --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+    pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
