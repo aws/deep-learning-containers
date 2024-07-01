@@ -8,9 +8,8 @@
 ### Description
 
 ### Tests run
-Confused on how to run tests? Try using the helper utility `src/prepare_dlc_dev_environment.py`
 <details>
-<summary>Expand for more info...</summary>
+<summary>Confused on how to run tests? Try using the helper utility...</summary>
 
 Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
   
