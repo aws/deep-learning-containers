@@ -44,6 +44,38 @@ class TFTrainingTestFailure(Exception):
     pass
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_train_mnist_gpu_deep_canary(
+    tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_train_mnist_cpu_deep_canary(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+
+
 @pytest.mark.integration("tensorflow_sanity_test")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
