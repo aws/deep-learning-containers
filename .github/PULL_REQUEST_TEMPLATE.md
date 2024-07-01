@@ -8,6 +8,24 @@
 ### Description
 
 ### Tests run
+<details>
+<summary>Confused on how to run tests? Try using the helper utility...</summary>
+
+Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
+  
+- Run default builds and tests for a particular buildspec - also commits and pushes changes to remote; Example:
+
+`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -p origin`
+
+- Enable specific tests for a buildspec or set of buildspecs - also commits and pushes changes to remote; Example:
+
+`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -t sanity_tests -p origin`
+
+- Restore TOML file when ready to merge
+
+`python src/prepare_dlc_dev_environment.py -rcp origin`
+</details>
+
 
 **NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
 - [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
