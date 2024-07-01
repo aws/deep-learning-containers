@@ -33,7 +33,6 @@ def test_pytorch_1_13_gpu(
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nvapex, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        # temp skip
         # (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
     ]
@@ -101,8 +100,6 @@ def test_pytorch_2_1_gpu_inductor(
         (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
-        # temp skip
-        # (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
     ]
 
     test_utils.execute_serial_test_cases(test_cases, test_description="PT 1.13 GPU Inductor")
