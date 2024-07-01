@@ -8,31 +8,21 @@
 ### Description
 
 ### Tests run
-Using the DLC TOML Helper Script
-The dlc_toml_helper.py script provides several features to streamline working with TOML configuration files for Deep Learning Containers (DLCs).
-Note: If python fails, try python3.
+Confused on how to run tests? Try using the helper utility `src/prepare_dlc_dev_environment.py`
+<details>
+<summary>Expand for more info...</summary>
 
-- Extracting Data from Buildspec
---buildspec/-b: Automatically populate a TOML file with data extracted from a buildspec file.
-'python src/prepare_dlc_dev_environment.py --buildspec /path/to/buildspec.yml'
-- Replace /path/to/buildspec.yml with the actual file path of your buildspec.yml file.
+Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
+  
+- Run default builds and tests for a particular buildspec - also commits and pushes changes to remote; Example:
+`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -p origin`
 
-- Enable Tests
---tests/-t: Enable test types (test must include buildspec)
-'python src/prepare_dlc_dev_environment.py -b /path/to/buildspec.yml -t sanity_tests
+- Enable specific tests for a buildspec or set of buildspecs - also commits and pushes changes to remote; Example:
+`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -t sanity_tests -p origin`
 
-- Restore TOML File
---restore/-r: Restore TOML file to original state
-'python src/prepare_dlc_dev_environment.py --restore'
-
-- Commit changes
--c: Commits changes for review/PR
-'python src/prepare_dlc_dev_environment.py -c'
-
-- Push changes
--p: Push changes to review/PR
-'python src/prepare_dlc_dev_environment.py -p <remote name>'
--Use git remote -v to find remote name
+- Restore TOML file when ready to merge
+`python src/prepare_dlc_dev_environment.py -rcp origin`
+</details>
 
 
 **NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
