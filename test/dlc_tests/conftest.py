@@ -854,22 +854,6 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
-    if "training" in request.fixturenames:
-        img_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        img_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-    _, fw_ver = get_framework_and_version_from_tag(img_uri)
-    if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
-            pytest.skip(
-                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
-            )
-
-
-@pytest.fixture(autouse=True)
 def skip_trcomp_containers(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
@@ -1419,9 +1403,6 @@ def pytest_configure(config):
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
-    config.addinivalue_line(
-        "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
-    )
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
     config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
 
