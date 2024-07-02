@@ -55,7 +55,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___2__2",
     "pytorch_training___2__1",
     "pytorch_training___2__0",
-    "pytorch_training___1__3",
+    "pytorch_training___1__13",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -991,6 +991,7 @@ def skip_serialized_release_pt_test(request):
         return
 
     skip_dict = {
+        "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
     }
     if _validate_pytorch_framework_version(
