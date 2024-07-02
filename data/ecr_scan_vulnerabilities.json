@@ -58,16 +58,6 @@
          ],
          "advisory":"Being used by DLC team to handle mismatches with upstream versions."
       }
-   ],
-   "urllib3":[
-      {
-         "cve":"TEMP-DLC-2",
-         "id":"ECR-SCAN_CVE-TEMP-DLC-2",
-         "specs":[
-            "<=1.26.19"
-         ],
-         "advisory":"Being used by DLC team to handle mismatches with upstream versions for urllib3."
-      }
    ]
  }
  

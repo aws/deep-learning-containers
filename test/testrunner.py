@@ -449,7 +449,7 @@ def main():
                 # Add rerun flag to canaries to avoid flakiness. Force pytest to collect only
                 # deep-canary tests, and prevent wastage of threads in the skipping of
                 # non-deep-canary tests.
-                canary_pytest_args = [pytest_rerun_arg, pytest_rerun_delay_arg, "-m", "deep_canary"]
+                canary_pytest_args = ["-m", "deep_canary"]
             pytest_cmds = [pytest_cmd + canary_pytest_args for pytest_cmd in pytest_cmds]
 
         pytest_cmds = [

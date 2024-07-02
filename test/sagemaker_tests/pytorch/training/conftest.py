@@ -170,9 +170,6 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "skip_inductor_test(): skip inductor test on incompatible images"
     )
-    config.addinivalue_line(
-        "markers", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
-    )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
     config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
 
@@ -217,7 +214,6 @@ NIGHTLY_FIXTURES = {
     },
     "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
     "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
-    "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
     "feature_smart_sifting_present": {NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value},
 }
 
@@ -246,11 +242,6 @@ def feature_smmp_present():
 
 @pytest.fixture(scope="session")
 def feature_aws_framework_present():
-    pass
-
-
-@pytest.fixture(scope="session")
-def feature_s3_plugin_present():
     pass
 
 
@@ -475,21 +466,6 @@ def skip_inductor_test(request):
         if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
                 f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
-            )
-
-
-@pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
-            pytest.skip(
-                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
             )
 
 
