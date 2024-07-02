@@ -428,11 +428,19 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata \
  && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL} torchnet
 
 # Install Nvidia Apex (needs pytorch)
-## Pin apex commit requested by sm-model-parallel team
-RUN git clone https://github.com/NVIDIA/apex && \
-    cd apex && \
-    git checkout aa756ce && \
-    pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
+RUN pip install --no-cache-dir packaging \
+ && git clone https://github.com/NVIDIA/apex \
+ && cd apex \
+ && git checkout 23.08 -b apex \
+ && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+ && cd .. \
+ && rm -rf apex
+# # Install Nvidia Apex (needs pytorch)
+# ## Pin apex commit requested by sm-model-parallel team
+# RUN git clone https://github.com/NVIDIA/apex && \
+#     cd apex && \
+#     git checkout aa756ce && \
+#     pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
 
 # Configure Open MPI and configure NCCL parameters
 RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
