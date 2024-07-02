@@ -15,11 +15,11 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
   
 - Run default builds and tests for a particular buildspec - also commits and pushes changes to remote; Example:
 
-`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -p origin`
+`python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -cp origin`
 
 - Enable specific tests for a buildspec or set of buildspecs - also commits and pushes changes to remote; Example:
 
-`python src/prepare_dlc_dev_environment.py -bc </path/to/buildspec.yml> -t sanity_tests -p origin`
+`python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -t sanity_tests -cp origin`
 
 - Restore TOML file when ready to merge
 
