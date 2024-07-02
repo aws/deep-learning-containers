@@ -264,7 +264,7 @@ ARG PT_TORCHDATA_URL
 RUN /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/mamba clean -afy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -u ${PT_EC2_TRAINING_URL} ${pt_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${pt_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -277,7 +277,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
     # dataclasses package is not needed for py>=37
     # install plainly will oversize the image
  && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
+ && pip install --no-cache-dir -U torchtnt \
  && /opt/conda/bin/mamba clean -afy
 
 # Install Nvidia Apex (needs pytorch)
@@ -338,7 +338,7 @@ RUN rm -rf /root/.ssh/ && \
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install -U --no-cache-dir horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -415,7 +415,7 @@ ARG TRITON_VERSION
 RUN /opt/conda/bin/mamba install -c pytorch -y magma-cuda117 \
  && /opt/conda/bin/mamba clean -afy \
  && pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -u ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URl} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URl} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -428,7 +428,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
     # dataclasses package is not needed for py>=37
     # install plainly will oversize the image
  && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
+ && pip install --no-cache-dir -U torchtnt \
  && /opt/conda/bin/mamba clean -afy
 
 # Install Nvidia Apex (needs pytorch)
@@ -489,7 +489,7 @@ RUN rm -rf /root/.ssh/ && \
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir -U horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -590,7 +590,7 @@ RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir -U ${SMD_DATA_PARALLEL_URL}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
