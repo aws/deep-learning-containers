@@ -40,7 +40,10 @@ hyperparameters = {
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
-    "fp16": True,
+    # Q: Does the base pt image setup the cuda environment correctly? ValueError: FP16 Mixed precision
+    # training with AMP or APEX (`--fp16`) and FP16 half precision evaluation (`--fp16_full_eval`) can
+    # only be used on CUDA or MLU devices or NPU devices or certain XPU devices (with IPEX).
+    "fp16": False,
     "per_device_train_batch_size": 1,
     "per_device_eval_batch_size": 1,
     "num_train_epochs": 1,

@@ -32,7 +32,7 @@ def test_distilbert_base(
     hyperparameters = {
         "max_steps": 5,
         "train_batch_size": 4,
-        "model_name": "distilbert-base-uncased",
+        "model_name": "distilbert/distilbert-base-uncased",
     }
 
     estimator = HuggingFace(
@@ -65,7 +65,7 @@ def test_distilbert_base_torch_compiled(
     hyperparameters = {
         "max_steps": 5,
         "train_batch_size": 4,
-        "model_name": "distilbert-base-uncased",
+        "model_name": "distilbert/distilbert-base-uncased",
     }
 
     estimator = HuggingFace(

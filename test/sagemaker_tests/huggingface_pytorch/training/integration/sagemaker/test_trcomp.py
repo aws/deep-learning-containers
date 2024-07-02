@@ -33,7 +33,7 @@ import unittest.mock as mock
 
 
 hyperparameters = {
-    "model_name_or_path": "bert-large-uncased-whole-word-masking",
+    "model_name_or_path": "google-bert/bert-large-uncased-whole-word-masking-finetuned-squad",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
