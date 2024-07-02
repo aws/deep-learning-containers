@@ -177,16 +177,14 @@ RUN cd /tmp \
  && rm -rf /tmp/gdrcopy
 
 # For conda ssl verification
-# NOTE: REMOVABLE
-# RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
  && rm ~/mambaforge.sh
 
-RUN /opt/conda/bin/mamba update -y conda \
- && /opt/conda/bin/mamba install -y -c conda-forge \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    conda \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -203,16 +201,6 @@ RUN /opt/conda/bin/mamba update -y conda \
  && /opt/conda/bin/mamba install -y -c dglteam dgl-cuda11.7=0.9.1 \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
-
-# NOTE: REMOVABLE
-# # remove the default mamba installation
-# RUN rm -rf /root/micromamba/
-#
-# # Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# # Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# # Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# # once conda fixes the issue
-# RUN rm -rf /opt/conda/lib/libtinfo.so.6
 
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
