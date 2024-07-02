@@ -1,7 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.16
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MINIFORGE3_VERSION=23.11.0-0
+ARG MINIFORGE_PYPY3_VERSION=24.3.0-0
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -42,7 +42,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG MINIFORGE3_VERSION
+ARG MINIFORGE_PYPY3_VERSION
 
 ARG CUBLAS_VERSION=11.10.3.66
 ARG EFA_PATH=/opt/amazon/efa
@@ -180,7 +180,7 @@ RUN cd /tmp \
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 # NOTE: REMOVABLE
 # RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
+RUN curl -L -o ~.miniforge-pypy3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_PYPY3_VERSION}/Miniforge-pypy3-${MINIFORGE_PYPY3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
