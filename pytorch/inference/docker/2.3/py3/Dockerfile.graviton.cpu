@@ -229,11 +229,6 @@ ARG TORCHSERVE_VERSION
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install scikit-learn and pandas
-# RUN conda install -y -c conda-forge \
-#     scikit-learn \
-#     pandas
-
-# RUN pip install "numpy<2"
 RUN pip install scikit-learn pandas
 
 RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
