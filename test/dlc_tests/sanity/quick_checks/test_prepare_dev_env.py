@@ -1,5 +1,7 @@
 import pytest
+import os
 
+from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
 
 
@@ -204,3 +206,100 @@ def test_set_buildspec_updates_build_inference_only():
 
     assert overrider.overrides["build"]["build_training"] is False
     assert overrider.overrides["build"]["build_inference"] is True
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("handle_currency_option")
+def test_handle_currency_option_valid_file(monkeypatch):
+    currency_path = "pytorch/training/buildspec-2-4-ec2.yml"
+    previous_version_content = 'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n'
+
+    monkeypatch.setattr(
+        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
+    )
+
+    with patch("builtins.open", mock_open(read_data=previous_version_content)) as mock_file:
+        prepare_dlc_dev_environment.handle_currency_option([currency_path])
+
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/pytorch/training/buildspec-2-3-ec2.yml", "r"
+        )
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml", "w"
+        )
+        handle = mock_file()
+        handle.write.assert_called_once_with(
+            'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n'
+        )
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("handle_currency_option")
+def test_handle_currency_option_invalid_file(monkeypatch, caplog):
+    currency_path = "invalid/path/buildspec-2-4-ec2.yml"
+
+    monkeypatch.setattr(
+        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
+    )
+
+    with caplog.at_level(prepare_dlc_dev_environment.LOGGER.level):
+        prepare_dlc_dev_environment.handle_currency_option([currency_path])
+
+    assert "Invalid currency path format: invalid/path/buildspec-2-4-ec2.yml" in caplog.text
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("handle_currency_option")
+def test_handle_currency_option_multiple_files(monkeypatch):
+    currency_paths = [
+        "pytorch/training/buildspec-2-4-ec2.yml",
+        "tensorflow/inference/buildspec-1-5-graviton.yml",
+    ]
+    previous_version_contents = [
+        'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n',
+        'version: &VERSION 1.4.0\nshort_version: &SHORT_VERSION "1.4"\n',
+    ]
+
+    monkeypatch.setattr(
+        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
+    )
+
+    with patch("builtins.open", mock_open(read_data=previous_version_contents)) as mock_file:
+        prepare_dlc_dev_environment.handle_currency_option(currency_paths)
+
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/pytorch/training/buildspec-2-3-ec2.yml", "r"
+        )
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml", "w"
+        )
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/tensorflow/inference/buildspec-1-4-graviton.yml", "r"
+        )
+        mock_file.assert_any_call(
+            "/path/to/cloned/repo/tensorflow/inference/buildspec-1-5-graviton.yml", "w"
+        )
+
+        handles = list(mock_file.mock_calls)
+        assert handles[1].args[0] == "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml"
+        assert (
+            handles[2].args[0]
+            == "/path/to/cloned/repo/tensorflow/inference/buildspec-1-5-graviton.yml"
+        )
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("handle_currency_option")
+def test_handle_currency_option_no_files(monkeypatch, caplog):
+    monkeypatch.setattr(
+        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
+    )
+
+    with caplog.at_level(prepare_dlc_dev_environment.LOGGER.level):
+        prepare_dlc_dev_environment.handle_currency_option([])
+
+    assert not caplog.text
