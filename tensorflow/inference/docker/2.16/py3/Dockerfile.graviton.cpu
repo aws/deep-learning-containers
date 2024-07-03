@@ -92,7 +92,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    # Constrain protobuf to <5.0 because tf-serving-api 2.14.1 requires protobuf<5.0.0dev.
+    # Constrain protobuf to <5.0 because tf-serving-api 2.16.1 requires protobuf<5.0.0dev.
     "protobuf<5.0" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
