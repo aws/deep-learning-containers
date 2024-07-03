@@ -199,8 +199,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     charset-normalizer \
     # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/mamba install -y -c dglteam dgl-cuda11.7=0.9.1 \
- && /opt/conda/bin/mamba clean -afy \
- && rm -rf /etc/apt/sources.list.d/*
+ && /opt/conda/bin/mamba clean -afy
 
 RUN /opt/conda/bin/conda config --set ssl_verify False \
  && pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
