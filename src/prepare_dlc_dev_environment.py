@@ -263,6 +263,51 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     return commit_message
 
 
+def handle_currency_option(currency_paths):
+    """
+    Handle the --currency option.
+
+    This function takes a list of currency paths as input and creates new buildspec files
+    with incremented minor versions based on the provided paths. The contents of the new
+    files are copied from the inferred previous version files.
+    """
+    buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
+
+    for currency_path in currency_paths:
+        # Validate the currency path format
+        match = re.match(buildspec_pattern, currency_path)
+        if not match:
+            LOGGER.warning(f"Invalid currency path format: {currency_path}")
+            continue
+
+        # Extract information from the currency path
+        framework, job_type, major_version, minor_version, extra = match.groups()
+        previous_minor_version = str(int(minor_version) - 1)
+
+        # Construct the path to the inferred previous version file
+        previous_version_path = os.path.join(
+            get_cloned_folder_path(),
+            framework,
+            job_type,
+            f"buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml",
+        )
+
+        # Check if the inferred previous version file exists
+        if os.path.isfile(previous_version_path):
+            # Create the new file and copy the contents from the previous version
+            new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+            os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+
+            with open(new_file_path, "w") as new_file, open(
+                previous_version_path, "r"
+            ) as prev_file:
+                new_file.write(prev_file.read())
+
+            LOGGER.info(f"Created {currency_path} based on {previous_version_path}")
+        else:
+            LOGGER.warning(f"Previous version file not found: {previous_version_path}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -271,11 +316,16 @@ def main():
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
+    currency_paths = args.currency
 
-    if not buildspec_paths and not restore:
-        LOGGER.error(
-            "The developer environment prepare script requires either buildspec or restore options. Please use the '-h' flag to list all options and retry."
-        )
+    # Handle the --currency option
+    if currency_paths:
+        handle_currency_option(currency_paths)
+        return
+
+    # Update to require 1 of 3 options
+    if not buildspec_paths and not restore and not currency_paths:
+        LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
     restore_default_toml(toml_path)
     if restore:
@@ -291,8 +341,9 @@ def main():
     overrider = TomlOverrider()
 
     # handle frameworks to build
-    overrider.set_test_types(test_types=test_types)
-    overrider.set_buildspec(buildspec_paths=buildspec_paths)
+    if buildspec_paths:
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
