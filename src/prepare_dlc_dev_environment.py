@@ -88,7 +88,11 @@ def get_args():
         "--push",
         help="Push change to remote specified (i.e. origin)",
     )
-
+    parser.add_argument(
+        "--currency",
+        nargs="+",
+        help="Path to buildspec files that need to be updated with the next minor version",
+    )
     return parser.parse_args()
 
 
