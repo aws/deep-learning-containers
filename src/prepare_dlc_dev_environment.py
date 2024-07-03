@@ -89,6 +89,7 @@ def get_args():
         help="Push change to remote specified (i.e. origin)",
     )
     parser.add_argument(
+        "-n",
         "--currency",
         nargs="+",
         help="Path to buildspec files that need to be updated with the next minor version",
@@ -273,17 +274,14 @@ def handle_currency_option(currency_paths):
     buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
 
     for currency_path in currency_paths:
-        # Validate the currency path format
-        match = re.match(buildspec_pattern, currency_path)
-        if not match:
-            LOGGER.warning(f"Invalid currency path format: {currency_path}")
+        if not validate_currency_path(currency_path, buildspec_pattern):
             continue
 
-        # Extract information from the currency path
-        framework, job_type, major_version, minor_version, extra = match.groups()
+        framework, job_type, major_version, minor_version, extra = extract_path_components(
+            currency_path, buildspec_pattern
+        )
         previous_minor_version = str(int(minor_version) - 1)
 
-        # Construct the path to the inferred previous version file
         previous_version_path = os.path.join(
             get_cloned_folder_path(),
             framework,
@@ -291,28 +289,55 @@ def handle_currency_option(currency_paths):
             f"buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml",
         )
 
-        # Check if the inferred previous version file exists
         if os.path.isfile(previous_version_path):
-            # Create the new file and update the version and short_version
-            new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
-            os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
-
-            with open(new_file_path, "w") as new_file, open(
-                previous_version_path, "r"
-            ) as prev_file:
-                content = prev_file.readlines()
-                for i, line in enumerate(content):
-                    if line.startswith("version: &VERSION "):
-                        content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
-                    elif line.startswith("short_version: &SHORT_VERSION "):
-                        content[
-                            i
-                        ] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
-                new_file.writelines(content)
-
-            LOGGER.info(f"Created {currency_path} based on {previous_version_path}")
+            create_new_file_with_updated_version(
+                currency_path, previous_version_path, major_version, minor_version
+            )
         else:
             LOGGER.warning(f"Previous version file not found: {previous_version_path}")
+
+
+def validate_currency_path(currency_path, pattern):
+    """
+    Validates the currency path format using the provided regular expression pattern, and returns
+    true if the currency path format is valid, False otherwise.
+    """
+    match = re.match(pattern, currency_path)
+    if not match:
+        LOGGER.warning(f"Invalid currency path format: {currency_path}")
+        return False
+    return True
+
+
+def extract_path_components(currency_path, pattern):
+    """
+    Extracts the framework, job type, major version, minor version, and extra components
+    from the currency path using the provided regular expression pattern, and returns a tuple
+    containing the extracted components (framework, job_type, major_version, minor_version, etc).
+    """
+    match = re.match(pattern, currency_path)
+    return match.groups()
+
+
+def create_new_file_with_updated_version(
+    currency_path, previous_version_path, major_version, minor_version
+):
+    """
+    Creates a new buildspec file with the updated version and short_version values.
+    """
+    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+
+    with open(new_file_path, "w") as new_file, open(previous_version_path, "r") as prev_file:
+        content = prev_file.readlines()
+        for i, line in enumerate(content):
+            if line.startswith("version: &VERSION "):
+                content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
+            elif line.startswith("short_version: &SHORT_VERSION "):
+                content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+        new_file.writelines(content)
+
+    LOGGER.info(f"Created {currency_path} based on {previous_version_path}")
 
 
 def main():
