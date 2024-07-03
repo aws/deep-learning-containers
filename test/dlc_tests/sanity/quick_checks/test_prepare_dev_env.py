@@ -211,7 +211,7 @@ def test_set_buildspec_updates_build_inference_only():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_valid_file(monkeypatch):
+def test_handle_currency_option_valid_new_file(monkeypatch):
     currency_path = "pytorch/training/buildspec-2-4-ec2.yml"
     previous_version_content = 'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n'
 
@@ -237,23 +237,43 @@ def test_handle_currency_option_valid_file(monkeypatch):
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_invalid_file(monkeypatch, caplog):
-    currency_path = "invalid/path/buildspec-2-4-ec2.yml"
+def test_handle_currency_option_invalid_path(monkeypatch, caplog):
+    currency_paths = [
+        "invalid/path/buildspec-2-4-ec2.yml",
+        "pytorch/invalid/buildspec-2-4-graviton.yml",
+    ]
 
     monkeypatch.setattr(
         prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
     )
 
     with caplog.at_level(prepare_dlc_dev_environment.LOGGER.level):
-        prepare_dlc_dev_environment.handle_currency_option([currency_path])
+        prepare_dlc_dev_environment.handle_currency_option(currency_paths)
 
     assert "Invalid currency path format: invalid/path/buildspec-2-4-ec2.yml" in caplog.text
+    assert "Invalid currency path format: pytorch/invalid/buildspec-2-4-graviton.yml" in caplog.text
 
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_multiple_files(monkeypatch):
+def test_handle_currency_option_invalid_file(monkeypatch):
+    currency_path = "pytorch/training/buildspec-2-4-ec2.yml"
+    invalid_previous_version_content = "version: &VERSION 2.3\nshort_version: &SHORT_VERSION 2.3\n"
+
+    monkeypatch.setattr(
+        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
+    )
+
+    with patch("builtins.open", mock_open(read_data=invalid_previous_version_content)) as mock_file:
+        with pytest.raises(ValueError):
+            prepare_dlc_dev_environment.handle_currency_option([currency_path])
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("handle_currency_option")
+def test_handle_currency_option_multiple_valid_new_files(monkeypatch):
     currency_paths = [
         "pytorch/training/buildspec-2-4-ec2.yml",
         "tensorflow/inference/buildspec-1-5-graviton.yml",
@@ -285,21 +305,17 @@ def test_handle_currency_option_multiple_files(monkeypatch):
 
         handles = list(mock_file.mock_calls)
         assert handles[1].args[0] == "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml"
+        assert handles[1].args[1] == "w"
         assert (
             handles[2].args[0]
             == "/path/to/cloned/repo/tensorflow/inference/buildspec-1-5-graviton.yml"
         )
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_no_files(monkeypatch, caplog):
-    monkeypatch.setattr(
-        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
-    )
-
-    with caplog.at_level(prepare_dlc_dev_environment.LOGGER.level):
-        prepare_dlc_dev_environment.handle_currency_option([])
-
-    assert not caplog.text
+        assert handles[2].args[1] == "w"
+        assert (
+            handles[1].mock_calls[0].args[0]
+            == 'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n'
+        )
+        assert (
+            handles[2].mock_calls[0].args[0]
+            == 'version: &VERSION 1.5.0\nshort_version: &SHORT_VERSION "1.5"\n'
+        )
