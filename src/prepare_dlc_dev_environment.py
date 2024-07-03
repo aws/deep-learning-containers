@@ -265,11 +265,10 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
 
 def handle_currency_option(currency_paths):
     """
-    Handle the --currency option.
-
     This function takes a list of currency paths as input and creates new buildspec files
     with incremented minor versions based on the provided paths. The contents of the new
-    files are copied from the inferred previous version files.
+    files are copied from the inferred previous version files, with the version and
+    short_version values updated accordingly.
     """
     buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
 
@@ -294,14 +293,22 @@ def handle_currency_option(currency_paths):
 
         # Check if the inferred previous version file exists
         if os.path.isfile(previous_version_path):
-            # Create the new file and copy the contents from the previous version
+            # Create the new file and update the version and short_version
             new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
             os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
 
             with open(new_file_path, "w") as new_file, open(
                 previous_version_path, "r"
             ) as prev_file:
-                new_file.write(prev_file.read())
+                content = prev_file.readlines()
+                for i, line in enumerate(content):
+                    if line.startswith("version: &VERSION "):
+                        content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
+                    elif line.startswith("short_version: &SHORT_VERSION "):
+                        content[
+                            i
+                        ] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+                new_file.writelines(content)
 
             LOGGER.info(f"Created {currency_path} based on {previous_version_path}")
         else:
