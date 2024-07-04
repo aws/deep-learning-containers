@@ -100,7 +100,7 @@ RUN ${PIP} install --no-cache-dir \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api=="2.14.1"
+    tensorflow-serving-api=="2.16.1"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
@@ -167,7 +167,7 @@ LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
-ARG TFS_SHORT_VERSION=2.14
+ARG TFS_SHORT_VERSION=2.16
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
 ENV PATH="$PATH:/sagemaker"
 
