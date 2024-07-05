@@ -18,9 +18,6 @@
   "triton": {
     "version_specifier": "==2.3.0"
   },
-  "mkl": {
-    "version_specifier": "<2024.1.0"
-  },
   "awscli": {
     "version_specifier": "<2"
   },
