@@ -7,7 +7,7 @@ graviton_mode = false
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
-deep_canary_mode = false
+deep_canary_mode = true
 
 [build]
 build_frameworks = [ "tensorflow",]
