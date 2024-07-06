@@ -37,7 +37,7 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     model.evaluate(x_test, y_test, verbose=2)
 
     # Save model in the saved_model format
-    SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "native_saved_model")
+    SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "native_saved_model.h5")
     model.save(SAVED_MODEL_DIR)
 
     from tensorflow.python.compiler.tensorrt import trt_convert as trt
@@ -60,7 +60,7 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
 
     converter.build(input_fn=input_fn)
 
-    OUTPUT_SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "tftrt_saved_model")
+    OUTPUT_SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "tftrt_saved_model.h5")
     converter.save(output_saved_model_dir=OUTPUT_SAVED_MODEL_DIR)
 
 
