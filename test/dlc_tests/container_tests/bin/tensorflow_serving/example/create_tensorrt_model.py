@@ -4,6 +4,8 @@ import os
 import argparse
 import tensorflow as tf
 from tensorflow import keras
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 def run_training(model_save_folder_path=os.path.join("script_folder", "models")):
@@ -37,8 +39,14 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     model.evaluate(x_test, y_test, verbose=2)
 
     # Save model in the saved_model format
-    SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "native_saved_model.h5")
-    model.save(SAVED_MODEL_DIR)
+    SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "native_saved_model")
+    ## Versions of TF >= 2.16 come along with Keras 3. Model.save() API of keras 3 has significant differences with that of keras 2.
+    ## Consequently, we continue to use save() for keras < 3 and shift to export for keras >= 3.
+    ## Please refer to the following link for more details: https://keras.io/guides/migrating_to_keras_3/
+    if Version(keras.version()) in SpecifierSet(">=3"):
+        model.export(SAVED_MODEL_DIR)
+    else:
+        model.save(SAVED_MODEL_DIR)
 
     from tensorflow.python.compiler.tensorrt import trt_convert as trt
 
@@ -60,7 +68,7 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
 
     converter.build(input_fn=input_fn)
 
-    OUTPUT_SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "tftrt_saved_model.h5")
+    OUTPUT_SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "tftrt_saved_model")
     converter.save(output_saved_model_dir=OUTPUT_SAVED_MODEL_DIR)
 
 

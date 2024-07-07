@@ -134,7 +134,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     serving_folder_path = os.path.join(home_dir, "serving")
     build_container_name = "tensorrt-build-container"
     serving_container_name = "tensorrt-serving-container"
-    model_name = "tftrt_saved_model.h5"
+    model_name = "tftrt_saved_model"
     model_creation_script_folder = os.path.join(
         serving_folder_path, "tensorflow_serving", "example"
     )
