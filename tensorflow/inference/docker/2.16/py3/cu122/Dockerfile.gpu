@@ -61,12 +61,18 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
     ca-certificates \
     cuda-command-line-tools-${CUDA_DASH} \
+    cuda-cupti-${CUDA_DASH} \
+    cuda-libraries-${CUDA_DASH} \
+    cuda-nvprune-${CUDA_DASH} \
     cuda-nvrtc-${CUDA_DASH} \
     cuda-nvrtc-dev-${CUDA_DASH} \
     cuda-cudart-dev-${CUDA_DASH} \
     cuda-nvcc-${CUDA_DASH} \
+    libcufft-${CUDA_DASH} \
     libcufft-dev-${CUDA_DASH} \
+    libcurand-${CUDA_DASH} \
     libcurand-dev-${CUDA_DASH} \
+    libcusolver-${CUDA_DASH} \
     libcusolver-dev-${CUDA_DASH} \
     libcusparse-dev-${CUDA_DASH} \
     libbz2-dev \
@@ -94,6 +100,9 @@ RUN apt-get update \
     libncursesw5-dev \
     libssl-dev \
     libsqlite3-dev \
+    libfreetype6-dev \
+    pkg-config \
+    software-properties-common \
     tk-dev \
     libgdbm-dev \
     libc6-dev \
