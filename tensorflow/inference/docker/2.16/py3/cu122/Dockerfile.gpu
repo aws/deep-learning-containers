@@ -234,7 +234,7 @@ RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
 # the Pins are for the TFS SageMaker Toolkit
 RUN ${PIP} install -U --no-cache-dir \
     falcon==3.0.1 \
-    gunicorn==20.1.0
+    "gunicorn>=22.0.0"
 
 COPY ./sagemaker /sagemaker
 
