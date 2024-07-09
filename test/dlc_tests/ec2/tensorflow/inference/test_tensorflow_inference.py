@@ -35,7 +35,6 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 
 
 @pytest.mark.usefixtures("sagemaker")
-@pytest.mark.skip()
 @pytest.mark.skipif(
     not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
     reason="This test only needs to run in deep-canary context in us-west-2",
@@ -47,7 +46,8 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 def test_ec2_tensorflow_inference_gpu_deep_canary(
     tensorflow_inference___2__14, ec2_connection, region, gpu_only
 ):
-    ec2_connection.run("pip install numpy --upgrade")
+    if ":2.14" in tensorflow_inference___2__14:
+        ec2_connection.run("pip install numpy==1.26.4")
     run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
@@ -63,7 +63,8 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 def test_ec2_tensorflow_inference_cpu_deep_canary(
     tensorflow_inference___2__14, ec2_connection, region, cpu_only
 ):
-    ec2_connection.run("pip uninstall numpy")
+    if ":2.14" in tensorflow_inference___2__14:
+        ec2_connection.run("pip install numpy==1.26.4")
     run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
@@ -381,7 +382,7 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-                f" 'tensorflow-serving-api<={framework_version}' numpy==1.26.4"
+                f" 'tensorflow-serving-api<={framework_version}' "
             ),
             hide=True,
         )
