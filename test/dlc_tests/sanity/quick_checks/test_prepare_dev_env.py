@@ -219,14 +219,14 @@ def test_set_buildspec_updates_build_inference_only():
 @pytest.mark.model("N/A")
 @pytest.mark.integration("currency")
 def test_handle_currency_option_valid_path(tmp_path):
-    currency_path = "pytorch/inference/buildspec-graviton-2-3.yml"
-    previous_version_content = 'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n'
-    expected_content = 'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n'
+    currency_path = "pytorch/inference/buildspec-1-14.yml"
+    previous_version_content = 'version: &VERSION 1.13.0\nshort_version: &SHORT_VERSION "1.13"\n'
+    expected_content = 'version: &VERSION 1.14.0\nshort_version: &SHORT_VERSION "1.14"\n'
 
     with patch(
         "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
     ):
-        previous_version_file = tmp_path / "pytorch/inference/buildspec-graviton-2-2.yml"
+        previous_version_file = tmp_path / "pytorch/inference/buildspec-1-13.yml"
         previous_version_file.parent.mkdir(parents=True)
         previous_version_file.write_text(previous_version_content)
 
