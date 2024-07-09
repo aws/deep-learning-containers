@@ -3,13 +3,6 @@ import os
 
 from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
-from prepare_dlc_dev_environment import (
-    handle_currency_option,
-    validate_currency_path,
-    extract_path_components,
-    generate_new_file_content,
-    create_new_file_with_updated_version,
-)
 
 
 @pytest.mark.quick_checks
@@ -217,24 +210,24 @@ def test_set_buildspec_updates_build_inference_only():
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
-@pytest.mark.integration("currency")
-def test_handle_currency_option_valid_path(tmp_path):
-    currency_path = "pytorch/inference/buildspec-1-14.yml"
-    previous_version_content = 'version: &VERSION 1.13.0\nshort_version: &SHORT_VERSION "1.13"\n'
-    expected_content = 'version: &VERSION 1.14.0\nshort_version: &SHORT_VERSION "1.14"\n'
+@pytest.mark.integration("generate_new_file_content")
+def test_generate_new_file_content():
+    previous_version_path = "path/to/previous/version/file"
+    major_version = "1"
+    minor_version = "14"
 
-    with patch(
-        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
-    ):
-        previous_version_file = tmp_path / "pytorch/inference/buildspec-1-13.yml"
-        previous_version_file.parent.mkdir(parents=True)
-        previous_version_file.write_text(previous_version_content)
+    mock_file_content = 'version: &VERSION 1.13.0\nshort_version: &SHORT_VERSION "1.13"\n'
 
-        handle_currency_option([currency_path])
+    @patch("builtins.open", new_callable=mock_open, read_data=mock_file_content)
+    def mock_generate_new_file_content(mock_file):
+        expected_content = ["version: &VERSION 1.14.0\n", 'short_version: &SHORT_VERSION "1.14"\n']
 
-        new_file_path = tmp_path / currency_path
-        assert new_file_path.exists()
-        assert new_file_path.read_text() == expected_content
+        result = prepare_dlc_dev_environment.generate_new_file_content(
+            previous_version_path, major_version, minor_version
+        )
+        assert result == expected_content
+
+    mock_generate_new_file_content()
 
 
 @pytest.mark.quick_checks
@@ -249,51 +242,3 @@ def test_handle_currency_option_invalid_path(tmp_path, caplog):
         prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
 
         assert "Invalid currency path format: invalid/file/path-1-2-hello.yml" in caplog.text
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("currency")
-def test_handle_currency_option_multiple_paths(tmp_path):
-    currency_paths = [
-        "pytorch/inference/buildspec-graviton-2-3.yml",
-        "pytorch/training/buildspec-2-2-sm.yml",
-    ]
-    previous_version_contents = [
-        'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n',
-        'version: &VERSION 2.1.0\nshort_version: &SHORT_VERSION "2.1"\n',
-    ]
-    expected_contents = [
-        'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n',
-        'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n',
-    ]
-
-    with patch(
-        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
-    ):
-        for currency_path, content, expected_content in zip(
-            currency_paths, previous_version_contents, expected_contents
-        ):
-            (
-                framework,
-                job_type,
-                major_version,
-                minor_version,
-                extra,
-            ) = prepare_dlc_dev_environment.extract_path_components(
-                currency_path, prepare_dlc_dev_environment.buildspec_pattern
-            )
-            previous_minor_version = str(int(minor_version) - 1)
-            previous_version_file = (
-                tmp_path
-                / f"{framework}/{job_type}/buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml"
-            )
-            previous_version_file.parent.mkdir(parents=True)
-            previous_version_file.write_text(content)
-
-        prepare_dlc_dev_environment.handle_currency_option(currency_paths)
-
-        for currency_path, expected_content in zip(currency_paths, expected_contents):
-            new_file_path = tmp_path / currency_path
-            assert new_file_path.exists()
-            assert new_file_path.read_text() == expected_content

@@ -274,7 +274,6 @@ def handle_currency_option(currency_paths):
     buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
 
     for currency_path in currency_paths:
-        print(f"Processing currency path: {currency_path}")
         if not validate_currency_path(currency_path, buildspec_pattern):
             continue
 
@@ -289,13 +288,11 @@ def handle_currency_option(currency_paths):
             job_type,
             f"buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml",
         )
-        print(f"Previous version path: {previous_version_path}")
 
         if os.path.isfile(previous_version_path):
             updated_content = generate_new_file_content(
                 previous_version_path, major_version, minor_version
             )
-            print(f"Updated content: {updated_content}")
             create_new_file_with_updated_version(currency_path, updated_content)
         else:
             LOGGER.warning(f"Previous version file not found: {previous_version_path}")
@@ -332,10 +329,8 @@ def generate_new_file_content(previous_version_path, major_version, minor_versio
         for i, line in enumerate(content):
             if line.startswith("version: &VERSION "):
                 content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
-                print(f"Updated version line: {content[i]}")
             elif line.startswith("short_version: &SHORT_VERSION "):
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
-                print(f"Updated short version line: {content[i]}")
     return content
 
 
@@ -345,7 +340,6 @@ def create_new_file_with_updated_version(currency_path, updated_content):
     """
     new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
     os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
-    print(f"Creating new file: {new_file_path}")
 
     with open(new_file_path, "w") as new_file:
         new_file.writelines(updated_content)
