@@ -43,13 +43,10 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
-)
 def test_ec2_tensorflow_inference_gpu_deep_canary(
-    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    tensorflow_inference___2__14, ec2_connection, region, gpu_only
 ):
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -61,13 +58,10 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
-)
 def test_ec2_tensorflow_inference_cpu_deep_canary(
-    tensorflow_inference, ec2_connection, region, cpu_only
+    tensorflow_inference___2__14, ec2_connection, region, cpu_only
 ):
-    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -100,7 +94,6 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     indirect=True,
 )
 @pytest.mark.team("neuron")
-# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
