@@ -44,11 +44,12 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_deep_canary(
-    tensorflow_inference___2__14, ec2_connection, region, gpu_only
+    tensorflow_inference, ec2_connection, region, gpu_only
 ):
-    if ":2.14" in tensorflow_inference___2__14:
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
         ec2_connection.run("pip install numpy==1.26.4")
-    run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -61,11 +62,12 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_cpu_deep_canary(
-    tensorflow_inference___2__14, ec2_connection, region, cpu_only
+    tensorflow_inference, ec2_connection, region, cpu_only
 ):
-    if ":2.14" in tensorflow_inference___2__14:
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
         ec2_connection.run("pip install numpy==1.26.4")
-    run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
 @pytest.mark.usefixtures("sagemaker")
