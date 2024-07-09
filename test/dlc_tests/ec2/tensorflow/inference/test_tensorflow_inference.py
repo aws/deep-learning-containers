@@ -43,13 +43,12 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
+)
 def test_ec2_tensorflow_inference_gpu_deep_canary(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
-        pytest.skip(
-            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
-        )
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -62,6 +61,9 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2], indirect=True
+)
 def test_ec2_tensorflow_inference_cpu_deep_canary(
     tensorflow_inference, ec2_connection, region, cpu_only
 ):
