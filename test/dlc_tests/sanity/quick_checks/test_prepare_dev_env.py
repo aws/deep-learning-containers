@@ -210,112 +210,76 @@ def test_set_buildspec_updates_build_inference_only():
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
-@pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_valid_new_file(monkeypatch):
-    currency_path = "pytorch/training/buildspec-2-4-ec2.yml"
-    previous_version_content = 'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n'
+@pytest.mark.integration("currency")
+def test_handle_currency_option_valid_path(tmp_path):
+    currency_path = "pytorch/inference/buildspec-1-2.yml"
+    previous_version_content = 'version: &VERSION 1.2.0\nshort_version: &SHORT_VERSION "1.2"\n'
+    expected_content = 'version: &VERSION 1.3.0\nshort_version: &SHORT_VERSION "1.3"\n'
 
-    monkeypatch.setattr(
-        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
-    )
+    with patch(
+        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
+    ):
+        previous_version_file = tmp_path / "pytorch/inference/buildspec-1-1.yml"
+        previous_version_file.parent.mkdir(parents=True)
+        previous_version_file.write_text(previous_version_content)
 
-    with patch("builtins.open", mock_open(read_data=previous_version_content)) as mock_file:
         prepare_dlc_dev_environment.handle_currency_option([currency_path])
 
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/pytorch/training/buildspec-2-3-ec2.yml", "r"
-        )
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml", "w"
-        )
-        handle = mock_file()
-        handle.write.assert_called_once_with(
-            'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n'
-        )
+        new_file_path = tmp_path / currency_path
+        assert new_file_path.exists()
+        assert new_file_path.read_text() == expected_content
 
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
-@pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_invalid_path(monkeypatch, caplog):
+@pytest.mark.integration("currency")
+def test_handle_currency_option_invalid_path(tmp_path, caplog):
+    invalid_currency_path = "invalid/file/path-1-2-hello.yml"
+
+    with patch(
+        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
+    ):
+        prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
+
+        assert "Invalid currency path format: invalid/file/path-1-2-hello.yml" in caplog.text
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("currency")
+def test_handle_currency_option_multiple_paths(tmp_path):
     currency_paths = [
-        "invalid/path/buildspec-2-4-ec2.yml",
-        "pytorch/invalid/buildspec-2-4-graviton.yml",
-    ]
-
-    monkeypatch.setattr(
-        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
-    )
-
-    with caplog.at_level(prepare_dlc_dev_environment.LOGGER.level):
-        prepare_dlc_dev_environment.handle_currency_option(currency_paths)
-
-    assert "Invalid currency path format: invalid/path/buildspec-2-4-ec2.yml" in caplog.text
-    assert "Invalid currency path format: pytorch/invalid/buildspec-2-4-graviton.yml" in caplog.text
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_invalid_file(monkeypatch):
-    currency_path = "pytorch/training/buildspec-2-4-ec2.yml"
-    invalid_previous_version_content = "version: &VERSION 2.3\nshort_version: &SHORT_VERSION 2.3\n"
-
-    monkeypatch.setattr(
-        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
-    )
-
-    with patch("builtins.open", mock_open(read_data=invalid_previous_version_content)) as mock_file:
-        with pytest.raises(ValueError):
-            prepare_dlc_dev_environment.handle_currency_option([currency_path])
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("handle_currency_option")
-def test_handle_currency_option_multiple_valid_new_files(monkeypatch):
-    currency_paths = [
-        "pytorch/training/buildspec-2-4-ec2.yml",
-        "tensorflow/inference/buildspec-1-5-graviton.yml",
+        "pytorch/inference/buildspec-1-2.yml",
+        "tensorflow/training/buildspec-2-3.yml",
     ]
     previous_version_contents = [
+        'version: &VERSION 1.2.0\nshort_version: &SHORT_VERSION "1.2"\n',
         'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n',
-        'version: &VERSION 1.4.0\nshort_version: &SHORT_VERSION "1.4"\n',
+    ]
+    expected_contents = [
+        'version: &VERSION 1.3.0\nshort_version: &SHORT_VERSION "1.3"\n',
+        'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n',
     ]
 
-    monkeypatch.setattr(
-        prepare_dlc_dev_environment, "get_cloned_folder_path", lambda: "/path/to/cloned/repo"
-    )
+    with patch(
+        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
+    ):
+        for i, (currency_path, content, expected_content) in enumerate(
+            zip(currency_paths, previous_version_contents, expected_contents)
+        ):
+            framework, job_type, _, _, _ = prepare_dlc_dev_environment.extract_path_components(
+                currency_path, prepare_dlc_dev_environment.buildspec_pattern
+            )
+            previous_minor_version = str(int(i + 2) - 1)
+            previous_version_file = (
+                tmp_path / f"{framework}/{job_type}/buildspec-{i + 1}-{previous_minor_version}.yml"
+            )
+            previous_version_file.parent.mkdir(parents=True)
+            previous_version_file.write_text(content)
 
-    with patch("builtins.open", mock_open(read_data=previous_version_contents)) as mock_file:
         prepare_dlc_dev_environment.handle_currency_option(currency_paths)
 
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/pytorch/training/buildspec-2-3-ec2.yml", "r"
-        )
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml", "w"
-        )
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/tensorflow/inference/buildspec-1-4-graviton.yml", "r"
-        )
-        mock_file.assert_any_call(
-            "/path/to/cloned/repo/tensorflow/inference/buildspec-1-5-graviton.yml", "w"
-        )
-
-        handles = list(mock_file.mock_calls)
-        assert handles[1].args[0] == "/path/to/cloned/repo/pytorch/training/buildspec-2-4-ec2.yml"
-        assert handles[1].args[1] == "w"
-        assert (
-            handles[2].args[0]
-            == "/path/to/cloned/repo/tensorflow/inference/buildspec-1-5-graviton.yml"
-        )
-        assert handles[2].args[1] == "w"
-        assert (
-            handles[1].mock_calls[0].args[0]
-            == 'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n'
-        )
-        assert (
-            handles[2].mock_calls[0].args[0]
-            == 'version: &VERSION 1.5.0\nshort_version: &SHORT_VERSION "1.5"\n'
-        )
+        for currency_path, expected_content in zip(currency_paths, expected_contents):
+            new_file_path = tmp_path / currency_path
+            assert new_file_path.exists()
+            assert new_file_path.read_text() == expected_content

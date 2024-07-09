@@ -290,9 +290,10 @@ def handle_currency_option(currency_paths):
         )
 
         if os.path.isfile(previous_version_path):
-            create_new_file_with_updated_version(
-                currency_path, previous_version_path, major_version, minor_version
+            updated_content = generate_new_file_content(
+                previous_version_path, major_version, minor_version
             )
+            create_new_file_with_updated_version(currency_path, updated_content)
         else:
             LOGGER.warning(f"Previous version file not found: {previous_version_path}")
 
@@ -319,25 +320,31 @@ def extract_path_components(currency_path, pattern):
     return match.groups()
 
 
-def create_new_file_with_updated_version(
-    currency_path, previous_version_path, major_version, minor_version
-):
+def generate_new_file_content(previous_version_path, major_version, minor_version):
     """
-    Creates a new buildspec file with the updated version and short_version values.
+    Generates the content for the new buildspec file with the updated version and short_version values.
     """
-    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
-    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
-
-    with open(new_file_path, "w") as new_file, open(previous_version_path, "r") as prev_file:
+    with open(previous_version_path, "r") as prev_file:
         content = prev_file.readlines()
         for i, line in enumerate(content):
             if line.startswith("version: &VERSION "):
                 content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
             elif line.startswith("short_version: &SHORT_VERSION "):
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
-        new_file.writelines(content)
+    return content
 
-    LOGGER.info(f"Created {currency_path} based on {previous_version_path}")
+
+def create_new_file_with_updated_version(currency_path, updated_content):
+    """
+    Creates a new buildspec file with the updated content.
+    """
+    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+
+    with open(new_file_path, "w") as new_file:
+        new_file.writelines(updated_content)
+
+    LOGGER.info(f"Created {currency_path}")
 
 
 def main():
