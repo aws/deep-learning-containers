@@ -69,7 +69,7 @@ def pytorch_standalone(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_train_mnist(pytorch_training, ec2_connection):
+def pytorch_training_mnist(pytorch_training, ec2_connection):
     """
     Test PyTorch MNIST
     """
@@ -137,7 +137,7 @@ def pytorch_training_torchdata(pytorch_training, ec2_connection):
         )
 
 
-def pytorch_train_dgl_cpu(pytorch_training, ec2_connection):
+def pytorch_training_dgl(pytorch_training, ec2_connection):
     """
     Test DGL Package
     """
