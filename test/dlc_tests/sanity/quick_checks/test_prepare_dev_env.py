@@ -1,5 +1,6 @@
 import pytest
 import os
+import re
 
 from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
@@ -242,3 +243,34 @@ def test_handle_currency_option_invalid_path(tmp_path, caplog):
         prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
 
         assert "Invalid currency path format: invalid/file/path-1-2-hello.yml" in caplog.text
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("generate_new_file_content")
+def test_generate_new_file_content(file_paths):
+    for file_path in file_paths:
+        # Extract major_version and minor_version from the file_path
+        # Assuming the file_path follows the pattern: <framework>/<job_type>/buildspec-<major_version>-<minor_version>.yml
+        match = re.match(r"^(\w+)/(\w+)/buildspec-(\d+)-(\d+)(?:-.+)?.yml$", file_path)
+        if not match:
+            raise ValueError(f"Invalid file path format: {file_path}")
+
+        framework, job_type, major_version, minor_version = match.groups()
+        previous_minor_version = str(int(minor_version) - 1)
+
+        previous_version_path = os.path.join(framework, job_type, f"buildspec-{major_version}-{previous_minor_version}.yml")
+        mock_file_content = f'version: &VERSION {major_version}.{previous_minor_version}.0\nshort_version: &SHORT_VERSION "{major_version}.{previous_minor_version}"\n'
+        expected_content = [
+            f"version: &VERSION {major_version}.{minor_version}.0\n",
+            f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+        ]
+
+        @patch("builtins.open", new_callable=mock_open, read_data=mock_file_content)
+        def mock_generate_new_file_content(mock_file):
+            result = prepare_dlc_dev_environment.generate_new_file_content(
+                previous_version_path, major_version, minor_version
+            )
+            assert result == expected_content
+
+        mock_generate_new_file_content()
