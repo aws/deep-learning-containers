@@ -267,11 +267,20 @@ def test_handle_currency_option_multiple_paths(tmp_path):
         for currency_path, content, expected_content in zip(
             currency_paths, previous_version_contents, expected_contents
         ):
-            framework, job_type, major_version, minor_version, extra = prepare_dlc_dev_environment.extract_path_components(
+            (
+                framework,
+                job_type,
+                major_version,
+                minor_version,
+                extra,
+            ) = prepare_dlc_dev_environment.extract_path_components(
                 currency_path, prepare_dlc_dev_environment.buildspec_pattern
             )
             previous_minor_version = str(int(minor_version) - 1)
-            previous_version_file = tmp_path / f"{framework}/{job_type}/buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml"
+            previous_version_file = (
+                tmp_path
+                / f"{framework}/{job_type}/buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml"
+            )
             previous_version_file.parent.mkdir(parents=True)
             previous_version_file.write_text(content)
 
