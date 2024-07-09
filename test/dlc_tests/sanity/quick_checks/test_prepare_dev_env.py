@@ -259,11 +259,13 @@ def test_generate_new_file_content(file_paths):
         framework, job_type, major_version, minor_version = match.groups()
         previous_minor_version = str(int(minor_version) - 1)
 
-        previous_version_path = os.path.join(framework, job_type, f"buildspec-{major_version}-{previous_minor_version}.yml")
+        previous_version_path = os.path.join(
+            framework, job_type, f"buildspec-{major_version}-{previous_minor_version}.yml"
+        )
         mock_file_content = f'version: &VERSION {major_version}.{previous_minor_version}.0\nshort_version: &SHORT_VERSION "{major_version}.{previous_minor_version}"\n'
         expected_content = [
             f"version: &VERSION {major_version}.{minor_version}.0\n",
-            f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+            f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n',
         ]
 
         @patch("builtins.open", new_callable=mock_open, read_data=mock_file_content)
