@@ -3,6 +3,13 @@ import os
 
 from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
+from prepare_dlc_dev_environment import (
+    handle_currency_option,
+    validate_currency_path,
+    extract_path_components,
+    generate_new_file_content,
+    create_new_file_with_updated_version,
+)
 
 
 @pytest.mark.quick_checks
@@ -223,10 +230,10 @@ def test_handle_currency_option_valid_path(tmp_path):
         previous_version_file.parent.mkdir(parents=True)
         previous_version_file.write_text(previous_version_content)
 
-        prepare_dlc_dev_environment.handle_currency_option([currency_path])
+        handle_currency_option([currency_path])
 
         new_file_path = tmp_path / currency_path
-        assert new_file_path.exists().BUILDSPEC_PATTERN
+        assert new_file_path.exists()
         assert new_file_path.read_text() == expected_content
 
 
@@ -274,7 +281,7 @@ def test_handle_currency_option_multiple_paths(tmp_path):
                 minor_version,
                 extra,
             ) = prepare_dlc_dev_environment.extract_path_components(
-                currency_path, prepare_dlc_dev_environment.BUILDSPEC_PATTERN
+                currency_path, prepare_dlc_dev_environment.buildspec_pattern
             )
             previous_minor_version = str(int(minor_version) - 1)
             previous_version_file = (
