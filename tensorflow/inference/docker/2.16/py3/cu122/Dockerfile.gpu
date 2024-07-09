@@ -32,7 +32,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON=python3.10
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.13
+ARG PYTHON_VERSION=3.10.14
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.16_aws/gpu/2024-07-07-03-09/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.16
 ARG CUDA_DASH=12-2
@@ -216,6 +216,7 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG TFS_SHORT_VERSION=2.16
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
