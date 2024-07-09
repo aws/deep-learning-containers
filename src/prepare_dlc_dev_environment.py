@@ -271,29 +271,35 @@ def handle_currency_option(currency_paths):
     files are copied from the inferred previous version files, with the version and
     short_version values updated accordingly.
     """
-    buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
-
+    buildspec_pattern = (
+        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
     for currency_path in currency_paths:
         if not validate_currency_path(currency_path, buildspec_pattern):
             continue
-
-        framework, job_type, major_version, minor_version, extra = extract_path_components(
-            currency_path, buildspec_pattern
-        )
+        (
+            framework,
+            job_type,
+            optional_suffix,
+            major_version,
+            minor_version,
+            extra_suffix,
+        ) = extract_path_components(currency_path, buildspec_pattern)
         previous_minor_version = str(int(minor_version) - 1)
 
         previous_version_path = os.path.join(
             get_cloned_folder_path(),
             framework,
             job_type,
-            f"buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml",
+            f"buildspec{'-' + optional_suffix if optional_suffix else ''}-{major_version}-{previous_minor_version}{'-' + extra_suffix if extra_suffix else ''}.yml",
         )
-
         if os.path.isfile(previous_version_path):
             updated_content = generate_new_file_content(
-                previous_version_path, major_version, minor_version
+                previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
             )
-            create_new_file_with_updated_version(currency_path, updated_content)
+            create_new_file_with_updated_version(
+                currency_path, updated_content, optional_suffix, extra_suffix
+            )
         else:
             LOGGER.warning(f"Previous version file not found: {previous_version_path}")
 
@@ -320,7 +326,9 @@ def extract_path_components(currency_path, pattern):
     return match.groups()
 
 
-def generate_new_file_content(previous_version_path, major_version, minor_version):
+def generate_new_file_content(
+    previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
+):
     """
     Generates the content for the new buildspec file with the updated version and short_version values.
     """
@@ -334,7 +342,9 @@ def generate_new_file_content(previous_version_path, major_version, minor_versio
     return content
 
 
-def create_new_file_with_updated_version(currency_path, updated_content):
+def create_new_file_with_updated_version(
+    currency_path, updated_content, optional_suffix, extra_suffix
+):
     """
     Creates a new buildspec file with the updated content.
     """
@@ -344,7 +354,7 @@ def create_new_file_with_updated_version(currency_path, updated_content):
     with open(new_file_path, "w") as new_file:
         new_file.writelines(updated_content)
 
-    LOGGER.info(f"Created {currency_path}")
+    LOGGER.info(f"Created {new_file_path}")
 
 
 def main():
