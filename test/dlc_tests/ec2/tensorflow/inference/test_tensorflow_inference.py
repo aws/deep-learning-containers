@@ -46,6 +46,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 def test_ec2_tensorflow_inference_gpu_deep_canary(
     tensorflow_inference___2__14, ec2_connection, region, gpu_only
 ):
+    ec2_connection.run("pip install numpy --upgrade")
     run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
@@ -61,6 +62,7 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 def test_ec2_tensorflow_inference_cpu_deep_canary(
     tensorflow_inference___2__14, ec2_connection, region, cpu_only
 ):
+    ec2_connection.run("pip install numpy --upgrade")
     run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
