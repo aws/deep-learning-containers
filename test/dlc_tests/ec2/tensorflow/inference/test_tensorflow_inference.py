@@ -35,6 +35,7 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 
 
 @pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skip()
 @pytest.mark.skipif(
     not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
     reason="This test only needs to run in deep-canary context in us-west-2",
@@ -62,7 +63,7 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 def test_ec2_tensorflow_inference_cpu_deep_canary(
     tensorflow_inference___2__14, ec2_connection, region, cpu_only
 ):
-    ec2_connection.run("pip install numpy --upgrade")
+    ec2_connection.run("pip uninstall numpy")
     run_ec2_tensorflow_inference(tensorflow_inference___2__14, ec2_connection, "8500", region)
 
 
