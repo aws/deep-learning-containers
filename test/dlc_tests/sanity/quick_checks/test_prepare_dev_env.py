@@ -248,6 +248,13 @@ def test_handle_currency_option_invalid_path(tmp_path, caplog):
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("generate_new_file_content")
+@pytest.mark.parametrize(
+    "file_path",
+    [
+        "pytorch/inference/buildspec-1-14.yml",
+        "pytorch/training/buildspec-2-4-sm",
+    ],
+)
 def test_generate_new_file_content(file_paths):
     for file_path in file_paths:
         # Extract major_version and minor_version from the file_path
