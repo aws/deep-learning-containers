@@ -226,7 +226,7 @@ def test_handle_currency_option_valid_path(tmp_path):
         prepare_dlc_dev_environment.handle_currency_option([currency_path])
 
         new_file_path = tmp_path / currency_path
-        assert new_file_path.exists()
+        assert new_file_path.exists().BUILDSPEC_PATTERN
         assert new_file_path.read_text() == expected_content
 
 
@@ -274,7 +274,7 @@ def test_handle_currency_option_multiple_paths(tmp_path):
                 minor_version,
                 extra,
             ) = prepare_dlc_dev_environment.extract_path_components(
-                currency_path, prepare_dlc_dev_environment.buildspec_pattern
+                currency_path, prepare_dlc_dev_environment.BUILDSPEC_PATTERN
             )
             previous_minor_version = str(int(minor_version) - 1)
             previous_version_file = (

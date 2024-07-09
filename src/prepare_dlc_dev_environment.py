@@ -32,6 +32,8 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
+BUILDSPEC_PATTERN = r"buildspec-(?P<framework>\w+)-(?P<job_type>\w+)-(?P<major_version>\d+)-(?P<minor_version>\d+)(?P<extra>.*?)?.yml"
+
 
 def restore_default_toml(toml_path):
     """
@@ -271,14 +273,14 @@ def handle_currency_option(currency_paths):
     files are copied from the inferred previous version files, with the version and
     short_version values updated accordingly.
     """
-    buildspec_pattern = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    # BUILDSPEC_PATTERN = r"^(\w+)/(training|inference)/buildspec-(\d+)-(\d+)(?:-(.+))?\.yml$"
 
     for currency_path in currency_paths:
-        if not validate_currency_path(currency_path, buildspec_pattern):
+        if not validate_currency_path(currency_path, BUILDSPEC_PATTERN):
             continue
 
         framework, job_type, major_version, minor_version, extra = extract_path_components(
-            currency_path, buildspec_pattern
+            currency_path, BUILDSPEC_PATTERN
         )
         previous_minor_version = str(int(minor_version) - 1)
 
