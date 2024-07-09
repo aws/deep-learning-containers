@@ -384,7 +384,7 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-                f" 'tensorflow-serving-api<={framework_version}' "
+                f" 'tensorflow-serving-api<={framework_version}'"
             ),
             hide=True,
         )
