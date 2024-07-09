@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==0.21.0",
+    "version_specifier": "==0.32.1",
     "skip": "True"
   },
   "deepspeed": {
@@ -8,7 +8,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.11",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "flash-attn": {
@@ -23,8 +23,8 @@
     "version_specifier": "==0.5.1",
     "skip": "True"
   },
-  "torchnet": {
-    "version_specifier": "==0.0.4",
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
     "skip": "True"
   },
   "torchvision": {

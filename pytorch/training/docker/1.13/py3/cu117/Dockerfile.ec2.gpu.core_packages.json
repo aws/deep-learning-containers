@@ -1,10 +1,10 @@
 {
   "accelerate": {
-    "version_specifier": "==0.16.0",
+    "version_specifier": "==0.32.1",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.10",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "torchaudio": {
@@ -15,8 +15,8 @@
     "version_specifier": "==0.5.1",
     "skip": "True"
   },
-  "torchnet": {
-    "version_specifier": "==0.0.4",
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
     "skip": "True"
   },
   "torchvision": {
@@ -45,7 +45,7 @@
     "version_specifier": ">=5.9.4,<5.10"
   },
   "pyyaml": {
-    "version_specifier": ">=5.4,<5.5"
+    "version_specifier": ">=6.0.1"
   },
   "scipy": {
     "version_specifier": ">=1.9.3,<2"
