@@ -212,14 +212,14 @@ def test_set_buildspec_updates_build_inference_only():
 @pytest.mark.model("N/A")
 @pytest.mark.integration("currency")
 def test_handle_currency_option_valid_path(tmp_path):
-    currency_path = "pytorch/inference/buildspec-1-2.yml"
-    previous_version_content = 'version: &VERSION 1.2.0\nshort_version: &SHORT_VERSION "1.2"\n'
-    expected_content = 'version: &VERSION 1.3.0\nshort_version: &SHORT_VERSION "1.3"\n'
+    currency_path = "pytorch/inference/buildspec-graviton-2-3.yml"
+    previous_version_content = 'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n'
+    expected_content = 'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n'
 
     with patch(
         "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
     ):
-        previous_version_file = tmp_path / "pytorch/inference/buildspec-1-1.yml"
+        previous_version_file = tmp_path / "pytorch/inference/buildspec-graviton-2-2.yml"
         previous_version_file.parent.mkdir(parents=True)
         previous_version_file.write_text(previous_version_content)
 
@@ -249,31 +249,29 @@ def test_handle_currency_option_invalid_path(tmp_path, caplog):
 @pytest.mark.integration("currency")
 def test_handle_currency_option_multiple_paths(tmp_path):
     currency_paths = [
-        "pytorch/inference/buildspec-1-2.yml",
-        "tensorflow/training/buildspec-2-3.yml",
+        "pytorch/inference/buildspec-graviton-2-3.yml",
+        "pytorch/training/buildspec-2-2-sm.yml",
     ]
     previous_version_contents = [
-        'version: &VERSION 1.2.0\nshort_version: &SHORT_VERSION "1.2"\n',
-        'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n',
+        'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n',
+        'version: &VERSION 2.1.0\nshort_version: &SHORT_VERSION "2.1"\n',
     ]
     expected_contents = [
-        'version: &VERSION 1.3.0\nshort_version: &SHORT_VERSION "1.3"\n',
-        'version: &VERSION 2.4.0\nshort_version: &SHORT_VERSION "2.4"\n',
+        'version: &VERSION 2.3.0\nshort_version: &SHORT_VERSION "2.3"\n',
+        'version: &VERSION 2.2.0\nshort_version: &SHORT_VERSION "2.2"\n',
     ]
 
     with patch(
         "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
     ):
-        for i, (currency_path, content, expected_content) in enumerate(
-            zip(currency_paths, previous_version_contents, expected_contents)
+        for currency_path, content, expected_content in zip(
+            currency_paths, previous_version_contents, expected_contents
         ):
-            framework, job_type, _, _, _ = prepare_dlc_dev_environment.extract_path_components(
+            framework, job_type, major_version, minor_version, extra = prepare_dlc_dev_environment.extract_path_components(
                 currency_path, prepare_dlc_dev_environment.buildspec_pattern
             )
-            previous_minor_version = str(int(i + 2) - 1)
-            previous_version_file = (
-                tmp_path / f"{framework}/{job_type}/buildspec-{i + 1}-{previous_minor_version}.yml"
-            )
+            previous_minor_version = str(int(minor_version) - 1)
+            previous_version_file = tmp_path / f"{framework}/{job_type}/buildspec-{major_version}-{previous_minor_version}{'-' + extra if extra else ''}.yml"
             previous_version_file.parent.mkdir(parents=True)
             previous_version_file.write_text(content)
 
