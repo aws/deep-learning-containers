@@ -1,0 +1,29 @@
+#### First image: sha256:4e178a8d763e2e3c1c976ec43996c52951581de7e8558b1267b0fb96440e1052 ####
+#### Patch contents for patch-1: sha256:11260016b33e2adbcb6cd6f2a5f1819b627d7553c70791b1350b2dc4b5c37504 ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-2: sha256:0fba372fecbab4652f05f3ce3cf24e173cd1ce07e81f882f972f9673646e2b6a ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0
+#### Patch contents for patch-3: sha256:27122f184f31d2d3220bf000b66b86e19f71459b8cd148fbfcc08f8051cfaf5d ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5
+#### Patch contents for patch-4: sha256:201982e72f2466b2fe8809c6113ed1fb34af7eb2785fd14d36300383bd7e4ce5 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:b61213f4101753ec792914100aa16f5c48b44853aa10ba1ac4d21eba6857a43a ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-6: sha256:c041d2dbb75a14b844c674c231b5eaebfa74d122abf59e0278946142b13e21b6 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
