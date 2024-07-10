@@ -21,9 +21,6 @@ apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-de
 #### Patch contents for patch-7: sha256:5885d5ffee84b0391a4723a9ad07b5145fc27842d7208a47074e5a9bbe6c52ce ####
 pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
-#### Patch contents for patch-8: sha256:b28ee771e02b2d21b3ed308f05345a7eef248827ee6a19ab4e1b9b31723d224e ####
-pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
-apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
 #### Current Patch contents ####
 pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
