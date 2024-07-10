@@ -23,7 +23,11 @@ apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-de
 pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
-#### Current Patch contents ####
+#### Patch contents for patch-7: sha256:99d705b40fb756f64c4d85bcb5366ae6281b23024d83f937a32fc83033b96cba ####
 pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
+#### Current Patch contents ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
