@@ -62,7 +62,7 @@ def test_pytorch_1_13_gpu(
     test_utils.is_pr_context() and not ec2.are_heavy_instance_ec2_tests_enabled(),
     reason="Skip GPU Heavy tests in PR context unless explicitly enabled",
 )
-def test_pytorch_2_1_gpu_heavy(
+def test_pytorch_1_13_gpu_heavy(
     pytorch_training___1__13, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     pytorch_training = pytorch_training___1__13
@@ -87,7 +87,7 @@ def test_pytorch_2_1_gpu_heavy(
     common_cases.PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION,
     indirect=True,
 )
-def test_pytorch_2_1_gpu_inductor(
+def test_pytorch_1_13_gpu_inductor(
     pytorch_training___1__13, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     pytorch_training = pytorch_training___1__13
@@ -110,7 +110,7 @@ def test_pytorch_2_1_gpu_inductor(
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_2_1_cpu(pytorch_training___1__13, ec2_connection, cpu_only):
+def test_pytorch_1_13_cpu(pytorch_training___1__13, ec2_connection, cpu_only):
     pytorch_training = pytorch_training___1__13
 
     test_cases = [
