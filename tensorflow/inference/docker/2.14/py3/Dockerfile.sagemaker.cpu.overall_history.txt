@@ -49,9 +49,6 @@ apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man 
 #### Patch contents for patch-14: sha256:ac20a9b50ea5cf113efb794f6b95f79c99175f5b24cad2647dc3c39372f7d97a ####
 pip install awscli==1.33.18 botocore==1.34.136 idna==3.7 requests==2.32.3 urllib3==2.2.2
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
-#### Patch contents for patch-15: sha256:ba3cbb8042f4cc9dabdbbbb9ac188774f96f72d1284959915b2f9d1e7422130e ####
-pip install awscli==1.33.21 botocore==1.34.139 idna==3.7 requests==2.32.3 urllib3==2.2.2
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
 #### Current Patch contents ####
-pip install awscli==1.33.22 botocore==1.34.140 idna==3.7 requests==2.32.3 urllib3==2.2.2
+pip install awscli==1.33.21 botocore==1.34.139 idna==3.7 requests==2.32.3 urllib3==2.2.2
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
