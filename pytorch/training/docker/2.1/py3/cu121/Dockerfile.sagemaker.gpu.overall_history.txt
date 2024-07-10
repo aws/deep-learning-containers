@@ -36,6 +36,9 @@ apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man 
 #### Patch contents for patch-11: sha256:c512a66cf7c61583d4327aa8f954a2463b3a9559e29821150e27a0b501cfe7d1 ####
 pip install argparse==1.4.0 cryptography==42.0.8 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.224.1 scikit-learn==1.5.0 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
-#### Current Patch contents ####
+#### Patch contents for patch-12: sha256:5741135bd3f1111b4c274e75f600e7e7ade1ae0691e5f90ad56c8614548c9294 ####
 pip install argparse==1.4.0 cryptography==42.0.8 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.224.2 scikit-learn==1.5.0 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim wget xxd
+#### Current Patch contents ####
+pip install argparse==1.4.0 cryptography==42.0.8 idna==3.7 jinja2==3.1.4 pillow==10.4.0 requests==2.32.3 sagemaker==2.224.4 scikit-learn==1.5.1 tornado==6.4.1 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
 apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim wget xxd
