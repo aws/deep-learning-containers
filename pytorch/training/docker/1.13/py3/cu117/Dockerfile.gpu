@@ -1,7 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.19
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MINIFORGE3_VERSION=23.11.0-0
+ARG MAMBA_VERSION=22.11.1-2
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -42,7 +42,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG MINIFORGE3_VERSION
+ARG MAMBA_VERSION
 
 ARG CUBLAS_VERSION=11.10.3.66
 ARG EFA_PATH=/opt/amazon/efa
@@ -178,10 +178,10 @@ RUN cd /tmp \
 
 # For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/miniforge3.sh \
- && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh
+RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/mambaforge.sh \
+ && ~/mambaforge.sh -b -p /opt/conda \
+ && rm ~/mambaforge.sh
 
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     conda \
