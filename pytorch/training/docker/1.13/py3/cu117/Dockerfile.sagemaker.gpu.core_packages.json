@@ -35,6 +35,18 @@
     "version_specifier": "==2.0.0.dev20221202",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },
