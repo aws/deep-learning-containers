@@ -10,13 +10,14 @@ HAS_CUDA=$(python -c "import torch; print(torch.version.cuda is not None)")
 
 # install OSS PyTorch
 # Remove AWS pip wheel and conda binary dist if found
-if ! mamba list | awk '$1=="pytorch"&&$4!="pytorch" { exit 1 }'; then mamba remove -y --force pytorch torchvision torchaudio torchdata; fi
-if ! mamba list | awk '$1=="torch"&&$4=="pypi" { exit 1 }'; then pip uninstall -y torch torchvision torchaudio torchdata; fi
+# if ! mamba list | awk '$1=="pytorch"&&$4!="pytorch" { exit 1 }'; then mamba remove -y --force pytorch torchvision torchaudio torchdata; fi
+# if ! mamba list | awk '$1=="torch"&&$4=="pypi" { exit 1 }'; then pip uninstall -y torch torchvision torchaudio torchdata; fi
 # if [ $(version $PT_VERSION) -lt $(version "2.0") ]; then
 #     pip uninstall -y torch torchvision torchaudio torchdata
 # else
-#     mamba remove -y --force pytorch torchvision torchaudio
+    # mamba remove -y --force pytorch torchvision torchaudio
 # fi
+mamba remove -y --force pytorch torchvision torchaudio
 
 if [ -n "$HAS_CUDA" ]; then
     if [ $(version $PT_VERSION) -lt $(version "2.0") ]; then

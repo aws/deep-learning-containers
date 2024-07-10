@@ -196,7 +196,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     conda-content-trust \
     charset-normalizer \
     "requests>=2.32.2" \
-    "pyopenssl>=24.0.0" \
+    "pyopenssl>=24.1.0" \
     "tqdm>=4.66.3" \
     "idna>=3.7" \
     "urllib3>=1.26.17" \
