@@ -15,12 +15,6 @@ apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-de
 #### Patch contents for patch-5: sha256:755b10c8ff90c35375b2e7b602aaead03dd0875bd84794d8ba919288fda14e60 ####
 pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
-#### Patch contents for patch-6: sha256:ca18391bc8ea4c23d9722bd7b7f07a4f58d52101e5cea31cadc5cd062e83f9c6 ####
-pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19
-apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
-#### Patch contents for patch-7: sha256:63c0d8d6923ece4261a8a29a05faac77e3fa7b300ae03934e484c4edab176c73 ####
-pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19
-apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
 #### Current Patch contents ####
-pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
