@@ -90,7 +90,7 @@ def get_args():
     )
     parser.add_argument(
         "-n",
-        "--currency",
+        "--new_currency",
         nargs="+",
         help="Path to buildspec files that need to be updated with the next minor version",
     )
@@ -298,7 +298,7 @@ def handle_currency_option(currency_paths):
                 previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
             )
             create_new_file_with_updated_version(
-                currency_path, updated_content, optional_suffix, extra_suffix
+                currency_path, updated_content, optional_suffix, extra_suffix, previous_version_path
             )
         else:
             LOGGER.warning(f"Previous version file not found: {previous_version_path}")
@@ -343,7 +343,7 @@ def generate_new_file_content(
 
 
 def create_new_file_with_updated_version(
-    currency_path, updated_content, optional_suffix, extra_suffix
+    currency_path, updated_content, optional_suffix, extra_suffix, previous_version_path
 ):
     """
     Creates a new buildspec file with the updated content.
@@ -354,7 +354,7 @@ def create_new_file_with_updated_version(
     with open(new_file_path, "w") as new_file:
         new_file.writelines(updated_content)
 
-    LOGGER.info(f"Created {new_file_path}")
+    LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
 
 
 def main():
@@ -365,7 +365,7 @@ def main():
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
-    currency_paths = args.currency
+    currency_paths = args.new_currency
 
     # Handle the --currency option
     if currency_paths:
