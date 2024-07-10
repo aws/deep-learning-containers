@@ -196,7 +196,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     conda-content-trust \
     charset-normalizer \
     "requests>=2.32.2" \
-    "pyopenssl>=24.1.0" \
     "tqdm>=4.66.3" \
     "idna>=3.7" \
     "urllib3>=1.26.17" \
@@ -211,6 +210,7 @@ RUN /opt/conda/bin/conda config --set ssl_verify False \
 WORKDIR /root
 
 RUN pip install --no-cache-dir -U \
+    "pyopenssl>=24.1.0" \
     "awscli>1.27,<2" \
     boto3 \
     "click>=8.1.2,<9" \

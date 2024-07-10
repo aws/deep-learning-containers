@@ -26,9 +26,6 @@
   "requests": {
     "version_specifier": ">=2.32.2"
   },
-  "pyopenssl": {
-    "version_specifier": ">=24.1.0"
-  },
   "tqdm": {
     "version_specifier": ">=4.66.3"
   },
@@ -37,6 +34,9 @@
   },
   "urllib3": {
     "version_specifier": ">=1.26.17"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.1.0"
   },
   "awscli": {
     "version_specifier": ">1.27,<2"
