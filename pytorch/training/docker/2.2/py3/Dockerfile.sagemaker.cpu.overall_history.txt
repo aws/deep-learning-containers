@@ -1,5 +1,19 @@
-#### First image: sha256:c7cdaa819b62c33ba68d9ef447b71ce39f4d04c8872efafaa37debacf5940f93 ####
+#### First image: sha256:c50cf27e8cd0ac6f0ad7b399c796d9a1c7efa35020866b5163707b1b7e845009 ####
+#### Patch contents for patch-1: sha256:4dff137bb3ee02ac8c289e3ab61e7adf29385dc4dff7ae1036f33b300d682edf ####
+echo N/A
+echo N/A
+#### Patch contents for patch-2: sha256:e420118922200a51431a66e10c52284707552e0223f25b4a3ff65428ffba35af ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgdk-pixbuf2.0-0
+#### Patch contents for patch-3: sha256:67fe0baedaa5e487fbb4a8c73e27126608864f94dfdd6d9206d9f24b952456e3 ####
+pip install cryptography==42.0.8
+apt-get update && apt-get install -y --only-upgrade git-man git libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:3e7c3905008441ca3974dd0c00b28804312a2c4071cf9e9f6b3ce4d094df02d3 ####
+pip install cryptography==42.0.8 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:dd442a7dbecb2b0a5497f1b7f05cf644eb968acdc5e2a080608ab5aaafbaa43e ####
+pip install cryptography==42.0.8 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
 #### Current Patch contents ####
-pip install requests==2.32.2 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade python3-idna
+pip install cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
