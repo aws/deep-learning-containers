@@ -1,0 +1,7 @@
+#### First image: sha256:7c9a6f3368e2cef237825709b04815aaad1aed60a1becffded2024d1b9bac1a8 ####
+#### Patch contents for patch-1: sha256:8a7effbddc3f4c909bad18866358f09b09b591171b2f3b761f85561b35c1cc71 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install certifi==2024.7.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
