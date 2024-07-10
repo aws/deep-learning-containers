@@ -11,9 +11,6 @@ apt-get update && apt-get install -y --only-upgrade git-man git libcups2
 #### Patch contents for patch-4: sha256:517cbe643898d5ec7046f6991befadcd5adcf7c89d1fff0f57e55503e18eebd8 ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev
-#### Patch contents for patch-5: sha256:15f16c0888f4a552edce870b7d2dfd37d6882305b49cb7d139c3d5962c2d65e2 ####
-pip install urllib3==1.26.19
-apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev wget
 #### Current Patch contents ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev wget
