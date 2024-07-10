@@ -1,5 +1,26 @@
 #### First image: sha256:8afd3e7d4ac59aa4c1a6897d45b6fa6bf859c7b0916d8e4f76dfb322e6941847 ####
-#### Current Patch contents ####
+#### Patch contents for patch-1: sha256:b8dfc301c4a458c0d1083f19fdd7c666513bc23382632cc4c8f92ab6f8afcf35 ####
 pip install requests==2.32.2 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade python3-idna
+#### Patch contents for patch-2: sha256:db3edc4fca1a8b4818276ead3dca79c0a361b5b229bea91380a5f69426e0a4a1 ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 python3-idna
+#### Patch contents for patch-3: sha256:add12eb0c9af2fa3a3fdee28e0dac19261c052bbeb8c179a75ef9d78446cf905 ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 python3-idna
+#### Patch contents for patch-4: sha256:5c50c3756b357752208eb1d16ee3413de6de9aed5e8bb2227a7b46a43ec6d15f ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna
+#### Patch contents for patch-5: sha256:5c3684ae9caf74dd7585caa82524e669b30d97721d643fa75a9cde4287e38519 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna
+#### Patch contents for patch-6: sha256:3ea1424795d6038d95f1e5b96c358b049a007d20262f187722a29d7a83b8ab2b ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
+#### Patch contents for patch-7: sha256:d666eb43c8464e73dbf39fc21f4e67eff9e0b4418fc93982ad28599abf84f3e0 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
+#### Current Patch contents ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev python3-idna wget
