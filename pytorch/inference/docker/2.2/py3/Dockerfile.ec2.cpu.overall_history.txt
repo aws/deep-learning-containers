@@ -20,6 +20,15 @@ apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-de
 #### Patch contents for patch-7: sha256:2e3818d5709286bb151db48f85bda03bcd9cf00bde0056d5cb36094f88013532 ####
 pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
-#### Current Patch contents ####
+#### Patch contents for patch-8: sha256:456abb59e79e64b9d89fb84997e10d7969ee41c57bb5b05a9c4c58efd70bfa9e ####
 pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-9: sha256:62e12df254d8c37fc8c73b3b7a3b37cd1c820f9afd134fe83ce69772d94502be ####
+pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-10: sha256:a933f893a32647bdaf375044166f24873c206614207839d46f5e37976cd53201 ####
+pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Current Patch contents ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
