@@ -143,7 +143,7 @@ def pytorch_training_dgl(pytorch_training, ec2_connection):
     """
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_DGL_CMD, container_name="pytorhc_dgl_cpu"
+        ec2_connection, pytorch_training, PT_DGL_CMD, container_name="pytorch_dgl"
     )
 
 
