@@ -339,6 +339,8 @@ def generate_new_file_content(
                 content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
             elif line.startswith("short_version: &SHORT_VERSION "):
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+            elif line.strip().startswith("autopatch_build"):
+                content[i] = f"# {line}"
     return content
 
 
