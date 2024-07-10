@@ -1,7 +1,19 @@
-#### First image: sha256:4e2bd083e10da23c246995551ae9f5f419ef3244c12f9883a7c207aa1d346f0e ####
-#### Patch contents for patch-1: sha256:b6cf495a112f3e1ecaef932dfad98818b43badb3dff5d0c374199e524f6264f2 ####
+#### First image: sha256:535274042b035a465e62fd4278e491fccff87fbe6a0376dfafda72706b2a8a59 ####
+#### Patch contents for patch-1: sha256:08dfc37f3db7710c3300899f2f569401410d46d2113a18ae47e7b4140cdfecee ####
 echo N/A
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libssh-4 linux-libc-dev
+echo N/A
+#### Patch contents for patch-2: sha256:433c916089f91ae31a733c83630baedfa8378cce4fac5de66a45958e69e2b74b ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git
+#### Patch contents for patch-3: sha256:049600641794585b006b1775383dd2d68264275962306667f800b741c495a933 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2
+#### Patch contents for patch-4: sha256:c7a7a28a6f739f72f43b9d33629f36542c9206344b36e26a42709b2b19a4798d ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev
+#### Patch contents for patch-5: sha256:31c82e728088c8bd1fa0064c4f9f0a389a72bd88c1aa50765bbdc01b82cafb91 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev wget
 #### Current Patch contents ####
-pip install cryptography==42.0.5 pyopenssl==24.0.0
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre passwd
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 linux-libc-dev wget
