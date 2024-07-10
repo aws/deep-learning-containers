@@ -19,8 +19,20 @@
     "version_specifier": "==0.14.1+cpu",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17
   },
   "awscli": {
     "version_specifier": ">1.27,<2"

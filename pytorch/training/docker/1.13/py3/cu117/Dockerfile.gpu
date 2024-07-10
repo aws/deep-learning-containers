@@ -1,7 +1,7 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.9.19
 ARG PYTHON_SHORT_VERSION=3.9
-ARG MAMBA_VERSION=22.11.1-2
+ARG MINIFORGE3_VERSION=24.3.0-0
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221219-193736/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcu117-cp39-cp39-linux_x86_64.whl
@@ -42,7 +42,7 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG MAMBA_VERSION
+ARG MINIFORGE3_VERSION
 
 ARG CUBLAS_VERSION=11.10.3.66
 ARG EFA_PATH=/opt/amazon/efa
@@ -178,10 +178,10 @@ RUN cd /tmp \
 
 # For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/mambaforge.sh \
- && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh
+RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/miniforge3.sh \
+ && ~/miniforge3.sh -b -p /opt/conda \
+ && rm ~/miniforge3.sh
 
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     conda \
@@ -192,11 +192,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     parso \
     typing \
     h5py \
-    requests \
-    "pyopenssl>=24.0.0" \
     libgcc \
     conda-content-trust \
     charset-normalizer \
+    "requests>=2.32.2" \
+    "pyopenssl>=24.0.0" \
+    "tqdm>=4.66.3" \
+    "idna>=3.7" \
+    "urllib3>=1.26.17" \
     # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
  && /opt/conda/bin/mamba install -y -c dglteam dgl-cuda11.7=0.9.1 \
  && /opt/conda/bin/mamba clean -afy
@@ -337,7 +340,7 @@ RUN rm -rf /root/.ssh/ && \
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir -U horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -488,7 +491,7 @@ RUN rm -rf /root/.ssh/ && \
 # Install Horovod (needs pytorch)
 RUN pip uninstall -y horovod \
  && ldconfig /usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs \
- && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir horovod==${HOROVOD_VERSION} \
+ && HOROVOD_GPU_ALLREDUCE=NCCL HOROVOD_CUDA_HOME=/usr/local/cuda-11.7 HOROVOD_WITH_PYTORCH=1 pip install --no-cache-dir -U horovod==${HOROVOD_VERSION} \
  && ldconfig
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -589,7 +592,7 @@ RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
 
 # Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir -U ${SMD_DATA_PARALLEL_URL}
 
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
