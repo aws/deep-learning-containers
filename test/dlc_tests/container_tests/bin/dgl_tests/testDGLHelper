@@ -16,8 +16,7 @@ echo "Training gcn using DGL... This may take a few minutes. You can follow prog
 
 # Check to see if nvidia-smi fails, if so we are assuming a CPU test
 set +e
-nvidia-smi
-RETURN_VAL=$?
+HAS_CUDA=$(python -c "import torch; print(torch.version.cuda is not None)")
 set -e
 
 PYTHON_BIN=$1
@@ -30,7 +29,7 @@ echo "Running DGL training script..."
 if [ ${DGL_GE_09X} -eq 1 ]; then
     $PYTHON_BIN ./train.py --dataset cora >> ${TRAINING_LOG} 2>&1
 else
-    if [ ${RETURN_VAL} -eq 0 ]; then
+    if [ ${HAS_CUDA} -eq 0 ]; then
         $PYTHON_BIN ./train.py --dataset cora --gpu 0 >> ${TRAINING_LOG} 2>&1
     else
         $PYTHON_BIN ./train.py --dataset cora --gpu -1 >> ${TRAINING_LOG} 2>&1
