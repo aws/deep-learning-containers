@@ -1,21 +1,19 @@
-#### First image: sha256:eff8585d6c4a0ddc16ae690854896fc1f1906e4c07323851d34d4d3d00f5904f ####
-#### Patch contents for patch-1: sha256:37e5716563dfa11cadeb2ed4b662744cbcb9bddad24d5efd9c84c121da5d9ccd ####
-pip install idna==3.7 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc6 libfdisk1 libgnutls30 libmount1 libnss3 libsmartcols1 libuuid1 mount util-linux
-#### Patch contents for patch-2: sha256:73aa49e28e544014d43d1df1dd72bf0515071c86a1b08d3e0edc5c6e16b07cd7 ####
-pip install idna==3.7 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc6 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 mount util-linux
-#### Patch contents for patch-3: sha256:de910a3ee7887aa1f3e98012b3d4f3c79e6fbb27d7900c8c9b3119844e7b5c9d ####
-pip install idna==3.7 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux
-#### Patch contents for patch-4: sha256:989150d30c9d9838786cb4fdb2c86a52e8ba6407019dc3f5ccbcdd893bb194db ####
-pip install idna==3.7 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux
+#### First image: sha256:0af24a1daef97d9186692f61e97560fd004da1731789461ab7d9841ef0fe9bd7 ####
+#### Patch contents for patch-1: sha256:15a721e1a620141e09fae06ea0a717aca56288b182661ccc233ba0103bf787db ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libtiff5
+#### Patch contents for patch-2: sha256:c1d492041d5d2c404877a3c4fd1738f70a4a4cd620d718435cb92561d5ddef51 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libtiff5 linux-libc-dev
+#### Patch contents for patch-3: sha256:7e35390ef65d5595c480199f80fa3d4290b834cb1058ac26c798cab4008faee0 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:637b45c402064416a14df280b4c87d42fd56c742b8eb68fc8b298d646f31d791 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:3abedabba67975a816cee62e03e92070c01c8949614b3b81d7b3da09b5475572 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
 #### Current Patch contents ####
-pip install idna==3.7 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
