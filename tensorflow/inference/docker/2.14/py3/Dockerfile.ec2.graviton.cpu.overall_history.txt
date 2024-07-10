@@ -37,6 +37,9 @@ apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git l
 #### Patch contents for patch-11: sha256:7899ccf8a729e2fef867e3a5edfeb27856a36547bc9e93ee5f50a462aa6fd366 ####
 pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
 apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-12: sha256:84a10cf80d12817ac0092b270130d78470b8fcdf18b15c29c2bee7d17b45d87f ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev wget
 #### Current Patch contents ####
 pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
 apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev wget
