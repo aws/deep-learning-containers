@@ -1,0 +1,41 @@
+#### First image: sha256:6baf716e0ff64d5dbb47d744f16696e78f7799253400938a92364456db1bef62 ####
+#### Patch contents for patch-1: sha256:22bf82faecc6288cb3abfd6f599d5e288e02ac366f673848b72e56de45e43f38 ####
+pip install argparse==1.4.0 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:4c3b859747d553b824490cc1975414013eda9466a5cf841667292fc2e8bc512a ####
+pip install argparse==1.4.0 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-3: sha256:74e7617f491af3ff23010276d90d73a852918963a9b3d3356b64bc7768f57809 ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.2 sagemaker==2.221.0 tqdm==4.66.4 werkzeug==3.0.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-4: sha256:025786430ba3101ffb6a4b78071e8b674bf40c5dbfa238a6feaefb7fcf362fc6 ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.2 sagemaker==2.221.1 tqdm==4.66.4 werkzeug==3.0.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-5: sha256:21eb9b619898f375b194edbc230527954f0f9a6a9e03959992cba90d4ac6786e ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.221.1 tqdm==4.66.4 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-6: sha256:16b36acad57a731ac61a4dbb7e327b28d9892aebc97bb73d38e5f2c6016a25d2 ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.221.1 tqdm==4.66.4 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-7: sha256:4cc2abbd2fa87ea47f703c1501cdf9e9ee16fe6fd553052d2b604b5fea9db48a ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.221.1 tqdm==4.66.4 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-8: sha256:3149be36791f9c321a36c3156859c8120103b8fb5bc39c8e85cc90857533217b ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.222.0 tqdm==4.66.4 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-9: sha256:412b28b4b01f74ff7b1df9ffef16f3382be2e7f14d15fd6a4fb09df9a9ba9bbb ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.222.1 tqdm==4.66.4 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-10: sha256:a815159f157d3dbc9cd66e0d732d22c79162ce63dac6ef3ca092c7c696774e53 ####
+pip install argparse==1.4.0 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.224.0 scikit-learn==1.5.0 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Patch contents for patch-11: sha256:c512a66cf7c61583d4327aa8f954a2463b3a9559e29821150e27a0b501cfe7d1 ####
+pip install argparse==1.4.0 cryptography==42.0.8 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.224.1 scikit-learn==1.5.0 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+#### Current Patch contents ####
+pip install argparse==1.4.0 cryptography==42.0.8 idna==3.7 jinja2==3.1.4 pillow==10.3.0 requests==2.32.3 sagemaker==2.224.2 scikit-learn==1.5.0 tqdm==4.66.4 urllib3==1.26.19 werkzeug==3.0.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git less libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim wget xxd
