@@ -11,6 +11,12 @@ apt-get update && apt-get install -y --only-upgrade git-man git libgdk-pixbuf2.0
 #### Patch contents for patch-4: sha256:afeb7df293905f1d6a741a82a53c6491f063a43e64207b32c496e94c950097a0 ####
 pip install argparse==1.4.0 cryptography==42.0.8 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
-#### Current Patch contents ####
+#### Patch contents for patch-5: sha256:3ff348fb68ed7b595a94daba38692cad662c83601f5c3abfeada49e622d88793 ####
 pip install argparse==1.4.0 cryptography==42.0.8 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-6: sha256:89174c88e7516848596174756c237e12e8971a70147d0656b5446e7737a92265 ####
+pip install argparse==1.4.0 cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install argparse==1.4.0 cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
