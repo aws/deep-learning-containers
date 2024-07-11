@@ -351,6 +351,10 @@ def create_new_file_with_updated_version(
     Creates a new buildspec file with the updated content.
     """
     new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+    if os.path.exists(new_file_path):
+        LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
+        return
+
     os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
 
     with open(new_file_path, "w") as new_file:
