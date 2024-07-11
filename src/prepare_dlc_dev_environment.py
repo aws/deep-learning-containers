@@ -281,33 +281,33 @@ def handle_currency_option(currency_paths):
         (
             framework,
             job_type,
-            optional_suffix,
+            optional_tag,
             major_version,
             minor_version,
-            extra_suffix,
+            extra_tag,
         ) = extract_path_components(currency_path, buildspec_pattern)
 
         latest_version_path = find_latest_version_path(
-            framework, job_type, optional_suffix, major_version, extra_suffix
+            framework, job_type, optional_tag, major_version, extra_tag
         )
         if latest_version_path:
             updated_content = generate_new_file_content(
-                latest_version_path, major_version, minor_version, optional_suffix, extra_suffix
+                latest_version_path, major_version, minor_version, optional_tag, extra_tag
             )
             create_new_file_with_updated_version(
-                currency_path, updated_content, optional_suffix, extra_suffix, latest_version_path
+                currency_path, updated_content, optional_tag, extra_tag, latest_version_path
             )
         else:
             LOGGER.warning(f"No previous version found for {currency_path}")
 
 
-def find_latest_version_path(framework, job_type, optional_suffix, major_version, extra_suffix):
+def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
     """
     Finds the path to the latest existing version of the buildspec file based on the provided components.
     """
     path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
     version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
-        optional_suffix or r"\w*", major_version, extra_suffix or r"\w*"
+        optional_tag or r"\w*", major_version, extra_tag or r"\w*"
     )
     latest_version = Version("0.0.0")
     latest_path = None
@@ -339,19 +339,22 @@ def validate_currency_path(currency_path):
             extra_framework,
             framework,
             job_type,
-            optional_suffix,
+            optional_tag,
             major_version,
             minor_version,
-            extra_suffix,
+            extra_tag,
         ) = match.groups()
         if extra_framework:
             LOGGER.error(
-                f"ERROR: {extra_framework} is not currently supported. Please provide valid frameworks."
+                f"ERROR: {extra_framework} is not currently supported for currency feature. Please provide a supported framework (pytorch/tensorflow)."
             )
             return False
     else:
-        LOGGER.warning(f"Invalid currency path format: {currency_path}")
-        return False
+        raise ValueError(
+            f"Invalid currency path format: {currency_path}. "
+            f"\nExpected format: <framework>/<job_type>/buildspec[-<optional_tag>]-<major_version>-<minor_version>[-<extra_tag>].yml\n"
+            f"For example: pytorch/inference/buildspec-2-3-ec2.yml or pytorch/inference/buildspec-graviton-2-3.yml"
+        )
     return True
 
 
@@ -366,7 +369,7 @@ def extract_path_components(currency_path, pattern):
 
 
 def generate_new_file_content(
-    previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
+    previous_version_path, major_version, minor_version, optional_tag, extra_tag
 ):
     """
     Generates the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
@@ -394,7 +397,7 @@ def generate_new_file_content(
 
 
 def create_new_file_with_updated_version(
-    currency_path, updated_content, optional_suffix, extra_suffix, previous_version_path
+    currency_path, updated_content, optional_tag, extra_tag, previous_version_path
 ):
     """
     Creates a new buildspec file with the updated content and updates the pointer file.
