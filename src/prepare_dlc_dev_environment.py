@@ -408,9 +408,8 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
 
     for i, line in enumerate(content):
         if line.startswith("buildspec_pointer:"):
-            if "buildspec-graviton.yml" in pointer_file_path:
-                # Remove the path prefix for the graviton pointer file
-                new_buildspec_path = os.path.basename(new_buildspec_path)
+            # Remove the path prefix for all pointer files
+            new_buildspec_path = os.path.basename(new_buildspec_path)
             content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
             break
 
