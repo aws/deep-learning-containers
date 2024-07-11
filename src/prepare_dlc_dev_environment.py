@@ -382,7 +382,7 @@ def create_new_file_with_updated_version(
 
     LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
 
-    # Update the pointer file
+    # Update the graviton pointer file
     graviton_pointer_file_path = os.path.join(
         os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
     )
