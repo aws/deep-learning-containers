@@ -276,7 +276,7 @@ def handle_currency_option(currency_paths):
         r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
     )
     for currency_path in currency_paths:
-        if not validate_currency_path(currency_path, buildspec_pattern):
+        if not validate_currency_path(currency_path):
             continue
         (
             framework,
@@ -324,13 +324,32 @@ def find_latest_version_path(framework, job_type, optional_suffix, major_version
     return latest_path
 
 
-def validate_currency_path(currency_path, pattern):
+def validate_currency_path(currency_path):
     """
     Validates the currency path format using the provided regular expression pattern, and returns
-    true if the currency path format is valid, False otherwise.
+    true if the currency path format is valid, False otherwise. If an extra framework is detected,
+    it prints an error message and returns False.
     """
-    match = re.match(pattern, currency_path)
-    if not match:
+    buildspec_pattern = (
+        r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    match = re.match(buildspec_pattern, currency_path)
+    if match:
+        (
+            extra_framework,
+            framework,
+            job_type,
+            optional_suffix,
+            major_version,
+            minor_version,
+            extra_suffix,
+        ) = match.groups()
+        if extra_framework:
+            LOGGER.error(
+                f"ERROR: {extra_framework} is not currently supported. Please provide valid frameworks."
+            )
+            return False
+    else:
         LOGGER.warning(f"Invalid currency path format: {currency_path}")
         return False
     return True
