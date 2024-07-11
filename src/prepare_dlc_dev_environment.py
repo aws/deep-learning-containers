@@ -350,17 +350,27 @@ def generate_new_file_content(
     previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
 ):
     """
-    Generates the content for the new buildspec file with the updated version and short_version values.
+    Generates the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
     """
+    new_version = f"{major_version}.{minor_version}.0"
     with open(previous_version_path, "r") as prev_file:
         content = prev_file.readlines()
         for i, line in enumerate(content):
             if line.startswith("version: &VERSION "):
-                content[i] = f"version: &VERSION {major_version}.{minor_version}.0\n"
+                content[i] = f"version: &VERSION {new_version}\n"
             elif line.startswith("short_version: &SHORT_VERSION "):
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
             elif line.strip().startswith("autopatch_build"):
                 content[i] = f"# {line}"
+            elif line.strip().startswith("# build_tag_override:"):
+                build_tag_parts = line.strip().split('"')
+                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
+                build_tag_rest = (
+                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
+                )
+                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
+                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
+
     return content
 
 
