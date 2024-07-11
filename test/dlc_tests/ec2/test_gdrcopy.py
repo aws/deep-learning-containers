@@ -1,15 +1,8 @@
 import os
 import pytest
 
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 import test.test_utils as test_utils
-from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
-    is_pr_context,
-    get_framework_and_version_from_tag,
-)
+from test.test_utils import CONTAINER_TESTS_PREFIX, is_pr_context
 
 from test.test_utils.ec2 import (
     get_efa_ec2_instance_type,
