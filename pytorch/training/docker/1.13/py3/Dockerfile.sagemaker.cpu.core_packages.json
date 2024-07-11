@@ -15,6 +15,10 @@
     "version_specifier": "==0.5.1",
     "skip": "True"
   },
+  "torchnet": {
+    "version_specifier": "==0.0.4",
+    "skip": "True"
+  },
   "torchvision": {
     "version_specifier": "==0.14.1+cpu",
     "skip": "True"
