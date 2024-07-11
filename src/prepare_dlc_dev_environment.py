@@ -382,21 +382,21 @@ def create_new_file_with_updated_version(
 
     LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
 
-    # Update the pointer files
-    pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
+    # Update the pointer file
     graviton_pointer_file_path = os.path.join(
         os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
     )
-
-    if os.path.exists(pointer_file_path):
-        update_pointer_file(pointer_file_path, currency_path)
-    else:
-        LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
 
     if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
         update_pointer_file(graviton_pointer_file_path, currency_path)
     elif "graviton" in new_file_path:
         LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+    else:
+        pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
+        if os.path.exists(pointer_file_path):
+            update_pointer_file(pointer_file_path, currency_path)
+        else:
+            LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
 
 
 def update_pointer_file(pointer_file_path, new_buildspec_path):
@@ -408,6 +408,9 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
 
     for i, line in enumerate(content):
         if line.startswith("buildspec_pointer:"):
+            if "buildspec-graviton.yml" in pointer_file_path:
+                # Remove the path prefix for the graviton pointer file
+                new_buildspec_path = os.path.basename(new_buildspec_path)
             content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
             break
 
