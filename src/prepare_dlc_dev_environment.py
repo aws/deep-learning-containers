@@ -11,6 +11,7 @@ import git
 
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
+from packaging.version import Version
 
 
 LOGGER = logging.getLogger(__name__)
@@ -268,7 +269,7 @@ def handle_currency_option(currency_paths):
     """
     This function takes a list of currency paths as input and creates new buildspec files
     with incremented minor versions based on the provided paths. The contents of the new
-    files are copied from the inferred previous version files, with the version and
+    files are copied from the latest existing version files, with the version and
     short_version values updated accordingly.
     """
     buildspec_pattern = (
@@ -285,23 +286,42 @@ def handle_currency_option(currency_paths):
             minor_version,
             extra_suffix,
         ) = extract_path_components(currency_path, buildspec_pattern)
-        previous_minor_version = str(int(minor_version) - 1)
 
-        previous_version_path = os.path.join(
-            get_cloned_folder_path(),
-            framework,
-            job_type,
-            f"buildspec{'-' + optional_suffix if optional_suffix else ''}-{major_version}-{previous_minor_version}{'-' + extra_suffix if extra_suffix else ''}.yml",
+        latest_version_path = find_latest_version_path(
+            framework, job_type, optional_suffix, major_version, extra_suffix
         )
-        if os.path.isfile(previous_version_path):
+        if latest_version_path:
             updated_content = generate_new_file_content(
-                previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
+                latest_version_path, major_version, minor_version, optional_suffix, extra_suffix
             )
             create_new_file_with_updated_version(
-                currency_path, updated_content, optional_suffix, extra_suffix, previous_version_path
+                currency_path, updated_content, optional_suffix, extra_suffix, latest_version_path
             )
         else:
-            LOGGER.warning(f"Previous version file not found: {previous_version_path}")
+            LOGGER.warning(f"No previous version found for {currency_path}")
+
+
+def find_latest_version_path(framework, job_type, optional_suffix, major_version, extra_suffix):
+    """
+    Finds the path to the latest existing version of the buildspec file based on the provided components.
+    """
+    path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
+    version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
+        optional_suffix or r"\w*", major_version, extra_suffix or r"\w*"
+    )
+    latest_version = Version("0.0.0")
+    latest_path = None
+
+    for file_name in os.listdir(path_prefix):
+        match = re.match(version_pattern, file_name)
+        if match:
+            version_str = match.group(1)
+            version = Version(f"{major_version}.{version_str}.0")
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+
+    return latest_path
 
 
 def validate_currency_path(currency_path, pattern):
