@@ -368,7 +368,7 @@ def create_new_file_with_updated_version(
     currency_path, updated_content, optional_suffix, extra_suffix, previous_version_path
 ):
     """
-    Creates a new buildspec file with the updated content.
+    Creates a new buildspec file with the updated content and updates the pointer file.
     """
     new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
     if os.path.exists(new_file_path):
@@ -381,6 +381,40 @@ def create_new_file_with_updated_version(
         new_file.writelines(updated_content)
 
     LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
+
+    # Update the pointer files
+    pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
+    graviton_pointer_file_path = os.path.join(
+        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
+    )
+
+    if os.path.exists(pointer_file_path):
+        update_pointer_file(pointer_file_path, currency_path)
+    else:
+        LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
+
+    if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
+        update_pointer_file(graviton_pointer_file_path, currency_path)
+    elif "graviton" in new_file_path:
+        LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+
+
+def update_pointer_file(pointer_file_path, new_buildspec_path):
+    """
+    Updates the pointer file with the path to the newly created buildspec file.
+    """
+    with open(pointer_file_path, "r") as pointer_file:
+        content = pointer_file.readlines()
+
+    for i, line in enumerate(content):
+        if line.startswith("buildspec_pointer:"):
+            content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
+            break
+
+    with open(pointer_file_path, "w") as pointer_file:
+        pointer_file.writelines(content)
+
+    LOGGER.info(f"Updated pointer file at {pointer_file_path}")
 
 
 def main():
