@@ -181,7 +181,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 ########################################################
 
 FROM common AS ec2
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-09-05-03/tensorflow_cpu-2.16.2-cp311-cp311-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-12-00-09/tensorflow_cpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -222,7 +222,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-09-05-03/tensorflow_cpu-2.16.2-cp311-cp311-linux_x86_64.whl
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-12-00-09/tensorflow_cpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
