@@ -33,6 +33,8 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
+DLC_REPO_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master"
+
 
 def restore_default_toml(toml_path):
     """
@@ -46,6 +48,21 @@ def restore_default_toml(toml_path):
         LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {toml_path}: {e}")
+
+
+def restore_buildspec(buildspec_path):
+    """
+    Restore the buildspec file to its original state from the DLC repo
+    """
+    dlc_buildspec_url = f"{DLC_REPO_URL}/{buildspec_path}"
+    try:
+        response = requests.get(dlc_buildspec_url)
+        response.raise_for_status()
+        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "w") as buildspec_file:
+            buildspec_file.write(response.text)
+        LOGGER.info(f"Restored {buildspec_path} to its original state from {dlc_buildspec_url}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
 
 
 def get_args():
@@ -458,7 +475,7 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
 
 def handle_tag_override(buildspec_paths):
     """
-    This function takes a list of buildspec paths as input and uncomments the build_tag_override 
+    This function takes a list of buildspec paths as input and uncomments the build_tag_override
     tags and comments out the autopatch_build tags in the specified files.
     """
     for buildspec_path in buildspec_paths:
@@ -517,10 +534,15 @@ def main():
     if not any([buildspec_paths, restore, currency_paths, tag_override_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
-    restore_default_toml(toml_path)
+
+    # Restore the TOML file and buildspec files if requested
     if restore:
+        restore_default_toml(toml_path)
+        if buildspec_paths:
+            for buildspec_path in buildspec_paths:
+                restore_buildspec(buildspec_path)
         LOGGER.info(
-            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
+            f"Restored TOML and {len(buildspec_paths) if buildspec_paths else 0} buildspec files to their original state."
         )
         if to_commit:
             commit_and_push_changes(
