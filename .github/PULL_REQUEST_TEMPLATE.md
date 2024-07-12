@@ -25,9 +25,21 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
 
 `python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -t sanity_tests -cp origin`
 
-- Restore TOML file when ready to merge
-
+- Restore TOML file when ready to merge; Example:
+  
 `python src/prepare_dlc_dev_environment.py -rcp origin`
+
+- Restore buildspec file to original state; Example:
+
+`python src/prepare_dlc_dev_environment.py -b </path/to/buildspec> -r`
+
+- Create new buildspec file using currency command; Example:
+
+`python src/prepare_dlc_dev_environment.py -n </path/to/buildspec.yml>`
+
+- Comment out autopatch_build tag & uncomment build_tag_override tag; Example:
+
+`python src/prepare_dlc_dev_environment.py --tag-override </path/to/buildspec.yml>`
 </details>
 
 **NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
