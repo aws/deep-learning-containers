@@ -95,6 +95,11 @@ def get_args():
         nargs="+",
         help="Path to buildspec files that need to be updated with the next minor version",
     )
+    parser.add_argument(
+        "--tag-override",
+        nargs="+",
+        help="Uncomments the build_tag_override and comments out autopatch_build",
+    )
     return parser.parse_args()
 
 
@@ -451,6 +456,41 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
     LOGGER.info(f"Updated pointer file at {pointer_file_path}")
 
 
+def handle_tag_override(buildspec_paths):
+    """
+    This function takes a list of buildspec paths as input and uncomments the build_tag_override 
+    tags and comments out the autopatch_build tags in the specified files.
+    """
+    for buildspec_path in buildspec_paths:
+        buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
+        if not os.path.exists(buildspec_file):
+            LOGGER.warning(f"WARNING: {buildspec_path} does not exist. Skipping...")
+            continue
+
+        with open(buildspec_file, "r") as file:
+            content = file.readlines()
+
+        build_tag_override_found = False
+        autopatch_build_found = False
+        for i, line in enumerate(content):
+            if line.strip().startswith("# build_tag_override:"):
+                content[i] = line.replace("# ", "")
+                build_tag_override_found = True
+            elif line.strip().startswith("autopatch_build:"):
+                content[i] = f"# {line}"
+                autopatch_build_found = True
+
+        if not build_tag_override_found:
+            LOGGER.warning(f"WARNING: build_tag_override tag not found in {buildspec_path}")
+        if not autopatch_build_found:
+            LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
+
+        with open(buildspec_file, "w") as file:
+            file.writelines(content)
+
+        LOGGER.info(f"Updated {buildspec_path}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -460,14 +500,21 @@ def main():
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
+    tag_override_paths = args.tag_override
 
     # Handle the --currency option
     if currency_paths:
         handle_currency_option(currency_paths)
         return
 
-    # Update to require 1 of 3 options
-    if not buildspec_paths and not restore and not currency_paths:
+    # Handle the --tag-override option
+    if tag_override_paths:
+        handle_tag_override(tag_override_paths)
+        if not any([buildspec_paths, restore, currency_paths]):
+            return  # Exit if only --tag-override is provided
+
+    # Update to require 1 of 4 options
+    if not any([buildspec_paths, restore, currency_paths, tag_override_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
     restore_default_toml(toml_path)
