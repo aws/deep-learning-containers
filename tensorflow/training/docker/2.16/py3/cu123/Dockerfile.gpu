@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:12.3.0-base-ubuntu20.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -15,7 +15,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.14
+ENV TF_VERSION=2.16
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -41,15 +41,15 @@ ARG PYTHON_VERSION=3.10.13
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-ARG EFA_VERSION=1.30.0
+ARG EFA_VERSION=1.33.0
 ARG OMPI_VERSION=4.1.6
-ARG BRANCH_OFI=1.7.4-aws
+ARG BRANCH_OFI=1.9.2-aws
 
 
-ARG CUDA=11.8
-ARG CUDA_DASH=11-8
-ARG CUDNN=8.9.3.28-1
-ARG NCCL_VERSION=2.16.5
+ARG CUDA=12.3
+ARG CUDA_DASH=12-3
+ARG CUDNN=8.9.6.50-1
+ARG NCCL_VERSION=2.19.3-1+cuda12.3
 
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
@@ -62,14 +62,22 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    cuda-cudart-dev-${CUDA_DASH} \
    cuda-command-line-tools-${CUDA_DASH} \
    cuda-nvcc-${CUDA_DASH} \
+   cuda-cupti-${CUDA_DASH} \
+   cuda-nvprune-${CUDA_DASH} \
+   cuda-libraries-${CUDA_DASH} \
+   cuda-nvrtc-${CUDA_DASH} \
    curl \
    emacs \
    git \
    hwloc \
-   libcudnn8=${CUDNN}+cuda11.8 \
+   libcudnn8=${CUDNN}+cuda12.2 \
+   libcufft-${CUDA_DASH} \
    libcufft-dev-${CUDA_DASH} \
+   libcurand-${CUDA_DASH} \
    libcurand-dev-${CUDA_DASH} \
+   libcusolver-${CUDA_DASH} \
    libcusolver-dev-${CUDA_DASH} \
+   libcusparse-${CUDA_DASH} \
    libcusparse-dev-${CUDA_DASH} \
    libgomp1 \
    libfreetype6-dev \
@@ -95,8 +103,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
-   libnccl2=2.16.5-1+cuda11.8 \
-   libnccl-dev=2.16.5-1+cuda11.8 \
+   libnccl2=${NCCL_VERSION} \
+   libnccl-dev=${NCCL_VERSION} \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean \
  && mkdir -p /var/run/sshd
@@ -265,7 +273,8 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.14_aws/gpu/2024-01-23-01-49/tensorflow_gpu-2.14.1-cp310-cp310-linux_x86_64.whl
+## Revert
+ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -314,7 +323,8 @@ RUN apt-get update  \
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.14_aws/gpu/2024-01-23-01-49/tensorflow_gpu-2.14.1-cp310-cp310-linux_x86_64.whl
+## Revert
+ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -333,8 +343,8 @@ RUN pip install wheel \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.14.2 \
-    tensorflow-text==2.14.0 \
+    tf-models-official==2.16.0 \
+    tensorflow-text==2.16.1 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
