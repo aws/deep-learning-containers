@@ -59,5 +59,10 @@ images:
                          *DEVICE_TYPE ]
     target: ec2
     enable_test_promotion: true
+    download_artifacts:
+      tf_binary:
+        type: s3
+        URI: s3://duplicate-framework-staging/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
+        VAR_IN_DOCKERFILE: TF_BINARY
     context:
       <<: *TRAINING_CONTEXT

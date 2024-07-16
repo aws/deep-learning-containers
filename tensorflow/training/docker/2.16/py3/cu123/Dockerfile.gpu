@@ -276,10 +276,13 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 
 ## Revert
-ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
+# ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
+ARG TF_BINARY
+
+COPY ${TF_BINARY} /${TF_BINARY}
 
 RUN ${PIP} install --no-cache-dir -U \
-   ${TF_URL} \
+   /${TF_BINARY} \
    "tensorflow-io>=0.33.0,<0.34.0" \
    tensorflow-datasets
 
