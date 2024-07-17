@@ -518,7 +518,7 @@ def main():
     test_types = args.tests
     buildspec_paths = args.buildspecs
     override_tag = args.override_tag
-    restore_buildspecs = args.restore_buildspecs  # Renamed from restore
+    restore_buildspecs = args.restore_buildspecs
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
@@ -533,29 +533,35 @@ def main():
 
     # Handle the -rob option
     if override_tag and buildspec_paths:
+        updated_buildspec_paths = []
         for buildspec_path in buildspec_paths:
             restore_buildspec(buildspec_path)
+            updated_buildspec_paths.append(buildspec_path)
         handle_tag_override(buildspec_paths)
         overrider = TomlOverrider()
         overrider.set_test_types(test_types=test_types)
         overrider.set_buildspec(buildspec_paths=buildspec_paths)
         LOGGER.info(overrider.overrides)
         write_toml(toml_path, overrides=overrider.overrides)
+        files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+            commit_message = commit_and_push_changes({path: None for path in files_to_commit}, remote_push=to_push)
         return
 
     # Handle the -rb option
-    if restore_buildspecs and buildspec_paths:  # Renamed from restore_buildspec
+    if restore_buildspecs and buildspec_paths:
+        updated_buildspec_paths = []
         for buildspec_path in buildspec_paths:
             restore_buildspec(buildspec_path)
+            updated_buildspec_paths.append(buildspec_path)
         LOGGER.info(f"Restored buildspec files to their original state.")
         if to_commit:
-            commit_and_push_changes({}, remote_push=to_push, restore=True)
+            commit_message = commit_and_push_changes({path: None for path in updated_buildspec_paths}, remote_push=to_push, restore=True)
         return
 
     # Handle the --buildspecs option
     if buildspec_paths:
+        updated_buildspec_paths = buildspec_paths.copy()
         if override_tag:
             handle_tag_override(buildspec_paths)
         overrider = TomlOverrider()
@@ -563,8 +569,9 @@ def main():
         overrider.set_buildspec(buildspec_paths=buildspec_paths)
         LOGGER.info(overrider.overrides)
         write_toml(toml_path, overrides=overrider.overrides)
+        files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+            commit_message = commit_and_push_changes({path: None for path in files_to_commit}, remote_push=to_push)
         return
 
     # Update to require 1 of 2 options
@@ -584,6 +591,6 @@ def main():
     if to_commit:
         commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
 
-
 if __name__ == "__main__":
     main()
+
