@@ -510,9 +510,12 @@ def restore_default_toml(toml_path):
 
 def restore_buildspec(buildspec_path):
     """
-    Restore the buildspec file to its original state from the DLC repo
+    Restore the buildspec file to its original state from the DLC repo and remove it from the
+    .prepare_dlc_files_to_revert.txt file if successfully restored.
     """
     dlc_buildspec_url = os.path.join(DLC_REPO_URL, buildspec_path)
+    tmp_file_path = os.path.join(get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt")
+
     try:
         response = requests.get(dlc_buildspec_url)
         response.raise_for_status()
@@ -521,6 +524,18 @@ def restore_buildspec(buildspec_path):
         with open(buildspec_file_path, "w") as buildspec_file:
             buildspec_file.write(response.text)
         LOGGER.info(f"Restored {buildspec_path} to its original state from {dlc_buildspec_url}")
+
+        # Remove the buildspec path from the .prepare_dlc_files_to_revert.txt file
+        if os.path.exists(tmp_file_path):
+            with open(tmp_file_path, "r") as tmp_file:
+                lines = tmp_file.readlines()
+
+            with open(tmp_file_path, "w") as tmp_file:
+                for line in lines:
+                    if line.strip() != buildspec_path:
+                        tmp_file.write(line)
+                    else:
+                        LOGGER.info(f"Removed {buildspec_path} from {tmp_file_path}")
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {buildspec_path}: {e}")
 
@@ -559,10 +574,35 @@ def main():
         return
 
     # Handle the -rb option
-    if restore_buildspecs and buildspec_paths:  # Renamed from restore_buildspec
-        for buildspec_path in buildspec_paths:
-            restore_buildspec(buildspec_path)
-        LOGGER.info(f"Restored buildspec files to their original state.")
+    if restore_buildspecs:
+        if buildspec_paths:
+            # Revert the specified buildspec files
+            for buildspec_path in buildspec_paths:
+                restore_buildspec(buildspec_path)
+        else:
+            # Check the .prepare_dlc_files_to_revert.txt file and revert the listed buildspec files
+            tmp_file_path = os.path.join(
+                get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt"
+            )
+            if os.path.exists(tmp_file_path):
+                with open(tmp_file_path, "r") as tmp_file:
+                    buildspec_paths_to_revert = [line.strip() for line in tmp_file.readlines()]
+                for buildspec_path in buildspec_paths_to_revert:
+                    restore_buildspec(buildspec_path)
+                LOGGER.info(
+                    f"Restored buildspec files listed in {tmp_file_path} to their original state."
+                )
+
+                # Remove the file if it's empty after restoring all listed buildspec files
+                if os.path.exists(tmp_file_path):
+                    with open(tmp_file_path, "r") as tmp_file:
+                        lines = tmp_file.readlines()
+                    if not any(line.strip() for line in lines):
+                        os.remove(tmp_file_path)
+                        LOGGER.info(f"Removed empty file {tmp_file_path}")
+            else:
+                LOGGER.warning("No buildspec files to revert.")
+
         if to_commit:
             commit_and_push_changes({}, remote_push=to_push, restore=True)
         return
