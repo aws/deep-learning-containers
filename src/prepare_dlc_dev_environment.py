@@ -484,14 +484,20 @@ def handle_tag_override(buildspec_paths):
             if not autopatch_build_found:
                 LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
 
-            tmp_file.write(f"{buildspec_path}\n")  # Write the buildspec file path to the temporary file
+            tmp_file.write(
+                f"{buildspec_path}\n"
+            )  # Write the buildspec file path to the temporary file
             updated_file_names.append(buildspec_path)  # Add the buildspec file path to the list
 
             with open(buildspec_file, "w") as file:
-                file.writelines(content)  # Write the updated contents to the original buildspec file
+                file.writelines(
+                    content
+                )  # Write the updated contents to the original buildspec file
 
         LOGGER.info("Original buildspec files have been updated with the new contents")
-        LOGGER.info(f"Updated buildspec file names written to {tmp_file_path}: {', '.join(updated_file_names)}")
+        LOGGER.info(
+            f"Updated buildspec file names written to {tmp_file_path}: {', '.join(updated_file_names)}"
+        )
 
 
 def restore_default_toml(toml_path):
@@ -588,7 +594,7 @@ def main():
                 for buildspec_path in buildspec_paths_to_revert:
                     restore_buildspec(buildspec_path)
                 LOGGER.info(
-                    f"Restored buildspec files listed in {tmp_file_path} to their original state."
+                    f"Restored all buildspec files listed in {tmp_file_path} to their original state."
                 )
 
                 # Remove the file if it's empty after restoring all listed buildspec files
