@@ -543,7 +543,7 @@ def main():
         if to_commit:
             commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
         return
-    
+
     # Update to require 1 of 3 options
     if not any([buildspec_paths, restore, currency_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
