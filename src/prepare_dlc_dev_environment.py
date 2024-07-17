@@ -36,35 +36,6 @@ DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containe
 DLC_REPO_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master"
 
 
-def restore_default_toml(toml_path):
-    """
-    Restore the TOML file to its default state from the specified URL
-    """
-    try:
-        response = requests.get(DEFAULT_TOML_URL)
-        response.raise_for_status()
-        with open(toml_path, "w") as toml_file:
-            toml_file.write(response.text)
-        LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
-    except requests.exceptions.RequestException as e:
-        LOGGER.error(f"Error restoring {toml_path}: {e}")
-
-
-def restore_buildspec(buildspec_path):
-    """
-    Restore the buildspec file to its original state from the DLC repo
-    """
-    dlc_buildspec_url = f"{DLC_REPO_URL}/{buildspec_path}"
-    try:
-        response = requests.get(dlc_buildspec_url)
-        response.raise_for_status()
-        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "w") as buildspec_file:
-            buildspec_file.write(response.text)
-        LOGGER.info(f"Restored {buildspec_path} to its original state from {dlc_buildspec_url}")
-    except requests.exceptions.RequestException as e:
-        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
-
-
 def get_args():
     """
     Manage arguments to this script when called directly
@@ -113,7 +84,8 @@ def get_args():
         help="Path to buildspec files that need to be updated with the next minor version",
     )
     parser.add_argument(
-        "--tag-override",
+        "-o",
+        "--override_tag",
         nargs="+",
         help="Uncomments the build_tag_override and comments out autopatch_build",
     )
@@ -508,6 +480,37 @@ def handle_tag_override(buildspec_paths):
         LOGGER.info(f"Updated {buildspec_path}")
 
 
+def restore_default_toml(toml_path):
+    """
+    Restore the TOML file to its default state from the specified URL
+    """
+    try:
+        response = requests.get(DEFAULT_TOML_URL)
+        response.raise_for_status()
+        with open(toml_path, "w") as toml_file:
+            toml_file.write(response.text)
+        LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {toml_path}: {e}")
+
+
+def restore_buildspec(buildspec_path):
+    """
+    Restore the buildspec file to its original state from the DLC repo
+    """
+    dlc_buildspec_url = os.path.join(DLC_REPO_URL, buildspec_path)
+    try:
+        response = requests.get(dlc_buildspec_url)
+        response.raise_for_status()
+        buildspec_file_path = os.path.join(get_cloned_folder_path(), buildspec_path)
+        os.makedirs(os.path.dirname(buildspec_file_path), exist_ok=True)
+        with open(buildspec_file_path, "w") as buildspec_file:
+            buildspec_file.write(response.text)
+        LOGGER.info(f"Restored {buildspec_path} to its original state from {dlc_buildspec_url}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -517,23 +520,24 @@ def main():
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
-    tag_override_paths = args.tag_override
+    tag_override_paths = args.override_tag
 
     # Handle the --currency option
     if currency_paths:
         handle_currency_option(currency_paths)
         return
 
-    # Handle the --tag-override option
+    # Handle the --override_tag option
     if tag_override_paths:
         handle_tag_override(tag_override_paths)
         if not any([buildspec_paths, restore, currency_paths]):
-            return  # Exit if only --tag-override is provided
+            return  # Exit if only --override_tag is provided
 
     # Update to require 1 of 4 options
     if not any([buildspec_paths, restore, currency_paths, tag_override_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
+    restore_default_toml(toml_path)
 
     # Restore the TOML file and buildspec files if requested
     if restore:
