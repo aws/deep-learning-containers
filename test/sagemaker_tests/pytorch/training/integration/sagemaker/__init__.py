@@ -159,7 +159,7 @@ def _test_mnist_distributed(
 ):
     if dist_backend.lower() == "nccl":
         dist_method = {"smdistributed": {"dataparallel": {"enabled": True}}}
-    else
+    else:
         dist_method = {"torch_distributed": {"enabled": True}}
 
     est_params = {
