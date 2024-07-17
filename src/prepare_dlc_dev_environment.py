@@ -249,15 +249,31 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     commit_message = f"{update_or_restore} [{', '.join(file.split('deep-learning-containers/')[-1] for file in files_changed)}]\n"
 
     for file_name, overrides in changes.items():
-        file_path = file_name.split('deep-learning-containers/')[-1]
+        file_path = file_name.split("deep-learning-containers/")[-1]
         commit_message += f"{file_path}\n"
         if overrides is not None:
             commit_message += f"{pprint.pformat(overrides, indent=4)}\n"
         else:
+            build_tag_override_found = False
+            autopatch_build_found = False
             with open(file_name, "r") as file:
                 content = file.readlines()
-            commit_message += "".join(content)
-            commit_message += "\n"
+                for i, line in enumerate(content):
+                    if line.strip().startswith("# build_tag_override:"):
+                        content[i] = line.replace("# ", "")
+                        build_tag_override_found = True
+                    elif line.strip().startswith("autopatch_build:"):
+                        content[i] = f"# {line}"
+                        autopatch_build_found = True
+
+            if build_tag_override_found and autopatch_build_found:
+                commit_message += "commented: autopatch_build / uncommented: build_tag_override\n"
+            elif build_tag_override_found:
+                commit_message += "uncommented: build_tag_override\n"
+            elif autopatch_build_found:
+                commit_message += "commented: autopatch_build\n"
+            else:
+                commit_message += "No changes to autopatch_build or build_tag_override\n"
 
     dlc_repo.git.add(all=True)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
@@ -269,7 +285,6 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
         LOGGER.info(f"Pushed change to {remote_push}/{branch}")
 
     return commit_message
-
 
 
 def handle_currency_option(currency_paths):
@@ -557,7 +572,9 @@ def main():
         write_toml(toml_path, overrides=overrider.overrides)
         files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_message = commit_and_push_changes({path: None for path in files_to_commit}, remote_push=to_push)
+            commit_message = commit_and_push_changes(
+                {path: None for path in files_to_commit}, remote_push=to_push
+            )
         return
 
     # Handle the -rb option
@@ -568,7 +585,9 @@ def main():
             updated_buildspec_paths.append(buildspec_path)
         LOGGER.info(f"Restored buildspec files to their original state.")
         if to_commit:
-            commit_message = commit_and_push_changes({path: None for path in updated_buildspec_paths}, remote_push=to_push, restore=True)
+            commit_message = commit_and_push_changes(
+                {path: None for path in updated_buildspec_paths}, remote_push=to_push, restore=True
+            )
         return
 
     # Handle the --buildspecs option
@@ -583,7 +602,9 @@ def main():
         write_toml(toml_path, overrides=overrider.overrides)
         files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_message = commit_and_push_changes({path: None for path in files_to_commit}, remote_push=to_push)
+            commit_message = commit_and_push_changes(
+                {path: None for path in files_to_commit}, remote_push=to_push
+            )
         return
 
     # Update to require 1 of 2 options
@@ -603,6 +624,6 @@ def main():
     if to_commit:
         commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
 
+
 if __name__ == "__main__":
     main()
-
