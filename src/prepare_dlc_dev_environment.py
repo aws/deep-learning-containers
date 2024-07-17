@@ -245,37 +245,10 @@ def write_toml(toml_path, overrides):
 def commit_and_push_changes(changes, remote_push=None, restore=False):
     dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
     update_or_restore = "Restore" if restore else "Update"
-    files_changed = list(changes.keys())
-    commit_message = f"{update_or_restore} [{', '.join(file.split('deep-learning-containers/')[-1] for file in files_changed)}]\n"
-
+    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
     for file_name, overrides in changes.items():
-        file_path = file_name.split("deep-learning-containers/")[-1]
-        commit_message += f"{file_path}\n"
-        if overrides is not None:
-            commit_message += f"{pprint.pformat(overrides, indent=4)}\n"
-        else:
-            build_tag_override_found = False
-            autopatch_build_found = False
-            with open(file_name, "r") as file:
-                content = file.readlines()
-                for i, line in enumerate(content):
-                    if line.strip().startswith("# build_tag_override:"):
-                        content[i] = line.replace("# ", "")
-                        build_tag_override_found = True
-                    elif line.strip().startswith("autopatch_build:"):
-                        content[i] = f"# {line}"
-                        autopatch_build_found = True
-
-            if build_tag_override_found and autopatch_build_found:
-                commit_message += "commented: autopatch_build / uncommented: build_tag_override\n"
-            elif build_tag_override_found:
-                commit_message += "uncommented: build_tag_override\n"
-            elif autopatch_build_found:
-                commit_message += "commented: autopatch_build\n"
-            else:
-                commit_message += "No changes to autopatch_build or build_tag_override\n"
-
-    dlc_repo.git.add(all=True)
+        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
+        dlc_repo.git.add(file_name)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Committed change\n{commit_message}")
 
@@ -545,7 +518,7 @@ def main():
     test_types = args.tests
     buildspec_paths = args.buildspecs
     override_tag = args.override_tag
-    restore_buildspecs = args.restore_buildspecs
+    restore_buildspecs = args.restore_buildspecs  # Renamed from restore
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
@@ -560,39 +533,29 @@ def main():
 
     # Handle the -rob option
     if override_tag and buildspec_paths:
-        updated_buildspec_paths = []
         for buildspec_path in buildspec_paths:
             restore_buildspec(buildspec_path)
-            updated_buildspec_paths.append(buildspec_path)
         handle_tag_override(buildspec_paths)
         overrider = TomlOverrider()
         overrider.set_test_types(test_types=test_types)
         overrider.set_buildspec(buildspec_paths=buildspec_paths)
         LOGGER.info(overrider.overrides)
         write_toml(toml_path, overrides=overrider.overrides)
-        files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_message = commit_and_push_changes(
-                {path: None for path in files_to_commit}, remote_push=to_push
-            )
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
         return
 
     # Handle the -rb option
-    if restore_buildspecs and buildspec_paths:
-        updated_buildspec_paths = []
+    if restore_buildspecs and buildspec_paths:  # Renamed from restore_buildspec
         for buildspec_path in buildspec_paths:
             restore_buildspec(buildspec_path)
-            updated_buildspec_paths.append(buildspec_path)
         LOGGER.info(f"Restored buildspec files to their original state.")
         if to_commit:
-            commit_message = commit_and_push_changes(
-                {path: None for path in updated_buildspec_paths}, remote_push=to_push, restore=True
-            )
+            commit_and_push_changes({}, remote_push=to_push, restore=True)
         return
 
     # Handle the --buildspecs option
     if buildspec_paths:
-        updated_buildspec_paths = buildspec_paths.copy()
         if override_tag:
             handle_tag_override(buildspec_paths)
         overrider = TomlOverrider()
@@ -600,11 +563,8 @@ def main():
         overrider.set_buildspec(buildspec_paths=buildspec_paths)
         LOGGER.info(overrider.overrides)
         write_toml(toml_path, overrides=overrider.overrides)
-        files_to_commit = [toml_path] + updated_buildspec_paths
         if to_commit:
-            commit_message = commit_and_push_changes(
-                {path: None for path in files_to_commit}, remote_push=to_push
-            )
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
         return
 
     # Update to require 1 of 2 options
