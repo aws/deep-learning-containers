@@ -450,35 +450,48 @@ def handle_tag_override(buildspec_paths):
     """
     This function takes a list of buildspec paths as input and uncomments the build_tag_override
     tags and comments out the autopatch_build tags in the specified files.
+
+    It performs the following actions:
+    1. Writes the updated buildspec file names to a temporary file '.prepare_dlc_files_to_revert.txt'.
+    2. Edits the original buildspec files with the updated contents.
     """
-    for buildspec_path in buildspec_paths:
-        buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
-        if not os.path.exists(buildspec_file):
-            LOGGER.warning(f"WARNING: {buildspec_path} does not exist. Skipping...")
-            continue
+    tmp_file_path = os.path.join(get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt")
+    with open(tmp_file_path, "w") as tmp_file:
+        for buildspec_path in buildspec_paths:
+            buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
+            if not os.path.exists(buildspec_file):
+                LOGGER.warning(f"WARNING: {buildspec_path} does not exist. Skipping...")
+                continue
 
-        with open(buildspec_file, "r") as file:
-            content = file.readlines()
+            with open(buildspec_file, "r") as file:
+                content = file.readlines()
 
-        build_tag_override_found = False
-        autopatch_build_found = False
-        for i, line in enumerate(content):
-            if line.strip().startswith("# build_tag_override:"):
-                content[i] = line.replace("# ", "")
-                build_tag_override_found = True
-            elif line.strip().startswith("autopatch_build:"):
-                content[i] = f"# {line}"
-                autopatch_build_found = True
+            build_tag_override_found = False
+            autopatch_build_found = False
+            for i, line in enumerate(content):
+                if line.strip().startswith("# build_tag_override:"):
+                    content[i] = line.replace("# ", "")
+                    build_tag_override_found = True
+                elif line.strip().startswith("autopatch_build:"):
+                    content[i] = f"# {line}"
+                    autopatch_build_found = True
 
-        if not build_tag_override_found:
-            LOGGER.warning(f"WARNING: build_tag_override tag not found in {buildspec_path}")
-        if not autopatch_build_found:
-            LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
+            if not build_tag_override_found:
+                LOGGER.warning(f"WARNING: build_tag_override tag not found in {buildspec_path}")
+            if not autopatch_build_found:
+                LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
 
-        with open(buildspec_file, "w") as file:
-            file.writelines(content)
+            tmp_file.write(
+                f"{buildspec_path}\n"
+            )  # Write the buildspec file path to the temporary file
 
-        LOGGER.info(f"Updated {buildspec_path}")
+            with open(buildspec_file, "w") as file:
+                file.writelines(
+                    content
+                )  # Write the updated contents to the original buildspec file
+
+        LOGGER.info(f"Updated buildspec file names written to {tmp_file_path}")
+        LOGGER.info("Original buildspec files have been updated with the new contents")
 
 
 def restore_default_toml(toml_path):

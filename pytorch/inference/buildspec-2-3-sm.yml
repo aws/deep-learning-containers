@@ -4,7 +4,8 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 2.3.0
 short_version: &SHORT_VERSION "2.3"
-arch_type: x86: "True"
+arch_type: x86
+autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
