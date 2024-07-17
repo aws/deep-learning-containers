@@ -69,9 +69,9 @@ def get_args():
     )
     parser.add_argument(
         "-r",
-        "--restore",
+        "--restore_buildspecs",  # Renamed from --restore
         action="store_true",
-        help="Restore the TOML file to its default state",
+        help="Restore the buildspec files to their original state",
     )
     parser.add_argument(
         "-c",
@@ -518,7 +518,7 @@ def main():
     test_types = args.tests
     buildspec_paths = args.buildspecs
     override_tag = args.override_tag
-    restore = args.restore
+    restore_buildspecs = args.restore_buildspecs  # Renamed from restore
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
@@ -529,6 +529,29 @@ def main():
     # Handle the --currency option
     if currency_paths:
         handle_currency_option(currency_paths)
+        return
+
+    # Handle the -rob option
+    if override_tag and buildspec_paths:
+        for buildspec_path in buildspec_paths:
+            restore_buildspec(buildspec_path)
+        handle_tag_override(buildspec_paths)
+        overrider = TomlOverrider()
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
+        LOGGER.info(overrider.overrides)
+        write_toml(toml_path, overrides=overrider.overrides)
+        if to_commit:
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        return
+
+    # Handle the -rb option
+    if restore_buildspecs and buildspec_paths:  # Renamed from restore_buildspec
+        for buildspec_path in buildspec_paths:
+            restore_buildspec(buildspec_path)
+        LOGGER.info(f"Restored buildspec files to their original state.")
+        if to_commit:
+            commit_and_push_changes({}, remote_push=to_push, restore=True)
         return
 
     # Handle the --buildspecs option
@@ -544,24 +567,10 @@ def main():
             commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
         return
 
-    # Update to require 1 of 3 options
-    if not any([buildspec_paths, restore, currency_paths]):
+    # Update to require 1 of 2 options
+    if not any([buildspec_paths, currency_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
-
-    # Restore the TOML file and buildspec files if requested
-    if restore:
-        if buildspec_paths:
-            for buildspec_path in buildspec_paths:
-                restore_buildspec(buildspec_path)
-        LOGGER.info(
-            f"Restored TOML and {len(buildspec_paths) if buildspec_paths else 0} buildspec files to their original state."
-        )
-        if to_commit:
-            commit_and_push_changes(
-                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
-            )
-        return
 
     overrider = TomlOverrider()
 
