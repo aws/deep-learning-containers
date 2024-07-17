@@ -35,6 +35,8 @@ DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containe
 
 DLC_REPO_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master"
 
+TEMP_BUILD_FILE = ".prepare_dlc_files_to_revert.txt"
+
 
 def get_args():
     """
@@ -455,7 +457,7 @@ def handle_tag_override(buildspec_paths):
     1. Writes the updated buildspec file names to a temporary file '.prepare_dlc_files_to_revert.txt'.
     2. Edits the original buildspec files with the updated contents.
     """
-    tmp_file_path = os.path.join(get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt")
+    tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
     with open(tmp_file_path, "w") as tmp_file:
         for buildspec_path in buildspec_paths:
             buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
@@ -514,7 +516,7 @@ def restore_buildspec(buildspec_path):
     .prepare_dlc_files_to_revert.txt file if successfully restored.
     """
     dlc_buildspec_url = os.path.join(DLC_REPO_URL, buildspec_path)
-    tmp_file_path = os.path.join(get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt")
+    tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
 
     try:
         response = requests.get(dlc_buildspec_url)
@@ -581,9 +583,7 @@ def main():
                 restore_buildspec(buildspec_path)
         else:
             # Check the .prepare_dlc_files_to_revert.txt file and revert the listed buildspec files
-            tmp_file_path = os.path.join(
-                get_cloned_folder_path(), ".prepare_dlc_files_to_revert.txt"
-            )
+            tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
             if os.path.exists(tmp_file_path):
                 with open(tmp_file_path, "r") as tmp_file:
                     buildspec_paths_to_revert = [line.strip() for line in tmp_file.readlines()]
