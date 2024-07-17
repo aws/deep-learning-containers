@@ -245,10 +245,21 @@ def write_toml(toml_path, overrides):
 def commit_and_push_changes(changes, remote_push=None, restore=False):
     dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
     update_or_restore = "Restore" if restore else "Update"
-    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
+    files_changed = list(changes.keys())
+    commit_message = f"{update_or_restore} [{', '.join(file.split('deep-learning-containers/')[-1] for file in files_changed)}]\n"
+
     for file_name, overrides in changes.items():
-        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
-        dlc_repo.git.add(file_name)
+        file_path = file_name.split('deep-learning-containers/')[-1]
+        commit_message += f"{file_path}\n"
+        if overrides is not None:
+            commit_message += f"{pprint.pformat(overrides, indent=4)}\n"
+        else:
+            with open(file_name, "r") as file:
+                content = file.readlines()
+            commit_message += "".join(content)
+            commit_message += "\n"
+
+    dlc_repo.git.add(all=True)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Committed change\n{commit_message}")
 
@@ -258,6 +269,7 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
         LOGGER.info(f"Pushed change to {remote_push}/{branch}")
 
     return commit_message
+
 
 
 def handle_currency_option(currency_paths):
