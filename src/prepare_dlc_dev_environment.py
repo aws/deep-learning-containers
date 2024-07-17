@@ -522,6 +522,9 @@ def main():
     currency_paths = args.new_currency
     tag_override_paths = args.override_tag
 
+    # Restore TOML file before any interation
+    restore_default_toml(toml_path)
+
     # Handle the --currency option
     if currency_paths:
         handle_currency_option(currency_paths)
@@ -537,7 +540,6 @@ def main():
     if not any([buildspec_paths, restore, currency_paths, tag_override_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
-    restore_default_toml(toml_path)
 
     # Restore the TOML file and buildspec files if requested
     if restore:
