@@ -54,11 +54,18 @@ def get_args():
         default=VALID_TEST_TYPES,
         help="Types of tests to run",
     )
-    parser.add_argument(
+    buildspec_parser = parser.add_argument_group("buildspec options")
+    buildspec_parser.add_argument(
         "-b",
         "--buildspecs",
         nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
+    )
+    buildspec_parser.add_argument(
+        "-o",
+        "--override_tag",
+        action="store_true",
+        help="Uncomments the build_tag_override and comments out autopatch_build",
     )
     parser.add_argument(
         "-r",
@@ -82,12 +89,6 @@ def get_args():
         "--new_currency",
         nargs="+",
         help="Path to buildspec files that need to be updated with the next minor version",
-    )
-    parser.add_argument(
-        "-o",
-        "--override_tag",
-        nargs="+",
-        help="Uncomments the build_tag_override and comments out autopatch_build",
     )
     return parser.parse_args()
 
@@ -516,11 +517,11 @@ def main():
     toml_path = args.partner_toml
     test_types = args.tests
     buildspec_paths = args.buildspecs
+    override_tag = args.override_tag
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
-    tag_override_paths = args.override_tag
 
     # Restore TOML file before any interation
     restore_default_toml(toml_path)
@@ -530,20 +531,26 @@ def main():
         handle_currency_option(currency_paths)
         return
 
-    # Handle the --override_tag option
-    if tag_override_paths:
-        handle_tag_override(tag_override_paths)
-        if not any([buildspec_paths, restore, currency_paths]):
-            return  # Exit if only --override_tag is provided
-
-    # Update to require 1 of 4 options
-    if not any([buildspec_paths, restore, currency_paths, tag_override_paths]):
+    # Handle the --buildspecs option
+    if buildspec_paths:
+        if override_tag:
+            handle_tag_override(buildspec_paths)
+        overrider = TomlOverrider()
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
+        LOGGER.info(overrider.overrides)
+        write_toml(toml_path, overrides=overrider.overrides)
+        if to_commit:
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        return
+    
+    # Update to require 1 of 3 options
+    if not any([buildspec_paths, restore, currency_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
 
     # Restore the TOML file and buildspec files if requested
     if restore:
-        restore_default_toml(toml_path)
         if buildspec_paths:
             for buildspec_path in buildspec_paths:
                 restore_buildspec(buildspec_path)
