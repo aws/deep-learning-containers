@@ -458,6 +458,7 @@ def handle_tag_override(buildspec_paths):
     2. Edits the original buildspec files with the updated contents.
     """
     tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
+    updated_file_names = []
     with open(tmp_file_path, "w") as tmp_file:
         for buildspec_path in buildspec_paths:
             buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
@@ -483,17 +484,14 @@ def handle_tag_override(buildspec_paths):
             if not autopatch_build_found:
                 LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
 
-            tmp_file.write(
-                f"{buildspec_path}\n"
-            )  # Write the buildspec file path to the temporary file
+            tmp_file.write(f"{buildspec_path}\n")  # Write the buildspec file path to the temporary file
+            updated_file_names.append(buildspec_path)  # Add the buildspec file path to the list
 
             with open(buildspec_file, "w") as file:
-                file.writelines(
-                    content
-                )  # Write the updated contents to the original buildspec file
+                file.writelines(content)  # Write the updated contents to the original buildspec file
 
-        LOGGER.info(f"Updated buildspec file names written to {tmp_file_path}")
         LOGGER.info("Original buildspec files have been updated with the new contents")
+        LOGGER.info(f"Updated buildspec file names written to {tmp_file_path}: {', '.join(updated_file_names)}")
 
 
 def restore_default_toml(toml_path):
