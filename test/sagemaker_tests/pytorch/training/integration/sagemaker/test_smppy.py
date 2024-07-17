@@ -29,7 +29,7 @@ from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
-from .test_pytorchddp import validate_or_skip_pytorchddp
+from .test_pytorchddp import validate_or_skip_torch_distributed
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
 
@@ -82,8 +82,8 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
 def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regions):
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_pytorchddp(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
+        validate_or_skip_torch_distributed(ecr_image)
+        distribution = {"torch_distributed": {"enabled": True}}
         estimator_parameters = {
             "entry_point": smppy_mnist_script,
             "role": "SageMakerRole",
