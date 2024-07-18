@@ -7,29 +7,29 @@ graviton_mode = true
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
-deep_canary_mode = true
+deep_canary_mode = false
 
 [build]
 build_frameworks = [ "tensorflow",]
 build_training = false
 build_inference = true
-do_build = true
+do_build = false
 
 [notify]
 notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = true
+sanity_tests = false
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = true
-sagemaker_remote_tests = true
+sagemaker_local_tests = false
+sagemaker_remote_tests = false
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
 sagemaker_benchmark_tests = false
