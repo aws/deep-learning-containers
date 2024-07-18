@@ -265,12 +265,157 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     return commit_message
 
 
+def extract_path_components(path, pattern):
+    """
+    Extract framework, job_type, major_version, minor_version, and other components
+    from the provided path using the given regular expression pattern.
+    """
+    match = re.match(pattern, path)
+    if not match:
+        raise ValueError(f"Invalid path format: {path}")
+    return match.groups()
+
+
+def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
+    """
+    Find the path to the latest existing version of the buildspec file based on the provided components.
+    """
+    path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
+    version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
+        optional_tag or r"\w*", major_version, extra_tag or r"\w*"
+    )
+    latest_version = Version("0.0.0")
+    latest_path = None
+
+    for file_name in os.listdir(path_prefix):
+        match = re.match(version_pattern, file_name)
+        if match:
+            version_str = match.group(1)
+            version = Version(f"{major_version}.{version_str}.0")
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+
+    return latest_path
+
+
+def generate_new_file_content(
+    previous_version_path, major_version, minor_version, optional_tag, extra_tag
+):
+    """
+    Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
+    """
+    new_version = f"{major_version}.{minor_version}.0"
+    with open(previous_version_path, "r") as prev_file:
+        content = prev_file.readlines()
+        for i, line in enumerate(content):
+            if line.startswith("version: &VERSION "):
+                content[i] = f"version: &VERSION {new_version}\n"
+            elif line.startswith("short_version: &SHORT_VERSION "):
+                content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+            elif line.strip().startswith("autopatch_build"):
+                content[i] = f"# {line}"
+            elif line.strip().startswith("# build_tag_override:"):
+                build_tag_parts = line.strip().split('"')
+                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
+                build_tag_rest = (
+                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
+                )
+                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
+                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
+
+    return content
+
+
+def create_new_file_with_updated_version(
+    currency_path, updated_content, optional_tag, extra_tag, previous_version_path
+):
+    """
+    Create a new buildspec file with the updated content and update the pointer file.
+    """
+    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+    if os.path.exists(new_file_path):
+        LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
+        return
+
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+
+    with open(new_file_path, "w") as new_file:
+        new_file.writelines(updated_content)
+
+    LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
+
+    # Update the graviton pointer file
+    graviton_pointer_file_path = os.path.join(
+        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
+    )
+
+    if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
+        update_pointer_file(graviton_pointer_file_path, currency_path)
+    elif "graviton" in new_file_path:
+        LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+    else:
+        pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
+        if os.path.exists(pointer_file_path):
+            update_pointer_file(pointer_file_path, currency_path)
+        else:
+            LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
+
+    # Update the TOML file with the new buildspec information
+    update_toml_with_new_buildspec(currency_path)
+
+
+def update_pointer_file(pointer_file_path, new_buildspec_path):
+    """
+    Update the pointer file with the path to the newly created buildspec file.
+    """
+    with open(pointer_file_path, "r") as pointer_file:
+        content = pointer_file.readlines()
+
+    for i, line in enumerate(content):
+        if line.startswith("buildspec_pointer:"):
+            # Remove the path prefix for all pointer files
+            new_buildspec_path = os.path.basename(new_buildspec_path)
+            content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
+            break
+
+    with open(pointer_file_path, "w") as pointer_file:
+        pointer_file.writelines(content)
+
+    LOGGER.info(f"Updated pointer file at {pointer_file_path}")
+
+
+def update_toml_with_new_buildspec(currency_path):
+    """
+    Update the TOML file with the information extracted from the new buildspec file path.
+    """
+    toml_path = get_dlc_developer_config_path()
+    buildspec_pattern = (
+        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    (
+        framework,
+        job_type,
+        optional_tag,
+        major_version,
+        minor_version,
+        extra_tag,
+    ) = extract_path_components(currency_path, buildspec_pattern)
+
+    overrider = TomlOverrider()
+    overrider.set_build_frameworks([framework.replace("_", "-")])
+    overrider.set_job_type([job_type])
+    overrider.set_dev_mode(f"{optional_tag}_mode" if optional_tag else None)
+    overrider.set_buildspec([currency_path])
+
+    write_toml(toml_path, overrides=overrider.overrides)
+    LOGGER.info(f"Updated {toml_path} with information from {currency_path}")
+
+
 def handle_currency_option(currency_paths):
     """
-    This function takes a list of currency paths as input and creates new buildspec files
-    with incremented minor versions based on the provided paths. The contents of the new
-    files are copied from the latest existing version files, with the version and
-    short_version values updated accordingly.
+    Handle the --new_currency option by creating new buildspec files with incremented minor versions
+    and updating the TOML file with the information from the new buildspec file paths.
     """
     buildspec_pattern = (
         r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
@@ -301,34 +446,9 @@ def handle_currency_option(currency_paths):
             LOGGER.warning(f"No previous version found for {currency_path}")
 
 
-def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
-    """
-    Finds the path to the latest existing version of the buildspec file based on the provided components.
-    """
-    path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
-    version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
-        optional_tag or r"\w*", major_version, extra_tag or r"\w*"
-    )
-    latest_version = Version("0.0.0")
-    latest_path = None
-
-    for file_name in os.listdir(path_prefix):
-        match = re.match(version_pattern, file_name)
-        if match:
-            version_str = match.group(1)
-            version = Version(f"{major_version}.{version_str}.0")
-            if version > latest_version:
-                latest_version = version
-                latest_path = os.path.join(path_prefix, file_name)
-
-    return latest_path
-
-
 def validate_currency_path(currency_path):
     """
-    Validates the currency path format using the provided regular expression pattern, and returns
-    true if the currency path format is valid, False otherwise. If an extra framework is detected,
-    it prints an error message and returns False.
+    Validate the currency path format using the provided regular expression pattern.
     """
     buildspec_pattern = (
         r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
@@ -358,102 +478,11 @@ def validate_currency_path(currency_path):
     return True
 
 
-def extract_path_components(currency_path, pattern):
-    """
-    Extracts the framework, job type, major version, minor version, and extra components
-    from the currency path using the provided regular expression pattern, and returns a tuple
-    containing the extracted components (framework, job_type, major_version, minor_version, etc).
-    """
-    match = re.match(pattern, currency_path)
-    return match.groups()
-
-
-def generate_new_file_content(
-    previous_version_path, major_version, minor_version, optional_tag, extra_tag
-):
-    """
-    Generates the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
-    """
-    new_version = f"{major_version}.{minor_version}.0"
-    with open(previous_version_path, "r") as prev_file:
-        content = prev_file.readlines()
-        for i, line in enumerate(content):
-            if line.startswith("version: &VERSION "):
-                content[i] = f"version: &VERSION {new_version}\n"
-            elif line.startswith("short_version: &SHORT_VERSION "):
-                content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
-            elif line.strip().startswith("autopatch_build"):
-                content[i] = f"# {line}"
-            elif line.strip().startswith("# build_tag_override:"):
-                build_tag_parts = line.strip().split('"')
-                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
-                build_tag_rest = (
-                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
-                )
-                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
-                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
-
-    return content
-
-
-def create_new_file_with_updated_version(
-    currency_path, updated_content, optional_tag, extra_tag, previous_version_path
-):
-    """
-    Creates a new buildspec file with the updated content and updates the pointer file.
-    """
-    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
-    if os.path.exists(new_file_path):
-        LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
-        return
-
-    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
-
-    with open(new_file_path, "w") as new_file:
-        new_file.writelines(updated_content)
-
-    LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
-
-    # Update the graviton pointer file
-    graviton_pointer_file_path = os.path.join(
-        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
-    )
-
-    if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
-        update_pointer_file(graviton_pointer_file_path, currency_path)
-    elif "graviton" in new_file_path:
-        LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
-    else:
-        pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
-        if os.path.exists(pointer_file_path):
-            update_pointer_file(pointer_file_path, currency_path)
-        else:
-            LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
-
-
-def update_pointer_file(pointer_file_path, new_buildspec_path):
-    """
-    Updates the pointer file with the path to the newly created buildspec file.
-    """
-    with open(pointer_file_path, "r") as pointer_file:
-        content = pointer_file.readlines()
-
-    for i, line in enumerate(content):
-        if line.startswith("buildspec_pointer:"):
-            # Remove the path prefix for all pointer files
-            new_buildspec_path = os.path.basename(new_buildspec_path)
-            content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
-            break
-
-    with open(pointer_file_path, "w") as pointer_file:
-        pointer_file.writelines(content)
-
-    LOGGER.info(f"Updated pointer file at {pointer_file_path}")
-
-
 def main():
     args = get_args()
     toml_path = args.partner_toml
+    # Restore the TOML file to its default state first
+    restore_default_toml(toml_path)
     test_types = args.tests
     buildspec_paths = args.buildspecs
     restore = args.restore
@@ -470,11 +499,9 @@ def main():
     if not buildspec_paths and not restore and not currency_paths:
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
-    restore_default_toml(toml_path)
+
+    # In case of -rc used
     if restore:
-        LOGGER.info(
-            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
-        )
         if to_commit:
             commit_and_push_changes(
                 {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
