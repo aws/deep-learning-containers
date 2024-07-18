@@ -178,20 +178,21 @@ def main():
     # print("open mpi var:")
     # print(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
-    if not os.getenv("WORLD_SIZE"):
-        os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
+    # if not os.getenv("WORLD_SIZE"):
+    #     os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
-    if not os.getenv("RANK"):
-        os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
+    # if not os.getenv("RANK"):
+    #     os.environ["RANK"] = str(os.getenv("OMPI_COMM_WORLD_RANK"))
 
-    if not os.getenv("MASTER_ADDR"):
-        os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
-        os.environ["MASTER_PORT"] = "55555"
+    # if not os.getenv("MASTER_ADDR"):
+    #     os.environ["MASTER_ADDR"] = os.environ["SM_HOSTS"][0]
+    #     os.environ["MASTER_PORT"] = "55555"
 
-    if not args.local_rank:
-        args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
+    # if not args.local_rank:
+    #     args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
     args.world_size = int(os.environ["WORLD_SIZE"])
+    args.local_rank = int(os.environ["LOCAL_RANK"])
     # print(args.world_size)
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
