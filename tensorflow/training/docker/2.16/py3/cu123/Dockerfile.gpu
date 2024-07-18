@@ -275,15 +275,11 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-## Revert
-# ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
-ARG TF_BINARY
-
-COPY ${TF_BINARY} /${TF_BINARY}
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-17-01-40/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 RUN ${PIP} install --no-cache-dir -U \
-   /${TF_BINARY} \
-   "tensorflow-io>=0.33.0,<0.34.0" \
+   ${TF_URL} \
+   "tensorflow-io==0.37.*" \
    tensorflow-datasets
 
 RUN HOME_DIR=/root \
@@ -328,11 +324,7 @@ RUN apt-get update  \
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-## Revert
-ARG TF_BINARY
-# ARG TF_URL=https://duplicate-framework-staging.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-15-22-24/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
-
-COPY ${TF_BINARY} /${TF_BINARY}
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-17-01-40/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -355,8 +347,8 @@ RUN ${PIP} install --no-cache-dir -U \
     tensorflow-text==2.16.1 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
-    /${TF_BINARY} \
-    "tensorflow-io>=0.33.0,<0.34.0" \
+    ${TF_URL} \
+    "tensorflow-io==0.37.*" \
     tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
