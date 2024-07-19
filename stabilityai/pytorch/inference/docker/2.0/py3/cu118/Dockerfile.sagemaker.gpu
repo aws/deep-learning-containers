@@ -53,11 +53,6 @@ RUN pip install --no-cache-dir -U \
     "scikit-learn>=1.5.0" \
     "torchserve>=0.9.0"
 
-
-
-
-
-
   
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
