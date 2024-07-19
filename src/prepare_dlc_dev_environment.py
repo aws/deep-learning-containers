@@ -46,6 +46,7 @@ def restore_default_toml(toml_path):
         LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {toml_path}: {e}")
+        exit(1)
 
 
 def get_args():
@@ -347,7 +348,7 @@ def create_new_file_with_updated_version(currency_path, updated_content, previou
     new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
     if os.path.exists(new_file_path):
         LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
-        return
+        exit(1)
 
     os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
 
@@ -449,7 +450,7 @@ def validate_currency_path(currency_path):
             LOGGER.error(
                 f"ERROR: {extra_framework} is not currently supported for currency feature. Please provide a supported framework (pytorch/tensorflow)."
             )
-            return False
+            exit(1)
     else:
         raise ValueError(
             f"Invalid currency path format: {currency_path}. "
