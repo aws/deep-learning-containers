@@ -1,5 +1,7 @@
 import pytest
+import os
 
+from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
 
 
@@ -204,3 +206,40 @@ def test_set_buildspec_updates_build_inference_only():
 
     assert overrider.overrides["build"]["build_training"] is False
     assert overrider.overrides["build"]["build_inference"] is True
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("generate_new_file_content")
+def test_generate_new_file_content():
+    previous_version_path = "path/to/previous/version/file"
+    major_version = "1"
+    minor_version = "14"
+    optional_suffix = None
+    extra_suffix = None
+
+    mock_file_content = 'version: &VERSION 1.13.0\nshort_version: &SHORT_VERSION "1.13"\n'
+
+    @patch("builtins.open", new_callable=mock_open, read_data=mock_file_content)
+    def mock_generate_new_file_content(mock_file):
+        expected_content = ["version: &VERSION 1.14.0\n", 'short_version: &SHORT_VERSION "1.14"\n']
+
+        result = prepare_dlc_dev_environment.generate_new_file_content(
+            previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
+        )
+        assert result == expected_content
+
+    mock_generate_new_file_content()
+
+
+@pytest.mark.quick_checks
+@pytest.mark.model("N/A")
+@pytest.mark.integration("currency")
+@pytest.mark.xfail(strict=True)
+def test_handle_currency_option_invalid_path(tmp_path, caplog):
+    invalid_currency_path = "invalid/file/path-1-2-hello.yml"
+
+    with patch(
+        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
+    ):
+        prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
