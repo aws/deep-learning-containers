@@ -33,19 +33,9 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
+DLC_REPO_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master"
 
-def restore_default_toml(toml_path):
-    """
-    Restore the TOML file to its default state from the specified URL
-    """
-    try:
-        response = requests.get(DEFAULT_TOML_URL)
-        response.raise_for_status()
-        with open(toml_path, "w") as toml_file:
-            toml_file.write(response.text)
-        LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
-    except requests.exceptions.RequestException as e:
-        LOGGER.error(f"Error restoring {toml_path}: {e}")
+TEMP_BUILD_FILE = ".prepare_dlc_files_to_revert.txt"
 
 
 def get_args():
@@ -66,17 +56,24 @@ def get_args():
         default=VALID_TEST_TYPES,
         help="Types of tests to run",
     )
-    parser.add_argument(
+    buildspec_parser = parser.add_argument_group("buildspec options")
+    buildspec_parser.add_argument(
         "-b",
         "--buildspecs",
         nargs="+",
         help="Path to a buildspec file from the deep-learning-containers folder",
     )
+    buildspec_parser.add_argument(
+        "-o",
+        "--override_tag",
+        action="store_true",
+        help="Uncomments the build_tag_override and comments out autopatch_build",
+    )
     parser.add_argument(
         "-r",
-        "--restore",
+        "--restore_buildspecs",  # Renamed from --restore
         action="store_true",
-        help="Restore the TOML file to its default state",
+        help="Restore the buildspec files to their original state",
     )
     parser.add_argument(
         "-c",
@@ -451,35 +448,186 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
     LOGGER.info(f"Updated pointer file at {pointer_file_path}")
 
 
+def handle_tag_override(buildspec_paths):
+    """
+    This function takes a list of buildspec paths as input and uncomments the build_tag_override
+    tags and comments out the autopatch_build tags in the specified files.
+
+    It performs the following actions:
+    1. Writes the updated buildspec file names to a temporary file '.prepare_dlc_files_to_revert.txt'.
+    2. Edits the original buildspec files with the updated contents.
+    """
+    tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
+    updated_file_names = []
+    with open(tmp_file_path, "w") as tmp_file:
+        for buildspec_path in buildspec_paths:
+            buildspec_file = os.path.join(get_cloned_folder_path(), buildspec_path)
+            if not os.path.exists(buildspec_file):
+                LOGGER.warning(f"WARNING: {buildspec_path} does not exist. Skipping...")
+                continue
+
+            with open(buildspec_file, "r") as file:
+                content = file.readlines()
+
+            build_tag_override_found = False
+            autopatch_build_found = False
+            for i, line in enumerate(content):
+                if line.strip().startswith("# build_tag_override:"):
+                    content[i] = line.replace("# ", "")
+                    build_tag_override_found = True
+                elif line.strip().startswith("autopatch_build:"):
+                    content[i] = f"# {line}"
+                    autopatch_build_found = True
+
+            if not build_tag_override_found:
+                LOGGER.warning(f"WARNING: build_tag_override tag not found in {buildspec_path}")
+            if not autopatch_build_found:
+                LOGGER.warning(f"WARNING: autopatch_build tag not found in {buildspec_path}")
+
+            tmp_file.write(
+                f"{buildspec_path}\n"
+            )  # Write the buildspec file path to the temporary file
+            updated_file_names.append(buildspec_path)  # Add the buildspec file path to the list
+
+            with open(buildspec_file, "w") as file:
+                file.writelines(
+                    content
+                )  # Write the updated contents to the original buildspec file
+
+        LOGGER.info("Original buildspec files have been updated with the new contents")
+        LOGGER.info(
+            f"Updated buildspec file names written to {tmp_file_path}: {', '.join(updated_file_names)}"
+        )
+
+
+def restore_default_toml(toml_path):
+    """
+    Restore the TOML file to its default state from the specified URL
+    """
+    try:
+        response = requests.get(DEFAULT_TOML_URL)
+        response.raise_for_status()
+        with open(toml_path, "w") as toml_file:
+            toml_file.write(response.text)
+        LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {toml_path}: {e}")
+
+
+def restore_buildspec(buildspec_path):
+    """
+    Restore the buildspec file to its original state from the DLC repo and remove it from the
+    .prepare_dlc_files_to_revert.txt file if successfully restored.
+    """
+    dlc_buildspec_url = os.path.join(DLC_REPO_URL, buildspec_path)
+    tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
+
+    try:
+        response = requests.get(dlc_buildspec_url)
+        response.raise_for_status()
+        buildspec_file_path = os.path.join(get_cloned_folder_path(), buildspec_path)
+        os.makedirs(os.path.dirname(buildspec_file_path), exist_ok=True)
+        with open(buildspec_file_path, "w") as buildspec_file:
+            buildspec_file.write(response.text)
+        LOGGER.info(f"Restored {buildspec_path} to its original state from {dlc_buildspec_url}")
+
+        # Remove the buildspec path from the .prepare_dlc_files_to_revert.txt file
+        if os.path.exists(tmp_file_path):
+            with open(tmp_file_path, "r") as tmp_file:
+                lines = tmp_file.readlines()
+
+            with open(tmp_file_path, "w") as tmp_file:
+                for line in lines:
+                    if line.strip() != buildspec_path:
+                        tmp_file.write(line)
+                    else:
+                        LOGGER.info(f"Removed {buildspec_path} from {tmp_file_path}")
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
     test_types = args.tests
     buildspec_paths = args.buildspecs
-    restore = args.restore
+    override_tag = args.override_tag
+    restore_buildspecs = args.restore_buildspecs  # Renamed from restore
     to_commit = args.commit
     to_push = args.push
     currency_paths = args.new_currency
+
+    # Restore TOML file before any interation
+    restore_default_toml(toml_path)
 
     # Handle the --currency option
     if currency_paths:
         handle_currency_option(currency_paths)
         return
 
-    # Update to require 1 of 3 options
-    if not buildspec_paths and not restore and not currency_paths:
+    # Handle the -rob option
+    if override_tag and buildspec_paths:
+        for buildspec_path in buildspec_paths:
+            restore_buildspec(buildspec_path)
+        handle_tag_override(buildspec_paths)
+        overrider = TomlOverrider()
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
+        LOGGER.info(overrider.overrides)
+        write_toml(toml_path, overrides=overrider.overrides)
+        if to_commit:
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        return
+
+    # Handle the -rb option
+    if restore_buildspecs:
+        if buildspec_paths:
+            # Revert the specified buildspec files
+            for buildspec_path in buildspec_paths:
+                restore_buildspec(buildspec_path)
+        else:
+            # Check the .prepare_dlc_files_to_revert.txt file and revert the listed buildspec files
+            tmp_file_path = os.path.join(get_cloned_folder_path(), TEMP_BUILD_FILE)
+            if os.path.exists(tmp_file_path):
+                with open(tmp_file_path, "r") as tmp_file:
+                    buildspec_paths_to_revert = [line.strip() for line in tmp_file.readlines()]
+                for buildspec_path in buildspec_paths_to_revert:
+                    restore_buildspec(buildspec_path)
+                LOGGER.info(
+                    f"Restored all buildspec files listed in {tmp_file_path} to their original state."
+                )
+
+                # Remove the file if it's empty after restoring all listed buildspec files
+                if os.path.exists(tmp_file_path):
+                    with open(tmp_file_path, "r") as tmp_file:
+                        lines = tmp_file.readlines()
+                    if not any(line.strip() for line in lines):
+                        os.remove(tmp_file_path)
+                        LOGGER.info(f"Removed empty file {tmp_file_path}")
+            else:
+                LOGGER.warning("No buildspec files to revert.")
+
+        if to_commit:
+            commit_and_push_changes({}, remote_push=to_push, restore=True)
+        return
+
+    # Handle the --buildspecs option
+    if buildspec_paths:
+        if override_tag:
+            handle_tag_override(buildspec_paths)
+        overrider = TomlOverrider()
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
+        LOGGER.info(overrider.overrides)
+        write_toml(toml_path, overrides=overrider.overrides)
+        if to_commit:
+            commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        return
+
+    # Update to require 1 of 2 options
+    if not any([buildspec_paths, currency_paths]):
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
-    restore_default_toml(toml_path)
-    if restore:
-        LOGGER.info(
-            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
-        )
-        if to_commit:
-            commit_and_push_changes(
-                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
-            )
-        return
 
     overrider = TomlOverrider()
 
