@@ -463,7 +463,6 @@ def validate_currency_path(currency_path):
 def main():
     args = get_args()
     toml_path = args.partner_toml
-    # Restore the TOML file to its default state first
     test_types = args.tests
     buildspec_paths = args.buildspecs
     restore = args.restore
@@ -480,6 +479,9 @@ def main():
 
     # In case of -rc used
     if restore:
+        LOGGER.debug(
+            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
+        )
         if to_commit:
             commit_and_push_changes(
                 {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
