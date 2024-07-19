@@ -91,9 +91,8 @@ def get_args():
     )
     parser.add_argument(
         "-n",
-        "--new_currency",
-        nargs="+",
-        help="Path to buildspec files that need to be updated with the next minor version",
+        action="store_true",
+        help="Create a currency buildspec and update toml",
     )
     return parser.parse_args()
 
@@ -341,9 +340,7 @@ def generate_new_file_content(
     return content
 
 
-def create_new_file_with_updated_version(
-    currency_path, updated_content, optional_tag, extra_tag, previous_version_path
-):
+def create_new_file_with_updated_version(currency_path, updated_content, previous_version_path):
     """
     Create a new buildspec file with the updated content and update the pointer file.
     """
@@ -375,9 +372,6 @@ def create_new_file_with_updated_version(
         else:
             LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
 
-    # Update the TOML file with the new buildspec information
-    update_toml_with_new_buildspec(currency_path)
-
 
 def update_pointer_file(pointer_file_path, new_buildspec_path):
     """
@@ -397,33 +391,6 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
         pointer_file.writelines(content)
 
     LOGGER.info(f"Updated pointer file at {pointer_file_path}")
-
-
-def update_toml_with_new_buildspec(currency_path):
-    """
-    Update the TOML file with the information extracted from the new buildspec file path.
-    """
-    toml_path = get_dlc_developer_config_path()
-    buildspec_pattern = (
-        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
-    )
-    (
-        framework,
-        job_type,
-        optional_tag,
-        major_version,
-        minor_version,
-        extra_tag,
-    ) = extract_path_components(currency_path, buildspec_pattern)
-
-    overrider = TomlOverrider()
-    overrider.set_build_frameworks([framework.replace("_", "-")])
-    overrider.set_job_type([job_type])
-    overrider.set_dev_mode(f"{optional_tag}_mode" if optional_tag else None)
-    overrider.set_buildspec([currency_path])
-
-    write_toml(toml_path, overrides=overrider.overrides)
-    LOGGER.info(f"Updated {toml_path} with information from {currency_path}")
 
 
 def handle_currency_option(currency_paths):
@@ -454,7 +421,7 @@ def handle_currency_option(currency_paths):
                 latest_version_path, major_version, minor_version, optional_tag, extra_tag
             )
             create_new_file_with_updated_version(
-                currency_path, updated_content, optional_tag, extra_tag, latest_version_path
+                currency_path, updated_content, latest_version_path
             )
         else:
             LOGGER.warning(f"No previous version found for {currency_path}")
@@ -496,23 +463,19 @@ def main():
     args = get_args()
     toml_path = args.partner_toml
     # Restore the TOML file to its default state first
-    restore_default_toml(toml_path)
     test_types = args.tests
     buildspec_paths = args.buildspecs
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
-    currency_paths = args.new_currency
-
-    # Handle the --currency option
-    if currency_paths:
-        handle_currency_option(currency_paths)
-        return
+    is_currency = args.n
 
     # Update to require 1 of 3 options
-    if not buildspec_paths and not restore and not currency_paths:
+    if not buildspec_paths and not restore:
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
+
+    restore_default_toml(toml_path)
 
     # In case of -rc used
     if restore:
@@ -523,6 +486,10 @@ def main():
         return
 
     overrider = TomlOverrider()
+
+    # Handle the -n option
+    if is_currency:
+        handle_currency_option(buildspec_paths)
 
     # handle frameworks to build
     if buildspec_paths:
