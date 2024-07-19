@@ -18,7 +18,6 @@ import pytest
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from sagemaker import utils
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
@@ -27,12 +26,12 @@ from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
 
-def validate_or_skip_torch_distributed(ecr_image):
-    if not can_run_torch_distributed(ecr_image):
+def validate_or_skip_distributed_training(ecr_image):
+    if not can_run_distributed_training(ecr_image):
         pytest.skip("PyTorch DDP distribution is supported on Python 3 on PyTorch v1.10 and above")
 
 
-def can_run_torch_distributed(ecr_image):
+def can_run_distributed_training(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     return Version(image_framework_version) in SpecifierSet(">=1.10")
 
@@ -57,8 +56,8 @@ def can_run_torch_distributed(ecr_image):
 def test_torch_distributed_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
-    with timeout(minutes=40):
-        validate_or_skip_torch_distributed(ecr_image)
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        validate_or_skip_distributed_training(ecr_image)
         distribution = {"torch_distributed": {"enabled": True}}
         estimator_parameter = {
             "entry_point": "torch_distributed_throughput_mnist.py",
