@@ -415,35 +415,48 @@ def update_toml_with_new_buildspec(currency_path):
 def handle_currency_option(currency_paths):
     """
     Handle the --new_currency option by creating new buildspec files with incremented minor versions
-    and updating the TOML file with the information from the new buildspec file paths.
+    and updating the TOML file with the information from the first new buildspec file path.
     """
     buildspec_pattern = (
         r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
     )
-    for currency_path in currency_paths:
-        if not validate_currency_path(currency_path):
-            continue
-        (
-            framework,
-            job_type,
-            optional_tag,
-            major_version,
-            minor_version,
-            extra_tag,
-        ) = extract_path_components(currency_path, buildspec_pattern)
+    if currency_paths:
+        first_currency_path = currency_paths[0]
+        if validate_currency_path(first_currency_path):
+            (
+                framework,
+                job_type,
+                optional_tag,
+                major_version,
+                minor_version,
+                extra_tag,
+            ) = extract_path_components(first_currency_path, buildspec_pattern)
 
-        latest_version_path = find_latest_version_path(
-            framework, job_type, optional_tag, major_version, extra_tag
-        )
-        if latest_version_path:
-            updated_content = generate_new_file_content(
-                latest_version_path, major_version, minor_version, optional_tag, extra_tag
+            latest_version_path = find_latest_version_path(
+                framework, job_type, optional_tag, major_version, extra_tag
             )
-            create_new_file_with_updated_version(
-                currency_path, updated_content, optional_tag, extra_tag, latest_version_path
-            )
+            if latest_version_path:
+                updated_content = generate_new_file_content(
+                    latest_version_path, major_version, minor_version, optional_tag, extra_tag
+                )
+                create_new_file_with_updated_version(
+                    first_currency_path,
+                    updated_content,
+                    optional_tag,
+                    extra_tag,
+                    latest_version_path,
+                )
+            else:
+                LOGGER.warning(f"No previous version found for {first_currency_path}")
+
+            update_toml_with_new_buildspec(first_currency_path)
         else:
-            LOGGER.warning(f"No previous version found for {currency_path}")
+            LOGGER.warning(f"Skipping {first_currency_path} due to validation error.")
+
+    if len(currency_paths) > 1:
+        LOGGER.warning(
+            f"Multiple buildspec paths provided for --new_currency option. Only using the first path: {first_currency_path}"
+        )
 
 
 def validate_currency_path(currency_path):
