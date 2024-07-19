@@ -279,19 +279,33 @@ def extract_path_components(path, pattern):
 def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
     """
     Find the path to the latest existing version of the buildspec file based on the provided components.
+    Special condition checks if file is a graviton file
     """
     path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
-    version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
-        optional_tag or r"\w*", major_version, extra_tag or r"\w*"
+    graviton_pattern = r"buildspec-graviton-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
+    non_graviton_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
+        optional_tag or r"\w*", extra_tag or r"\w*"
     )
-    latest_version = Version("0.0.0")
+    latest_version = (int(major_version), 0)
     latest_path = None
 
     for file_name in os.listdir(path_prefix):
-        match = re.match(version_pattern, file_name)
-        if match:
-            version_str = match.group(1)
-            version = Version(f"{major_version}.{version_str}.0")
+        graviton_match = re.match(graviton_pattern, file_name)
+        non_graviton_match = re.match(non_graviton_pattern, file_name)
+
+        if graviton_match:
+            major_version_str, minor_version_str = graviton_match.groups()[:2]
+            version = (int(major_version_str), int(minor_version_str))
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+        elif non_graviton_match:
+            major_version_str, minor_version_str = non_graviton_match.groups()[:2]
+            minor_version_str = int(minor_version_str)
+            if extra_tag:
+                version = (int(major_version_str), minor_version_str, extra_tag)
+            else:
+                version = (int(major_version_str), minor_version_str)
             if version > latest_version:
                 latest_version = version
                 latest_path = os.path.join(path_prefix, file_name)
