@@ -46,6 +46,7 @@ def restore_default_toml(toml_path):
         LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {toml_path}: {e}")
+        exit(1)
 
 
 def get_args():
@@ -91,9 +92,8 @@ def get_args():
     )
     parser.add_argument(
         "-n",
-        "--new_currency",
-        nargs="+",
-        help="Path to buildspec files that need to be updated with the next minor version",
+        action="store_true",
+        help="Create a currency buildspec and update toml",
     )
     return parser.parse_args()
 
@@ -265,58 +265,47 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     return commit_message
 
 
-def handle_currency_option(currency_paths):
+def extract_path_components(path, pattern):
     """
-    This function takes a list of currency paths as input and creates new buildspec files
-    with incremented minor versions based on the provided paths. The contents of the new
-    files are copied from the latest existing version files, with the version and
-    short_version values updated accordingly.
+    Extract framework, job_type, major_version, minor_version, and other components
+    from the provided path using the given regular expression pattern.
     """
-    buildspec_pattern = (
-        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
-    )
-    for currency_path in currency_paths:
-        if not validate_currency_path(currency_path):
-            continue
-        (
-            framework,
-            job_type,
-            optional_tag,
-            major_version,
-            minor_version,
-            extra_tag,
-        ) = extract_path_components(currency_path, buildspec_pattern)
-
-        latest_version_path = find_latest_version_path(
-            framework, job_type, optional_tag, major_version, extra_tag
-        )
-        if latest_version_path:
-            updated_content = generate_new_file_content(
-                latest_version_path, major_version, minor_version, optional_tag, extra_tag
-            )
-            create_new_file_with_updated_version(
-                currency_path, updated_content, optional_tag, extra_tag, latest_version_path
-            )
-        else:
-            LOGGER.warning(f"No previous version found for {currency_path}")
+    match = re.match(pattern, path)
+    if not match:
+        raise ValueError(f"Invalid path format: {path}")
+    return match.groups()
 
 
 def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
     """
-    Finds the path to the latest existing version of the buildspec file based on the provided components.
+    Find the path to the latest existing version of the buildspec file based on the provided components.
+    Special condition checks if file is a graviton file
     """
     path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
-    version_pattern = r"buildspec(?:-{})?-{}-(\d+)(?:-{})?\.yml".format(
-        optional_tag or r"\w*", major_version, extra_tag or r"\w*"
+    graviton_pattern = r"buildspec-graviton-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
+    non_graviton_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
+        optional_tag or r"\w*", extra_tag or r"\w*"
     )
-    latest_version = Version("0.0.0")
+    latest_version = (int(major_version), 0)
     latest_path = None
 
     for file_name in os.listdir(path_prefix):
-        match = re.match(version_pattern, file_name)
-        if match:
-            version_str = match.group(1)
-            version = Version(f"{major_version}.{version_str}.0")
+        graviton_match = re.match(graviton_pattern, file_name)
+        non_graviton_match = re.match(non_graviton_pattern, file_name)
+
+        if graviton_match:
+            major_version_str, minor_version_str = graviton_match.groups()[:2]
+            version = (int(major_version_str), int(minor_version_str))
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+        elif non_graviton_match:
+            major_version_str, minor_version_str = non_graviton_match.groups()[:2]
+            minor_version_str = int(minor_version_str)
+            if extra_tag:
+                version = (int(major_version_str), minor_version_str, extra_tag)
+            else:
+                version = (int(major_version_str), minor_version_str)
             if version > latest_version:
                 latest_version = version
                 latest_path = os.path.join(path_prefix, file_name)
@@ -324,55 +313,11 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
     return latest_path
 
 
-def validate_currency_path(currency_path):
-    """
-    Validates the currency path format using the provided regular expression pattern, and returns
-    true if the currency path format is valid, False otherwise. If an extra framework is detected,
-    it prints an error message and returns False.
-    """
-    buildspec_pattern = (
-        r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
-    )
-    match = re.match(buildspec_pattern, currency_path)
-    if match:
-        (
-            extra_framework,
-            framework,
-            job_type,
-            optional_tag,
-            major_version,
-            minor_version,
-            extra_tag,
-        ) = match.groups()
-        if extra_framework:
-            LOGGER.error(
-                f"ERROR: {extra_framework} is not currently supported for currency feature. Please provide a supported framework (pytorch/tensorflow)."
-            )
-            return False
-    else:
-        raise ValueError(
-            f"Invalid currency path format: {currency_path}. "
-            f"\nExpected format: <framework>/<job_type>/buildspec[-<optional_tag>]-<major_version>-<minor_version>[-<extra_tag>].yml\n"
-            f"For example: pytorch/inference/buildspec-2-3-ec2.yml or pytorch/inference/buildspec-graviton-2-3.yml"
-        )
-    return True
-
-
-def extract_path_components(currency_path, pattern):
-    """
-    Extracts the framework, job type, major version, minor version, and extra components
-    from the currency path using the provided regular expression pattern, and returns a tuple
-    containing the extracted components (framework, job_type, major_version, minor_version, etc).
-    """
-    match = re.match(pattern, currency_path)
-    return match.groups()
-
-
 def generate_new_file_content(
     previous_version_path, major_version, minor_version, optional_tag, extra_tag
 ):
     """
-    Generates the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
+    Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
     """
     new_version = f"{major_version}.{minor_version}.0"
     with open(previous_version_path, "r") as prev_file:
@@ -396,16 +341,14 @@ def generate_new_file_content(
     return content
 
 
-def create_new_file_with_updated_version(
-    currency_path, updated_content, optional_tag, extra_tag, previous_version_path
-):
+def create_new_file_with_updated_version(currency_path, updated_content, previous_version_path):
     """
-    Creates a new buildspec file with the updated content and updates the pointer file.
+    Create a new buildspec file with the updated content and update the pointer file.
     """
     new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
     if os.path.exists(new_file_path):
         LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
-        return
+        exit(1)
 
     os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
 
@@ -433,7 +376,7 @@ def create_new_file_with_updated_version(
 
 def update_pointer_file(pointer_file_path, new_buildspec_path):
     """
-    Updates the pointer file with the path to the newly created buildspec file.
+    Update the pointer file with the path to the newly created buildspec file.
     """
     with open(pointer_file_path, "r") as pointer_file:
         content = pointer_file.readlines()
@@ -451,6 +394,72 @@ def update_pointer_file(pointer_file_path, new_buildspec_path):
     LOGGER.info(f"Updated pointer file at {pointer_file_path}")
 
 
+def handle_currency_option(currency_paths):
+    """
+    Handle the --new_currency option by creating new buildspec files with incremented minor versions
+    and updating the TOML file with the information from the new buildspec file paths.
+    """
+    buildspec_pattern = (
+        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    for currency_path in currency_paths:
+        if not validate_currency_path(currency_path):
+            continue
+        (
+            framework,
+            job_type,
+            optional_tag,
+            major_version,
+            minor_version,
+            extra_tag,
+        ) = extract_path_components(currency_path, buildspec_pattern)
+
+        latest_version_path = find_latest_version_path(
+            framework, job_type, optional_tag, major_version, extra_tag
+        )
+        if latest_version_path:
+            updated_content = generate_new_file_content(
+                latest_version_path, major_version, minor_version, optional_tag, extra_tag
+            )
+            create_new_file_with_updated_version(
+                currency_path, updated_content, latest_version_path
+            )
+        else:
+            LOGGER.warning(f"No previous version found for {currency_path}")
+
+
+def validate_currency_path(currency_path):
+    """
+    Validate the currency path format using the provided regular expression pattern.
+    """
+    buildspec_pattern = (
+        r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    match = re.match(buildspec_pattern, currency_path)
+    if match:
+        (
+            extra_framework,
+            framework,
+            job_type,
+            optional_tag,
+            major_version,
+            minor_version,
+            extra_tag,
+        ) = match.groups()
+        if extra_framework:
+            LOGGER.error(
+                f"ERROR: {extra_framework} is not currently supported for currency feature. Please provide a supported framework (pytorch/tensorflow)."
+            )
+            exit(1)
+    else:
+        raise ValueError(
+            f"Invalid currency path format: {currency_path}. "
+            f"\nExpected format: <framework>/<job_type>/buildspec[-<optional_tag>]-<major_version>-<minor_version>[-<extra_tag>].yml\n"
+            f"For example: pytorch/inference/buildspec-2-3-ec2.yml or pytorch/inference/buildspec-graviton-2-3.yml"
+        )
+    return True
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -459,20 +468,18 @@ def main():
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
-    currency_paths = args.new_currency
-
-    # Handle the --currency option
-    if currency_paths:
-        handle_currency_option(currency_paths)
-        return
+    is_currency = args.n
 
     # Update to require 1 of 3 options
-    if not buildspec_paths and not restore and not currency_paths:
+    if not buildspec_paths and not restore:
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
+
     restore_default_toml(toml_path)
+
+    # In case of -rc used
     if restore:
-        LOGGER.info(
+        LOGGER.debug(
             f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
         )
         if to_commit:
@@ -482,6 +489,10 @@ def main():
         return
 
     overrider = TomlOverrider()
+
+    # Handle the -n option
+    if is_currency:
+        handle_currency_option(buildspec_paths)
 
     # handle frameworks to build
     if buildspec_paths:
