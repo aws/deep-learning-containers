@@ -41,7 +41,9 @@ RUN pip install --no-cache-dir -U \
     # Upper limit restriction by boto3
     urllib3==2.0.7 \
     opencv-python \
-    pyarrow
+    pyarrow \
+    setuptools>=70.0.0 \
+    Pillow>=10.2.0
   
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
