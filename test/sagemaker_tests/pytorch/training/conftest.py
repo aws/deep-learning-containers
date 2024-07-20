@@ -510,7 +510,8 @@ def skip_pytorchddp_test(
     For each currency release, Once SMDDP binary is added, we skip pytorchddp tests due to `pytorchddp` and `smdistributed` launcher consolidation.
     See https://github.com/aws/sagemaker-python-sdk/pull/4698.
     """
-    skip_dict = {">=2.1": ["cu121"]}
+    # skip_dict = {">=2.1": ["cu121"]}
+    skip_dict = {}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
     ):
