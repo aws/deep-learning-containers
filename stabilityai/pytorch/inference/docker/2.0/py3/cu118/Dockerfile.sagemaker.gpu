@@ -38,7 +38,6 @@ RUN pip install --no-cache-dir -U \
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
     werkzeug \
-    # Upper limit restriction by boto3
     "urllib3>2.0.7" \
     opencv-python \
     pyarrow \
@@ -49,7 +48,6 @@ RUN pip install --no-cache-dir -U \
     "idna>=3.7" \
     "pyopenssl<22.0.0" \
     "requests>=2.32.2" \
-    "torch>=2.2.0" \
     "scikit-learn>=1.5.0" \
     "torchserve>=0.9.0"
 
