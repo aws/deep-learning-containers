@@ -30,7 +30,7 @@ RUN pip install --no-cache-dir -U \
     "awscli>=1.29.15" \
     "boto3>=1.28.15" \
     "certifi>=2023.07.22" \
-    "pyopenssl>=24.0.0" \
+    "pyopenssl>=24.2.1" \
     "cryptography>=42.0.6" \
     "transformers>=4.23.0"
 
