@@ -121,7 +121,7 @@ def upload_allowlist_and_core_packages_to_image_data_storage_bucket(
     )
     LOGGER.info(f"ECR allowlist uploaded to image-data-storage s3 bucket")
     image_scan_core_packages_path = (
-        ".".join(image_scan_allowlist_path.split(".")[:-2]) + "." + "core_packages.json"
+        f"{'.'.join(image_scan_allowlist_path.split('.')[:-2])}.core_packages.json"
     )
     if os.path.exists(image_scan_core_packages_path):
         s3object = s3_resource.Object(
@@ -337,8 +337,8 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    # if is_mainline_context() and is_test_phase() and not is_generic_image():
-    if is_test_phase() and not is_generic_image():
+    if is_mainline_context() and is_test_phase() and not is_generic_image():
+    # if is_test_phase() and not is_generic_image():
         upload_allowlist_and_core_packages_to_image_data_storage_bucket(
             ecr_client_for_enhanced_scanning_repo,
             ecr_enhanced_repo_uri,
