@@ -73,7 +73,7 @@ ec2_tests_on_heavy_instances = false
 sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = standard
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
@@ -142,8 +142,8 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
-dlc-pr-huggingface-pytorch-neuron-inference = "huggingface/pytorch/inference/buildspec-neuronx.yml"
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-1-13-1-neuronx.yml"
+dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
 dlc-pr-stabilityai-pytorch-inference = ""
