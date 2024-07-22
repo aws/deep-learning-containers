@@ -1,0 +1,178 @@
+{
+    "linux": [
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts This patch is against CVE-2023-6270. The description of cve is: A flaw was found in the ATA over Ethernet (AoE) driver in the Linux kernel. The aoecmd_cfg_pkts() function improperly updates the refcnt on `struct net_device`, and a use-after-free can be triggered by racing between the free on the struct and the access through the `skbtxq` global queue. This could lead to a denial of service condition or potential code execution. In aoecmd_cfg_pkts(), it always calls dev_put(ifp) when skb initial code is finished. But the net_device ifp will still be used in later tx()->dev_queue_xmit() in kthread. Which means that the dev_put(ifp) should NOT be called in the success path of skb initial code in aoecmd_cfg_pkts(). Otherwise tx() may run into use-after-free because the net_device is freed. This patch removed the dev_put(ifp) in the success path in aoecmd_cfg_pkts(), and added dev_p",
+            "vulnerability_id": "CVE-2024-26898",
+            "name": "CVE-2024-26898",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26898.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26898 - linux",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Fix hashtab overflow check on 32-bit arches The hashtab code relies on roundup_pow_of_two() to compute the number of hash buckets, and contains an overflow check by checking if the resulting value is 0. However, on 32-bit arches, the roundup code itself can overflow by doing a 32-bit left-shift of an unsigned long value, which is undefined behaviour, so it is not guaranteed to truncate neatly. This was triggered by syzbot on the DEVMAP_HASH type, which contains the same check, copied from the hashtab code. So apply the same fix to hashtab, by moving the overflow check to before the roundup.",
+            "vulnerability_id": "CVE-2024-26884",
+            "name": "CVE-2024-26884",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26884.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26884 - linux",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv() Apply the same fix than ones found in : 8d975c15c0cd (\"ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()\") 1ca1ba465e55 (\"geneve: make sure to pull inner header in geneve_rx()\") We have to save skb->network_header in a temporary variable in order to be able to recompute the network_header pointer after a pskb_inet_may_pull() call. pskb_inet_may_pull() makes sure the needed headers are in skb->head. syzbot reported: BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] BUG: KMSAN: uninit-value in INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] BUG: KMSAN: uninit-value in IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline] BUG: KMSAN: uninit-value in ip_tunnel_rcv+0xed9/0x2ed0 net/ipv4/ip_tunnel.c:409 __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] IP_ECN_",
+            "vulnerability_id": "CVE-2024-26882",
+            "name": "CVE-2024-26882",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26882.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26882 - linux",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get() nft_unregister_expr() can concurrent with __nft_expr_type_get(), and there is not any protection when iterate over nf_tables_expressions list in __nft_expr_type_get(). Therefore, there is potential data-race of nf_tables_expressions list entry. Use list_for_each_entry_rcu() to iterate over nf_tables_expressions list in __nft_expr_type_get(), and use rcu_read_lock() in the caller nft_expr_type_get() to protect the entire type query process.",
+            "vulnerability_id": "CVE-2024-27020",
+            "name": "CVE-2024-27020",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-27020.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-27020 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further."
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: USB: core: Fix deadlock in usb_deauthorize_interface() Among the attribute file callback routines in drivers/usb/core/sysfs.c, the interface_authorized_store() function is the only one which acquires a device lock on an ancestor device: It calls usb_deauthorize_interface(), which locks the interface's parent USB device. The will lead to deadlock if another process already owns that lock and tries to remove the interface, whether through a configuration change or because the device has been disconnected. As part of the removal procedure, device_del() waits for all ongoing sysfs attribute callbacks to complete. But usb_deauthorize_interface() can't complete until the device lock has been released, and the lock won't be released until the removal has finished. The mechanism provided by sysfs to prevent this kind of deadlock is to use the sysfs_break_active_protection() function, which tells sysfs not to wait for the attribute callback. Reported",
+            "vulnerability_id": "CVE-2024-26934",
+            "name": "CVE-2024-26934",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26934.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26934 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further."
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Fix stackmap overflow check on 32-bit arches The stackmap code relies on roundup_pow_of_two() to compute the number of hash buckets, and contains an overflow check by checking if the resulting value is 0. However, on 32-bit arches, the roundup code itself can overflow by doing a 32-bit left-shift of an unsigned long value, which is undefined behaviour, so it is not guaranteed to truncate neatly. This was triggered by syzbot on the DEVMAP_HASH type, which contains the same check, copied from the hashtab code. The commit in the fixes tag actually attempted to fix this, but the fix did not account for the UB, so the fix only works on CPUs where an overflow does result in a neat truncation to zero, which is not guaranteed. Checking the value before rounding does not have this problem.",
+            "vulnerability_id": "CVE-2024-26883",
+            "name": "CVE-2024-26883",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "187.207"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26883.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-26883 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further."
+        }
+    ]
+}

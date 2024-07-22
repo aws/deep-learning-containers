@@ -1,6 +1,6 @@
-ARG PYTHON_VERSION=3.10.8
+ARG PYTHON_VERSION=3.11.9
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.1.0-cpu-py310-ubuntu20.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-cpu-py311-ubuntu20.04-sagemaker
 
 # PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
 # ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
@@ -20,7 +20,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-ARG AUTOGLUON_VERSION=1.1.0
+ARG AUTOGLUON_VERSION=1.1.1
 
 # Upgrading pip and installing/updating Python dependencies
 # Comments are added to explain the reason behind each update
@@ -34,8 +34,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \
  && pip install --no-cache-dir -U pyOpenSSL>=23.2.0 \
- # Update transformers to secure versions that fixes CVE-2023-7018
- && pip install --no-cache-dir -U setuptools>=65.5.1 \
+ # Capping setuptools to 69.5.1 to fix AutoMM tests
+ && pip install --no-cache-dir setuptools==69.5.1 \
  # Update pillow to a secure version that fixes CVE-2023-50447
  && pip install --no-cache-dir -U pillow>=10.2.0 \
   # Update Jinja2 to a secure version that fixes vulnerability id 64227
