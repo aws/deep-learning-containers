@@ -338,7 +338,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
 
     if is_mainline_context() and is_test_phase() and not is_generic_image():
-    # if is_test_phase() and not is_generic_image():
+        # if is_test_phase() and not is_generic_image():
         upload_allowlist_and_core_packages_to_image_data_storage_bucket(
             ecr_client_for_enhanced_scanning_repo,
             ecr_enhanced_repo_uri,
