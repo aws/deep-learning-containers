@@ -84,8 +84,8 @@ def get_minimum_sev_threshold_level(image):
     return "HIGH"
 
 
-def upload_allowlist_to_image_data_storage_bucket(
-    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
+def upload_allowlist_and_core_packages_to_image_data_storage_bucket(
+    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans, image_scan_allowlist_path
 ):
     """
     This method gets the unique identifier of the image from ecr and uses it as the path to
@@ -117,6 +117,25 @@ def upload_allowlist_to_image_data_storage_bucket(
         )
     )
     LOGGER.info(f"ECR allowlist uploaded to image-data-storage s3 bucket")
+    image_scan_core_packages_path = ".".join(image_scan_allowlist_path.split(".")[:-2]) + "." + "core_packages.json"
+    if os.path.exists(image_scan_core_packages_path):
+        s3object = s3_resource.Object(
+            f"image-data-storage-{account_id}", image_sha + "/core_packages.json"
+        )
+        with open(image_scan_core_packages_path, "r") as file:
+            core_packages = json.load(file)
+        s3object.put(
+            Body=(
+                bytes(
+                    json.dumps(
+                        core_packages,
+                        indent=4,
+                        cls=test_utils.EnhancedJSONEncoder,
+                    ).encode("UTF-8")
+                )
+            )
+        )
+        LOGGER.info(f"Core packages uploaded to image-data-storage s3 bucket")
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -313,9 +332,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    if is_mainline_context() and is_test_phase() and not is_generic_image():
-        upload_allowlist_to_image_data_storage_bucket(
-            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
+    # if is_mainline_context() and is_test_phase() and not is_generic_image():
+    if is_test_phase() and not is_generic_image():
+        upload_allowlist_and_core_packages_to_image_data_storage_bucket(
+            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans, image_scan_allowlist_path
         )
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
