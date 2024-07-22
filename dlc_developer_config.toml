@@ -96,7 +96,6 @@ use_scheduler = false
 # dlc-pr-tensorflow-2-habana-training = "habana/tensorflow/training/buildspec-2-10.yml"
 # dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-12.yml"
 # Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
-dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-1-13-1.yml"
 
 ### TRAINING PR JOBS ###
 
@@ -143,7 +142,7 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-1-13-1.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
