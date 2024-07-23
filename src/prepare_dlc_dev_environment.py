@@ -12,6 +12,7 @@ import git
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
 from packaging.version import Version
+from pathlib import Path
 
 
 LOGGER = logging.getLogger(__name__)
@@ -460,6 +461,64 @@ def validate_currency_path(currency_path):
     return True
 
 
+def create_dockerfile_paths(buildspec_paths):
+    for buildspec_path in buildspec_paths:
+        buildspec_dir = os.path.dirname(buildspec_path)
+        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "r") as buildspec_file:
+            buildspec_content = buildspec_file.read()
+
+        # Extract placeholders from buildspec content
+        short_version_match = re.search(
+            r"short_version: &SHORT_VERSION \"([\d\.]+)\"", buildspec_content
+        )
+        short_version = short_version_match.group(1) if short_version_match else ""
+
+        python_version_match = re.search(
+            r"python_version: &DOCKER_PYTHON_VERSION (\w+)", buildspec_content
+        )
+        python_version = python_version_match.group(1) if python_version_match else ""
+
+        device_type_match = re.search(r"device_type: &DEVICE_TYPE (\w+)", buildspec_content)
+        device_type = device_type_match.group(1) if device_type_match else ""
+
+        cuda_version_match = re.search(r"cuda_version: &CUDA_VERSION (\w+)", buildspec_content)
+        cuda_version = cuda_version_match.group(1) if cuda_version_match else ""
+
+        for line in buildspec_content.splitlines():
+            if line.strip().startswith("docker_file:"):
+                docker_file_path = evaluate_docker_file_path(
+                    line, buildspec_dir, short_version, python_version, cuda_version, device_type
+                )
+                create_docker_file(docker_file_path)
+
+
+def evaluate_docker_file_path(
+    docker_file_line, buildspec_dir, short_version, python_version, cuda_version, device_type
+):
+    docker_file_parts = docker_file_line.strip().split(":")[1].strip()
+    docker_file_path = os.path.join(
+        buildspec_dir, *re.split(r"!join\s*\[\s*", docker_file_parts)[1:]
+    )
+    docker_file_path = docker_file_path.replace("*SHORT_VERSION", short_version)
+    docker_file_path = docker_file_path.replace("*DOCKER_PYTHON_VERSION", python_version)
+    docker_file_path = docker_file_path.replace("*CUDA_VERSION", cuda_version)
+    docker_file_path = docker_file_path.replace("*DEVICE_TYPE", device_type)
+    docker_file_path = re.sub(r"[, ]+", "", docker_file_path)
+    docker_file_path = docker_file_path.rstrip("]")
+    return Path(docker_file_path)
+
+
+def create_docker_file(docker_file_path):
+    docker_file_dir = os.path.dirname(docker_file_path)
+    os.makedirs(docker_file_dir, exist_ok=True)
+    try:
+        with open(docker_file_path, "w") as docker_file:
+            docker_file.write("")
+        LOGGER.info(f"Created {docker_file_path}")
+    except Exception as e:
+        LOGGER.warning(f"WARNING: Failed to create {docker_file_path}. Error: {e}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -493,6 +552,7 @@ def main():
     # Handle the -n option
     if is_currency:
         handle_currency_option(buildspec_paths)
+        create_dockerfile_paths(buildspec_paths)
 
     # handle frameworks to build
     if buildspec_paths:
