@@ -27,14 +27,15 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
+
+# For PT training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[0-9]+\.[0-9]+-cpu ]]; then
+    conda uninstall mpi4py && pip install mpi4py && echo "Installed mpi4py from pip"
+fi
+
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
-
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[0-9]+\.[0-9]+-cpu ]]; then
-    conda uninstall mpi4py
-    pip install mpi4py
-fi
 
 if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker" ]; then
     SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
