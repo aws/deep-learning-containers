@@ -491,6 +491,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
         installed_framework_version = output.stdout.strip()
         version_list = release_manifest[package_name]
+        print(version_list)
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
             version_list = [
