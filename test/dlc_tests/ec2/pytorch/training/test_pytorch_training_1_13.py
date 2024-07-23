@@ -15,10 +15,10 @@ from test.dlc_tests.ec2 import smclarify_cases
 @pytest.mark.parametrize(
     "ec2_instance_type, region", common_cases.PT_EC2_GPU_INSTANCE_TYPE_AND_REGION, indirect=True
 )
-def test_pytorch_2_3_gpu(
-    pytorch_training___2__3, ec2_connection, region, gpu_only, ec2_instance_type
+def test_pytorch_1_13_gpu(
+    pytorch_training___1__13, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    pytorch_training = pytorch_training___2__3
+    pytorch_training = pytorch_training___1__13
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -33,8 +33,8 @@ def test_pytorch_2_3_gpu(
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nvapex, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
-        (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_dgl, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
@@ -46,7 +46,7 @@ def test_pytorch_2_3_gpu(
     if ec2.is_instance_multi_gpu(ec2_instance_type):
         test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 1.13 GPU")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -62,10 +62,10 @@ def test_pytorch_2_3_gpu(
     test_utils.is_pr_context() and not ec2.are_heavy_instance_ec2_tests_enabled(),
     reason="Skip GPU Heavy tests in PR context unless explicitly enabled",
 )
-def test_pytorch_2_3_gpu_heavy(
-    pytorch_training___2__3, ec2_connection, region, gpu_only, ec2_instance_type
+def test_pytorch_1_13_gpu_heavy(
+    pytorch_training___1__13, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    pytorch_training = pytorch_training___2__3
+    pytorch_training = pytorch_training___1__13
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -75,7 +75,7 @@ def test_pytorch_2_3_gpu_heavy(
         (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Heavy")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 1.13 GPU Heavy")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -87,10 +87,10 @@ def test_pytorch_2_3_gpu_heavy(
     common_cases.PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION,
     indirect=True,
 )
-def test_pytorch_2_3_gpu_inductor(
-    pytorch_training___2__3, ec2_connection, region, gpu_only, ec2_instance_type
+def test_pytorch_1_13_gpu_inductor(
+    pytorch_training___1__13, ec2_connection, region, gpu_only, ec2_instance_type
 ):
-    pytorch_training = pytorch_training___2__3
+    pytorch_training = pytorch_training___1__13
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
@@ -100,10 +100,9 @@ def test_pytorch_2_3_gpu_inductor(
         (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 GPU Inductor")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 1.13 GPU Inductor")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -111,8 +110,8 @@ def test_pytorch_2_3_gpu_inductor(
 @pytest.mark.model("N/A")
 @pytest.mark.team("conda")
 @pytest.mark.parametrize("ec2_instance_type", common_cases.PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_pytorch_2_3_cpu(pytorch_training___2__3, ec2_connection, cpu_only):
-    pytorch_training = pytorch_training___2__3
+def test_pytorch_1_13_cpu(pytorch_training___1__13, ec2_connection, cpu_only):
+    pytorch_training = pytorch_training___1__13
 
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
@@ -122,6 +121,8 @@ def test_pytorch_2_3_cpu(pytorch_training___2__3, ec2_connection, cpu_only):
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_dgl, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
@@ -129,4 +130,4 @@ def test_pytorch_2_3_cpu(pytorch_training___2__3, ec2_connection, cpu_only):
             (smclarify_cases.smclarify_metrics_cpu, (pytorch_training, ec2_connection)),
         ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.3 CPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 1.13 CPU")
