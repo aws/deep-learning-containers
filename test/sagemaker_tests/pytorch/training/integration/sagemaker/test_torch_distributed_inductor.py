@@ -27,36 +27,36 @@ from .test_torch_distributed import validate_or_skip_distributed_training
     os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
     reason="Low availability of instance type; Must ensure test works on new instances.",
 )
-@pytest.mark.skip_pytorchddp_test
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
+@pytest.mark.skip_inductor_test
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
-@pytest.mark.integration("pytorchddp")
+@pytest.mark.integration("torch_distributed")
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
 @pytest.mark.efa()
-@pytest.mark.team("conda")
-def test_pytorchddp_throughput_gpu(
+@pytest.mark.team("training-compiler")
+def test_torch_distributed_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_distributed_training(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
+        distribution = {"torch_distributed": {"enabled": True}}
         estimator_parameter = {
-            "entry_point": "pytorchddp_throughput_mnist.py",
+            "entry_point": "torch_distributed_throughput_mnist.py",
             "role": "SageMakerRole",
             "instance_count": 2,
             "instance_type": efa_instance_type,
             "source_dir": mnist_path,
             "framework_version": framework_version,
             "distribution": distribution,
+            "hyperparameters": {"inductor": 1},
         }
 
-        job_name_prefix = "test-pytorchddp-throughput-gpu"
+        job_name_prefix = "test-torch-distributed-throughput-gpu"
         invoke_pytorch_estimator(
             ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
         )
