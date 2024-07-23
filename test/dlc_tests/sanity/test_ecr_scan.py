@@ -33,6 +33,7 @@ from test.test_utils import (
     get_sha_of_an_image_from_ecr,
     is_mainline_context,
     is_test_phase,
+    upload_json_to_image_data_storage_s3_bucket,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -82,65 +83,6 @@ def get_minimum_sev_threshold_level(image):
     if is_image_covered_by_allowlist_feature(image):
         return "MEDIUM"
     return "HIGH"
-
-
-def upload_allowlist_and_core_packages_to_image_data_storage_bucket(
-    ecr_client_for_enhanced_scanning_repo,
-    ecr_enhanced_repo_uri,
-    allowlist_for_daily_scans,
-    image_scan_allowlist_path,
-):
-    """
-    This method gets the unique identifier of the image from ecr and uses it as the path to
-    upload image's allowlisted vulnerabilities to the image-data-storage s3 bucket. This
-    information is used for the scanning dashboard to identify allowlisted vulnerabilities.
-
-    :param ecr_client_for_enhanced_scanning_repo: ecr boto3 client for image
-    :param ecr_enhanced_repo_uri: str Image URI from ecr
-    :param allowlist_for_daily_scans: list of allowlisted vulnerabilities for the image
-    """
-    image_sha = get_sha_of_an_image_from_ecr(
-        ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
-    )
-    s3_resource = boto3.resource("s3")
-    sts_client = boto3.client("sts")
-    account_id = sts_client.get_caller_identity().get("Account")
-    s3object = s3_resource.Object(
-        f"image-data-storage-{account_id}", image_sha + "/ecr_allowlist.json"
-    )
-    s3object.put(
-        Body=(
-            bytes(
-                json.dumps(
-                    allowlist_for_daily_scans.vulnerability_list,
-                    indent=4,
-                    cls=test_utils.EnhancedJSONEncoder,
-                ).encode("UTF-8")
-            )
-        )
-    )
-    LOGGER.info(f"ECR allowlist uploaded to image-data-storage s3 bucket")
-    image_scan_core_packages_path = (
-        f"{'.'.join(image_scan_allowlist_path.split('.')[:-2])}.core_packages.json"
-    )
-    if os.path.exists(image_scan_core_packages_path):
-        s3object = s3_resource.Object(
-            f"image-data-storage-{account_id}", image_sha + "/core_packages.json"
-        )
-        with open(image_scan_core_packages_path, "r") as file:
-            core_packages = json.load(file)
-        s3object.put(
-            Body=(
-                bytes(
-                    json.dumps(
-                        core_packages,
-                        indent=4,
-                        cls=test_utils.EnhancedJSONEncoder,
-                    ).encode("UTF-8")
-                )
-            )
-        )
-        LOGGER.info(f"Core packages uploaded to image-data-storage s3 bucket")
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -339,11 +281,8 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     # if is_mainline_context() and is_test_phase() and not is_generic_image():
     if is_test_phase() and not is_generic_image():
-        upload_allowlist_and_core_packages_to_image_data_storage_bucket(
-            ecr_client_for_enhanced_scanning_repo,
-            ecr_enhanced_repo_uri,
-            allowlist_for_daily_scans,
-            image_scan_allowlist_path,
+        upload_json_to_image_data_storage_s3_bucket(
+            image, allowlist_for_daily_scans.vulnerability_list, "ecr_allowlist.json"
         )
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri

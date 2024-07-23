@@ -51,6 +51,7 @@ from test.test_utils import (
     get_installed_python_packages_with_version,
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
+    upload_json_to_image_data_storage_s3_bucket,
 )
 
 
@@ -1064,6 +1065,8 @@ def test_core_package_version(image):
 
     with open(core_packages_path, "r") as f:
         core_packages = json.load(f)
+    # upload core package information to image data storage bucket for use by the CVE insight application
+    upload_json_to_image_data_storage_s3_bucket(image, core_packages, "core_packages.json")
 
     ctx = Context()
     container_name = get_container_name("test_core_package_version", image)

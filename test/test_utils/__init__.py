@@ -2500,3 +2500,41 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
     )
 
     return instance_ami
+
+
+def upload_json_to_image_data_storage_s3_bucket(image: str, upload_data: str, s3_filename: str):
+    """
+    This method gets the unique identifier of the image from ecr and uses it as the path to
+    upload the given image's `upload_data` to the image-data-storage s3 bucket.
+    This information is used for the scanning dashboard to identify image allowlist information.
+
+    :param image: str, the corresponding image of the upload_data
+    :param upload_data: str, data that can be uploaded to the s3 object
+    :param s3_filename: name of the file upload to on image-data-storage bucket
+    """
+    from security import get_target_image_uri_using_current_uri_and_target_repo
+
+    ecr_enhanced_repo_uri = get_target_image_uri_using_current_uri_and_target_repo(
+        image,
+        target_repository_name=ECR_ENHANCED_SCANNING_REPO_NAME,
+        target_repository_region=ECR_ENHANCED_REPO_REGION,
+        append_tag="ENHSCAN",
+    )
+    ecr_client_for_enhanced_scanning_repo = boto3.client(
+        "ecr", region_name=ECR_ENHANCED_REPO_REGION
+    )
+    image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
+    )
+    upload_data = json.dumps(
+        upload_data,
+        indent=4,
+        cls=EnhancedJSONEncoder,
+    )
+    s3_filepath = f"{image_sha}/{s3_filename}"
+    s3_resource = boto3.resource("s3")
+    sts_client = boto3.client("sts")
+    account_id = sts_client.get_caller_identity().get("Account")
+    s3object = s3_resource.Object(f"image-data-storage-{account_id}", s3_filepath)
+    s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
+    LOGGER.info(f"{s3_filename} uploaded to image-data-storage s3 bucket at {s3_filepath}")
