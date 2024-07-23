@@ -69,7 +69,7 @@ def pytorch_standalone(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_train_mnist(pytorch_training, ec2_connection):
+def pytorch_training_mnist(pytorch_training, ec2_connection):
     """
     Test PyTorch MNIST
     """
@@ -137,13 +137,13 @@ def pytorch_training_torchdata(pytorch_training, ec2_connection):
         )
 
 
-def pytorch_train_dgl_cpu(pytorch_training, ec2_connection):
+def pytorch_training_dgl(pytorch_training, ec2_connection):
     """
     Test DGL Package
     """
     # DGL cpu ec2 test doesn't work on PT 1.10 DLC
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, PT_DGL_CMD, container_name="pytorhc_dgl_cpu"
+        ec2_connection, pytorch_training, PT_DGL_CMD, container_name="pytorch_dgl"
     )
 
 
