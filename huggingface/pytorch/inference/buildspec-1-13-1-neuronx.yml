@@ -16,15 +16,15 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
-    mms-entrypoint:
-      source: ../../build_artifacts/inference/mms-entrypoint.py
-      target: mms-entrypoint.py
+    neuron-monitor:
+      source: ../../build_artifacts/inference/neuron-monitor.sh
+      target: neuron-monitor.sh
+    neuron-entrypoint:
+      source: ../../build_artifacts/inference/neuron-entrypoint.py
+      target: neuron-entrypoint.py
     config:
       source: ../../build_artifacts/inference/config.properties
       target: config.properties
-    deep_learning_container:
-      source: ../../../src/deep_learning_container.py
-      target: deep_learning_container.py
 
 images:
   BuildNeuronXHFPytorchPy310InferencefDockerImage:
