@@ -505,6 +505,12 @@ def evaluate_docker_file_path(
     docker_file_path = docker_file_path.replace("*DEVICE_TYPE", device_type)
     docker_file_path = re.sub(r"[, ]+", "", docker_file_path)
     docker_file_path = docker_file_path.rstrip("]")
+
+    # Handle different formats
+    if docker_file_path.endswith("/Dockerfile."):
+        docker_file_path = docker_file_path + device_type
+    elif docker_file_path.endswith("/Dockerfile.,"):
+        docker_file_path = docker_file_path[:-1] + f".{device_type}"
     return Path(docker_file_path)
 
 
