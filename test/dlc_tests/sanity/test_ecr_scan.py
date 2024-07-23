@@ -54,6 +54,36 @@ from src import utils as src_utils
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
 
+def is_image_covered_by_allowlist_feature(image):
+    """
+    This method checks if the allowlist feature has been enabled for the image
+
+    :param image: str, Image URI
+    """
+    image_framework, image_version = get_framework_and_version_from_tag(image)
+    if image_framework not in ALLOWLIST_FEATURE_ENABLED_IMAGES or any(
+        substring in image for substring in ["example"]
+    ):
+        return False
+    if Version(image_version) in ALLOWLIST_FEATURE_ENABLED_IMAGES[image_framework]:
+        return True
+    return False
+
+
+def get_minimum_sev_threshold_level(image):
+    """
+    This method gets the value for minimum threshold level. This threshold level determines the
+    vulnerability severity above which we want to raise an alarm.
+
+    :param image: str Image URI for which threshold has to be set
+    """
+    if is_generic_image():
+        return "HIGH"
+    if is_image_covered_by_allowlist_feature(image):
+        return "MEDIUM"
+    return "HIGH"
+
+
 def upload_json_to_image_data_storage_s3_bucket(image_sha: str, upload_data: str, s3_filename: str):
     """
     This method uses the unique identifier of the image as the path to upload the given image's `upload_data`
@@ -103,36 +133,6 @@ def upload_allowlist_and_core_packages_to_s3(
     with open(core_packages_path, "r") as f:
         core_packages = json.load(f)
     upload_json_to_image_data_storage_s3_bucket(image_sha, core_packages, "core_packages.json")
-
-
-def is_image_covered_by_allowlist_feature(image):
-    """
-    This method checks if the allowlist feature has been enabled for the image
-
-    :param image: str, Image URI
-    """
-    image_framework, image_version = get_framework_and_version_from_tag(image)
-    if image_framework not in ALLOWLIST_FEATURE_ENABLED_IMAGES or any(
-        substring in image for substring in ["example"]
-    ):
-        return False
-    if Version(image_version) in ALLOWLIST_FEATURE_ENABLED_IMAGES[image_framework]:
-        return True
-    return False
-
-
-def get_minimum_sev_threshold_level(image):
-    """
-    This method gets the value for minimum threshold level. This threshold level determines the
-    vulnerability severity above which we want to raise an alarm.
-
-    :param image: str Image URI for which threshold has to be set
-    """
-    if is_generic_image():
-        return "HIGH"
-    if is_image_covered_by_allowlist_feature(image):
-        return "MEDIUM"
-    return "HIGH"
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -329,8 +329,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    # if is_mainline_context() and is_test_phase() and not is_generic_image():
-    if is_test_phase() and not is_generic_image():
+    if is_mainline_context() and is_test_phase() and not is_generic_image():
         upload_allowlist_and_core_packages_to_s3(
             image,
             ecr_client_for_enhanced_scanning_repo,
