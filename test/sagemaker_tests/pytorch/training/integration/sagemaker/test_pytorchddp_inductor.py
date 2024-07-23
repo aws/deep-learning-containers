@@ -23,7 +23,6 @@ from . import invoke_pytorch_estimator
 from .test_torch_distributed import validate_or_skip_distributed_training
 
 
-# @pytest.mark.skip_smdataparallel_p5_tests
 @pytest.mark.skipif(
     os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
     reason="Low availability of instance type; Must ensure test works on new instances.",
