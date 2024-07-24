@@ -11,6 +11,8 @@ import git
 
 from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
+from packaging.version import Version
+from pathlib import Path
 
 
 LOGGER = logging.getLogger(__name__)
@@ -45,6 +47,7 @@ def restore_default_toml(toml_path):
         LOGGER.info(f"Restored {toml_path} to its default state from {DEFAULT_TOML_URL}")
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {toml_path}: {e}")
+        exit(1)
 
 
 def get_args():
@@ -88,7 +91,11 @@ def get_args():
         "--push",
         help="Push change to remote specified (i.e. origin)",
     )
-
+    parser.add_argument(
+        "-n",
+        action="store_true",
+        help="Create a currency buildspec and update toml",
+    )
     return parser.parse_args()
 
 
@@ -259,6 +266,265 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     return commit_message
 
 
+def extract_path_components(path, pattern):
+    """
+    Extract framework, job_type, major_version, minor_version, and other components
+    from the provided path using the given regular expression pattern.
+    """
+    match = re.match(pattern, path)
+    if not match:
+        raise ValueError(f"Invalid path format: {path}")
+    return match.groups()
+
+
+def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
+    """
+    Find the path to the latest existing version of the buildspec file based on the provided components.
+    Special condition checks if file is a graviton file
+    """
+    path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
+    graviton_pattern = r"buildspec-graviton-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
+    non_graviton_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
+        optional_tag or r"\w*", extra_tag or r"\w*"
+    )
+    latest_version = (int(major_version), 0)
+    latest_path = None
+
+    for file_name in os.listdir(path_prefix):
+        graviton_match = re.match(graviton_pattern, file_name)
+        non_graviton_match = re.match(non_graviton_pattern, file_name)
+
+        if graviton_match:
+            major_version_str, minor_version_str = graviton_match.groups()[:2]
+            version = (int(major_version_str), int(minor_version_str))
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+        elif non_graviton_match:
+            major_version_str, minor_version_str = non_graviton_match.groups()[:2]
+            minor_version_str = int(minor_version_str)
+            if extra_tag:
+                version = (int(major_version_str), minor_version_str, extra_tag)
+            else:
+                version = (int(major_version_str), minor_version_str)
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+
+    return latest_path
+
+
+def generate_new_file_content(
+    previous_version_path, major_version, minor_version, optional_tag, extra_tag
+):
+    """
+    Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
+    """
+    new_version = f"{major_version}.{minor_version}.0"
+    with open(previous_version_path, "r") as prev_file:
+        content = prev_file.readlines()
+        for i, line in enumerate(content):
+            if line.startswith("version: &VERSION "):
+                content[i] = f"version: &VERSION {new_version}\n"
+            elif line.startswith("short_version: &SHORT_VERSION "):
+                content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
+            elif line.strip().startswith("autopatch_build"):
+                content[i] = f"# {line}"
+            elif line.strip().startswith("# build_tag_override:"):
+                build_tag_parts = line.strip().split('"')
+                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
+                build_tag_rest = (
+                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
+                )
+                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
+                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
+
+    return content
+
+
+def create_new_file_with_updated_version(currency_path, updated_content, previous_version_path):
+    """
+    Create a new buildspec file with the updated content and update the pointer file.
+    """
+    new_file_path = os.path.join(get_cloned_folder_path(), currency_path)
+    if os.path.exists(new_file_path):
+        LOGGER.error(f"ERROR: File {new_file_path} already exists, please enter a new file")
+        exit(1)
+
+    os.makedirs(os.path.dirname(new_file_path), exist_ok=True)
+
+    with open(new_file_path, "w") as new_file:
+        new_file.writelines(updated_content)
+
+    LOGGER.info(f"Created {new_file_path} using {previous_version_path}")
+
+    # Update the graviton pointer file
+    graviton_pointer_file_path = os.path.join(
+        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
+    )
+
+    if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
+        update_pointer_file(graviton_pointer_file_path, currency_path)
+    elif "graviton" in new_file_path:
+        LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+    else:
+        pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
+        if os.path.exists(pointer_file_path):
+            update_pointer_file(pointer_file_path, currency_path)
+        else:
+            LOGGER.warning(f"Pointer file not found at {pointer_file_path}")
+
+
+def update_pointer_file(pointer_file_path, new_buildspec_path):
+    """
+    Update the pointer file with the path to the newly created buildspec file.
+    """
+    with open(pointer_file_path, "r") as pointer_file:
+        content = pointer_file.readlines()
+
+    for i, line in enumerate(content):
+        if line.startswith("buildspec_pointer:"):
+            # Remove the path prefix for all pointer files
+            new_buildspec_path = os.path.basename(new_buildspec_path)
+            content[i] = f"buildspec_pointer: {new_buildspec_path}\n"
+            break
+
+    with open(pointer_file_path, "w") as pointer_file:
+        pointer_file.writelines(content)
+
+    LOGGER.info(f"Updated pointer file at {pointer_file_path}")
+
+
+def handle_currency_option(currency_paths):
+    """
+    Handle the --new_currency option by creating new buildspec files with incremented minor versions
+    and updating the TOML file with the information from the new buildspec file paths.
+    """
+    buildspec_pattern = (
+        r"^(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    for currency_path in currency_paths:
+        if not validate_currency_path(currency_path):
+            continue
+        (
+            framework,
+            job_type,
+            optional_tag,
+            major_version,
+            minor_version,
+            extra_tag,
+        ) = extract_path_components(currency_path, buildspec_pattern)
+
+        latest_version_path = find_latest_version_path(
+            framework, job_type, optional_tag, major_version, extra_tag
+        )
+        if latest_version_path:
+            updated_content = generate_new_file_content(
+                latest_version_path, major_version, minor_version, optional_tag, extra_tag
+            )
+            create_new_file_with_updated_version(
+                currency_path, updated_content, latest_version_path
+            )
+        else:
+            LOGGER.warning(f"No previous version found for {currency_path}")
+
+
+def validate_currency_path(currency_path):
+    """
+    Validate the currency path format using the provided regular expression pattern.
+    """
+    buildspec_pattern = (
+        r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+    )
+    match = re.match(buildspec_pattern, currency_path)
+    if match:
+        (
+            extra_framework,
+            framework,
+            job_type,
+            optional_tag,
+            major_version,
+            minor_version,
+            extra_tag,
+        ) = match.groups()
+        if extra_framework:
+            LOGGER.error(
+                f"ERROR: {extra_framework} is not currently supported for currency feature. Please provide a supported framework (pytorch/tensorflow)."
+            )
+            exit(1)
+    else:
+        raise ValueError(
+            f"Invalid currency path format: {currency_path}. "
+            f"\nExpected format: <framework>/<job_type>/buildspec[-<optional_tag>]-<major_version>-<minor_version>[-<extra_tag>].yml\n"
+            f"For example: pytorch/inference/buildspec-2-3-ec2.yml or pytorch/inference/buildspec-graviton-2-3.yml"
+        )
+    return True
+
+
+def create_dockerfile_paths(buildspec_paths):
+    for buildspec_path in buildspec_paths:
+        buildspec_dir = os.path.dirname(buildspec_path)
+        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "r") as buildspec_file:
+            buildspec_content = buildspec_file.read()
+
+        # Extract placeholders from buildspec content
+        short_version_match = re.search(
+            r"short_version: &SHORT_VERSION \"([\d\.]+)\"", buildspec_content
+        )
+        short_version = short_version_match.group(1) if short_version_match else ""
+
+        python_version_match = re.search(
+            r"python_version: &DOCKER_PYTHON_VERSION (\w+)", buildspec_content
+        )
+        python_version = python_version_match.group(1) if python_version_match else ""
+
+        device_type_match = re.search(r"device_type: &DEVICE_TYPE (\w+)", buildspec_content)
+        device_type = device_type_match.group(1) if device_type_match else ""
+
+        cuda_version_match = re.search(r"cuda_version: &CUDA_VERSION (\w+)", buildspec_content)
+        cuda_version = cuda_version_match.group(1) if cuda_version_match else ""
+
+        for line in buildspec_content.splitlines():
+            if line.strip().startswith("docker_file:"):
+                docker_file_path = evaluate_docker_file_path(
+                    line, buildspec_dir, short_version, python_version, cuda_version, device_type
+                )
+                create_docker_file(docker_file_path)
+
+
+def evaluate_docker_file_path(
+    docker_file_line, buildspec_dir, short_version, python_version, cuda_version, device_type
+):
+    docker_file_parts = docker_file_line.strip().split(":")[1].strip()
+    docker_file_path = os.path.join(
+        buildspec_dir, *re.split(r"!join\s*\[\s*", docker_file_parts)[1:]
+    )
+    docker_file_path = docker_file_path.replace("*SHORT_VERSION", short_version)
+    docker_file_path = docker_file_path.replace("*DOCKER_PYTHON_VERSION", python_version)
+    docker_file_path = docker_file_path.replace("*CUDA_VERSION", cuda_version)
+    docker_file_path = docker_file_path.replace("*DEVICE_TYPE", device_type)
+    docker_file_path = re.sub(r"[, ]+", "", docker_file_path)
+    docker_file_path = docker_file_path.rstrip("]")
+
+    # Handle different formats
+    if docker_file_path.endswith("/Dockerfile."):
+        docker_file_path = docker_file_path + device_type
+    elif docker_file_path.endswith("/Dockerfile.,"):
+        docker_file_path = docker_file_path[:-1] + f".{device_type}"
+    return Path(docker_file_path)
+
+
+def create_docker_file(docker_file_path):
+    docker_file_dir = os.path.dirname(docker_file_path)
+    os.makedirs(docker_file_dir, exist_ok=True)
+    try:
+        with open(docker_file_path, "w") as docker_file:
+            docker_file.write("")
+        LOGGER.info(f"Created {docker_file_path}")
+    except Exception as e:
+        LOGGER.warning(f"WARNING: Failed to create {docker_file_path}. Error: {e}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -267,15 +533,18 @@ def main():
     restore = args.restore
     to_commit = args.commit
     to_push = args.push
+    is_currency = args.n
 
+    # Update to require 1 of 3 options
     if not buildspec_paths and not restore:
-        LOGGER.error(
-            "The developer environment prepare script requires either buildspec or restore options. Please use the '-h' flag to list all options and retry."
-        )
+        LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
+
     restore_default_toml(toml_path)
+
+    # In case of -rc used
     if restore:
-        LOGGER.info(
+        LOGGER.debug(
             f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
         )
         if to_commit:
@@ -286,9 +555,15 @@ def main():
 
     overrider = TomlOverrider()
 
+    # Handle the -n option
+    if is_currency:
+        handle_currency_option(buildspec_paths)
+        create_dockerfile_paths(buildspec_paths)
+
     # handle frameworks to build
-    overrider.set_test_types(test_types=test_types)
-    overrider.set_buildspec(buildspec_paths=buildspec_paths)
+    if buildspec_paths:
+        overrider.set_test_types(test_types=test_types)
+        overrider.set_buildspec(buildspec_paths=buildspec_paths)
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)

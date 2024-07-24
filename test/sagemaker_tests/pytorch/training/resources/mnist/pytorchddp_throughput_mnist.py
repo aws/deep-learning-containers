@@ -11,19 +11,14 @@
 from __future__ import print_function
 import os
 import argparse
-import time
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
 from torch.nn.parallel import DistributedDataParallel as DDP
 import torch.distributed as dist
-
-# import smdistributed.dataparallel.torch.torch_smddp
-from torch.distributed import Backend
 
 """
 For EC2 conda env, in controller node run 'source /shared/pytorch_env/bin/activate', then launch the training using:
@@ -175,9 +170,6 @@ def main():
 
     args = parser.parse_args()
 
-    # print("open mpi var:")
-    # print(os.getenv("OMPI_COMM_WORLD_SIZE"))
-
     if not os.getenv("WORLD_SIZE"):
         os.environ["WORLD_SIZE"] = str(os.getenv("OMPI_COMM_WORLD_SIZE"))
 
@@ -192,7 +184,6 @@ def main():
         args.local_rank = int(os.getenv("OMPI_COMM_WORLD_LOCAL_RANK"))
 
     args.world_size = int(os.environ["WORLD_SIZE"])
-    # print(args.world_size)
     args.lr = 1.0
     args.batch_size //= args.world_size // 8
     args.batch_size = max(args.batch_size, 1)

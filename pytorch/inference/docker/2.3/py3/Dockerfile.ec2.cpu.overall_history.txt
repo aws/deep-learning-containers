@@ -1,0 +1,4 @@
+#### First image: sha256:7c9a6f3368e2cef237825709b04815aaad1aed60a1becffded2024d1b9bac1a8 ####
+#### Current Patch contents ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget

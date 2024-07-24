@@ -15,7 +15,31 @@ apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 lib
 pip install idna==3.7 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
-#### Current Patch contents ####
+#### Patch contents for patch-5: sha256:f70c00bce25697e2cb7b483826c94d8e5bc36a2fe7b1592234279984c9962b63 ####
 pip install idna==3.7 requests==2.32.2 
 python -m pip install --upgrade pip
 apt-get update && apt-get install -y --only-upgrade bsdutils fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-6: sha256:3febe976ad46cb8d9b349c8e7bba2368b808a26b77d8a444eca0b532f40a3c81 ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-7: sha256:ca809f1b75e2f1c6285971a291b229d2361664e30642e7afc01342338c25cf2c ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-8: sha256:6267b2761fa30ef091ff52996f6ebe86f5356990124776053fbcb83c0e5ce8a2 ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-9: sha256:6b41bc23c90157243d0649b639417c07eda19feef960cdf8de3ce94d47db99b0 ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-10: sha256:14dbb02e0175a3c0a97f6d25ee461640b60d7f1810b880e463f58ac7d890949a ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-11: sha256:1fb2705360692a8a6351588f828fd5dd1fa5997f6ab7a4183bea31dac0b5d16e ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev
+#### Patch contents for patch-12: sha256:d367fcf06f3d3010ee2cd9580cc4457f5d7f4a3f08f04fc5eab27edd29c0c092 ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev wget
+#### Current Patch contents ####
+pip install idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev wget

@@ -363,6 +363,12 @@ def host_setup_for_tensorflow_inference(
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+
+        # If framework_version is only major.minor, then append .* for tensorflow-serving-api installation
+        tfs_api_version = framework_version
+        if re.fullmatch(r"\d+\.\d+", tfs_api_version):
+            tfs_api_version += ".*"
+
         # Removed the protobuf version constraint because it prevents the matching version
         # of tensorflow and tensorflow-serving-api from being installed.
         # If we face protobuf-related version mismatch issues in the future,
@@ -371,7 +377,7 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
-                f"'tensorflow-serving-api=={framework_version}'"
+                f"'tensorflow-serving-api=={tfs_api_version}'"
             ),
             hide=True,
         )
