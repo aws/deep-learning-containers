@@ -29,8 +29,8 @@ mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
 
 # For PT training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[0-9]+\.[0-9]+-cpu ]]; then
-    conda uninstall mpi4py && pip install mpi4py && echo "Installed mpi4py from pip"
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[1-3]\.[0-9]+-cpu ]]; then
+    conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
 fi
 
 # Install packages and derive history and package diff data
