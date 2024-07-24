@@ -36,7 +36,10 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
-TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
+# Timeouts in t3.2xlarge
+TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c5.9xlarge", processor="cpu", filter_function=ec2_utils.filter_no_t32x
+)
 TF_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 
 
