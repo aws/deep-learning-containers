@@ -1,33 +1,22 @@
-#### First image: sha256:363ae2115681bb98a0d12f647e19dd5e9ba1f9f346243f6ec0a02bfe897e2a7b ####
-#### Patch contents for patch-1: sha256:839920cbebf1873ebf5bf2972ea67d863c4039caeab4c8784079c7f965d99140 ####
+#### First image: sha256:0710c5f9a4d067ed821dc9acf53b75f45733b07c5c7c3b25ba392fbef8b36254 ####
+#### Patch contents for patch-1: sha256:d4ab9887b2f55d460fb85348694d492ea5ea9684b6ddfbca9983528cb486c59c ####
 echo N/A
-apt-get update && apt-get install -y --only-upgrade linux-libc-dev
-#### Patch contents for patch-2: sha256:236592a4a82a88dc5447459d8619d2961c3ca496917a55da02dd9b9efebeb9ef ####
+apt-get update && apt-get install -y --only-upgrade libtiff5
+#### Patch contents for patch-2: sha256:4d363620c79bdf3c78aca27bb8e6c3c27ed6bb5719be9988c4d6b4924b3ccc06 ####
 echo N/A
-apt-get update && apt-get install -y --only-upgrade linux-libc-dev vim-common vim-runtime vim xxd
-#### Patch contents for patch-3: sha256:3dbe2afdb6dff9d151afa71a5200f3352d38526e45b6982c9a5348caf964ade4 ####
-pip install pillow==10.3.0
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount1 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-4: sha256:61cc40c1de20770de690d4169f12f834232ae92cf8afecdd50e8fd2c66f702f4 ####
-pip install pillow==10.3.0
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount1 libsmartcols1 libuuid1 mount util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-5: sha256:5b797c564a1b421e49d1b6fdeecf71c7dfd66bd7456631b9efb36ffd3a0ebf05 ####
-pip install idna==3.7 pillow==10.3.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnss3 libsmartcols1 libuuid1 mount util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-6: sha256:346dc5b5c243ae2a0cfd0cf24574aacdd400451125251a12f6f30838fdb35cec ####
-pip install idna==3.7 pillow==10.3.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-7: sha256:fb2f67e849f215df15e99c2b2119aa16fb62f2f2224323a072d5d78a1da827c4 ####
-pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-8: sha256:c479b2f72db7ce78627304ca5c948961724a96a61c033f57f69d5941663f91d4 ####
-pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+apt-get update && apt-get install -y --only-upgrade libtiff5 linux-libc-dev
+#### Patch contents for patch-3: sha256:8ad130241d24f6e9d5d015b88fa5aff20570d936d8f6035092af4f7f86980d11 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:f495bccbc9bccc91b6ffe7cddf733fa7a8eea42dd6c16d60dacf66a63e30d98f ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:615c24171a14b14447aac84bf3f617ae8425b2d9964b648b5b8f4deac33cd4a5 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-6: sha256:7da0dc6d87623f0295f95a737f30c5b710574cad074e3d4d767a082d2af95487 ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
 #### Current Patch contents ####
-pip install idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libuuid1 linux-libc-dev mount util-linux vim-common vim-runtime vim xxd
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
