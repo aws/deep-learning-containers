@@ -156,7 +156,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     Pillow \
     "psutil>=5.9.4,<5.10" \
     "pyyaml>=6.0.1" \
-    "scipy>=1.11.1"
+    "scipy>=1.11.1" \
+    "setuptools>=70.0.0"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

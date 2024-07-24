@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==0.32.1",
+    "version_specifier": "==0.33.0",
     "skip": "True"
   },
   "fastai": {
@@ -58,6 +58,9 @@
   },
   "scipy": {
     "version_specifier": ">=1.9.3,<2"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
   },
   "pyyaml": {
     "version_specifier": ">=6.0.1"
