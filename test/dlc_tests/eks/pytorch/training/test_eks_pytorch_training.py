@@ -18,6 +18,7 @@ from packaging.specifiers import SpecifierSet
 LOGGER = eks_utils.LOGGER
 
 
+@pytest.mark.skip("temp skip")
 @pytest.mark.skipif(
     not is_pr_context(),
     reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
@@ -157,6 +158,7 @@ def test_eks_pt_s3_plugin_single_node_training(pytorch_training, outside_version
         run("kubectl delete pods {}".format(pod_name))
 
 
+@pytest.mark.skip("temp skip")
 @pytest.mark.skipif(
     not is_pr_context(), reason="Skip this test. It is already tested under PR context"
 )

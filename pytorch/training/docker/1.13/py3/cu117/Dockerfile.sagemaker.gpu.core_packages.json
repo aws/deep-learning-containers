@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==0.32.1",
+    "version_specifier": "==0.33.0",
     "skip": "True"
   },
   "deepspeed": {
@@ -73,6 +73,9 @@
   },
   "scipy": {
     "version_specifier": ">=1.9.3,<2"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
   },
   "sagemaker": {
     "version_specifier": ">=2.173.0,<3"
