@@ -11,7 +11,7 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "tensorflow",]
-build_training = true
+build_training = false
 build_inference = true
 do_build = true
 
@@ -40,7 +40,7 @@ use_scheduler = false
 [buildspec_override]
 dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-14-ec2.yml"
+dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 dlc-pr-huggingface-tensorflow-training = ""
 dlc-pr-huggingface-pytorch-training = ""
@@ -55,7 +55,7 @@ dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
 dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-14-ec2.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-16-ec2.yml"
 dlc-pr-autogluon-inference = ""
 dlc-pr-mxnet-neuron-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
