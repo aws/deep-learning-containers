@@ -35,6 +35,9 @@
   "urllib3": {
     "version_specifier": ">=1.26.17"
   },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.1.0"
   },
@@ -58,9 +61,6 @@
   },
   "scipy": {
     "version_specifier": ">=1.9.3,<2"
-  },
-  "setuptools": {
-    "version_specifier": ">=70.0.0"
   },
   "pyyaml": {
     "version_specifier": ">=6.0.1"
