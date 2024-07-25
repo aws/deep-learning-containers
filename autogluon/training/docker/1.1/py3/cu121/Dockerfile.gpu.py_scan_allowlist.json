@@ -5,5 +5,7 @@
     "70485": "Ray - autogluon uses ray < 2.11",
     "71805": "onnx - this package is required by autogluon multimodal",
     "71596": "scikit-learn - this package is required by autogluon",
-    "71670": "torch 2.3 is used in the base image and is required by autogluon"
+    "71670": "torch 2.3 is used in the base image and is required by autogluon",
+    "72236": "setuptools - autogluon uses setuptools == 69.5.1",
+    "72089": "NLTK - autogluon uses nltk <= 3.8.1"
 }
