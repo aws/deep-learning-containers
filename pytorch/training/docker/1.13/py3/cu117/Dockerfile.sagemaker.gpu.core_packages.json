@@ -32,7 +32,7 @@
     "skip": "True"
   },
   "triton": {
-    "version_specifier": "==2.0.0.dev20221202",
+    "version_specifier": "==2.1.0",
     "skip": "True"
   },
   "requests": {
