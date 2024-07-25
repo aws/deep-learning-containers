@@ -35,6 +35,9 @@
   "urllib3": {
     "version_specifier": ">=1.26.17"
   },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"
   },
@@ -61,9 +64,6 @@
   },
   "scipy": {
     "version_specifier": ">=1.11.1"
-  },
-  "setuptools": {
-    "version_specifier": ">=70.0.0"
   },
   "sagemaker": {
     "version_specifier": ">=2.203.0,<3"
