@@ -1,3 +1,4 @@
 {
-    "70612": "[Package: jinja2] Conflicts for: jinja2"
+    "70612": "[Package: jinja2] Conflicts for: jinja2",
+    "71670": "[Package: torch] Conflicts for: torch"
 }
