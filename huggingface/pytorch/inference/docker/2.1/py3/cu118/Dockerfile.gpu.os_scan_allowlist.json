@@ -39,7 +39,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.4.0",
-        "release": "189.209"
+        "release": "190.210"
       },
       "remediation": {
         "recommendation": {
@@ -68,7 +68,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.4.0",
-        "release": "189.209"
+        "release": "190.210"
       },
       "remediation": {
         "recommendation": {
@@ -97,7 +97,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.4.0",
-        "release": "189.209"
+        "release": "190.210"
       },
       "remediation": {
         "recommendation": {
@@ -155,7 +155,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.4.0",
-        "release": "189.209"
+        "release": "190.210"
       },
       "remediation": {
         "recommendation": {
