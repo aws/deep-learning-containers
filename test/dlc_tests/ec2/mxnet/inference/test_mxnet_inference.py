@@ -4,7 +4,12 @@ import pytest
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils import CONTAINER_TESTS_PREFIX, get_framework_and_version_from_tag
+from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    get_framework_and_version_from_tag,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
+)
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
     execute_ec2_inference_test,
@@ -172,23 +177,24 @@ def run_ec2_mxnet_inference(
 ):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2-{container_tag}"
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
     mms_inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     if processor == "neuron":
         docker_run_cmd = (
-            f"{docker_cmd} run -itd --name {container_name}"
+            f"docker run {docker_runtime} -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
             f" --device=/dev/neuron0 --cap-add IPC_LOCK"
             f" {image_uri} {mms_inference_cmd}"
         )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -itd --name {container_name}"
+            f"docker run {docker_runtime} -itd --name {container_name}"
             f" -p {target_port}:8080 -p {target_management_port}:8081"
             f" {image_uri} {mms_inference_cmd}"
         )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = get_account_id_from_image_uri(image_uri)
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         if model_name == SQUEEZENET_MODEL:

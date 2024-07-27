@@ -31,11 +31,7 @@ from test.test_utils import (
     is_nightly_context,
     DEFAULT_REGION,
     P3DN_REGION,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    AML2_BASE_DLAMI_US_WEST_2,
-    AML2_BASE_DLAMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
@@ -55,10 +51,11 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__3",
     "pytorch_training___2__2",
     "pytorch_training___2__1",
     "pytorch_training___2__0",
-    "pytorch_training___1__3",
+    "pytorch_training___1__13",
     "pytorch_training_habana",
     "pytorch_inference",
     "pytorch_inference_eia",
@@ -314,9 +311,24 @@ def _validate_p4de_usage(request, instance_type):
     return
 
 
+def _restrict_instance_usage(instance_type):
+    restricted_instances = {"c": ["c4"], "m": ["m4"], "p": ["p2"]}
+
+    for instance_serie, instance_list in restricted_instances.items():
+        for instance_family in instance_list:
+            if f"{instance_family}." in instance_type:
+                raise RuntimeError(
+                    f"{instance_family.upper()}-family instances are no longer supported in our system."
+                    f"Please use a different instance type (i.e. another {instance_serie.upper()} series instance type)."
+                )
+    return
+
+
 @pytest.fixture(scope="function")
 def ec2_instance_type(request):
-    return request.param if hasattr(request, "param") else "g4dn.xlarge"
+    instance_type = request.param if hasattr(request, "param") else "g4dn.xlarge"
+    _restrict_instance_usage(instance_type)
+    return instance_type
 
 
 @pytest.fixture(scope="function")
@@ -330,18 +342,11 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region):
+def ec2_instance_ami(request, region, ec2_instance_type):
     return (
         request.param
         if hasattr(request, "param")
-        else UBUNTU_20_BASE_DLAMI_US_EAST_1
-        if region == "us-east-1"
-        else UBUNTU_20_BASE_DLAMI_US_WEST_2
-        if region == "us-west-2"
-        else test_utils.get_ami_id_boto3(
-            region_name=region,
-            ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????",
-        )
+        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
     )
 
 
@@ -355,7 +360,6 @@ def ei_accelerator_type(request):
 def efa_ec2_instances(
     request,
     ec2_client,
-    ec2_resource,
     ec2_instance_type,
     ec2_instance_role_name,
     ec2_key_name,
@@ -401,15 +405,13 @@ def efa_ec2_instances(
             {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": instance_name_prefix}]}
         ],
     }
-    response = ec2_utils.launch_efa_instances_with_retry(
+    instances = ec2_utils.launch_efa_instances_with_retry(
         ec2_client,
         ec2_instance_type,
         availability_zone_options,
         ec2_run_instances_definition,
         fn_name=request.node.name,
     )
-
-    instances = response["Instances"]
 
     def terminate_efa_instances():
         ec2_client.terminate_instances(
@@ -555,6 +557,8 @@ def ec2_instance(
 ):
     _validate_p4de_usage(request, ec2_instance_type)
     if ec2_instance_type == "p3dn.24xlarge":
+        # Keep track of initial region to get information about previous AMI
+        initial_region = region
         region = P3DN_REGION
         ec2_client = boto3.client(
             "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
@@ -563,10 +567,16 @@ def ec2_instance(
             "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
         )
         if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
+            # Assign as AML2 if initial AMI is AML2, else use default
             ec2_instance_ami = (
-                AML2_BASE_DLAMI_US_EAST_1
-                if ec2_instance_ami == AML2_BASE_DLAMI_US_WEST_2
-                else UBUNTU_20_BASE_DLAMI_US_EAST_1
+                test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, region, linux_dist="AML2"
+                )
+                if ec2_instance_ami
+                == test_utils.get_instance_type_base_dlami(
+                    ec2_instance_type, initial_region, linux_dist="AML2"
+                )
+                else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
             )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
@@ -844,19 +854,15 @@ def existing_ec2_instance_connection(request, ec2_key_file_name, ec2_user_name, 
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
+def skip_trcomp_containers(request):
     if "training" in request.fixturenames:
         img_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
         img_uri = request.getfixturevalue("pytorch_training")
     else:
         return
-    _, fw_ver = get_framework_and_version_from_tag(img_uri)
-    if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
-            pytest.skip(
-                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
-            )
+    if "trcomp" in img_uri:
+        pytest.skip("Skipping training compiler integrated container with tag {}".format(img_uri))
 
 
 @pytest.fixture(autouse=True)
@@ -893,28 +899,6 @@ def skip_torchdata_test(request):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
             f"For more information, see https://github.com/pytorch/data/issues/1196."
-            f"Skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
-def skip_transformer_engine_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {">=2.2": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_transformer_engine_test", skip_dict
-    ):
-        pytest.skip(
-            f"PyTorch 2.2.0 and later has deprecated NVFuser from torch script in this commit https://github.com/pytorch/pytorch/commit/e6b5e0ecc609c15bfee5b383fe5c55fbdfda68ff"
-            f"However, TransformerEngine latest version 1.2.1 still uses nvfuser."
-            f"We have raised the issue with TransformerEngine, and this test will be skipped until the issue is resolved."
-            f"For more information, see https://github.com/NVIDIA/TransformerEngine/issues/666"
             f"Skipping test"
         )
 
@@ -998,7 +982,7 @@ def skip_p5_tests(request, ec2_instance_type):
 
 
 @pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request):
+def skip_serialized_release_pt_test(request):
     if "training" in request.fixturenames:
         image_uri = request.getfixturevalue("training")
     elif "pytorch_training" in request.fixturenames:
@@ -1006,39 +990,16 @@ def skip_pt20_cuda121_tests(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"]}
+    skip_dict = {
+        "==1.13.*": ["cpu", "cu117"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+    }
     if _validate_pytorch_framework_version(
-        request, image_uri, "skip_pt20_cuda121_tests", skip_dict
+        request, image_uri, "skip_serialized_release_pt_test", skip_dict
     ):
-        pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.1.*": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_pt21_test", skip_dict):
-        pytest.skip(f"PyTorch 2.1 image doesn't support current test")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt22_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.2.*": ["cpu", "cu121"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_pt22_test", skip_dict):
-        pytest.skip(f"PyTorch 2.2 image doesn't support current test")
+        pytest.skip(
+            f"Skip test for {image_uri} given that the image is being tested in serial execution."
+        )
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
@@ -1434,30 +1395,15 @@ def pytest_configure(config):
         "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_transformer_engine_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
         "markers", "skip_smdebug_v1_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_pt20_cuda121_tests(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_pt21_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_pt22_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
-    config.addinivalue_line(
-        "markers", "skip_s3plugin_test(): mark test to skip due to dlc being incompatible"
-    )
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
     config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
 

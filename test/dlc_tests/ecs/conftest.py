@@ -76,7 +76,22 @@ def ecs_ami(request):
 
 @pytest.fixture(scope="session")
 def ecs_instance_type(request):
-    return request.param
+    instance_type = request.param if hasattr(request, "param") else "g4dn.xlarge"
+    _restrict_instance_usage(instance_type)
+    return instance_type
+
+
+def _restrict_instance_usage(instance_type):
+    restricted_instances = {"c": ["c4"], "m": ["m4"], "p": ["p2"]}
+
+    for instance_serie, instance_list in restricted_instances.items():
+        for instance_family in instance_list:
+            if f"{instance_family}." in instance_type:
+                raise RuntimeError(
+                    f"{instance_family.upper()}-family instances are no longer supported in our system."
+                    f"Please use a different instance type (i.e. another {instance_serie.upper()} series instance type)."
+                )
+    return
 
 
 @pytest.fixture(scope="session")

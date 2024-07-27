@@ -1,5 +1,4 @@
 import os
-
 import pytest
 
 import test.test_utils as test_utils
@@ -13,6 +12,8 @@ from test.test_utils import (
     is_tf_version,
     get_framework_and_version_from_tag,
     is_nightly_context,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
@@ -22,7 +23,7 @@ SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")
 
 
 SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
-SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
+SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
 @pytest.mark.skip_smdebug_v1_test
@@ -60,7 +61,7 @@ def test_smdebug_gpu(
         ec2_connection,
         region,
         ec2_instance_type,
-        docker_executable="nvidia-docker",
+        docker_runtime="--runtime=nvidia --gpus all",
         container_name="smdebug-gpu",
         timeout=smdebug_test_timeout,
     )
@@ -105,7 +106,7 @@ def test_smprofiler_gpu(
         ec2_connection,
         region,
         ec2_instance_type,
-        docker_executable="nvidia-docker",
+        docker_runtime="--runtime=nvidia --gpus all",
         container_name="smdebug-gpu",
         timeout=smdebug_test_timeout,
     )
@@ -161,22 +162,23 @@ def run_smdebug_test(
     ec2_connection,
     region,
     ec2_instance_type,
-    docker_executable="docker",
+    docker_runtime="",
     container_name="smdebug",
     test_script=SMDEBUG_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(
-            f"{docker_executable} run --name {container_name} -v "
+            f"docker run {docker_runtime} --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,
@@ -200,22 +202,23 @@ def run_smprofiler_test(
     ec2_connection,
     region,
     ec2_instance_type,
-    docker_executable="docker",
+    docker_runtime="",
     container_name="smdebug",
     test_script=SMPROFILER_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p2.8xlarge", "m4.16xlarge")
+    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
     ec2_connection.run(f"docker pull {image_uri}")
 
     try:
         ec2_connection.run(
-            f"{docker_executable} run --name {container_name} -v "
+            f"docker run {docker_runtime} --name {container_name} -v "
             f"{container_test_local_dir}:{os.path.join(os.sep, 'test')}{shm_setting}{image_uri} "
             f"./{test_script} {framework}",
             hide=True,

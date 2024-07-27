@@ -4,11 +4,13 @@ import re
 import logging
 import sys
 import uuid
+import copy
+
+from collections import Counter
 
 from inspect import signature
 
 import boto3
-import pytest
 
 from fabric import Connection
 from botocore.config import Config
@@ -30,6 +32,8 @@ from test.test_utils import (
     is_pr_context,
     is_mainline_context,
     are_heavy_instance_ec2_tests_enabled,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -69,6 +73,13 @@ def filter_only_single_gpu(instance_type_list):
         instance_type
         for instance_type in instance_type_list
         if get_instance_num_gpus(instance_type=instance_type) == 1
+    ]
+    return filtered_list
+
+
+def filter_no_t32x(instance_type_list):
+    filtered_list = [
+        instance_type for instance_type in instance_type_list if instance_type != "t3.2xlarge"
     ]
     return filtered_list
 
@@ -139,11 +150,11 @@ def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type="")
     a list.
     """
     instance_list = get_ec2_instance_type(default, "gpu", filter_function, job_type=job_type)
-    instance_list = [
+    instance_region_list = [
         (instance_type, get_cicd_instance_reserved_region(instance_type))
         for instance_type in instance_list
     ]
-    return instance_list
+    return instance_region_list
 
 
 def get_ec2_instance_type(
@@ -406,6 +417,218 @@ def launch_instances_with_retry(
     return instances
 
 
+def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone):
+    ec2_efa_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
+    ec2_efa_run_instances_definition.update(
+        {
+            "Placement": {"AvailabilityZone": availability_zone},
+            "NetworkInterfaces": generate_network_interfaces(
+                ec2_client, ec2_instance_type, availability_zone
+            ),
+        }
+    )
+    response = ec2_client.run_instances(**ec2_efa_run_instances_definition) or {}
+    return response.get("Instances")
+
+
+def launch_efa_with_reservations(
+    ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
+):
+    ec2_run_instances_reserved_definition = copy.deepcopy(ec2_run_instances_definition)
+    while reservations:
+        reservation = reservations.pop(0)
+        ec2_run_instances_reserved_definition["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
+        }
+        try:
+            instances = launch_efa(
+                ec2_client,
+                ec2_instance_type,
+                ec2_run_instances_reserved_definition,
+                reservation["AvailabilityZone"],
+            )
+            if instances:
+                LOGGER.info(
+                    f"Your EFA reservation is ready for {fn_name}, please wait to be seated. Launching..."
+                )
+                if is_mainline_context():
+                    LOGGER.info(f"Launched EFA enabled instance for {fn_name} via {reservation}")
+                return instances
+        except ClientError as e:
+            LOGGER.debug(
+                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
+                "Checking additional open reservations..."
+            )
+    return []
+
+
+def validate_efa_instance_conditions(instances, minimum_number_of_instances):
+    if len(instances) == minimum_number_of_instances:
+        return True
+    if len(instances) > minimum_number_of_instances:
+        raise RuntimeError(
+            f"Launched too many instances somehow, raising and cleaning up - {instances}; min/max_allowed = {minimum_number_of_instances}"
+        )
+    return False
+
+
+class HeterogenousReservationError(Exception):
+    pass
+
+
+def referesh_capacity_reservations(ec2_client, ec2_instance_type, az):
+    reservations = [
+        reservation
+        for reservation in get_available_reservations(ec2_client, ec2_instance_type)
+        if reservation["AvailabilityZone"] == az
+    ]
+
+    available_instances = sum(
+        [reservation["AvailableInstanceCount"] for reservation in reservations]
+    )
+
+    return reservations, available_instances
+
+
+def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_definition, fn_name=""):
+    """
+    Launch efa instances with heterogenous reservations
+
+    Previous EFA launch code requires instances to be launched from the same command. This prohibits launching instances
+    from multiple capacity reservations if the reservation has less than the minimum available instances required (typically 2).
+
+    To remedy this, we group reservations by availability zone. If we have instances available in reservation, we
+    group by most common availability zone and try to launch multiple instances from reservation. If we do not meet our minimum
+    requirements, try launching from public pool to remedy the situation. If we launch 0 from reservation, do not
+    try launching from the public pool, and allow other functions to handle launching exclusively from public.
+
+    Args:
+        ec2_client (boto3.client): boto3 ec2 client
+        ec2_run_instances_definition (dict): key/value pairs for run instances launch cmd
+        fn_name (str, optional): pytest function name. Defaults to "".
+
+    Raises:
+        HeterogenousReservationError: Custom error handling for function failure
+
+    Returns:
+        list: launched instances
+    """
+    ec2_heterogenous_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
+    ec2_instance_type = ec2_heterogenous_run_instances_definition["InstanceType"]
+    minimum_number_of_instances = ec2_heterogenous_run_instances_definition["MinCount"]
+
+    # Reset max and min count to 1; We will
+    ec2_heterogenous_run_instances_definition["MaxCount"] = 1
+    ec2_heterogenous_run_instances_definition["MinCount"] = 1
+
+    reserved_azs = [
+        reservation["AvailabilityZone"]
+        for reservation in ec2_client.describe_capacity_reservations()["CapacityReservations"]
+        if reservation["InstanceType"] == ec2_instance_type
+    ]
+
+    tmp_reservations = get_available_reservations(
+        ec2_client=ec2_client,
+        instance_type=ec2_instance_type,
+        min_availability=ec2_heterogenous_run_instances_definition["MinCount"],
+    )
+
+    az_counter = Counter(reservation["AvailabilityZone"] for reservation in tmp_reservations)
+    az_priorities = [c[0] for c in az_counter.most_common()]
+
+    # Track all reserved availability zones, in case capacity comes later
+    for reserved_az in reserved_azs:
+        if reserved_az not in az_priorities:
+            az_priorities.append(reserved_az)
+
+    for az in az_priorities:
+        LOGGER.info(f"Checking AZ {az}")
+        # Refresh reservations for each AZ
+        reservations, available_instances = referesh_capacity_reservations(
+            ec2_client, ec2_instance_type, az
+        )
+        ec2_heterogenous_run_instances_definition["MaxCount"] = 1
+        ec2_heterogenous_run_instances_definition["MinCount"] = 1
+        instances = []
+        try:
+            while available_instances and len(instances) < minimum_number_of_instances:
+                LOGGER.info(f"trying to launch {ec2_instance_type} in {az}")
+                instance = launch_efa_with_reservations(
+                    ec2_client=ec2_client,
+                    ec2_instance_type=ec2_instance_type,
+                    reservations=reservations,
+                    ec2_run_instances_definition=ec2_heterogenous_run_instances_definition,
+                    fn_name=fn_name,
+                )
+                instances += instance
+
+                # Refresh reservations for each AZ
+                reservations, available_instances = referesh_capacity_reservations(
+                    ec2_client, ec2_instance_type, az
+                )
+
+            if validate_efa_instance_conditions(instances, minimum_number_of_instances):
+                LOGGER.info("Strung together some reservations, let's go")
+                return instances
+
+            # If we have remaining instances, try launching from public pool
+            # Try a different availability zone if we don't have any reservation launches, however. Always
+            # prioritize reservation launches in this function.
+            remaining_instances = minimum_number_of_instances - len(instances)
+            if remaining_instances != minimum_number_of_instances:
+                LOGGER.info(
+                    f"Have {remaining_instances} remaining_instances instances in {az}. Trying from public pool."
+                )
+                ec2_heterogenous_run_instances_definition["MaxCount"] = remaining_instances
+                ec2_heterogenous_run_instances_definition["MinCount"] = remaining_instances
+                instances += launch_efa(
+                    ec2_client, ec2_instance_type, ec2_heterogenous_run_instances_definition, az
+                )
+
+                if validate_efa_instance_conditions(instances, minimum_number_of_instances):
+                    LOGGER.info("Strung together some reservations and some walk-ins, let's go")
+                    return instances
+
+                # Clean up instances if this workflow did not succeed
+                LOGGER.info(
+                    f"Failed to launch enough instances from public and reservations for {fn_name}."
+                )
+                if instances:
+                    LOGGER.info(
+                        f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                    )
+                    ec2_client.terminate_instances(
+                        InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                    )
+
+        except ClientError as e:
+            # Clean up any remaining instances
+            LOGGER.info(
+                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
+                "Checking additional open reservations and cleaning up stray resources"
+            )
+            if instances:
+                LOGGER.info(
+                    f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                )
+                ec2_client.terminate_instances(
+                    InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                )
+
+        except Exception as e:
+            if instances:
+                LOGGER.info(
+                    f"Cleaning up instances {(instance['InstanceId'] for instance in instances)}..."
+                )
+                ec2_client.terminate_instances(
+                    InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+                )
+            raise HeterogenousReservationError("Failed to launch via heterogenous approach") from e
+    return []
+
+
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
@@ -428,75 +651,41 @@ def launch_efa_instances_with_retry(
     :param fn_name: string - function name for ease of logging
     :return: dict response from ec2_client.run_instances
     """
-    response = None
     region = ec2_client.meta.region_name
-    reservations = get_available_reservations(
+    LOGGER.info(f"Trying to launch {ec2_instance_type} for {fn_name} via capacity reservation...")
+
+    heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
         ec2_client=ec2_client,
-        instance_type=ec2_run_instances_definition["InstanceType"],
-        min_availability=ec2_run_instances_definition["MinCount"],
+        ec2_run_instances_definition=ec2_run_instances_definition,
+        fn_name=fn_name,
     )
 
-    # Try launching via reservation first
-    while reservations:
-        reservation = reservations.pop(0)
-        ec2_run_instances_definition["CapacityReservationSpecification"] = {
-            "CapacityReservationTarget": {
-                "CapacityReservationId": reservation["CapacityReservationId"]
-            }
-        }
-        ec2_run_instances_definition.update(
-            {
-                "Placement": {"AvailabilityZone": reservation["AvailabilityZone"]},
-                "NetworkInterfaces": generate_network_interfaces(
-                    ec2_client, ec2_instance_type, reservation["AvailabilityZone"]
-                ),
-            }
-        )
-        try:
-            response = ec2_client.run_instances(**ec2_run_instances_definition)
-            if response and response["Instances"]:
-                LOGGER.info(
-                    f"Your EFA reservation is ready for {fn_name}, please wait to be seated. Launching..."
-                )
-                if is_mainline_context():
-                    LOGGER.info(f"Launched EFA enabled instance for {fn_name} via {reservation}")
-                return response
-        except ClientError as e:
-            LOGGER.debug(
-                f"Failed to launch EFA instance for {fn_name} from reservation due to {e}\n"
-                "Checking additional open reservations..."
-            )
+    if heterogenous_reservation_launch:
+        return heterogenous_reservation_launch
 
-    # Clean up capacity reservation if it failed
-    ec2_run_instances_definition.pop("CapacityReservationSpecification", None)
     LOGGER.info(
         f"Looks like you didn't have an EFA reservation for {fn_name}, let's see if we can seat you as a walk-in..."
     )
 
+    instances = []
     for availability_zone in availability_zone_options:
-        ec2_run_instances_definition.update(
-            {
-                "Placement": {"AvailabilityZone": availability_zone},
-                "NetworkInterfaces": generate_network_interfaces(
-                    ec2_client, ec2_instance_type, availability_zone
-                ),
-            }
-        )
         try:
-            response = ec2_client.run_instances(**ec2_run_instances_definition)
-            if response and response["Instances"]:
+            instances = launch_efa(
+                ec2_client, ec2_instance_type, ec2_run_instances_definition, availability_zone
+            )
+            if instances:
                 break
         except ClientError as e:
-            LOGGER.debug(
+            LOGGER.info(
                 f"Failed to launch in {availability_zone} for {fn_name} due to {e}\n"
                 "Retrying in the next availability zone."
             )
             continue
-    if not (response and response["Instances"]):
+    if not instances:
         raise RuntimeError(
             f"Unable to launch {ec2_instance_type} instances in {region} for {fn_name}"
         )
-    return response
+    return instances
 
 
 def get_ec2_client(region):
@@ -1023,11 +1212,12 @@ def execute_ec2_training_test(
         )
     if executable == "bash":
         executable = os.path.join(os.sep, "bin", "bash")
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     shm_setting = '--shm-size="1g"' if large_shm else ""
@@ -1047,7 +1237,7 @@ def execute_ec2_training_test(
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
     connection.run(
-        f"{docker_cmd} run --name {container_name} "
+        f"docker run {docker_runtime} --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
         f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
         f"{habana_container_test_repo} {shm_setting} {neuron_device} {gdr_device} -itd {bin_bash_cmd}{ecr_uri}",
@@ -1055,9 +1245,7 @@ def execute_ec2_training_test(
     )
 
     if "habana" in ecr_uri:
-        execution_command = (
-            f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'"
-        )
+        execution_command = f"docker exec --user root {container_name} {executable} -c '{test_cmd}'"
         required_log_ending = "Kudos!! Habana tests executed successfully"
         framework = (
             "tensorflow" if "tensorflow" in ecr_uri else "pytorch" if "pytorch" in ecr_uri else None
@@ -1098,7 +1286,7 @@ def execute_ec2_training_test(
 
     LOGGER.info(f"execute_ec2_training_test running {ecr_uri}, with cmd {test_cmd}")
     ec2_res = connection.run(
-        f"{docker_cmd} exec --user root {container_name} {executable} -c '{test_cmd}'",
+        f"docker exec --user root {container_name} {executable} -c '{test_cmd}'",
         hide=True,
         timeout=timeout,
     )
@@ -1107,20 +1295,21 @@ def execute_ec2_training_test(
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
     # Run training command
     connection.run(
-        f"{docker_cmd} run --name ec2_inference_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+        f"docker run {docker_runtime} --name ec2_inference_container -v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
         f" -itd {ecr_uri} bash",
         hide=True,
     )
     connection.run(
-        f"{docker_cmd} exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
+        f"docker exec --user root ec2_inference_container {os.path.join(os.sep, 'bin', 'bash')} -c '{test_cmd}'",
         hide=True,
         timeout=3000,
     )
@@ -1135,7 +1324,7 @@ def execute_ec2_training_performance_test(
     data_source="",
     threshold=None,
 ):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -1145,13 +1334,14 @@ def execute_ec2_training_performance_test(
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
-    connection.run(f"{docker_cmd} pull {ecr_uri}", hide=True)
+    connection.run(f"docker pull {ecr_uri}", hide=True)
 
     # Run training command, display benchmark results to console
     connection.run(
-        f"{docker_cmd} run --user root "
+        f"docker run {docker_runtime} --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri} "
@@ -1177,7 +1367,6 @@ def execute_ec2_habana_training_performance_test(
     cards_num=None,
     timeout=18000,
 ):
-    docker_cmd = "docker"
     container_test_local_dir = os.path.join("$HOME", "container_tests")
 
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
@@ -1186,9 +1375,10 @@ def execute_ec2_habana_training_performance_test(
     )
     synapseai_version = get_synapseai_version_from_tag(ecr_uri)
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
 
-    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+    connection.run(f"docker pull -q {ecr_uri}")
 
     container_runtime = "--runtime=habana -e HABANA_VISIBLE_DEVICES=all"
     hpu_env_vars = f"-e CARDS_NUM={cards_num} -e GIT_BRANCH={synapseai_version}"
@@ -1197,7 +1387,7 @@ def execute_ec2_habana_training_performance_test(
     ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
     habana_container_test_repo = "${HOME}/gaudi-test-suite:/gaudi-test-suite"
     execution_command = (
-        f"{docker_cmd} run --user root "
+        f"docker run --user root "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
         f"{container_runtime} {ompi_mca_btl} {hpu_env_vars} {cap_add} {ipc} "
@@ -1244,27 +1434,28 @@ def execute_ec2_inference_performance_test(
     data_source="",
     threshold=None,
 ):
-    docker_cmd = "nvidia-docker" if "gpu" in ecr_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = (
         f"{data_source}_results_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     )
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
-    connection.run(f"{docker_cmd} pull -q {ecr_uri}")
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
+    connection.run(f"docker pull -q {ecr_uri}")
 
     # Run training command, display benchmark results to console
     repo_name, image_tag = ecr_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     connection.run(
-        f"{docker_cmd} run -d --name {container_name} "
+        f"docker run {docker_runtime} -d --name {container_name} "
         f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {ecr_uri}"
     )
     try:
         connection.run(
-            f"{docker_cmd} exec --user root {container_name} "
+            f"docker exec --user root {container_name} "
             f"{os.path.join(os.sep, 'bin', 'bash')} -c {test_cmd}"
         )
     except Exception as e:

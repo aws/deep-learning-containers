@@ -37,9 +37,8 @@ from test.test_utils import (
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
-    is_tf_version,
+    get_all_the_tags_of_an_image_from_ecr,
     is_nightly_context,
-    get_processor_from_image_uri,
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
@@ -189,6 +188,13 @@ def test_ubuntu_version(image):
 
     assert "Ubuntu" in container_ubuntu_version
     assert ubuntu_version in container_ubuntu_version
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_image_tags(image, ecr_client):
+    all_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
+    assert not any("benchmark-tested" in tag for tag in all_tags)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -488,7 +494,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
             version_list = [
-                ".".join(entry.split(".")[:-1]) + ".x" for entry in release_manifest[package_name]
+                ".".join(entry.split(".")[:-2]) + ".x" for entry in release_manifest[package_name]
             ]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
@@ -1068,15 +1074,21 @@ def test_core_package_version(image):
     violation_data = {}
 
     for package_name, specs in core_packages.items():
+        package_name = package_name.lower()
+        installed_version = None
         if package_name not in installed_package_version_dict:
             violation_data[
                 package_name
             ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
-        installed_version = Version(installed_package_version_dict[package_name])
-        if installed_version not in SpecifierSet(specs.get("version_specifier")):
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        else:
+            installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version and installed_version not in SpecifierSet(
+            specs.get("version_specifier")
+        ):
+            violation_data[package_name] = (
+                f"Package: {package_name} version {installed_version} does not match "
+                f"requirement {specs.get('version_specifier')}"
+            )
 
     stop_and_remove_container(container_name, ctx)
     assert (

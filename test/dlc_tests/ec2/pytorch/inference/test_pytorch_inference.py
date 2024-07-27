@@ -1,8 +1,6 @@
 import os
 import sys
-import time
 import logging
-from datetime import date, timedelta, datetime
 
 import pytest
 from packaging.version import Version
@@ -14,7 +12,8 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     get_inference_server_type,
-    get_cuda_version_from_tag,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     get_ec2_instance_type,
@@ -22,7 +21,6 @@ from test.test_utils.ec2 import (
     get_ec2_accelerator_type,
 )
 from test.dlc_tests.conftest import LOGGER
-import boto3
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -59,6 +57,53 @@ PT_TELEMETRY_CMD = os.path.join(
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
+def test_ec2_pytorch_inference_gpu_deep_canary(
+    pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
+        pytest.skip(
+            f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}"
+        )
+    ec2_pytorch_inference(pytorch_inference, "gpu", ec2_connection, region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
+@pytest.mark.team("conda")
+def test_ec2_pytorch_inference_cpu_deep_canary(pytorch_inference, ec2_connection, region, cpu_only):
+    ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_pytorch_inference_graviton_cpu_deep_canary(
+    pytorch_inference_graviton, ec2_connection, region, cpu_only
+):
+    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -221,11 +266,11 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     processor_is_neuron = "neuron" in processor
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
 
     if processor_is_neuron:
         docker_run_cmd = (
-            f"{docker_cmd} run -itd --name {container_name}"
+            f"docker run {docker_runtime} -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" --device=/dev/neuron0 --cap-add IPC_LOCK"
             f" --env NEURON_MONITOR_CW_REGION={region}"
@@ -233,12 +278,13 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -itd --name {container_name}"
+            f"docker run {docker_runtime} -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" {image_uri} {inference_cmd}"
         )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = get_account_id_from_image_uri(image_uri)
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)

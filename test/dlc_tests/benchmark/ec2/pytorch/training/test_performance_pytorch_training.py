@@ -10,6 +10,8 @@ from test.test_utils import (
     DEFAULT_REGION,
     get_framework_and_version_from_tag,
     is_pr_context,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_performance_test,
@@ -142,16 +144,17 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
 
     # Make sure we are logged into ECR so we can pull the image
-    connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
     # Do not add -q to docker pull as it leads to a hang for huge images like trcomp
-    connection.run(f"nvidia-docker pull {ecr_uri}")
+    connection.run(f"docker pull {ecr_uri}")
     timestamp = time.strftime("%Y-%m-%d-%H-%M-%S")
     log_name = f"imagenet_{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION')}_{timestamp}.txt"
     log_location = os.path.join(container_test_local_dir, "benchmark", "logs", log_name)
     # Run training command, display benchmark results to console
     try:
         connection.run(
-            f"nvidia-docker run --user root "
+            f"docker run --runtime=nvidia --gpus all --user root "
             f"-e LOG_FILE={os.path.join(os.sep, 'test', 'benchmark', 'logs', log_name)} "
             f"-e PR_CONTEXT={1 if is_pr_context() else 0} "
             f"--shm-size 8G --env OMP_NUM_THREADS=1 --name {container_name} "
@@ -173,7 +176,8 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
 
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
-    last_lines = connection.run(f"tail -n 20 {log_location}").stdout.split("\n")
+    line_to_read = 50  # increase this number if throughput is not in scope
+    last_lines = connection.run(f"tail -n {line_to_read} {log_location}").stdout.split("\n")
     throughput = 0
     for line in reversed(last_lines):
         if "__results.throughput__" in line:

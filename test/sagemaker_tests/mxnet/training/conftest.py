@@ -153,7 +153,7 @@ def tag(request, framework_version, processor, py_version):
 @pytest.fixture(scope="session")
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c4.xlarge" if processor == "cpu" else "ml.p2.xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 

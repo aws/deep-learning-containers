@@ -84,7 +84,7 @@ def get_impacted_os_packages(image_uri, python_version=None):
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         image_uri,
         python_version=python_version,
-        minimum_sev_threshold="LOW",
+        minimum_sev_threshold="UNDEFINED",
         allowlist_removal_enabled=False,
     )
     impacted_packages = set()
@@ -120,7 +120,8 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
-        container_setup_cmd = "apt-get update"
+        ## Update key in case nginx exists
+        container_setup_cmd = """bash -c 'VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && if [ "$VARIABLE" != 0 ]; then echo "Nginx exists, thus upgrade" && curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg; fi && apt-get update'"""
         run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
         save_file_name = "os_summary.json"
         script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""

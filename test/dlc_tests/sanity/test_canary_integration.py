@@ -61,7 +61,8 @@ def _run_canary_pull_test(region, image_type):
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.skipif(
-    not is_deep_canary_context(), reason="This test only needs to run in deep-canary context"
+    not is_deep_canary_context() or os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context",
 )
 @pytest.mark.deep_canary(
     "Reason: This test acts as a basic smoke check that deep-canary tests work in a region"
