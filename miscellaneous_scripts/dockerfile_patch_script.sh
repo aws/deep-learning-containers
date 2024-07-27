@@ -27,6 +27,13 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
+
+# For PT 2.1, 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
+# Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[1-3]\.[0-9]+-cpu ]]; then
+    conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
+fi
+
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
@@ -44,6 +51,14 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
 fi
 
 pip cache purge
+
+## Update GPG key in case Nginx exists
+VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && \
+if [ $VARIABLE != 0 ]; then \
+    echo "Nginx exists, thus upgrade" && \
+    curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && \
+    apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg;
+fi
 
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_os.sh

@@ -77,6 +77,13 @@ def filter_only_single_gpu(instance_type_list):
     return filtered_list
 
 
+def filter_no_t32x(instance_type_list):
+    filtered_list = [
+        instance_type for instance_type in instance_type_list if instance_type != "t3.2xlarge"
+    ]
+    return filtered_list
+
+
 def is_instance_single_gpu(instance_type):
     return get_instance_num_gpus(instance_type=instance_type) == 1
 
