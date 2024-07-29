@@ -120,7 +120,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip --no-cache-dir install --upgrade setuptools
+ && pip --no-cache-dir install --upgrade setuptools \
+ && pip install ninja==1.11.1.git.kitware.jobserver-1
 
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
