@@ -8,6 +8,10 @@
 ### Description
 
 ### Tests run
+
+**NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
+- [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
+
 <details>
 <summary>Confused on how to run tests? Try using the helper utility...</summary>
 
@@ -25,10 +29,6 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
 
 `python src/prepare_dlc_dev_environment.py -rcp origin`
 </details>
-
-
-**NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
-- [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
 
 **NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
 <details>

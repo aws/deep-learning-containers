@@ -4,6 +4,8 @@ import os
 import argparse
 import tensorflow as tf
 from tensorflow import keras
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 def run_training(model_save_folder_path=os.path.join("script_folder", "models")):
@@ -38,7 +40,18 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
 
     # Save model in the saved_model format
     SAVED_MODEL_DIR = os.path.join(model_save_folder_path, "native_saved_model")
-    model.save(SAVED_MODEL_DIR)
+    ## Versions of TF >= 2.16 come along with Keras 3. Model.save() API of keras 3 has significant differences with that of keras 2.
+    ## Consequently, we continue to use save() for keras < 3 and shift to export for keras >= 3.
+    ## Please refer to the following link for more details: https://keras.io/guides/migrating_to_keras_3/
+    try:
+        model.export(SAVED_MODEL_DIR) if Version(keras.version()) in SpecifierSet(
+            ">=3"
+        ) else model.save(SAVED_MODEL_DIR)
+    except AttributeError as e:
+        if "module 'keras.api._v2.keras' has no attribute 'version'" == f"{e}":
+            model.save(SAVED_MODEL_DIR)
+        else:
+            raise
 
     from tensorflow.python.compiler.tensorrt import trt_convert as trt
 

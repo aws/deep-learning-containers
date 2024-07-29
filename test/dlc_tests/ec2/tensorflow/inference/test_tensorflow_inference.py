@@ -44,12 +44,11 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_deep_canary(
-    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    tensorflow_inference, ec2_connection, region, gpu_only
 ):
-    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
-        pytest.skip(
-            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
-        )
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -65,6 +64,9 @@ def test_ec2_tensorflow_inference_gpu_deep_canary(
 def test_ec2_tensorflow_inference_cpu_deep_canary(
     tensorflow_inference, ec2_connection, region, cpu_only
 ):
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
@@ -98,7 +100,6 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     indirect=True,
 )
 @pytest.mark.team("neuron")
-# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
@@ -362,6 +363,12 @@ def host_setup_for_tensorflow_inference(
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+
+        # If framework_version is only major.minor, then append .* for tensorflow-serving-api installation
+        tfs_api_version = framework_version
+        if re.fullmatch(r"\d+\.\d+", tfs_api_version):
+            tfs_api_version += ".*"
+
         # Removed the protobuf version constraint because it prevents the matching version
         # of tensorflow and tensorflow-serving-api from being installed.
         # If we face protobuf-related version mismatch issues in the future,
@@ -370,7 +377,7 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
-                f"'tensorflow-serving-api=={framework_version}'"
+                f"'tensorflow-serving-api=={tfs_api_version}'"
             ),
             hide=True,
         )
