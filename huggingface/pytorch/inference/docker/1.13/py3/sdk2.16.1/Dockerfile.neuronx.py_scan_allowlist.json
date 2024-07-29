@@ -1,0 +1,5 @@
+{
+    "71670": "ignore since it requires a functional change",
+    "71601": "Transformers version upgrade needs to be handled in a separate image",
+    "72089": "nltk"
+}
