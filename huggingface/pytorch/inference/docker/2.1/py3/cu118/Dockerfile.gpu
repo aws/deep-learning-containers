@@ -95,8 +95,6 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
-    # ninja is needed for apex to speed up the build
-    ninja-build \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -145,8 +143,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir -U setuptools wheel
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
