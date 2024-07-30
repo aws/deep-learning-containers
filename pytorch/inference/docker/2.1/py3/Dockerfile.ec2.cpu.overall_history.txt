@@ -1,0 +1,26 @@
+#### First image: sha256:cceacbf94d3b7cf9aa5430eca9b79d74e3a472fb19a8346c34a220e0d9298ab8 ####
+#### Patch contents for patch-1: sha256:33d524448306ca2314c6a638c8d3adb3be8d5e6f0541187d01c7dafdd5880e1b ####
+pip install requests==2.32.2 
+python -m pip install --upgrade pip
+echo N/A
+#### Patch contents for patch-2: sha256:004a8ee508662666fb300d06643e57764ec74dcc81c1c8fe1aa5128ff4f8d838 ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git
+#### Patch contents for patch-3: sha256:a80ec1aeb43c304db160332c574fb1dc279013406471c4f19b8fb60662f97c4e ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-4: sha256:a97f4f105a53793ca15e7981cbd7c8e1bf73d4b20de375d2443764207dc5f5db ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-5: sha256:27d184c51018903518bc7f94440180f5bb51643d5a89c0b7319b35a983113a52 ####
+pip install requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-6: sha256:4d1ec567b8cf9d28a4c639b2c338ea806f300c6a5f91c1625a466b31efe4f3b7 ####
+pip install requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-7: sha256:5885d5ffee84b0391a4723a9ad07b5145fc27842d7208a47074e5a9bbe6c52ce ####
+pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Current Patch contents ####
+pip install cryptography==42.0.8 requests==2.32.3 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget

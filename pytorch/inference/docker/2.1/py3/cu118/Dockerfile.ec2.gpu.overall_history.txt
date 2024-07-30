@@ -1,0 +1,26 @@
+#### First image: sha256:bdf9ef797758ed8d46fe52ee94fa98188c86d6f3502c700aff9366956659c72a ####
+#### Patch contents for patch-1: sha256:0ffa020fd08de11e6e496ebaa51f948d5e1a3e3de71234b49cf526a0082c0cca ####
+pip install requests==2.32.2 triton==2.1.0 
+python -m pip install --upgrade pip
+echo N/A
+#### Patch contents for patch-2: sha256:87a0f1692ef0a88fbc8ded1b7fbfead49cebd06c2cecee05bc84543c2c6c59a0 ####
+pip install requests==2.32.3 triton==2.1.0
+apt-get update && apt-get install -y --only-upgrade git-man git
+#### Patch contents for patch-3: sha256:dac6a937e2c502443c29d46938581a0c3f3f43da4727a653ecb9dc1116923ad5 ####
+pip install requests==2.32.3 triton==2.1.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-4: sha256:03ff4c3dd1c4dc6741cce2d63a7e44e7b00124858f48f549b7b5a7dc0c5ea188 ####
+pip install requests==2.32.3 triton==2.1.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-5: sha256:f09118c01a037866a3f8011c17665a680ab3d65c93ad0b496df997eb4ea60cce ####
+pip install requests==2.32.3 triton==2.1.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-6: sha256:f2f6446ed96505c50b1c18dc76091fb54949c6393e06704f72d658147dad1ebe ####
+pip install requests==2.32.3 triton==2.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-7: sha256:3f5ddadcd01b0a932d40eebd50a507626e8cae5ecf3fcdaebb3cd462b01cdc35 ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Current Patch contents ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
