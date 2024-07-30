@@ -74,6 +74,8 @@ RUN apt-get update \
     libxrender-dev \
     linux-libc-dev \
     zlib1g-dev \
+    # ninja is needed for apex to speed up the build
+    ninja-build \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
