@@ -3,7 +3,6 @@ FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.0.1-gpu-py
 LABEL dlc_major_version="1"
 ARG PYTHON=python3
 ARG XFORMERS_VERSION=0.0.20
-
 # Resolve CVE
 RUN apt-get update \
   && apt-mark hold libcudnn8 \
@@ -31,18 +30,25 @@ RUN pip install --no-cache-dir -U \
     "awscli>=1.29.15" \
     "boto3>=1.28.15" \
     "certifi>=2023.07.22" \
-    "pyopenssl>=23.2.0" \
-    "cryptography>=41.0.2" \
+    "pyopenssl>=24.2.1" \
+    "cryptography>=42.0.6" \
     "transformers>=4.23.0"
 
 # Resolve CVE
 RUN pip install --no-cache-dir -U \
     werkzeug \
-    # Upper limit restriction by boto3
-    urllib3==2.0.7 \
+    "urllib3>2.0.7" \
     opencv-python \
-    pyarrow
-  
+    pyarrow \
+    "setuptools>=70.0.0" \
+    "Pillow>=10.2.0" \
+    "jinja2>3.1.3" \
+    "black>=24.3.0" \
+    "idna>=3.7" \
+    "scikit-learn>=1.5.0" \
+    "requests>=2.32.2" \
+    "torchserve>=0.9.0" 
+
 # Configure Torchserve for large model loading
 ENV TS_DEFAULT_RESPONSE_TIMEOUT=1000
 
