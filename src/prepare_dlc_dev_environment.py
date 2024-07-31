@@ -34,6 +34,12 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
+BUILDSPEC_PATTERN = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
+
+CURRENCY_BUILDSPEC_PATTERN = (
+    r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
+)
+
 
 def restore_default_toml(toml_path):
     """
@@ -95,6 +101,11 @@ def get_args():
         "-n",
         action="store_true",
         help="Create a currency buildspec and update toml",
+    )
+    parser.add_argument(
+        "-o",
+        action="store_true",
+        help="Comments out autopatch_build and uncomments build_tag_override in buildspec",
     )
     return parser.parse_args()
 
@@ -168,23 +179,15 @@ class TomlOverrider:
 
         invalid_paths = []
 
-        # define the expected file path syntax:
-        # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
-
         for buildspec_path in buildspec_paths:
             # validate the buildspec_path format
-            match = re.match(buildspec_pattern, buildspec_path)
-            if not match or not os.path.exists(
-                os.path.join(get_cloned_folder_path(), buildspec_path)
-            ):
-                LOGGER.warning(
-                    f"WARNING! {buildspec_path} does not exist. Moving on to the next one..."
-                )
+            full_path = validate_buildspec_path(buildspec_path)
+            if not full_path:
                 invalid_paths.append(buildspec_path)
                 continue
 
             # extract the framework, job_type, and version from the buildspec_path
+            match = re.match(BUILDSPEC_PATTERN, buildspec_path)
             framework = match.group(1).replace("/", "_")
             frameworks.append(framework)
             framework_str = (
@@ -209,7 +212,7 @@ class TomlOverrider:
 
         if invalid_paths:
             raise RuntimeError(
-                f"Found buildspecs that either do not match regex {buildspec_pattern} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
+                f"Found buildspecs that either do not match regex {BUILDSPEC_PATTERN} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
             )
 
         if len(set(dev_modes)) > 1:
@@ -224,6 +227,24 @@ class TomlOverrider:
     @property
     def overrides(self):
         return self._overrides
+
+
+def validate_buildspec_path(buildspec_path):
+    """
+    Validate the buildspec path format using the provided regular expression pattern.
+    Returns the full path if the path is valid, None otherwise.
+    """
+    match = re.match(BUILDSPEC_PATTERN, buildspec_path)
+    if not match:
+        LOGGER.warning(f"WARNING! {buildspec_path} is not a valid buildspec path. Skipping...")
+        return None
+
+    full_path = os.path.join(get_cloned_folder_path(), buildspec_path)
+    if not os.path.exists(full_path):
+        LOGGER.warning(f"WARNING! {buildspec_path} does not exist. Skipping...")
+        return None
+
+    return full_path
 
 
 def write_toml(toml_path, overrides):
@@ -525,6 +546,40 @@ def create_docker_file(docker_file_path):
         LOGGER.warning(f"WARNING: Failed to create {docker_file_path}. Error: {e}")
 
 
+def override_existing_buildspec(buildspec_path, override_tags):
+    """
+    Override the autopatch_build and build_tag_override tags in an existing buildspec file.
+    """
+    full_path = validate_buildspec_path(buildspec_path)
+    if not full_path:
+        return
+
+    with open(full_path, "r") as file:
+        content = file.readlines()
+
+    updated_content = []
+    for line in content:
+        if line.strip().startswith("autopatch_build"):
+            if override_tags:
+                updated_content.append(f"# {line}")
+            else:
+                updated_content.append(line)
+        elif line.strip().startswith("# build_tag_override:"):
+            if override_tags:
+                build_tag_parts = line.strip().split('"')
+                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
+                updated_content.append(f"    {build_tag_handle}:{old_version_and_rest}\n")
+            else:
+                updated_content.append(line)
+        else:
+            updated_content.append(line)
+
+    with open(full_path, "w") as file:
+        file.writelines(updated_content)
+
+    LOGGER.info(f"Updated {buildspec_path}")
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -534,6 +589,7 @@ def main():
     to_commit = args.commit
     to_push = args.push
     is_currency = args.n
+    override_tags = args.o
 
     # Update to require 1 of 3 options
     if not buildspec_paths and not restore:
@@ -559,6 +615,10 @@ def main():
     if is_currency:
         handle_currency_option(buildspec_paths)
         create_dockerfile_paths(buildspec_paths)
+
+    if override_tags:
+        for buildspec_path in buildspec_paths:
+            override_existing_buildspec(buildspec_path, override_tags)
 
     # handle frameworks to build
     if buildspec_paths:
