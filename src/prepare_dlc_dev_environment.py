@@ -264,12 +264,25 @@ def write_toml(toml_path, overrides):
             toml_file_writer.write(f"{line}\n")
 
 
-def commit_and_push_changes(changes, remote_push=None, restore=False):
+def commit_and_push_changes(
+    changes, remote_push=None, restore=False, new_currency=False, override_tags=False
+):
     dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
     update_or_restore = "Restore" if restore else "Update"
-    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
-    for file_name, overrides in changes.items():
-        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
+    commit_message = f"{update_or_restore}:\n"
+    for file_name, action in changes.items():
+        relative_path = file_name.split("deep-learning-containers/")[-1]
+        if isinstance(action, dict):
+            commit_message += f"\n{relative_path}\n{pprint.pformat(action, indent=4)}"
+        elif restore:
+            commit_message += f"- {relative_path} restored to default\n"
+        elif new_currency:
+            commit_message += (
+                f"- New directory, dockerfiles and buildspec file created for {relative_path}\n"
+            )
+        elif override_tags:
+            commit_message += f"- {relative_path} tags overridden\n"
+    for file_name in changes:
         dlc_repo.git.add(file_name)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Committed change\n{commit_message}")
@@ -686,8 +699,35 @@ def main():
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
+
+    changes = {}
+    if restore:
+        changes.update(handle_restore_option(toml_path, buildspec_paths, False, None))
+    if is_currency:
+        changes.update(
+            {
+                os.path.join(get_cloned_folder_path(), path): "new_currency"
+                for path in buildspec_paths
+            }
+        )
+    if override_tags:
+        changes.update(
+            {
+                os.path.join(get_cloned_folder_path(), path): "override_tags"
+                for path in buildspec_paths
+            }
+        )
+    if overrider.overrides:
+        changes[toml_path] = overrider.overrides
+
     if to_commit:
-        commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        commit_and_push_changes(
+            changes,
+            remote_push=to_push,
+            restore=restore,
+            new_currency=is_currency,
+            override_tags=override_tags,
+        )
 
 
 if __name__ == "__main__":
