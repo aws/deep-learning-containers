@@ -40,7 +40,7 @@ RUN pip install --no-cache-dir \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION} \
 	multiprocess==${MULTIPROCESS_VERSION} \
-	dill==${DILL_VERSION} \
+	dill==${DILL_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
