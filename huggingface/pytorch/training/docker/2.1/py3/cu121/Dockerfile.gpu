@@ -23,7 +23,8 @@ ARG PYTHON=python3
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
- && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow
+ && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
+ && pip --no-cache-dir install --upgrade wheel setuptools
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
@@ -39,7 +40,7 @@ RUN pip install --no-cache-dir \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION} \
 	multiprocess==${MULTIPROCESS_VERSION} \
-	dill==${DILL_VERSION}
+	dill==${DILL_VERSION} \
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
