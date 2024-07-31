@@ -80,7 +80,7 @@ def get_args():
         "-r",
         "--restore",
         action="store_true",
-        help="Restore the TOML file to its default state",
+        help="Restore the TOML file and provided buildspec files to their original state",
     )
     parser.add_argument(
         "-c",
@@ -604,6 +604,48 @@ def handle_build_tag_override_line(line, override_tags):
     return line
 
 
+def restore_buildspec(buildspec_path):
+    """
+    Restore the provided buildspec file to its original state from the deep-learning-containers repository.
+    """
+    repo_url = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/"
+    original_path = os.path.join(repo_url, buildspec_path)
+
+    try:
+        response = requests.get(original_path)
+        response.raise_for_status()
+
+        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "w") as target_file:
+            target_file.write(response.text)
+
+        LOGGER.info(
+            f"Restored {buildspec_path} to its original state from the deep-learning-containers repository."
+        )
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
+
+
+def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
+    """
+    Handle the restore option for the TOML file and provided buildspec files.
+    """
+    changes = {}
+
+    if buildspec_paths:
+        for buildspec_path in buildspec_paths:
+            restore_buildspec(buildspec_path)
+            changes[
+                os.path.join(get_cloned_folder_path(), buildspec_path)
+            ] = "Restored to original state"
+
+    if not buildspec_paths or toml_path not in changes:
+        restore_default_toml(toml_path)
+        changes[toml_path] = f"Restore to {DEFAULT_TOML_URL}"
+
+    if to_commit:
+        commit_and_push_changes(changes, remote_push=to_push, restore=True)
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -615,22 +657,15 @@ def main():
     is_currency = args.n
     override_tags = args.o
 
-    # Update to require 1 of 3 options
+    # Update to require 1 of 2 options
     if not buildspec_paths and not restore:
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
 
     restore_default_toml(toml_path)
 
-    # In case of -rc used
     if restore:
-        LOGGER.debug(
-            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
-        )
-        if to_commit:
-            commit_and_push_changes(
-                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
-            )
+        handle_restore_option(toml_path, buildspec_paths, to_commit, to_push)
         return
 
     overrider = TomlOverrider()
