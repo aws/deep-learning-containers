@@ -36,10 +36,6 @@ DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containe
 
 BUILDSPEC_PATTERN = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
 
-CURRENCY_BUILDSPEC_PATTERN = (
-    r"^(?:(\w+)/)?(\w+)/(training|inference)/buildspec(?:-(\w+))?-(\d+)-(\d+)(?:-(.+))?\.yml$"
-)
-
 
 def restore_default_toml(toml_path):
     """
