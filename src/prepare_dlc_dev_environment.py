@@ -552,27 +552,56 @@ def override_existing_buildspec(buildspec_path, override_tags):
     with open(full_path, "r") as file:
         content = file.readlines()
 
+    autopatch_build_found = False
+    build_tag_override_found = False
     updated_content = []
+
     for line in content:
         if line.strip().startswith("autopatch_build"):
-            if override_tags:
-                updated_content.append(f"# {line}")
-            else:
-                updated_content.append(line)
+            autopatch_build_found = True
+            updated_line = handle_autopatch_build_line(line, override_tags)
         elif line.strip().startswith("# build_tag_override:"):
-            if override_tags:
-                build_tag_parts = line.strip().split('"')
-                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
-                updated_content.append(f"    {build_tag_handle}:{old_version_and_rest}\n")
-            else:
-                updated_content.append(line)
+            build_tag_override_found = True
+            updated_line = handle_build_tag_override_line(line, override_tags)
         else:
-            updated_content.append(line)
+            updated_line = line
 
-    with open(full_path, "w") as file:
-        file.writelines(updated_content)
+        updated_content.append(updated_line)
 
-    LOGGER.info(f"Updated {buildspec_path}")
+    if not autopatch_build_found and override_tags:
+        LOGGER.warning(f"WARNING: No autopatch_build tag found in {buildspec_path}")
+
+    if not build_tag_override_found and override_tags:
+        LOGGER.warning(f"WARNING: No build_tag_override tag found in {buildspec_path}")
+
+    if autopatch_build_found or build_tag_override_found:
+        with open(full_path, "w") as file:
+            file.writelines(updated_content)
+        LOGGER.info(f"Updated {buildspec_path}")
+    else:
+        LOGGER.warning(
+            f"WARNING: Neither autopatch_build nor build_tag_override tags found in {buildspec_path}"
+        )
+
+
+def handle_autopatch_build_line(line, override_tags):
+    """
+    Handle the autopatch_build line based on the override_tags value.
+    """
+    if override_tags:
+        return f"# {line}"
+    return line
+
+
+def handle_build_tag_override_line(line, override_tags):
+    """
+    Handle the build_tag_override line based on the override_tags value.
+    """
+    if override_tags:
+        build_tag_parts = line.strip().split('"')
+        build_tag_handle, rest_of_line = build_tag_parts[1].split(":", 1)
+        return f"    {build_tag_handle}:{rest_of_line}\n"
+    return line
 
 
 def main():
