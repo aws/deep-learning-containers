@@ -231,13 +231,12 @@ def validate_buildspec_path(buildspec_path):
     Returns the full path if the path is valid, None otherwise.
     """
     match = re.match(BUILDSPEC_PATTERN, buildspec_path)
-    if not match:
-        LOGGER.warning(f"WARNING! {buildspec_path} is not a valid buildspec path. Skipping...")
-        return None
-
     full_path = os.path.join(get_cloned_folder_path(), buildspec_path)
-    if not os.path.exists(full_path):
-        LOGGER.warning(f"WARNING! {buildspec_path} does not exist. Skipping...")
+
+    if not match or not os.path.exists(full_path):
+        LOGGER.warning(
+            f"WARNING! {buildspec_path} is not a valid buildspec path or does not exist. Skipping..."
+        )
         return None
 
     return full_path
