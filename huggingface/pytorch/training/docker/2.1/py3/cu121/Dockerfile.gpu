@@ -18,6 +18,7 @@ ARG PEFT_VERSION=0.7.1
 ARG FLASH_ATTN_VERSION=2.3.6
 ARG MULTIPROCESS_VERSION=0.70.16
 ARG DILL_VERSION=0.3.8
+ARG NINJA_VERSION=1.11.1
 ARG PYTHON=python3
 ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-14-20-14/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
 
@@ -25,7 +26,8 @@ ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-we
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
- && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow
+ && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
+ && pip --no-cache-dir install --upgrade wheel setuptools
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
@@ -41,7 +43,8 @@ RUN pip install --no-cache-dir \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION} \
 	multiprocess==${MULTIPROCESS_VERSION} \
-	dill==${DILL_VERSION}
+	dill==${DILL_VERSION} \
+    ninja==${NINJA_VERSION}
 
 # Install SM Distributed Modelparallel binary
 RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
