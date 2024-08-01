@@ -119,8 +119,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip --no-cache-dir install --upgrade setuptools
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
@@ -132,7 +131,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
     "urllib3>=1.26.18,<2" \
-    "idna>=3.7"
+    "idna>=3.7" \
+    ninja==1.11.1
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # is CPU image, removing nvgpu
