@@ -264,25 +264,12 @@ def write_toml(toml_path, overrides):
             toml_file_writer.write(f"{line}\n")
 
 
-def commit_and_push_changes(
-    changes, remote_push=None, restore=False, new_currency=False, override_tags=False
-):
+def commit_and_push_changes(changes, remote_push=None, restore=False):
     dlc_repo = git.Repo(os.getcwd(), search_parent_directories=True)
     update_or_restore = "Restore" if restore else "Update"
-    commit_message = f"{update_or_restore}:\n"
-    for file_name, action in changes.items():
-        relative_path = file_name.split("deep-learning-containers/")[-1]
-        if isinstance(action, dict):
-            commit_message += f"\n{relative_path}\n{pprint.pformat(action, indent=4)}"
-        elif restore:
-            commit_message += f"- {relative_path} restored to default\n"
-        elif new_currency:
-            commit_message += (
-                f"- New directory, dockerfiles and buildspec files created for {relative_path}\n"
-            )
-        elif override_tags:
-            commit_message += f"- {relative_path} tags overridden\n"
-    for file_name in changes:
+    commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
+    for file_name, overrides in changes.items():
+        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}:\n{pprint.pformat(overrides, indent=4)}\n"
         dlc_repo.git.add(file_name)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Committed change\n{commit_message}")
@@ -491,6 +478,7 @@ def validate_currency_path(currency_path):
 
 
 def create_dockerfile_paths(buildspec_paths):
+    dockerfile_paths = []
     for buildspec_path in buildspec_paths:
         buildspec_dir = os.path.dirname(buildspec_path)
         with open(os.path.join(get_cloned_folder_path(), buildspec_path), "r") as buildspec_file:
@@ -519,6 +507,9 @@ def create_dockerfile_paths(buildspec_paths):
                     line, buildspec_dir, short_version, python_version, cuda_version, device_type
                 )
                 create_docker_file(docker_file_path)
+                dockerfile_paths.append(str(docker_file_path))
+
+    return dockerfile_paths
 
 
 def evaluate_docker_file_path(
@@ -637,6 +628,8 @@ def restore_buildspec(buildspec_path):
     except requests.exceptions.RequestException as e:
         LOGGER.error(f"Error restoring {buildspec_path}: {e}")
 
+    return original_path
+
 
 def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
     """
@@ -646,10 +639,10 @@ def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
 
     if buildspec_paths:
         for buildspec_path in buildspec_paths:
-            restore_buildspec(buildspec_path)
+            orig_buildspec = restore_buildspec(buildspec_path)
             changes[
                 os.path.join(get_cloned_folder_path(), buildspec_path)
-            ] = "Restored to original state"
+            ] = f"Restored {buildspec_path} to {orig_buildspec}"
 
     if not buildspec_paths or toml_path not in changes:
         restore_default_toml(toml_path)
@@ -683,14 +676,19 @@ def main():
 
     overrider = TomlOverrider()
 
+    changes = {}
+
     # Handle the -n option
     if is_currency:
         handle_currency_option(buildspec_paths)
-        create_dockerfile_paths(buildspec_paths)
+        df_paths = create_dockerfile_paths(buildspec_paths)
+        changes.update({df_path: "Created new dockerfile" for df_path in df_paths})
+        changes.update({bp: "Created new buildspec file" for bp in buildspec_paths})
 
     if override_tags:
         for buildspec_path in buildspec_paths:
             override_existing_buildspec(buildspec_path, override_tags)
+            changes.update({bp: "Overrode tags on buildspec file" for bp in buildspec_paths})
 
     # handle frameworks to build
     if buildspec_paths:
@@ -700,33 +698,12 @@ def main():
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
 
-    changes = {}
-    if restore:
-        changes.update(handle_restore_option(toml_path, buildspec_paths, False, None))
-    if is_currency:
-        changes.update(
-            {
-                os.path.join(get_cloned_folder_path(), path): "new_currency"
-                for path in buildspec_paths
-            }
-        )
-    if override_tags:
-        changes.update(
-            {
-                os.path.join(get_cloned_folder_path(), path): "override_tags"
-                for path in buildspec_paths
-            }
-        )
-    if overrider.overrides:
-        changes[toml_path] = overrider.overrides
-
     if to_commit:
+        changes[toml_path] = overrider.overrides
         commit_and_push_changes(
             changes,
             remote_push=to_push,
             restore=restore,
-            new_currency=is_currency,
-            override_tags=override_tags,
         )
 
 
