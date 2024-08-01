@@ -278,7 +278,7 @@ def commit_and_push_changes(
             commit_message += f"- {relative_path} restored to default\n"
         elif new_currency:
             commit_message += (
-                f"- New directory, dockerfiles and buildspec file created for {relative_path}\n"
+                f"- New directory, dockerfiles and buildspec files created for {relative_path}\n"
             )
         elif override_tags:
             commit_message += f"- {relative_path} tags overridden\n"
