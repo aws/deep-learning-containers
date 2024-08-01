@@ -688,7 +688,7 @@ def main():
     if override_tags:
         for buildspec_path in buildspec_paths:
             override_existing_buildspec(buildspec_path, override_tags)
-            changes.update({bp: "Overrode tags on buildspec file" for bp in buildspec_paths})
+        changes.update({bp: "Overrode tags on buildspec file" for bp in buildspec_paths})
 
     # handle frameworks to build
     if buildspec_paths:
