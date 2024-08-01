@@ -19,6 +19,8 @@ ARG FLASH_ATTN_VERSION=2.3.6
 ARG MULTIPROCESS_VERSION=0.70.16
 ARG DILL_VERSION=0.3.8
 ARG PYTHON=python3
+ARG SMD_MODEL_PARALLEL_URL=https://sagemaker-distributed-model-parallel.s3.us-west-2.amazonaws.com/pytorch-2.0.0/build-artifacts/2023-04-14-20-14/smdistributed_modelparallel-1.15.0-cp310-cp310-linux_x86_64.whl
+
 
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
@@ -41,6 +43,9 @@ RUN pip install --no-cache-dir \
 	multiprocess==${MULTIPROCESS_VERSION} \
 	dill==${DILL_VERSION}
 
+# Install SM Distributed Modelparallel binary
+RUN pip install --no-cache-dir -U ${SMD_MODEL_PARALLEL_URL}
+
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
@@ -56,3 +61,4 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+
