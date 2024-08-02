@@ -76,7 +76,7 @@ HOME_DIR=/root \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
     && chmod +x /usr/local/bin/testOSSCompliance \
     && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
     && rm -rf ${HOME_DIR}/oss_compliance*
 
 rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts

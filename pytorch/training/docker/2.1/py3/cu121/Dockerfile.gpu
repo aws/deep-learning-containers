@@ -241,7 +241,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* cuda-version=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
