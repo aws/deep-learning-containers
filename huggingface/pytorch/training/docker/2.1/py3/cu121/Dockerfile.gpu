@@ -31,7 +31,7 @@ RUN pip install --upgrade pip \
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
 	Jinja2 \
