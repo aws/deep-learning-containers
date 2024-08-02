@@ -125,6 +125,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "numpy>=1.22.2, <=1.25.2" \
     scikit-learn \
+    "requests >= 2.29.0" \
     cryptography \
     "opencv-python>=4.8.1.78"
 
