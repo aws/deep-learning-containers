@@ -32,7 +32,16 @@ import sagemaker
 import re
 
 # configuration for running training on smdistributed Data Parallel
-distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
+distribution = {
+    "smdistributed": {
+        "dataparallel": {
+            "enabled": True,
+        }
+    },
+    "torch_distributed": {
+        "enabled": True,
+    }
+}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
