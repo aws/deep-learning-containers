@@ -125,6 +125,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "numpy>=1.22.2, <=1.25.2" \
     scikit-learn \
+    "requests >= 2.29.0" \
     cryptography \
     "opencv-python>=4.8.1.78"
 
@@ -184,6 +185,7 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
  && rm -rf ${HOME_DIR}/.cache/conda
+ 
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]

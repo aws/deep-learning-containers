@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==0.21.0",
+    "version_specifier": "==0.33.0",
     "skip": "True"
   },
   "deepspeed": {
@@ -8,7 +8,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.11",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "flash-attn": {
@@ -32,8 +32,23 @@
     "skip": "True"
   },
   "triton": {
-    "version_specifier": "==2.0.0.dev20221202",
+    "version_specifier": "==2.1.0",
     "skip": "True"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
   },
   "pyopenssl": {
     "version_specifier": ">=24.0.0"

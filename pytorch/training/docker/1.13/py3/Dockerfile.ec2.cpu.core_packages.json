@@ -1,10 +1,10 @@
 {
   "accelerate": {
-    "version_specifier": "==0.16.0",
+    "version_specifier": "==0.33.0",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.10",
+    "version_specifier": "==2.7.15",
     "skip": "True"
   },
   "torchaudio": {
@@ -15,12 +15,31 @@
     "version_specifier": "==0.5.1",
     "skip": "True"
   },
+  "torchnet": {
+    "version_specifier": "==0.0.4",
+    "skip": "True"
+  },
   "torchvision": {
     "version_specifier": "==0.14.1+cpu",
     "skip": "True"
   },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
   "pyopenssl": {
-    "version_specifier": ">=24.0.0"
+    "version_specifier": ">=24.1.0"
   },
   "awscli": {
     "version_specifier": ">1.27,<2"
@@ -41,7 +60,7 @@
     "version_specifier": ">=5.9.4,<5.10"
   },
   "pyyaml": {
-    "version_specifier": ">=5.4,<5.5"
+    "version_specifier": ">=6.0.1"
   },
   "scipy": {
     "version_specifier": ">=1.11.1"
