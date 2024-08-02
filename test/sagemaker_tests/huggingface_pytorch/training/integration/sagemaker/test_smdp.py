@@ -33,11 +33,6 @@ import re
 
 # configuration for running training on smdistributed Data Parallel
 distribution = {
-    "smdistributed": {
-        "dataparallel": {
-            "enabled": True,
-        }
-    },
     "torch_distributed": {
         "enabled": True,
     }
