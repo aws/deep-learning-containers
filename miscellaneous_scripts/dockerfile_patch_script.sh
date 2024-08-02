@@ -78,7 +78,6 @@ HOME_DIR=/root \
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
     && chmod +x /usr/local/bin/testOSSCompliance \
-    && ech \
     && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
     && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
     && rm -rf ${HOME_DIR}/oss_compliance* || exit
