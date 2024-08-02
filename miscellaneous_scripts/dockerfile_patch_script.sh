@@ -73,6 +73,7 @@ python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-resul
 set -e
 
 HOME_DIR=/root \
+    && ech \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
