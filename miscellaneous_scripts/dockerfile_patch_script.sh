@@ -70,6 +70,8 @@ python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
 
 python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
+set -e
+
 HOME_DIR=/root \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
