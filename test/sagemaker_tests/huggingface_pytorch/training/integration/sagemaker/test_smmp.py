@@ -66,10 +66,12 @@ def get_transformers_version_from_image_uri(ecr_image):
         return transformers_version
     else:
         raise LookupError("HF transformers version not found in image URI")
-    
+
+
 def validate_or_skip_modelparallel(ecr_image):
     if not can_run_modelparallel(ecr_image):
         pytest.skip("Model Parallelism is supported on CUDA 11 with PyTorch v1.6 to v2.0")
+
 
 def can_run_modelparallel(ecr_image):
     image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
@@ -83,7 +85,9 @@ def can_run_modelparallel(ecr_image):
     framework_version = Version(image_framework_version)
     cuda_version = Version(image_cuda_version.strip("cu"))
 
-    return (Version("1.6") <= framework_version < Version("2.1")) and (cuda_version == Version("110"))
+    return (Version("1.6") <= framework_version < Version("2.1")) and (
+        cuda_version == Version("110")
+    )
 
 
 @pytest.mark.processor("gpu")
