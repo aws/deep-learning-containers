@@ -303,7 +303,9 @@ def test_tensorflow_addons_gpu(
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cpu_only, below_tf216_only):
+def test_tensorflow_addons_cpu(
+    tensorflow_training, ec2_connection, tf2_only, cpu_only, below_tf216_only
+):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
@@ -314,7 +316,12 @@ def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cp
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_io_s3_plugin_gpu(
-    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type, skip_tf216,
+    tensorflow_training,
+    ec2_connection,
+    tf2_only,
+    gpu_only,
+    ec2_instance_type,
+    skip_tf216,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -329,7 +336,9 @@ def test_tensorflow_io_s3_plugin_gpu(
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_io_s3_plugin_cpu(tensorflow_training, ec2_connection, tf2_only, cpu_only, skip_tf216):
+def test_tensorflow_io_s3_plugin_cpu(
+    tensorflow_training, ec2_connection, tf2_only, cpu_only, skip_tf216
+):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 

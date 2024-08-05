@@ -98,6 +98,7 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
         training_data_path="file://{}".format(os.path.join(RESOURCE_PATH, "mnist", "data")),
     )
 
+
 ## TF Estimator https://www.tensorflow.org/guide/estimator is only available for TF versions < 2.16,
 ## thus skipping the test for unsupported TF versions.
 @pytest.mark.processor("cpu")

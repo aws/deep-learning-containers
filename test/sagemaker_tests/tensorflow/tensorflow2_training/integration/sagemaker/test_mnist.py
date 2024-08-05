@@ -322,7 +322,9 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
-def test_hc_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only):
+def test_hc_s3_plugin(
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+):
     from sagemaker.instance_group import InstanceGroup
 
     instance_type = instance_type or "ml.c5.xlarge"
