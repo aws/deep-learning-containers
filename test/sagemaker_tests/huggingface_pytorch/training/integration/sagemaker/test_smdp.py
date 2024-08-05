@@ -134,9 +134,7 @@ def _test_smdp_question_answering_function(
     )
 
     distribution = (
-        sm_distribution
-        if Version(transformers_version) < Version("4.6")
-        else torch_distribution
+        sm_distribution if Version(transformers_version) < Version("4.6") else torch_distribution
     )
 
     with timeout(minutes=DEFAULT_TIMEOUT):
