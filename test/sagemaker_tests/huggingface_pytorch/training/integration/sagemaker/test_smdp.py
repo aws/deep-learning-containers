@@ -31,12 +31,14 @@ from ...integration.sagemaker.timeout import timeout
 import sagemaker
 import re
 
-# configuration for running training on smdistributed Data Parallel
-distribution = {
+# configurations for running training on smdistributed Data Parallel
+torch_distribution = {
     "torch_distributed": {
         "enabled": True,
     }
 }
+
+sm_distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
@@ -129,6 +131,12 @@ def _test_smdp_question_answering_function(
         "./examples/question-answering"
         if Version(transformers_version) < Version("4.6")
         else "./examples/pytorch/question-answering"
+    )
+
+    distribution = (
+        sm_distribution
+        if Version(transformers_version) < Version("4.6")
+        else torch_distribution
     )
 
     with timeout(minutes=DEFAULT_TIMEOUT):

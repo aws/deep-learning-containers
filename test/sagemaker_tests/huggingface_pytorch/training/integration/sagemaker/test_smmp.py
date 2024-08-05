@@ -85,9 +85,7 @@ def can_run_modelparallel(ecr_image):
     framework_version = Version(image_framework_version)
     cuda_version = Version(image_cuda_version.strip("cu"))
 
-    return (Version("1.6") <= framework_version < Version("2.1")) and (
-        cuda_version == Version("110")
-    )
+    return (framework_version < Version("2.1")) and (cuda_version == Version("110"))
 
 
 @pytest.mark.processor("gpu")
