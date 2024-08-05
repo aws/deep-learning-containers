@@ -70,7 +70,7 @@ def get_transformers_version_from_image_uri(ecr_image):
 
 def validate_or_skip_modelparallel(ecr_image):
     if not can_run_modelparallel(ecr_image):
-        pytest.skip("Model Parallelism is supported on CUDA 11 with PyTorch v1.6 to v2.0")
+        pytest.skip("Model Parallelism is supported on CUDA 11 with PyTorch < v2.0")
 
 
 def can_run_modelparallel(ecr_image):
