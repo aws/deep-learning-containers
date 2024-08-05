@@ -556,32 +556,30 @@ def override_existing_buildspec(buildspec_path):
     with open(full_path, "r") as file:
         content = file.readlines()
 
-    autopatch_build_found = False
-    build_tag_override_found = False
-    updated_content = []
+    build_tag_override_found = any("# build_tag_override:" in line for line in content)
 
-    for line in content:
-        if line.strip().startswith("autopatch_build"):
-            autopatch_build_found = True
-            updated_line = f"# {line}"
-        elif line.strip().startswith("# build_tag_override:"):
-            build_tag_override_found = True
-            updated_line = uncomment_build_tag_override_line(line)
-        else:
-            updated_line = line
+    if build_tag_override_found:
+        updated_content = []
+        autopatch_build_found = False
 
-        updated_content.append(updated_line)
+        for line in content:
+            if line.strip().startswith("# build_tag_override:"):
+                updated_line = uncomment_build_tag_override_line(line)
+            elif line.strip().startswith("autopatch_build"):
+                autopatch_build_found = True
+                updated_line = f"# {line}"
+            else:
+                updated_line = line
 
-    if not build_tag_override_found:
-        LOGGER.warning(f"WARNING: No build_tag_override tag found in {buildspec_path}")
+            updated_content.append(updated_line)
 
-    if autopatch_build_found or build_tag_override_found:
-        with open(full_path, "w") as file:
-            file.writelines(updated_content)
-        LOGGER.info(f"Updated {buildspec_path}")
+        if autopatch_build_found or build_tag_override_found:
+            with open(full_path, "w") as file:
+                file.writelines(updated_content)
+            LOGGER.info(f"Updated {buildspec_path}")
     else:
         LOGGER.warning(
-            f"WARNING: Neither autopatch_build nor build_tag_override tags found in {buildspec_path}"
+            f"WARNING: No build_tag_override tag found in {buildspec_path}, file will not be overridden"
         )
 
 
