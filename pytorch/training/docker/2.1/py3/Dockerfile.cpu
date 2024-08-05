@@ -192,6 +192,7 @@ ARG CONDA_CHANNEL
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
+  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
@@ -261,6 +262,7 @@ WORKDIR /
 RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_SM} \
   torchvision torchaudio torchtext cpuonly \
   --override-channels \
+  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
