@@ -29,7 +29,7 @@ RUN pip install --upgrade pip \
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
 	Jinja2 \
@@ -59,3 +59,4 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+
