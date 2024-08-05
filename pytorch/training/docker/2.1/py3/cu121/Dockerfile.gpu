@@ -241,9 +241,8 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.*  cuda-version=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
   --override-channels \
-  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
@@ -253,9 +252,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
-  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
@@ -367,9 +365,8 @@ WORKDIR /
 
 # Install sm PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* cuda-version=12.1 torchvision torchaudio torchtext aws-ofi-nccl \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
   --override-channels \
-  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
@@ -386,9 +383,8 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
-  --strict-channel-priority \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
