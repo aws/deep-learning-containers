@@ -560,23 +560,20 @@ def override_existing_buildspec(buildspec_path):
 
     if build_tag_override_found:
         updated_content = []
-        autopatch_build_found = False
 
         for line in content:
             if line.strip().startswith("# build_tag_override:"):
                 updated_line = uncomment_build_tag_override_line(line)
             elif line.strip().startswith("autopatch_build"):
-                autopatch_build_found = True
                 updated_line = f"# {line}"
             else:
                 updated_line = line
 
             updated_content.append(updated_line)
 
-        if autopatch_build_found or build_tag_override_found:
-            with open(full_path, "w") as file:
-                file.writelines(updated_content)
-            LOGGER.info(f"Updated {buildspec_path}")
+        with open(full_path, "w") as file:
+            file.writelines(updated_content)
+        LOGGER.info(f"Updated {buildspec_path}")
     else:
         LOGGER.warning(
             f"WARNING: No build_tag_override tag found in {buildspec_path}, file will not be overridden"
