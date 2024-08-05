@@ -34,6 +34,8 @@ VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
+BUILDSPEC_PATTERN = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
+
 
 def restore_default_toml(toml_path):
     """
@@ -78,7 +80,7 @@ def get_args():
         "-r",
         "--restore",
         action="store_true",
-        help="Restore the TOML file to its default state",
+        help="Restore the TOML file and provided buildspec files to their original state",
     )
     parser.add_argument(
         "-c",
@@ -95,6 +97,11 @@ def get_args():
         "-n",
         action="store_true",
         help="Create a currency buildspec and update toml",
+    )
+    parser.add_argument(
+        "-o",
+        action="store_true",
+        help="Comments out autopatch_build and uncomments build_tag_override in buildspec",
     )
     return parser.parse_args()
 
@@ -168,23 +175,15 @@ class TomlOverrider:
 
         invalid_paths = []
 
-        # define the expected file path syntax:
-        # <framework>/<framework>/<job_type>/buildspec-<version>-<version>.yml
-        buildspec_pattern = r"^(\S+)/(training|inference)/buildspec(\S*)\.yml$"
-
         for buildspec_path in buildspec_paths:
             # validate the buildspec_path format
-            match = re.match(buildspec_pattern, buildspec_path)
-            if not match or not os.path.exists(
-                os.path.join(get_cloned_folder_path(), buildspec_path)
-            ):
-                LOGGER.warning(
-                    f"WARNING! {buildspec_path} does not exist. Moving on to the next one..."
-                )
+            full_path = validate_buildspec_path(buildspec_path)
+            if not full_path:
                 invalid_paths.append(buildspec_path)
                 continue
 
             # extract the framework, job_type, and version from the buildspec_path
+            match = re.match(BUILDSPEC_PATTERN, buildspec_path)
             framework = match.group(1).replace("/", "_")
             frameworks.append(framework)
             framework_str = (
@@ -209,7 +208,7 @@ class TomlOverrider:
 
         if invalid_paths:
             raise RuntimeError(
-                f"Found buildspecs that either do not match regex {buildspec_pattern} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
+                f"Found buildspecs that either do not match regex {BUILDSPEC_PATTERN} or do not exist: {invalid_paths}. Please retry, and use tab completion to find valid buildspecs."
             )
 
         if len(set(dev_modes)) > 1:
@@ -224,6 +223,23 @@ class TomlOverrider:
     @property
     def overrides(self):
         return self._overrides
+
+
+def validate_buildspec_path(buildspec_path):
+    """
+    Validate the buildspec path format using the provided regular expression pattern.
+    Returns the full path if the path is valid, None otherwise.
+    """
+    match = re.match(BUILDSPEC_PATTERN, buildspec_path)
+    full_path = os.path.join(get_cloned_folder_path(), buildspec_path)
+
+    if not match or not os.path.exists(full_path):
+        LOGGER.warning(
+            f"WARNING! {buildspec_path} is not a valid buildspec path or does not exist. Skipping..."
+        )
+        return None
+
+    return full_path
 
 
 def write_toml(toml_path, overrides):
@@ -253,7 +269,7 @@ def commit_and_push_changes(changes, remote_push=None, restore=False):
     update_or_restore = "Restore" if restore else "Update"
     commit_message = f"{update_or_restore} {[change.split('deep-learning-containers/')[-1] for change in changes.keys()]}\n"
     for file_name, overrides in changes.items():
-        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}\n{pprint.pformat(overrides, indent=4)}"
+        commit_message += f"\n{file_name.split('deep-learning-containers/')[-1]}:\n{pprint.pformat(overrides, indent=4)}\n"
         dlc_repo.git.add(file_name)
     dlc_repo.git.commit("--allow-empty", "-m", commit_message)
     LOGGER.info(f"Committed change\n{commit_message}")
@@ -462,6 +478,7 @@ def validate_currency_path(currency_path):
 
 
 def create_dockerfile_paths(buildspec_paths):
+    dockerfile_paths = []
     for buildspec_path in buildspec_paths:
         buildspec_dir = os.path.dirname(buildspec_path)
         with open(os.path.join(get_cloned_folder_path(), buildspec_path), "r") as buildspec_file:
@@ -490,6 +507,9 @@ def create_dockerfile_paths(buildspec_paths):
                     line, buildspec_dir, short_version, python_version, cuda_version, device_type
                 )
                 create_docker_file(docker_file_path)
+                dockerfile_paths.append(str(docker_file_path))
+
+    return dockerfile_paths
 
 
 def evaluate_docker_file_path(
@@ -525,6 +545,95 @@ def create_docker_file(docker_file_path):
         LOGGER.warning(f"WARNING: Failed to create {docker_file_path}. Error: {e}")
 
 
+def override_existing_buildspec(buildspec_path):
+    """
+    Override the autopatch_build and build_tag_override tags in an existing buildspec file.
+    """
+    full_path = validate_buildspec_path(buildspec_path)
+    if not full_path:
+        return
+
+    with open(full_path, "r") as file:
+        content = file.readlines()
+
+    build_tag_override_found = any("# build_tag_override:" in line for line in content)
+
+    if build_tag_override_found:
+        updated_content = []
+
+        for line in content:
+            if line.strip().startswith("# build_tag_override:"):
+                updated_line = uncomment_build_tag_override_line(line)
+            elif line.strip().startswith("autopatch_build"):
+                updated_line = f"# {line}"
+            else:
+                updated_line = line
+
+            updated_content.append(updated_line)
+
+        with open(full_path, "w") as file:
+            file.writelines(updated_content)
+        LOGGER.info(f"Updated {buildspec_path}")
+    else:
+        LOGGER.warning(
+            f"WARNING: No build_tag_override tag found in {buildspec_path}, file will not be overridden"
+        )
+
+
+def uncomment_build_tag_override_line(line):
+    """
+    Handle the build_tag_override line based on the override_tags value.
+    """
+    build_tag_parts = line.strip().split(":")
+    build_tag_handle = build_tag_parts[0].strip("# ").strip()
+    rest_of_line = ":".join(build_tag_parts[1:])
+    return f"    {build_tag_handle}: {rest_of_line.strip()}\n"
+
+
+def restore_buildspec(buildspec_path):
+    """
+    Restore the provided buildspec file to its original state from the deep-learning-containers repository.
+    """
+    repo_url = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/"
+    original_path = os.path.join(repo_url, buildspec_path)
+
+    try:
+        response = requests.get(original_path)
+        response.raise_for_status()
+
+        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "w") as target_file:
+            target_file.write(response.text)
+
+        LOGGER.info(
+            f"Restored {buildspec_path} to its original state from the deep-learning-containers repository."
+        )
+    except requests.exceptions.RequestException as e:
+        LOGGER.error(f"Error restoring {buildspec_path}: {e}")
+
+    return original_path
+
+
+def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
+    """
+    Handle the restore option for the TOML file and provided buildspec files.
+    """
+    changes = {}
+
+    if buildspec_paths:
+        for buildspec_path in buildspec_paths:
+            orig_buildspec = restore_buildspec(buildspec_path)
+            changes[
+                os.path.join(get_cloned_folder_path(), buildspec_path)
+            ] = f"Restored {buildspec_path} to {orig_buildspec}"
+
+    if not buildspec_paths or toml_path not in changes:
+        restore_default_toml(toml_path)
+        changes[toml_path] = f"Restore to {DEFAULT_TOML_URL}"
+
+    if to_commit:
+        commit_and_push_changes(changes, remote_push=to_push, restore=True)
+
+
 def main():
     args = get_args()
     toml_path = args.partner_toml
@@ -534,31 +643,34 @@ def main():
     to_commit = args.commit
     to_push = args.push
     is_currency = args.n
+    override_tags = args.o
 
-    # Update to require 1 of 3 options
+    # Update to require 1 of 2 options
     if not buildspec_paths and not restore:
         LOGGER.error("No options provided. Please use the '-h' flag to list all options and retry.")
         exit(1)
 
     restore_default_toml(toml_path)
 
-    # In case of -rc used
     if restore:
-        LOGGER.debug(
-            f"Restore option found - restoring TOML to its state in {DEFAULT_TOML_URL} and exiting."
-        )
-        if to_commit:
-            commit_and_push_changes(
-                {toml_path: f"Restore to {DEFAULT_TOML_URL}"}, remote_push=to_push, restore=True
-            )
+        handle_restore_option(toml_path, buildspec_paths, to_commit, to_push)
         return
 
     overrider = TomlOverrider()
 
+    changes = {}
+
     # Handle the -n option
     if is_currency:
         handle_currency_option(buildspec_paths)
-        create_dockerfile_paths(buildspec_paths)
+        df_paths = create_dockerfile_paths(buildspec_paths)
+        changes.update({df_path: "Created new dockerfile" for df_path in df_paths})
+        changes.update({bp: "Created new buildspec file" for bp in buildspec_paths})
+
+    if override_tags:
+        for buildspec_path in buildspec_paths:
+            override_existing_buildspec(buildspec_path)
+        changes.update({bp: "Overrode tags on buildspec file" for bp in buildspec_paths})
 
     # handle frameworks to build
     if buildspec_paths:
@@ -567,8 +679,14 @@ def main():
 
     LOGGER.info(overrider.overrides)
     write_toml(toml_path, overrides=overrider.overrides)
+
     if to_commit:
-        commit_and_push_changes({toml_path: overrider.overrides}, remote_push=to_push)
+        changes[toml_path] = overrider.overrides
+        commit_and_push_changes(
+            changes,
+            remote_push=to_push,
+            restore=restore,
+        )
 
 
 if __name__ == "__main__":
