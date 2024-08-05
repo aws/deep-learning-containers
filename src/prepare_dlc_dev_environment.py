@@ -545,7 +545,7 @@ def create_docker_file(docker_file_path):
         LOGGER.warning(f"WARNING: Failed to create {docker_file_path}. Error: {e}")
 
 
-def override_existing_buildspec(buildspec_path, override_tags):
+def override_existing_buildspec(buildspec_path):
     """
     Override the autopatch_build and build_tag_override tags in an existing buildspec file.
     """
@@ -563,19 +563,16 @@ def override_existing_buildspec(buildspec_path, override_tags):
     for line in content:
         if line.strip().startswith("autopatch_build"):
             autopatch_build_found = True
-            updated_line = handle_autopatch_build_line(line, override_tags)
+            updated_line = f"# {line}"
         elif line.strip().startswith("# build_tag_override:"):
             build_tag_override_found = True
-            updated_line = handle_build_tag_override_line(line, override_tags)
+            updated_line = uncomment_build_tag_override_line(line)
         else:
             updated_line = line
 
         updated_content.append(updated_line)
 
-    if not autopatch_build_found and override_tags:
-        LOGGER.warning(f"WARNING: No autopatch_build tag found in {buildspec_path}")
-
-    if not build_tag_override_found and override_tags:
+    if not build_tag_override_found:
         LOGGER.warning(f"WARNING: No build_tag_override tag found in {buildspec_path}")
 
     if autopatch_build_found or build_tag_override_found:
@@ -588,24 +585,14 @@ def override_existing_buildspec(buildspec_path, override_tags):
         )
 
 
-def handle_autopatch_build_line(line, override_tags):
-    """
-    Handle the autopatch_build line based on the override_tags value.
-    """
-    if override_tags:
-        return f"# {line}"
-    return line
-
-
-def handle_build_tag_override_line(line, override_tags):
+def uncomment_build_tag_override_line(line):
     """
     Handle the build_tag_override line based on the override_tags value.
     """
-    if override_tags:
-        build_tag_parts = line.strip().split('"')
-        build_tag_handle, rest_of_line = build_tag_parts[1].split(":", 1)
-        return f"    {build_tag_handle}:{rest_of_line}\n"
-    return line
+    build_tag_parts = line.strip().split(":")
+    build_tag_handle = build_tag_parts[0].strip("# ").strip()
+    rest_of_line = ":".join(build_tag_parts[1:])
+    return f"    {build_tag_handle}: {rest_of_line.strip()}\n"
 
 
 def restore_buildspec(buildspec_path):
@@ -687,7 +674,7 @@ def main():
 
     if override_tags:
         for buildspec_path in buildspec_paths:
-            override_existing_buildspec(buildspec_path, override_tags)
+            override_existing_buildspec(buildspec_path)
         changes.update({bp: "Overrode tags on buildspec file" for bp in buildspec_paths})
 
     # handle frameworks to build
