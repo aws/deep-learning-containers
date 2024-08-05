@@ -173,6 +173,35 @@
             "status": "ACTIVE",
             "title": "CVE-2024-36971 - linux",
             "reason_to_ignore": "N/A"
+        },
+        {
+            "description": " In the Linux kernel, the following vulnerability has been resolved: nilfs2: fix use-after-free of timer for log writer thread Patch series \"nilfs2: fix log writer related issues\". This bug fix series covers three nilfs2 log writer-related issues, including a timer use-after-free issue and potential deadlock issue on unmount, and a potential freeze issue in event synchronization found during their analysis. Details are described in each commit log. This patch (of 3): A use-after-free issue has been reported regarding the timer sc_timer on the nilfs_sc_info structure. The problem is that even though it is used to wake up a sleeping log writer thread, sc_timer is not shut down until the nilfs_sc_info structure is about to be freed, and is used regardless of the thread's lifetime. Fix this issue by limiting the use of sc_timer only while the log writer thread is alive.",
+            "vulnerability_id": "CVE-2024-38583",
+            "name": "CVE-2024-38583",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "190.210"
+            },
+            "remediation": {
+                "recommendation": {
+                "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38583.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-38583 - linux",
+            "reason_to_ignore": "N/A"
         }
     ]
 }
