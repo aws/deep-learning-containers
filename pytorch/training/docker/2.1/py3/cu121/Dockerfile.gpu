@@ -120,6 +120,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     libgcc \
     pybind11 \
     cmake \
+    curl \
+    libcurl \
     python=$PYTHON_VERSION \
     cython \
     "mkl<2024.1.0" \
