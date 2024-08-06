@@ -27,6 +27,13 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
+
+# For PT 2.1, 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
+# Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[1-3]\.[0-9]+-cpu ]]; then
+    conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
+fi
+
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
@@ -63,13 +70,16 @@ python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
 
 python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
+set -e
+
 HOME_DIR=/root \
+    && rm -rf ${HOME_DIR}/oss_compliance* \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
     && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
     && chmod +x /usr/local/bin/testOSSCompliance \
     && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-    && rm -rf ${HOME_DIR}/oss_compliance*
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+    && rm -rf ${HOME_DIR}/oss_compliance* || exit
 
 rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts
