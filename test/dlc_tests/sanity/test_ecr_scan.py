@@ -103,16 +103,16 @@ def upload_json_to_image_data_storage_s3_bucket(
     sts_client = boto3.client("sts")
     account_id = sts_client.get_caller_identity().get("Account")
     for to_upload in upload_list:
-        s3_filepath = f"{image_sha}/{to_upload.s3_filename}"
+        s3_filepath = f"{image_sha}/{to_upload['s3_filename']}"
         upload_data = json.dumps(
-            to_upload.upload_data,
+            to_upload["upload_data"],
             indent=4,
             cls=EnhancedJSONEncoder,
         )
         s3object = s3_resource.Object(f"image-data-storage-{account_id}", s3_filepath)
         s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
         LOGGER.info(
-            f"{to_upload.s3_filename} uploaded to image-data-storage s3 bucket at {s3_filepath}"
+            f"{to_upload['s3_filename']} uploaded to image-data-storage s3 bucket at {s3_filepath}"
         )
 
 
