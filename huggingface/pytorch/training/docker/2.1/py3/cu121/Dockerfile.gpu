@@ -19,7 +19,6 @@ ARG FLASH_ATTN_VERSION=2.3.6
 ARG MULTIPROCESS_VERSION=0.70.16
 ARG DILL_VERSION=0.3.8
 ARG NINJA_VERSION=1.11.1
-ARG REQUESTS_VERSION=2.31.0
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
@@ -43,8 +42,7 @@ RUN pip install --no-cache-dir \
 	flash-attn==${FLASH_ATTN_VERSION} \
 	multiprocess==${MULTIPROCESS_VERSION} \
 	dill==${DILL_VERSION} \
-    ninja==${NINJA_VERSION} \
-	requests==${REQUESTS_VERSION}
+    ninja==${NINJA_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
