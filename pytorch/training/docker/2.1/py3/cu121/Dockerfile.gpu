@@ -144,7 +144,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # patch CVE
     "urllib3>=1.26.18,<2" \
     "idna>=3.7" \
-    "setuptools>=0.70.0" \
     "tqdm>=4.66.3" \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
@@ -173,6 +172,8 @@ ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
 
 WORKDIR /root
 

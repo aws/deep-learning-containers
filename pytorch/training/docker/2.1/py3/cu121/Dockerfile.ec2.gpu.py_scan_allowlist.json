@@ -1,4 +1,5 @@
 {
   "70612": "In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the \"source\" parameter as a template object, renders it, and then returns it. The attacker can exploit it with {{INJECTION COMMANDS}} in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
-  "71671": "[Package: torch] Core torch package version 2.1 affected, cannot be changed in PyTorch 2.1 DLC advisory='PyTorch before v2.2.0 was discovered to contain a heap buffer overflow vulnerability in the component /runtime/vararg_functions.cpp. This vulnerability allows attackers to cause a Denial of Service (DoS) via a crafted input.'"
+  "71671": "[Package: torch] Core torch package version 2.1 affected, cannot be changed in PyTorch 2.1 DLC advisory='PyTorch before v2.2.0 was discovered to contain a heap buffer overflow vulnerability in the component /runtime/vararg_functions.cpp. This vulnerability allows attackers to cause a Denial of Service (DoS) via a crafted input.'",
+  "71672": "[Package: torch] Core torch package version 2.1 affected, cannot be changed in PyTorch 2.1 DLC advisory='Pytorch before version v2.2.0 was discovered to contain a use-after-free vulnerability in torch/csrc/jit/mobile/interpreter.cpp.'"
 }
