@@ -126,7 +126,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -143,6 +143,9 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     fsspec \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "setuptools>=0.70.0" \
+    "tqdm>=4.66.3" \
     # Adding package for studio kernels
     ipykernel \
   && /opt/conda/bin/mamba clean -afy
@@ -199,7 +202,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)

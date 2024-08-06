@@ -143,6 +143,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "cryptography>=42.0.5" \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "setuptools>=0.70.0" \
+    "tqdm>=4.66.3" \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
@@ -280,7 +283,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
