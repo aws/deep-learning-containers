@@ -172,7 +172,7 @@ RUN mkdir /tmp/efa \
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade "pip<24.2" --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
@@ -470,8 +470,7 @@ RUN pip install --no-cache-dir -U \
     boto3
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
+RUN pip install --no-cache-dir -U bokeh \
   imageio \
   numba \
   pandas \
