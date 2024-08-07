@@ -99,13 +99,15 @@ def test_gpu(sagemaker_local_session, docker_image, framework_version):
     )
 
 
+## TF Estimator https://www.tensorflow.org/guide/estimator is only available for TF versions < 2.16,
+## thus skipping the test for unsupported TF versions.
 @pytest.mark.processor("cpu")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("no parameter server")
 @pytest.mark.skip_gpu
 def test_distributed_training_cpu_no_ps(
-    sagemaker_local_session, docker_image, tmpdir, framework_version
+    sagemaker_local_session, docker_image, tmpdir, framework_version, sm_below_tf216_only
 ):
     output_path = "file://{}".format(tmpdir)
     run_tf_training(
@@ -123,13 +125,15 @@ def test_distributed_training_cpu_no_ps(
     _assert_files_exist_in_tar(output_path, TF_CHECKPOINT_FILES)
 
 
+## TF Estimator https://www.tensorflow.org/guide/estimator is only available for TF versions < 2.16,
+## thus skipping the test for unsupported TF versions.
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("parameter server")
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.skip_gpu
 def test_distributed_training_cpu_ps(
-    sagemaker_local_session, docker_image, tmpdir, framework_version
+    sagemaker_local_session, docker_image, tmpdir, framework_version, sm_below_tf216_only
 ):
     output_path = "file://{}".format(tmpdir)
     run_tf_training(

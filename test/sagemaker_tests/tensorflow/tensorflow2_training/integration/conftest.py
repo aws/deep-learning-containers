@@ -223,6 +223,18 @@ def sm_below_tf213_only(framework_version):
         pytest.skip("Test only supports Tensorflow version below 2.13")
 
 
+@pytest.fixture
+def sm_below_tf216_only(framework_version):
+    if Version(framework_version) in SpecifierSet(">=2.16"):
+        pytest.skip("Test only supports Tensorflow version below 2.16")
+
+
+@pytest.fixture
+def skip_tf216_only(framework_version):
+    if Version(framework_version) in SpecifierSet("==2.16.*"):
+        pytest.skip("Test does not support Tensorflow 2.16")
+
+
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker("skip_py2_containers"):
