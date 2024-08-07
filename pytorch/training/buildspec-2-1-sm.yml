@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.1.0
 short_version: &SHORT_VERSION "2.1"
 arch_type: x86
-autopatch_build: "False"
+# autopatch_build: "False"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
