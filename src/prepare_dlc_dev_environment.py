@@ -442,7 +442,7 @@ def handle_currency_option(currency_paths):
             create_new_file_with_updated_version(
                 currency_path, updated_content, latest_version_path
             )
-            #create docker here?
+            # create docker here?
         else:
             LOGGER.warning(f"No previous version found for {currency_path}")
         return framework, job_type
@@ -485,11 +485,13 @@ def create_dockerfile_paths(buildspec_paths, framework, job_type):
     for buildspec_path in buildspec_paths:
         buildspec_obj = Buildspec()
         buildspec_obj.load(buildspec_path)
-        images = buildspec_obj.get('images', {})
+        images = buildspec_obj.get("images", {})
         for _, image_details in images.items():
-            docker_file = image_details.get('docker_file')
+            docker_file = image_details.get("docker_file")
             if docker_file:
-                new_docker_file_path = os.path.join(get_cloned_folder_path(), framework, job_type, docker_file)
+                new_docker_file_path = os.path.join(
+                    get_cloned_folder_path(), framework, job_type, docker_file
+                )
                 os.makedirs(os.path.dirname(new_docker_file_path), exist_ok=True)
                 create_docker_file(new_docker_file_path)
                 dockerfile_paths.append(new_docker_file_path)
