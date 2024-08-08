@@ -13,6 +13,7 @@ from config import get_dlc_developer_config_path
 from codebuild_environment import get_cloned_folder_path
 from packaging.version import Version
 from pathlib import Path
+from buildspec import Buildspec
 
 
 LOGGER = logging.getLogger(__name__)
@@ -330,9 +331,7 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
     return latest_path
 
 
-def generate_new_file_content(
-    previous_version_path, major_version, minor_version, optional_tag, extra_tag
-):
+def generate_new_file_content(previous_version_path, major_version, minor_version):
     """
     Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
     """
@@ -436,13 +435,14 @@ def handle_currency_option(currency_paths):
         )
         if latest_version_path:
             updated_content = generate_new_file_content(
-                latest_version_path, major_version, minor_version, optional_tag, extra_tag
+                latest_version_path, major_version, minor_version
             )
             create_new_file_with_updated_version(
                 currency_path, updated_content, latest_version_path
             )
         else:
             LOGGER.warning(f"No previous version found for {currency_path}")
+        return framework, job_type
 
 
 def validate_currency_path(currency_path):
@@ -477,66 +477,25 @@ def validate_currency_path(currency_path):
     return True
 
 
-def create_dockerfile_paths(buildspec_paths):
+def create_dockerfile_paths(buildspec_paths, framework, job_type):
     dockerfile_paths = []
     for buildspec_path in buildspec_paths:
-        buildspec_dir = os.path.dirname(buildspec_path)
-        with open(os.path.join(get_cloned_folder_path(), buildspec_path), "r") as buildspec_file:
-            buildspec_content = buildspec_file.read()
-
-        # Extract placeholders from buildspec content
-        short_version_match = re.search(
-            r"short_version: &SHORT_VERSION \"([\d\.]+)\"", buildspec_content
-        )
-        short_version = short_version_match.group(1) if short_version_match else ""
-
-        python_version_match = re.search(
-            r"python_version: &DOCKER_PYTHON_VERSION (\w+)", buildspec_content
-        )
-        python_version = python_version_match.group(1) if python_version_match else ""
-
-        device_type_match = re.search(r"device_type: &DEVICE_TYPE (\w+)", buildspec_content)
-        device_type = device_type_match.group(1) if device_type_match else ""
-
-        cuda_version_match = re.search(r"cuda_version: &CUDA_VERSION (\w+)", buildspec_content)
-        cuda_version = cuda_version_match.group(1) if cuda_version_match else ""
-
-        for line in buildspec_content.splitlines():
-            if line.strip().startswith("docker_file:"):
-                docker_file_path = evaluate_docker_file_path(
-                    line, buildspec_dir, short_version, python_version, cuda_version, device_type
+        buildspec_obj = Buildspec()
+        buildspec_obj.load(buildspec_path)
+        images = buildspec_obj.get("images", {})
+        for _, image_details in images.items():
+            docker_file = image_details.get("docker_file")
+            if docker_file:
+                new_docker_file_path = os.path.join(
+                    get_cloned_folder_path(), framework, job_type, docker_file
                 )
-                create_docker_file(docker_file_path)
-                dockerfile_paths.append(str(docker_file_path))
-
+                os.makedirs(os.path.dirname(new_docker_file_path), exist_ok=True)
+                create_docker_file(new_docker_file_path)
+                dockerfile_paths.append(new_docker_file_path)
     return dockerfile_paths
 
 
-def evaluate_docker_file_path(
-    docker_file_line, buildspec_dir, short_version, python_version, cuda_version, device_type
-):
-    docker_file_parts = docker_file_line.strip().split(":")[1].strip()
-    docker_file_path = os.path.join(
-        buildspec_dir, *re.split(r"!join\s*\[\s*", docker_file_parts)[1:]
-    )
-    docker_file_path = docker_file_path.replace("*SHORT_VERSION", short_version)
-    docker_file_path = docker_file_path.replace("*DOCKER_PYTHON_VERSION", python_version)
-    docker_file_path = docker_file_path.replace("*CUDA_VERSION", cuda_version)
-    docker_file_path = docker_file_path.replace("*DEVICE_TYPE", device_type)
-    docker_file_path = re.sub(r"[, ]+", "", docker_file_path)
-    docker_file_path = docker_file_path.rstrip("]")
-
-    # Handle different formats
-    if docker_file_path.endswith("/Dockerfile."):
-        docker_file_path = docker_file_path + device_type
-    elif docker_file_path.endswith("/Dockerfile.,"):
-        docker_file_path = docker_file_path[:-1] + f".{device_type}"
-    return Path(docker_file_path)
-
-
 def create_docker_file(docker_file_path):
-    docker_file_dir = os.path.dirname(docker_file_path)
-    os.makedirs(docker_file_dir, exist_ok=True)
     try:
         with open(docker_file_path, "w") as docker_file:
             docker_file.write("")
@@ -662,8 +621,8 @@ def main():
 
     # Handle the -n option
     if is_currency:
-        handle_currency_option(buildspec_paths)
-        df_paths = create_dockerfile_paths(buildspec_paths)
+        framework, job_type = handle_currency_option(buildspec_paths)
+        df_paths = create_dockerfile_paths(buildspec_paths, framework, job_type)
         changes.update({df_path: "Created new dockerfile" for df_path in df_paths})
         changes.update({bp: "Created new buildspec file" for bp in buildspec_paths})
 

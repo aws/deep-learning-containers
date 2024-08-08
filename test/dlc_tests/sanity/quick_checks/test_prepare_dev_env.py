@@ -215,8 +215,6 @@ def test_generate_new_file_content():
     previous_version_path = "path/to/previous/version/file"
     major_version = "1"
     minor_version = "14"
-    optional_suffix = None
-    extra_suffix = None
 
     mock_file_content = 'version: &VERSION 1.13.0\nshort_version: &SHORT_VERSION "1.13"\n'
 
@@ -225,7 +223,7 @@ def test_generate_new_file_content():
         expected_content = ["version: &VERSION 1.14.0\n", 'short_version: &SHORT_VERSION "1.14"\n']
 
         result = prepare_dlc_dev_environment.generate_new_file_content(
-            previous_version_path, major_version, minor_version, optional_suffix, extra_suffix
+            previous_version_path, major_version, minor_version
         )
         assert result == expected_content
 
