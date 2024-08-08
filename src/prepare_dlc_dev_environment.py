@@ -442,7 +442,6 @@ def handle_currency_option(currency_paths):
             create_new_file_with_updated_version(
                 currency_path, updated_content, latest_version_path
             )
-            # create docker here?
         else:
             LOGGER.warning(f"No previous version found for {currency_path}")
         return framework, job_type
