@@ -331,9 +331,7 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
     return latest_path
 
 
-def generate_new_file_content(
-    previous_version_path, major_version, minor_version, optional_tag, extra_tag
-):
+def generate_new_file_content(previous_version_path, major_version, minor_version):
     """
     Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
     """
@@ -437,7 +435,7 @@ def handle_currency_option(currency_paths):
         )
         if latest_version_path:
             updated_content = generate_new_file_content(
-                latest_version_path, major_version, minor_version, optional_tag, extra_tag
+                latest_version_path, major_version, minor_version
             )
             create_new_file_with_updated_version(
                 currency_path, updated_content, latest_version_path
