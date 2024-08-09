@@ -129,12 +129,12 @@ def _test_smdp_question_answering_function(
 
     source_dir = (
         "./examples/question-answering"
-        if Version(transformers_version) < Version("4.6")
+        if Version(transformers_version) < Version("4.26")
         else "./examples/pytorch/question-answering"
     )
 
     distribution = (
-        sm_distribution if Version(transformers_version) < Version("4.6") else torch_distribution
+        sm_distribution if Version(transformers_version) < Version("4.26") else torch_distribution
     )
 
     with timeout(minutes=DEFAULT_TIMEOUT):
