@@ -25,7 +25,7 @@ RUN pip install --no-cache-dir \
     $PT_TORCHAUDIO_URL \
     multiprocess==0.70.14 \
     dill==0.3.6 \
-    sagemaker==2.132.0 \
+    sagemaker==2.227.0 \
     evaluate \
     gevent~=23.9.0 \
     pyarrow~=14.0.1
@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir \
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
- && apt install -y git-lfs \
+ && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 

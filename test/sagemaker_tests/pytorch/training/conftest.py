@@ -501,6 +501,23 @@ def skip_dgl_test(
 
 
 @pytest.fixture(autouse=True)
+def skip_pytorchddp_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
+    For each currency release, Once SMDDP binary is added, we skip pytorchddp tests due to `pytorchddp` and `smdistributed` launcher consolidation.
+    See https://github.com/aws/sagemaker-python-sdk/pull/4698.
+    """
+    skip_dict = {">=2.1,<2.4": ["cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
+    ):
+        pytest.skip(f"SM Data Parallel binaries exist in this image, skipping test")
+
+
+@pytest.fixture(autouse=True)
 def skip_smdmodelparallel_test(
     request,
     processor,
@@ -545,19 +562,6 @@ def skip_p5_tests(request, processor, ecr_image):
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
-
-
-@pytest.fixture(autouse=True)
-def skip_smdataparallel_p5_tests(request, processor, ecr_image, efa_instance_type):
-    """SMDDP tests are broken for PyTorch 2.1 on p5 instances, so we should skip"""
-    skip_dict = {"==2.1.*": ["cu121"]}
-    if (
-        _validate_pytorch_framework_version(
-            request, processor, ecr_image, "skip_smdataparallel_p5_tests", skip_dict
-        )
-        and "p5." in efa_instance_type
-    ):
-        pytest.skip("SM Data Parallel tests are not working on P5 instances, skipping test")
 
 
 def _validate_pytorch_framework_version(request, processor, ecr_image, test_name, skip_dict):

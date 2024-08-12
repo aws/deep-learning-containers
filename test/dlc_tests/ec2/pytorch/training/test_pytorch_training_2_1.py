@@ -26,7 +26,7 @@ def test_pytorch_2_1_gpu(
 
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_mnist, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
@@ -117,7 +117,7 @@ def test_pytorch_2_1_cpu(pytorch_training___2__1, ec2_connection, cpu_only):
 
     test_cases = [
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_train_mnist, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_training_mnist, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_linear_regression_cpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),

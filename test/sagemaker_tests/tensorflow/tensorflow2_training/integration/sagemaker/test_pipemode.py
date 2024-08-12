@@ -108,10 +108,13 @@ def run_test(
         )
 
 
+## TF2.16 does not support Pipemode - thus skipping the test.
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
-def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_single_record(
+    ecr_image, sagemaker_regions, instance_type, framework_version, sm_below_tf216_only
+):
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,
@@ -123,10 +126,13 @@ def test_single_record(ecr_image, sagemaker_regions, instance_type, framework_ve
     )
 
 
+## TF2.16 does not support Pipemode - thus skipping the test.
 @pytest.mark.integration("pipemode")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
-def test_multi_records(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_multi_records(
+    ecr_image, sagemaker_regions, instance_type, framework_version, sm_below_tf216_only
+):
     invoke_sm_helper_function(
         ecr_image,
         sagemaker_regions,

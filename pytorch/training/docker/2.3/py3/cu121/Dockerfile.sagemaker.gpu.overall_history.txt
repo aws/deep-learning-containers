@@ -1,0 +1,25 @@
+#### First image: sha256:511747feeaf5b9af6fd4981b34f3466536279fc7eea99aff1ea3ec3bc07e8116 ####
+#### Patch contents for patch-1: sha256:4ba0adc253fc02f047e09f50ccda2e70b997f45a0dfa4d1104d265de36402091 ####
+pip install argparse==1.4.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-2: sha256:5db0f19d1c1efb2c1de5cf5fcabe1dd53c3193760bd1f0b980e217d6d39a5b8c ####
+pip install argparse==1.4.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0
+#### Patch contents for patch-3: sha256:77378853e05deecbac32a4ece543b01fe189e82d3a5bb7ba78db541ff3d47da4 ####
+pip install argparse==1.4.0 cryptography==42.0.8 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:4f3d6fb885ae64f1837752dde575e2b1f2d695143373b1f894fdfabefd9aa8a4 ####
+pip install argparse==1.4.0 cryptography==42.0.8 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-5: sha256:47981eba94d94b386ac9240dee1c20c58c1dd0fe1ae7439d8a38f52b20a08677 ####
+pip install argparse==1.4.0 cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install argparse==1.4.0 cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
