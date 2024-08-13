@@ -749,8 +749,12 @@ def test_pip_check(image):
         allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
-    
-    if framework in ["pytorch"] and Version(framework_version) in SpecifierSet("==2.3.*") and all([substr_to_find in image for substr_to_find in ["gpu", "training"]]):
+
+    if (
+        framework in ["pytorch"]
+        and Version(framework_version) in SpecifierSet("==2.3.*")
+        and all([substr_to_find in image for substr_to_find in ["gpu", "training"]])
+    ):
         exception_strings = []
 
         # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
