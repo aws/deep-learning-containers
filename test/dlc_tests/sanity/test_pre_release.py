@@ -749,6 +749,16 @@ def test_pip_check(image):
         allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
+    
+    if framework in ["pytorch"] and Version(framework_version) in SpecifierSet("==2.3.*") and all([substr_to_find in image for substr_to_find in ["gpu", "training"]]):
+        exception_strings = []
+
+        for ex_ver in ["1.11.1.1", "5.7.8"]:
+            exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
+            rf"^({'|'.join(exception_strings)}) is not supported on this platform"
+        )
 
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
