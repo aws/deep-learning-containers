@@ -753,7 +753,8 @@ def test_pip_check(image):
     if framework in ["pytorch"] and Version(framework_version) in SpecifierSet("==2.3.*") and all([substr_to_find in image for substr_to_find in ["gpu", "training"]]):
         exception_strings = []
 
-        for ex_ver in ["1.11.1.1", "5.7.8"]:
+        # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
+        for ex_ver in ["1.11.1.1"]:
             exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
