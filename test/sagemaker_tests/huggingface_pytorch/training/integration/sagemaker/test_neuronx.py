@@ -37,7 +37,6 @@ hyperparameters = {
     "num_train_epochs": 1,
     "logging_steps": 1,
     "output_dir": "/opt/ml/model",
-    "trust_remote_code": True,
 }
 
 
