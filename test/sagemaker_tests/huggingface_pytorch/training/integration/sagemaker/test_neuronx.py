@@ -30,14 +30,14 @@ distribution = {"torch_distributed": {"enabled": True}}
 # hyperparameters, which are passed into the training job
 hyperparameters = {
     "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
-    "dataset_name": "philschmid/emotion",
+    "dataset_name": "squad",
     "do_train": True,
     "bf16": True,
     "per_device_train_batch_size": 4,
     "num_train_epochs": 1,
     "logging_steps": 1,
     "output_dir": "/opt/ml/model",
-    "trust_remote_code": True,
+    "max_train_samples": 10,
 }
 
 
