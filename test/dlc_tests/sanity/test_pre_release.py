@@ -6,6 +6,7 @@ import boto3
 import json
 import time
 
+from importlib.metadata import version
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
@@ -496,6 +497,9 @@ def test_framework_and_neuron_sdk_version(neuron):
             version_list = [
                 ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
             ]
+            installed_framework_version = (
+                ".".join(version("transformers_neuronx").split(".")[:2]) + ".x"
+            )  # transformers_neuronx.__version__=='0.10.x' for v0.11.351...
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
             f"not found in released versions for that package: {version_list}"
@@ -1089,9 +1093,9 @@ def test_core_package_version(image):
         package_name = package_name.lower()
         installed_version = None
         if package_name not in installed_package_version_dict:
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+            violation_data[package_name] = (
+                f"Package: {package_name} not installed in {installed_package_version_dict}"
+            )
         else:
             installed_version = Version(installed_package_version_dict[package_name])
         if installed_version and installed_version not in SpecifierSet(
@@ -1159,15 +1163,15 @@ def test_package_version_regression_in_image(image):
     violating_packages = {}
     for package_name, version_in_released_image in released_image_package_version_dict.items():
         if package_name not in current_image_package_version_dict:
-            violating_packages[
-                package_name
-            ] = "Not present in the image that is being currently built."
+            violating_packages[package_name] = (
+                "Not present in the image that is being currently built."
+            )
             continue
         version_in_current_image = current_image_package_version_dict[package_name]
         if Version(version_in_released_image) > Version(version_in_current_image):
-            violating_packages[
-                package_name
-            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            violating_packages[package_name] = (
+                f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            )
 
     assert (
         not violating_packages
