@@ -15,6 +15,7 @@ ARG PYTHON=python3
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+	"sagemaker>=2.214.3,<3" \
 	evaluate \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
