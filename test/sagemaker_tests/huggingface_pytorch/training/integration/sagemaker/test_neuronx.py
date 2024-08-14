@@ -30,14 +30,15 @@ distribution = {"torch_distributed": {"enabled": True}}
 # hyperparameters, which are passed into the training job
 hyperparameters = {
     "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
-    "dataset_name": "squad",
+    "dataset_name": "imdb",
     "do_train": True,
     "bf16": True,
+    "max_seq_length": 128,
+    "max_train_samples": 10,
     "per_device_train_batch_size": 4,
     "num_train_epochs": 1,
     "logging_steps": 1,
     "output_dir": "/opt/ml/model",
-    "max_train_samples": 10,
 }
 
 
