@@ -263,7 +263,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 
 # Install CUDA libraries
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
+    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
     --override-channels \
     -c ${CONDA_CHANNEL} \
     -c nvidia \
@@ -389,7 +389,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 
 # Install CUDA libraries
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
     --override-channels \
     -c ${CONDA_CHANNEL} \
     -c nvidia \
