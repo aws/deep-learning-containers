@@ -42,7 +42,8 @@
     "version_specifier": ">=4.9.4"
   },
   "tensorflow-hub": {
-    "version_specifier": ">=0.13.0"
+    "version_specifier": ">=0.13.0",
+    "skip": "True"
   },
   "tensorflow-io": {
     "version_specifier": "==0.37.*"
