@@ -103,7 +103,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 RUN conda install -c conda-forge \
     scikit-learn \
     h5py \
-    "requests<2.32.0" \
+    requests \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
@@ -129,6 +129,7 @@ RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf>=3.18.3,<4" \
+ && pip install -U "requests<2.32.0" \
  && pip install --no-deps --no-cache-dir -U torchvision==0.16.*
 
 WORKDIR /

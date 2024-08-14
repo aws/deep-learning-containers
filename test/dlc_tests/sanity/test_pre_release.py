@@ -6,7 +6,6 @@ import boto3
 import json
 import time
 
-from importlib.metadata import version
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
@@ -494,12 +493,13 @@ def test_framework_and_neuron_sdk_version(neuron):
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
+            if installed_framework_version == "0.10.x":
+                # skip the check due to transformers_neuronx version bug
+                # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
+                continue
             version_list = [
                 ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
             ]
-            installed_framework_version = (
-                ".".join(version("transformers_neuronx").split(".")[:2]) + ".x"
-            )  # transformers_neuronx.__version__=='0.10.x' for v0.11.351...
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
             f"not found in released versions for that package: {version_list}"
