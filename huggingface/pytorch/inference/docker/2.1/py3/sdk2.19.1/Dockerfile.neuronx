@@ -129,7 +129,6 @@ RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf>=3.18.3,<4" \
- && pip install --no-deps --no-cache-dir -U requests==2.31.0 \
  && pip install --no-deps --no-cache-dir -U torchvision==0.16.*
 
 WORKDIR /
@@ -168,7 +167,9 @@ RUN pip install --no-cache-dir \
     peft==${PEFT_VERSION} \
 	"sagemaker-huggingface-inference-toolkit>=2.4.0,<3"
 
-RUN pip install --no-cache-dir -U "pillow>=10.0.1"
+RUN pip install --no-cache-dir -U \
+    "pillow>=10.0.1" \
+    "requests<2.32.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
