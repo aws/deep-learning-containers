@@ -129,7 +129,7 @@ RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf>=3.18.3,<4" \
- && pip install -U "requests<2.32.0" \
+ && pip install --no-deps --no-cache-dir -U requests==2.31.0 \
  && pip install --no-deps --no-cache-dir -U torchvision==0.16.*
 
 WORKDIR /
