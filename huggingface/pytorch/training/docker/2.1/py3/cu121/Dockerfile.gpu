@@ -18,16 +18,18 @@ ARG PEFT_VERSION=0.7.1
 ARG FLASH_ATTN_VERSION=2.3.6
 ARG MULTIPROCESS_VERSION=0.70.16
 ARG DILL_VERSION=0.3.8
+ARG NINJA_VERSION=1.11.1
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
- && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow
+ && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
+ && pip --no-cache-dir install --upgrade wheel setuptools
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
 	Jinja2 \
@@ -39,12 +41,13 @@ RUN pip install --no-cache-dir \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION} \
 	multiprocess==${MULTIPROCESS_VERSION} \
-	dill==${DILL_VERSION}
+	dill==${DILL_VERSION} \
+    ninja==${NINJA_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
- && apt install -y git-lfs \
+ && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -56,3 +59,4 @@ RUN HOME_DIR=/root \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
+

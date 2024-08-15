@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.13",
+    "version_specifier": "==2.7.16",
     "skip": "True"
   },
   "torchaudio": {
@@ -35,11 +35,20 @@
   "urllib3": {
     "version_specifier": ">=1.26.18,<2"
   },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "setuptools": {
+    "version_specifier": ">=0.70.0"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
   "pyyaml": {
     "version_specifier": ">=6.0.1"
   },
   "requests": {
-    "version_specifier": ">=2.31.0"
+    "version_specifier": ">=2.32.2"
   },
   "jinja2": {
     "version_specifier": ">=3.1.4"

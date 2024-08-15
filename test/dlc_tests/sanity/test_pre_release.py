@@ -494,7 +494,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
             version_list = [
-                ".".join(entry.split(".")[:-2]) + ".x" for entry in release_manifest[package_name]
+                ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
             ]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
@@ -724,11 +724,23 @@ def test_pip_check(image):
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
 
-        for ex_ver in ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.2"]:
+        for ex_ver in [
+            "2.9.1",
+            "2.9.2",
+            "2.10.0",
+            "2.11.0",
+            "2.12.0",
+            "2.13.0",
+            "2.14.2",
+            "2.16.0",
+        ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0"]:
+        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0", "2.16.1"]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
+
+        for ex_ver in ["2.16.0"]:
+            exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
             rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed."
@@ -736,6 +748,21 @@ def test_pip_check(image):
 
         allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
+        )
+
+    if (
+        framework in ["pytorch"]
+        and Version(framework_version) in SpecifierSet("==2.3.*")
+        and all([substr_to_find in image for substr_to_find in ["gpu", "training"]])
+    ):
+        exception_strings = []
+
+        # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
+        for ex_ver in ["1.11.1.1"]:
+            exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
+            rf"^({'|'.join(exception_strings)}) is not supported on this platform"
         )
 
     if "pytorch" in image and "trcomp" in image:

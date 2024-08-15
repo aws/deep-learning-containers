@@ -1370,6 +1370,7 @@
                 "64402": "Covered elsewhere",
                 "66777": "Covered elsewhere",
                 "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
                 "62556": "Covered elsewhere",
                 "65647": "Covered elsewhere",
                 "66704": "Covered elsewhere",
@@ -1385,7 +1386,11 @@
                 "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
-                "67895": "CVE-2024-3651 impacts the idna.encode() function"
+                "67895": "CVE-2024-3651 impacts the idna.encode() function",
+		            "71601": "Transformers version upgrade needs to be handled in a separate image",
+		            "71670": "Pytorch version upgrade needs to be handled in a separate image",
+		            "71671": "Pytorch version upgrade needs to be handled in a separate image",
+		            "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference": {
@@ -1410,6 +1415,7 @@
                 "66704": "Covered elsewhere",
                 "66777": "Covered elsewhere",
                 "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
                 "65647": "Covered elsewhere",
                 "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
@@ -1442,7 +1448,9 @@
                 "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
-                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing."
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "training-neuronx": {
@@ -1466,6 +1474,7 @@
                 "66710": "Covered elsewhere",
                 "65215": "Covered elsewhere",
                 "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
                 "64402": "Covered elsewhere",
                 "65647": "Covered elsewhere",
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",

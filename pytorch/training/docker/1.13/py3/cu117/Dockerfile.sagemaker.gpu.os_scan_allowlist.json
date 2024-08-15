@@ -13,7 +13,11 @@
         "version": "38.0.4",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -37,7 +41,11 @@
         "version": "39.0.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -61,7 +69,11 @@
         "version": "39.0.1",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -88,7 +100,11 @@
         "version": "2022.6.15",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -115,7 +131,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -139,7 +159,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -163,7 +187,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -187,7 +215,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -211,7 +243,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -235,7 +271,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -259,7 +299,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -283,7 +327,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -307,7 +355,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -331,7 +383,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -355,7 +411,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -379,7 +439,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -403,7 +467,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -427,7 +495,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -451,7 +523,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -475,7 +551,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -501,7 +581,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -525,7 +609,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -549,7 +637,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -573,7 +665,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -597,7 +693,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -621,7 +721,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -645,7 +749,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -669,7 +777,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -695,7 +807,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -719,7 +835,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -743,7 +863,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -767,7 +891,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -791,7 +919,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -815,7 +947,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -839,7 +975,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -863,7 +1003,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -889,7 +1033,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -913,7 +1061,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -937,7 +1089,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -961,7 +1117,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -985,7 +1145,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1009,7 +1173,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1033,7 +1201,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1057,7 +1229,11 @@
         "version": "6.9.10.23+dfsg",
         "release": "2.1ubuntu11.4"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -1068,6 +1244,124 @@
       "severity": "LOW",
       "status": "ACTIVE",
       "title": "CVE-2021-20313 - libmagickcore-6.q16-6, imagemagick and 3 more"
+    }
+  ],
+  "linux": [
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
+      "vulnerability_id": "CVE-2022-48674",
+      "name": "CVE-2022-48674",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48674 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
+      "vulnerability_id": "CVE-2023-52434",
+      "name": "CVE-2023-52434",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52434 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
+      "vulnerability_id": "CVE-2023-52752",
+      "name": "CVE-2023-52752",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52752 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
+      "vulnerability_id": "CVE-2024-36971",
+      "name": "CVE-2024-36971",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-36971 - linux",
+      "reason_to_ignore": "N/A"
     }
   ]
 }
