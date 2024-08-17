@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "deepspeed": {
-    "version_specifier": "==7cc5250",
+    "version_specifier": "==0.6.2+7cc5250",
     "skip": "True"
   },
   "fastai": {
