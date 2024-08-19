@@ -44,7 +44,7 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
 fi
 
 if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker" ]; then
-    ZERO_2D_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
+    ZERO_2D_URL=https://aws-deepspeed-zero-2d-binaries.s3.us-west-2.amazonaws.com/r1.13.1/20240816-230423/7cc52501bfdb7e4babfcdc0e3bf95ffe6718cdfe/deepspeed-0.6.2%2B7cc5250-py3-none-any.whl
     pip install --no-cache-dir -U ${ZERO_2D_URL}
     echo "Installed ZERO_2D with deepspeed";
 fi
