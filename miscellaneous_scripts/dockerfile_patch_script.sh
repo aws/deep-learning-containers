@@ -43,6 +43,12 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     echo "Installed SMP";
 fi
 
+if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker" ]; then
+    ZERO_2D_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
+    pip install --no-cache-dir -U ${ZERO_2D_URL}
+    echo "Installed ZERO_2D with deepspeed";
+fi
+
 pip cache purge
 
 ## Update GPG key in case Nginx exists
