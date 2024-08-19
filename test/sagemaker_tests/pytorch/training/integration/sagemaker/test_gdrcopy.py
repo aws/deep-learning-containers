@@ -27,6 +27,7 @@ from . import invoke_pytorch_estimator
 from ....training import get_efa_test_instance_type
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
+GDRCOPY_SANITY_TEST_CMD = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
 
 
 def validate_or_skip_gdrcopy(ecr_image):
@@ -56,10 +57,9 @@ def can_run_gdrcopy(ecr_image):
 @pytest.mark.team("conda")
 def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
     validate_or_skip_gdrcopy(ecr_image)
-    gdrcopy_test_path = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
-            "entry_point": gdrcopy_test_path,
+            "entry_point": GDRCOPY_SANITY_TEST_CMD,
             "role": "SageMakerRole",
             "instance_count": 1,
             "instance_type": efa_instance_type,

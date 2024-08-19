@@ -16,8 +16,7 @@ SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.2xlarge", pr
 
 # Adding separate tests to run on cpu instance for cpu image and gpu instance for gpu image.
 # But the test behavior doesn't change for cpu or gpu image type.
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_serialized_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
@@ -33,11 +32,10 @@ def test_smclarify_metrics_cpu(
     mx18_and_above_only,
     pt16_and_above_only,
 ):
-    smclarify_cases.run_smclarify_bias_metrics(training, ec2_connection)
+    smclarify_cases.smclarify_metrics_cpu(training, ec2_connection)
 
 
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt22_test
+@pytest.mark.skip_serialized_release_pt_test
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")
@@ -56,6 +54,4 @@ def test_smclarify_metrics_gpu(
     image_cuda_version = get_cuda_version_from_tag(training)
     if Version(image_cuda_version.strip("cu")) < Version("110"):
         pytest.skip("SmClarify is currently installed in cuda 11 gpu images and above")
-    smclarify_cases.run_smclarify_bias_metrics(
-        training, ec2_connection, docker_executable="nvidia-docker"
-    )
+    smclarify_cases.smclarify_metrics_gpu(training, ec2_connection)

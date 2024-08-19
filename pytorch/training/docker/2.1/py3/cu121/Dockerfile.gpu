@@ -120,9 +120,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     libgcc \
     pybind11 \
     cmake \
+    curl \
+    libcurl \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -138,11 +140,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels
     ipykernel \
     # patch CVE
-    "pyopenssl>=21.0.0" \
+    "pyopenssl>=24.0.0" \
     # patch CVE
-    "cryptography>=42.0.2" \
+    "cryptography>=42.0.5" \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
@@ -168,8 +172,10 @@ RUN mkdir /tmp/efa \
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade "pip<24.2" --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
 
 WORKDIR /root
 
@@ -252,7 +258,7 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -280,7 +286,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -383,7 +389,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -411,7 +417,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -464,8 +470,7 @@ RUN pip install --no-cache-dir -U \
     boto3
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
+RUN pip install --no-cache-dir -U bokeh \
   imageio \
   numba \
   pandas \

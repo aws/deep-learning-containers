@@ -20,7 +20,7 @@ ARG SM_TOOLKIT_VERSION
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -50,7 +50,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LD_LIBRARY_PATH=/opt/conda/lib/:$LD_LIBRARY_PATH \
     PATH=/opt/conda/bin:$PATH \
-    TEMP=/home/model-server/tmp \
+    TEMP=/tmp \
     ### Graviton Optimizaation ENV Variables
     LRU_CACHE_CAPACITY=1024 \
     THP_MEM_ALLOC_ENABLE=1 \
@@ -133,11 +133,13 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
     boto3 \
     scipy \
     opencv-python \
-    "pyOpenSSL>=23.2.0" \
-    "cryptography>=41.0.2" \
+    "pyopenssl>=24.1.0" \
+    "cryptography>=42.0.0" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    "urllib3>=1.26.18,<2"
+    "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "tqdm>=4.66.3"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
@@ -155,16 +157,20 @@ RUN pip install --no-cache-dir -U \
 # -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
-    "numpy>=1.22.2,<1.23" \
+    numpy \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Patches
+# py-vuln: 71064
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 # create user and folders
 RUN useradd -m model-server \
- && mkdir -p /home/model-server/tmp /opt/ml/model \
+ && mkdir -p /tmp /opt/ml/model \
  && chown -R model-server /home/model-server /opt/ml/model
 
 # add TS entrypoint

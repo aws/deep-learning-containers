@@ -30,6 +30,9 @@ from test.test_utils import (
     is_generic_image,
     get_allowlist_path_for_enhanced_scan_from_env_variable,
     get_ecr_scan_allowlist_path,
+    get_sha_of_an_image_from_ecr,
+    is_mainline_context,
+    is_test_phase,
 )
 from test.test_utils import ecr as ecr_utils
 from test.test_utils.security import (
@@ -79,6 +82,53 @@ def get_minimum_sev_threshold_level(image):
     if is_image_covered_by_allowlist_feature(image):
         return "MEDIUM"
     return "HIGH"
+
+
+def upload_json_to_image_data_storage_s3_bucket(
+    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, upload_list
+):
+    """
+    This method retrieves the unique identifier of the image from ECR and uses it as the directory to upload the data in
+    provided `upload_list` to the image-data-storage s3 bucket.
+    This information is used for the scanning dashboard to identify image allowlist information.
+
+    :param ecr_client_for_enhanced_scanning_repo: boto3 ecr client
+    :param ecr_enhanced_repo_uri: str, image's uri on ecr enhanced repo
+    :param upload_list: list of dictionaries with s3_filename, name of file to upload, and upload_data, data to upload as keys
+    """
+    image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
+    )
+    s3_resource = boto3.resource("s3")
+    sts_client = boto3.client("sts")
+    account_id = sts_client.get_caller_identity().get("Account")
+    for to_upload in upload_list:
+        s3_filepath = f"{image_sha}/{to_upload['s3_filename']}"
+        upload_data = json.dumps(
+            to_upload["upload_data"],
+            indent=4,
+            cls=EnhancedJSONEncoder,
+        )
+        s3object = s3_resource.Object(f"image-data-storage-{account_id}", s3_filepath)
+        s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
+        LOGGER.info(
+            f"{to_upload['s3_filename']} uploaded to image-data-storage s3 bucket at {s3_filepath}"
+        )
+
+
+def add_core_packages_to_upload_list_if_exists(image, upload_list):
+    """
+    This method retrieves the image's corresponding core package data from the repo if it exists and adds it to the upload_list
+    with s3_filename as core_packages.json.
+
+    :param image: str, the corresponding image
+    :param upload_list: list of dictionaries with s3_filename, name of file to upload, and upload_data, data to upload as keys
+    """
+    core_packages_path = src_utils.get_core_packages_path(image)
+    if not os.path.exists(core_packages_path):
+        return
+    with open(core_packages_path, "r") as f:
+        upload_list.append({"s3_filename": "core_packages.json", "upload_data": json.load(f)})
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -220,6 +270,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
+    allowlist_for_daily_scans = image_scan_allowlist
 
     if remove_non_patchable_vulns:
         non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
@@ -238,6 +289,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
+        allowlist_for_daily_scans = future_allowlist
 
         # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
         # as we want to upload the allowlist to the location that has repo of the actual image.
@@ -272,6 +324,19 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
+
+    if is_mainline_context() and is_test_phase() and not is_generic_image():
+        upload_list = [
+            {
+                "s3_filename": "ecr_allowlist.json",
+                "upload_data": allowlist_for_daily_scans.vulnerability_list,
+            }
+        ]
+        add_core_packages_to_upload_list_if_exists(image, upload_list)
+        upload_json_to_image_data_storage_s3_bucket(
+            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, upload_list
+        )
+
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 

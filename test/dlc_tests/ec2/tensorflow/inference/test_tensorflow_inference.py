@@ -34,6 +34,57 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 )
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_gpu_deep_canary(
+    tensorflow_inference, ec2_connection, region, gpu_only
+):
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_cpu_deep_canary(
+    tensorflow_inference, ec2_connection, region, cpu_only
+):
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton_cpu_deep_canary(
+    tensorflow_inference_graviton, ec2_connection, region, cpu_only
+):
+    run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, "8500", region)
+
+
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
@@ -49,7 +100,6 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     indirect=True,
 )
 @pytest.mark.team("neuron")
-# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
@@ -98,12 +148,12 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     # are a patch version or two ahead of the corresponding TF version.
     upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} "
+        f"docker run --runtime=nvidia --gpus all --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
         f"python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
-        f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
+        f"docker run --runtime=nvidia --gpus all -id --name {serving_container_name} -p 8501:8501 "
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
@@ -229,7 +279,8 @@ def run_ec2_tensorflow_inference(
     is_neuron_x = "neuronx" in image_uri
     is_graviton = "graviton" in image_uri
 
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
+
     if is_neuron:
         # For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -242,7 +293,7 @@ def run_ec2_tensorflow_inference(
             dst_port = "8500"
 
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {src_port}:{dst_port} "
+            f"docker run {docker_runtime} -id --name {container_name} -p {src_port}:{dst_port} "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name} "
             f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
@@ -250,7 +301,7 @@ def run_ec2_tensorflow_inference(
         )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"docker run {docker_runtime} -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
@@ -312,6 +363,12 @@ def host_setup_for_tensorflow_inference(
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+
+        # If framework_version is only major.minor, then append .* for tensorflow-serving-api installation
+        tfs_api_version = framework_version
+        if re.fullmatch(r"\d+\.\d+", tfs_api_version):
+            tfs_api_version += ".*"
+
         # Removed the protobuf version constraint because it prevents the matching version
         # of tensorflow and tensorflow-serving-api from being installed.
         # If we face protobuf-related version mismatch issues in the future,
@@ -320,7 +377,7 @@ def host_setup_for_tensorflow_inference(
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
-                f"'tensorflow-serving-api=={framework_version}'"
+                f"'tensorflow-serving-api=={tfs_api_version}'"
             ),
             hide=True,
         )

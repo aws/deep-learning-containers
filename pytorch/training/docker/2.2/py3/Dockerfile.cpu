@@ -124,7 +124,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -141,14 +141,16 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     fsspec \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "tqdm>=4.66.3" \
     # Adding package for studio kernels
     ipykernel \
+    "zstandard>=0.22.0" \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.2/license.txt
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes
@@ -195,7 +197,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION} \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
   "requests>=2.31.0" \
   && /opt/conda/bin/mamba clean -afy
@@ -273,9 +275,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
 # Patches
-RUN pip install pillow "pyyaml>=6.0.1" opencv-python
+RUN pip install pillow "pyyaml>=6.0.1" opencv-python "idna>=3.7"
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.0" \
   && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname

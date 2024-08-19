@@ -12,6 +12,24 @@
 **NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
 - [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
 
+<details>
+<summary>Confused on how to run tests? Try using the helper utility...</summary>
+
+Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
+  
+- Run default builds and tests for a particular buildspec - also commits and pushes changes to remote; Example:
+
+`python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -cp origin`
+
+- Enable specific tests for a buildspec or set of buildspecs - also commits and pushes changes to remote; Example:
+
+`python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -t sanity_tests -cp origin`
+
+- Restore TOML file when ready to merge
+
+`python src/prepare_dlc_dev_environment.py -rcp origin`
+</details>
+
 **NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
 <details>
 <summary>Expand</summary>
@@ -34,15 +52,23 @@
 <details>
 <summary>Expand</summary>
 
-Click the checkbox to enable a build to execute upon merge.
+Fill out the template and click the checkbox of the builds you'd like to execute
 
-*Note: By default, pipelines are set to "latest". Replace with major.minor framework version if you do not want "latest".*
+*Note: Replace with <X.Y> with the major.minor framework version (i.e. 2.2) you would like to start.*
 
-- [ ] build_pytorch_training_latest
-- [ ] build_pytorch_inference_latest
-- [ ] build_tensorflow_training_latest
-- [ ] build_tensorflow_inference_latest
+- [ ] build_pytorch_training_<X.Y>_sm
+- [ ] build_pytorch_training_<X.Y>_ec2
 
+- [ ] build_pytorch_inference_<X.Y>_sm
+- [ ] build_pytorch_inference_<X.Y>_ec2
+- [ ] build_pytorch_inference_<X.Y>_graviton
+
+- [ ] build_tensorflow_training_<X.Y>_sm
+- [ ] build_tensorflow_training_<X.Y>_ec2
+
+- [ ] build_tensorflow_inference_<X.Y>_sm
+- [ ] build_tensorflow_inference_<X.Y>_ec2
+- [ ] build_tensorflow_inference_<X.Y>_graviton
 </details>
 
 ### Additional context

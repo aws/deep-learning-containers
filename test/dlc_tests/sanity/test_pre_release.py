@@ -37,9 +37,8 @@ from test.test_utils import (
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
-    is_tf_version,
+    get_all_the_tags_of_an_image_from_ecr,
     is_nightly_context,
-    get_processor_from_image_uri,
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
@@ -189,6 +188,13 @@ def test_ubuntu_version(image):
 
     assert "Ubuntu" in container_ubuntu_version
     assert ubuntu_version in container_ubuntu_version
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_image_tags(image, ecr_client):
+    all_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
+    assert not any("benchmark-tested" in tag for tag in all_tags)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -487,8 +493,12 @@ def test_framework_and_neuron_sdk_version(neuron):
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
+            if installed_framework_version == "0.10.x":
+                # skip the check due to transformers_neuronx version bug
+                # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
+                continue
             version_list = [
-                ".".join(entry.split(".")[:-1]) + ".x" for entry in release_manifest[package_name]
+                ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
             ]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
@@ -718,11 +728,23 @@ def test_pip_check(image):
     ) in SpecifierSet(">=2.9.1"):
         exception_strings = []
 
-        for ex_ver in ["2.9.1", "2.9.2", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.2"]:
+        for ex_ver in [
+            "2.9.1",
+            "2.9.2",
+            "2.10.0",
+            "2.11.0",
+            "2.12.0",
+            "2.13.0",
+            "2.14.2",
+            "2.16.0",
+        ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0"]:
+        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0", "2.16.1"]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
+
+        for ex_ver in ["2.16.0"]:
+            exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
             rf"^({'|'.join(exception_strings)}) requires tensorflow, which is not installed."
@@ -730,6 +752,21 @@ def test_pip_check(image):
 
         allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
+        )
+
+    if (
+        framework in ["pytorch"]
+        and Version(framework_version) in SpecifierSet("==2.3.*")
+        and all([substr_to_find in image for substr_to_find in ["gpu", "training"]])
+    ):
+        exception_strings = []
+
+        # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
+        for ex_ver in ["1.11.1.1"]:
+            exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
+            rf"^({'|'.join(exception_strings)}) is not supported on this platform"
         )
 
     if "pytorch" in image and "trcomp" in image:
@@ -1068,15 +1105,21 @@ def test_core_package_version(image):
     violation_data = {}
 
     for package_name, specs in core_packages.items():
+        package_name = package_name.lower()
+        installed_version = None
         if package_name not in installed_package_version_dict:
             violation_data[
                 package_name
             ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
-        installed_version = Version(installed_package_version_dict[package_name])
-        if installed_version not in SpecifierSet(specs.get("version_specifier")):
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        else:
+            installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version and installed_version not in SpecifierSet(
+            specs.get("version_specifier")
+        ):
+            violation_data[package_name] = (
+                f"Package: {package_name} version {installed_version} does not match "
+                f"requirement {specs.get('version_specifier')}"
+            )
 
     stop_and_remove_container(container_name, ctx)
     assert (

@@ -112,12 +112,13 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
-    conda=23.1.0 \
     # patch CVE
-    "cryptography>=42.0.2" \
+    "cryptography>=42.0.5" \
     # patch CVE
-    "pyopenssl>=21.0.0" \
+    "pyopenssl>=24.0.0" \
     cmake \
+    curl \
+    libcurl \
     requests \
     python=$PYTHON_VERSION \
     cython \
@@ -126,7 +127,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -143,12 +144,17 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     fsspec \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "setuptools>=0.70.0" \
+    "tqdm>=4.66.3" \
     # Adding package for studio kernels
     ipykernel \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
@@ -199,7 +205,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
@@ -278,7 +284,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
@@ -303,8 +309,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     boto3
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
+RUN pip install --no-cache-dir -U bokeh \
   imageio \
   numba \
   pandas \
