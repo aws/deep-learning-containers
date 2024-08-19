@@ -420,7 +420,7 @@
       },
       "remediation": {
          "recommendation": {
-               "text": "None Provided"
+            "text": "None Provided"
          }
       },
       "cvss_v3_score": 7.8,
