@@ -1152,6 +1152,7 @@ def test_safety(image):
     finally:
         run(f"docker rm -f {container_name}", hide=True)
 
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
@@ -1226,6 +1227,7 @@ def test_oss_compliance(image):
                         f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
                     )
                     raise
+
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -1336,3 +1338,4 @@ def test_package_version_regression_in_image(image):
 
     assert (
         not violating_packages
+    ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"
