@@ -493,8 +493,12 @@ def test_framework_and_neuron_sdk_version(neuron):
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
+            if installed_framework_version == "0.10.x":
+                # skip the check due to transformers_neuronx version bug
+                # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
+                continue
             version_list = [
-                ".".join(entry.split(".")[:-2]) + ".x" for entry in release_manifest[package_name]
+                ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
             ]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
@@ -748,6 +752,21 @@ def test_pip_check(image):
 
         allowed_exceptions.append(
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
+        )
+
+    if (
+        framework in ["pytorch"]
+        and Version(framework_version) in SpecifierSet("==2.3.*")
+        and all([substr_to_find in image for substr_to_find in ["gpu", "training"]])
+    ):
+        exception_strings = []
+
+        # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
+        for ex_ver in ["1.11.1.1"]:
+            exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
+            rf"^({'|'.join(exception_strings)}) is not supported on this platform"
         )
 
     if "pytorch" in image and "trcomp" in image:
