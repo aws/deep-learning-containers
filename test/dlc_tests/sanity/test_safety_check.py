@@ -8,6 +8,11 @@ import json
 import logging
 import os
 import sys
+import re
+import subprocess
+import botocore
+import boto3
+import time
 
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
@@ -17,12 +22,47 @@ import requests
 
 from invoke import run
 
+from urllib3.util.retry import Retry
+from invoke.context import Context
+from botocore.exceptions import ClientError
+
+from src.buildspec import Buildspec
+import src.utils as src_utils
 from test.test_utils import (
+    LOGGER,
     CONTAINER_TESTS_PREFIX,
-    is_dlc_cicd_context,
+    ec2,
+    get_container_name,
+    get_framework_and_version_from_tag,
+    get_neuron_sdk_version_from_tag,
+    get_neuron_release_manifest,
     is_canary_context,
     is_mainline_context,
+    is_dlc_cicd_context,
     is_safety_test_context,
+    run_cmd_on_container,
+    start_container,
+    stop_and_remove_container,
+    get_repository_local_path,
+    get_repository_and_tag_from_image_uri,
+    get_python_version_from_image_uri,
+    get_cuda_version_from_tag,
+    get_labels_from_ecr_image,
+    get_buildspec_path,
+    get_all_the_tags_of_an_image_from_ecr,
+    is_nightly_context,
+    execute_env_variables_test,
+    UL20_CPU_ARM64_US_WEST_2,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
+    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    get_installed_python_packages_with_version,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    DockerImagePullException,
+    get_installed_python_packages_with_version,
+    get_installed_python_packages_using_image_uri,
+    get_image_spec_from_buildspec,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -1111,3 +1151,188 @@ def test_safety(image):
         ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("oss_compliance")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines"
+)
+def test_oss_compliance(image):
+    """
+    Run oss compliance check on a container to check if license attribution files exist.
+    And upload source of third party packages to S3 bucket.
+    """
+    THIRD_PARTY_SOURCE_CODE_BUCKET = "aws-dlinfra-licenses"
+    THIRD_PARTY_SOURCE_CODE_BUCKET_PATH = "third_party_source_code"
+    file = "THIRD_PARTY_SOURCE_CODE_URLS"
+    container_name = get_container_name("oss_compliance", image)
+    context = Context()
+    local_repo_path = get_repository_local_path()
+    start_container(container_name, image, context)
+
+    # run compliance test to make sure license attribution files exists. testOSSCompliance is copied as part of Dockerfile
+    run_cmd_on_container(container_name, context, "/usr/local/bin/testOSSCompliance /root")
+
+    try:
+        context.run(
+            f"docker cp {container_name}:/root/{file} {os.path.join(local_repo_path, file)}"
+        )
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    s3_resource = boto3.resource("s3")
+
+    with open(os.path.join(local_repo_path, file)) as source_code_file:
+        for line in source_code_file:
+            name, version, url = line.split(" ")
+            file_name = f"{name}_v{version}_source_code"
+            s3_object_path = f"{THIRD_PARTY_SOURCE_CODE_BUCKET_PATH}/{file_name}.tar.gz"
+            local_file_path = os.path.join(local_repo_path, file_name)
+
+            for i in range(3):
+                try:
+                    if not os.path.isdir(local_file_path):
+                        context.run(f"git clone {url.rstrip()} {local_file_path}", hide=True)
+                        context.run(f"tar -czvf {local_file_path}.tar.gz {local_file_path}")
+                except Exception as e:
+                    time.sleep(1)
+                    if i == 2:
+                        LOGGER.error(f"Unable to clone git repo. Error: {e}")
+                        raise
+                    continue
+            try:
+                if os.path.exists(f"{local_file_path}.tar.gz"):
+                    LOGGER.info(f"Uploading package to s3 bucket: {line}")
+                    s3_resource.Object(THIRD_PARTY_SOURCE_CODE_BUCKET, s3_object_path).load()
+            except botocore.exceptions.ClientError as e:
+                if e.response["Error"]["Code"] == "404":
+                    try:
+                        # using aws cli as using boto3 expects to upload folder by iterating through each file instead of entire folder.
+                        context.run(
+                            f"aws s3 cp {local_file_path}.tar.gz s3://{THIRD_PARTY_SOURCE_CODE_BUCKET}/{s3_object_path}"
+                        )
+                        object = s3_resource.Bucket(THIRD_PARTY_SOURCE_CODE_BUCKET).Object(
+                            s3_object_path
+                        )
+                        object.Acl().put(ACL="public-read")
+                    except ClientError as e:
+                        LOGGER.error(
+                            f"Unable to upload source code to bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
+                        )
+                        raise
+                else:
+                    LOGGER.error(
+                        f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
+                    )
+                    raise
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+def test_core_package_version(image):
+    """
+    In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
+    satisfy the version constraints specified in the core_packages.json file.
+    """
+    core_packages_path = src_utils.get_core_packages_path(image)
+    if not os.path.exists(core_packages_path):
+        pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
+    LOGGER.info(f"Core packages file {core_packages_path} for {image}")
+
+    with open(core_packages_path, "r") as f:
+        core_packages = json.load(f)
+
+    ctx = Context()
+    container_name = get_container_name("test_core_package_version", image)
+    start_container(container_name, image, ctx)
+    docker_exec_command = f"""docker exec --user root {container_name}"""
+    installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
+
+    violation_data = {}
+
+    for package_name, specs in core_packages.items():
+        package_name = package_name.lower()
+        installed_version = None
+        if package_name not in installed_package_version_dict:
+            violation_data[
+                package_name
+            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+        else:
+            installed_version = Version(installed_package_version_dict[package_name])
+        if installed_version and installed_version not in SpecifierSet(
+            specs.get("version_specifier")
+        ):
+            violation_data[package_name] = (
+                f"Package: {package_name} version {installed_version} does not match "
+                f"requirement {specs.get('version_specifier')}"
+            )
+
+    stop_and_remove_container(container_name, ctx)
+    assert (
+        not violation_data
+    ), f"Few packages violate the core_package specifications: {violation_data}"
+
+
+@pytest.mark.model("N/A")
+def test_package_version_regression_in_image(image):
+    """
+    This test verifies if the python package versions in the already released image are not being downgraded/deleted in the
+    new released. This test would be skipped for images whose BuildSpec does not have `latest_release_tag` or `release_repository`
+    keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
+    released, this test would be skipped.
+    """
+    dlc_path = os.getcwd().split("/test/")[0]
+    corresponding_image_spec = get_image_spec_from_buildspec(
+        image_uri=image, dlc_folder_path=dlc_path
+    )
+
+    if any(
+        [
+            expected_key not in corresponding_image_spec
+            for expected_key in ["latest_release_tag", "release_repository"]
+        ]
+    ):
+        pytest.skip(f"Image {image} does not have `latest_release_tag` in its buildspec.")
+
+    previous_released_image_uri = f"""{corresponding_image_spec["release_repository"]}:{corresponding_image_spec["latest_release_tag"]}"""
+
+    LOGGER.info(f"Image spec for {image}: {json.dumps(corresponding_image_spec)}")
+    ctx = Context()
+
+    # Pull previous_released_image_uri
+    prod_account_id = get_account_id_from_image_uri(image_uri=previous_released_image_uri)
+    prod_image_region = get_region_from_image_uri(image_uri=previous_released_image_uri)
+    login_to_ecr_registry(context=ctx, account_id=prod_account_id, region=prod_image_region)
+    previous_released_image_uri = f"{previous_released_image_uri}"
+    run_output = ctx.run(f"docker pull {previous_released_image_uri}", warn=True, hide=True)
+    if not run_output.ok:
+        if "requested image not found" in run_output.stderr.lower():
+            pytest.skip(
+                f"Previous image: {previous_released_image_uri} for Image: {image} has not been released yet"
+            )
+        raise DockerImagePullException(
+            f"{run_output.stderr} when pulling {previous_released_image_uri}"
+        )
+
+    # Get the installed python package versions and find any regressions
+    current_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=image
+    )
+    released_image_package_version_dict = get_installed_python_packages_using_image_uri(
+        context=ctx, image_uri=previous_released_image_uri
+    )
+    violating_packages = {}
+    for package_name, version_in_released_image in released_image_package_version_dict.items():
+        if package_name not in current_image_package_version_dict:
+            violating_packages[
+                package_name
+            ] = "Not present in the image that is being currently built."
+            continue
+        version_in_current_image = current_image_package_version_dict[package_name]
+        if Version(version_in_released_image) > Version(version_in_current_image):
+            violating_packages[
+                package_name
+            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+
+    assert (
+        not violating_packages
