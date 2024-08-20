@@ -685,5 +685,36 @@
             "title": "CVE-2024-21147 - openjdk-8-jdk-headless, openjdk-11-jre-headless and 6 more",
             "reason_to_ignore": "N/A"
         }
+    ],
+    "postgresql-12": [
+        {
+            "description": " Time-of-check Time-of-use (TOCTOU) race condition in pg_dump in PostgreSQL allows an object creator to execute arbitrary SQL functions as the user running pg_dump, which is often a superuser. The attack involves replacing another relation type with a view or foreign table. The attack requires waiting for pg_dump to start, but winning the race condition is trivial if the attacker retains an open transaction. Versions before PostgreSQL 16.4, 15.8, 14.13, 13.16, and 12.20 are affected.",
+            "vulnerability_id": "CVE-2024-7348",
+            "name": "CVE-2024-7348",
+            "package_name": "postgresql-12",
+            "package_details": {
+                "file_path": null,
+                "name": "postgresql-12",
+                "package_manager": "OS",
+                "version": "12.19",
+                "release": "0ubuntu0.20.04.1"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-7348.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-7348 - postgresql-12",
+            "reason_to_ignore": "N/A"
+        }
     ]
 }
