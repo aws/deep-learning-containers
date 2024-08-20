@@ -630,7 +630,9 @@ def tag_image_with_initiator(image_tag):
     """
     Add additional debug tags
     """
-    return f"{image_tag}-{os.getenv('CODEBUILD_INITIATOR', '').split('/')[-1]}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', '')[:7]}"
+    # Shorten huggingface name to avoid breaching 128 char tag limit
+    initiator = os.getenv("CODEBUILD_INITIATOR", "").split("/")[-1].replace("huggingface", "hf")
+    return f"{image_tag}-{initiator}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', '')[:7]}"
 
 
 def append_tag(image_tag, append_str):
