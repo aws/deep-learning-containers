@@ -2346,9 +2346,7 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
     """
     package_version_dict = {}
 
-    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
-        import json; \
-        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+    python_cmd_to_extract_package_set = "pip list --format json"
 
     run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}", hide=True)
     list_of_package_data_dicts = json.loads(run_output.stdout)
