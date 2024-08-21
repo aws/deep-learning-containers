@@ -376,6 +376,35 @@
             "status": "ACTIVE",
             "title": "CVE-2024-39495 - linux",
             "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net: sched: sch_multiq: fix possible OOB write in multiq_tune() q->bands will be assigned to qopt->bands to execute subsequent code logic after kmalloc. So the old q->bands should not be used in kmalloc. Otherwise, an out-of-bounds write will occur.",
+            "vulnerability_id": "CVE-2024-36978",
+            "name": "CVE-2024-36978",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36978.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-36978 - linux",
+            "reason_to_ignore": "N/A"
         }
     ]
 }
