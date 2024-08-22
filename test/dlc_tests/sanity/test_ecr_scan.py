@@ -50,6 +50,7 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
+from src.codebuild_environment import get_cloned_folder_path
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
@@ -248,6 +249,12 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
+    common_allowlist = ECREnhancedScanVulnerabilityList(
+        minimum_severity=CVESeverity[minimum_sev_threshold]
+    )
+    common_allowlist_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "data", "common-ecr-scan-allowlist.json"
+    )
 
     try:
         # Derive Image Scan Allowlist Path
@@ -267,6 +274,11 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     except:
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
+
+    if allowlist_removal_enabled and os.path.exists(common_allowlist_path) and not is_generic_image():
+        common_allowlist.construct_allowlist_from_file(common_allowlist_path)
+        image_scan_allowlist = image_scan_allowlist + common_allowlist
+        LOGGER.info(f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}")
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
