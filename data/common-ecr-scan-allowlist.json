@@ -86,7 +86,7 @@
             "severity": "HIGH",
             "status": "ACTIVE",
             "title": "CVE-2018-20225 - pip",
-            "reason_to_ignore": "N/A"
+            "reason_to_ignore": "This is a disputed CVE and impacts all pip versions."
         }
     ]
 }
