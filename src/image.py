@@ -192,7 +192,7 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
-        print("BEGINNING BUILD FOR IMAGE")
+
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -204,7 +204,6 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
-            print(f"LINE: {line}")
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
