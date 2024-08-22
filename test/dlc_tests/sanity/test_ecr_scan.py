@@ -275,10 +275,16 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    if allowlist_removal_enabled and os.path.exists(common_allowlist_path) and not is_generic_image():
+    if (
+        allowlist_removal_enabled
+        and os.path.exists(common_allowlist_path)
+        and not is_generic_image()
+    ):
         common_allowlist.construct_allowlist_from_file(common_allowlist_path)
         image_scan_allowlist = image_scan_allowlist + common_allowlist
-        LOGGER.info(f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}")
+        LOGGER.info(
+            f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}"
+        )
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
