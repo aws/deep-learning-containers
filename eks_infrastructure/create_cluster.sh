@@ -87,7 +87,12 @@ function add_iam_policy() {
   REGION=${3}
 
   ROLE_ARN=$(aws eks describe-nodegroup --nodegroup-name ${NODE_GROUP_NAME} --cluster-name ${CLUSTER_NAME} --region ${REGION} | jq -r '.nodegroup.nodeRole')
-  ROLE_NAME=$(echo ${ROLE_ARN} | grep -oP 'arn:aws:iam::\d+:role/\K\S+')
+  # -P option is not available by default on OSX, use sed instead
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    ROLE_NAME=$(echo ${ROLE_ARN} | grep -o 'role/.*' | sed 's|role/||')
+  else
+    ROLE_NAME=$(echo ${ROLE_ARN} | grep -oP 'arn:aws:iam::\d+:role/\K\S+')
+  fi
 
   declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
 
