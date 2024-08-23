@@ -39,7 +39,7 @@ images:
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     # build_tag_override: "beta:2.3.0-cpu-py311-ubuntu20.04-sagemaker"
@@ -55,7 +55,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
     cuda_version: &CUDA_VERSION cu121
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     # build_tag_override: "beta:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker"
