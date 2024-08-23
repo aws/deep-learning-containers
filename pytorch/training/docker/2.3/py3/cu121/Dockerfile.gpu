@@ -5,7 +5,7 @@ ARG MINIFORGE3_VERSION=23.11.0-0
 ARG PYTORCH_VERSION=2.3.0
 ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
 
-FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:12.1.0-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
