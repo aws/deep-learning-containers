@@ -1,7 +1,6 @@
 {
-    "operation": "upgrade_nodegroup",
+    "operation": "create",
     "contexts": [
-        "PR",
         "MAINLINE"
     ],
     "eks_clusters": [
