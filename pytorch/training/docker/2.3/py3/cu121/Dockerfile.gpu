@@ -193,10 +193,15 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
+# Install libssl1.1 for OpenSSH
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.0g-2ubuntu4_amd64.deb \
+ && sudo dpkg -i libssl1.1_1.1.0g-2ubuntu4_amd64.deb
+
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
- && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
- && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
+    openssh-client \
+    openssh-server \
  && mkdir -p /var/run/sshd \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
