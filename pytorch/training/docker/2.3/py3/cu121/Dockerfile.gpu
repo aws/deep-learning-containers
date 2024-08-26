@@ -94,7 +94,7 @@ RUN apt-get update \
     libibverbs-dev \
     libnuma1 \
     libnuma-dev \
-    libssl1.1 \
+    # libssl1.1 \
     libssl-dev \
     libtool \
     openssl \
