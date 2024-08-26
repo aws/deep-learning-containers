@@ -153,7 +153,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    opencv-python \
     "urllib3<2" \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
