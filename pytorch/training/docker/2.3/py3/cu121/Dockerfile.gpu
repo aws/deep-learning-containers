@@ -120,6 +120,50 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
+RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+# Install common conda packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    python=$PYTHON_VERSION \
+    cython \
+    cryptography \
+    pyopenssl \
+    openssh \
+    libgcc \
+    pybind11 \
+    cmake \
+    curl \
+    libcurl \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
+    charset-normalizer \
+    packaging \
+    awscli \
+    boto3 \
+    pyyaml \
+    scipy \
+    click \
+    psutil \
+    ipython \
+    ipykernel \
+    pillow \
+    h5py \
+    mpi4py \
+    fsspec \
+    opencv-python \
+    "urllib3<2" \
+    "idna>=3.7"\
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+ && /opt/conda/bin/mamba clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
+
+# Install commond pip packages (in case of conda package is not available)
+RUN pip install --no-cache-dir opencv-python
+
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify       Skip EFA device verification and test
 #  -l, --skip-limit-conf Skip EFA limit configuration
@@ -171,48 +215,6 @@ RUN rm -rf /root/.ssh/ && \
  ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa && \
  cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
-
-RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
-
-# Install common conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    python=$PYTHON_VERSION \
-    cython \
-    cryptography \
-    pyopenssl \
-    libgcc \
-    pybind11 \
-    cmake \
-    curl \
-    libcurl \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    charset-normalizer \
-    packaging \
-    awscli \
-    boto3 \
-    pyyaml \
-    scipy \
-    click \
-    psutil \
-    ipython \
-    ipykernel \
-    pillow \
-    h5py \
-    mpi4py \
-    fsspec \
-    "urllib3<2" \
-    "idna>=3.7"\
-    "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
- && /opt/conda/bin/mamba clean -afy \
- && rm -rf /etc/apt/sources.list.d/*
-
-# Install commond pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
