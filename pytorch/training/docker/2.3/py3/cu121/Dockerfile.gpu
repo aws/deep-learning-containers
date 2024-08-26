@@ -88,7 +88,6 @@ RUN apt-get update \
     libglib2.0-0 \
     libgl1-mesa-glx \
     libsm6 \
-    # libssl1.1 \
     libssl-dev \
     libxext6 \
     libxrender-dev \
@@ -97,7 +96,7 @@ RUN apt-get update \
     libnuma1 \
     libnuma-dev \
     libtool \
-    # openssl \
+    openssl \
     python3-dev \
     unzip \
     vim \
@@ -195,6 +194,8 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
+
 RUN apt-get update \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
