@@ -85,7 +85,6 @@ RUN apt-get update \
     vim \
     wget \
     zlib1g-dev \
- && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -106,7 +105,6 @@ RUN apt-get update \
  && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
  && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
  && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -204,6 +202,11 @@ ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+
 WORKDIR /
 
 # Install PyTorch
@@ -260,7 +263,11 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
-ARG CONDA_CHANNEL
+
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
@@ -299,7 +306,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    # pin cloudpickle for sagemaker==2.220.0
     cloudpickle \
  && /opt/conda/bin/mamba clean -afy
 
