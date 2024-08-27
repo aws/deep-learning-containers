@@ -51,7 +51,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-# ENV CUDA_HOME=/opt/conda
+ENV CUDA_HOME=/opt/conda
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -246,7 +246,7 @@ FROM common AS ec2
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
-# ARG CUDA_HOME
+ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
@@ -264,6 +264,15 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL}
+
+# Install CUDA libraries
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+    cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -350,7 +359,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
-# ARG CUDA_HOME
+ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
@@ -375,6 +384,15 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL}
+
+# Install CUDA libraries
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
+    cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+    --override-channels \
+    -c ${CONDA_CHANNEL} \
+    -c nvidia \
+    -c conda-forge \
+ && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
