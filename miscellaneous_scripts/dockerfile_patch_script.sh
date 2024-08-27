@@ -34,11 +34,6 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
 fi
 
-# Upgrade sagemaker-training package to latest
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+ ]]; then
-    pip install "sagemaker-training>4.7.4" --upgrade
-fi
-
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
@@ -53,6 +48,11 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
     pip install --no-cache-dir -U ${SMP_URL}
     echo "Installed SMP";
+fi
+
+# Upgrade sagemaker-training package to latest
+if pip show sagemaker-training; then
+    pip install "sagemaker-training>4.7.4" --upgrade
 fi
 
 pip cache purge
