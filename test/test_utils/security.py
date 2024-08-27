@@ -157,7 +157,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         if test_utils.check_if_two_dictionaries_are_equal(
             dataclasses.asdict(self.package_details),
             dataclasses.asdict(other.package_details),
-            ignore_keys=["version"],
+            ignore_keys=["version", "file_path"],
         ):
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),

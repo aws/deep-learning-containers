@@ -107,6 +107,8 @@ EC2 Framework Containers (Tested on EC2, ECS, and EKS only)
 | TensorFlow 2.14.1 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-gpu-py310-cu118-ubuntu20.04-ec2	  |
 | TensorFlow 2.14.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-cpu-py310-ubuntu20.04-ec2		      |
 | TensorFlow 2.14.1 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-gpu-py310-cu118-ubuntu20.04-ec2	 |
+| TensorFlow 2.16.2 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-ec2		      |
+| TensorFlow 2.16.2 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-ec2	 |
 | TensorFlow 2.16.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-ec2		      |
 | TensorFlow 2.16.1 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-ec2	 |
 
@@ -124,6 +126,8 @@ SageMaker Framework Containers (SM support only)
 | TensorFlow 2.14.1 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.14.1-gpu-py310-cu118-ubuntu20.04-sagemaker  |
 | TensorFlow 2.14.1 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-cpu-py310-ubuntu20.04-sagemaker	      |
 | TensorFlow 2.14.1 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.14.1-gpu-py310-cu118-ubuntu20.04-sagemaker |
+| TensorFlow 2.16.2 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.16.2 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker  |
 | TensorFlow 2.16.1 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-sagemaker	      |
 | TensorFlow 2.16.1 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-sagemaker |
 
@@ -161,11 +165,13 @@ instance_type="ml.g5.12xlarge"
 
 uri = image_uris.retrieve(framework=triton_framework, region=region, version=version, instance_type=instance_type)
 ```
-3. Unavailable versions: `24.02`.
+3. Available versions: `23.12`, `24.01`, `24.03` and `24.05`.
+
+The Sagemaker Triton inference containers are built on top of the NGC containers with SageMaker support. To identify the python version and versions for other packages please refer to the corresponding official release notes for the specific version here: https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/index.html
 
 **Versions prior to 23.12**:
 
-1. For versions prior to 23.12, the following 23.`<XY>` versions are available: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08, 23.09, 23.10 and 23.12`.
+1. For versions prior to 23.12, the following 23.`<XY>` versions are available: `23.01, 23.02, 23.03, 23.05, 23.06, 23.07, 23.08, 23.09, 23.10`.
 2. For versions of the 22.`<XY>` series, the following are available: `22.05, 22.07, 22.08, 22.09, 22.10, 22.12`
 3. For versions of the 21.`<XY>` series, the following are available: `21.08`
 4. The following example notebook demonstrates the account_id_map to obtain the account for versions prior to r23.12:

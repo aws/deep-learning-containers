@@ -50,6 +50,7 @@ from test.test_utils.security import (
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
+from src.codebuild_environment import get_cloned_folder_path
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 
@@ -84,17 +85,17 @@ def get_minimum_sev_threshold_level(image):
     return "HIGH"
 
 
-def upload_allowlist_to_image_data_storage_bucket(
-    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
+def upload_json_to_image_data_storage_s3_bucket(
+    ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, upload_list
 ):
     """
-    This method gets the unique identifier of the image from ecr and uses it as the path to
-    upload image's allowlisted vulnerabilities to the image-data-storage s3 bucket. This
-    information is used for the scanning dashboard to identify allowlisted vulnerabilities.
+    This method retrieves the unique identifier of the image from ECR and uses it as the directory to upload the data in
+    provided `upload_list` to the image-data-storage s3 bucket.
+    This information is used for the scanning dashboard to identify image allowlist information.
 
-    :param ecr_client_for_enhanced_scanning_repo: ecr boto3 client for image
-    :param ecr_enhanced_repo_uri: str Image URI from ecr
-    :param allowlist_for_daily_scans: list of allowlisted vulnerabilities for the image
+    :param ecr_client_for_enhanced_scanning_repo: boto3 ecr client
+    :param ecr_enhanced_repo_uri: str, image's uri on ecr enhanced repo
+    :param upload_list: list of dictionaries with s3_filename, name of file to upload, and upload_data, data to upload as keys
     """
     image_sha = get_sha_of_an_image_from_ecr(
         ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri
@@ -102,21 +103,33 @@ def upload_allowlist_to_image_data_storage_bucket(
     s3_resource = boto3.resource("s3")
     sts_client = boto3.client("sts")
     account_id = sts_client.get_caller_identity().get("Account")
-    s3object = s3_resource.Object(
-        f"image-data-storage-{account_id}", image_sha + "/ecr_allowlist.json"
-    )
-    s3object.put(
-        Body=(
-            bytes(
-                json.dumps(
-                    allowlist_for_daily_scans.vulnerability_list,
-                    indent=4,
-                    cls=test_utils.EnhancedJSONEncoder,
-                ).encode("UTF-8")
-            )
+    for to_upload in upload_list:
+        s3_filepath = f"{image_sha}/{to_upload['s3_filename']}"
+        upload_data = json.dumps(
+            to_upload["upload_data"],
+            indent=4,
+            cls=EnhancedJSONEncoder,
         )
-    )
-    LOGGER.info(f"ECR allowlist uploaded to image-data-storage s3 bucket")
+        s3object = s3_resource.Object(f"image-data-storage-{account_id}", s3_filepath)
+        s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
+        LOGGER.info(
+            f"{to_upload['s3_filename']} uploaded to image-data-storage s3 bucket at {s3_filepath}"
+        )
+
+
+def add_core_packages_to_upload_list_if_exists(image, upload_list):
+    """
+    This method retrieves the image's corresponding core package data from the repo if it exists and adds it to the upload_list
+    with s3_filename as core_packages.json.
+
+    :param image: str, the corresponding image
+    :param upload_list: list of dictionaries with s3_filename, name of file to upload, and upload_data, data to upload as keys
+    """
+    core_packages_path = src_utils.get_core_packages_path(image)
+    if not os.path.exists(core_packages_path):
+        return
+    with open(core_packages_path, "r") as f:
+        upload_list.append({"s3_filename": "core_packages.json", "upload_data": json.load(f)})
 
 
 def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, sts_client, region):
@@ -236,6 +249,12 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
+    common_allowlist = ECREnhancedScanVulnerabilityList(
+        minimum_severity=CVESeverity[minimum_sev_threshold]
+    )
+    common_allowlist_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "data", "common-ecr-scan-allowlist.json"
+    )
 
     try:
         # Derive Image Scan Allowlist Path
@@ -255,6 +274,17 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     except:
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
+
+    if (
+        allowlist_removal_enabled
+        and os.path.exists(common_allowlist_path)
+        and not is_generic_image()
+    ):
+        common_allowlist.construct_allowlist_from_file(common_allowlist_path)
+        image_scan_allowlist = image_scan_allowlist + common_allowlist
+        LOGGER.info(
+            f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}"
+        )
 
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
@@ -314,8 +344,15 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
 
     if is_mainline_context() and is_test_phase() and not is_generic_image():
-        upload_allowlist_to_image_data_storage_bucket(
-            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, allowlist_for_daily_scans
+        upload_list = [
+            {
+                "s3_filename": "ecr_allowlist.json",
+                "upload_data": allowlist_for_daily_scans.vulnerability_list,
+            }
+        ]
+        add_core_packages_to_upload_list_if_exists(image, upload_list)
+        upload_json_to_image_data_storage_s3_bucket(
+            ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, upload_list
         )
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
