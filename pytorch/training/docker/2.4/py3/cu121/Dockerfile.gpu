@@ -79,11 +79,11 @@ ENV DLC_CONTAINER_TYPE=training
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
+    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
     build-essential \
     ca-certificates \
     cmake \
-    libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
-    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
     curl \
     emacs \
     git \
@@ -95,6 +95,10 @@ RUN apt-get update \
     libssl-dev \
     libxext6 \
     libxrender-dev \
+    zlib1g-dev \
+    unzip \
+    vim \
+    wget \
     libgomp1 \
     libibverbs-dev \
     libnuma1 \
@@ -102,10 +106,6 @@ RUN apt-get update \
     libtool \
     openssl \
     python3-dev \
-    unzip \
-    vim \
-    wget \
-    zlib1g-dev \
     autoconf \
     pkg-config \
     check \
@@ -128,11 +128,11 @@ RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-h
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    libgcc \
     python=$PYTHON_VERSION \
     cython \
     cryptography \
     pyopenssl \
-    libgcc \
     pybind11 \
     cmake \
     curl \
