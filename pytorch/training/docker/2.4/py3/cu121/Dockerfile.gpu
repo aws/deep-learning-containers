@@ -79,8 +79,8 @@ ENV DLC_CONTAINER_TYPE=training
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
-    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
+    libcudnn9-cuda-12=${CUDNN_VERSION} \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION} \
     build-essential \
     ca-certificates \
     cmake \
