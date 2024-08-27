@@ -32,6 +32,19 @@ mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 # Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+-cpu ]]; then
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
+    # Install EFA
+    EFA_VERSION=1.34.0
+    mkdir /tmp/efa \
+    && cd /tmp/efa \
+    && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+    && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+    && cd aws-efa-installer \
+    && apt-get update \
+    && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
+    && rm -rf /tmp/efa \
+    && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
 fi
 
 # Install packages and derive history and package diff data
