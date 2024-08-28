@@ -71,7 +71,8 @@ ENV NCCL_VERSION=2.22.3
 ENV EFA_VERSION=1.34.0
 ENV GDRCOPY_VERSION=2.4.1
 
-ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+# NOTE:
+# ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
 ENV DGLBACKEND=pytorch
@@ -81,6 +82,8 @@ ENV DLC_CONTAINER_TYPE=training
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    cuda-nvcc-12-4 \
+    cuda=${CUDA_VERSION}-1 \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
@@ -301,7 +304,7 @@ RUN cd /tmp \
 # Install Nvidia Apex (needs pytorch)
 RUN git clone https://github.com/NVIDIA/apex \
  && cd apex \
- && git checkout 23.08 -b apex \
+ && git checkout 24.04.01 -b apex \
  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
  && cd .. \
  && rm -rf apex
