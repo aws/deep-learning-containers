@@ -304,7 +304,9 @@ RUN cd /tmp \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
  && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ # NOTE:
+ # && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
 # Install Nvidia Apex (needs pytorch)
