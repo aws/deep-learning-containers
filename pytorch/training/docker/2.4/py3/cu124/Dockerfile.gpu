@@ -267,7 +267,7 @@ RUN pip install --no-cache-dir -U \
 
 # Install CUDA libraries
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+    cuda-nvcc=12.4 cuda-runtime=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
     --override-channels \
     -c nvidia \
     -c conda-forge \
