@@ -269,7 +269,6 @@ RUN pip install --no-cache-dir -U \
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
     cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
     --override-channels \
-    -c ${CONDA_CHANNEL} \
     -c nvidia \
     -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
