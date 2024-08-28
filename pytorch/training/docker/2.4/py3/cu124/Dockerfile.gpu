@@ -428,7 +428,7 @@ RUN cd /tmp \
  && pip install --no-cache-dir packaging \
  && git clone https://github.com/NVIDIA/apex -b ${APEX_VERSION}\
  && cd apex \
- && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+ && CUDA_HOME=${CUDA_HOME} pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
  && rm -rf /tmp/apex
 
 # Install flash attn and NVIDIA transformer engine.
