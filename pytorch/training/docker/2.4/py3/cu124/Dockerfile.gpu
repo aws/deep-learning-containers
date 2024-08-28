@@ -396,11 +396,12 @@ RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip uninstall -y torch torchvision torchaudio torchtext
-RUN pip install --no-cache-dir -U \
-    ${TORCH_URL} \
-    ${TORCHVISION_URL} \
-    ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
+RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+# RUN pip install --no-cache-dir -U \
+#     ${TORCH_URL} \
+#     ${TORCHVISION_URL} \
+#     ${TORCHAUDIO_URL} \
+#     ${TORCHTEXT_URL}
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
