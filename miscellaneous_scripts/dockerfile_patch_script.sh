@@ -32,6 +32,9 @@ mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 # Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+-cpu ]]; then
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
+fi
+
+if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker" ]; then
     # Install EFA
     EFA_VERSION=1.34.0
     mkdir /tmp/efa \
