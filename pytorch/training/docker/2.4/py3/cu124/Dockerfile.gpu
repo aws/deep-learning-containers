@@ -196,7 +196,7 @@ ENV LD_LIBRARY_PATH=${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}
 #  && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
 #  && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
 #  && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
-#  && ./configure --with-mpi ${OPEN_MPI_PATH} --with-libfabric ${EFA_PATH} --with-cuda ${CUDA_HOME} --disable-tests \
+#  && ./configure --with-mpi=${OPEN_MPI_PATH} --with-libfabric=${EFA_PATH} --with-cuda=${CUDA_HOME} --disable-tests \
 #  && make \
 #  && make install \
 #  && rm -rf /tmp/aws-ofi-nccl \
@@ -218,7 +218,6 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
-
 RUN apt-get update \
  && apt-get install -y \
     --allow-downgrades \
@@ -395,22 +394,23 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
-RUN pip uninstall -y torch torchvision torchaudio torchtext
-RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
-# RUN pip install --no-cache-dir -U \
-#     ${TORCH_URL} \
-#     ${TORCHVISION_URL} \
-#     ${TORCHAUDIO_URL} \
-#     ${TORCHTEXT_URL}
-
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-    accelerate \
+RUN pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
     fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
- && /opt/conda/bin/mamba clean -afy
+    accelerate \
+ && pip uninstall dataclasses
+
+# # Install PyTorch related python packages (depends on PyTorch)
+# RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+#     accelerate \
+#     fastai \
+#     # fastai conda strictly depends on dataclasses
+#  && pip uninstall -y dataclasses \
+#  && pip install --no-cache-dir torchtnt \
+#  && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
