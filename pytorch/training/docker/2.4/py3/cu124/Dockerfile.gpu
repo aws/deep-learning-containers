@@ -51,7 +51,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/usr/local/cuda-12.4
+ENV CUDA_HOME=/usr/local/cuda
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -81,7 +81,6 @@ ENV DLC_CONTAINER_TYPE=training
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    cuda=${CUDA_VERSION}-1 \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
@@ -273,19 +272,6 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL}
 
-RUN pip install --no-cache-dir \
-    # nvidia-cublas-cu12=${CUDA_VERSION} \
-    # nvidia-cuda-cupti-cu12=${CUDA_VERSION} \
-    # nvidia-cuda-nvrtc-cu12=${CUDA_VERSION} \
-    nvidia-cuda-runtime-cu12=${CUDA_VERSION} \
-    nvidia-cudnn-cu12=${CUDNN_VERSION}
-    # nvidia-cufft-cu12-11.2.0.44 \
-    # nvidia-curand-cu12-10.3.5.119 \
-    # nvidia-cusolver-cu12-11.6.0.99 \
-    # nvidia-cusparse-cu12-12.3.0.142 \
-    # nvidia-nccl-cu12-2.20.5 \
-    # nvidia-nvjitlink-cu12-12.4.99 \
-    # nvidia-nvtx-cu12-12.4.9
 # NOTE:
 # # Install CUDA libraries
 # RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
