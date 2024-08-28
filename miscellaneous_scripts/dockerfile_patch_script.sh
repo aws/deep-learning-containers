@@ -36,6 +36,7 @@ fi
 
 if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker" ]; then
     # Install EFA
+    PREV_DIR=$(pwd)
     EFA_VERSION=1.34.0
     mkdir /tmp/efa \
     && cd /tmp/efa \
@@ -47,7 +48,8 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     && rm -rf /tmp/efa \
     && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
     && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && apt-get clean \
+    && cd $PREV_DIR || exit
 fi
 
 # Install packages and derive history and package diff data
