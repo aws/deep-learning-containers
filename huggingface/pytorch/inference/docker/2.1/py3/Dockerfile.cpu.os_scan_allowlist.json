@@ -145,6 +145,35 @@
       "reason_to_ignore": "N/A"
     },
     {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: ksmbd: fix potencial out-of-bounds when buffer offset is invalid I found potencial out-of-bounds when buffer offset fields of a few requests is invalid. This patch set the minimum value of buffer offset field to ->Buffer offset to validate buffer length.",
+      "vulnerability_id": "CVE-2024-26952",
+      "name": "CVE-2024-26952",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "116.126"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26952.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26952 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
       "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
       "vulnerability_id": "CVE-2023-52752",
       "name": "CVE-2023-52752",

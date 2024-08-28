@@ -1,61 +1,33 @@
 {
-    "python3.8": [
+    "pip": [
         {
-            "name": "CVE-2015-20107",
-            "description": "In Python (aka CPython) through 3.10.4, the mailcap module does not add escape characters into commands discovered in the system mailcap file. This may allow attackers to inject shell commands into applications that call mailcap.findmatch with untrusted input (if they lack validation of user-provided filenames or arguments).",
-            "uri": "http://people.ubuntu.com/~ubuntu-security/cve/CVE-2015-20107",
+            "description": "An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely",
+            "vulnerability_id": "CVE-2018-20225",
+            "name": "CVE-2018-20225",
+            "package_name": "pip",
+            "package_details": {
+                "file_path": "opt/conda/lib/python3.11/site-packages/pip-24.0.dist-info/METADATA",
+                "name": "pip",
+                "package_manager": "PYTHONPKG",
+                "version": "24.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-20225",
+            "source": "NVD",
             "severity": "HIGH",
-            "attributes": [
-                {
-                    "key": "package_version",
-                    "value": "3.8.10-0ubuntu1~20.04.4"
-                },
-                {
-                    "key": "package_name",
-                    "value": "python3.8"
-                }
-            ],
-            "scraped_data": [
-                {
-                    "status_table": {
-                        "packages": [
-                            "python3.8",
-                            "Launchpad",
-                            "Ubuntu",
-                            "Debian"
-                        ],
-                        "release_states": [
-                            [
-                                "bionic",
-                                "Deferred (2022-04-14)"
-                            ],
-                            [
-                                "focal",
-                                "Deferred (2022-04-14)"
-                            ],
-                            [
-                                "impish",
-                                "Does not exist"
-                            ],
-                            [
-                                "trusty",
-                                "Does not exist"
-                            ],
-                            [
-                                "upstream",
-                                "Needed"
-                            ],
-                            [
-                                "xenial",
-                                "Does not exist"
-                            ]
-                    ]
-                    },
-                    "notes": [
-                        "patch was proposed in cpython Lib/mailcap.py but not merged yet."
-                    ]
-                }
-            ]
+            "status": "ACTIVE",
+            "title": "CVE-2018-20225 - pip",
+            "reason_to_ignore": "This is a disputed CVE and impacts all pip versions."
         }
     ]
 }

@@ -227,12 +227,13 @@ def _test_hc_distributed_mnist_ps_function(
     _assert_checkpoint_exists(sagemaker_session.boto_region_name, estimator.model_dir, 0)
 
 
+## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039 impacting parameter server
 @pytest.mark.model("mnist")
 @pytest.mark.multinode(2)
 @pytest.mark.integration("parameter server")
 @pytest.mark.team("frameworks")
 def test_distributed_mnist_custom_ps(
-    ecr_image, sagemaker_regions, instance_type, framework_version
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
 ):
     print("ecr image used for training", ecr_image)
     invoke_sm_helper_function(
@@ -316,11 +317,14 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
+## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039 impacting s3 plugin
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
-def test_hc_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_hc_s3_plugin(
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+):
     from sagemaker.instance_group import InstanceGroup
 
     instance_type = instance_type or "ml.c5.xlarge"

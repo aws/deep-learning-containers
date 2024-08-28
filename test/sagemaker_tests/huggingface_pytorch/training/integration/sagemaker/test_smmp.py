@@ -14,7 +14,9 @@ from __future__ import absolute_import
 
 import os
 import re
+from distutils.version import Version
 import pytest
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
 from ..... import invoke_sm_helper_function
 from ...integration import DEFAULT_TIMEOUT
@@ -66,6 +68,26 @@ def get_transformers_version_from_image_uri(ecr_image):
         raise LookupError("HF transformers version not found in image URI")
 
 
+def validate_or_skip_modelparallel(ecr_image):
+    if not can_run_modelparallel(ecr_image):
+        pytest.skip("Model Parallelism is supported on CUDA 11 with PyTorch < v2.0")
+
+
+def can_run_modelparallel(ecr_image):
+    image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    image_cuda_version = get_cuda_version_from_tag(ecr_image)
+
+    # Check if the framework is PyTorch
+    if image_framework.lower() != "pytorch":
+        return False
+
+    # Convert versions to appropriate formats
+    framework_version = Version(image_framework_version)
+    cuda_version = Version(image_cuda_version.strip("cu"))
+
+    return (framework_version < Version("2.1")) and (cuda_version == Version("110"))
+
+
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smmp")
 @pytest.mark.model("hf_qa_smmp")
@@ -111,6 +133,8 @@ def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,
     }
+
+    validate_or_skip_modelparallel(ecr_image)
 
     huggingface_estimator = HuggingFace(
         entry_point="run_glue.py",
