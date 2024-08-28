@@ -289,7 +289,8 @@ RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
+ && CUDA=${CUDA_HOME} make all install \
+ && ./insmod.sh \
  && rm -rf /tmp/gdrcopy
 
 # Install NCCL
