@@ -162,7 +162,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
-# Install commond pip packages (in case of conda package is not available)
+# Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
 
 # The ENV variables declared below are changed in the previous section
