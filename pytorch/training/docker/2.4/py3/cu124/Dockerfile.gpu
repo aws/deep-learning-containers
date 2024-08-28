@@ -51,7 +51,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/opt/conda
+# ENV CUDA_HOME=/opt/conda
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -64,12 +64,13 @@ ENV PATH="/opt/conda/bin:${PATH}"
 # 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+ENV CUDA_VERSION=12.4.1
 ENV CUDNN_VERSION=9.1.0.70
 ENV NCCL_VERSION=2.22.3
 ENV EFA_VERSION=1.34.0
 ENV GDRCOPY_VERSION=2.4.1
 
-ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
+# ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
 ENV DGLBACKEND=pytorch
@@ -79,6 +80,8 @@ ENV DLC_CONTAINER_TYPE=training
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    cuda=${CUDA_VERSION}-1 \
+    cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     build-essential \
@@ -265,13 +268,13 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL}
 
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-nvcc=12.4 cuda-runtime=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
-    --override-channels \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# # Install CUDA libraries
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     cuda-nvcc=12.4 cuda-runtime=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+#     --override-channels \
+#     -c nvidia \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
@@ -289,7 +292,7 @@ RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make all install \
+ && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
 # Install NCCL
@@ -384,14 +387,14 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL}
 
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
-    cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# # Install CUDA libraries
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} \
+#     cuda-nvcc=12.4 cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c nvidia \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
