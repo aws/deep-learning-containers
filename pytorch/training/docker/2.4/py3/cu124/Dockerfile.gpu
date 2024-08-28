@@ -290,7 +290,6 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make all install \
- && ./insmod.sh \
  && rm -rf /tmp/gdrcopy
 
 # Install NCCL
