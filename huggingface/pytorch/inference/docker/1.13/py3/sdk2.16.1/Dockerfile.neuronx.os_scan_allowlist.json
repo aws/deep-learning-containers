@@ -1,6 +1,93 @@
 {
   "linux": [
     {
+      "description":"In the Linux kernel, the following vulnerability has been resolved: net/dpaa2: Avoid explicit cpumask var allocation on stack For CONFIG_CPUMASK_OFFSTACK=y kernel, explicit allocation of cpumask variable on stack is not recommended since it can cause potential stack overflow. Instead, kernel code should always use *cpumask_var API(s) to allocate cpumask var in config-neutral way, leaving allocation strategy to CONFIG_CPUMASK_OFFSTACK. Use *cpumask_var API(s) to address it.",
+      "vulnerability_id":"CVE-2024-42093",
+      "name":"CVE-2024-42093",
+      "package_name":"linux",
+      "package_details":{
+          "file_path":null,
+          "name":"linux",
+          "package_manager":"OS",
+          "version":"5.4.0",
+          "release":"193.213"
+      },
+      "remediation":{
+          "recommendation":{
+            "text":"None Provided"
+          }
+      },
+      "cvss_v3_score":7.8,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":7.8,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"HIGH",
+      "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42093.html",
+      "source":"UBUNTU_CVE",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2024-42093 - linux",
+      "reason_to_ignore":"N/A"
+    },
+    {
+      "description":"In the Linux kernel, the following vulnerability has been resolved: net: ethernet: lantiq_etop: fix double free in detach The number of the currently released descriptor is never incremented which results in the same skb being released multiple times.",
+      "vulnerability_id":"CVE-2024-41046",
+      "name":"CVE-2024-41046",
+      "package_name":"linux",
+      "package_details":{
+          "file_path":null,
+          "name":"linux",
+          "package_manager":"OS",
+          "version":"5.4.0",
+          "release":"193.213"
+      },
+      "remediation":{
+          "recommendation":{
+            "text":"None Provided"
+          }
+      },
+      "cvss_v3_score":7.8,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":7.8,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"HIGH",
+      "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41046.html",
+      "source":"UBUNTU_CVE",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2024-41046 - linux",
+      "reason_to_ignore":"N/A"
+    },
+    {
+      "description":"In the Linux kernel, the following vulnerability has been resolved: filelock: fix potential use-after-free in posix_lock_inode Light Hsieh reported a KASAN UAF warning in trace_posix_lock_inode(). The request pointer had been changed earlier to point to a lock entry that was added to the inode's list. However, before the tracepoint could fire, another task raced in and freed that lock. Fix this by moving the tracepoint inside the spinlock, which should ensure that this doesn't happen.",
+      "vulnerability_id":"CVE-2024-41049",
+      "name":"CVE-2024-41049",
+      "package_name":"linux",
+      "package_details":{
+          "file_path":null,
+          "name":"linux",
+          "package_manager":"OS",
+          "version":"5.4.0",
+          "release":"193.213"
+      },
+      "remediation":{
+          "recommendation":{
+            "text":"None Provided"
+          }
+      },
+      "cvss_v3_score":7.8,
+      "cvss_v30_score":0.0,
+      "cvss_v31_score":7.8,
+      "cvss_v2_score":0.0,
+      "cvss_v3_severity":"HIGH",
+      "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41049.html",
+      "source":"UBUNTU_CVE",
+      "severity":"HIGH",
+      "status":"ACTIVE",
+      "title":"CVE-2024-41049 - linux",
+      "reason_to_ignore":"N/A"
+    },
+    {
       "description":"A out-of-bound vulnerability is found in the jfs subsystem. When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging. But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer. This may lead to system crash.",
       "vulnerability_id":"CVE-2024-40902",
       "name":"CVE-2024-40902",
