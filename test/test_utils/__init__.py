@@ -2353,6 +2353,9 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
 
     for package_data_dict in list_of_package_data_dicts:
         package_name = package_data_dict["name"].lower()
+        # account for "sagemaker_training" vs "sagemaker-training" package name difference
+        if package_name in ["sagemaker_training"]: # potentially add more packages here in the future if they have the same issue
+            package_name = package_name.replace("_", "-")
         if package_name in package_version_dict:
             raise Exception(
                 f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}"""
