@@ -66,6 +66,7 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --no-install-recommends \
+    automake \
     build-essential \
     ca-certificates \
     cmake \

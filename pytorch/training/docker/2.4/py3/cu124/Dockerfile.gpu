@@ -77,8 +77,6 @@ ENV APEX_VERSION=24.04.01
 # NOTE:
 # ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 # ENV DGLBACKEND=pytorch
-ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
 ENV MANUAL_BUILD=0
@@ -90,6 +88,7 @@ RUN apt-get update \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    automake \
     build-essential \
     ca-certificates \
     cmake \
@@ -185,10 +184,9 @@ RUN mkdir /tmp/efa \
  && cd aws-efa-installer \
  && apt-get update \
  && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
- && rm -rf /tmp/efa
- # && rm -rf /tmp/efa \
- # && rm -rf /var/lib/apt/lists/* \
- # && apt-get clean
+ && rm -rf /tmp/efa \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
 ENV LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}"
@@ -206,35 +204,22 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install hwloc
-RUN mkdir /tmp/hwloc \
- && cd /tmp/hwloc \
- && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
- && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
- && cd hwloc-${HWLOC_VERSION} \
- && ./configure \
- && make \
- && make install \
- && rm -rf /tmp/hwloc
- # && rm -rf /tmp/hwloc \
- # && rm -rf /var/lib/apt/lists/* \
- # && apt-get clean
-
 # Install aws-ofi-nccl plugin
 RUN mkdir /tmp/aws-ofi-nccl \
  && cd /tmp/aws-ofi-nccl \
  && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
  && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
  && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
- && ./configure --with-hwloc=/usr/lib/x86_64-linux-gnu --with-mpi=${OPEN_MPI_PATH} --with-libfabric=${EFA_PATH} --with-cuda=${CUDA_HOME} --disable-tests \
+ && ./autogen.sh \
+ && ./configure --prefix=/opt/aws-ofi-nccl --with-hwloc=/opt/conda --with-mpi=${OPEN_MPI_PATH} --with-libfabric=${EFA_PATH} --with-cuda=${CUDA_HOME} --disable-tests \
  && make \
  && make install \
- && rm -rf /tmp/aws-ofi-nccl
- # && rm -rf /tmp/aws-ofi-nccl \
- # && rm -rf /var/lib/apt/lists/* \
- # && apt-get clean
+ && rm -rf /tmp/aws-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 RUN apt-get update \
  && apt-get install -y \
     --allow-downgrades \
