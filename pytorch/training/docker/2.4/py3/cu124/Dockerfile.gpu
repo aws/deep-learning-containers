@@ -77,6 +77,8 @@ ENV APEX_VERSION=24.04.01
 # NOTE:
 # ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
 # ENV DGLBACKEND=pytorch
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 
 ENV MANUAL_BUILD=0
@@ -224,7 +226,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
  && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
  && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
  && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
- && ./configure --with-mpi=${OPEN_MPI_PATH} --with-libfabric=${EFA_PATH} --with-cuda=${CUDA_HOME} --disable-tests \
+ && ./configure --with-hwloc=/usr/lib/x86_64-linux-gnu --with-mpi=${OPEN_MPI_PATH} --with-libfabric=${EFA_PATH} --with-cuda=${CUDA_HOME} --disable-tests \
  && make \
  && make install \
  && rm -rf /tmp/aws-ofi-nccl
@@ -233,7 +235,6 @@ RUN mkdir /tmp/aws-ofi-nccl \
  # && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 RUN apt-get update \
  && apt-get install -y \
     --allow-downgrades \
