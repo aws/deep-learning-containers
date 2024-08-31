@@ -89,6 +89,41 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Install Open MPI
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y \
+    --allow-downgrades \
+    --allow-change-held-packages \
+    --no-install-recommends \
+    openssh-client \
+    openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd \
+ && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ \
+ && mkdir -p /root/.ssh/ \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
 # For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
@@ -137,41 +172,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
-
-# Install Open MPI
-RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
- && cd openmpi-${OPEN_MPI_VERSION} \
- && ./configure --prefix=/home/.openmpi \
- && make all install \
- && cd .. \
- && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
- && rm -rf openmpi-${OPEN_MPI_VERSION}
-
-# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y \
-    --allow-downgrades \
-    --allow-change-held-packages \
-    --no-install-recommends \
-    openssh-client \
-    openssh-server \
- && mkdir -p /var/run/sshd \
- && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
- && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
-# Configure OpenSSH so that nodes can communicate with each other
-RUN mkdir -p /var/run/sshd \
- && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-RUN rm -rf /root/.ssh/ \
- && mkdir -p /root/.ssh/ \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
 # The ENV variables declared below are changed in the previous section
 # Grouping these ENV variables in the first section causes
