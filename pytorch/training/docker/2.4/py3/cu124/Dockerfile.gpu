@@ -163,10 +163,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    urllib3 \
-    idna \
     tqdm \
-    requests \
+    "idna>=3.7"\
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+    "urllib3<2" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -458,7 +459,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle \
+    # pinned for sagemaker==2.231.0
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
 # Add SageMaker DataParallel to LD_LIBRARY_PATH

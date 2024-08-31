@@ -156,10 +156,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    urllib3 \
-    idna \
     tqdm \
-    requests \
+    "idna>=3.7"\
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+    "urllib3<2" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -214,15 +215,10 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
-
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+    ${TORCHTEXT_URL} \
     accelerate \
     fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -afy
+ && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -278,15 +274,10 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
-
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+    ${TORCHTEXT_URL} \
     accelerate \
     fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -afy
+ && pip uninstall -y dataclasses
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
@@ -306,7 +297,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle \
+    # pinned for sagemaker==2.231.0
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
