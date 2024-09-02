@@ -50,6 +50,11 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     echo "Installed SMP";
 fi
 
+# Upgrade sagemaker-training package to latest
+if pip show sagemaker-training; then
+    pip install "sagemaker-training>4.7.4" --upgrade
+fi
+
 pip cache purge
 
 ## Update GPG key in case Nginx exists
