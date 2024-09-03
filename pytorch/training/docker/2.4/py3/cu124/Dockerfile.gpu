@@ -1,8 +1,17 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.11.9
 ARG PYTHON_SHORT_VERSION=3.11
-ARG MINIFORGE3_VERSION=24.3.0-0
 ARG PYTORCH_VERSION=2.4.0
+
+ARG MINIFORGE3_VERSION=24.3.0-0
+ARG CUDA_VERSION=12.4.1
+ARG CUDNN_VERSION=9.1.0.70
+ARG NCCL_VERSION=2.22.3
+ARG EFA_VERSION=1.34.0
+ARG HWLOC_VERSION=2.11.1
+ARG AWS_OFI_NCCL_VERSION=1.11.0
+ARG GDRCOPY_VERSION=2.4.1
+ARG APEX_VERSION=24.04.01
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torch-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
@@ -43,16 +52,16 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG MINIFORGE3_VERSION
 
-ARG CUDA_VERSION=12.4.1
-ARG CUDNN_VERSION=9.1.0.70
-ARG NCCL_VERSION=2.22.3
-ARG EFA_VERSION=1.34.0
-ARG HWLOC_VERSION=2.11.1
-ARG AWS_OFI_NCCL_VERSION=1.11.0
-ARG GDRCOPY_VERSION=2.4.1
-ARG APEX_VERSION=24.04.01
+ARG MINIFORGE3_VERSION
+ARG CUDA_VERSION
+ARG CUDNN_VERSION
+ARG NCCL_VERSION
+ARG EFA_VERSION
+ARG HWLOC_VERSION
+ARG AWS_OFI_NCCL_VERSION
+ARG GDRCOPY_VERSION
+ARG APEX_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -313,7 +322,7 @@ RUN pip install --no-cache-dir -U \
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v2.4.1 \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
