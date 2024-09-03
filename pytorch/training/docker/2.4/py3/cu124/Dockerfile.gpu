@@ -91,6 +91,7 @@ RUN apt-get update \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    libhwloc-dev \
     automake \
     build-essential \
     ca-certificates \
@@ -179,7 +180,6 @@ RUN mkdir /tmp/aws-ofi-nccl \
  && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
  && ./autogen.sh \
  && ./configure --prefix=/opt/aws-ofi-nccl \
-                # --with-hwloc=/opt/conda \
                 --with-mpi=${OPEN_MPI_PATH} \
                 --with-libfabric=${EFA_PATH} \
                 --with-cuda=${CUDA_HOME} \
