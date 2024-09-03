@@ -398,10 +398,10 @@ def test_framework_version_cpu(image):
                         torch_version_pattern = r"{torch_version}(\+cpu)".format(
                             torch_version=tag_framework_version
                         )
-                    assert re.fullmatch(torch_version_pattern, output), (
-                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                        f"Please specify framework version as X.Y.Z+cpu"
-                    )
+                        assert re.fullmatch(torch_version_pattern, output), (
+                            f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                            f"Please specify framework version as X.Y.Z+cpu"
+                        )
         else:
             if "neuron" in image:
                 assert tag_framework_version in output
@@ -596,11 +596,11 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                             container_name="PT2",
                         ).stdout.strip()
                         cuda_ver = get_cuda_version_from_tag(image)
-                        torch_version_pattern = r"{torch_version}".format(
+                        torch_version_pattern = r"{torch_version}(\+cu\d+)?".format(
                             torch_version=tag_framework_version
                         )
-                        assert (
-                            output == tag_framework_version
+                        assert re.fullmatch(
+                            torch_version_pattern, output
                         ), f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         assert (
                             cuda_ver == "cu" + cuda_output
