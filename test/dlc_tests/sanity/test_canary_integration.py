@@ -75,6 +75,9 @@ def test_deep_canary_integration(image, region):
     image_region = get_region_from_image_uri(image)
     assert image_region == region, f"Problem: Test region {region} != canary region {image_region}"
 
-    login_to_ecr_registry(ctx, image_account_id, region)
-    ctx.run(f"docker pull {image}", hide="out")
-    LOGGER.info(f"Deep Canary pull test succeeded for {image}")
+    try:
+        login_to_ecr_registry(ctx, image_account_id, region)
+        ctx.run(f"docker pull {image}", hide="out")
+        LOGGER.info(f"Deep Canary pull test succeeded for {image}")
+    finally:
+        ctx.run(f"docker rmi {image}", warn=True, hide="out")
