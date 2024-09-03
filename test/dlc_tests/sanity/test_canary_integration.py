@@ -80,4 +80,4 @@ def test_deep_canary_integration(image, region):
         ctx.run(f"docker pull {image}", hide="out")
         LOGGER.info(f"Deep Canary pull test succeeded for {image}")
     finally:
-        ctx.run(f"docker rmi {image}", warn=True)
+        ctx.run(f"docker rmi {image}", warn=True, hide="out")
