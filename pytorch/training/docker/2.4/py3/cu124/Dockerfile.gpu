@@ -262,7 +262,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=0.70.0" \
+    "setuptools>=70.0.0" \
     "urllib3<2" \
     libgcc \
  && /opt/conda/bin/mamba clean -afy \
