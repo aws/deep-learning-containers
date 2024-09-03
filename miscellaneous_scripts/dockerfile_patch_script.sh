@@ -28,9 +28,9 @@ fi
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
 
-# For PT 2.1, 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
+# For PT 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
 # Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[1-3]\.[0-9]+-cpu ]]; then
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+-cpu ]]; then
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
 fi
 
@@ -48,6 +48,11 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
     pip install --no-cache-dir -U ${SMP_URL}
     echo "Installed SMP";
+fi
+
+# Upgrade sagemaker-training package to latest
+if pip show sagemaker-training; then
+    pip install "sagemaker-training>4.7.4" --upgrade
 fi
 
 pip cache purge
