@@ -2417,7 +2417,7 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_22"):
     """
     Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
     For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
@@ -2483,6 +2483,18 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
             },
             "proprietary": {
                 "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+        "UBUNTU_22": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
                 "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
                 "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
             },
