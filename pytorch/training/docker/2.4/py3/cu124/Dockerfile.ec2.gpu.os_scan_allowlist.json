@@ -494,7 +494,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "A out-of-bound vulnerability is found in the jfs subsystem. When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging. But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer. This may lead to system crash.",
+      "description": "It was discovered that the JFS file system contained an out-of-bounds read vulnerability when printing xattr debug information. A local attacker could use this to cause a denial of service (system crash).",
       "vulnerability_id": "CVE-2024-40902",
       "name": "CVE-2024-40902",
       "package_name": "linux",
