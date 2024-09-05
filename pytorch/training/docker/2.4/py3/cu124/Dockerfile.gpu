@@ -78,8 +78,8 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
-    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
+    libcudnn8=$CUDNN_VERSION-1+cuda12.4 \
+    libcudnn8-dev=$CUDNN_VERSION-1+cuda12.4 \
     curl \
     emacs \
     git \
@@ -94,7 +94,10 @@ RUN apt-get update \
     libibverbs-dev \
     libnuma1 \
     libnuma-dev \
-    libssl1.1 \
+    # ubuntu22.04 use libssl3 by default
+    # E: Unable to locate package libssl1.1
+    # https://askubuntu.com/questions/1408000/unable-to-locate-package-libssl1-1
+    #libssl1.1 \
     libssl-dev \
     libtool \
     openssl \
