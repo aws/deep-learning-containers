@@ -267,6 +267,7 @@ def _test_distributed_mnist_custom_ps(
     estimator.fit(inputs, job_name=unique_name_from_base("test-tf-sm-distributed-mnist"))
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
+
 @pytest.mark.skip_tf216_only
 @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
