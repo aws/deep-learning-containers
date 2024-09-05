@@ -53,6 +53,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV PATH="/opt/conda/bin:${PATH}"
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules

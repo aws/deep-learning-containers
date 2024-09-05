@@ -9,7 +9,7 @@ PT_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0]);")
 HAS_CUDA=$(python -c "import torch; print(torch.version.cuda is not None)")
 
 # install OSS PyTorch
-if [ $(version $PT_VERSION) -lt $(version "2.0") ]; then
+if [ $(version $PT_VERSION) -lt $(version "2.0") ] || [ $(version $PT_VERSION) -ge $(version "2.4") ]; then
     pip uninstall -y torch torchvision torchaudio torchdata
 else
     conda remove -y --force pytorch torchvision torchaudio
