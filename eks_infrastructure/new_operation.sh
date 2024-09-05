@@ -152,7 +152,7 @@ if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
 fi
 
-update_eksctl_utils ${CLUSTER} ${AWS_REGION}
+# update_eksctl_utils ${CLUSTER} ${AWS_REGION}
 create_graviton_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
