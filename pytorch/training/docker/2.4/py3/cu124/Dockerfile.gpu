@@ -92,7 +92,6 @@ WORKDIR /
 
 # NOTE:
 # ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
-# ENV DGLBACKEND=pytorch
 # ENV MANUAL_BUILD=0
 
 RUN apt-get update \
@@ -271,9 +270,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
-
-# NOTE:
-# RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
 

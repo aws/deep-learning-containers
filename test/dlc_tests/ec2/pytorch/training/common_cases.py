@@ -296,7 +296,6 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     else:
         system_cudnn = f"{(major*1000)+(minor*100)+(patch)}"
 
-    system_cudnn = f"{major}{minor}{patch}"
     assert (
         system_cudnn == cudnn_from_torch
     ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
