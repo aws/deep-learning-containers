@@ -292,9 +292,9 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     ).stdout.strip()
 
     if int(major) >= 9:
-        system_cudnn = f"{(major*10000)+(minor*100)+(patch)}"
+        system_cudnn = f"{(int(major)*10000)+(int(minor)*100)+(int(patch))}"
     else:
-        system_cudnn = f"{(major*1000)+(minor*100)+(patch)}"
+        system_cudnn = f"{(int(major)*1000)+(int(minor)*100)+(int(patch))}"
 
     assert (
         system_cudnn == cudnn_from_torch
