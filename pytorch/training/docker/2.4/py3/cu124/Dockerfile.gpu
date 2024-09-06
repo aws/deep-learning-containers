@@ -4,7 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.11
 ARG MINIFORGE3_VERSION=24.3.0-0
 ARG PYTORCH_VERSION=2.4.0
 ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
-ARG AWS_OFI_NCCL_VERSION=1.11.0
+
 
 # PyTorch binary path
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torch-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
@@ -47,9 +47,9 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG MINIFORGE3_VERSION
-ARG AWS_OFI_NCCL_VERSION
 # ARG CONDA_CHANNEL
 ARG EFA_PATH=/opt/amazon/efa
+ARG AWS_OFI_NCCL_VERSION=1.11.0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -88,11 +88,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     # check version support https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
-    # change to libcudnn9?
-    #libcudnn8=$CUDNN_VERSION-1+cuda12.4 \
     libcudnn9-cuda-12=$CUDNN_VERSION-1 \
-    #libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1
-    # libcudnn9-dev-cuda-12_9.1.0.70-1_amd64.deb
     libcudnn9-dev-cuda-12=$CUDNN_VERSION-1 \
     curl \
     emacs \
@@ -211,7 +207,7 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
 
-# Install AWS-OFI-NCCL plugin
+# Install AWS-OFI-NCCL plugin from source
 RUN mkdir /tmp/aws-ofi-nccl \
 && cd /tmp/aws-ofi-nccl \
 && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
@@ -409,7 +405,6 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
-ARG AWS_OFI_NCCL_VERSION
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
@@ -439,7 +434,7 @@ RUN pip install --no-cache-dir \
     fastai \
     torchtnt \
     # fastai conda strictly depends on dataclasses
-&& pip uninstall -y dataclasses \
+&& pip uninstall -y dataclasses 
 
 # need to check this two packages
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \

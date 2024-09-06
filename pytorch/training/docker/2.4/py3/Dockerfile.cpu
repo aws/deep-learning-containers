@@ -270,12 +270,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install PyTorch
-# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-#     torchvision torchaudio torchtext cpuonly \
-#     --override-channels \
-#     -c ${CONDA_CHANNEL} \
-#     -c conda-forge \
-#  && /opt/conda/bin/mamba clean -afy
 RUN pip install --no-cache-dir \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
