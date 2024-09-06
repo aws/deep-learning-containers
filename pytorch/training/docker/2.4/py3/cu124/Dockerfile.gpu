@@ -84,7 +84,7 @@ RUN apt-get update \
     libcudnn9-cuda-12=$CUDNN_VERSION-1 \
     #libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1
     # libcudnn9-dev-cuda-12_9.1.0.70-1_amd64.deb
-    libcudnn9-dev-cuda-12-4=$CUDNN_VERSION-1 \
+    libcudnn9-dev-cuda-12=$CUDNN_VERSION-1 \
     curl \
     emacs \
     git \
