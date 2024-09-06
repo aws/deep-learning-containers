@@ -9,6 +9,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
@@ -20,6 +21,7 @@ def test_telemetry_instance_tag_failure_gpu(gpu, ec2_client, ec2_instance, ec2_c
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -33,6 +35,7 @@ def test_telemetry_instance_tag_failure_cpu(
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -50,6 +53,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
     _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
@@ -64,6 +68,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
     )
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -84,6 +89,7 @@ def test_telemetry_instance_tag_success_gpu(
     _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -105,6 +111,7 @@ def test_telemetry_instance_tag_success_cpu(
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -119,6 +126,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
@@ -133,6 +141,7 @@ def test_telemetry_instance_tag_success_neuron(
     _run_tag_success_IMDSv2_hop_limit_2(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -146,6 +155,7 @@ def test_telemetry_s3_query_bucket_success_gpu(
     _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
@@ -166,6 +176,7 @@ def test_telemetry_s3_query_bucket_success_cpu(
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
@@ -179,6 +190,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
+@pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")

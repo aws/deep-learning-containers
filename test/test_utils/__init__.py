@@ -2352,7 +2352,7 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
     list_of_package_data_dicts = json.loads(run_output.stdout)
 
     for package_data_dict in list_of_package_data_dicts:
-        package_name = package_data_dict["name"].lower()
+        package_name = package_data_dict["name"].lower().replace("_", "-")
         if package_name in package_version_dict:
             raise Exception(
                 f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}"""
