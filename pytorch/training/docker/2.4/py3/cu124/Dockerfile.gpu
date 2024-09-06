@@ -80,8 +80,11 @@ RUN apt-get update \
     cmake \
     # check version support https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
     # change to libcudnn9?
-    libcudnn9=$CUDNN_VERSION-1+cuda12.4 \
-    libcudnn9-dev=$CUDNN_VERSION-1+cuda12.4 \
+    #libcudnn8=$CUDNN_VERSION-1+cuda12.4 \
+    libcudnn9-cuda-12=$CUDNN_VERSION-1 \
+    #libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1
+    # libcudnn9-dev-cuda-12_9.1.0.70-1_amd64.deb
+    libcudnn9-dev-cuda-12-4=$CUDNN_VERSION-1 \
     curl \
     emacs \
     git \
