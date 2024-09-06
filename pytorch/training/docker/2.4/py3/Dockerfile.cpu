@@ -276,15 +276,17 @@ WORKDIR /
 #     -c ${CONDA_CHANNEL} \
 #     -c conda-forge \
 #  && /opt/conda/bin/mamba clean -afy
-RUN pip install --no-cache-dir ${TORCH_URL} ${TORCHVISION_URL} ${.TORCHAUDIO_UR} ${TORCHTEXT_URL}
-
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+RUN pip install --no-cache-dir \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${.TORCHAUDIO_UR} \
+    ${TORCHTEXT_URL} \
+    fastai \
     accelerate \
     fastai \
     # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && /opt/conda/bin/mamba clean -afy
+ && pip uninstall -y dataclasses 
+
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
