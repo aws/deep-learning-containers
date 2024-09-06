@@ -94,7 +94,7 @@ RUN apt-get update \
     libcublas-12-4=${CUBLAS_VERSION}-1 \
     libcublas-dev-12-4=${CUBLAS_VERSION}-1 \
     cuda-nvml-dev-12-4=${NVML_VERSION}-1 \
-    libcudnn9=${CUDNN_VERSION}-1+cuda12.4 \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     curl \
     emacs \
     # adding GCC 11 for graviton compile support
