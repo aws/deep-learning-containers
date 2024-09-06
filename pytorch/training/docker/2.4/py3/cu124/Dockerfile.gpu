@@ -103,6 +103,7 @@ RUN apt-get update \
     # E: Unable to locate package libssl1.1
     # https://askubuntu.com/questions/1408000/unable-to-locate-package-libssl1-1
     #libssl1.1 \
+    libssl3 \
     libssl-dev \
     libtool \
     openssl \
