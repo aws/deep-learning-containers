@@ -132,8 +132,6 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
-    # ninja is needed for apex to speed up the build
-    ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -265,13 +263,15 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "setuptools>=70.0.0" \
     "urllib3<2" \
     libgcc \
+    # ninja is needed for apex to speed up the build
+    ninja \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -415,6 +415,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    triton \
     fastai \
     accelerate \
     torchtnt \
