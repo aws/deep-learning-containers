@@ -10,7 +10,7 @@ trcomp_mode = false
 deep_canary_mode = false
 
 [build]
-build_frameworks = [ "_home_evakravi_workspace_github_dlc-patching_deep-learning-containers_pytorch",]
+build_frameworks = [ "pytorch",]
 build_training = false
 build_inference = true
 do_build = true
@@ -23,13 +23,13 @@ notification_severity = "medium"
 sanity_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = false
-sagemaker_remote_tests = false
+sagemaker_local_tests = true
+sagemaker_remote_tests = true
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
 sagemaker_benchmark_tests = false
@@ -54,7 +54,7 @@ dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-sm.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 dlc-pr-mxnet-neuron-inference = ""
@@ -71,6 +71,4 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
-# WARNING: Unrecognized key generated below
-dlc-pr--home-evakravi-workspace-github-dlc-patching-deep-learning-containers-pytorch-inference = "/home/evakravi/workspace/github/dlc-patching/deep-learning-containers/pytorch/inference/buildspec-2-3-sm.yml"
 
