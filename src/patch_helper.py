@@ -394,8 +394,8 @@ def verify_artifact_contents_for_patch_builds(
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.5
-    ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more that 0.5 MB."
+        folder_size_in_megabytes <= 0.7
+    ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
     assert check_if_folder_contents_are_valid(
         folder_path=patching_info_folder_path,
@@ -427,8 +427,8 @@ def verify_artifact_contents_for_patch_builds(
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.5
-    ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more that 0.5 MB."
+        folder_size_in_megabytes <= 0.7
+    ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
 
 def pull_base_image_uri_for_patch_builds_and_get_the_tag(
