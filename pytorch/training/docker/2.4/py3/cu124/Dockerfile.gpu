@@ -310,6 +310,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    triton \
     fastai \
     accelerate \
     torchtnt \
