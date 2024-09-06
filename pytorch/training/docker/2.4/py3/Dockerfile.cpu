@@ -3,7 +3,12 @@ ARG PYTHON_VERSION=3.11.9
 ARG PYTHON_SHORT_VERSION=3.11
 ARG MINIFORGE3_VERSION=24.3.0-0
 ARG PYTORCH_VERSION=2.4.0
-ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
+# ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
+
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torch-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchvision-0.19.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchaudio-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchtext-0.18.0%2Bcu124-cp311-cp311-linux_x86_64.whl
 
 FROM ubuntu:22.04 AS base_image
 
@@ -39,7 +44,7 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG OPEN_MPI_VERSION=4.1.5
 ARG MINIFORGE3_VERSION
-ARG CONDA_CHANNEL
+# ARG CONDA_CHANNEL
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -258,19 +263,20 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
-ARG CONDA_CHANNEL
+# ARG CONDA_CHANNEL
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
 # Install PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    torchvision torchaudio torchtext cpuonly \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     torchvision torchaudio torchtext cpuonly \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
+RUN pip install --no-cache-dir ${TORCH_URL} ${TORCHVISION_URL} ${.TORCHAUDIO_UR} ${TORCHTEXT_URL}
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \

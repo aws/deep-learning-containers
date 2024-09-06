@@ -4,6 +4,13 @@ ARG PYTHON_SHORT_VERSION=3.11
 ARG MINIFORGE3_VERSION=24.3.0-0
 ARG PYTORCH_VERSION=2.4.0
 ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
+ARG AWS_OFI_NCCL_VERSION=1.11.0
+
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torch-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchvision-0.19.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchaudio-2.4.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchtext-0.18.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+
 
 FROM nvidia/cuda:12.4.0-base-ubuntu22.04 AS base_image
 
@@ -39,7 +46,7 @@ ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
 ARG MINIFORGE3_VERSION
-ARG CONDA_CHANNEL
+# ARG CONDA_CHANNEL
 ARG EFA_PATH=/opt/amazon/efa
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
@@ -201,9 +208,40 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
+
+# Install AWS-OFI-NCCL plugin
+RUN mkdir /tmp/aws-ofi-nccl \
+&& cd /tmp/aws-ofi-nccl \
+&& wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+&& tar -xvf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+&& cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
+&& ./autogen.sh \
+&& ./configure --prefix=/opt/aws-ofi-nccl \
+                --with-libfabric=/opt/amazon/efa \
+                --with-cuda=${CUDA_HOME} \
+                --with-mpi=${OPEN_MPI_PATH} \
+                --disable-tests \
+&& make \
+&& sudo make install \
+&& rm -rf /tmp/aws-ofi-nccl \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean  
+
+# fix libssl version dependency
+# Install from source
+RUN mkdir /tmp/libssl1/ \
+&& cd /tmp/libssl1 \
+&& wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb \
+&& dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb \
+&& apt --fix-broken install \
+&& rm -rf /tmp/libssl1 \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean  
+
+
+# ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
- && apt-get full-upgrade \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
  && mkdir -p /var/run/sshd \
@@ -369,12 +407,13 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
+ARG AWS_OFI_NCCL_VERSION
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
 
 # SageMaker DataParallel Binary
-# ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.3.0/cu121/2024-05-23/smdistributed_dataparallel-2.3.0-cp311-cp311-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.3.0/cu121/2024-05-23/smdistributed_dataparallel-2.3.0-cp311-cp311-linux_x86_64.whl
 
 WORKDIR /
 
@@ -382,19 +421,33 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install SM Distributed DataParallel binary
-# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
 # Install PyTorch
+RUN pip install --no-cache-dir \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${.TORCHAUDIO_UR} \
+    ${TORCHTEXT_URL} \
+    fastai \
+    accelerate \
+    fastai \
+    torchtnt \
+    # fastai conda strictly depends on dataclasses
+&& pip uninstall -y dataclasses \
+
+# need to check this two packages
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio torchtext aws-ofi-nccl \
+    pytorch-cuda=12.4 cuda-nvcc=12.4.*  \
     --override-channels \
     -c ${CONDA_CHANNEL} \
     -c nvidia \
     -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
+
 
 # Install CUDA libraries
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
@@ -405,14 +458,6 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
     -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-    accelerate \
-    fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
- && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
