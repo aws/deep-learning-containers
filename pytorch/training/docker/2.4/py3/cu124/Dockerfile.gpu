@@ -4,6 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.11
 ARG MINIFORGE3_VERSION=24.3.0-0
 ARG PYTORCH_VERSION=2.4.0
 ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
+ARG AWS_OFI_NCCL_VERSION=1.11.0
 
 
 # PyTorch binary path
@@ -49,7 +50,7 @@ ARG PYTHON_SHORT_VERSION
 ARG MINIFORGE3_VERSION
 # ARG CONDA_CHANNEL
 ARG EFA_PATH=/opt/amazon/efa
-ARG AWS_OFI_NCCL_VERSION=1.11.0
+ARG AWS_OFI_NCCL_VERSION
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG DEBIAN_FRONTEND=noninteractive
@@ -206,7 +207,7 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-
+RUN echo ${AWS_OFI_NCCL_VERSION}
 # Install AWS-OFI-NCCL plugin from source
 RUN mkdir /tmp/aws-ofi-nccl \
 && cd /tmp/aws-ofi-nccl \
@@ -220,10 +221,11 @@ RUN mkdir /tmp/aws-ofi-nccl \
                 --with-mpi=${OPEN_MPI_PATH} \
                 --disable-tests \
 && make \
-&& sudo make install \
+&& make install \
 && rm -rf /tmp/aws-ofi-nccl \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean  
+
 
 # fix libssl version dependency
 # Install from source
@@ -291,6 +293,7 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
+ARG AWS_OFI_NCCL_VERSION
 
 WORKDIR /
 
@@ -427,7 +430,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 RUN pip install --no-cache-dir \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
-    ${.TORCHAUDIO_UR} \
+    ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     fastai \
     accelerate \
