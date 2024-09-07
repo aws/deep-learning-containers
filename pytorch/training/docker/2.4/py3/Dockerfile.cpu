@@ -209,12 +209,12 @@ ARG CONDA_CHANNEL
 WORKDIR /
 
 # Install PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    torchvision torchaudio torchtext cpuonly \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     torchvision torchaudio torchtext cpuonly \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 # Install PyTorch related python packages (depends on PyTorch)
 RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
