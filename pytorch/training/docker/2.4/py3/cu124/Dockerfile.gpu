@@ -98,7 +98,7 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     # check version support https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
-    cuda-toolkit-12=$CUDA_VERSION_-1 \
+    cuda-toolkit-12=$CUDA_VERSION-1 \
     libcudnn9-cuda-12=$CUDNN_VERSION-1 \
     libcudnn9-dev-cuda-12=$CUDNN_VERSION-1 \
     curl \
