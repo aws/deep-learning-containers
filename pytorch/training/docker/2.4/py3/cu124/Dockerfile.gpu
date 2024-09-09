@@ -221,7 +221,8 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
 RUN mkdir /tmp/hwloc \
 && cd /tmp/hwloc \
 && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
-&& tar -xvf hwloc hwloc-${HWLOC_VERSION}.tar.gz \
+&& tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
+&& cd hwloc-${HWLOC_VERSION} \
 && ./configure \
 && make \
 && make install \
