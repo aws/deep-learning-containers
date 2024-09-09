@@ -328,13 +328,13 @@ WORKDIR /
 # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
 # Each installation layer pin python and pytorch to ensure no overrides.
 # Install PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c nvidia \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 # Install CUDA libraries
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
