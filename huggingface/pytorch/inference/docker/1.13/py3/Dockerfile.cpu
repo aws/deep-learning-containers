@@ -42,7 +42,7 @@ ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     ca-certificates \
