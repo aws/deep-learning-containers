@@ -101,6 +101,8 @@ RUN apt-get update \
     cmake \
     # check version support https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
     cuda-toolkit-12=$CUDA_VERSION-1 \
+    hwloc \
+    hwloc-dev \
     libcudnn9-cuda-12=$CUDNN_VERSION-1 \
     libcudnn9-dev-cuda-12=$CUDNN_VERSION-1 \
     curl \
@@ -219,18 +221,18 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install HWLOC for ofi-aws-nccl
-RUN mkdir /tmp/hwloc \
-&& cd /tmp/hwloc \
-&& wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
-&& tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
-&& cd hwloc-${HWLOC_VERSION} \
-&& ./configure \
-&& make \
-&& make install \
-&& rm -rf /tmp/hwloc \
-&& rm -rf /var/lib/apt/lists/* \
-&& apt-get clean  
+# # Install HWLOC for ofi-aws-nccl
+# RUN mkdir /tmp/hwloc \
+# && cd /tmp/hwloc \
+# && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
+# && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
+# && cd hwloc-${HWLOC_VERSION} \
+# && ./configure \
+# && make \
+# && make install \
+# && rm -rf /tmp/hwloc \
+# && rm -rf /var/lib/apt/lists/* \
+# && apt-get clean  
 
 
 # Install AWS-OFI-NCCL plugin from source
@@ -241,7 +243,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
 && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
 && ./autogen.sh \
 && ./configure --prefix=/opt/aws-ofi-nccl \
-                --with-libfabric=/opt/amazon/efa \
+                --with-libfabric=${EFA_PATH} \
                 --with-cuda=${CUDA_HOME} \
                 --with-mpi=${OPEN_MPI_PATH} \
                 --disable-tests \
