@@ -220,7 +220,7 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
 # Install HWLOC for ofi-aws-nccl
 RUN mkdir /tmp/hwloc \
 && cd /tmp/hwloc \
-&& wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.bz2 \
+&& wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
 && tar -xvf hwloc hwloc-${HWLOC_VERSION}.tar.gz \
 && ./configure \
 && make \
@@ -430,6 +430,10 @@ ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
+ARG TORCH_URL
+ARG TORCHVISION_URL 
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
@@ -462,23 +466,23 @@ RUN pip install --no-cache-dir \
 && pip uninstall -y dataclasses 
 
 # need to check this two packages
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.4 cuda-nvcc=12.4.*  \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     pytorch-cuda=12.4 cuda-nvcc=12.4.*  \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c nvidia \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# # Install CUDA libraries
+# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+#     cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+#     --override-channels \
+#     -c ${CONDA_CHANNEL} \
+#     -c nvidia \
+#     -c conda-forge \
+#  && /opt/conda/bin/mamba clean -afy
 
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
