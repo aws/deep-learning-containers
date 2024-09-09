@@ -65,7 +65,8 @@ ARG DEBIAN_FRONTEND=noninteractive
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-ENV CUDA_HOME=/opt/conda
+# chaneg CUDA_HOME from /opt/conda to /usr/local/cuda
+ENV CUDA_HOME=/usr/local/cuda
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -74,6 +75,7 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV PATH="/opt/conda/bin:${PATH}"
+ENV PATH="${CUDA_HOME}/bin:${PATH}"
 # older archs are not supported on CUDA12.1 like 3.7 for P2 instance
 # 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
 ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
