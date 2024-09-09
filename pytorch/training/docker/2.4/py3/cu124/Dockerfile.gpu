@@ -310,100 +310,100 @@ RUN rm -rf /root/.cache | true
 #                  |_|
 ########################################################
 
-FROM common AS ec2
+# FROM common AS ec2
 
-ARG PYTHON
-ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION
-ARG CONDA_CHANNEL
-ARG CUDA_HOME
-ARG TORCH_CUDA_ARCH_LIST
-ARG NCCL_VERSION
-ARG GDRCOPY_VERSION
-ARG AWS_OFI_NCCL_VERSION
+# ARG PYTHON
+# ARG PYTHON_SHORT_VERSION
+# ARG PYTORCH_VERSION
+# ARG CONDA_CHANNEL
+# ARG CUDA_HOME
+# ARG TORCH_CUDA_ARCH_LIST
+# ARG NCCL_VERSION
+# ARG GDRCOPY_VERSION
+# ARG AWS_OFI_NCCL_VERSION
 
-WORKDIR /
+# WORKDIR /
 
-# PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
-# ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
-# Each installation layer pin python and pytorch to ensure no overrides.
-# Install PyTorch
+# # PyTorch and CUDA libraries should be installed as a separate layer to reduce layer size.
+# # ECR pull can timeout on smaller EC2 instances like P3.2x if layer is too big.
+# # Each installation layer pin python and pytorch to ensure no overrides.
+# # Install PyTorch
+# # RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+# #     pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
+# #     --override-channels \
+# #     -c ${CONDA_CHANNEL} \
+# #     -c nvidia \
+# #     -c conda-forge \
+# #  && /opt/conda/bin/mamba clean -afy
+
+# # Install CUDA libraries
 # RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-#     pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
+#     cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
 #     --override-channels \
 #     -c ${CONDA_CHANNEL} \
 #     -c nvidia \
 #     -c conda-forge \
 #  && /opt/conda/bin/mamba clean -afy
 
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
-    --override-channels \
-    -c ${CONDA_CHANNEL} \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
+# # Install PyTorch related python packages (depends on PyTorch)
+# RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
+#     accelerate \
+#     fastai \
+#     # fastai conda strictly depends on dataclasses
+#  && pip uninstall -y dataclasses \
+#  && pip install --no-cache-dir torchtnt \
+#  && /opt/conda/bin/mamba clean -afy
 
-# Install PyTorch related python packages (depends on PyTorch)
-RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
-    accelerate \
-    fastai \
-    # fastai conda strictly depends on dataclasses
- && pip uninstall -y dataclasses \
- && pip install --no-cache-dir torchtnt \
- && /opt/conda/bin/mamba clean -afy
+# # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# # The test binaries requires cuda driver library which could be found in conda
+# # So update the linker path to point to it to avoid -Lcuda not found
+# RUN cd /tmp \
+#  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+#  && cd gdrcopy \
+#  && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+#  && CUDA=${CUDA_HOME} make install \
+#  && rm -rf /tmp/gdrcopy
 
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
+# # Install NCCL
+# RUN cd /tmp \
+#  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+#  && cd nccl \
+#  && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+#  && rm -rf /tmp/nccl
 
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
- && rm -rf /tmp/nccl
+# # Install Nvidia Apex (needs pytorch)
+# RUN pip install --no-cache-dir packaging \
+#  && git clone https://github.com/NVIDIA/apex \
+#  && cd apex \
+#  && git checkout 23.08 -b apex \
+#  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
+#  && cd .. \
+#  && rm -rf apex
 
-# Install Nvidia Apex (needs pytorch)
-RUN pip install --no-cache-dir packaging \
- && git clone https://github.com/NVIDIA/apex \
- && cd apex \
- && git checkout 23.08 -b apex \
- && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
- && cd .. \
- && rm -rf apex
+# # Install flash attn and NVIDIA transformer engine.
+# # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+# ENV NVTE_FRAMEWORK=pytorch
+# # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# # Set MAX_JOBS=4 to avoid OOM issues in installation process
+# RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
+# # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+# RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
 
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+# RUN HOME_DIR=/root \
+#  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+#  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+#  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+#  && chmod +x /usr/local/bin/testOSSCompliance \
+#  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+#  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+#  && rm -rf ${HOME_DIR}/oss_compliance* \
+#  && rm -rf /tmp/tmp*
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
+# # Removing the cache as it is needed for security verification
+# RUN rm -rf /root/.cache | true
 
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
-
-# Starts framework
-CMD ["/bin/bash"]
+# # Starts framework
+# CMD ["/bin/bash"]
 
 #################################################################
 #  ____                   __  __       _
@@ -504,7 +504,7 @@ RUN cd /tmp \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
  && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local CUDA_LIB=${CUDA_HOME}/lib \
+ && make -j64 src.build BUILDDIR=/usr/local\
  && rm -rf /tmp/nccl
 
 # Install Nvidia Apex (needs pytorch)
