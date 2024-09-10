@@ -8,6 +8,7 @@ ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
 
 ARG AWS_OFI_NCCL_VERSION=1.11.0
 ARG CUDA_VERSION=12.4.1
+ARG APEX_VERSION=24.04.01
 
 # stable version
 ARG HWLOC_VERSION=2.11.1
@@ -82,7 +83,7 @@ ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV CUDNN_VERSION=9.1.0.70
 ENV NCCL_VERSION=2.22.3
-ENV EFA_VERSION=1.32.0
+ENV EFA_VERSION=1.34.0
 ENV GDRCOPY_VERSION=2.4.1
 
 ENV CMAKE_PREFIX_PATH="$(dirname $(which conda))/../"
@@ -182,6 +183,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
+    "setuptools>=70.0.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -278,6 +280,11 @@ RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pk
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
+# run telmetry test
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
@@ -296,12 +303,7 @@ RUN rm -rf /root/.cache | true
 #                  |_|
 ########################################################
 
-FROM common AS ec2
-
-RUN echo "#####################################################################" \
-&& echo "# ^_^^_^^_^^_^^_^^_^I am building EC2 image in gpu file ^_^^_^^_^^_^^_^^_^^_^^_^" \
-&& echo "#####################################################################"
-
+# FROM common AS ec2
 
 # ARG PYTHON
 # ARG PYTHON_SHORT_VERSION
@@ -430,6 +432,7 @@ ARG TORCH_URL
 ARG TORCHVISION_URL 
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
+ARG APEX_VERSION
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
@@ -481,9 +484,8 @@ RUN cd /tmp \
 
 # Install Nvidia Apex (needs pytorch)
 RUN pip install --no-cache-dir packaging \
- && git clone https://github.com/NVIDIA/apex \
+ && git clone https://github.com/NVIDIA/apex -b ${APEX_VERSION} \
  && cd apex \
- && git checkout 23.08 -b apex \
  && pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./ \
  && cd .. \
  && rm -rf apex
@@ -493,9 +495,9 @@ RUN pip install --no-cache-dir packaging \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.0.4 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.4.2 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v1.9
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
