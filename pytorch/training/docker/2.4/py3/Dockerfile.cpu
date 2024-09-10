@@ -201,6 +201,11 @@ RUN rm -rf /root/.cache | true
 
 FROM common AS ec2
 
+
+RUN echo "#####################################################################" \
+&& echo "# ^_^^_^^_^^_^^_^^_^I am building EC2 image in cpu file  ^_^^_^^_^^_^^_^^_^^_^^_^" \
+&& echo "#####################################################################"
+
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION

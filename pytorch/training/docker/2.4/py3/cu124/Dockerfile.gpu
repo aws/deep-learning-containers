@@ -101,7 +101,6 @@ RUN apt-get update \
     cmake \
     # check version support https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/
     cuda-toolkit-12=$CUDA_VERSION-1 \
-    hwloc \
     libhwloc-dev \
     libcudnn9-cuda-12=$CUDNN_VERSION-1 \
     libcudnn9-dev-cuda-12=$CUDNN_VERSION-1 \
@@ -120,7 +119,6 @@ RUN apt-get update \
     libnuma1 \
     libnuma-dev \
     # ubuntu22.04 use libssl3 by default
-    # E: Unable to locate package libssl1.1
     # https://askubuntu.com/questions/1408000/unable-to-locate-package-libssl1-1
     #libssl1.1 \
     libssl-dev \
@@ -221,19 +219,18 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# # Install HWLOC for ofi-aws-nccl
-# RUN mkdir /tmp/hwloc \
-# && cd /tmp/hwloc \
-# && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
-# && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
-# && cd hwloc-${HWLOC_VERSION} \
-# && ./configure \
-# && make \
-# && make install \
-# && rm -rf /tmp/hwloc \
-# && rm -rf /var/lib/apt/lists/* \
-# && apt-get clean  
-
+# Install HWLOC for ofi-aws-nccl
+RUN mkdir /tmp/hwloc \
+&& cd /tmp/hwloc \
+&& wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
+&& tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
+&& cd hwloc-${HWLOC_VERSION} \
+&& ./configure \
+&& make \
+&& make install \
+&& rm -rf /tmp/hwloc \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean  
 
 # Install AWS-OFI-NCCL plugin from source
 RUN mkdir /tmp/aws-ofi-nccl \
@@ -253,20 +250,9 @@ RUN mkdir /tmp/aws-ofi-nccl \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean  
 
-
-# # fix libssl version dependency
-# # Install from source
-# RUN mkdir /tmp/libssl1/ \
-# && cd /tmp/libssl1 \
-# && wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb \
-# && dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb \
-# && apt --fix-broken install \
-# && rm -rf /tmp/libssl1 \
-# && rm -rf /var/lib/apt/lists/* \
-# && apt-get clean  
-
-
+# fix openssh mismatch due to dependency on libssl1.1
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y  --allow-downgrades --allow-change-held-packages --no-install-recommends \
@@ -310,7 +296,12 @@ RUN rm -rf /root/.cache | true
 #                  |_|
 ########################################################
 
-# FROM common AS ec2
+FROM common AS ec2
+
+RUN echo "#####################################################################" \
+&& echo "# ^_^^_^^_^^_^^_^^_^I am building EC2 image in gpu file ^_^^_^^_^^_^^_^^_^^_^^_^" \
+&& echo "#####################################################################"
+
 
 # ARG PYTHON
 # ARG PYTHON_SHORT_VERSION
@@ -469,25 +460,6 @@ RUN pip install --no-cache-dir \
     torchtnt \
     # fastai conda strictly depends on dataclasses
 && pip uninstall -y dataclasses 
-
-# need to check this two packages
-# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-#     pytorch-cuda=12.4 cuda-nvcc=12.4.*  \
-#     --override-channels \
-#     -c ${CONDA_CHANNEL} \
-#     -c nvidia \
-#     -c conda-forge \
-#  && /opt/conda/bin/mamba clean -afy
-
-
-# # Install CUDA libraries
-# RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-#     cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
-#     --override-channels \
-#     -c ${CONDA_CHANNEL} \
-#     -c nvidia \
-#     -c conda-forge \
-#  && /opt/conda/bin/mamba clean -afy
 
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
