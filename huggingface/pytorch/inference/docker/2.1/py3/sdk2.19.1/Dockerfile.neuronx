@@ -51,6 +51,7 @@ RUN apt-get update \
     libsm6 \
     libxext6 \
     libxrender-dev \
+    libgssapi-krb5-2 \
     openjdk-11-jdk \
     vim \
     wget \
