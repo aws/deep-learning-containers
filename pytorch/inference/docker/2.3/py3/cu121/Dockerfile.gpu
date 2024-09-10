@@ -98,6 +98,7 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    libgssapi-krb5-2 \
     libcurl4-openssl-dev \
     cuda-cudart-12-1 \
     cuda-cudart-dev-12-1 \
