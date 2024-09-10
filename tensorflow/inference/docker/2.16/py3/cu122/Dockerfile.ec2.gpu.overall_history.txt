@@ -1,0 +1,22 @@
+#### First image: sha256:17ffd44b7c4988cfbf03f7f2029d529b1210aab70c35002efb099591ea9fc946 ####
+#### Patch contents for patch-1: sha256:43683db4610a9fe0664e85adce6f264f2943af4c8928d47ee87275bab09d9e36 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-2: sha256:7e52cb1d5d44e6ad711b4b29c61138b12d8c1bd0184d0bc528ecb792ad5043ee ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-3: sha256:ac5bbe279a9d36751164332e541f94930e834d0b2201defc2b157b155ee44ca7 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 linux-libc-dev
+#### Patch contents for patch-4: sha256:bbaa5f80ba3cbccef9f0c2b72f504d77a3e29ad1bf3d89642d30f2cec7358edb ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-5: sha256:9666b18491bb5e5a1cac7c80b019817ff7f22c14d5f66e193220afe0ef731f5f ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-6: sha256:ab6e65d6f5e8ef34ab77c863e13417462d2e9825bb9f0353d9c4812c877c5373 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Current Patch contents ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
