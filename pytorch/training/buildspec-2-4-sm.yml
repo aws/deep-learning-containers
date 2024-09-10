@@ -1,5 +1,5 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
-prod_account_id: &PROD_ACCOUNT_ID 910539337338
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 2.4.0
