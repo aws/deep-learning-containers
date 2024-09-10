@@ -223,6 +223,8 @@ RUN rm -rf /root/.cache | true
 #     ${TORCHVISION_URL} \
 #     ${TORCHAUDIO_URL} \
 #     ${TORCHTEXT_URL} \
+#     torchtnt \
+#     s3torchconnector \
 #     accelerate \
 #     fastai \
 #  && pip uninstall -y dataclasses
@@ -279,6 +281,8 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    torchtnt \
+    s3torchconnector \
     accelerate \
     fastai \
  && pip uninstall -y dataclasses
