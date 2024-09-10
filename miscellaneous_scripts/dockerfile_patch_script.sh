@@ -50,6 +50,29 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean \
     && cd $PREV_DIR || exit
+
+    conda remove --yes --force aws-ofi-nccl
+    apt-get update && apt install automake libhwloc-dev
+    # Install aws-ofi-nccl plugin
+    LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}"
+    AWS_OFI_NCCL_VERSION=1.11.0
+    mkdir /tmp/aws-ofi-nccl \
+    && cd /tmp/aws-ofi-nccl \
+    && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+    && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+    && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
+    && ./autogen.sh \
+    && ./configure --prefix=/opt/aws-ofi-nccl \
+                --with-mpi=${OPEN_MPI_PATH} \
+                --with-libfabric=${EFA_PATH} \
+                --with-cuda=${CUDA_HOME} \
+                --disable-tests \
+    && make \
+    && make install \
+    && rm -rf /tmp/aws-ofi-nccl \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean \
+    && cd $PREV_DIR || exit
 fi
 
 # Install packages and derive history and package diff data
