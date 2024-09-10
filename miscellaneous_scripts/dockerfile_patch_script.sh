@@ -52,7 +52,7 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     && cd $PREV_DIR || exit
 
     conda remove --yes --force aws-ofi-nccl
-    apt-get update && apt install automake libhwloc-dev
+    apt-get update && apt install -y automake libhwloc-dev
     # Install aws-ofi-nccl plugin
     LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib/:${EFA_PATH}/lib/:${LD_LIBRARY_PATH}"
     AWS_OFI_NCCL_VERSION=1.11.0
