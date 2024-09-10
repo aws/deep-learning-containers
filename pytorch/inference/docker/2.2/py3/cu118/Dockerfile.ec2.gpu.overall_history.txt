@@ -1,33 +1,52 @@
-#### First image: sha256:bcbe331af1263f98b2bebc717cf04d4137a2e23ab7e44eba3396dd9b337b8449 ####
-#### Patch contents for patch-1: sha256:bd08ca573ae96678e1ce5e9d04300b2f61d5d73204def67d58c807ea9350d9fe ####
-pip install cryptography==42.0.5
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre passwd
-#### Patch contents for patch-2: sha256:b8a88a6e206fcedc2500ca8e74ea747e3fcf9067b87db2c832aa147a5e6705e7 ####
-pip install cryptography==42.0.5
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libssl-dev libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd vim-common vim-runtime vim xxd
-#### Patch contents for patch-3: sha256:c3c07b338b557756effe2240dc6ae323bac7276a9230fa09e9e1786d8753cdab ####
-pip install cryptography==42.0.5 pillow==10.3.0
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-4: sha256:86d690cc0761e94712ccbff2f7c305f649c9ea10c6479adddcc922355eab38f8 ####
-pip install cryptography==42.0.5 pillow==10.3.0
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libmount1 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-5: sha256:4608a5de21268f40cab7006564c6d5ab03c74ffd2f11f162a963f5ba6412bb53 ####
-pip install cryptography==42.0.5 idna==3.7 pillow==10.3.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnss3 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-6: sha256:f6200e8ddbaaacdeff40f1c1bb314867c6cafb5973d7782ad9f42d740fbf49da ####
-pip install cryptography==42.0.5 idna==3.7 pillow==10.3.0 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-7: sha256:d0f2516aaf8c5b39dfa0e98f171ee09382ab8a59d60f35c3a263b6aa41874aff ####
-pip install cryptography==42.0.7 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
-#### Patch contents for patch-8: sha256:00867ad6f1544523db26c5c4c8a1137fd4a21d93611fa9a155c60d517cdafa78 ####
-pip install cryptography==42.0.7 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+#### First image: sha256:520ea041337ebb950815c41a45cbf54addb61ad1613c9d75bd6be0852a410b41 ####
+#### Patch contents for patch-1: sha256:25c18ec596c5b73be0c62c847c61a192c130eddf8a5155e083cd7f8e42eaf508 ####
+pip install requests==2.32.3 triton==2.2.0
+apt-get update && apt-get install -y --only-upgrade git-man git
+#### Patch contents for patch-2: sha256:94fc06ea4022fe35d5cf09063fcc6ee948fdcebcd219b313753a0932fb062eda ####
+pip install requests==2.32.3 triton==2.2.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-3: sha256:c235e92b88d28e599c40081606d229633417bda0e6b4344fa21527e69aac0aeb ####
+pip install requests==2.32.3 triton==2.2.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-4: sha256:1f6dba464cbdb4e684c126880c6bd4213984d62d5e4136d318e14e9ab1c34c28 ####
+pip install requests==2.32.3 triton==2.2.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-5: sha256:9af6548fd757e708589bd4e5fda5d31437598a46b9886607550dbee02a33d53e ####
+pip install requests==2.32.3 triton==2.2.0
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-6: sha256:0392eb08f9dbef4c080eb5a0f61bc0ef305e2d21307624be9466ae04d6cd8e5b ####
+pip install requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-7: sha256:af5de9a9763f60870f0d0dc54d81816968adf04170f61ae5e4cdd05f4767ddd7 ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre
+#### Patch contents for patch-8: sha256:ea98b4e944c78114606e8d47c0cadc0e39fb98bf44bec2dff930b8d353e2659e ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-9: sha256:21fcb89c94af1d831746dcdfca5a80973bf3f7567e6e0cd7b0f5444092d87b5b ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-10: sha256:b8c7a0b4e5a47dc4d35eafce1a97fa80ddc447d4303f0f46128e2b98bed6a1d3 ####
+pip install cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-11: sha256:5ebb0b1304a5946f10883679f3dbfd48593d754a21fba6751690884822b1d806 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-12: sha256:1b5aecc538c70292e112026f2a973e7221ee97b45921e446b31a1df041c13702 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-13: sha256:db143d22036963fd0a36a2de8ffb861feaaf09a2e83aa1fb1ac9ed05844b8a99 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 setuptools==71.0.4 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-14: sha256:e9154688c9e30ba3799d2c9135c7b7c4e5706346bdf7d6a39646cd2bf8491035 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 setuptools==71.1.0 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-15: sha256:b24507aaa09e9f4c70bd5e7edb8fce9e7ce8d7d23aca1dbb0c9da82967260e1d ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 setuptools==71.1.0 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-16: sha256:c03aa15fa8156672c8a28633aad2fb568f0d10d7ab0b5ff023a75940371a1d5e ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 setuptools==72.1.0 triton==2.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
 #### Current Patch contents ####
-pip install cryptography==42.0.7 idna==3.7 pillow==10.3.0 tqdm==4.66.4 
-python -m pip install --upgrade pip
-apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils bsdutils curl fdisk libbinutils libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libctf-nobfd0 libctf0 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libnss3 libsmartcols1 libssl-dev libssl1.1 libtiff5 libuuid1 libuv1 libxml2 linux-libc-dev login mount openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre openssl passwd util-linux vim-common vim-runtime vim xxd
+pip install certifi==2024.8.30 cryptography==42.0.8 requests==2.32.3 setuptools==74.0.0 triton==2.2.0 urllib3==1.26.20
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
