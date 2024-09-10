@@ -209,7 +209,7 @@ def _setup_multinode_efa_instances(
         MASTER_CONTAINER_NAME,
         master_connection,
         BUILD_ALL_REDUCE_PERF_CMD,
-        timeout=180,
+        timeout=300,
         asynchronous=True,
     )
     build_all_reduce_perf_promises.append(promise)
@@ -221,7 +221,7 @@ def _setup_multinode_efa_instances(
             WORKER_CONTAINER_NAME,
             worker_connection,
             BUILD_ALL_REDUCE_PERF_CMD,
-            timeout=180,
+            timeout=300,
             asynchronous=True,
         )
         build_all_reduce_perf_promises.append(promise)
