@@ -1,0 +1,25 @@
+#### First image: sha256:1d637d3435f5276d89d8002bf7abe8dcbec1b6877e19d4f3af9f2730a11b58d0 ####
+#### Patch contents for patch-1: sha256:9e5379d6fe934a58b6a91ee2c471dfa5b6d39acdbea053258b337bf21ce85f27 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-2: sha256:97273d59bdcbb8ce119e9d332571cd8107a1295f81572f3df827039ee0275408 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-3: sha256:7cf4ed928c4cc12860c02925464d056bc31a4a9548ba74662eea17ddff3052ed ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-4: sha256:f98cf1d067d10544b3119fd6e79389d1a5e17f65e6c2aabba6c23a7eccd61999 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-5: sha256:0c040d34f93907f95b1341464b8d74d0527caa58ab949f83fff5fc43c961fa08 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-6: sha256:1068f373ef3a2c81174337aaf8eae7a38909f53636337ee9102c0c545cce8105 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-7: sha256:5b8186a7d97af12c5f64e2bbc695fa56886c53ea1f6ecabe50b389528fa2d32c ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
+#### Current Patch contents ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev python3.8-minimal python3.8
