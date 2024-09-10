@@ -1,706 +1,497 @@
 {
-  "cryptography": [
-    {
-      "description": "There is a type confusion vulnerability relating to X.400 address processing\ninside an X.509 GeneralName. X.400 addresses were parsed as an ASN1_STRING but\nthe public structure definition for GENERAL_NAME incorrectly specified the type\nof the x400Address field as ASN1_TYPE. This field is subsequently interpreted by\nthe OpenSSL function GENERAL_NAME_cmp as an ASN1_TYPE rather than an\nASN1_STRING.\n\nWhen CRL checking is enabled (i.e. the application sets the\nX509_V_FLAG_CRL_CHECK flag), this vulnerability may allow an attacker to pass\narbitrary pointers to a memcmp call, enabling them to read memory contents or\nenact a denial of service. In most cases, the attack requires the attacker to\nprovide both the certificate chain and CRL, neither of which need to have a\nvalid signature. If the attacker only controls one of these inputs, the other\ninput must already contain an X.400 address as a CRL distribution point, which\nis uncommon. As such, this vulnerability is most likely to only affect\napplications which have im",
-      "vulnerability_id": "CVE-2023-0286",
-      "name": "CVE-2023-0286",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
+    "linux": [
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net/iucv: Avoid explicit cpumask var allocation on stack For CONFIG_CPUMASK_OFFSTACK=y kernel, explicit allocation of cpumask variable on stack is not recommended since it can cause potential stack overflow. Instead, kernel code should always use *cpumask_var API(s) to allocate cpumask var in config-neutral way, leaving allocation strategy to CONFIG_CPUMASK_OFFSTACK. Use *cpumask_var API(s) to address it.",
+            "vulnerability_id": "CVE-2024-42094",
+            "name": "CVE-2024-42094",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42094.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42094 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: ima: Fix use-after-free on a dentry's dname.name ->d_name.name can change on rename and the earlier value can be freed; there are conditions sufficient to stabilize it (->d_lock on dentry, ->d_lock on its parent, ->i_rwsem exclusive on the parent's inode, rename_lock), but none of those are met at any of the sites. Take a stable snapshot of the name instead.",
+            "vulnerability_id": "CVE-2024-39494",
+            "name": "CVE-2024-39494",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39494.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-39494 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net/dpaa2: Avoid explicit cpumask var allocation on stack For CONFIG_CPUMASK_OFFSTACK=y kernel, explicit allocation of cpumask variable on stack is not recommended since it can cause potential stack overflow. Instead, kernel code should always use *cpumask_var API(s) to allocate cpumask var in config-neutral way, leaving allocation strategy to CONFIG_CPUMASK_OFFSTACK. Use *cpumask_var API(s) to address it.",
+            "vulnerability_id": "CVE-2024-42093",
+            "name": "CVE-2024-42093",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42093.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42093 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: nilfs2: add missing check for inode numbers on directory entries Syzbot reported that mounting and unmounting a specific pattern of corrupted nilfs2 filesystem images causes a use-after-free of metadata file inodes, which triggers a kernel bug in lru_add_fn(). As Jan Kara pointed out, this is because the link count of a metadata file gets corrupted to 0, and nilfs_evict_inode(), which is called from iput(), tries to delete that inode (ifile inode in this case). The inconsistency occurs because directories containing the inode numbers of these metadata files that should not be visible in the namespace are read without checking. Fix this issue by treating the inode numbers of these internal files as errors in the sanity check helper when reading directory folios/pages. Also thanks to Hillf Danton and Matthew Wilcox for their initial mm-layer analysis.",
+            "vulnerability_id": "CVE-2024-42104",
+            "name": "CVE-2024-42104",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42104.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42104 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: f2fs: check validation of fault attrs in f2fs_build_fault_attr() - It missed to check validation of fault attrs in parse_options(), let's fix to add check condition in f2fs_build_fault_attr(). - Use f2fs_build_fault_attr() in __sbi_store() to clean up code.",
+            "vulnerability_id": "CVE-2024-42160",
+            "name": "CVE-2024-42160",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42160.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42160 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: tcp_metrics: validate source addr length I don't see anything checking that TCP_METRICS_ATTR_SADDR_IPV4 is at least 4 bytes long, and the policy doesn't have an entry for this attribute at all (neither does it for IPv6 but v6 is manually validated).",
+            "vulnerability_id": "CVE-2024-42154",
+            "name": "CVE-2024-42154",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42154.html",
+            "source": "UBUNTU_CVE",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42154 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: greybus: Fix use-after-free bug in gb_interface_release due to race condition. In gb_interface_create, &intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &intf->mode_switch_work)) { ... } If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows: CPU0 CPU1 | gb_interface_create | gb_interface_request_mode_switch gb_interface_release | kfree(intf) (free) | | gb_interface_mode_switch_work | mutex_lock(&intf->mutex) (use) Fix it by canceling the work before kfree.",
+            "vulnerability_id": "CVE-2024-39495",
+            "name": "CVE-2024-39495",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-39495 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net: ethernet: lantiq_etop: fix double free in detach The number of the currently released descriptor is never incremented which results in the same skb being released multiple times.",
+            "vulnerability_id": "CVE-2024-41046",
+            "name": "CVE-2024-41046",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41046.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-41046 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "A out-of-bound vulnerability is found in the jfs subsystem. When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging. But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer. This may lead to system crash.",
+            "vulnerability_id": "CVE-2024-40902",
+            "name": "CVE-2024-40902",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40902.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-40902 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Using uninitialized value *size when calling amdgpu_vce_cs_reloc Initialize the size before calling amdgpu_vce_cs_reloc, such as case 0x03000001. V2: To really improve the handling we would actually need to have a separate value of 0xffffffff.(Christian)",
+            "vulnerability_id": "CVE-2024-42228",
+            "name": "CVE-2024-42228",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42228.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42228 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: gfs2: Fix potential glock use-after-free on unmount When a DLM lockspace is released and there ares still locks in that lockspace, DLM will unlock those locks automatically. Commit fb6791d100d1b started exploiting this behavior to speed up filesystem unmount: gfs2 would simply free glocks it didn't want to unlock and then release the lockspace. This didn't take the bast callbacks for asynchronous lock contention notifications into account, which remain active until until a lock is unlocked or its lockspace is released. To prevent those callbacks from accessing deallocated objects, put the glocks that should not be unlocked on the sd_dead_glocks list, release the lockspace, and only then free those glocks. As an additional measure, ignore unexpected ast and bast callbacks if the receiving glock is dead.",
+            "vulnerability_id": "CVE-2024-38570",
+            "name": "CVE-2024-38570",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38570.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-38570 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net: sched: sch_multiq: fix possible OOB write in multiq_tune() q->bands will be assigned to qopt->bands to execute subsequent code logic after kmalloc. So the old q->bands should not be used in kmalloc. Otherwise, an out-of-bounds write will occur.",
+            "vulnerability_id": "CVE-2024-36978",
+            "name": "CVE-2024-36978",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36978.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-36978 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: scsi: pm8001: Fix use-after-free for aborted TMF sas_task Currently a use-after-free may occur if a TMF sas_task is aborted before we handle the IO completion in mpi_ssp_completion(). The abort occurs due to timeout. When the timeout occurs, the SAS_TASK_STATE_ABORTED flag is set and the sas_task is freed in pm8001_exec_internal_tmf_task(). However, if the I/O completion occurs later, the I/O completion still thinks that the sas_task is available. Fix this by clearing the ccb->task if the TMF times out - the I/O completion handler does nothing if this pointer is cleared.",
+            "vulnerability_id": "CVE-2022-48791",
+            "name": "CVE-2022-48791",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48791.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-48791 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: ata: libata-core: Fix double free on error If e.g. the ata_port_alloc() call in ata_host_alloc() fails, we will jump to the err_out label, which will call devres_release_group(). devres_release_group() will trigger a call to ata_host_release(). ata_host_release() calls kfree(host), so executing the kfree(host) in ata_host_alloc() will lead to a double free: kernel BUG at mm/slub.c:553! Oops: invalid opcode: 0000 [#1] PREEMPT SMP NOPTI CPU: 11 PID: 599 Comm: (udev-worker) Not tainted 6.10.0-rc5 #47 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-2.fc40 04/01/2014 RIP: 0010:kfree+0x2cf/0x2f0 Code: 5d 41 5e 41 5f 5d e9 80 d6 ff ff 4d 89 f1 41 b8 01 00 00 00 48 89 d9 48 89 da RSP: 0018:ffffc90000f377f0 EFLAGS: 00010246 RAX: ffff888112b1f2c0 RBX: ffff888112b1f2c0 RCX: ffff888112b1f320 RDX: 000000000000400b RSI: ffffffffc02c9de5 RDI: ffff888112b1f2c0 RBP: ffffc90000f37830 R08: 0000000000000000 R09: 0000000000000000 R10: ffffc9000",
+            "vulnerability_id": "CVE-2024-41087",
+            "name": "CVE-2024-41087",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41087.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-41087 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: filelock: fix potential use-after-free in posix_lock_inode Light Hsieh reported a KASAN UAF warning in trace_posix_lock_inode(). The request pointer had been changed earlier to point to a lock entry that was added to the inode's list. However, before the tracepoint could fire, another task raced in and freed that lock. Fix this by moving the tracepoint inside the spinlock, which should ensure that this doesn't happen.",
+            "vulnerability_id": "CVE-2024-41049",
+            "name": "CVE-2024-41049",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41049.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-41049 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: net: dsa: mv88e6xxx: Correct check for empty list Since commit a3c53be55c95 (\"net: dsa: mv88e6xxx: Support multiple MDIO busses\") mv88e6xxx_default_mdio_bus() has checked that the return value of list_first_entry() is non-NULL. This appears to be intended to guard against the list chip->mdios being empty. However, it is not the correct check as the implementation of list_first_entry is not designed to return NULL for empty lists. Instead, use list_first_entry_or_null() which does return NULL if the list is empty. Flagged by Smatch. Compile tested only.",
+            "vulnerability_id": "CVE-2024-42224",
+            "name": "CVE-2024-42224",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42224.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-42224 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
+        },
+        {
+            "description": "In the Linux kernel, the following vulnerability has been resolved: bonding: Fix out-of-bounds read in bond_option_arp_ip_targets_set() In function bond_option_arp_ip_targets_set(), if newval->string is an empty string, newval->string+1 will point to the byte after the string, causing an out-of-bound read. BUG: KASAN: slab-out-of-bounds in strlen+0x7d/0xa0 lib/string.c:418 Read of size 1 at addr ffff8881119c4781 by task syz-executor665/8107 CPU: 1 PID: 8107 Comm: syz-executor665 Not tainted 6.7.0-rc7 #1 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014 Call Trace: <TASK> __dump_stack lib/dump_stack.c:88 [inline] dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106 print_address_description mm/kasan/report.c:364 [inline] print_report+0xc1/0x5e0 mm/kasan/report.c:475 kasan_report+0xbe/0xf0 mm/kasan/report.c:588 strlen+0x7d/0xa0 lib/string.c:418 __fortify_strlen include/linux/fortify-string.h:210 [inline] in4_pton+0xa3/0x3f0 net/core/utils.c:130 bond_option_arp_ip_targets_set+0xc2/0x910 d",
+            "vulnerability_id": "CVE-2024-39487",
+            "name": "CVE-2024-39487",
+            "package_name": "linux",
+            "package_details": {
+                "file_path": null,
+                "name": "linux",
+                "package_manager": "OS",
+                "version": "5.4.0",
+                "release": "193.213"
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39487.html",
+            "source": "UBUNTU_CVE",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2024-39487 - linux",
+            "reason_to_ignore": "Package and its binaries cannot be upgraded further. Packages: linux-libc-dev have been upgraded."
         }
-      },
-      "cvss_v3_score": 7.4,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.4,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0286",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-0286 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "A NULL pointer can be dereferenced when signatures are being\nverified on PKCS7 signed or signedAndEnveloped data. In case the hash\nalgorithm used for the signature is known to the OpenSSL library but\nthe implementation of the hash algorithm is not available the digest\ninitialization will fail. There is a missing check for the return\nvalue from the initialization function which later leads to invalid\nusage of the digest API most likely leading to a crash.\n\nThe unavailability of an algorithm can be caused by using FIPS\nenabled configuration of providers or more commonly by not loading\nthe legacy provider.\n\nPKCS7 data is processed by the SMIME library calls and also by the\ntime stamp (TS) library calls. The TLS implementation in OpenSSL does\nnot call these functions however third party applications would be\naffected if they call these functions to verify signatures on untrusted\ndata.\n\n",
-      "vulnerability_id": "CVE-2023-0401",
-      "name": "CVE-2023-0401",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0401",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-0401 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "A flaw was found in the python-cryptography package. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data.",
-      "vulnerability_id": "CVE-2023-50782",
-      "name": "CVE-2023-50782",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50782",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-50782 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "An invalid pointer dereference on read can be triggered when an\napplication tries to check a malformed DSA public key by the\nEVP_PKEY_public_check() function. This will most likely lead\nto an application crash. This function can be called on public\nkeys supplied from untrusted sources which could allow an attacker\nto cause a denial of service attack.\n\nThe TLS implementation in OpenSSL does not call this function\nbut applications might call the function if there are additional\nsecurity requirements imposed by standards such as FIPS 140-3.\n\n",
-      "vulnerability_id": "CVE-2023-0217",
-      "name": "CVE-2023-0217",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0217",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-0217 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "An invalid pointer dereference on read can be triggered when an\napplication tries to load malformed PKCS7 data with the\nd2i_PKCS7(), d2i_PKCS7_bio() or d2i_PKCS7_fp() functions.\n\nThe result of the dereference is an application crash which could\nlead to a denial of service attack. The TLS implementation in OpenSSL\ndoes not call this function however third party applications might\ncall these functions on untrusted data.\n\n",
-      "vulnerability_id": "CVE-2023-0216",
-      "name": "CVE-2023-0216",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0216",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-0216 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "If an X.509 certificate contains a malformed policy constraint and\npolicy processing is enabled, then a write lock will be taken twice\nrecursively.  On some operating systems (most widely: Windows) this\nresults in a denial of service when the affected process hangs.  Policy\nprocessing being enabled on a publicly facing server is not considered\nto be a common setup.\n\nPolicy processing is enabled by passing the `-policy'\nargument to the command line utilities or by calling the\n`X509_VERIFY_PARAM_set1_policies()' function.\n\nUpdate (31 March 2023): The description of the policy processing enablement\nwas corrected based on CVE-2023-0466.",
-      "vulnerability_id": "CVE-2022-3996",
-      "name": "CVE-2022-3996",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-3996",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-3996 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin",
-      "vulnerability_id": "CVE-2023-5363",
-      "name": "CVE-2023-5363",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-5363",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-5363 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "The cryptography package before 41.0.2 for Python mishandles SSH certificates that have critical options.",
-      "vulnerability_id": "CVE-2023-38325",
-      "name": "CVE-2023-38325",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-38325",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-38325 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "The function PEM_read_bio_ex() reads a PEM file from a BIO and parses and\ndecodes the \"name\" (e.g. \"CERTIFICATE\"), any header data and the payload data.\nIf the function succeeds then the \"name_out\", \"header\" and \"data\" arguments are\npopulated with pointers to buffers containing the relevant decoded data. The\ncaller is responsible for freeing those buffers. It is possible to construct a\nPEM file that results in 0 bytes of payload data. In this case PEM_read_bio_ex()\nwill return a failure code but will populate the header argument with a pointer\nto a buffer that has already been freed. If the caller also frees this buffer\nthen a double free will occur. This will most likely lead to a crash. This\ncould be exploited by an attacker who has the ability to supply malicious PEM\nfiles for parsing to achieve a denial of service attack.\n\nThe functions PEM_read_bio() and PEM_read() are simple wrappers around\nPEM_read_bio_ex() and therefore these functions are also directly affected.\n\nThese functions are also called indir",
-      "vulnerability_id": "CVE-2022-4450",
-      "name": "CVE-2022-4450",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-4450",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-4450 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "The public API function BIO_new_NDEF is a helper function used for streaming\nASN.1 data via a BIO. It is primarily used internally to OpenSSL to support the\nSMIME, CMS and PKCS7 streaming capabilities, but may also be called directly by\nend user applications.\n\nThe function receives a BIO from the caller, prepends a new BIO_f_asn1 filter\nBIO onto the front of it to form a BIO chain, and then returns the new head of\nthe BIO chain to the caller. Under certain conditions, for example if a CMS\nrecipient public key is invalid, the new filter BIO is freed and the function\nreturns a NULL result indicating a failure. However, in this case, the BIO chain\nis not properly cleaned up and the BIO passed by the caller still retains\ninternal pointers to the previously freed filter BIO. If the caller then goes on\nto call BIO_pop() on the BIO then a use-after-free will occur. This will most\nlikely result in a crash.\n\n\n\nThis scenario occurs directly in the internal function B64_write_ASN1() which\nmay cause BIO_new_NDEF() to be ",
-      "vulnerability_id": "CVE-2023-0215",
-      "name": "CVE-2023-0215",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-0215",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-0215 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "cryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Calling `load_pem_pkcs7_certificates` or `load_der_pkcs7_certificates` could lead to a NULL-pointer dereference and segfault. Exploitation of this vulnerability poses a serious risk of Denial of Service (DoS) for any application attempting to deserialize a PKCS7 blob/certificate. The consequences extend to potential disruptions in system availability and stability. This vulnerability has been patched in version 41.0.6.",
-      "vulnerability_id": "CVE-2023-49083",
-      "name": "CVE-2023-49083",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-49083",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-49083 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    },
-    {
-      "description": "Issue summary: The POLY1305 MAC (message authentication code) implementation\ncontains a bug that might corrupt the internal state of applications on the\nWindows 64 platform when running on newer X86_64 processors supporting the\nAVX512-IFMA instructions.\n\nImpact summary: If in an application that uses the OpenSSL library an attacker\ncan influence whether the POLY1305 MAC algorithm is used, the application\nstate might be corrupted with various application dependent consequences.\n\nThe POLY1305 MAC (message authentication code) implementation in OpenSSL does\nnot save the contents of non-volatile XMM registers on Windows 64 platform\nwhen calculating the MAC of data larger than 64 bytes. Before returning to\nthe caller all the XMM registers are set to zero rather than restoring their\nprevious content. The vulnerable code is used only on newer x86_64 processors\nsupporting the AVX512-IFMA instructions.\n\nThe consequences of this kind of internal application state corruption can\nbe various - from no consequences, if the",
-      "vulnerability_id": "CVE-2023-4807",
-      "name": "CVE-2023-4807",
-      "package_name": "cryptography",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/cryptography-39.0.0-py310h34c0648_0/lib/python3.10/site-packages/cryptography-39.0.0.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "39.0.0",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4807",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-4807 - cryptography",
-      "reason_to_ignore": "Installed package version is 42.0.7 which is not equal to the one shown in vulnerability."
-    }
-  ],
-  "urllib3": [
-    {
-      "description": "urllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5.",
-      "vulnerability_id": "CVE-2023-43804",
-      "name": "CVE-2023-43804",
-      "package_name": "urllib3",
-      "package_details": {
-        "file_path": "opt/conda/lib/python3.9/site-packages/urllib3-1.26.14.dist-info/METADATA",
-        "name": "urllib3",
-        "package_manager": "PYTHONPKG",
-        "version": "1.26.14",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.1,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-43804 - urllib3",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "certifi": [
-    {
-      "description": "Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi prior to version 2023.07.22 recognizes \"e-Tugra\" root certificates. e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems. Certifi 2023.07.22 removes root certificates from \"e-Tugra\" from the root store.",
-      "vulnerability_id": "CVE-2023-37920",
-      "name": "CVE-2023-37920",
-      "package_name": "certifi",
-      "package_details": {
-        "file_path": "root/micromamba/pkgs/certifi-2022.12.7-pyhd8ed1ab_0/site-packages/certifi-2022.12.7-py3.11.egg-info/PKG-INFO",
-        "name": "certifi",
-        "package_manager": "PYTHONPKG",
-        "version": "2022.12.7",
-        "release": null
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-37920",
-      "source": "NVD",
-      "severity": "CRITICAL",
-      "status": "ACTIVE",
-      "title": "CVE-2023-37920 - certifi",
-      "reason_to_ignore": "Installed package version is 2024.2.2 which is not equal to the one shown in vulnerability."
-    }
-  ],
-  "linux": [
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: firmware: arm_scmi: Harden accesses to the reset domains Accessing reset domains descriptors by the index upon the SCMI drivers requests through the SCMI reset operations interface can potentially lead to out-of-bound violations if the SCMI driver misbehave. Add an internal consistency check before any such domains descriptors accesses.",
-      "vulnerability_id": "CVE-2022-48655",
-      "name": "CVE-2022-48655",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48655.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48655 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
-      "vulnerability_id": "CVE-2023-52752",
-      "name": "CVE-2023-52752",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-52752 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: RDMA/mlx5: Fix fortify source warning while accessing Eth segment ------------[ cut here ]------------ memcpy: detected field-spanning write (size 56) of single field \"eseg->inline_hdr.start\" at /var/lib/dkms/mlnx-ofed-kernel/5.8/build/drivers/infiniband/hw/mlx5/wr.c:131 (size 2) WARNING: CPU: 0 PID: 293779 at /var/lib/dkms/mlnx-ofed-kernel/5.8/build/drivers/infiniband/hw/mlx5/wr.c:131 mlx5_ib_post_send+0x191b/0x1a60 [mlx5_ib] Modules linked in: 8021q garp mrp stp llc rdma_ucm(OE) rdma_cm(OE) iw_cm(OE) ib_ipoib(OE) ib_cm(OE) ib_umad(OE) mlx5_ib(OE) ib_uverbs(OE) ib_core(OE) mlx5_core(OE) pci_hyperv_intf mlxdevm(OE) mlx_compat(OE) tls mlxfw(OE) psample nft_fib_inet nft_fib_ipv4 nft_fib_ipv6 nft_fib nft_reject_inet nf_reject_ipv4 nf_reject_ipv6 nft_reject nft_ct nft_chain_nat nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 ip_set nf_tables libcrc32c nfnetlink mst_pciconf(OE) knem(OE) vfio_pci vfio_pci_core vfio_iommu_type1 vfio iommufd irqby",
-      "vulnerability_id": "CVE-2024-26907",
-      "name": "CVE-2024-26907",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26907.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2024-26907 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
-      "vulnerability_id": "CVE-2024-36971",
-      "name": "CVE-2024-36971",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2024-36971 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
-      "vulnerability_id": "CVE-2023-52434",
-      "name": "CVE-2023-52434",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.0,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.0,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-52434 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
-      "vulnerability_id": "CVE-2022-48674",
-      "name": "CVE-2022-48674",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "189.209"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48674 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
-      "vulnerability_id": "CVE-2024-36971",
-      "name": "CVE-2024-36971",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "190.210"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2024-36971 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
-      "vulnerability_id": "CVE-2022-48674",
-      "name": "CVE-2022-48674",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "190.210"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48674 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
-      "vulnerability_id": "CVE-2023-52752",
-      "name": "CVE-2023-52752",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "190.210"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-52752 - linux",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
-      "vulnerability_id": "CVE-2023-52434",
-      "name": "CVE-2023-52434",
-      "package_name": "linux",
-      "package_details": {
-        "file_path": null,
-        "name": "linux",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "190.210"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.0,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.0,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-52434 - linux",
-      "reason_to_ignore": "N/A"
-    }
-  ]
+    ]
 }
