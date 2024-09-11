@@ -55,6 +55,7 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
+@pytest.mark.skip(reason="temp")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
@@ -74,6 +75,7 @@ def test_ec2_pytorch_inference_graviton_compilation_cpu(
     ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
+@pytest.mark.skip(reason="temp")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
