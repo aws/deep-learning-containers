@@ -307,9 +307,6 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         inference_result = test_utils.request_pytorch_inference_densenet(
             connection=ec2_connection, model_name=model_name, server_type=server_type
         )
-        if not inference_result:
-            remote_out = ec2_connection.run(f"docker logs {container_name}")
-            LOGGER.info(f"--- PT container logs ---\n{remote_out.stdout}")
         assert (
             inference_result
         ), f"Failed to perform pytorch inference test for image: {image_uri} on ec2"
