@@ -51,6 +51,7 @@ if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com
     && apt-get clean \
     && cd $PREV_DIR || exit
 
+    EFA_PATH="/opt/amazon/efa"
     conda remove --yes --force aws-ofi-nccl
     apt-get update && apt install -y automake libhwloc-dev
     # Install aws-ofi-nccl plugin
