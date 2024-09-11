@@ -194,7 +194,7 @@ def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, re
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ecs_instance_type", ["g5g.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5g.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_USWEST2], indirect=True)
 @pytest.mark.team("conda")
 def test_ecs_pytorch_inference_graviton_gpu(
