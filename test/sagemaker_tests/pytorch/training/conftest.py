@@ -1149,9 +1149,6 @@ def skip_pytorchddp_test(
         ">=2.1,<2.4": [
             "cu121"
         ],
-        ">=2.4": [
-            "cu124"
-        ],
     }
     if _validate_pytorch_framework_version(
         request,
@@ -1213,9 +1210,6 @@ def skip_smddataparallel_test(
     skip_dict = {
         "==2.0.*": [
             "cu121"
-        ],
-        ">=2.4": [
-            "cu124"
         ],
     }
     if _validate_pytorch_framework_version(
