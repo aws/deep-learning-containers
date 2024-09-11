@@ -971,6 +971,7 @@ def request_pytorch_inference_densenet(
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
         if not (
             (
                 "neuron" in model_name
@@ -989,7 +990,6 @@ def request_pytorch_inference_densenet(
             )
         ):
             return False
-        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
