@@ -395,7 +395,7 @@ def test_framework_version_cpu(image):
                         )
                         assert cuda_output == "None", f"cuda version has value: {cuda_output}"
                     else:
-                        torch_version_pattern = r"{torch_version}(\+cpu)".format(
+                        torch_version_pattern = r"{torch_version}(\+cpu)?".format(
                             torch_version=tag_framework_version
                         )
                     assert re.fullmatch(torch_version_pattern, output), (
@@ -606,7 +606,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                             cuda_ver == "cu" + cuda_output
                         ), f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
                     else:
-                        torch_version_pattern = r"{torch_version}(\+cu\d+)".format(
+                        torch_version_pattern = r"{torch_version}(\+cu\d+)?".format(
                             torch_version=tag_framework_version
                         )
                         assert re.fullmatch(torch_version_pattern, output), (

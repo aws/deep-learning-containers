@@ -169,6 +169,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     packaging \
     awscli \
     boto3 \
+    # pinned for awscli==1.34.15
+    "botocore==1.35.15" \
     pyyaml \
     scipy \
     click \
@@ -457,6 +459,7 @@ RUN pip install --no-cache-dir \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    s3torchconnector \
     fastai \
     accelerate \
     fastai \
