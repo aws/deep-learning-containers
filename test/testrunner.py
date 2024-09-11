@@ -415,6 +415,9 @@ def main():
             else:
                 pytest_cmd += [
                     "--dist=worksteal",
+                    pytest_rerun_arg,
+                    pytest_rerun_delay_arg,
+                    "--rerun-except=SerialTestCaseExecutorException",
                 ]
         if is_pr_context():
             if specific_test_type == "eks":

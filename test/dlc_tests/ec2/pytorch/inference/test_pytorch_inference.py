@@ -154,7 +154,6 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
     ec2_pytorch_inference(pytorch_inference, "cpu", ec2_connection, region)
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPE, indirect=True)
@@ -341,7 +340,6 @@ def test_pytorch_inference_telemetry_cpu(
     execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -353,7 +351,6 @@ def test_pytorch_inference_telemetry_graviton_cpu(
     execute_ec2_inference_test(ec2_connection, pytorch_inference_graviton, PT_TELEMETRY_CMD)
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
