@@ -518,6 +518,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.usefixtures("sagemaker", "huggingface")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 

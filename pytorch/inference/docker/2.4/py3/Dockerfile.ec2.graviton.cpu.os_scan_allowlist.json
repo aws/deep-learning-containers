@@ -869,6 +869,64 @@
       "status": "ACTIVE",
       "title": "CVE-2024-42228 - linux",
       "reason_to_ignore": "N/A"
+    },
+    {
+        "description": "In the Linux kernel, the following vulnerability has been resolved: nfc: nci: Fix uninit-value in nci_rx_work syzbot reported the following uninit-value access issue [1] nci_rx_work() parses received packet from ndev->rx_q. It should be validated header size, payload size and total packet size before processing the packet. If an invalid packet is detected, it should be silently discarded.",
+        "vulnerability_id": "CVE-2024-38381",
+        "name": "CVE-2024-38381",
+        "package_name": "linux",
+        "package_details": {
+            "file_path": null,
+            "name": "linux",
+            "package_manager": "OS",
+            "version": "5.15.0",
+            "release": "119.129"
+        },
+        "remediation": {
+            "recommendation": {
+            "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 7.1,
+        "cvss_v30_score": 0,
+        "cvss_v31_score": 7.1,
+        "cvss_v2_score": 0,
+        "cvss_v3_severity": "HIGH",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38381.html",
+        "source": "UBUNTU_CVE",
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "CVE-2024-38381 - linux",
+        "reason_to_ignore": "N/A"
+    },
+    {
+        "description": "In the Linux kernel, the following vulnerability has been resolved: stm class: Fix a double free in stm_register_device() The put_device(&stm->dev) call will trigger stm_device_release() which frees \"stm\" so the vfree(stm) on the next line is a double free.",
+        "vulnerability_id": "CVE-2024-38627",
+        "name": "CVE-2024-38627",
+        "package_name": "linux",
+        "package_details": {
+            "file_path": null,
+            "name": "linux",
+            "package_manager": "OS",
+            "version": "5.15.0",
+            "release": "119.129"
+        },
+        "remediation": {
+            "recommendation": {
+            "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 7.8,
+        "cvss_v30_score": 0,
+        "cvss_v31_score": 7.8,
+        "cvss_v2_score": 0,
+        "cvss_v3_severity": "HIGH",
+        "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38627.html",
+        "source": "UBUNTU_CVE",
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "CVE-2024-38627 - linux",
+        "reason_to_ignore": "N/A"
     }
   ]
 }
