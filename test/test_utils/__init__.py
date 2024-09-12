@@ -966,13 +966,12 @@ def request_pytorch_inference_densenet(
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
         LOGGER.error(
-            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\n",
-            f"Return Code: {run_out.return_code=}\n",
-            f"Error: {run_out.stderr=}",
+            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\nReturn Code: {run_out.return_code}\nError: {run_out.stderr}\nStdOut: {run_out.stdout}"
         )
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
         if not (
             (
                 "neuron" in model_name
@@ -991,7 +990,6 @@ def request_pytorch_inference_densenet(
             )
         ):
             return False
-        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
