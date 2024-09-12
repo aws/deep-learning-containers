@@ -1,3 +1,4 @@
+import os
 import time
 
 import pytest
@@ -144,7 +145,7 @@ def ecs_container_instance(
     user_data = f"#!/bin/bash\necho ECS_CLUSTER={ecs_cluster} >> /etc/ecs/ecs.config"
 
     params = {
-        "KeyName": "pytest.pem",
+        "KeyName": f"pr-{os.getenv('PR_NUMBER')}",
         "ImageId": image_id,
         "InstanceType": instance_type,
         "UserData": user_data,
@@ -196,7 +197,7 @@ def ecs_container_instance(
         terminate_waiter = ec2_client.get_waiter("instance_terminated")
         terminate_waiter.wait(InstanceIds=[instance_id])
 
-    request.addfinalizer(terminate_ec2_instance)
+    # request.addfinalizer(terminate_ec2_instance)
 
     waiter = ec2_client.get_waiter("instance_running")
     waiter.wait(InstanceIds=[instance_id])

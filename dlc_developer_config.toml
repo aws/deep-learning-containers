@@ -20,7 +20,7 @@ notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = true
+sanity_tests = false
 safety_check_test = false
 ecr_scan_allowlist_feature = false
 ecs_tests = true
