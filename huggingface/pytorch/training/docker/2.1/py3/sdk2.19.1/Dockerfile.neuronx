@@ -34,6 +34,7 @@ RUN pip install -U \
 
 RUN apt-get update \
  && apt install -y git-lfs \
+	libgssapi-krb5-2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
