@@ -293,7 +293,7 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
 
     if len(patch) == 1:
         patch = f"0{patch}"
-
+    # cudnn = 9.1.0.70 8.9.26
     system_cudnn = f"{major}{minor}{patch}"
     assert (
         system_cudnn == cudnn_from_torch
