@@ -181,7 +181,7 @@ ENV LD_LIBRARY_PATH="/home/.openmpi/lib/:${LD_LIBRARY_PATH}"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
 # Needed by torchdata
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+# RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 

@@ -461,6 +461,7 @@ RUN pip install --no-cache-dir \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     s3torchconnector \
+    triton \
     fastai \
     accelerate \
     fastai \
