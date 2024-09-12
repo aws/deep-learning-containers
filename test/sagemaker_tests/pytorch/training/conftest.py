@@ -61,46 +61,16 @@ from packaging.specifiers import (
     SpecifierSet,
 )
 
-logger = logging.getLogger(
-    __name__
-)
-logging.getLogger(
-    "boto"
-).setLevel(
-    logging.INFO
-)
-logging.getLogger(
-    "boto3"
-).setLevel(
-    logging.INFO
-)
-logging.getLogger(
-    "botocore"
-).setLevel(
-    logging.INFO
-)
-logging.getLogger(
-    "factory.py"
-).setLevel(
-    logging.INFO
-)
-logging.getLogger(
-    "auth.py"
-).setLevel(
-    logging.INFO
-)
-logging.getLogger(
-    "connectionpool.py"
-).setLevel(
-    logging.INFO
-)
+logger = logging.getLogger(__name__)
+logging.getLogger("boto").setLevel(logging.INFO)
+logging.getLogger("boto3").setLevel(logging.INFO)
+logging.getLogger("botocore").setLevel(logging.INFO)
+logging.getLogger("factory.py").setLevel(logging.INFO)
+logging.getLogger("auth.py").setLevel(logging.INFO)
+logging.getLogger("connectionpool.py").setLevel(logging.INFO)
 
 
-dir_path = os.path.dirname(
-    os.path.realpath(
-        __file__
-    )
-)
+dir_path = os.path.dirname(os.path.realpath(__file__))
 
 NEURON_TRN1_REGIONS = [
     "us-west-2",
@@ -191,12 +161,8 @@ def pytest_addoption(
         "-B",
         action="store_true",
     )
-    parser.addoption(
-        "--aws-id"
-    )
-    parser.addoption(
-        "--instance-type"
-    )
+    parser.addoption("--aws-id")
+    parser.addoption("--instance-type")
     parser.addoption(
         "--docker-base-name",
         default="pytorch",
@@ -220,9 +186,7 @@ def pytest_addoption(
             "310",
             "311",
         ],
-        default=str(
-            sys.version_info.major
-        ),
+        default=str(sys.version_info.major),
     )
     parser.addoption(
         "--processor",
@@ -325,30 +289,11 @@ def pytest_configure(
 def pytest_runtest_setup(
     item,
 ):
-    efa_tests = [
-        mark
-        for mark in item.iter_markers(
-            name="efa"
-        )
-    ]
-    if (
-        item.config.getoption(
-            "--efa"
-        )
-        and not efa_tests
-    ):
-        pytest.skip(
-            "Skipping non-efa tests due to --efa flag"
-        )
-    elif (
-        not item.config.getoption(
-            "--efa"
-        )
-        and efa_tests
-    ):
-        pytest.skip(
-            "Skipping efa tests because --efa flag is missing"
-        )
+    efa_tests = [mark for mark in item.iter_markers(name="efa")]
+    if item.config.getoption("--efa") and not efa_tests:
+        pytest.skip("Skipping non-efa tests due to --efa flag")
+    elif not item.config.getoption("--efa") and efa_tests:
+        pytest.skip("Skipping efa tests because --efa flag is missing")
 
 
 def pytest_collection_modifyitems(
@@ -357,31 +302,19 @@ def pytest_collection_modifyitems(
     items,
 ):
     for item in items:
-        print(
-            f"item {item}"
-        )
-        for marker in item.iter_markers(
-            name="team"
-        ):
-            print(
-                f"item {marker}"
-            )
-            team_name = marker.args[
-                0
-            ]
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
             item.user_properties.append(
                 (
                     "team_marker",
                     team_name,
                 )
             )
-            print(
-                f"item.user_properties {item.user_properties}"
-            )
+            print(f"item.user_properties {item.user_properties}")
 
-    if config.getoption(
-        "--generate-coverage-doc"
-    ):
+    if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import (
             TestReportGenerator,
         )
@@ -410,58 +343,40 @@ NIGHTLY_FIXTURES = {
         NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value,
         NightlyFeatureLabel.AWS_SMDDP_INSTALLED.value,
     },
-    "feature_smmp_present": {
-        NightlyFeatureLabel.AWS_SMMP_INSTALLED.value
-    },
-    "feature_aws_framework_present": {
-        NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value
-    },
-    "feature_smart_sifting_present": {
-        NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value
-    },
+    "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
+    "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
+    "feature_smart_sifting_present": {NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value},
 }
 
 
 # Nightly fixtures
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_smppy_present():
     pass
 
 
 # Nightly fixtures
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_smdebug_present():
     pass
 
 
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_smddp_present():
     pass
 
 
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_smmp_present():
     pass
 
 
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_aws_framework_present():
     pass
 
 
-@pytest.fixture(
-    scope="session"
-)
+@pytest.fixture(scope="session")
 def feature_smart_sifting_present():
     pass
 
@@ -473,9 +388,7 @@ def feature_smart_sifting_present():
 def fixture_docker_base_name(
     request,
 ):
-    return request.config.getoption(
-        "--docker-base-name"
-    )
+    return request.config.getoption("--docker-base-name")
 
 
 @pytest.fixture(
@@ -485,9 +398,7 @@ def fixture_docker_base_name(
 def fixture_region(
     request,
 ):
-    return request.config.getoption(
-        "--region"
-    )
+    return request.config.getoption("--region")
 
 
 @pytest.fixture(
@@ -497,9 +408,7 @@ def fixture_region(
 def fixture_framework_version(
     request,
 ):
-    return request.config.getoption(
-        "--framework-version"
-    )
+    return request.config.getoption("--framework-version")
 
 
 @pytest.fixture(
@@ -509,13 +418,7 @@ def fixture_framework_version(
 def fixture_py_version(
     request,
 ):
-    return "py{}".format(
-        int(
-            request.config.getoption(
-                "--py-version"
-            )
-        )
-    )
+    return "py{}".format(int(request.config.getoption("--py-version")))
 
 
 @pytest.fixture(
@@ -525,9 +428,7 @@ def fixture_py_version(
 def fixture_processor(
     request,
 ):
-    return request.config.getoption(
-        "--processor"
-    )
+    return request.config.getoption("--processor")
 
 
 @pytest.fixture(
@@ -537,12 +438,8 @@ def fixture_processor(
 def fixture_sagemaker_regions(
     request,
 ):
-    sagemaker_regions = request.config.getoption(
-        "--sagemaker-regions"
-    )
-    return sagemaker_regions.split(
-        ","
-    )
+    sagemaker_regions = request.config.getoption("--sagemaker-regions")
+    return sagemaker_regions.split(",")
 
 
 @pytest.fixture(
@@ -555,19 +452,13 @@ def fixture_tag(
     processor,
     py_version,
 ):
-    provided_tag = request.config.getoption(
-        "--tag"
-    )
+    provided_tag = request.config.getoption("--tag")
     default_tag = "{}-{}-{}".format(
         framework_version,
         processor,
         py_version,
     )
-    return (
-        provided_tag
-        if provided_tag
-        else default_tag
-    )
+    return provided_tag if provided_tag else default_tag
 
 
 @pytest.fixture(
@@ -586,9 +477,7 @@ def fixture_docker_image(
 
 @pytest.fixture
 def opt_ml():
-    tmp = (
-        tempfile.mkdtemp()
-    )
+    tmp = tempfile.mkdtemp()
     os.mkdir(
         os.path.join(
             tmp,
@@ -598,14 +487,7 @@ def opt_ml():
 
     # Docker cannot mount Mac OS /var folder properly see
     # https://forums.docker.com/t/var-folders-isnt-mounted-properly/9600
-    opt_ml_dir = (
-        "/private{}".format(
-            tmp
-        )
-        if platform.system()
-        == "Darwin"
-        else tmp
-    )
+    opt_ml_dir = "/private{}".format(tmp) if platform.system() == "Darwin" else tmp
     yield opt_ml_dir
 
     shutil.rmtree(
@@ -621,10 +503,7 @@ def opt_ml():
 def fixture_use_gpu(
     processor,
 ):
-    return (
-        processor
-        == "gpu"
-    )
+    return processor == "gpu"
 
 
 @pytest.fixture(
@@ -640,9 +519,7 @@ def fixture_build_base_image(
     tag,
     docker_base_name,
 ):
-    build_base_image_option = request.config.getoption(
-        "--build-base-image"
-    )
+    build_base_image_option = request.config.getoption("--build-base-image")
     if build_base_image_option:
         return build_base_image(
             framework_name=docker_base_name,
@@ -666,31 +543,17 @@ def fixture_build_base_image(
 def fixture_sagemaker_session(
     region,
 ):
-    return Session(
-        boto_session=boto3.Session(
-            region_name=region
-        )
-    )
+    return Session(boto_session=boto3.Session(region_name=region))
 
 
-@pytest.fixture(
-    name="efa_instance_type"
-)
+@pytest.fixture(name="efa_instance_type")
 def fixture_efa_instance_type(
     request,
 ):
     try:
-        return (
-            request.param
-        )
+        return request.param
     except AttributeError:
-        return get_efa_test_instance_type(
-            default=[
-                "ml.p4d.24xlarge"
-            ]
-        )[
-            0
-        ]
+        return get_efa_test_instance_type(default=["ml.p4d.24xlarge"])[0]
 
 
 @pytest.fixture(
@@ -700,11 +563,7 @@ def fixture_efa_instance_type(
 def fixture_sagemaker_local_session(
     region,
 ):
-    return LocalSession(
-        boto_session=boto3.Session(
-            region_name=region
-        )
-    )
+    return LocalSession(boto_session=boto3.Session(region_name=region))
 
 
 @pytest.fixture(
@@ -714,9 +573,7 @@ def fixture_sagemaker_local_session(
 def fixture_aws_id(
     request,
 ):
-    return request.config.getoption(
-        "--aws-id"
-    )
+    return request.config.getoption("--aws-id")
 
 
 @pytest.fixture(
@@ -727,19 +584,9 @@ def fixture_instance_type(
     request,
     processor,
 ):
-    provided_instance_type = request.config.getoption(
-        "--instance-type"
-    )
-    default_instance_type = (
-        "local"
-        if processor
-        == "cpu"
-        else "local_gpu"
-    )
-    return (
-        provided_instance_type
-        or default_instance_type
-    )
+    provided_instance_type = request.config.getoption("--instance-type")
+    default_instance_type = "local" if processor == "cpu" else "local_gpu"
+    return provided_instance_type or default_instance_type
 
 
 @pytest.fixture(
@@ -775,16 +622,12 @@ def fixture_ecr_image(
 @pytest.fixture(
     scope="session",
     name="dist_cpu_backend",
-    params=[
-        "gloo"
-    ],
+    params=["gloo"],
 )
 def fixture_dist_cpu_backend(
     request,
 ):
-    return (
-        request.param
-    )
+    return request.param
 
 
 @pytest.fixture(
@@ -798,71 +641,34 @@ def fixture_dist_cpu_backend(
 def fixture_dist_gpu_backend(
     request,
 ):
-    return (
-        request.param
-    )
+    return request.param
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_by_device_type(
     request,
     use_gpu,
     instance_type,
 ):
-    is_gpu = use_gpu or instance_type.lstrip(
-        "ml."
-    )[
-        0
-    ] in [
+    is_gpu = use_gpu or instance_type.lstrip("ml.")[0] in [
         "g",
         "p",
     ]
 
     # Skip a neuronx test that's not on an neuron instance or a test which
     # uses a neuron instance and is not a neuronx test
-    is_neuronx_test = (
-        request.node.get_closest_marker(
-            "neuronx_test"
-        )
-        is not None
-    )
-    is_neuronx_instance = (
-        "trn1"
-        in instance_type
-    )
-    if (
-        is_neuronx_test
-        != is_neuronx_instance
+    is_neuronx_test = request.node.get_closest_marker("neuronx_test") is not None
+    is_neuronx_instance = "trn1" in instance_type
+    if is_neuronx_test != is_neuronx_instance:
+        pytest.skip("Skipping because running on '{}' instance".format(instance_type))
+
+    if (request.node.get_closest_marker("skip_gpu") and is_gpu) or (
+        request.node.get_closest_marker("skip_cpu") and not is_gpu
     ):
-        pytest.skip(
-            "Skipping because running on '{}' instance".format(
-                instance_type
-            )
-        )
-
-    if (
-        request.node.get_closest_marker(
-            "skip_gpu"
-        )
-        and is_gpu
-    ) or (
-        request.node.get_closest_marker(
-            "skip_cpu"
-        )
-        and not is_gpu
-    ):
-        pytest.skip(
-            'Skipping because running on "{}" instance'.format(
-                instance_type
-            )
-        )
+        pytest.skip('Skipping because running on "{}" instance'.format(instance_type))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_by_py_version(
     request,
     py_version,
@@ -872,199 +678,93 @@ def skip_by_py_version(
     and pytest is running from py2. We can rely on this when py2 is deprecated, but for now
     we must use "skip_py2_containers"
     """
-    if (
-        request.node.get_closest_marker(
-            "skip_py2"
-        )
-        and "py2"
-        in py_version
-    ):
-        pytest.skip(
-            "Skipping the test because Python 2 is not supported."
-        )
+    if request.node.get_closest_marker("skip_py2") and "py2" in py_version:
+        pytest.skip("Skipping the test because Python 2 is not supported.")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_test_in_region(
     request,
     region,
 ):
-    if request.node.get_closest_marker(
-        "skip_test_in_region"
-    ):
-        if (
-            region
-            == "me-south-1"
-        ):
-            pytest.skip(
-                "Skipping SageMaker test in region {}".format(
-                    region
-                )
-            )
+    if request.node.get_closest_marker("skip_test_in_region"):
+        if region == "me-south-1":
+            pytest.skip("Skipping SageMaker test in region {}".format(region))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(
     region,
     instance_type,
 ):
     if (
-        (
-            region
-            in NO_P2_REGIONS
-            and instance_type.startswith(
-                "ml.p2"
-            )
-        )
-        or (
-            region
-            in NO_P3_REGIONS
-            and instance_type.startswith(
-                "ml.p3"
-            )
-        )
-        or (
-            region
-            in NO_P4_REGIONS
-            and instance_type.startswith(
-                "ml.p4"
-            )
-        )
+        (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
+        or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
+        or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
     ):
-        pytest.skip(
-            "Skipping GPU test in region {}".format(
-                region
-            )
-        )
+        pytest.skip("Skipping GPU test in region {}".format(region))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions_efa(
     region,
     efa_instance_type,
 ):
     # NOTE list for P5 instances is *available* regions
-    if (
-        region
-        not in P5_AVAIL_REGIONS
-        and efa_instance_type.startswith(
-            "ml.p5"
-        )
-    ):
-        pytest.skip(
-            "Skipping GPU test in region {}".format(
-                region
-            )
-        )
+    if region not in P5_AVAIL_REGIONS and efa_instance_type.startswith("ml.p5"):
+        pytest.skip("Skipping GPU test in region {}".format(region))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_neuron_trn1_test_in_region(
     request,
     region,
 ):
-    if request.node.get_closest_marker(
-        "skip_neuron_trn1_test_in_region"
-    ):
-        if (
-            region
-            not in NEURON_TRN1_REGIONS
-        ):
-            pytest.skip(
-                "Skipping SageMaker test in region {}".format(
-                    region
-                )
-            )
+    if request.node.get_closest_marker("skip_neuron_trn1_test_in_region"):
+        if region not in NEURON_TRN1_REGIONS:
+            pytest.skip("Skipping SageMaker test in region {}".format(region))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_py2_containers(
     request,
     tag,
 ):
-    if request.node.get_closest_marker(
-        "skip_py2_containers"
-    ):
-        if (
-            "py2"
-            in tag
-        ):
-            pytest.skip(
-                "Skipping python2 container with tag {}".format(
-                    tag
-                )
-            )
+    if request.node.get_closest_marker("skip_py2_containers"):
+        if "py2" in tag:
+            pytest.skip("Skipping python2 container with tag {}".format(tag))
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_trcomp_containers(
     request,
     ecr_image,
 ):
-    if request.node.get_closest_marker(
-        "skip_trcomp_containers"
-    ):
-        if (
-            "trcomp"
-            in ecr_image
-        ):
+    if request.node.get_closest_marker("skip_trcomp_containers"):
+        if "trcomp" in ecr_image:
             pytest.skip(
-                "Skipping training compiler integrated container with tag {}".format(
-                    ecr_image
-                )
+                "Skipping training compiler integrated container with tag {}".format(ecr_image)
             )
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_inductor_test(
     request,
 ):
-    if (
-        "framework_version"
-        in request.fixturenames
-    ):
-        fw_ver = request.getfixturevalue(
-            "framework_version"
-        )
-    elif (
-        "ecr_image"
-        in request.fixturenames
-    ):
-        fw_ver = request.getfixturevalue(
-            "ecr_image"
-        )
+    if "framework_version" in request.fixturenames:
+        fw_ver = request.getfixturevalue("framework_version")
+    elif "ecr_image" in request.fixturenames:
+        fw_ver = request.getfixturevalue("ecr_image")
     else:
         return
-    if request.node.get_closest_marker(
-        "skip_inductor_test"
-    ):
-        if Version(
-            fw_ver
-        ) < Version(
-            "2.0.0"
-        ):
+    if request.node.get_closest_marker("skip_inductor_test"):
+        if Version(fw_ver) < Version("2.0.0"):
             pytest.skip(
                 f"SM inductor test only support PT2.0 and above, skipping this container with tag {fw_ver}"
             )
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_smdebug_v1_test(
     request,
     processor,
@@ -1072,9 +772,7 @@ def skip_smdebug_v1_test(
 ):
     """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
     skip_dict = {
-        "==2.0.*": [
-            "cu121"
-        ],
+        "==2.0.*": ["cu121"],
         ">=2.1,<2.4": [
             "cpu",
             "cu121",
@@ -1091,14 +789,10 @@ def skip_smdebug_v1_test(
         "skip_smdebug_v1_test",
         skip_dict,
     ):
-        pytest.skip(
-            f"SM Profiler v1 is on path for deprecation, skipping test"
-        )
+        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_dgl_test(
     request,
     processor,
@@ -1109,9 +803,7 @@ def skip_dgl_test(
     when the binaries are added in.
     """
     skip_dict = {
-        "==2.0.*": [
-            "cu121"
-        ],
+        "==2.0.*": ["cu121"],
         ">=2.1, <2.4": [
             "cpu",
             "cu121",
@@ -1128,14 +820,10 @@ def skip_dgl_test(
         "skip_dgl_test",
         skip_dict,
     ):
-        pytest.skip(
-            f"DGL binary is removed, skipping test"
-        )
+        pytest.skip(f"DGL binary is removed, skipping test")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_pytorchddp_test(
     request,
     processor,
@@ -1146,9 +834,7 @@ def skip_pytorchddp_test(
     See https://github.com/aws/sagemaker-python-sdk/pull/4698.
     """
     skip_dict = {
-        ">=2.1,<2.4": [
-            "cu121"
-        ],
+        ">=2.1,<2.4": ["cu121"],
     }
     if _validate_pytorch_framework_version(
         request,
@@ -1157,23 +843,17 @@ def skip_pytorchddp_test(
         "skip_pytorchddp_test",
         skip_dict,
     ):
-        pytest.skip(
-            f"SM Data Parallel binaries exist in this image, skipping test"
-        )
+        pytest.skip(f"SM Data Parallel binaries exist in this image, skipping test")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_smdmodelparallel_test(
     request,
     processor,
     ecr_image,
 ):
     skip_dict = {
-        "==2.0.*": [
-            "cu121"
-        ],
+        "==2.0.*": ["cu121"],
         ">=2.1, <2.4": [
             "cpu",
             "cu121",
@@ -1195,9 +875,7 @@ def skip_smdmodelparallel_test(
         )
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_smddataparallel_test(
     request,
     processor,
@@ -1208,9 +886,7 @@ def skip_smddataparallel_test(
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
     skip_dict = {
-        "==2.0.*": [
-            "cu121"
-        ],
+        "==2.0.*": ["cu121"],
     }
     if _validate_pytorch_framework_version(
         request,
@@ -1219,53 +895,26 @@ def skip_smddataparallel_test(
         "skip_smddataparallel_test",
         skip_dict,
     ):
-        pytest.skip(
-            f"SM Data Parallel binaries do not exist in this image, skipping test"
-        )
+        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_p5_tests(
     request,
     processor,
     ecr_image,
 ):
-    if (
-        "efa_instance_type"
-        in request.fixturenames
-    ):
-        test_instance_type = request.getfixturevalue(
-            "efa_instance_type"
-        )
-    elif (
-        "instance_type"
-        in request.fixturenames
-    ):
-        test_instance_type = request.getfixturevalue(
-            "instance_type"
-        )
+    if "efa_instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("efa_instance_type")
+    elif "instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("instance_type")
     else:
         return
 
-    if (
-        "p5."
-        in test_instance_type
-    ):
-        image_cuda_version = get_cuda_version_from_tag(
-            ecr_image
-        )
-        if processor != "gpu" or Version(
-            image_cuda_version.strip(
-                "cu"
-            )
-        ) < Version(
-            "120"
-        ):
-            pytest.skip(
-                "P5 EC2 instance require CUDA 12.0 or higher."
-            )
+    if "p5." in test_instance_type:
+        image_cuda_version = get_cuda_version_from_tag(ecr_image)
+        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
 
 
 def _validate_pytorch_framework_version(
@@ -1281,43 +930,20 @@ def _validate_pytorch_framework_version(
         SpecifierSet("<comparable version string">): ["cpu", "cu118", "cu121"],
     }
     """
-    if request.node.get_closest_marker(
-        test_name
-    ):
+    if request.node.get_closest_marker(test_name):
         (
             image_framework,
             image_framework_version,
-        ) = get_framework_and_version_from_tag(
-            ecr_image
-        )
-        image_cuda_version = (
-            get_cuda_version_from_tag(
-                ecr_image
-            )
-            if processor
-            == "gpu"
-            else ""
-        )
+        ) = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
 
-        if (
-            image_framework
-            == "pytorch"
-        ):
+        if image_framework == "pytorch":
             for (
                 framework_condition,
                 processor_conditions,
-            ) in (
-                skip_dict.items()
-            ):
-                if Version(
-                    image_framework_version
-                ) in SpecifierSet(
-                    framework_condition
-                ) and (
-                    processor
-                    in processor_conditions
-                    or image_cuda_version
-                    in processor_conditions
+            ) in skip_dict.items():
+                if Version(image_framework_version) in SpecifierSet(framework_condition) and (
+                    processor in processor_conditions or image_cuda_version in processor_conditions
                 ):
                     return True
 
@@ -1326,37 +952,17 @@ def _validate_pytorch_framework_version(
 
 def _get_remote_override_flags():
     try:
-        s3_client = boto3.client(
-            "s3"
-        )
-        sts_client = boto3.client(
-            "sts"
-        )
-        account_id = sts_client.get_caller_identity().get(
-            "Account"
-        )
+        s3_client = boto3.client("s3")
+        sts_client = boto3.client("sts")
+        account_id = sts_client.get_caller_identity().get("Account")
         result = s3_client.get_object(
             Bucket=f"dlc-cicd-helper-{account_id}",
             Key="override_tests_flags.json",
         )
-        json_content = json.loads(
-            result[
-                "Body"
-            ]
-            .read()
-            .decode(
-                "utf-8"
-            )
-        )
+        json_content = json.loads(result["Body"].read().decode("utf-8"))
     except ClientError as e:
-        logger.warning(
-            "ClientError when performing S3/STS operation: {}".format(
-                e
-            )
-        )
-        json_content = (
-            {}
-        )
+        logger.warning("ClientError when performing S3/STS operation: {}".format(e))
+        json_content = {}
     return json_content
 
 
@@ -1381,60 +987,27 @@ def _is_test_disabled(
     :param version: str Source Version of current execution
     :return: bool True if test is disabled as per remote override, False otherwise
     """
-    remote_override_flags = (
-        _get_remote_override_flags()
-    )
+    remote_override_flags = _get_remote_override_flags()
     remote_override_build = remote_override_flags.get(
         build_name,
         {},
     )
-    if (
-        version
-        in remote_override_build
-    ):
-        return not remote_override_build[
-            version
-        ] or any(
-            [
-                test_keyword
-                in test_name
-                for test_keyword in remote_override_build[
-                    version
-                ]
-            ]
+    if version in remote_override_build:
+        return not remote_override_build[version] or any(
+            [test_keyword in test_name for test_keyword in remote_override_build[version]]
         )
     return False
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def disable_test(
     request,
 ):
-    test_name = (
-        request.node.name
-    )
+    test_name = request.node.name
     # We do not have a regex pattern to find CB name, which means we must resort to string splitting
-    build_arn = os.getenv(
-        "CODEBUILD_BUILD_ARN"
-    )
-    build_name = (
-        build_arn.split(
-            "/"
-        )[
-            -1
-        ].split(
-            ":"
-        )[
-            0
-        ]
-        if build_arn
-        else None
-    )
-    version = os.getenv(
-        "CODEBUILD_RESOLVED_SOURCE_VERSION"
-    )
+    build_arn = os.getenv("CODEBUILD_BUILD_ARN")
+    build_name = build_arn.split("/")[-1].split(":")[0] if build_arn else None
+    version = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
     if (
         build_name
@@ -1445,23 +1018,15 @@ def disable_test(
             version,
         )
     ):
-        pytest.skip(
-            f"Skipping {test_name} test because it has been disabled."
-        )
+        pytest.skip(f"Skipping {test_name} test because it has been disabled.")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def disable_nightly_test(
     request,
 ):
-    test_name = (
-        request.node.name
-    )
-    if (
-        is_nightly_context()
-    ):
+    test_name = request.node.name
+    if is_nightly_context():
         # default image uri
         image_uri = None
         # get a list of nightly fixtures present for the test function
@@ -1471,40 +1036,25 @@ def disable_nightly_test(
                 key,
                 value,
             ) in NIGHTLY_FIXTURES.items()
-            if key
-            in request.fixturenames
+            if key in request.fixturenames
         }
         # get image uri value
-        if (
-            "ecr_image"
-            in request.fixturenames
-        ):
-            image_uri = request.getfixturevalue(
-                "ecr_image"
-            )
+        if "ecr_image" in request.fixturenames:
+            image_uri = request.getfixturevalue("ecr_image")
 
-        if (
-            nightly_fixtures_present
-            and image_uri
-        ):
+        if nightly_fixtures_present and image_uri:
             for (
                 _,
                 labels,
-            ) in (
-                nightly_fixtures_present.items()
-            ):
+            ) in nightly_fixtures_present.items():
                 if not are_fixture_labels_enabled(
                     image_uri,
                     labels,
                 ):
-                    pytest.skip(
-                        f"{test_name} will be skipped."
-                    )
+                    pytest.skip(f"{test_name} will be skipped.")
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def skip_test_successfully_executed_before(
     request,
 ):
@@ -1515,23 +1065,13 @@ def skip_test_successfully_executed_before(
     The only sign that a test passed last time - lastfailed file exists and the test name isn't in that file.
     The method checks whether lastfailed file exists and the test name is not in it.
     """
-    test_name = (
-        request.node.name
-    )
+    test_name = request.node.name
     lastfailed = request.config.cache.get(
         "cache/lastfailed",
         None,
     )
 
-    if (
-        lastfailed
-        is not None
-        and not any(
-            test_name
-            in failed_test_name
-            for failed_test_name in lastfailed.keys()
-        )
+    if lastfailed is not None and not any(
+        test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
-        pytest.skip(
-            f"Skipping {test_name} because it was successfully executed for this commit"
-        )
+        pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
