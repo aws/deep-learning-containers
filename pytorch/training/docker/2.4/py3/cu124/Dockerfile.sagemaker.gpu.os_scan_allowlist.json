@@ -749,6 +749,81 @@
       "status": "ACTIVE",
       "title": "CVE-2024-42224 - linux",
       "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: net/sched: Fix UAF when resolving a clash KASAN reports the following UAF: BUG: KASAN: slab-use-after-free in tcf_ct_flow_table_process_conn+0x12b/0x380 [act_ct] Read of size 1 at addr ffff888c07603600 by task handler130/6469 Call Trace: <IRQ> dump_stack_lvl+0x48/0x70 print_address_description.constprop.0+0x33/0x3d0 print_report+0xc0/0x2b0 kasan_report+0xd0/0x120 __asan_load1+0x6c/0x80 tcf_ct_flow_table_process_conn+0x12b/0x380 [act_ct] tcf_ct_act+0x886/0x1350 [act_ct] tcf_action_exec+0xf8/0x1f0 fl_classify+0x355/0x360 [cls_flower] __tcf_classify+0x1fd/0x330 tcf_classify+0x21c/0x3c0 sch_handle_ingress.constprop.0+0x2c5/0x500 __netif_receive_skb_core.constprop.0+0xb25/0x1510 __netif_receive_skb_list_core+0x220/0x4c0 netif_receive_skb_list_internal+0x446/0x620 napi_complete_done+0x157/0x3d0 gro_cell_poll+0xcf/0x100 __napi_poll+0x65/0x310 net_rx_action+0x30c/0x5c0 __do_softirq+0x14f/0x491 __irq_exit_rcu+0x82/0xc0 irq_exit_rcu+0xe/0x20 common_int",
+      "vulnerability_id": "CVE-2024-41040",
+      "name": "CVE-2024-41040",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "119.129"
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41040.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41040 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: nfc: nci: Fix uninit-value in nci_rx_work syzbot reported the following uninit-value access issue [1] nci_rx_work() parses received packet from ndev->rx_q. It should be validated header size, payload size and total packet size before processing the packet. If an invalid packet is detected, it should be silently discarded.",
+      "vulnerability_id": "CVE-2024-38381",
+      "name": "CVE-2024-38381",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "119.129"
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38381.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-38381 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: stm class: Fix a double free in stm_register_device() The put_device(&stm->dev) call will trigger stm_device_release() which frees \"stm\" so the vfree(stm) on the next line is a double free.",
+      "vulnerability_id": "CVE-2024-38627",
+      "name": "CVE-2024-38627",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "119.129"
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38627.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-38627 - linux",
+      "reason_to_ignore": "N/A"
     }
   ]
 }
