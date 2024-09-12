@@ -148,9 +148,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     charset-normalizer \
     packaging \
     awscli \
-    # pinned for awscli==1.34.15
+    # pinned for awscli==1.34.17
     # https://github.com/boto/boto3/issues/2702
-    "boto3==1.35.15" \
+    boto3 \
+    "botocore==1.35.17" \
     pyyaml \
     scipy \
     click \
