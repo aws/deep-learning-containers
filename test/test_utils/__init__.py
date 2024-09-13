@@ -220,7 +220,7 @@ ECS_AML2_NEURON_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/inf/recommended",
 )
-ECS_AML2_GRAVITON_USWEST2 = get_ami_id_ssm(
+ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
