@@ -15,7 +15,6 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)
@@ -224,8 +223,6 @@ def test_ecs_pytorch_inference_graviton_gpu(
         assert inference_result, f"Failed to perform inference at IP address: {public_ip_address}"
 
     finally:
-        # TEMP CHANGE
-        return
         ecs_utils.tear_down_ecs_inference_service(
             ecs_cluster_arn, service_name, task_family, revision
         )
