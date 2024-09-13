@@ -238,7 +238,7 @@ RUN mkdir /tmp/hwloc \
 && apt-get clean  
 
 # add aws-ofi-nccl to path
-ENV LD_LIBRARY_PATH="/opt/aws-ofi-nccl:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/aws-ofi-nccl/lib:${LD_LIBRARY_PATH}"
 
 # Install AWS-OFI-NCCL plugin from source
 RUN mkdir /tmp/aws-ofi-nccl \
