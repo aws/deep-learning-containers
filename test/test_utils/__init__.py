@@ -141,7 +141,7 @@ UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
 )
 AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3( ### sally temp
-    region_name="us-east-1",
+    region_name="us-west-1",
     ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????"
 )
 
