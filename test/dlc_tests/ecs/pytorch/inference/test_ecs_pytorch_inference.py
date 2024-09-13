@@ -12,7 +12,7 @@ from test.test_utils import (
     ECS_AML2_GPU_USWEST2,
     ECS_AML2_NEURON_USWEST2,
     ECS_AML2_GRAVITON_USWEST2,
-    AML2_BASE_ARM64_DLAMI_US_WEST_2,  ### sally temp
+    AML2_BASE_ARM64_DLAMI_US_WEST_2,
 )
 
 
@@ -194,11 +194,10 @@ def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, re
         )
 
 
+@pytest.mark.skip(reason="No ECS optimized AMI available for ARM64+GPU")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["g5g.8xlarge"], indirect=True)
-@pytest.mark.parametrize(
-    "ecs_ami", [AML2_BASE_ARM64_DLAMI_US_WEST_2], indirect=True
-)  ### sally temp: try using DLAMI instead of ECS AMI ECS_AML2_GRAVITON_USWEST2
+@pytest.mark.parametrize("ecs_ami", [AML2_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
 def test_ecs_pytorch_inference_graviton_gpu(
     pytorch_inference_graviton, ecs_container_instance, region, gpu_only
