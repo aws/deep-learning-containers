@@ -75,6 +75,8 @@ RUN apt-get update \
     libcusparse-dev-11-7 \
     cuda-nvml-dev-11-7=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
+    libgssapi-krb5-2 \
+    libk5crypto3 \
     libglib2.0-0 \
     libgomp1 \
     libibverbs-dev \
