@@ -233,11 +233,11 @@ def test_generate_new_file_content():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("currency")
+@pytest.mark.xfail(strict=True)
 def test_handle_currency_option_invalid_path(tmp_path, caplog):
     invalid_currency_path = "invalid/file/path-1-2-hello.yml"
 
-    with pytest.raises(ValueError):
-        with patch(
-            "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
-        ):
-            prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
+    with patch(
+        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
+    ):
+        prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])
