@@ -69,7 +69,6 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
-    libgssapi-krb5-2 \
     curl \
     emacs \
     git \
