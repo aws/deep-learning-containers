@@ -781,10 +781,10 @@ def setup_ecs_inference_service(
 
     port_mappings = get_ecs_port_mappings(framework)
     log_group_name = f"/ecs/{framework}-inference-{processor}"
-    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region) * 1024 // 2
+    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region) * 1024
     # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
     # what the memory utilization is.
-    memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.6)
+    memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)
     cluster_name = get_ecs_cluster_name(cluster_arn, region=region)
     # Below values here are just for sanity
     arguments_dict = {
