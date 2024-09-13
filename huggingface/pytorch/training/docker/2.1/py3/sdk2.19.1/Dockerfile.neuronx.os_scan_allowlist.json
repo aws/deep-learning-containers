@@ -1023,6 +1023,35 @@
       }
     ],
     "linux-libc-dev": [
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: greybus: Fix use-after-free bug in gb_interface_release due to race condition. In gb_interface_create, &intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &intf->mode_switch_work)) { ... } If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows: CPU0 CPU1 | gb_interface_create | gb_interface_request_mode_switch gb_interface_release | kfree(intf) (free) | | gb_interface_mode_switch_work | mutex_lock(&intf->mutex) (use) Fix it by canceling the work before kfree.",
+         "vulnerability_id":"CVE-2024-39495",
+         "name":"CVE-2024-39495",
+         "package_name":"linux-libc-dev",
+         "package_details":{
+            "file_path":null,
+            "name":"linux-libc-dev",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"192.212"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39495 - linux-libc-dev",
+         "reason_to_ignore":"N/A"
+      },
         {
          "description":"In the Linux kernel, the following vulnerability has been resolved: ata: libata-core: Fix double free on error If e.g. the ata_port_alloc() call in ata_host_alloc() fails, we will jump to the err_out label, which will call devres_release_group(). devres_release_group() will trigger a call to ata_host_release(). ata_host_release() calls kfree(host), so executing the kfree(host) in ata_host_alloc() will lead to a double free: kernel BUG at mm/slub.c:553! Oops: invalid opcode: 0000 [#1] PREEMPT SMP NOPTI CPU: 11 PID: 599 Comm: (udev-worker) Not tainted 6.10.0-rc5 #47 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-2.fc40 04/01/2014 RIP: 0010:kfree+0x2cf/0x2f0 Code: 5d 41 5e 41 5f 5d e9 80 d6 ff ff 4d 89 f1 41 b8 01 00 00 00 48 89 d9 48 89 da RSP: 0018:ffffc90000f377f0 EFLAGS: 00010246 RAX: ffff888112b1f2c0 RBX: ffff888112b1f2c0 RCX: ffff888112b1f320 RDX: 000000000000400b RSI: ffffffffc02c9de5 RDI: ffff888112b1f2c0 RBP: ffffc90000f37830 R08: 0000000000000000 R09: 0000000000000000 R10: ffffc9000",
          "vulnerability_id":"CVE-2024-41087",
