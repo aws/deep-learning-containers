@@ -126,7 +126,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.15.0",
-        "release": "119.129"
+        "release": "121.131"
       },
       "remediation": {
         "recommendation": {
@@ -155,7 +155,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.15.0",
-        "release": "119.129"
+        "release": "121.131"
       },
       "remediation": {
         "recommendation": {
@@ -213,7 +213,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.15.0",
-        "release": "119.129"
+        "release": "121.131"
       },
       "remediation": {
         "recommendation": {
@@ -271,7 +271,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.15.0",
-        "release": "119.129"
+        "release": "121.131"
       },
       "remediation": {
         "recommendation": {
@@ -387,7 +387,7 @@
         "name": "linux",
         "package_manager": "OS",
         "version": "5.15.0",
-        "release": "119.129"
+        "release": "121.131"
       },
       "remediation": {
         "recommendation": {
