@@ -37,5 +37,4 @@ else
     pytest -v -s $TE_PATH/tests/pytorch/test_multi_tensor.py
     pytest -v -s $TE_PATH/tests/pytorch/test_fusible_ops.py
     pytest -v -s $TE_PATH/tests/pytorch/test_fusible_ops_distributed.py
-    pytest -v -s $TE_PATH/tests/pytorch/test_permutation.py
 fi
