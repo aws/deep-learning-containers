@@ -237,9 +237,6 @@ RUN mkdir /tmp/hwloc \
 && rm -rf /var/lib/apt/lists/* \
 && apt-get clean  
 
-# add aws-ofi-nccl to path
-ENV LD_LIBRARY_PATH="/opt/aws-ofi-nccl/lib:${LD_LIBRARY_PATH}"
-
 # Install AWS-OFI-NCCL plugin from source
 RUN mkdir /tmp/aws-ofi-nccl \
 && cd /tmp/aws-ofi-nccl \
@@ -247,8 +244,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
 && tar -xvf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
 && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
 && ./autogen.sh \
-&& ./configure --prefix=/opt/aws-ofi-nccl \
-                --with-libfabric=${EFA_PATH} \
+&& ./configure  --with-libfabric=${EFA_PATH} \
                 --with-cuda=${CUDA_HOME} \
                 --with-mpi=${OPEN_MPI_PATH} \
                 --disable-tests \

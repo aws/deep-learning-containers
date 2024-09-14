@@ -2,6 +2,8 @@
 
 set -ex
 
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
 TE_VERSION=$(pip show transformer_engine | awk '/^Version:/ {split($2, v, "."); print v[1] "." v[2]}')
 
 git clone --branch v${TE_VERSION} https://github.com/NVIDIA/TransformerEngine.git
