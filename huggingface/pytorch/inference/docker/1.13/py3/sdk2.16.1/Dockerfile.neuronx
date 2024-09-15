@@ -43,6 +43,8 @@ RUN apt-get update \
     ca-certificates \
     openssl \
     cmake \
+    python3.8-minimal \
+    libgssapi-krb5-2 \
     curl \
     emacs \
     git \
