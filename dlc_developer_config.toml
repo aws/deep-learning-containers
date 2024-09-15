@@ -2,7 +2,7 @@
 partner_developer = ""
 ei_mode = false
 neuron_mode = false
-neuronx_mode = true
+neuronx_mode = false
 graviton_mode = false
 habana_mode = false
 huggingface_trcomp_mode = false
@@ -11,8 +11,8 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "huggingface_pytorch",]
-build_training = true
-build_inference = false
+build_training = false
+build_inference = true
 do_build = true
 
 [notify]
@@ -62,7 +62,7 @@ dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec-1-13-1.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-mxnet-graviton-inference = ""
@@ -71,6 +71,4 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
-# WARNING: Unrecognized key generated below
-dlc-pr-huggingface-pytorch-neuronx-training = "huggingface/pytorch/training/buildspec-neuronx.yml"
 
