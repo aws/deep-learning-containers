@@ -39,7 +39,7 @@ images:
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu22.04
     torch_serve_version: &TORCHSERVE_VERSION 0.11.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
@@ -55,8 +55,8 @@ images:
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
-    cuda_version: &CUDA_VERSION cu121
-    os_version: &OS_VERSION ubuntu20.04
+    cuda_version: &CUDA_VERSION cu124
+    os_version: &OS_VERSION ubuntu22.04
     torch_serve_version: &TORCHSERVE_VERSION 0.11.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
@@ -66,4 +66,3 @@ images:
     target: ec2
     context:
       <<: *INFERENCE_CONTEXT
-  
