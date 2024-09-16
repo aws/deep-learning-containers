@@ -70,6 +70,7 @@ RUN apt-get update \
     libcudnn8=${CUDNN_VERSION}-1+cuda11.8 \
     curl \
     emacs \
+    expat \
     git \
     jq \
     libgl1-mesa-glx \

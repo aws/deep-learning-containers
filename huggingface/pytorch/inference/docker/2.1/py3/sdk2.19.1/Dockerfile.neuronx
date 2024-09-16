@@ -59,6 +59,7 @@ RUN apt-get update \
     zlib1g-dev \
     libcap-dev \
     gpg-agent \
+    libexpat1 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean

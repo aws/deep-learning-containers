@@ -1,5 +1,963 @@
 {
-    "linux": [{
+    "linux": [
+        {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: add error handle to avoid out-of-bounds if the sdma_v4_0_irq_id_to_seq return -EINVAL, the process should be stop to avoid out-of-bounds read, so directly return -EINVAL.",
+         "vulnerability_id":"CVE-2024-39471",
+         "name":"CVE-2024-39471",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.1,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.1,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39471.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39471 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"It was discovered that the JFS file system contained an out-of-bounds read vulnerability when printing xattr debug information. A local attacker could use this to cause a denial of service (system crash).",
+         "vulnerability_id":"CVE-2024-40902",
+         "name":"CVE-2024-40902",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40902.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-40902 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: nfc: nci: Fix uninit-value in nci_rx_work syzbot reported the following uninit-value access issue [1] nci_rx_work() parses received packet from ndev->rx_q. It should be validated header size, payload size and total packet size before processing the packet. If an invalid packet is detected, it should be silently discarded.",
+         "vulnerability_id":"CVE-2024-38381",
+         "name":"CVE-2024-38381",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.1,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.1,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38381.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38381 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net/iucv: Avoid explicit cpumask var allocation on stack For CONFIG_CPUMASK_OFFSTACK=y kernel, explicit allocation of cpumask variable on stack is not recommended since it can cause potential stack overflow. Instead, kernel code should always use *cpumask_var API(s) to allocate cpumask var in config-neutral way, leaving allocation strategy to CONFIG_CPUMASK_OFFSTACK. Use *cpumask_var API(s) to address it.",
+         "vulnerability_id":"CVE-2024-42094",
+         "name":"CVE-2024-42094",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42094.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42094 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net/dpaa2: Avoid explicit cpumask var allocation on stack For CONFIG_CPUMASK_OFFSTACK=y kernel, explicit allocation of cpumask variable on stack is not recommended since it can cause potential stack overflow. Instead, kernel code should always use *cpumask_var API(s) to allocate cpumask var in config-neutral way, leaving allocation strategy to CONFIG_CPUMASK_OFFSTACK. Use *cpumask_var API(s) to address it.",
+         "vulnerability_id":"CVE-2024-42093",
+         "name":"CVE-2024-42093",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42093.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42093 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net: do not leave a dangling sk pointer, when socket creation fails It is possible to trigger a use-after-free by: * attaching an fentry probe to __sock_release() and the probe calling the bpf_get_socket_cookie() helper * running traceroute -I 1.1.1.1 on a freshly booted VM A KASAN enabled kernel will log something like below (decoded and stripped): ================================================================== BUG: KASAN: slab-use-after-free in __sock_gen_cookie (./arch/x86/include/asm/atomic64_64.h:15 ./include/linux/atomic/atomic-arch-fallback.h:2583 ./include/linux/atomic/atomic-instrumented.h:1611 net/core/sock_diag.c:29) Read of size 8 at addr ffff888007110dd8 by task traceroute/299 CPU: 2 PID: 299 Comm: traceroute Tainted: G E 6.10.0-rc2+ #2 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.2-debian-1.16.2-1 04/01/2014 Call Trace: <TASK> dump_stack_lvl (lib/dump_stack.c:117 (discriminator 1)) print_report (mm/kasan/r",
+         "vulnerability_id":"CVE-2024-40954",
+         "name":"CVE-2024-40954",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40954.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-40954 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: greybus: Fix use-after-free bug in gb_interface_release due to race condition. In gb_interface_create, &#38;intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &#38;intf->mode_switch_work)) { ... } If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows: CPU0 CPU1 | gb_interface_create | gb_interface_request_mode_switch gb_interface_release | kfree(intf) (free) | | gb_interface_mode_switch_work | mutex_lock(&#38;intf->mutex) (use) Fix it by canceling the work before kfree.",
+         "vulnerability_id":"CVE-2024-39495",
+         "name":"CVE-2024-39495",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39495 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: bpf: Avoid uninitialized value in BPF_CORE_READ_BITFIELD [Changes from V1: - Use a default branch in the switch statement to initialize `val'.] GCC warns that `val' may be used uninitialized in the BPF_CRE_READ_BITFIELD macro, defined in bpf_core_read.h as: [...] unsigned long long val; \\ [...] \\ switch (__CORE_RELO(s, field, BYTE_SIZE)) { \\ case 1: val = *(const unsigned char *)p; break; \\ case 2: val = *(const unsigned short *)p; break; \\ case 4: val = *(const unsigned int *)p; break; \\ case 8: val = *(const unsigned long long *)p; break; \\ } \\ [...] val; \\ } \\ This patch adds a default entry in the switch statement that sets `val' to zero in order to avoid the warning, and random values to be used in case __builtin_preserve_field_info returns unexpected values for BPF_FIELD_BYTE_SIZE. Tested in bpf-next master. No regressions.",
+         "vulnerability_id":"CVE-2024-42161",
+         "name":"CVE-2024-42161",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42161.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42161 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: drm/amd/display: Fix potential index out of bounds in color transformation function Fixes index out of bounds issue in the color transformation function. The issue could occur when the index 'i' exceeds the number of transfer function points (TRANSFER_FUNC_POINTS). The fix adds a check to ensure 'i' is within bounds before accessing the transfer function points. If 'i' is out of bounds, an error message is logged and the function returns false to indicate an error. Reported by smatch: drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_cm_common.c:405 cm_helper_translate_curve_to_hw_format() error: buffer overflow 'output_tf->tf_pts.red' 1025 <= s32max drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_cm_common.c:406 cm_helper_translate_curve_to_hw_format() error: buffer overflow 'output_tf->tf_pts.green' 1025 <= s32max drivers/gpu/drm/amd/amdgpu/../display/dc/dcn10/dcn10_cm_common.c:407 cm_helper_translate_curve_to_hw_format() error: buf",
+         "vulnerability_id":"CVE-2024-38552",
+         "name":"CVE-2024-38552",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38552.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38552 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: filelock: fix potential use-after-free in posix_lock_inode Light Hsieh reported a KASAN UAF warning in trace_posix_lock_inode(). The request pointer had been changed earlier to point to a lock entry that was added to the inode's list. However, before the tracepoint could fire, another task raced in and freed that lock. Fix this by moving the tracepoint inside the spinlock, which should ensure that this doesn't happen.",
+         "vulnerability_id":"CVE-2024-41049",
+         "name":"CVE-2024-41049",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41049.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-41049 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: ptp: fix integer overflow in max_vclocks_store On 32bit systems, the \"4 * max\" multiply can overflow. Use kcalloc() to do the allocation to prevent this.",
+         "vulnerability_id":"CVE-2024-40994",
+         "name":"CVE-2024-40994",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40994.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-40994 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: f2fs: check validation of fault attrs in f2fs_build_fault_attr() - It missed to check validation of fault attrs in parse_options(), let's fix to add check condition in f2fs_build_fault_attr(). - Use f2fs_build_fault_attr() in __sbi_store() to clean up code.",
+         "vulnerability_id":"CVE-2024-42160",
+         "name":"CVE-2024-42160",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42160.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42160 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net/mlx5: Discard command completions in internal error Fix use after free when FW completion arrives while device is in internal error state. Avoid calling completion handler in this case, since the device will flush the command interface and trigger all completions manually. Kernel log: ------------[ cut here ]------------ refcount_t: underflow; use-after-free. ... RIP: 0010:refcount_warn_saturate+0xd8/0xe0 ... Call Trace: <IRQ> ? __warn+0x79/0x120 ? refcount_warn_saturate+0xd8/0xe0 ? report_bug+0x17c/0x190 ? handle_bug+0x3c/0x60 ? exc_invalid_op+0x14/0x70 ? asm_exc_invalid_op+0x16/0x20 ? refcount_warn_saturate+0xd8/0xe0 cmd_ent_put+0x13b/0x160 [mlx5_core] mlx5_cmd_comp_handler+0x5f9/0x670 [mlx5_core] cmd_comp_notifier+0x1f/0x30 [mlx5_core] notifier_call_chain+0x35/0xb0 atomic_notifier_call_chain+0x16/0x20 mlx5_eq_async_int+0xf6/0x290 [mlx5_core] notifier_call_chain+0x35/0xb0 atomic_notifier_call_chain+0x16/0x20 irq_int_handler+0x19/0x30 [m",
+         "vulnerability_id":"CVE-2024-38555",
+         "name":"CVE-2024-38555",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38555.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38555 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: tcp_metrics: validate source addr length I don't see anything checking that TCP_METRICS_ATTR_SADDR_IPV4 is at least 4 bytes long, and the policy doesn't have an entry for this attribute at all (neither does it for IPv6 but v6 is manually validated).",
+         "vulnerability_id":"CVE-2024-42154",
+         "name":"CVE-2024-42154",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":9.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":9.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"CRITICAL",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42154.html",
+         "source":"UBUNTU_CVE",
+         "severity":"CRITICAL",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42154 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: wifi: mt76: replace skb_put with skb_put_zero Avoid potentially reusing uninitialized data",
+         "vulnerability_id":"CVE-2024-42225",
+         "name":"CVE-2024-42225",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.5,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.5,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42225.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42225 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: gfs2: Fix potential glock use-after-free on unmount When a DLM lockspace is released and there ares still locks in that lockspace, DLM will unlock those locks automatically. Commit fb6791d100d1b started exploiting this behavior to speed up filesystem unmount: gfs2 would simply free glocks it didn't want to unlock and then release the lockspace. This didn't take the bast callbacks for asynchronous lock contention notifications into account, which remain active until until a lock is unlocked or its lockspace is released. To prevent those callbacks from accessing deallocated objects, put the glocks that should not be unlocked on the sd_dead_glocks list, release the lockspace, and only then free those glocks. As an additional measure, ignore unexpected ast and bast callbacks if the receiving glock is dead.",
+         "vulnerability_id":"CVE-2024-38570",
+         "name":"CVE-2024-38570",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38570.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38570 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: bonding: Fix out-of-bounds read in bond_option_arp_ip_targets_set() In function bond_option_arp_ip_targets_set(), if newval->string is an empty string, newval->string+1 will point to the byte after the string, causing an out-of-bound read. BUG: KASAN: slab-out-of-bounds in strlen+0x7d/0xa0 lib/string.c:418 Read of size 1 at addr ffff8881119c4781 by task syz-executor665/8107 CPU: 1 PID: 8107 Comm: syz-executor665 Not tainted 6.7.0-rc7 #1 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014 Call Trace: <TASK> __dump_stack lib/dump_stack.c:88 [inline] dump_stack_lvl+0xd9/0x150 lib/dump_stack.c:106 print_address_description mm/kasan/report.c:364 [inline] print_report+0xc1/0x5e0 mm/kasan/report.c:475 kasan_report+0xbe/0xf0 mm/kasan/report.c:588 strlen+0x7d/0xa0 lib/string.c:418 __fortify_strlen include/linux/fortify-string.h:210 [inline] in4_pton+0xa3/0x3f0 net/core/utils.c:130 bond_option_arp_ip_targets_set+0xc2/0x910 d",
+         "vulnerability_id":"CVE-2024-39487",
+         "name":"CVE-2024-39487",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.1,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.1,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39487.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39487 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net: sched: sch_multiq: fix possible OOB write in multiq_tune() q->bands will be assigned to qopt->bands to execute subsequent code logic after kmalloc. So the old q->bands should not be used in kmalloc. Otherwise, an out-of-bounds write will occur.",
+         "vulnerability_id":"CVE-2024-36978",
+         "name":"CVE-2024-36978",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36978.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-36978 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net/sched: Fix UAF when resolving a clash KASAN reports the following UAF: BUG: KASAN: slab-use-after-free in tcf_ct_flow_table_process_conn+0x12b/0x380 [act_ct] Read of size 1 at addr ffff888c07603600 by task handler130/6469 Call Trace: <IRQ> dump_stack_lvl+0x48/0x70 print_address_description.constprop.0+0x33/0x3d0 print_report+0xc0/0x2b0 kasan_report+0xd0/0x120 __asan_load1+0x6c/0x80 tcf_ct_flow_table_process_conn+0x12b/0x380 [act_ct] tcf_ct_act+0x886/0x1350 [act_ct] tcf_action_exec+0xf8/0x1f0 fl_classify+0x355/0x360 [cls_flower] __tcf_classify+0x1fd/0x330 tcf_classify+0x21c/0x3c0 sch_handle_ingress.constprop.0+0x2c5/0x500 __netif_receive_skb_core.constprop.0+0xb25/0x1510 __netif_receive_skb_list_core+0x220/0x4c0 netif_receive_skb_list_internal+0x446/0x620 napi_complete_done+0x157/0x3d0 gro_cell_poll+0xcf/0x100 __napi_poll+0x65/0x310 net_rx_action+0x30c/0x5c0 __do_softirq+0x14f/0x491 __irq_exit_rcu+0x82/0xc0 irq_exit_rcu+0xe/0x20 common_int",
+         "vulnerability_id":"CVE-2024-41040",
+         "name":"CVE-2024-41040",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.0,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.0,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41040.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-41040 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net: dsa: mv88e6xxx: Correct check for empty list Since commit a3c53be55c95 (\"net: dsa: mv88e6xxx: Support multiple MDIO busses\") mv88e6xxx_default_mdio_bus() has checked that the return value of list_first_entry() is non-NULL. This appears to be intended to guard against the list chip->mdios being empty. However, it is not the correct check as the implementation of list_first_entry is not designed to return NULL for empty lists. Instead, use list_first_entry_or_null() which does return NULL if the list is empty. Flagged by Smatch. Compile tested only.",
+         "vulnerability_id":"CVE-2024-42224",
+         "name":"CVE-2024-42224",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42224.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42224 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: net: ethernet: lantiq_etop: fix double free in detach The number of the currently released descriptor is never incremented which results in the same skb being released multiple times.",
+         "vulnerability_id":"CVE-2024-41046",
+         "name":"CVE-2024-41046",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41046.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-41046 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: stm class: Fix a double free in stm_register_device() The put_device(&#38;stm->dev) call will trigger stm_device_release() which frees \"stm\" so the vfree(stm) on the next line is a double free.",
+         "vulnerability_id":"CVE-2024-38627",
+         "name":"CVE-2024-38627",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38627.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38627 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: netns: Make get_net_ns() handle zero refcount net Syzkaller hit a warning: refcount_t: addition on 0; use-after-free. WARNING: CPU: 3 PID: 7890 at lib/refcount.c:25 refcount_warn_saturate+0xdf/0x1d0 Modules linked in: CPU: 3 PID: 7890 Comm: tun Not tainted 6.10.0-rc3-00100-gcaa4f9578aba-dirty #310 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014 RIP: 0010:refcount_warn_saturate+0xdf/0x1d0 Code: 41 49 04 31 ff 89 de e8 9f 1e cd fe 84 db 75 9c e8 76 26 cd fe c6 05 b6 41 49 04 01 90 48 c7 c7 b8 8e 25 86 e8 d2 05 b5 fe 90 <0f> 0b 90 90 e9 79 ff ff ff e8 53 26 cd fe 0f b6 1 RSP: 0018:ffff8881067b7da0 EFLAGS: 00010286 RAX: 0000000000000000 RBX: 0000000000000000 RCX: ffffffff811c72ac RDX: ffff8881026a2140 RSI: ffffffff811c72b5 RDI: 0000000000000001 RBP: ffff8881067b7db0 R08: 0000000000000000 R09: 205b5d3730353139 R10: 0000000000000000 R11: 205d303938375420 R12: ffff8881086500c4 R13: ffff8881086500c4 R14: ffff8881086500",
+         "vulnerability_id":"CVE-2024-40958",
+         "name":"CVE-2024-40958",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40958.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-40958 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: nilfs2: fix use-after-free of timer for log writer thread Patch series \"nilfs2: fix log writer related issues\". This bug fix series covers three nilfs2 log writer-related issues, including a timer use-after-free issue and potential deadlock issue on unmount, and a potential freeze issue in event synchronization found during their analysis. Details are described in each commit log. This patch (of 3): A use-after-free issue has been reported regarding the timer sc_timer on the nilfs_sc_info structure. The problem is that even though it is used to wake up a sleeping log writer thread, sc_timer is not shut down until the nilfs_sc_info structure is about to be freed, and is used regardless of the thread's lifetime. Fix this issue by limiting the use of sc_timer only while the log writer thread is alive.",
+         "vulnerability_id":"CVE-2024-38583",
+         "name":"CVE-2024-38583",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38583.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38583 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: nilfs2: add missing check for inode numbers on directory entries Syzbot reported that mounting and unmounting a specific pattern of corrupted nilfs2 filesystem images causes a use-after-free of metadata file inodes, which triggers a kernel bug in lru_add_fn(). As Jan Kara pointed out, this is because the link count of a metadata file gets corrupted to 0, and nilfs_evict_inode(), which is called from iput(), tries to delete that inode (ifile inode in this case). The inconsistency occurs because directories containing the inode numbers of these metadata files that should not be visible in the namespace are read without checking. Fix this issue by treating the inode numbers of these internal files as errors in the sanity check helper when reading directory folios/pages. Also thanks to Hillf Danton and Matthew Wilcox for their initial mm-layer analysis.",
+         "vulnerability_id":"CVE-2024-42104",
+         "name":"CVE-2024-42104",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42104.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42104 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Using uninitialized value *size when calling amdgpu_vce_cs_reloc Initialize the size before calling amdgpu_vce_cs_reloc, such as case 0x03000001. V2: To really improve the handling we would actually need to have a separate value of 0xffffffff.(Christian)",
+         "vulnerability_id":"CVE-2024-42228",
+         "name":"CVE-2024-42228",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.0,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.0,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42228.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42228 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: ata: libata-core: Fix double free on error If e.g. the ata_port_alloc() call in ata_host_alloc() fails, we will jump to the err_out label, which will call devres_release_group(). devres_release_group() will trigger a call to ata_host_release(). ata_host_release() calls kfree(host), so executing the kfree(host) in ata_host_alloc() will lead to a double free: kernel BUG at mm/slub.c:553! Oops: invalid opcode: 0000 [#1] PREEMPT SMP NOPTI CPU: 11 PID: 599 Comm: (udev-worker) Not tainted 6.10.0-rc5 #47 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.16.3-2.fc40 04/01/2014 RIP: 0010:kfree+0x2cf/0x2f0 Code: 5d 41 5e 41 5f 5d e9 80 d6 ff ff 4d 89 f1 41 b8 01 00 00 00 48 89 d9 48 89 da RSP: 0018:ffffc90000f377f0 EFLAGS: 00010246 RAX: ffff888112b1f2c0 RBX: ffff888112b1f2c0 RCX: ffff888112b1f320 RDX: 000000000000400b RSI: ffffffffc02c9de5 RDI: ffff888112b1f2c0 RBP: ffffc90000f37830 R08: 0000000000000000 R09: 0000000000000000 R10: ffffc9000",
+         "vulnerability_id":"CVE-2024-41087",
+         "name":"CVE-2024-41087",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41087.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-41087 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: bnx2x: Fix multiple UBSAN array-index-out-of-bounds Fix UBSAN warnings that occur when using a system with 32 physical cpu cores or more, or when the user defines a number of Ethernet queues greater than or equal to FP_SB_MAX_E1x using the num_queues module parameter. Currently there is a read/write out of bounds that occurs on the array \"struct stats_query_entry query\" present inside the \"bnx2x_fw_stats_req\" struct in \"drivers/net/ethernet/broadcom/bnx2x/bnx2x.h\". Looking at the definition of the \"struct stats_query_entry query\" array: struct stats_query_entry query[FP_SB_MAX_E1x+ BNX2X_FIRST_QUEUE_QUERY_IDX]; FP_SB_MAX_E1x is defined as the maximum number of fast path interrupts and has a value of 16, while BNX2X_FIRST_QUEUE_QUERY_IDX has a value of 3 meaning the array has a total size of 19. Since accesses to \"struct stats_query_entry query\" are offset-ted by BNX2X_FIRST_QUEUE_QUERY_IDX, that means that the total number of Ethernet queues ",
+         "vulnerability_id":"CVE-2024-42148",
+         "name":"CVE-2024-42148",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42148.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42148 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: ima: Fix use-after-free on a dentry's dname.name ->d_name.name can change on rename and the earlier value can be freed; there are conditions sufficient to stabilize it (->d_lock on dentry, ->d_lock on its parent, ->i_rwsem exclusive on the parent's inode, rename_lock), but none of those are met at any of the sites. Take a stable snapshot of the name instead.",
+         "vulnerability_id":"CVE-2024-39494",
+         "name":"CVE-2024-39494",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39494.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39494 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: btrfs: zoned: fix use-after-free due to race with dev replace While loading a zone's info during creation of a block group, we can race with a device replace operation and then trigger a use-after-free on the device that was just replaced (source device of the replace operation). This happens because at btrfs_load_zone_info() we extract a device from the chunk map into a local variable and then use the device while not under the protection of the device replace rwsem. So if there's a device replace operation happening when we extract the device and that device is the source of the replace operation, we will trigger a use-after-free if before we finish using the device the replace operation finishes and frees the device. Fix this by enlarging the critical section under the protection of the device replace rwsem so that all uses of the device are done inside the critical section.",
+         "vulnerability_id":"CVE-2024-39496",
+         "name":"CVE-2024-39496",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39496.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39496 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: dma-mapping: benchmark: handle NUMA_NO_NODE correctly cpumask_of_node() can be called for NUMA_NO_NODE inside do_map_benchmark() resulting in the following sanitizer report: UBSAN: array-index-out-of-bounds in ./arch/x86/include/asm/topology.h:72:28 index -1 is out of range for type 'cpumask [64][1]' CPU: 1 PID: 990 Comm: dma_map_benchma Not tainted 6.9.0-rc6 #29 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996) Call Trace: <TASK> dump_stack_lvl (lib/dump_stack.c:117) ubsan_epilogue (lib/ubsan.c:232) __ubsan_handle_out_of_bounds (lib/ubsan.c:429) cpumask_of_node (arch/x86/include/asm/topology.h:72) [inline] do_map_benchmark (kernel/dma/map_benchmark.c:104) map_benchmark_ioctl (kernel/dma/map_benchmark.c:246) full_proxy_unlocked_ioctl (fs/debugfs/file.c:333) __x64_sys_ioctl (fs/ioctl.c:890) do_syscall_64 (arch/x86/entry/common.c:83) entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:130) Use cpumask_of_node() in place when binding a",
+         "vulnerability_id":"CVE-2024-39277",
+         "name":"CVE-2024-39277",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39277.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39277 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: drm/i915/gt: Fix potential UAF by revoke of fence registers CI has been sporadically reporting the following issue triggered by igt@i915_selftest@live@hangcheck on ADL-P and similar machines: <6> [414.049203] i915: Running intel_hangcheck_live_selftests/igt_reset_evict_fence ... <6> [414.068804] i915 0000:00:02.0: [drm] GT0: GUC: submission enabled <6> [414.068812] i915 0000:00:02.0: [drm] GT0: GUC: SLPC enabled <3> [414.070354] Unable to pin Y-tiled fence; err:-4 <3> [414.071282] i915_vma_revoke_fence:301 GEM_BUG_ON(!i915_active_is_idle(&#38;fence->active)) ... <4>[ 609.603992] ------------[ cut here ]------------ <2>[ 609.603995] kernel BUG at drivers/gpu/drm/i915/gt/intel_ggtt_fencing.c:301! <4>[ 609.604003] invalid opcode: 0000 [#1] PREEMPT SMP NOPTI <4>[ 609.604006] CPU: 0 PID: 268 Comm: kworker/u64:3 Tainted: G U W 6.9.0-CI_DRM_14785-g1ba62f8cea9c+ #1 <4>[ 609.604008] Hardware name: Intel Corporation Alder Lake Client Platform/AlderLake-P D",
+         "vulnerability_id":"CVE-2024-41092",
+         "name":"CVE-2024-41092",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41092.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-41092 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: dmaengine: idxd: Fix possible Use-After-Free in irq_process_work_list Use list_for_each_entry_safe() to allow iterating through the list and deleting the entry in the iteration process. The descriptor is freed via idxd_desc_complete() and there's a slight chance may cause issue for the list iterator when the descriptor is reused by another thread without it being deleted from the list.",
+         "vulnerability_id":"CVE-2024-40956",
+         "name":"CVE-2024-40956",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.15.0",
+            "release":"121.131"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40956.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-40956 - linux",
+         "reason_to_ignore":"N/A"
+      },
+        {
         "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
         "vulnerability_id": "CVE-2023-6606",
         "name": "CVE-2023-6606",
