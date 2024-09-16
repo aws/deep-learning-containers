@@ -51,6 +51,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV PATH="/opt/conda/bin:${PATH}"
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
@@ -66,6 +67,8 @@ ENV DLC_CONTAINER_TYPE=inference
 # Set ENV variables for the images
 ENV TEMP=/tmp
 ENV MKL_THREADING_LAYER=GNU
+
+WORKDIR /
 
 RUN apt-get update \
  && apt-get -y upgrade \
@@ -86,11 +89,11 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
-    openjdk-17-jdk \
     unzip \
     vim \
     wget \
-    openssl \
+    # openssl \
+    openjdk-17-jdk \
     libjpeg-dev \
     libpng-dev \
  && apt-get autoremove -y \
@@ -173,12 +176,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL} \
-    torchtnt \
-    s3torchconnector \
-    accelerate \
-    fastai \
- && pip uninstall -y dataclasses
+    ${TORCHTEXT_URL}
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
@@ -252,11 +250,12 @@ ARG TORCHSERVE_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
-# Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
+# Install extra packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     pandas \
- && conda clean -afy
+ && /opt/conda/bin/mamba clean -afy
+
 
 RUN pip install --no-cache-dir \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
