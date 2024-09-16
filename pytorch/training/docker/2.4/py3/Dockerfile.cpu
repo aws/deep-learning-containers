@@ -14,8 +14,9 @@ ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 
 FROM ubuntu:22.04 AS base_image
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -47,9 +48,6 @@ ARG PYTHON_VERSION
 
 ARG MINIFORGE3_VERSION
 ARG OPEN_MPI_VERSION
-
-# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
-ARG DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
@@ -102,6 +100,13 @@ RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MP
  && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && rm -rf openmpi-${OPEN_MPI_VERSION}
 
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="/home/.openmpi/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/home/.openmpi/lib:${LD_LIBRARY_PATH}"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
@@ -129,7 +134,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -148,9 +153,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     typing \
     charset-normalizer \
     packaging \
-    awscli \
     boto3 \
     pyyaml \
+    numpy \
     scipy \
     click \
     psutil \
@@ -160,26 +165,19 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    tqdm \
-    "idna>=3.7"\
+    "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3<2" \
+    "awscli<2" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
 
-# The ENV variables declared below are changed in the previous section
-# Grouping these ENV variables in the first section causes
-# ompi_info to fail. This is only observed in CPU containers
-ENV PATH="/home/.openmpi/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/home/.openmpi/lib:${LD_LIBRARY_PATH}"
-RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

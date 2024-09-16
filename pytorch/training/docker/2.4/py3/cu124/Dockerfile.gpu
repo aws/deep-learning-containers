@@ -21,8 +21,9 @@ ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 
 FROM nvidia/cuda:12.4.1-base-ubuntu22.04 AS base_image
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -62,9 +63,6 @@ ARG HWLOC_VERSION
 ARG AWS_OFI_NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG APEX_VERSION
-
-# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
-ARG DEBIAN_FRONTEND=noninteractive
 
 ENV CUDA_HOME="/usr/local/cuda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -216,7 +214,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -235,9 +233,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     typing \
     charset-normalizer \
     packaging \
-    awscli \
     boto3 \
     pyyaml \
+    numpy \
     scipy \
     click \
     psutil \
@@ -247,12 +245,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    tqdm \
-    "idna>=3.7"\
+    "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3<2" \
+    "awscli<2" \
     libgcc \
     # ninja is needed for apex to speed up the build
     ninja \
