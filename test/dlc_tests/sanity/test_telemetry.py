@@ -272,7 +272,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
 
     if (
         framework == "pytorch"
-        and Version(framework_version) >= Version("2.0.0")
+        and Version(framework_version) in SpecifierSet(">=2.0,<2.4")
         and container_type == "training"
     ):
         expected_s3_url += "&x-img_type=training&x-pkg_type=conda"

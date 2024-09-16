@@ -380,24 +380,16 @@ def test_framework_version_cpu(image):
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
                 else:
-                    if (
-                        Version(tag_framework_version) >= Version("2.0.0")
-                        and "training" in image_repo_name
-                    ):
-                        cuda_output = run_cmd_on_container(
-                            container_name,
-                            ctx,
-                            f"import {tested_framework}; print({tested_framework}.version.cuda)",
-                            executable="python",
-                        ).stdout.strip()
-                        torch_version_pattern = r"{torch_version}".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert cuda_output == "None", f"cuda version has value: {cuda_output}"
-                    else:
-                        torch_version_pattern = r"{torch_version}(\+cpu)".format(
-                            torch_version=tag_framework_version
-                        )
+                    cuda_output = run_cmd_on_container(
+                        container_name,
+                        ctx,
+                        f"import {tested_framework}; print({tested_framework}.version.cuda)",
+                        executable="python",
+                    ).stdout.strip()
+                    assert cuda_output == "None", f"cuda version has value: {cuda_output}"
+                    torch_version_pattern = r"{torch_version}(\+cpu)?".format(
+                        torch_version=tag_framework_version
+                    )
                     assert re.fullmatch(torch_version_pattern, output), (
                         f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         f"Please specify framework version as X.Y.Z+cpu"
@@ -584,35 +576,23 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
                 else:
-                    if (
-                        Version(tag_framework_version) >= Version("2.0.0")
-                        and "training" in image_repo_name
-                    ):
-                        cuda_output = ec2.execute_ec2_training_test(
-                            ec2_connection,
-                            image,
-                            'import torch; print(torch.version.cuda.replace(".", ""));',
-                            executable="python",
-                            container_name="PT2",
-                        ).stdout.strip()
-                        cuda_ver = get_cuda_version_from_tag(image)
-                        torch_version_pattern = r"{torch_version}".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert (
-                            output == tag_framework_version
-                        ), f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                        assert (
-                            cuda_ver == "cu" + cuda_output
-                        ), f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
-                    else:
-                        torch_version_pattern = r"{torch_version}(\+cu\d+)".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert re.fullmatch(torch_version_pattern, output), (
-                            f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                            f"Please specify framework version as X.Y.Z+cuXXX"
-                        )
+                    cuda_output = ec2.execute_ec2_training_test(
+                        ec2_connection,
+                        image,
+                        'import torch; print(torch.version.cuda.replace(".", ""));',
+                        executable="python",
+                        container_name="PT2",
+                    ).stdout.strip()
+                    cuda_ver = get_cuda_version_from_tag(image)
+                    torch_version_pattern = r"{torch_version}(\+cu\d+)?".format(
+                        torch_version=tag_framework_version
+                    )
+                    assert re.fullmatch(
+                        torch_version_pattern, output
+                    ), f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                    assert (
+                        cuda_ver == "cu" + cuda_output
+                    ), f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
             else:
                 assert tag_framework_version == output
 
