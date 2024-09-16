@@ -216,7 +216,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -235,9 +235,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     typing \
     charset-normalizer \
     packaging \
-    awscli \
     boto3 \
     pyyaml \
+    numpy \
     scipy \
     click \
     psutil \
@@ -247,12 +247,12 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    tqdm \
-    "idna>=3.7"\
+    "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3<2" \
+    "awscli<2" \
     libgcc \
     # ninja is needed for apex to speed up the build
     ninja \
