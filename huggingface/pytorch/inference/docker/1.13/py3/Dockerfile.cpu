@@ -110,8 +110,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
-    libk5crypto3 \
-    libgssapi-krb5-2 \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
