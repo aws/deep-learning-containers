@@ -14,8 +14,9 @@ ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 
 FROM ubuntu:22.04 AS base_image
 
-ENV DEBIAN_FRONTEND=noninteractive \
-    LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -47,9 +48,6 @@ ARG PYTHON_VERSION
 
 ARG MINIFORGE3_VERSION
 ARG OPEN_MPI_VERSION
-
-# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
-ARG DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
