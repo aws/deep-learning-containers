@@ -397,13 +397,13 @@ ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
 
 
-# SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
+# # SageMaker Profiler Binary
+# ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.339-cp311-cp311-linux_x86_64.whl
 
 WORKDIR /
 
-# Install SageMaker Profiler Binary
-RUN pip install --no-cache-dir -U ${SMP_URL}
+# # Install SageMaker Profiler Binary
+# RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
