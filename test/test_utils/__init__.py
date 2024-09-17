@@ -1125,7 +1125,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
 
     if processor != "neuron":
         mms_command = (
-            f"{server_cmd} --start --disable-token-auth --{server_type}-config /home/model-server/config.properties --models "
+            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
         )
     else:
