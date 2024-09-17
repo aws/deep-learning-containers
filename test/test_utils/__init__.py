@@ -970,7 +970,8 @@ def request_pytorch_inference_densenet(
 
     run_out = conn_run(
         f"curl -X POST http://{ip_address}:{port}/predictions/{model_name} -T flower.jpg",
-        hide=True,
+        # TODO: Revert the commit
+        # hide=True,
         warn=True,
     )
 
