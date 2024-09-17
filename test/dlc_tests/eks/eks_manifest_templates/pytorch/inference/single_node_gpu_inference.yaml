@@ -34,9 +34,9 @@ spec:
         args:
         - <SERVER_CMD>
         - --start
-        - --disable-token-auth
         - --<SERVER_TYPE>-config /home/model-server/config.properties
         - --models <MODELS>
+        - <DISABLE_TOKEN_AUTH>
         ports:
         - name: <SERVER_TYPE>
           containerPort: 8080
