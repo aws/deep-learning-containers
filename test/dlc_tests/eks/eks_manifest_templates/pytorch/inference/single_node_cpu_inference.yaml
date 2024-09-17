@@ -34,6 +34,7 @@ spec:
         args:
         - <SERVER_CMD>
         - --start
+        - --disable-token-auth
         - --<SERVER_TYPE>-config /home/model-server/config.properties
         - --models <MODELS>
         ports:
