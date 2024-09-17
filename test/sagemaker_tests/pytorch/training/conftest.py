@@ -548,13 +548,14 @@ def skip_smddataparallel_test(
     ):
         pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
+
 @pytest.fixture(autouse=True)
 def skip_smppy_test(
     request,
     processor,
     ecr_image,
 ):
-    """ For each currency release, we can skip smppy tests if the Profiler binary does not exist.
+    """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
     However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
     skip_dict = {">=2.4": ["cu124"]}
