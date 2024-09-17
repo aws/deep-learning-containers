@@ -33,10 +33,9 @@ spec:
         image: <DOCKER_IMAGE_BUILD_ID>
         args:
         - <SERVER_CMD>
-        - --start
+        - --start<DISABLE_TOKEN_AUTH>
         - --<SERVER_TYPE>-config /home/model-server/config.properties
         - --models <MODELS>
-        - <DISABLE_TOKEN_AUTH>
         ports:
         - name: <SERVER_TYPE>
           containerPort: 8080

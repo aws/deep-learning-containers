@@ -117,7 +117,7 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
     test_type = test_utils.get_eks_k8s_test_type_label(pytorch_inference)
-    disable_token_auth = "--disable-token-auth" if disable_token_auth else ""
+    disable_token_auth = " --disable-token-auth" if disable_token_auth else ""
 
     yaml_path = os.path.join(
         os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml"

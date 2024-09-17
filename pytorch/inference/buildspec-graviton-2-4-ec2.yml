@@ -43,7 +43,7 @@ images:
     torch_serve_version: &TORCHSERVE_VERSION 0.11.1
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
     # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
-    build_tag_override: "beta:2.4.0-cpu-py311-ubuntu22.04-ec2"
+    build_tag_override: "pr:2.4.0-cpu-py311-ubuntu22.04-ec2-pr-4210"
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: ec2
     context:
@@ -60,7 +60,7 @@ images:
     torch_serve_version: &TORCHSERVE_VERSION 0.11.1
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION , "-ec2"]
     # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    build_tag_override: "beta:2.4.0-gpu-py311-cu124-ubuntu22.04-ec2"
+    build_tag_override: "pr:2.4.0-gpu-py311-cu124-ubuntu22.04-ec2-pr-4210"
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: ec2
     context:
