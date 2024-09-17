@@ -152,13 +152,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
@@ -176,44 +169,59 @@ ENV PATH="$PATH:/home/.openmpi/bin"
 ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# Install CondaForge miniconda
+# For conda ssl verification
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
 # Install common conda packages
-RUN /opt/conda/bin/conda install -y -c conda-forge \
-    python=${PYTHON_VERSION} \
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    python=$PYTHON_VERSION \
     cython \
+    cryptography \
+    pyopenssl \
+    # pybind11 \
+    cmake \
+    curl \
+    libcurl \
     mkl \
     mkl-include \
     parso \
-    scipy \
-    numpy \
-    pandas \
-    pyarrow \
     typing \
-    h5py \
-    libgcc \
-    cmake \
+    charset-normalizer \
     packaging \
-    "awscli<2" \
     boto3 \
     pyyaml \
-    packaging \
-    conda-content-trust \
-    charset-normalizer \
-    requests \
-    "idna>=3.7"\
+    numpy \
+    scipy \
+    # click \
+    # psutil \
+    ipython \
+    # ipykernel \
+    # pillow \
+    h5py \
+    mpi4py \
+    # fsspec \
+    "idna>=3.7" \
     "tqdm>=4.66.3" \
-    "zstandard>=0.22.0" \
- && /opt/conda/bin/conda clean -afy \
+    "requests>=2.32.0" \
+    "setuptools>=70.0.0" \
+    "urllib3<2" \
+    "awscli<2" \
+    libgcc \
+    # ninja is needed for apex to speed up the build
+    ninja \
+    # pandas \
+    # pyarrow \
+    # conda-content-trust \
+    # "zstandard>=0.22.0" \
+ && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
-
-# symlink pip for OS use
-RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
@@ -221,39 +229,31 @@ RUN pip install --no-cache-dir -U \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
     # due to incompatibility with SM hosts
-    nvgpu \
-    "pyopenssl>=24.0.0" \
-    # patch CVE
-    "cryptography>=42.0.5" \
-    "ipython>=8.10.0,<9.0" \
-    "urllib3>=1.26.18,<2" \
-    "prompt-toolkit<3.0.39"
+    nvgpu
+    # "prompt-toolkit<3.0.39"
 
-# Ensure PyTorch did not get installed from Conda or pip, prior to now
-# Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
-# Even the GPU image would not have nvidia or cuda packages in PIP.
-RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi-model-server
-
-# install pytorch wheels
+# Install PyTorch
 RUN pip install --no-cache-dir -U \
-    # triton required for torch inductor
-    triton \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
-    ${TORCHTEXT_URL}
+    ${TORCHTEXT_URL} \
+    triton
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
 
 # Install TorchServe pypi dependencies directly from their requirements.txt file
-# NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
-# Patches
-# py-vuln: 71064
-RUN pip install --no-cache-dir -U "requests>=2.32.3"
-
+# NOTE:
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
