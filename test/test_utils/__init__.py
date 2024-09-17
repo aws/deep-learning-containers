@@ -132,6 +132,18 @@ UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
+UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
+)
 
 # Using latest ARM64 AMI (pytorch) - however, this will fail for TF benchmarks, so TF benchmarks are currently
 # disabled for Graviton.
@@ -1111,10 +1123,18 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         server_cmd = "multi-model-server"
 
     if processor != "neuron":
-        mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
-            + " ".join(parameters)
-        )
+        if "graviton" in image_uri:
+            _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
+            if _framework == "pytorch" and Version(_version) in SpecifierSet("==2.4.*"):
+                mms_command = (
+                    f"{server_cmd} --start --disable-token-auth --{server_type}-config /home/model-server/config.properties --models "
+                    + " ".join(parameters)
+                )
+        else:
+            mms_command = (
+                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                + " ".join(parameters)
+            )
     else:
         # Temp till the mxnet dockerfile also have the neuron entrypoint file
         if server_type == "ts":
