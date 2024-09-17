@@ -13,21 +13,21 @@ deep_canary_mode = false
 build_frameworks = [ "pytorch",]
 build_training = false
 build_inference = true
-do_build = true
+do_build = false
 
 [notify]
 notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = false
+sanity_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
-ec2_benchmark_tests = false
-ec2_tests_on_heavy_instances = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
+ec2_benchmark_tests = true
+ec2_tests_on_heavy_instances = true
 sagemaker_local_tests = false
 sagemaker_remote_tests = false
 sagemaker_efa_tests = false
