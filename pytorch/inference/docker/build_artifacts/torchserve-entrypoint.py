@@ -15,7 +15,28 @@ from __future__ import absolute_import
 import shlex
 import subprocess
 import sys
+import os
+import signal
 
+
+def reap_zombies(signum, frame):
+    """
+    Signal handler to reap zombie processes.
+    """
+    while True:
+        try:
+            # Wait for any child process to terminate
+            pid, status = os.waitpid(-1, os.WNOHANG)
+            # If no more children, exit the loop
+            if pid == 0:
+                break
+        except ChildProcessError:
+            # No child processes left
+            break
+
+
+# Set up the signal handler for SIGCHLD
+signal.signal(signal.SIGCHLD, reap_zombies)
 
 if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving
