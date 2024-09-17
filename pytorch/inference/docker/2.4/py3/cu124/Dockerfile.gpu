@@ -117,9 +117,26 @@ RUN apt-get update \
     unzip \
     vim \
     wget \
-    # cuda-toolkit-12=${CUDA_VERSION}-1 \
+    openjdk-17-jdk \
+    libjpeg-dev \
+    libpng-dev \
+    openssh-client \
+    openssh-server \
+    cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    # cuda-cudart-12-4 \
+    # cuda-cudart-dev-12-4 \
+    # cuda-libraries-12-4 \
+    # cuda-libraries-dev-12-4 \
+    # cuda-command-line-tools-12-4 \
+    # cuda-nvcc-12-4 \
+    # libcublas-12-4 \
+    # libcublas-dev-12-4 \
+    # cuda-nvml-dev-12-4 \
+    # libcublas-12-4=${CUBLAS_VERSION}-1 \
+    # libcublas-dev-12-4=${CUBLAS_VERSION}-1 \
+    # cuda-nvml-dev-12-4=${NVML_VERSION}-1 \
     # libhwloc-dev \
     libgomp1 \
     libibverbs-dev \
@@ -134,20 +151,6 @@ RUN apt-get update \
     # libsubunit0 \
     # libsubunit-dev \
     libgssapi-krb5-2 \
-    cuda-cudart-12-4 \
-    cuda-cudart-dev-12-4 \
-    cuda-libraries-12-4 \
-    cuda-libraries-dev-12-4 \
-    cuda-command-line-tools-12-4 \
-    cuda-nvcc-12-4 \
-    libcublas-12-4=${CUBLAS_VERSION}-1 \
-    libcublas-dev-12-4=${CUBLAS_VERSION}-1 \
-    cuda-nvml-dev-12-4=${NVML_VERSION}-1 \
-    openjdk-17-jdk \
-    libjpeg-dev \
-    libpng-dev \
-    openssh-client \
-    openssh-server \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
