@@ -98,47 +98,56 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    automake \
     build-essential \
     ca-certificates \
     cmake \
-    libgssapi-krb5-2 \
+    curl \
+    emacs \
+    git \
+    jq \
     libcurl4-openssl-dev \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libssl-dev \
+    libxext6 \
+    libxrender-dev \
+    zlib1g-dev \
+    unzip \
+    vim \
+    wget \
+    # cuda-toolkit-12=${CUDA_VERSION}-1 \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    # libhwloc-dev \
+    libgomp1 \
+    libibverbs-dev \
+    libnuma1 \
+    libnuma-dev \
+    # libtool \
+    openssl \
+    python3-dev \
+    # autoconf \
+    # pkg-config \
+    # check \
+    # libsubunit0 \
+    # libsubunit-dev \
+    libgssapi-krb5-2 \
     cuda-cudart-12-4 \
     cuda-cudart-dev-12-4 \
     cuda-libraries-12-4 \
     cuda-libraries-dev-12-4 \
     cuda-command-line-tools-12-4 \
     cuda-nvcc-12-4 \
-    libcublas-12-4 \
-    libcublas-dev-12-4 \
-    cuda-nvml-dev-12-4 \
-    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
-    libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
-    curl \
-    emacs \
-    git \
-    jq \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libgomp1 \
-    libibverbs-dev \
-    libnuma1 \
-    libnuma-dev \
-    libsm6 \
-    libssl-dev \
-    libxext6 \
-    libxrender-dev \
+    libcublas-12-4=${CUBLAS_VERSION}-1 \
+    libcublas-dev-12-4=${CUBLAS_VERSION}-1 \
+    cuda-nvml-dev-12-4=${NVML_VERSION}-1 \
     openjdk-17-jdk \
-    openssl \
-    vim \
-    wget \
-    unzip \
     libjpeg-dev \
     libpng-dev \
-    zlib1g-dev \
     openssh-client \
     openssh-server \
-    python3-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -149,8 +158,6 @@ RUN cd /tmp \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
-# preload system nccl for PyTorch to use if it is dynamically linking NCCL
-ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
