@@ -1123,10 +1123,18 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         server_cmd = "multi-model-server"
 
     if processor != "neuron":
-        mms_command = (
-            f"{server_cmd} --start --disable-token-auth --{server_type}-config /home/model-server/config.properties --models "
-            + " ".join(parameters)
-        )
+        if "graviton" in image_uri:
+            _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
+            if _framework == "pytorch" and Version(_version) in SpecifierSet("==2.4.*"):
+                mms_command = (
+                    f"{server_cmd} --start --disable-token-auth --{server_type}-config /home/model-server/config.properties --models "
+                    + " ".join(parameters)
+                )
+        else:
+            mms_command = (
+                f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+                + " ".join(parameters)
+            )
     else:
         # Temp till the mxnet dockerfile also have the neuron entrypoint file
         if server_type == "ts":
