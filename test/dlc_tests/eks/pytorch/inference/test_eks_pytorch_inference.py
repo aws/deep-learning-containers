@@ -88,7 +88,15 @@ def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
 @pytest.mark.model("densenet")
 @pytest.mark.team("conda")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
-    __test_eks_pytorch_densenet_inference(pytorch_inference)
+    _, version = test_utils.get_framework_and_version_from_tag(pytorch_inference)
+    disable_token_auth = False
+    # PT 2.4 x86 images require the disable token auth flag
+    # Using workaround from https://github.com/facebookresearch/AnimatedDrawings/issues/295
+    if Version(version) in SpecifierSet(">=2.4"):
+        disable_token_auth = True
+    __test_eks_pytorch_densenet_inference(
+        pytorch_inference, disable_token_auth=disable_token_auth
+    )
 
 
 @pytest.mark.model("densenet")
