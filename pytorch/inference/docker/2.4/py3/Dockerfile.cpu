@@ -92,7 +92,6 @@ RUN apt-get update \
     unzip \
     vim \
     wget \
-    # openssl \
     openjdk-17-jdk \
     libjpeg-dev \
     libpng-dev \
@@ -127,14 +126,12 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
-# NOTE:
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
     python=$PYTHON_VERSION \
     cython \
     cryptography \
     pyopenssl \
-    # pybind11 \
     cmake \
     curl \
     libcurl \
@@ -145,32 +142,21 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     charset-normalizer \
     packaging \
     boto3 \
-    # pyyaml \
     numpy \
     scipy \
-    # click \
-    # psutil \
     ipython \
-    # ipykernel \
-    # pillow \
     h5py \
-    # mpi4py \
-    # fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3<2" \
     "awscli<2" \
-    # libgcc \
-    # conda-content-trust \
-    # "zstandard>=0.22.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install Common python packages
 RUN pip install --no-cache-dir opencv-python
-#"prompt-toolkit<3.0.39"
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -185,13 +171,9 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
-# Patches
-# py-vuln: 71064
-RUN pip install --no-cache-dir -U "requests>=2.32.3"
-
 # NOTE:
 # add necessary certificate for aws sdk cpp download
-RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+# RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 # Create user and folders
 RUN useradd -m model-server \
