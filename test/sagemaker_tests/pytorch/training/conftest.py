@@ -172,6 +172,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
     config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
+    config.addinivalue_line("markers", "skip_smppy_test(): skip smppy test")
 
 
 def pytest_runtest_setup(item):
