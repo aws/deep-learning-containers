@@ -1,6 +1,151 @@
 {
   "linux": [
     {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: f2fs: check validation of fault attrs in f2fs_build_fault_attr() - It missed to check validation of fault attrs in parse_options(), let's fix to add check condition in f2fs_build_fault_attr(). - Use f2fs_build_fault_attr() in __sbi_store() to clean up code.",
+         "vulnerability_id":"CVE-2024-42160",
+         "name":"CVE-2024-42160",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"195.215"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42160.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42160 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: gfs2: Fix potential glock use-after-free on unmount When a DLM lockspace is released and there ares still locks in that lockspace, DLM will unlock those locks automatically. Commit fb6791d100d1b started exploiting this behavior to speed up filesystem unmount: gfs2 would simply free glocks it didn't want to unlock and then release the lockspace. This didn't take the bast callbacks for asynchronous lock contention notifications into account, which remain active until until a lock is unlocked or its lockspace is released. To prevent those callbacks from accessing deallocated objects, put the glocks that should not be unlocked on the sd_dead_glocks list, release the lockspace, and only then free those glocks. As an additional measure, ignore unexpected ast and bast callbacks if the receiving glock is dead.",
+         "vulnerability_id":"CVE-2024-38570",
+         "name":"CVE-2024-38570",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"195.215"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38570.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-38570 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: ima: Fix use-after-free on a dentry's dname.name ->d_name.name can change on rename and the earlier value can be freed; there are conditions sufficient to stabilize it (->d_lock on dentry, ->d_lock on its parent, ->i_rwsem exclusive on the parent's inode, rename_lock), but none of those are met at any of the sites. Take a stable snapshot of the name instead.",
+         "vulnerability_id":"CVE-2024-39494",
+         "name":"CVE-2024-39494",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"195.215"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39494.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-39494 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Using uninitialized value *size when calling amdgpu_vce_cs_reloc Initialize the size before calling amdgpu_vce_cs_reloc, such as case 0x03000001. V2: To really improve the handling we would actually need to have a separate value of 0xffffffff.(Christian)",
+         "vulnerability_id":"CVE-2024-42228",
+         "name":"CVE-2024-42228",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"195.215"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.0,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.0,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42228.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2024-42228 - linux",
+         "reason_to_ignore":"N/A"
+      },
+      {
+         "description":"In the Linux kernel, the following vulnerability has been resolved: scsi: pm8001: Fix use-after-free for aborted TMF sas_task Currently a use-after-free may occur if a TMF sas_task is aborted before we handle the IO completion in mpi_ssp_completion(). The abort occurs due to timeout. When the timeout occurs, the SAS_TASK_STATE_ABORTED flag is set and the sas_task is freed in pm8001_exec_internal_tmf_task(). However, if the I/O completion occurs later, the I/O completion still thinks that the sas_task is available. Fix this by clearing the ccb->task if the TMF times out - the I/O completion handler does nothing if this pointer is cleared.",
+         "vulnerability_id":"CVE-2022-48791",
+         "name":"CVE-2022-48791",
+         "package_name":"linux",
+         "package_details":{
+            "file_path":null,
+            "name":"linux",
+            "package_manager":"OS",
+            "version":"5.4.0",
+            "release":"195.215"
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48791.html",
+         "source":"UBUNTU_CVE",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2022-48791 - linux",
+         "reason_to_ignore":"N/A"
+      },
+    {
       "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
       "vulnerability_id": "CVE-2023-6606",
       "name": "CVE-2023-6606",
