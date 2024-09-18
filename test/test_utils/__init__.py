@@ -1127,7 +1127,7 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
         auth_arg = (
             " --disable-token-auth"
-            if _framework == "pytorch" and Version(_version) in SpecifierSet("==2.4.*")
+            if _framework == "pytorch" and Version(_version) in SpecifierSet(">=2.4")
             else ""
         )
         mms_command = (
