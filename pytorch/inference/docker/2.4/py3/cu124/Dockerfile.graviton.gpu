@@ -272,6 +272,7 @@ CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properti
 # ARG TORCHSERVE_VERSION
 
 # ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+# ENV TS_DISABLE_SYSTEM_METRICS=true
 
 # # Install scikit-learn and pandas
 # RUN pip install scikit-learn pandas
