@@ -94,9 +94,7 @@ def test_eks_pytorch_densenet_inference(pytorch_inference):
     # Using workaround from https://github.com/facebookresearch/AnimatedDrawings/issues/295
     if Version(version) in SpecifierSet(">=2.4"):
         disable_token_auth = True
-    __test_eks_pytorch_densenet_inference(
-        pytorch_inference, disable_token_auth=disable_token_auth
-    )
+    __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=disable_token_auth)
 
 
 @pytest.mark.model("densenet")
