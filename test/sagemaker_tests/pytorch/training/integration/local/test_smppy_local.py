@@ -33,7 +33,7 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
     if Version(framework_version) not in compatible_versions:
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
-@pytest.mark.skip_smppy_test
+
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")

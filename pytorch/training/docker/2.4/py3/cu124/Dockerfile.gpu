@@ -396,8 +396,13 @@ ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
 
+# SageMaker Profiler Binary
+ARG SMP_URL=s3://smppy/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
 
 WORKDIR /
+
+# Install SageMaker Profiler Binary
+RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
