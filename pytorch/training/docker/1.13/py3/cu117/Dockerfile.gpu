@@ -126,6 +126,7 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    expat \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
