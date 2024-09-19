@@ -27,8 +27,8 @@ RUN pip install --no-cache-dir \
     dill==0.3.6 \
     sagemaker==2.227.0 \
     evaluate \
-    gevent~=24.2.0 \
-    pyarrow~=17.0.0
+    gevent~=23.9.0 \
+    pyarrow~=14.0.1
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
