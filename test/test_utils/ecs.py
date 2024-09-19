@@ -336,7 +336,7 @@ def create_ecs_service(
         waiter = ecs_client.get_waiter("services_stable")
         waiter.wait(
             cluster=cluster_name,
-            tasks=[response["service"]["serviceName"]],
+            services=[response["service"]["serviceName"]],
             WaiterConfig={"Delay": waiter_delay, "MaxAttempts": waiter_max_attempts},
         )
         return response["service"]["serviceName"]
