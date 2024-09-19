@@ -339,7 +339,6 @@ def create_ecs_service(
             tasks=[response["service"]["serviceName"]],
             WaiterConfig={"Delay": waiter_delay, "MaxAttempts": waiter_max_attempts},
         )
-        waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
         raise ECSServiceCreationException(
