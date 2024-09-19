@@ -161,7 +161,7 @@ RUN apt-get update \
     # libpng-dev \
     # openssh-client \
     # openssh-server \
-    # cuda-toolkit-12=${CUDA_VERSION}-1 \
+    cuda-toolkit-12=${CUDA_VERSION}-1 \
     # libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     # libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     # libgomp1 \
