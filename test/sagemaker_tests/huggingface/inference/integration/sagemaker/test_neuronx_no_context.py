@@ -48,8 +48,10 @@ def test_neuronx_no_context(
         f"This method will only test instance types in {valid_instance_types_for_this_test}"
     )
     if version == "1.13.1":
-        pytest.skip(f"Skipping test for old neuronx image - this test is introduced post neuron sdk 2.18.1")
-    
+        pytest.skip(
+            f"Skipping test for old neuronx image - this test is introduced post neuron sdk 2.18.1"
+        )
+
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=[test_region],
