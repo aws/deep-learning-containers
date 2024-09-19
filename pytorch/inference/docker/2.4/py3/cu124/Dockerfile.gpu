@@ -91,14 +91,6 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    # yasm \
-    # libtool \
-    # libc6 \
-    # libc6-dev \
-    # pkg-config \
-    # libx264-155 \
-    # libx264-dev \
-    # libmp3lame-dev \
     automake \
     build-essential \
     ca-certificates \
@@ -138,6 +130,15 @@ RUN apt-get update \
     openssl \
     python3-dev \
     libgssapi-krb5-2 \
+    # required for ffmpec
+    yasm \
+    # libtool \
+    # libc6 \
+    # libc6-dev \
+    pkg-config \
+    # libx264-155 \
+    libx264-dev \
+    libmp3lame-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -148,6 +149,7 @@ RUN apt-get update \
 RUN cd /tmp \
  && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git \
  && cd nv-codec-headers \
+ && make install \
  && rm -rf /tmp/nv-codec-headers
 
 # Install GPU ffmpeg
@@ -156,8 +158,9 @@ RUN cd /tmp \
  && git clone https://git.ffmpeg.org/ffmpeg.git \
  && cd ffmpeg \
  && git checkout release/6.0 \
- && ./configure --enable-nonfree --enable-cuda --enable-cuda-nvcc \
-                --enable-cuda--nvccflags="-gencode arch=compute_80,code=sm_80 -O2" \
+ && ./configure --enable-nonfree --enable-cuda \
+                --enable-cuda-nvcc --enable-cuda \
+                --nvccflags="-gencode arch=compute_80,code=sm_80 -O2" \
                 --enable-cuvid --enable-nvdec \
                 --enable-nvenc --enable-shared \
                 --disable-static --enable-libnpp \
