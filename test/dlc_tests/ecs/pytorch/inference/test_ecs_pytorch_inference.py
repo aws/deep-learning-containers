@@ -16,7 +16,6 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.skip("TEMP SKIP")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_CPU_USWEST2], indirect=True)

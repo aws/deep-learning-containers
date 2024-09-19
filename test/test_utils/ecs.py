@@ -304,14 +304,7 @@ def register_ecs_task_definition(
         raise Exception(f"Failed to register task definition {family_name}. Exception - {e}")
 
 
-def create_ecs_service(
-    cluster_name,
-    service_name,
-    task_definition,
-    region=DEFAULT_REGION,
-    waiter_delay=30,
-    waiter_max_attempts=100,
-):
+def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAULT_REGION):
     """
     Create an ECS service with EC2 launch type and REPLICA scheduling strategy.
     Wait till the service gets into RUNNING state
@@ -334,11 +327,7 @@ def create_ecs_service(
         )
         # Wait for the service to get into ACTIVE state
         waiter = ecs_client.get_waiter("services_stable")
-        waiter.wait(
-            cluster=cluster_name,
-            services=[response["service"]["serviceName"]],
-            WaiterConfig={"Delay": waiter_delay, "MaxAttempts": waiter_max_attempts},
-        )
+        waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
         raise ECSServiceCreationException(
