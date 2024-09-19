@@ -48,16 +48,15 @@ def test_neuronx_no_context(
         f"This method will only test instance types in {valid_instance_types_for_this_test}"
     )
     if version == "1.13.1":
-        model_directory = f"{model_dir}-{version}"
-    else:
-        model_directory = model_dir
+        pytest.skip(f"Skipping test for old neuronx image - this test is introduced post neuron sdk 2.18.1")
+    
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=[test_region],
         test_function=_test_sentence_transformers,
         framework_version=framework_version,
         instance_type=test_instance_type,
-        model_dir=model_directory,
+        model_dir=model_dir,
         py_version=py_version,
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
     )
