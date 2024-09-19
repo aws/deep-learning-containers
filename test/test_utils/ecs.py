@@ -327,11 +327,7 @@ def create_ecs_service(cluster_name, service_name, task_definition, region=DEFAU
         )
         # Wait for the service to get into ACTIVE state
         waiter = ecs_client.get_waiter("services_stable")
-        waiter.wait(
-            cluster=cluster_name,
-            services=[response["service"]["serviceName"]],
-            WaiterConfig={"Delay": 15, "MaxAttempts": 120},
-        )
+        waiter.wait(cluster=cluster_name, services=[response["service"]["serviceName"]])
         return response["service"]["serviceName"]
     except Exception as e:
         raise ECSServiceCreationException(

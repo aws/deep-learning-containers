@@ -163,7 +163,7 @@ def test_ecs_pytorch_inference_neuronx_inf2(
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ecs_instance_type", ["g4dn.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.team("conda")
 def test_ecs_pytorch_inference_gpu(pytorch_inference, ecs_container_instance, region, gpu_only):
