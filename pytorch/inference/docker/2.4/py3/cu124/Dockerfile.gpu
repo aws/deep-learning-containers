@@ -91,6 +91,14 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    # yasm \
+    # libtool \
+    # libc6 \
+    # libc6-dev \
+    # pkg-config \
+    # libx264-155 \
+    # libx264-dev \
+    # libmp3lame-dev \
     automake \
     build-essential \
     ca-certificates \
@@ -133,6 +141,32 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install nv-codec-headers (required by GPU ffmpeg)
+# https://docs.nvidia.com/video-technologies/video-codec-sdk/12.0/ffmpeg-with-nvidia-gpu/index.html#introduction
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git \
+ && cd nv-codec-headers \
+ && rm -rf /tmp/nv-codec-headers
+
+# Install GPU ffmpeg
+# compile ffmpeg from source with cuda enabled
+RUN cd /tmp \
+ && git clone https://git.ffmpeg.org/ffmpeg.git \
+ && cd ffmpeg \
+ && git checkout release/6.0 \
+ && ./configure --enable-nonfree --enable-cuda --enable-cuda-nvcc \
+                --enable-cuda--nvccflags="-gencode arch=compute_80,code=sm_80 -O2" \
+                --enable-cuvid --enable-nvdec \
+                --enable-nvenc --enable-shared \
+                --disable-static --enable-libnpp \
+                --enable-gpl --enable-libx264 \
+                --enable-libmp3lame --enable-openssl \
+                --extra-cflags=-I/usr/local/cuda/include \
+                --extra-ldflags=-L/usr/local/cuda/lib64 \
+ && make -j64 && make install \
+ && rm -rf /tmp/ffmpeg
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
