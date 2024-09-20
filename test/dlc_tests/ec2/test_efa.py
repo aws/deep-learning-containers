@@ -49,7 +49,6 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
@@ -140,7 +139,6 @@ def test_efa_tensorflow(
     )
 
 
-@pytest.mark.skip(reason="temp")
 @pytest.mark.skip(
     "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
 )
