@@ -27,7 +27,8 @@ else
   pytest -v -s $TE_PATH/tests/pytorch/test_jit.py
   NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/fused_attn/test_fused_attn.py
   pytest -v -s $TE_PATH/tests/pytorch/test_fused_rope.py
-  NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
+  # Disable onnx test due lack of TE prioritization on onnx: https://github.com/NVIDIA/TransformerEngine/issues/528
+  # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
   pytest -v -s $TE_PATH/tests/pytorch/test_float8tensor.py
   pytest -v -s $TE_PATH/tests/pytorch/test_torch_save_load.py
   pytest -v -s $TE_PATH/tests/pytorch/test_gqa.py
