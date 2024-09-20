@@ -132,11 +132,7 @@ RUN apt-get update \
     libgssapi-krb5-2 \
     # required for ffmpec
     yasm \
-    # libtool \
-    # libc6 \
-    # libc6-dev \
     pkg-config \
-    # libx264-155 \
     libx264-dev \
     libmp3lame-dev \
  && apt-get autoremove -y \
@@ -169,7 +165,7 @@ RUN cd /tmp \
                 --extra-cflags=-I/usr/local/cuda/include \
                 --extra-ldflags=-L/usr/local/cuda/lib64 \
  && make -j64 && make install \
- && rm -rf /tmp/ffmpeg-6.1.2
+ && rm -rf /tmp/ffmpeg-6.1.2.tar.gz /tmp/ffmpeg-6.1.2
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
