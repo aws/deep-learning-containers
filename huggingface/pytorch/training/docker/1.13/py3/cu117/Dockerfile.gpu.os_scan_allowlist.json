@@ -1,161 +1,550 @@
 {
-  "cryptography":
-  [
+  "linux": [
     {
-      "description": "cryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Calling `load_pem_pkcs7_certificates` or `load_der_pkcs7_certificates` could lead to a NULL-pointer dereference and segfault. Exploitation of this vulnerability poses a serious risk of Denial of Service (DoS) for any application attempting to deserialize a PKCS7 blob/certificate. The consequences extend to potential disruptions in system availability and stability. This vulnerability has been patched in version 41.0.6.",
-      "vulnerability_id": "CVE-2023-49083",
-      "name": "CVE-2023-49083",
-      "package_name": "cryptography",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-41.0.2.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "41.0.2",
-        "release": null
+      "description": "In the Linux kernel, the following vulnerability has been resolved: net/iucv: fix use after free in iucv_sock_close() iucv_sever_path() is called from process context and from bh context. iucv->path is used as indicator whether somebody else is taking care of severing the path (or it is already removed / never existed). This needs to be done with atomic compare and swap, otherwise there is a small window where iucv_sock_close() will try to work with a path that has already been severed and freed by iucv_callback_connrej() called by iucv_tasklet_fn(). Example: [452744.123844] Call Trace: [452744.123845] ([<0000001e87f03880>] 0x1e87f03880) [452744.123966] [<00000000d593001e>] iucv_path_sever+0x96/0x138 [452744.124330] [<000003ff801ddbca>] iucv_sever_path+0xc2/0xd0 [af_iucv] [452744.124336] [<000003ff801e01b6>] iucv_sock_close+0xa6/0x310 [af_iucv] [452744.124341] [<000003ff801e08cc>] iucv_sock_release+0x3c/0xd0 [af_iucv] [452744.124345] [<00000000d574794e>] __sock_release+0x5e/0xe8 [452744.124815] [<00000000d574",
+      "vulnerability_id": "CVE-2024-42271",
+      "name": "CVE-2024-42271",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
       },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-49083",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-49083 - cryptography",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "A flaw was found in the python-cryptography package. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data.",
-      "vulnerability_id": "CVE-2023-50782",
-      "name": "CVE-2023-50782",
-      "package_name": "cryptography",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-41.0.2.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "41.0.2",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50782",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-50782 - cryptography",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "Issue summary: The POLY1305 MAC (message authentication code) implementation\ncontains a bug that might corrupt the internal state of applications on the\nWindows 64 platform when running on newer X86_64 processors supporting the\nAVX512-IFMA instructions.\n\nImpact summary: If in an application that uses the OpenSSL library an attacker\ncan influence whether the POLY1305 MAC algorithm is used, the application\nstate might be corrupted with various application dependent consequences.\n\nThe POLY1305 MAC (message authentication code) implementation in OpenSSL does\nnot save the contents of non-volatile XMM registers on Windows 64 platform\nwhen calculating the MAC of data larger than 64 bytes. Before returning to\nthe caller all the XMM registers are set to zero rather than restoring their\nprevious content. The vulnerable code is used only on newer x86_64 processors\nsupporting the AVX512-IFMA instructions.\n\nThe consequences of this kind of internal application state corruption can\nbe various - from no consequences, if the",
-      "vulnerability_id": "CVE-2023-4807",
-      "name": "CVE-2023-4807",
-      "package_name": "cryptography",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-41.0.2.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "41.0.2",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
+      "remediation": {
+        "recommendation": {
           "text": "None Provided"
         }
       },
       "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
+      "cvss_v30_score": 0,
       "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
+      "cvss_v2_score": 0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4807",
-      "source": "NVD",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42271.html",
+      "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-4807 - cryptography",
+      "title": "CVE-2024-42271 - linux",
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin",
-      "vulnerability_id": "CVE-2023-5363",
-      "name": "CVE-2023-5363",
-      "package_name": "cryptography",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/cryptography-41.0.2.dist-info/METADATA",
-        "name": "cryptography",
-        "package_manager": "PYTHONPKG",
-        "version": "41.0.2",
-        "release": null
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hfsplus: fix uninit-value in copy_name [syzbot reported] BUG: KMSAN: uninit-value in sized_strscpy+0xc4/0x160 sized_strscpy+0xc4/0x160 copy_name+0x2af/0x320 fs/hfsplus/xattr.c:411 hfsplus_listxattr+0x11e9/0x1a50 fs/hfsplus/xattr.c:750 vfs_listxattr fs/xattr.c:493 [inline] listxattr+0x1f3/0x6b0 fs/xattr.c:840 path_listxattr fs/xattr.c:864 [inline] __do_sys_listxattr fs/xattr.c:876 [inline] __se_sys_listxattr fs/xattr.c:873 [inline] __x64_sys_listxattr+0x16b/0x2f0 fs/xattr.c:873 x64_sys_call+0x2ba0/0x3b50 arch/x86/include/generated/asm/syscalls_64.h:195 do_syscall_x64 arch/x86/entry/common.c:52 [inline] do_syscall_64+0xcf/0x1e0 arch/x86/entry/common.c:83 entry_SYSCALL_64_after_hwframe+0x77/0x7f Uninit was created at: slab_post_alloc_hook mm/slub.c:3877 [inline] slab_alloc_node mm/slub.c:3918 [inline] kmalloc_trace+0x57b/0xbe0 mm/slub.c:4065 kmalloc include/linux/slab.h:628 [inline] hfsplus_listxattr+0x4cc/0x1a50 fs/hfsplus/xattr.c:699 vfs_listx",
+      "vulnerability_id": "CVE-2024-41059",
+      "name": "CVE-2024-41059",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
       },
-      "remediation":
-      {
-        "recommendation":
-        {
+      "remediation": {
+        "recommendation": {
           "text": "None Provided"
         }
       },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-5363",
-      "source": "NVD",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41059.html",
+      "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-5363 - cryptography",
+      "title": "CVE-2024-41059 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: media: venus: fix use after free in vdec_close There appears to be a possible use after free with vdec_close(). The firmware will add buffer release work to the work queue through HFI callbacks as a normal part of decoding. Randomly closing the decoder device from userspace during normal decoding can incur a read after free for inst. Fix it by cancelling the work in vdec_close.",
+      "vulnerability_id": "CVE-2024-42313",
+      "name": "CVE-2024-42313",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42313.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42313 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: atm: idt77252: prevent use after free in dequeue_rx() We can't dereference \"skb\" after calling vcc->push() because the skb is released.",
+      "vulnerability_id": "CVE-2024-44998",
+      "name": "CVE-2024-44998",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44998.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44998 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: dev/parport: fix the array out-of-bounds risk Fixed array out-of-bounds issues caused by sprintf by replacing it with snprintf for safer data copying, ensuring the destination buffer is not overflowed. Below is the stack trace I encountered during the actual issue: [ 66.575408s] [pid:5118,cpu4,QThread,4]Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: do_hardware_base_addr+0xcc/0xd0 [parport] [ 66.575408s] [pid:5118,cpu4,QThread,5]CPU: 4 PID: 5118 Comm: QThread Tainted: G S W O 5.10.97-arm64-desktop #7100.57021.2 [ 66.575439s] [pid:5118,cpu4,QThread,6]TGID: 5087 Comm: EFileApp [ 66.575439s] [pid:5118,cpu4,QThread,7]Hardware name: HUAWEI HUAWEI QingYun PGUX-W515x-B081/SP1PANGUXM, BIOS 1.00.07 04/29/2024 [ 66.575439s] [pid:5118,cpu4,QThread,8]Call trace: [ 66.575469s] [pid:5118,cpu4,QThread,9] dump_backtrace+0x0/0x1c0 [ 66.575469s] [pid:5118,cpu4,QThread,0] show_stack+0x14/0x20 [ 66.575469s] [pid:5118,cpu4,QThread,1] d",
+      "vulnerability_id": "CVE-2024-42301",
+      "name": "CVE-2024-42301",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42301.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42301 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: KVM: PPC: Book3S HV: Prevent UAF in kvm_spapr_tce_attach_iommu_group() Al reported a possible use-after-free (UAF) in kvm_spapr_tce_attach_iommu_group(). It looks up `stt` from tablefd, but then continues to use it after doing fdput() on the returned fd. After the fdput() the tablefd is free to be closed by another thread. The close calls kvm_spapr_tce_release() and then release_spapr_tce_table() (via call_rcu()) which frees `stt`. Although there are calls to rcu_read_lock() in kvm_spapr_tce_attach_iommu_group() they are not sufficient to prevent the UAF, because `stt` is used outside the locked regions. With an artifcial delay after the fdput() and a userspace program which triggers the race, KASAN detects the UAF: BUG: KASAN: slab-use-after-free in kvm_spapr_tce_attach_iommu_group+0x298/0x720 [kvm] Read of size 4 at addr c000200027552c30 by task kvm-vfio/2505 CPU: 54 PID: 2505 Comm: kvm-vfio Not tainted 6.10.0-rc3-next-20240612-dirty #1 Har",
+      "vulnerability_id": "CVE-2024-41070",
+      "name": "CVE-2024-41070",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41070.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41070 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: mISDN: Fix a use after free in hfcmulti_tx() Don't dereference *sp after calling dev_kfree_skb(*sp).",
+      "vulnerability_id": "CVE-2024-42280",
+      "name": "CVE-2024-42280",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42280.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42280 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: bpf: Fix DEVMAP_HASH overflow check on 32-bit arches The devmap code allocates a number hash buckets equal to the next power of two of the max_entries value provided when creating the map. When rounding up to the next power of two, the 32-bit variable storing the number of buckets can overflow, and the code checks for overflow by checking if the truncated 32-bit value is equal to 0. However, on 32-bit arches the rounding up itself can overflow mid-way through, because it ends up doing a left-shift of 32 bits on an unsigned long value. If the size of an unsigned long is four bytes, this is undefined behaviour, so there is no guarantee that we'll end up with a nice and tidy 0-value at the end. Syzbot managed to turn this into a crash on arm32 by creating a DEVMAP_HASH with max_entries > 0x80000000 and then trying to update it. Fix this by moving the overflow check to before the rounding up operation.",
+      "vulnerability_id": "CVE-2024-26885",
+      "name": "CVE-2024-26885",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26885.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26885 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: jfs: Fix array-index-out-of-bounds in diFree",
+      "vulnerability_id": "CVE-2024-43858",
+      "name": "CVE-2024-43858",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-43858.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43858 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: s390/dasd: fix error recovery leading to data corruption on ESE devices Extent Space Efficient (ESE) or thin provisioned volumes need to be formatted on demand during usual IO processing. The dasd_ese_needs_format function checks for error codes that signal the non existence of a proper track format. The check for incorrect length is to imprecise since other error cases leading to transport of insufficient data also have this flag set. This might lead to data corruption in certain error cases for example during a storage server warmstart. Fix by removing the check for incorrect length and replacing by explicitly checking for invalid track format in transport mode. Also remove the check for file protected since this is not a valid ESE handling case.",
+      "vulnerability_id": "CVE-2024-45026",
+      "name": "CVE-2024-45026",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-45026.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45026 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: gtp: pull network headers in gtp_dev_xmit() syzbot/KMSAN reported use of uninit-value in get_dev_xmit() [1] We must make sure the IPv4 or Ipv6 header is pulled in skb->head before accessing fields in them. Use pskb_inet_may_pull() to fix this issue. [1] BUG: KMSAN: uninit-value in ipv6_pdp_find drivers/net/gtp.c:220 [inline] BUG: KMSAN: uninit-value in gtp_build_skb_ip6 drivers/net/gtp.c:1229 [inline] BUG: KMSAN: uninit-value in gtp_dev_xmit+0x1424/0x2540 drivers/net/gtp.c:1281 ipv6_pdp_find drivers/net/gtp.c:220 [inline] gtp_build_skb_ip6 drivers/net/gtp.c:1229 [inline] gtp_dev_xmit+0x1424/0x2540 drivers/net/gtp.c:1281 __netdev_start_xmit include/linux/netdevice.h:4913 [inline] netdev_start_xmit include/linux/netdevice.h:4922 [inline] xmit_one net/core/dev.c:3580 [inline] dev_hard_start_xmit+0x247/0xa20 net/core/dev.c:3596 __dev_queue_xmit+0x358c/0x5610 net/core/dev.c:4423 dev_queue_xmit include/linux/netdevice.h:3105 [inline] packet_xmit+0x",
+      "vulnerability_id": "CVE-2024-44999",
+      "name": "CVE-2024-44999",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44999.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44999 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: exec: Fix ToCToU between perm check and set-uid/gid usage When opening a file for exec via do_filp_open(), permission checking is done against the file's metadata at that moment, and on success, a file pointer is passed back. Much later in the execve() code path, the file metadata (specifically mode, uid, and gid) is used to determine if/how to set the uid and gid. However, those values may have changed since the permissions check, meaning the execution may gain unintended privileges. For example, if a file could change permissions from executable and not set-id: ---------x 1 root root 16048 Aug 7 13:16 target to set-id and non-executable: ---S------ 1 root root 16048 Aug 7 13:16 target it is possible to gain root privileges when execution should have been disallowed. While this race condition is rare in real-world scenarios, it has been observed (and proven exploitable) when package managers are updating the setuid bits of installed programs",
+      "vulnerability_id": "CVE-2024-43882",
+      "name": "CVE-2024-43882",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-43882.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43882 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: tipc: Return non-zero value from tipc_udp_addr2str() on error tipc_udp_addr2str() should return non-zero value if the UDP media address is invalid. Otherwise, a buffer overflow access can occur in tipc_media_addr_printf(). Fix this by returning 1 on an invalid UDP media address.",
+      "vulnerability_id": "CVE-2024-42284",
+      "name": "CVE-2024-42284",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42284.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42284 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: RDMA/iwcm: Fix a use-after-free related to destroying CM IDs iw_conn_req_handler() associates a new struct rdma_id_private (conn_id) with an existing struct iw_cm_id (cm_id) as follows: conn_id->cm_id.iw = cm_id; cm_id->context = conn_id; cm_id->cm_handler = cma_iw_handler; rdma_destroy_id() frees both the cm_id and the struct rdma_id_private. Make sure that cm_work_handler() does not trigger a use-after-free by only freeing of the struct rdma_id_private after all pending work has finished.",
+      "vulnerability_id": "CVE-2024-42285",
+      "name": "CVE-2024-42285",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42285.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42285 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ipv6: prevent UAF in ip6_send_skb() syzbot reported an UAF in ip6_send_skb() [1] After ip6_local_out() has returned, we no longer can safely dereference rt, unless we hold rcu_read_lock(). A similar issue has been fixed in commit a688caa34beb (\"ipv6: take rcu lock in rawv6_send_hdrinc()\") Another potential issue in ip6_finish_output2() is handled in a separate patch. [1] BUG: KASAN: slab-use-after-free in ip6_send_skb+0x18d/0x230 net/ipv6/ip6_output.c:1964 Read of size 8 at addr ffff88806dde4858 by task syz.1.380/6530 CPU: 1 UID: 0 PID: 6530 Comm: syz.1.380 Not tainted 6.11.0-rc3-syzkaller-00306-gdf6cbc62cc9b #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024 Call Trace: <TASK> __dump_stack lib/dump_stack.c:93 [inline] dump_stack_lvl+0x241/0x360 lib/dump_stack.c:119 print_address_description mm/kasan/report.c:377 [inline] print_report+0x169/0x550 mm/kasan/report.c:488 kasan_report+0x143/0x180 mm/kasan",
+      "vulnerability_id": "CVE-2024-44987",
+      "name": "CVE-2024-44987",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44987.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44987 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdkfd: don't allow mapping the MMIO HDP page with large pages We don't get the right offset in that case. The GPU has an unused 4K area of the register BAR space into which you can remap registers. We remap the HDP flush registers into this space to allow userspace (CPU or GPU) to flush the HDP when it updates VRAM. However, on systems with >4K pages, we end up exposing PAGE_SIZE of MMIO space.",
+      "vulnerability_id": "CVE-2024-41011",
+      "name": "CVE-2024-41011",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41011.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41011 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: usb: dwc3: st: fix probed platform device ref count on probe error path The probe function never performs any paltform device allocation, thus error path \"undo_platform_dev_alloc\" is entirely bogus. It drops the reference count from the platform device being probed. If error path is triggered, this will lead to unbalanced device reference counts and premature release of device resources, thus possible use-after-free when releasing remaining devm-managed resources.",
+      "vulnerability_id": "CVE-2024-46674",
+      "name": "CVE-2024-46674",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46674.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46674 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: scsi: aacraid: Fix double-free on probe failure aac_probe_one() calls hardware-specific init functions through the aac_driver_ident::init pointer, all of which eventually call down to aac_init_adapter(). If aac_init_adapter() fails after allocating memory for aac_dev::queues, it frees the memory but does not clear that member. After the hardware-specific init function returns an error, aac_probe_one() goes down an error path that frees the memory pointed to by aac_dev::queues, resulting.in a double-free.",
+      "vulnerability_id": "CVE-2024-46673",
+      "name": "CVE-2024-46673",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "196.216"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46673.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46673 - linux",
       "reason_to_ignore": "N/A"
     }
   ],
-  "transformers":
-  [
+  "transformers": [
     {
       "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
       "vulnerability_id": "CVE-2023-7018",
       "name": "CVE-2023-7018",
       "package_name": "transformers",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.28.1.dist-info/METADATA",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.26.0.dist-info/METADATA",
         "name": "transformers",
         "package_manager": "PYTHONPKG",
-        "version": "4.28.1",
+        "version": "4.26.0",
         "release": null
       },
-      "remediation":
-      {
-        "recommendation":
-        {
+      "remediation": {
+        "recommendation": {
           "text": "None Provided"
         }
       },
       "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
+      "cvss_v30_score": 0,
       "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
+      "cvss_v2_score": 0,
       "cvss_v3_severity": "HIGH",
       "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-7018",
       "source": "NVD",
@@ -169,25 +558,22 @@
       "vulnerability_id": "CVE-2023-6730",
       "name": "CVE-2023-6730",
       "package_name": "transformers",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.28.1.dist-info/METADATA",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.26.0.dist-info/METADATA",
         "name": "transformers",
         "package_manager": "PYTHONPKG",
-        "version": "4.28.1",
+        "version": "4.26.0",
         "release": null
       },
-      "remediation":
-      {
-        "recommendation":
-        {
+      "remediation": {
+        "recommendation": {
           "text": "None Provided"
         }
       },
       "cvss_v3_score": 8.8,
-      "cvss_v30_score": 0.0,
+      "cvss_v30_score": 0,
       "cvss_v31_score": 8.8,
-      "cvss_v2_score": 0.0,
+      "cvss_v2_score": 0,
       "cvss_v3_severity": "HIGH",
       "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6730",
       "source": "NVD",
@@ -195,2017 +581,6 @@
       "status": "ACTIVE",
       "title": "CVE-2023-6730 - transformers",
       "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
-      "vulnerability_id": "CVE-2023-6730",
-      "name": "CVE-2023-6730",
-      "package_name": "transformers",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.26.0.dist-info/METADATA",
-        "name": "transformers",
-        "package_manager": "PYTHONPKG",
-        "version": "4.26.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6730",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-6730 - transformers",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
-      "vulnerability_id": "CVE-2023-7018",
-      "name": "CVE-2023-7018",
-      "package_name": "transformers",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/transformers-4.26.0.dist-info/METADATA",
-        "name": "transformers",
-        "package_manager": "PYTHONPKG",
-        "version": "4.26.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-7018",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-7018 - transformers",
-      "reason_to_ignore": "N/A"
     }
-  ],
-  "Pillow":
-  [
-    {
-      "description": "## Overview\n\nAffected versions of this package are vulnerable to Buffer Overflow via the `strcpy` function in `_imagingcms.c`, due to two calls that were able to copy too much data into fixed length strings.\n## Remediation\nA fix was pushed into the `master` branch but not yet published.\n## References\n- [GitHub Commit](https://github.com/python-pillow/Pillow/commit/2776126aa9af322b416eaca247f4f8ebefd08128)\n- [GitHub PR](https://github.com/python-pillow/Pillow/pull/7928)",
-      "vulnerability_id": "SNYK-PYTHON-PILLOW-6514866",
-      "name": "SNYK-PYTHON-PILLOW-6514866",
-      "package_name": "Pillow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
-        "name": "Pillow",
-        "package_manager": "PYTHONPKG",
-        "version": "10.0.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.3,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.3,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6514866",
-      "source": "SNYK",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "IN1-PYTHON-PILLOW-6514866 - Pillow",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "## Overview\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) when using arbitrary strings as text input and the number of characters passed into `PIL.ImageFont.ImageFont.getmask()` is over a certain limit. This can lead to a system crash.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many machines.\n\nWhen it comes to open source libraries, DoS vulnerabilities allow attackers to trigger such a crash or crippling of the service by using a flaw either in the application code or from the use of open source ",
-      "vulnerability_id": "SNYK-PYTHON-PILLOW-6219984",
-      "name": "SNYK-PYTHON-PILLOW-6219984",
-      "package_name": "Pillow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
-        "name": "Pillow",
-        "package_manager": "PYTHONPKG",
-        "version": "10.0.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6219984",
-      "source": "SNYK",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "IN1-PYTHON-PILLOW-6219984 - Pillow",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)",
-      "vulnerability_id": "CVE-2023-4863",
-      "name": "CVE-2023-4863",
-      "package_name": "Pillow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
-        "name": "Pillow",
-        "package_manager": "PYTHONPKG",
-        "version": "10.0.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4863",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-4863 - opencv-python, Pillow",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "## Overview\n\nAffected versions of this package are vulnerable to Denial of Service (DoS) if the size of individual glyphs extends beyond the bitmap image, when using `PIL.ImageFont.ImageFont` function. Exploiting this vulnerability could lead to a system crash.\n\n## Details\n\nDenial of Service (DoS) describes a family of attacks, all aimed at making a system inaccessible to its intended and legitimate users.\n\nUnlike other vulnerabilities, DoS attacks usually do not aim at breaching security. Rather, they are focused on making websites and services unavailable to genuine users resulting in downtime.\n\nOne popular Denial of Service vulnerability is DDoS (a Distributed Denial of Service), an attack that attempts to clog network pipes to the system by generating a large volume of traffic from many machines.\n\nWhen it comes to open source libraries, DoS vulnerabilities allow attackers to trigger such a crash or crippling of the service by using a flaw either in the application code or from the use of open source libra",
-      "vulnerability_id": "SNYK-PYTHON-PILLOW-6219986",
-      "name": "SNYK-PYTHON-PILLOW-6219986",
-      "package_name": "Pillow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
-        "name": "Pillow",
-        "package_manager": "PYTHONPKG",
-        "version": "10.0.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://security.snyk.io/vuln/SNYK-PYTHON-PILLOW-6219986",
-      "source": "SNYK",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "IN1-PYTHON-PILLOW-6219986 - Pillow",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "Pillow through 10.1.0 allows PIL.ImageMath.eval Arbitrary Code Execution via the environment parameter, a different vulnerability than CVE-2022-22817 (which was about the expression parameter).",
-      "vulnerability_id": "CVE-2023-50447",
-      "name": "CVE-2023-50447",
-      "package_name": "Pillow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Pillow-10.0.0.dist-info/METADATA",
-        "name": "Pillow",
-        "package_manager": "PYTHONPKG",
-        "version": "10.0.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.1,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-50447",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-50447 - Pillow",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "Werkzeug":
-  [
-    {
-      "description": "Werkzeug is a comprehensive WSGI web application library. If an upload of a file that starts with CR or LF and then is followed by megabytes of data without these characters: all of these bytes are appended chunk by chunk into internal bytearray and lookup for boundary is performed on growing buffer. This allows an attacker to cause a denial of service by sending crafted multipart data to an endpoint that will parse it. The amount of CPU time required can block worker processes from handling legitimate requests. This vulnerability has been patched in version 3.0.1.",
-      "vulnerability_id": "CVE-2023-46136",
-      "name": "CVE-2023-46136",
-      "package_name": "Werkzeug",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/Werkzeug-2.3.6.dist-info/METADATA",
-        "name": "Werkzeug",
-        "package_manager": "PYTHONPKG",
-        "version": "2.3.6",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-46136",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-46136 - Werkzeug",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "fonttools":
-  [
-    {
-      "description": "fontTools is a library for manipulating fonts, written in Python. The subsetting module has a XML External Entity Injection (XXE) vulnerability which allows an attacker to resolve arbitrary entities when a candidate font (OT-SVG fonts), which contains a SVG table, is parsed. This allows attackers to include arbitrary files from the filesystem fontTools is running on or make web requests from the host system. This vulnerability has been patched in version 4.43.0.",
-      "vulnerability_id": "CVE-2023-45139",
-      "name": "CVE-2023-45139",
-      "package_name": "fonttools",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/fonttools-4.41.1.dist-info/METADATA",
-        "name": "fonttools",
-        "package_manager": "PYTHONPKG",
-        "version": "4.41.1",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45139",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-45139 - fonttools",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "gevent":
-  [
-    {
-      "description": "An issue in Gevent before version 23.9.0 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component.",
-      "vulnerability_id": "CVE-2023-41419",
-      "name": "CVE-2023-41419",
-      "package_name": "gevent",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/gevent-23.7.0.dist-info/METADATA",
-        "name": "gevent",
-        "package_manager": "PYTHONPKG",
-        "version": "23.7.0",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-41419",
-      "source": "NVD",
-      "severity": "CRITICAL",
-      "status": "ACTIVE",
-      "title": "CVE-2023-41419 - gevent",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "opencv-python":
-  [
-    {
-      "description": "Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)",
-      "vulnerability_id": "CVE-2023-4863",
-      "name": "CVE-2023-4863",
-      "package_name": "opencv-python",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/opencv_python-4.8.0.74.dist-info/METADATA",
-        "name": "opencv-python",
-        "package_manager": "PYTHONPKG",
-        "version": "4.8.0.74",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-4863",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-4863 - opencv-python, Pillow",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "pyarrow":
-  [
-    {
-      "description": "Deserialization of untrusted data in IPC and Parquet readers in PyArrow versions 0.14.0 to 14.0.0 allows arbitrary code execution. An application is vulnerable if it reads Arrow IPC, Feather or Parquet data from untrusted sources (for example user-supplied input files).\n\nThis vulnerability only affects PyArrow, not other Apache Arrow implementations or bindings.\n\nIt is recommended that users of PyArrow upgrade to 14.0.1. Similarly, it is recommended that downstream libraries upgrade their dependency requirements to PyArrow 14.0.1 or later. PyPI packages are already available, and we hope that conda-forge packages will be available soon.\n\nIf it is not possible to upgrade, we provide a separate package `pyarrow-hotfix` that disables the vulnerability on older PyArrow versions. See  https://pypi.org/project/pyarrow-hotfix/  for instructions.\n\n",
-      "vulnerability_id": "CVE-2023-47248",
-      "name": "CVE-2023-47248",
-      "package_name": "pyarrow",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/pyarrow-12.0.1.dist-info/METADATA",
-        "name": "pyarrow",
-        "package_manager": "PYTHONPKG",
-        "version": "12.0.1",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 9.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 9.8,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "CRITICAL",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-47248",
-      "source": "NVD",
-      "severity": "CRITICAL",
-      "status": "ACTIVE",
-      "title": "CVE-2023-47248 - pyarrow",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "urllib3":
-  [
-    {
-      "description": "urllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5.",
-      "vulnerability_id": "CVE-2023-43804",
-      "name": "CVE-2023-43804",
-      "package_name": "urllib3",
-      "package_details":
-      {
-        "file_path": "opt/conda/lib/python3.9/site-packages/urllib3-1.26.14.dist-info/METADATA",
-        "name": "urllib3",
-        "package_manager": "PYTHONPKG",
-        "version": "1.26.14",
-        "release": null
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 8.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 8.1,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804",
-      "source": "NVD",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2023-43804 - urllib3",
-      "reason_to_ignore": "N/A"
-    }
-  ],
-  "imagemagick":
-  [
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-      "vulnerability_id": "CVE-2021-20313",
-      "name": "CVE-2021-20313",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-      "vulnerability_id": "CVE-2021-20313",
-      "name": "CVE-2021-20313",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32546",
-      "name": "CVE-2022-32546",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32546.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32546",
-      "name": "CVE-2022-32546",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32546.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20309",
-      "name": "CVE-2021-20309",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20309",
-      "name": "CVE-2021-20309",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20312",
-      "name": "CVE-2021-20312",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20312",
-      "name": "CVE-2021-20312",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-      "vulnerability_id": "CVE-2022-1114",
-      "name": "CVE-2022-1114",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.1,
-      "cvss_v2_score": 5.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-      "vulnerability_id": "CVE-2022-1114",
-      "name": "CVE-2022-1114",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.1,
-      "cvss_v2_score": 5.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-      "vulnerability_id": "CVE-2022-28463",
-      "name": "CVE-2022-28463",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-      "vulnerability_id": "CVE-2022-28463",
-      "name": "CVE-2022-28463",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32547",
-      "name": "CVE-2022-32547",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32547.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32547",
-      "name": "CVE-2022-32547",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32547.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32545",
-      "name": "CVE-2022-32545",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32545.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32545",
-      "name": "CVE-2022-32545",
-      "package_name": "imagemagick",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32545.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    }
-  ],
-  "imagemagick-6-common":
-  [
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-      "vulnerability_id": "CVE-2021-20313",
-      "name": "CVE-2021-20313",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32546",
-      "name": "CVE-2022-32546",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32546.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20309",
-      "name": "CVE-2021-20309",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20312",
-      "name": "CVE-2021-20312",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-      "vulnerability_id": "CVE-2022-1114",
-      "name": "CVE-2022-1114",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.1,
-      "cvss_v2_score": 5.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-      "vulnerability_id": "CVE-2022-28463",
-      "name": "CVE-2022-28463",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32547",
-      "name": "CVE-2022-32547",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32547.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32545",
-      "name": "CVE-2022-32545",
-      "package_name": "imagemagick-6-common",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "imagemagick-6-common",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32545.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    }
-  ],
-  "libmagickcore-6.q16-6":
-  [
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-      "vulnerability_id": "CVE-2021-20313",
-      "name": "CVE-2021-20313",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32546",
-      "name": "CVE-2022-32546",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32546.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20309",
-      "name": "CVE-2021-20309",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20312",
-      "name": "CVE-2021-20312",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-      "vulnerability_id": "CVE-2022-1114",
-      "name": "CVE-2022-1114",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.1,
-      "cvss_v2_score": 5.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-      "vulnerability_id": "CVE-2022-28463",
-      "name": "CVE-2022-28463",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32547",
-      "name": "CVE-2022-32547",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32547.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32545",
-      "name": "CVE-2022-32545",
-      "package_name": "libmagickcore-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickcore-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32545.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    }
-  ],
-  "libmagickwand-6.q16-6":
-  [
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11. A potential cipher leak when the calculate signatures in TransformSignature is possible. The highest threat from this vulnerability is to data confidentiality.",
-      "vulnerability_id": "CVE-2021-20313",
-      "name": "CVE-2021-20313",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 5.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20313.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20313 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned long' at coders/pcl.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32546",
-      "name": "CVE-2022-32546",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32546.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32546 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions before 7.0.11 and before 6.9.12, where a division by zero in WaveImage() of MagickCore/visual-effects.c may trigger undefined behavior via a crafted image file submitted to an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20309",
-      "name": "CVE-2021-20309",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20309.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20309 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A flaw was found in ImageMagick in versions 7.0.11, where an integer overflow in WriteTHUMBNAILImage of coders/thumbnail.c may trigger undefined behavior via a crafted image file that is submitted by an attacker and processed by an application using ImageMagick. The highest threat from this vulnerability is to system availability.",
-      "vulnerability_id": "CVE-2021-20312",
-      "name": "CVE-2021-20312",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.5,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.5,
-      "cvss_v2_score": 7.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2021/CVE-2021-20312.html",
-      "source": "UBUNTU_CVE",
-      "severity": "LOW",
-      "status": "ACTIVE",
-      "title": "CVE-2021-20312 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A heap-use-after-free flaw was found in ImageMagick's RelinquishDCMInfo() function of dcm.c file. This vulnerability is triggered when an attacker passes a specially crafted DICOM image file to ImageMagick for conversion, potentially leading to information disclosure and a denial of service.",
-      "vulnerability_id": "CVE-2022-1114",
-      "name": "CVE-2022-1114",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.1,
-      "cvss_v2_score": 5.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-1114.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-1114 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " ImageMagick 7.1.0-27 is vulnerable to Buffer Overflow.",
-      "vulnerability_id": "CVE-2022-28463",
-      "name": "CVE-2022-28463",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-28463.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-28463 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " In ImageMagick, there is load of misaligned address for type 'double', which requires 8 byte alignment and for type 'float', which requires 4 byte alignment at MagickCore/property.c. Whenever crafted or untrusted input is processed by ImageMagick, this causes a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32547",
-      "name": "CVE-2022-32547",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32547.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32547 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    },
-    {
-      "description": " A vulnerability was found in ImageMagick, causing an outside the range of representable values of type 'unsigned char' at coders/psd.c, when crafted or untrusted input is processed. This leads to a negative impact to application availability or other problems related to undefined behavior.",
-      "vulnerability_id": "CVE-2022-32545",
-      "name": "CVE-2022-32545",
-      "package_name": "libmagickwand-6.q16-6",
-      "package_details":
-      {
-        "file_path": null,
-        "name": "libmagickwand-6.q16-6",
-        "package_manager": "OS",
-        "version": "6.9.10.23+dfsg",
-        "release": "2.1ubuntu11.4"
-      },
-      "remediation":
-      {
-        "recommendation":
-        {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.8,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
-      "cvss_v2_score": 6.8,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-32545.html",
-      "source": "UBUNTU_CVE",
-      "severity": "MEDIUM",
-      "status": "ACTIVE",
-      "title": "CVE-2022-32545 - imagemagick, libmagickcore-6.q16-6 and 3 more"
-    }
-  ],
-  "linux":
-   [
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
-         "vulnerability_id":"CVE-2022-48674",
-         "name":"CVE-2022-48674",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2022-48674 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
-         "vulnerability_id":"CVE-2024-36971",
-         "name":"CVE-2024-36971",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-36971 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
-         "vulnerability_id":"CVE-2023-52434",
-         "name":"CVE-2023-52434",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":8.0,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":8.0,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2023-52434 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
-         "vulnerability_id":"CVE-2023-52752",
-         "name":"CVE-2023-52752",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2023-52752 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved:  jfs: xattr: fix buffer overflow for invalid xattr  When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging.  But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer.  Fix this all up by properly restricting the size of the debug hex dump in the kernel log.",
-         "vulnerability_id":"CVE-2024-40902",
-         "name":"CVE-2024-40902",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40902.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-40902 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: nilfs2: fix use-after-free of timer for log writer thread Patch series \"nilfs2: fix log writer related issues\". This bug fix series covers three nilfs2 log writer-related issues, including a timer use-after-free issue and potential deadlock issue on unmount, and a potential freeze issue in event synchronization found during their analysis. Details are described in each commit log. This patch (of 3): A use-after-free issue has been reported regarding the timer sc_timer on the nilfs_sc_info structure. The problem is that even though it is used to wake up a sleeping log writer thread, sc_timer is not shut down until the nilfs_sc_info structure is about to be freed, and is used regardless of the thread's lifetime. Fix this issue by limiting the use of sc_timer only while the log writer thread is alive.",
-         "vulnerability_id":"CVE-2024-38583",
-         "name":"CVE-2024-38583",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"190.210"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38583.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-38583 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved:  net: dsa: mv88e6xxx: Correct check for empty list  Since commit a3c53be55c95 (\"net: dsa: mv88e6xxx: Support multiple MDIO busses\") mv88e6xxx_default_mdio_bus() has checked that the return value of list_first_entry() is non-NULL.  This appears to be intended to guard against the list chip->mdios being empty.  However, it is not the correct check as the implementation of list_first_entry is not designed to return NULL for empty lists.  Instead, use list_first_entry_or_null() which does return NULL if the list is empty.  Flagged by Smatch. Compile tested only.",
-         "vulnerability_id":"CVE-2024-42224",
-         "name":"CVE-2024-42224",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"192.212"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42224.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-42224 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved:  greybus: Fix use-after-free bug in gb_interface_release due to race condition.  In gb_interface_create, &intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &intf->mode_switch_work)) { \t... }  If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows:  CPU0                            CPU1                              |   gb_interface_create                             |   gb_interface_request_mode_switch gb_interface_release        | kfree(intf) (free)          |                         ",
-         "vulnerability_id":"CVE-2024-39495",
-         "name":"CVE-2024-39495",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"192.212"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-39495 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved:  jfs: xattr: fix buffer overflow for invalid xattr  When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging.  But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer.  Fix this all up by properly restricting the size of the debug hex dump in the kernel log.",
-         "vulnerability_id":"CVE-2024-40902",
-         "name":"CVE-2024-40902",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"192.212"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40902.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-40902 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: scsi: qla2xxx: Fix double free of fcport The server was crashing after LOGO because fcport was getting freed twice. -----------[ cut here ]----------- kernel BUG at mm/slub.c:371! invalid opcode: 0000 1 SMP PTI CPU: 35 PID: 4610 Comm: bash Kdump: loaded Tainted: G OE --------- - - 4.18.0-425.3.1.el8.x86_64 #1 Hardware name: HPE ProLiant DL360 Gen10/ProLiant DL360 Gen10, BIOS U32 09/03/2021 RIP: 0010:set_freepointer.part.57+0x0/0x10 RSP: 0018:ffffb07107027d90 EFLAGS: 00010246 RAX: ffff9cb7e3150000 RBX: ffff9cb7e332b9c0 RCX: ffff9cb7e3150400 RDX: 0000000000001f37 RSI: 0000000000000000 RDI: ffff9cb7c0005500 RBP: fffff693448c5400 R08: 0000000080000000 R09: 0000000000000009 R10: 0000000000000000 R11: 0000000000132af0 R12: ffff9cb7c0005500 R13: ffff9cb7e3150000 R14: ffffffffc06990e0 R15: ffff9cb7ea85ea58 FS: 00007ff6b79c2740(0000) GS:ffff9cb8f7ec0000(0000) knlGS:0000000000000000 CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033 CR2: 000055b426b7d70",
-         "vulnerability_id":"CVE-2024-26929",
-         "name":"CVE-2024-26929",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"192.212"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26929.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2024-26929 - linux",
-         "reason_to_ignore":"N/A"
-      },
-      {
-         "description":" In the Linux kernel, the following vulnerability has been resolved: gfs2: Fix slab-use-after-free in gfs2_qd_dealloc In gfs2_put_super(), whether withdrawn or not, the quota should be cleaned up by gfs2_quota_cleanup(). Otherwise, struct gfs2_sbd will be freed before gfs2_qd_dealloc (rcu callback) has run for all gfs2_quota_data objects, resulting in use-after-free. Also, gfs2_destroy_threads() and gfs2_quota_cleanup() is already called by gfs2_make_fs_ro(), so in gfs2_put_super(), after calling gfs2_make_fs_ro(), there is no need to call them again.",
-         "vulnerability_id":"CVE-2023-52760",
-         "name":"CVE-2023-52760",
-         "package_name":"linux",
-         "package_details":{
-            "file_path":null,
-            "name":"linux",
-            "package_manager":"OS",
-            "version":"5.4.0",
-            "release":"192.212"
-         },
-         "remediation":{
-            "recommendation":{
-               "text":"None Provided"
-            }
-         },
-         "cvss_v3_score":7.8,
-         "cvss_v30_score":0.0,
-         "cvss_v31_score":7.8,
-         "cvss_v2_score":0.0,
-         "cvss_v3_severity":"HIGH",
-         "source_url":"https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52760.html",
-         "source":"UBUNTU_CVE",
-         "severity":"HIGH",
-         "status":"ACTIVE",
-         "title":"CVE-2023-52760 - linux",
-         "reason_to_ignore":"N/A"
-      }
-   ]
+  ]
 }
