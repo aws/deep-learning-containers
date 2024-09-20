@@ -155,9 +155,9 @@ RUN cd /tmp \
 # Install GPU ffmpeg
 # compile ffmpeg from source with cuda enabled
 RUN cd /tmp \
- && git clone https://git.ffmpeg.org/ffmpeg.git \
- && cd ffmpeg \
- && git checkout release/6.0 \
+ && wget https://ffmpeg.org/releases/ffmpeg-6.1.2.tar.gz \
+ && tar -xf ffmpeg-6.1.2.tar.gz \
+ && cd ffmpeg-6.1.2 \
  && ./configure --enable-nonfree --enable-cuda \
                 --enable-cuda-nvcc --enable-cuda \
                 --nvccflags="-gencode arch=compute_80,code=sm_80 -O2" \
@@ -169,7 +169,7 @@ RUN cd /tmp \
                 --extra-cflags=-I/usr/local/cuda/include \
                 --extra-ldflags=-L/usr/local/cuda/lib64 \
  && make -j64 && make install \
- && rm -rf /tmp/ffmpeg
+ && rm -rf /tmp/ffmpeg-6.1.2
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
