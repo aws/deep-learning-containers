@@ -283,7 +283,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
-LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
+LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.4
 
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
