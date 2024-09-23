@@ -130,11 +130,7 @@ RUN apt-get update \
     openssl \
     python3-dev \
     libgssapi-krb5-2 \
-    # required for ffmpec
-    yasm \
-    pkg-config \
-    libx264-dev \
-    libmp3lame-dev \
+
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -223,33 +219,6 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
-# Install nv-codec-headers (required by GPU ffmpeg)
-# https://docs.nvidia.com/video-technologies/video-codec-sdk/12.0/ffmpeg-with-nvidia-gpu/index.html#introduction
-RUN cd /tmp \
- && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git \
- && cd nv-codec-headers \
- && make install \
- && rm -rf /tmp/nv-codec-headers
-
-# Install GPU ffmpeg
-# compile ffmpeg from source with cuda enabled
-RUN cd /tmp \
- && wget https://ffmpeg.org/releases/ffmpeg-6.1.2.tar.gz \
- && tar -xf ffmpeg-6.1.2.tar.gz \
- && cd ffmpeg-6.1.2 \
- && ./configure --enable-nonfree --enable-cuda \
-                --enable-cuda-nvcc --enable-cuda \
-                --nvccflags="-gencode arch=compute_80,code=sm_80 -O2" \
-                --enable-cuvid --enable-nvdec \
-                --enable-nvenc --enable-shared \
-                --disable-static --enable-libnpp \
-                --enable-gpl --enable-libx264 \
-                --enable-libmp3lame --enable-openssl \
-                --extra-cflags=-I/usr/local/cuda/include \
-                --extra-ldflags=-L/usr/local/cuda/lib64 \
- && make -j64 && make install \
- && rm -rf /tmp/ffmpeg-6.1.2.tar.gz /tmp/ffmpeg-6.1.2
-
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
@@ -317,6 +286,7 @@ LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.4
 
+
 ARG PYTHON
 ARG SM_TOOLKIT_VERSION
 ARG TORCHSERVE_VERSION
@@ -324,12 +294,15 @@ ARG TORCHSERVE_VERSION
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TS_DISABLE_SYSTEM_METRICS=true
 
-# Install scikit-learn and pandas
-RUN /opt/conda/bin/conda install -y -c conda-forge \
-    scikit-learn \
-    pandas
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
+# Install extra packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    scikit-learn \
+    pandas \
+ && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir \
+    sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
@@ -345,8 +318,10 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-## Cleanup ##
-RUN rm -rf /tmp/tmp* \
+
+# Cleanup
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
  && rm -iRf /root/.cache
 
 EXPOSE 8080 8081

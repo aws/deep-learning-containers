@@ -1,5 +1,9 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.11.9
+
+ARG PYTHON_SHORT_VERSION=3.11
+ARG PYTORCH_VERSION=2.4.0
+
 ARG MINIFORGE3_VERSION=24.3.0-0
 ARG OPEN_MPI_VERSION=4.1.5
 
@@ -8,6 +12,7 @@ ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchvision-0.19.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchaudio-2.4.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchtext-0.18.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
@@ -233,13 +238,16 @@ ARG TORCHSERVE_VERSION
 
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
-# Install scikit-learn and pandas
-RUN conda install -y -c conda-forge \
+
+# Install extra packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     pandas \
- && conda clean -afy
+ && /opt/conda/bin/mamba clean -afy
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
+
+RUN pip install --no-cache-dir \
+    sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
@@ -255,10 +263,12 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-## Cleanup ##
+
+# Cleanup
 RUN rm -rf /tmp/tmp* \
  && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+
