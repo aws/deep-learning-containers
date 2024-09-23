@@ -1,0 +1,264 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.11.9
+ARG MINIFORGE3_VERSION=24.3.0-0
+ARG OPEN_MPI_VERSION=4.1.5
+
+# PyTorch Binaries
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torch-2.4.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchvision-0.19.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchaudio-2.4.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cpu/torchtext-0.18.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+ARG TORCHSERVE_VERSION
+ARG SM_TOOLKIT_VERSION
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+FROM ubuntu:22.04 AS ec2
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON
+ARG PYTHON_VERSION
+
+ARG MINIFORGE3_VERSION
+ARG OPEN_MPI_VERSION
+
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+ARG TORCHSERVE_VERSION
+
+# This arg is required to stop docker build from waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+ENV PATH="/opt/conda/bin:${PATH}"
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ENV DLC_CONTAINER_TYPE=inference
+
+# Set ENV variables for the images
+ENV TEMP=/tmp
+ENV MKL_THREADING_LAYER=GNU
+
+WORKDIR /
+
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+    automake \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    git \
+    jq \
+    libcurl4-openssl-dev \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libssl-dev \
+    libxext6 \
+    libxrender-dev \
+    zlib1g-dev \
+    unzip \
+    vim \
+    wget \
+    openjdk-17-jdk \
+    libjpeg-dev \
+    libpng-dev \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install OpenMPI
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
+ && cd openmpi-${OPEN_MPI_VERSION} \
+ && ./configure --prefix=/home/.openmpi \
+ && make all install \
+ && cd .. \
+ && rm openmpi-${OPEN_MPI_VERSION}.tar.gz \
+ && rm -rf openmpi-${OPEN_MPI_VERSION}
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="/home/.openmpi/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/home/.openmpi/lib:${LD_LIBRARY_PATH}"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+# For conda ssl verification
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
+ && chmod +x ~/miniforge3.sh \
+ && ~/miniforge3.sh -b -p /opt/conda \
+ && rm ~/miniforge3.sh
+
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+ && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+# Install common conda packages
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    python=$PYTHON_VERSION \
+    cython \
+    cryptography \
+    pyopenssl \
+    cmake \
+    curl \
+    libcurl \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
+    charset-normalizer \
+    packaging \
+    boto3 \
+    numpy \
+    scipy \
+    ipython \
+    h5py \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
+    "requests>=2.32.2" \
+    "setuptools>=70.0.0" \
+    "urllib3<2" \
+    "awscli<2" \
+ && /opt/conda/bin/mamba clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
+
+# Install Common python packages
+RUN pip install --no-cache-dir opencv-python
+
+# Install PyTorch
+RUN pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL}
+
+# Install TorchServe pypi dependencies directly from their requirements.txt file
+RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
+ && pip install --no-cache-dir -U \
+    torchserve==${TORCHSERVE_VERSION} \
+    torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Patches
+# py-vuln: 71064
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
+
+# Create user and folders
+RUN useradd -m model-server \
+ && mkdir -p ${TEMP} /opt/ml/model \
+ && chown -R model-server /home/model-server /opt/ml/model
+
+# Add TS entrypoint
+COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY config.properties /home/model-server
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+# Cleanup
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM ec2 AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+
+ARG PYTHON
+ARG SM_TOOLKIT_VERSION
+ARG TORCHSERVE_VERSION
+
+ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
+
+# Install scikit-learn and pandas
+RUN conda install -y -c conda-forge \
+    scikit-learn \
+    pandas \
+ && conda clean -afy
+
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
+    s3transfer
+
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+## Cleanup ##
+RUN rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
+
+EXPOSE 8080 8081
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
