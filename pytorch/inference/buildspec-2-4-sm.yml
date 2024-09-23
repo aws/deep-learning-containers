@@ -4,16 +4,16 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
 version: &VERSION 2.4.0
 short_version: &SHORT_VERSION "2.4"
-arch_type: graviton
+arch_type: x86
 # autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
     image_type: &INFERENCE_IMAGE_TYPE inference
     root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
-    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", graviton]
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", graviton]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE ]
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
@@ -24,12 +24,12 @@ context:
     torchserve-entrypoint:
       source: docker/build_artifacts/torchserve-entrypoint.py
       target: torchserve-entrypoint.py
-    deep_learning_container:
-      source: ../../src/deep_learning_container.py
-      target: deep_learning_container.py
     config:
       source: docker/build_artifacts/config.properties
       target: config.properties
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
 
 images:
   BuildSageMakerCPUPTInferencePy3DockerImage:
