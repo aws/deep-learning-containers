@@ -64,3 +64,29 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+  6:
+    framework: "pytorch"
+    version: "2.4.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  7:
+    framework: "pytorch"
+    version: "2.4.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
