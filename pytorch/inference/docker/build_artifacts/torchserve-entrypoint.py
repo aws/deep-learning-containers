@@ -45,5 +45,9 @@ if sys.argv[1] == "serve":
 else:
     subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
 
+import os
+
+print(f"SAGEMAKER_BIND_TO_PORT: {os.environ.get('SAGEMAKER_BIND_TO_PORT')}")
+
 # prevent docker exit
 subprocess.call(["tail", "-f", "/dev/null"])
