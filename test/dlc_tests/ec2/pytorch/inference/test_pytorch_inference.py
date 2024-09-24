@@ -286,7 +286,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 
     if processor_is_neuron:
         docker_run_cmd = (
-            f"docker run {docker_runtime} -itd --name {docker_init} {container_name}"
+            f"docker run {docker_runtime} -itd --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" --device=/dev/neuron0 --cap-add IPC_LOCK"
             f" --env NEURON_MONITOR_CW_REGION={region}"
