@@ -294,7 +294,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         )
     else:
         docker_run_cmd = (
-            f"docker run {docker_runtime} -itd --name {docker_init} {container_name}"
+            f"docker run {docker_runtime} -itd {docker_init} --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" {image_uri} {inference_cmd}"
         )
