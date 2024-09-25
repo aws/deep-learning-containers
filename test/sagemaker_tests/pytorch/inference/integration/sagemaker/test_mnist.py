@@ -35,6 +35,8 @@ from ...integration import (
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 LOGGER = logging.getLogger(__name__)
@@ -42,11 +44,30 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
+def disable_token_auth(framework_version):
+    """
+    Disables token authentication based on the provided framework version.
+    https://pytorch.org/serve/token_authorization_api.html
+
+    Args:
+        framework_version (str): The version of the framework being used.
+
+    Returns:
+        torchserve env to disable token authentication in sagemaker model deploy.
+    """
+    if Version(framework_version) in SpecifierSet(">=2.4"):
+        return {
+            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
+        }
+    return None
+
+
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
+    env = disable_token_auth(framework_version)
     instance_type = instance_type or "ml.c5.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -54,6 +75,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
         "instance_type": instance_type,
         "model_dir": model_dir,
         "mnist_script": mnist_cpu_script,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -65,6 +87,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
+    env = disable_token_auth(framework_version)
     instance_type = instance_type or "ml.p3.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -72,6 +95,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
         "instance_type": instance_type,
         "model_dir": model_dir,
         "mnist_script": mnist_gpu_script,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -117,6 +141,7 @@ def _test_mnist_distributed(
     mnist_script,
     accelerator_type=None,
     verify_logs=True,
+    env=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -132,9 +157,7 @@ def _test_mnist_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
-        env={
-            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
-        },
+        env=env,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):

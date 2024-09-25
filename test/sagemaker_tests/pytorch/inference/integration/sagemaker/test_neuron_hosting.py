@@ -148,7 +148,6 @@ def _test_resnet_distributed(
             "AWS_NEURON_VISIBLE_DEVICES": "ALL",
             "NEURON_RT_NUM_CORES": "1",
             "NEURON_RT_LOG_LEVEL": "5",
-            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
         },
     )
 
