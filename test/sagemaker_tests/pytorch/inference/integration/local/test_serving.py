@@ -175,7 +175,7 @@ def _predictor(
     sagemaker_local_session,
     instance_type,
     env=None,
-    model_server_workers=None,  
+    model_server_workers=None,
 ):
     model = PyTorchModel(
         "file://{}/model.tar.gz".format(model_dir),
