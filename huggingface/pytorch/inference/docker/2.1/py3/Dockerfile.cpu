@@ -73,6 +73,7 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     linux-libc-dev \
+    libkrb5-3 \
     zlib1g-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
