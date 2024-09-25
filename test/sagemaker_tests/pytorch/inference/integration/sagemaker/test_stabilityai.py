@@ -124,6 +124,9 @@ def _test_sgm_inference(
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
         entry_point=inference_script,  # This seems to be ignored so the inference script built into the container is always run
+        env={
+            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
+        },
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=60):

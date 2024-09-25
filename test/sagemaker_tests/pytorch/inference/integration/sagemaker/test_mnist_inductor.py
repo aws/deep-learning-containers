@@ -137,6 +137,9 @@ def _test_mnist_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
+        env={
+            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
+        },
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):

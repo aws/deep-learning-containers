@@ -49,6 +49,9 @@ ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
     content_types.NPY: deserializers.NumpyDeserializer(),
 }
 
+# Set the TorchServe environment variables
+torchserve_env = {"TS_DISABLE_TOKEN_AUTHORIZATION": "true"}
+
 
 @pytest.fixture(name="test_loader")
 @pytest.mark.team("inference-toolkit")
@@ -160,7 +163,7 @@ def _predictor(
     with local_mode_utils.lock():
         predictor = None
         try:
-            predictor = model.deploy(1, instance_type)
+            predictor = model.deploy(1, instance_type, environment=torchserve_env)
             yield predictor
         finally:
             if predictor:
