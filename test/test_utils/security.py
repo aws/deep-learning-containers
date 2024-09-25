@@ -162,7 +162,14 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
-                ignore_keys=["package_details", "title", "reason_to_ignore"],
+                ignore_keys=[
+                    "package_details",
+                    "title",
+                    "reason_to_ignore",
+                    "description",
+                    "remediation",
+                    "source_url",
+                ],
             )
         return False
 

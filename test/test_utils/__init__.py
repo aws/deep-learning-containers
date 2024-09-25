@@ -737,6 +737,9 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
 def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
 
+def is_huggingface_image():
+    return os.getenv("FRAMEWORK_BUILD_SPEC_FILE").startswith("huggingface")
+
 
 def is_covered_by_ec2_sm_split(image_uri):
     ec2_sm_split_images = {

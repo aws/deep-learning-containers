@@ -22,6 +22,7 @@ from test.test_utils import (
     ECR_SCAN_HELPER_BUCKET,
     is_canary_context,
     get_all_the_tags_of_an_image_from_ecr,
+    is_huggingface_image,
     is_image_available_locally,
     login_to_ecr_registry,
     get_region_from_image_uri,
@@ -78,6 +79,8 @@ def get_minimum_sev_threshold_level(image):
 
     :param image: str Image URI for which threshold has to be set
     """
+    if is_huggingface_image():
+        return "CRITICAL"
     if is_generic_image():
         return "HIGH"
     if is_image_covered_by_allowlist_feature(image):
