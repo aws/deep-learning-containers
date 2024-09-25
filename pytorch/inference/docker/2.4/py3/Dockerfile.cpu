@@ -266,8 +266,5 @@ RUN rm -rf /tmp/tmp* \
  && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
-
-# ENV SAGEMAKER_BIND_TO_PORT=8080
-
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
