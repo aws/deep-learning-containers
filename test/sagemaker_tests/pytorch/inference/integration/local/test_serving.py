@@ -24,8 +24,7 @@ from sagemaker import deserializers
 from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
+from ...integration import set_disable_token_auth_env
 
 
 from ...integration import (
@@ -53,24 +52,6 @@ ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
 }
 
 
-def disable_token_auth(framework_version):
-    """
-    Disables token authentication based on the provided framework version.
-    https://pytorch.org/serve/token_authorization_api.html
-
-    Args:
-        framework_version (str): The version of the framework being used.
-
-    Returns:
-        torchserve env to disable token authentication in sagemaker model deploy.
-    """
-    if Version(framework_version) in SpecifierSet(">=2.4"):
-        return {
-            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
-        }
-    return None
-
-
 @pytest.fixture(name="test_loader")
 @pytest.mark.team("inference-toolkit")
 def fixture_test_loader():
@@ -83,7 +64,8 @@ def fixture_test_loader():
 def test_serve_json_npy(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = disable_token_auth(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(
         model_dir,
@@ -105,7 +87,8 @@ def test_serve_json_npy(
 def test_serve_csv(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = disable_token_auth(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_1d_dir,
         mnist_1d_script,
@@ -126,7 +109,8 @@ def test_serve_csv(
 def test_serve_cpu_model_on_gpu(
     test_loader, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = disable_token_auth(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_1d_dir,
         mnist_1d_script,
@@ -146,7 +130,8 @@ def test_serve_cpu_model_on_gpu(
 def test_serving_calls_model_fn_once(
     docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = disable_token_auth(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_dir,
         call_model_fn_once_script,

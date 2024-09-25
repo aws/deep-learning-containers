@@ -44,7 +44,7 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def disable_token_auth(framework_version):
+def set_disable_token_auth_env(framework_version):
     """
     Disables token authentication based on the provided framework version.
     https://pytorch.org/serve/token_authorization_api.html
@@ -67,7 +67,7 @@ def disable_token_auth(framework_version):
 @pytest.mark.cpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    env = disable_token_auth(framework_version)
+    env = set_disable_token_auth_env(framework_version)
     instance_type = instance_type or "ml.c5.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -87,7 +87,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    env = disable_token_auth(framework_version)
+    env = set_disable_token_auth_env(framework_version)
     instance_type = instance_type or "ml.p3.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
