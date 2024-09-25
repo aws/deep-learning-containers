@@ -49,9 +49,6 @@ ACCEPT_TYPE_TO_DESERIALIZER_MAP = {
     content_types.NPY: deserializers.NumpyDeserializer(),
 }
 
-# Set the TorchServe environment variables
-torchserve_env = {"TS_DISABLE_TOKEN_AUTHORIZATION": "true"}
-
 
 @pytest.fixture(name="test_loader")
 @pytest.mark.team("inference-toolkit")
@@ -158,12 +155,15 @@ def _predictor(
         framework_version=framework_version,
         sagemaker_session=sagemaker_local_session,
         model_server_workers=model_server_workers,
+        env={
+            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
+        },
     )
 
     with local_mode_utils.lock():
         predictor = None
         try:
-            predictor = model.deploy(1, instance_type, environment=torchserve_env)
+            predictor = model.deploy(1, instance_type)
             yield predictor
         finally:
             if predictor:
