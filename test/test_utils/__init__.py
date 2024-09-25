@@ -1126,12 +1126,12 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         # PyTorch 2.4 requires token authentication to be disabled.
         _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
         auth_arg = (
-            "--disable-token-auth"
+            " --disable-token-auth"
             if _framework == "pytorch" and Version(_version) in SpecifierSet(">=2.4")
             else ""
         )
         mms_command = (
-            f"{server_cmd} --start {auth_arg} --{server_type}-config /home/model-server/config.properties --models "
+            f"{server_cmd} --start{auth_arg} --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
         )
     else:
