@@ -92,8 +92,8 @@ def test_serve_json_npy(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        1,
         env,
+        1,
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
@@ -154,8 +154,8 @@ def test_serving_calls_model_fn_once(
         framework_version,
         sagemaker_local_session,
         instance_type,
+        env,
         model_server_workers=2,
-        env=env,
     ) as predictor:
         predictor.deserializer = deserializers.BytesDeserializer()
 
@@ -174,8 +174,8 @@ def _predictor(
     framework_version,
     sagemaker_local_session,
     instance_type,
-    model_server_workers=None,
     env=None,
+    model_server_workers=None,  
 ):
     model = PyTorchModel(
         "file://{}/model.tar.gz".format(model_dir),
