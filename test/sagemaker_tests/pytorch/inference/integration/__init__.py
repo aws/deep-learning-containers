@@ -11,6 +11,8 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import os
 
@@ -59,3 +61,21 @@ ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
+
+
+def set_disable_token_auth_env(framework_version):
+    """
+    Disables token authentication based on the provided framework version.
+    https://pytorch.org/serve/token_authorization_api.html
+
+    Args:
+        framework_version (str): The version of the framework being used.
+
+    Returns:
+        torchserve env to disable token authentication in sagemaker model deploy.
+    """
+    if Version(framework_version) in SpecifierSet(">=2.4"):
+        return {
+            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
+        }
+    return {}
