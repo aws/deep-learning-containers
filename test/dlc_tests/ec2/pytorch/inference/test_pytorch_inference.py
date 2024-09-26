@@ -282,6 +282,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
+    docker_init = " --init" if test_utils.is_ec2_image(image_uri) else ""
 
     if processor_is_neuron:
         docker_run_cmd = (
@@ -293,7 +294,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         )
     else:
         docker_run_cmd = (
-            f"docker run {docker_runtime} -itd --name {container_name}"
+            f"docker run {docker_runtime} -itd{docker_init} --name {container_name}"
             f" -p 80:8080 -p 8081:8081"
             f" {image_uri} {inference_cmd}"
         )
