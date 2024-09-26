@@ -78,4 +78,4 @@ def set_disable_token_auth_env(framework_version):
         return {
             "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
         }
-    return None
+    return {}

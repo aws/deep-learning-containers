@@ -32,11 +32,10 @@ from ...integration import (
     mnist_gpu_script,
     model_eia_dir,
     mnist_eia_script,
+    set_disable_token_auth_env,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
 
 LOGGER = logging.getLogger(__name__)
@@ -44,30 +43,13 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def set_disable_token_auth_env(framework_version):
-    """
-    Disables token authentication based on the provided framework version.
-    https://pytorch.org/serve/token_authorization_api.html
-
-    Args:
-        framework_version (str): The version of the framework being used.
-
-    Returns:
-        torchserve env to disable token authentication in sagemaker model deploy.
-    """
-    if Version(framework_version) in SpecifierSet(">=2.4"):
-        return {
-            "TS_DISABLE_TOKEN_AUTHORIZATION": "true",
-        }
-    return None
-
-
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    env = set_disable_token_auth_env(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.c5.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -87,7 +69,8 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    env = set_disable_token_auth_env(framework_version)
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.p3.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
