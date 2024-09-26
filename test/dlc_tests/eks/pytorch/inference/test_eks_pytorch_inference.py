@@ -3,6 +3,8 @@ import random
 
 import pytest
 from time import sleep
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from invoke import run
 
@@ -86,15 +88,29 @@ def test_eks_pytorch_neuronx_inference(pytorch_inference_neuronx):
 @pytest.mark.model("densenet")
 @pytest.mark.team("conda")
 def test_eks_pytorch_densenet_inference(pytorch_inference):
-    __test_eks_pytorch_densenet_inference(pytorch_inference)
+    _, version = test_utils.get_framework_and_version_from_tag(pytorch_inference)
+    disable_token_auth = False
+    # PT 2.4 x86 images require the disable token auth flag
+    # Using workaround from https://github.com/facebookresearch/AnimatedDrawings/issues/295
+    if Version(version) in SpecifierSet(">=2.4"):
+        disable_token_auth = True
+    __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=disable_token_auth)
 
 
 @pytest.mark.model("densenet")
-def test_eks_pytorch_densenet_inference_graviton(pytorch_inference_graviton):
-    __test_eks_pytorch_densenet_inference(pytorch_inference_graviton)
+def test_eks_pytorch_densenet_inference_graviton(pytorch_inference_graviton, cpu_only):
+    _, version = test_utils.get_framework_and_version_from_tag(pytorch_inference_graviton)
+    disable_token_auth = False
+    # PT 2.4 Graviton images require the disable token auth flag
+    # Using workaround from https://github.com/facebookresearch/AnimatedDrawings/issues/295
+    if Version(version) in SpecifierSet(">=2.4"):
+        disable_token_auth = True
+    __test_eks_pytorch_densenet_inference(
+        pytorch_inference_graviton, disable_token_auth=disable_token_auth
+    )
 
 
-def __test_eks_pytorch_densenet_inference(pytorch_inference):
+def __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=False):
     server_type = test_utils.get_inference_server_type(pytorch_inference)
     if server_type == "ts":
         model = "pytorch-densenet=https://torchserve.s3.amazonaws.com/mar_files/densenet161.mar"
@@ -109,6 +125,7 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference):
 
     processor = "gpu" if "gpu" in pytorch_inference else "cpu"
     test_type = test_utils.get_eks_k8s_test_type_label(pytorch_inference)
+    disable_token_auth = " --disable-token-auth" if disable_token_auth else ""
 
     yaml_path = os.path.join(
         os.sep, "tmp", f"pytorch_single_node_{processor}_inference_{rand_int}.yaml"
@@ -123,6 +140,7 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference):
         "<DOCKER_IMAGE_BUILD_ID>": pytorch_inference,
         "<SERVER_TYPE>": server_type,
         "<SERVER_CMD>": server_cmd,
+        "<DISABLE_TOKEN_AUTH>": disable_token_auth,
         "<TEST_TYPE>": test_type,
     }
 

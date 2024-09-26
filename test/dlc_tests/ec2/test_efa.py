@@ -36,6 +36,8 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
+DEFAULT_EFA_TIMEOUT = 300
+
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
@@ -89,7 +91,7 @@ def test_pytorch_efa(
         master_connection,
         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
@@ -133,7 +135,7 @@ def test_efa_tensorflow(
         master_connection,
         f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
@@ -179,7 +181,7 @@ def test_pytorch_efa_healthcheck(
         master_connection,
         f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
@@ -209,7 +211,7 @@ def _setup_multinode_efa_instances(
         MASTER_CONTAINER_NAME,
         master_connection,
         BUILD_ALL_REDUCE_PERF_CMD,
-        timeout=180,
+        timeout=DEFAULT_EFA_TIMEOUT,
         asynchronous=True,
     )
     build_all_reduce_perf_promises.append(promise)
@@ -221,7 +223,7 @@ def _setup_multinode_efa_instances(
             WORKER_CONTAINER_NAME,
             worker_connection,
             BUILD_ALL_REDUCE_PERF_CMD,
-            timeout=180,
+            timeout=DEFAULT_EFA_TIMEOUT,
             asynchronous=True,
         )
         build_all_reduce_perf_promises.append(promise)
