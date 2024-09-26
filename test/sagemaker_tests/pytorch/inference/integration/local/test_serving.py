@@ -24,7 +24,6 @@ from sagemaker import deserializers
 from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
-from ...integration import set_disable_token_auth_env
 
 
 from ...integration import (
@@ -36,6 +35,7 @@ from ...integration import (
     model_cpu_1d_dir,
     call_model_fn_once_script,
     ROLE,
+    set_disable_token_auth_env,
 )
 from ...utils import local_mode_utils
 
