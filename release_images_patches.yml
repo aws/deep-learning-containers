@@ -348,9 +348,10 @@ release_images:
     arch_type: "graviton"
     customer_type: "ec2"
     inference:
-      device_types: [ "cpu" ]
+      device_types: [ "cpu", "gpu" ]
       python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
+      cuda_version: "cu124"
       example: False
       disable_sm_tag: False
       force_release: False
