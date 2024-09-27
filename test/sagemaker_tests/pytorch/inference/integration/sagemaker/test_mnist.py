@@ -32,6 +32,7 @@ from ...integration import (
     mnist_gpu_script,
     model_eia_dir,
     mnist_eia_script,
+    set_disable_token_auth_env,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
@@ -47,6 +48,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 @pytest.mark.cpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sagemaker_regions):
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.c5.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -54,6 +57,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
         "instance_type": instance_type,
         "model_dir": model_dir,
         "mnist_script": mnist_cpu_script,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -65,6 +69,8 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.p3.xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
@@ -72,6 +78,7 @@ def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sage
         "instance_type": instance_type,
         "model_dir": model_dir,
         "mnist_script": mnist_gpu_script,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -117,6 +124,7 @@ def _test_mnist_distributed(
     mnist_script,
     accelerator_type=None,
     verify_logs=True,
+    env=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -132,6 +140,7 @@ def _test_mnist_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
+        env=env,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):

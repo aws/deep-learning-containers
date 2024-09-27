@@ -102,7 +102,9 @@ def upload_json_to_image_data_storage_s3_bucket(
     )
     s3_resource = boto3.resource("s3")
     sts_client = boto3.client("sts")
-    account_id = sts_client.get_caller_identity().get("Account")
+    account_id = os.getenv("AUTOPATCH_STORAGE_ACCOUNT") or sts_client.get_caller_identity().get(
+        "Account"
+    )
     for to_upload in upload_list:
         s3_filepath = f"{image_sha}/{to_upload['s3_filename']}"
         upload_data = json.dumps(
