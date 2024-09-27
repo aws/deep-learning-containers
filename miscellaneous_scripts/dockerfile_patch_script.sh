@@ -55,6 +55,14 @@ if pip show sagemaker-training; then
     pip install "sagemaker-training>4.7.4" --upgrade
 fi
 
+# For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
+    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/dockerd-entrypoint.py
+else
+    rm -f /tmp/new-torchserve-entrypoint
+fi
+
 pip cache purge
 
 ## Update GPG key in case Nginx exists
