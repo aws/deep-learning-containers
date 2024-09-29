@@ -1,0 +1,69 @@
+#### First image: sha256:4e178a8d763e2e3c1c976ec43996c52951581de7e8558b1267b0fb96440e1052 ####
+#### Patch contents for patch-1: sha256:11260016b33e2adbcb6cd6f2a5f1819b627d7553c70791b1350b2dc4b5c37504 ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-2: sha256:0fba372fecbab4652f05f3ce3cf24e173cd1ce07e81f882f972f9673646e2b6a ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0
+#### Patch contents for patch-3: sha256:27122f184f31d2d3220bf000b66b86e19f71459b8cd148fbfcc08f8051cfaf5d ####
+pip install requests==2.32.3 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5
+#### Patch contents for patch-4: sha256:201982e72f2466b2fe8809c6113ed1fb34af7eb2785fd14d36300383bd7e4ce5 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:b61213f4101753ec792914100aa16f5c48b44853aa10ba1ac4d21eba6857a43a ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-6: sha256:c041d2dbb75a14b844c674c231b5eaebfa74d122abf59e0278946142b13e21b6 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-7: sha256:822f9cf9e5b8d637bcdc44ef33e9647582132fd2990196770ea5acf9644c4a0d ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.0 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-8: sha256:48538b77b3e49d02563a335a58ba73b9bc8833d0b656ddde8dd462edd7598745 ####
+pip install cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-9: sha256:185a1c3e5d765a2929be6e31d44e2a3a840f76180ba587f2742cea5c47f9e82c ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-10: sha256:95467564c18246dfdf2ce1600e99e25b7d133284d718edd23dd29b380bac2f8e ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 tornado==6.4.1 urllib3==1.26.19 zipp==3.19.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-11: sha256:61571758fd5be059ea22f796ba47c329fe28dc023973419ed01a05203d17011b ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==71.1.0 tornado==6.4.1 urllib3==1.26.19 zipp==3.19.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-12: sha256:aed644759f5819e254b57f31b74c5421f72c75013849beae8bbfed0f92b4557a ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==71.1.0 tornado==6.4.1 urllib3==1.26.19 zipp==3.19.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-13: sha256:130d49cfac0bc0530cc4443998997ed3d77176788a0915e57a3fbe11a5b8363d ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==71.1.0 tornado==6.4.1 urllib3==1.26.19 zipp==3.19.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-14: sha256:81c6d870f758fb96595e6ae63b92d21b8faf75f753ca49c4dfbabc665551bb79 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==72.2.0 tornado==6.4.1 urllib3==1.26.19 zipp==3.20.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-15: sha256:65c23c4244cdbb9284818ef6b20be937bd92f0efc1a5b03c80c163ec63e80ad3 ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==73.0.1 tornado==6.4.1 urllib3==1.26.19 zipp==3.20.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-16: sha256:c6dee68f40f1b3eb324fd5aed64bb84306d6405b6ebea17aab933ce6c4f8a2ac ####
+pip install certifi==2024.7.4 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==73.0.1 tornado==6.4.1 urllib3==1.26.19 zipp==3.20.0 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Current Patch contents ####
+pip install certifi==2024.8.30 cryptography==42.0.8 requests==2.32.3 scikit-learn==1.5.1 setuptools==74.0.0 tornado==6.4.1 urllib3==1.26.20 zipp==3.20.1 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgdk-pixbuf2.0-0 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
