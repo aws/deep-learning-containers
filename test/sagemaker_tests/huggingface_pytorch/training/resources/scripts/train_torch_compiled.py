@@ -52,7 +52,7 @@ if __name__ == "__main__":
 
     # tokenizer helper function
     def tokenize(batch):
-        return tokenizer(batch["text"], padding="max_length", truncation=True)
+        return tokenizer(batch["text"], padding="max_length", max_length=512, truncation=True)
 
     # load dataset
     train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])

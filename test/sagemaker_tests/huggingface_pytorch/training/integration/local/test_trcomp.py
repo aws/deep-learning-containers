@@ -39,7 +39,7 @@ def test_single_node_single_gpu_tcc_default(
     hyperparameters = {
         "max_steps": 3,
         "train_batch_size": 4,
-        "model_name": "distilbert-base-uncased",
+        "model_name": "distilbert/distilbert-base-uncased",
     }
 
     estimator = HuggingFace(
