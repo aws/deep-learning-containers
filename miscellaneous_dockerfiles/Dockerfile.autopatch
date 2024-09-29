@@ -4,6 +4,7 @@ FROM $BASE_IMAGE_FOR_PATCH_BUILD
 
 ARG LATEST_RELEASED_IMAGE_SHA=""
 ARG LATEST_RELEASED_IMAGE_URI=""
+ENV EFA_VERSION=1.34.0
 
 COPY patching-info /opt/aws/dlc/patching-info
 COPY miscellaneous_scripts /opt/aws/dlc/miscellaneous_scripts
