@@ -1,4 +1,731 @@
 {
+  "linux-libc-dev": [
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdkfd: don't allow mapping the MMIO HDP page with large pages We don't get the right offset in that case. The GPU has an unused 4K area of the register BAR space into which you can remap registers. We remap the HDP flush registers into this space to allow userspace (CPU or GPU) to flush the HDP when it updates VRAM. However, on systems with >4K pages, we end up exposing PAGE_SIZE of MMIO space.",
+      "vulnerability_id": "CVE-2024-41011",
+      "name": "CVE-2024-41011",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41011.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41011 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: PCI/DPC: Fix use-after-free on concurrent DPC and hot-removal Keith reports a use-after-free when a DPC event occurs concurrently to hot-removal of the same portion of the hierarchy: The dpc_handler() awaits readiness of the secondary bus below the Downstream Port where the DPC event occurred. To do so, it polls the config space of the first child device on the secondary bus. If that child device is concurrently removed, accesses to its struct pci_dev cause the kernel to oops. That's because pci_bridge_wait_for_secondary_bus() neglects to hold a reference on the child device. Before v6.3, the function was only called on resume from system sleep or on runtime resume. Holding a reference wasn't necessary back then because the pciehp IRQ thread could never run concurrently. (On resume from system sleep, IRQs are not enabled until after the resume_noirq phase. And runtime resume is always awaited before a PCI device is removed.) However starting ",
+      "vulnerability_id": "CVE-2024-42302",
+      "name": "CVE-2024-42302",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42302.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42302 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: KVM: PPC: Book3S HV: Prevent UAF in kvm_spapr_tce_attach_iommu_group() Al reported a possible use-after-free (UAF) in kvm_spapr_tce_attach_iommu_group(). It looks up `stt` from tablefd, but then continues to use it after doing fdput() on the returned fd. After the fdput() the tablefd is free to be closed by another thread. The close calls kvm_spapr_tce_release() and then release_spapr_tce_table() (via call_rcu()) which frees `stt`. Although there are calls to rcu_read_lock() in kvm_spapr_tce_attach_iommu_group() they are not sufficient to prevent the UAF, because `stt` is used outside the locked regions. With an artifcial delay after the fdput() and a userspace program which triggers the race, KASAN detects the UAF: BUG: KASAN: slab-use-after-free in kvm_spapr_tce_attach_iommu_group+0x298/0x720 [kvm] Read of size 4 at addr c000200027552c30 by task kvm-vfio/2505 CPU: 54 PID: 2505 Comm: kvm-vfio Not tainted 6.10.0-rc3-next-20240612-dirty #1 Har",
+      "vulnerability_id": "CVE-2024-41070",
+      "name": "CVE-2024-41070",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41070.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41070 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: atm: idt77252: prevent use after free in dequeue_rx() We can't dereference \"skb\" after calling vcc->push() because the skb is released.",
+      "vulnerability_id": "CVE-2024-44998",
+      "name": "CVE-2024-44998",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44998.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44998 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: mISDN: Fix a use after free in hfcmulti_tx() Don't dereference *sp after calling dev_kfree_skb(*sp).",
+      "vulnerability_id": "CVE-2024-42280",
+      "name": "CVE-2024-42280",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42280.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42280 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: RDMA/iwcm: Fix a use-after-free related to destroying CM IDs iw_conn_req_handler() associates a new struct rdma_id_private (conn_id) with an existing struct iw_cm_id (cm_id) as follows: conn_id->cm_id.iw = cm_id; cm_id->context = conn_id; cm_id->cm_handler = cma_iw_handler; rdma_destroy_id() frees both the cm_id and the struct rdma_id_private. Make sure that cm_work_handler() does not trigger a use-after-free by only freeing of the struct rdma_id_private after all pending work has finished.",
+      "vulnerability_id": "CVE-2024-42285",
+      "name": "CVE-2024-42285",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42285.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42285 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: gtp: pull network headers in gtp_dev_xmit() syzbot/KMSAN reported use of uninit-value in get_dev_xmit() [1] We must make sure the IPv4 or Ipv6 header is pulled in skb->head before accessing fields in them. Use pskb_inet_may_pull() to fix this issue. [1] BUG: KMSAN: uninit-value in ipv6_pdp_find drivers/net/gtp.c:220 [inline] BUG: KMSAN: uninit-value in gtp_build_skb_ip6 drivers/net/gtp.c:1229 [inline] BUG: KMSAN: uninit-value in gtp_dev_xmit+0x1424/0x2540 drivers/net/gtp.c:1281 ipv6_pdp_find drivers/net/gtp.c:220 [inline] gtp_build_skb_ip6 drivers/net/gtp.c:1229 [inline] gtp_dev_xmit+0x1424/0x2540 drivers/net/gtp.c:1281 __netdev_start_xmit include/linux/netdevice.h:4913 [inline] netdev_start_xmit include/linux/netdevice.h:4922 [inline] xmit_one net/core/dev.c:3580 [inline] dev_hard_start_xmit+0x247/0xa20 net/core/dev.c:3596 __dev_queue_xmit+0x358c/0x5610 net/core/dev.c:4423 dev_queue_xmit include/linux/netdevice.h:3105 [inline] packet_xmit+0x",
+      "vulnerability_id": "CVE-2024-44999",
+      "name": "CVE-2024-44999",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44999.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44999 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: nvme: avoid double free special payload If a discard request needs to be retried, and that retry may fail before a new special payload is added, a double free will result. Clear the RQF_SPECIAL_LOAD when the request is cleaned.",
+      "vulnerability_id": "CVE-2024-41073",
+      "name": "CVE-2024-41073",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41073.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41073 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: usb: dwc3: st: fix probed platform device ref count on probe error path The probe function never performs any paltform device allocation, thus error path \"undo_platform_dev_alloc\" is entirely bogus. It drops the reference count from the platform device being probed. If error path is triggered, this will lead to unbalanced device reference counts and premature release of device resources, thus possible use-after-free when releasing remaining devm-managed resources.",
+      "vulnerability_id": "CVE-2024-46674",
+      "name": "CVE-2024-46674",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46674.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46674 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: jfs: Fix array-index-out-of-bounds in diFree",
+      "vulnerability_id": "CVE-2024-43858",
+      "name": "CVE-2024-43858",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-43858.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43858 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: s390/dasd: fix error recovery leading to data corruption on ESE devices Extent Space Efficient (ESE) or thin provisioned volumes need to be formatted on demand during usual IO processing. The dasd_ese_needs_format function checks for error codes that signal the non existence of a proper track format. The check for incorrect length is to imprecise since other error cases leading to transport of insufficient data also have this flag set. This might lead to data corruption in certain error cases for example during a storage server warmstart. Fix by removing the check for incorrect length and replacing by explicitly checking for invalid track format in transport mode. Also remove the check for file protected since this is not a valid ESE handling case.",
+      "vulnerability_id": "CVE-2024-45026",
+      "name": "CVE-2024-45026",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-45026.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45026 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Supraja Sridhara, Benedict Schlüter, Mark Kuhne, Andrin Bertschi, and Shweta Shinde discovered that the Confidential Computing framework in the Linux kernel for x86 platforms did not properly handle 32-bit emulation on TDX and SEV. An attacker with access to the VMM could use this to cause a denial of service (guest crash) or possibly execute arbitrary code.",
+      "vulnerability_id": "CVE-2024-25744",
+      "name": "CVE-2024-25744",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-25744.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-25744 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: net: bridge: mcast: wait for previous gc cycles when removing port syzbot hit a use-after-free[1] which is caused because the bridge doesn't make sure that all previous garbage has been collected when removing a port. What happens is: CPU 1 CPU 2 start gc cycle remove port acquire gc lock first wait for lock call br_multicasg_gc() directly acquire lock now but free port the port can be freed while grp timers still running Make sure all previous gc cycles have finished by using flush_work before freeing the port. [1] BUG: KASAN: slab-use-after-free in br_multicast_port_group_expired+0x4c0/0x550 net/bridge/br_multicast.c:861 Read of size 8 at addr ffff888071d6d000 by task syz.5.1232/9699 CPU: 1 PID: 9699 Comm: syz.5.1232 Not tainted 6.10.0-rc5-syzkaller-00021-g24ca36a562d6 #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 06/07/2024 Call Trace: <IRQ> __dump_stack lib/dump_stack.c:88 [inline] dump_stack_lvl+0x116/",
+      "vulnerability_id": "CVE-2024-44934",
+      "name": "CVE-2024-44934",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44934.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44934 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: media: venus: fix use after free in vdec_close There appears to be a possible use after free with vdec_close(). The firmware will add buffer release work to the work queue through HFI callbacks as a normal part of decoding. Randomly closing the decoder device from userspace during normal decoding can incur a read after free for inst. Fix it by cancelling the work in vdec_close.",
+      "vulnerability_id": "CVE-2024-42313",
+      "name": "CVE-2024-42313",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42313.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42313 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: dev/parport: fix the array out-of-bounds risk Fixed array out-of-bounds issues caused by sprintf by replacing it with snprintf for safer data copying, ensuring the destination buffer is not overflowed. Below is the stack trace I encountered during the actual issue: [ 66.575408s] [pid:5118,cpu4,QThread,4]Kernel panic - not syncing: stack-protector: Kernel stack is corrupted in: do_hardware_base_addr+0xcc/0xd0 [parport] [ 66.575408s] [pid:5118,cpu4,QThread,5]CPU: 4 PID: 5118 Comm: QThread Tainted: G S W O 5.10.97-arm64-desktop #7100.57021.2 [ 66.575439s] [pid:5118,cpu4,QThread,6]TGID: 5087 Comm: EFileApp [ 66.575439s] [pid:5118,cpu4,QThread,7]Hardware name: HUAWEI HUAWEI QingYun PGUX-W515x-B081/SP1PANGUXM, BIOS 1.00.07 04/29/2024 [ 66.575439s] [pid:5118,cpu4,QThread,8]Call trace: [ 66.575469s] [pid:5118,cpu4,QThread,9] dump_backtrace+0x0/0x1c0 [ 66.575469s] [pid:5118,cpu4,QThread,0] show_stack+0x14/0x20 [ 66.575469s] [pid:5118,cpu4,QThread,1] d",
+      "vulnerability_id": "CVE-2024-42301",
+      "name": "CVE-2024-42301",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42301.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42301 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: exec: Fix ToCToU between perm check and set-uid/gid usage When opening a file for exec via do_filp_open(), permission checking is done against the file's metadata at that moment, and on success, a file pointer is passed back. Much later in the execve() code path, the file metadata (specifically mode, uid, and gid) is used to determine if/how to set the uid and gid. However, those values may have changed since the permissions check, meaning the execution may gain unintended privileges. For example, if a file could change permissions from executable and not set-id: ---------x 1 root root 16048 Aug 7 13:16 target to set-id and non-executable: ---S------ 1 root root 16048 Aug 7 13:16 target it is possible to gain root privileges when execution should have been disallowed. While this race condition is rare in real-world scenarios, it has been observed (and proven exploitable) when package managers are updating the setuid bits of installed programs",
+      "vulnerability_id": "CVE-2024-43882",
+      "name": "CVE-2024-43882",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-43882.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43882 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: net/iucv: fix use after free in iucv_sock_close() iucv_sever_path() is called from process context and from bh context. iucv->path is used as indicator whether somebody else is taking care of severing the path (or it is already removed / never existed). This needs to be done with atomic compare and swap, otherwise there is a small window where iucv_sock_close() will try to work with a path that has already been severed and freed by iucv_callback_connrej() called by iucv_tasklet_fn(). Example: [452744.123844] Call Trace: [452744.123845] ([<0000001e87f03880>] 0x1e87f03880) [452744.123966] [<00000000d593001e>] iucv_path_sever+0x96/0x138 [452744.124330] [<000003ff801ddbca>] iucv_sever_path+0xc2/0xd0 [af_iucv] [452744.124336] [<000003ff801e01b6>] iucv_sock_close+0xa6/0x310 [af_iucv] [452744.124341] [<000003ff801e08cc>] iucv_sock_release+0x3c/0xd0 [af_iucv] [452744.124345] [<00000000d574794e>] __sock_release+0x5e/0xe8 [452744.124815] [<00000000d574",
+      "vulnerability_id": "CVE-2024-42271",
+      "name": "CVE-2024-42271",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42271.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42271 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: scsi: aacraid: Fix double-free on probe failure aac_probe_one() calls hardware-specific init functions through the aac_driver_ident::init pointer, all of which eventually call down to aac_init_adapter(). If aac_init_adapter() fails after allocating memory for aac_dev::queues, it frees the memory but does not clear that member. After the hardware-specific init function returns an error, aac_probe_one() goes down an error path that frees the memory pointed to by aac_dev::queues, resulting.in a double-free.",
+      "vulnerability_id": "CVE-2024-46673",
+      "name": "CVE-2024-46673",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46673.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46673 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ipv6: prevent UAF in ip6_send_skb() syzbot reported an UAF in ip6_send_skb() [1] After ip6_local_out() has returned, we no longer can safely dereference rt, unless we hold rcu_read_lock(). A similar issue has been fixed in commit a688caa34beb (\"ipv6: take rcu lock in rawv6_send_hdrinc()\") Another potential issue in ip6_finish_output2() is handled in a separate patch. [1] BUG: KASAN: slab-use-after-free in ip6_send_skb+0x18d/0x230 net/ipv6/ip6_output.c:1964 Read of size 8 at addr ffff88806dde4858 by task syz.1.380/6530 CPU: 1 UID: 0 PID: 6530 Comm: syz.1.380 Not tainted 6.11.0-rc3-syzkaller-00306-gdf6cbc62cc9b #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024 Call Trace: <TASK> __dump_stack lib/dump_stack.c:93 [inline] dump_stack_lvl+0x241/0x360 lib/dump_stack.c:119 print_address_description mm/kasan/report.c:377 [inline] print_report+0x169/0x550 mm/kasan/report.c:488 kasan_report+0x143/0x180 mm/kasan",
+      "vulnerability_id": "CVE-2024-44987",
+      "name": "CVE-2024-44987",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44987.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44987 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ipv6: fix possible UAF in ip6_finish_output2() If skb_expand_head() returns NULL, skb has been freed and associated dst/idev could also have been freed. We need to hold rcu_read_lock() to make sure the dst and associated idev are alive.",
+      "vulnerability_id": "CVE-2024-44986",
+      "name": "CVE-2024-44986",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44986.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44986 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: vhost/vsock: always initialize seqpacket_allow There are two issues around seqpacket_allow: 1. seqpacket_allow is not initialized when socket is created. Thus if features are never set, it will be read uninitialized. 2. if VIRTIO_VSOCK_F_SEQPACKET is set and then cleared, then seqpacket_allow will not be cleared appropriately (existing apps I know about don't usually do this but it's legal and there's no way to be sure no one relies on this). To fix: - initialize seqpacket_allow after allocation - set it unconditionally in set_features",
+      "vulnerability_id": "CVE-2024-43873",
+      "name": "CVE-2024-43873",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-43873.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43873 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ipv6: prevent possible UAF in ip6_xmit() If skb_expand_head() returns NULL, skb has been freed and the associated dst/idev could also have been freed. We must use rcu_read_lock() to prevent a possible UAF.",
+      "vulnerability_id": "CVE-2024-44985",
+      "name": "CVE-2024-44985",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44985.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44985 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hfsplus: fix uninit-value in copy_name [syzbot reported] BUG: KMSAN: uninit-value in sized_strscpy+0xc4/0x160 sized_strscpy+0xc4/0x160 copy_name+0x2af/0x320 fs/hfsplus/xattr.c:411 hfsplus_listxattr+0x11e9/0x1a50 fs/hfsplus/xattr.c:750 vfs_listxattr fs/xattr.c:493 [inline] listxattr+0x1f3/0x6b0 fs/xattr.c:840 path_listxattr fs/xattr.c:864 [inline] __do_sys_listxattr fs/xattr.c:876 [inline] __se_sys_listxattr fs/xattr.c:873 [inline] __x64_sys_listxattr+0x16b/0x2f0 fs/xattr.c:873 x64_sys_call+0x2ba0/0x3b50 arch/x86/include/generated/asm/syscalls_64.h:195 do_syscall_x64 arch/x86/entry/common.c:52 [inline] do_syscall_64+0xcf/0x1e0 arch/x86/entry/common.c:83 entry_SYSCALL_64_after_hwframe+0x77/0x7f Uninit was created at: slab_post_alloc_hook mm/slub.c:3877 [inline] slab_alloc_node mm/slub.c:3918 [inline] kmalloc_trace+0x57b/0xbe0 mm/slub.c:4065 kmalloc include/linux/slab.h:628 [inline] hfsplus_listxattr+0x4cc/0x1a50 fs/hfsplus/xattr.c:699 vfs_listx",
+      "vulnerability_id": "CVE-2024-41059",
+      "name": "CVE-2024-41059",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41059.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41059 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: tipc: Return non-zero value from tipc_udp_addr2str() on error tipc_udp_addr2str() should return non-zero value if the UDP media address is invalid. Otherwise, a buffer overflow access can occur in tipc_media_addr_printf(). Fix this by returning 1 on an invalid UDP media address.",
+      "vulnerability_id": "CVE-2024-42284",
+      "name": "CVE-2024-42284",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42284.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42284 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: netfilter: flowtable: validate vlan header Ensure there is sufficient room to access the protocol field of the VLAN header, validate it once before the flowtable lookup. ===================================================== BUG: KMSAN: uninit-value in nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32 nf_flow_offload_inet_hook+0x45a/0x5f0 net/netfilter/nf_flow_table_inet.c:32 nf_hook_entry_hookfn include/linux/netfilter.h:154 [inline] nf_hook_slow+0xf4/0x400 net/netfilter/core.c:626 nf_hook_ingress include/linux/netfilter_netdev.h:34 [inline] nf_ingress net/core/dev.c:5440 [inline]",
+      "vulnerability_id": "CVE-2024-44983",
+      "name": "CVE-2024-44983",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44983.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44983 - linux, linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    }
+  ],
   "linux": [
     {
       "description": "In the Linux kernel, the following vulnerability has been resolved: mISDN: Fix a use after free in hfcmulti_tx() Don't dereference *sp after calling dev_kfree_skb(*sp).",
