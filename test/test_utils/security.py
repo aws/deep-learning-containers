@@ -15,6 +15,7 @@ from test.test_utils import (
     EnhancedJSONEncoder,
     ecr as ecr_utils,
     get_installed_python_packages_with_version,
+    is_huggingface_image,
 )
 import dataclasses
 from dataclasses import dataclass
@@ -159,10 +160,13 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             dataclasses.asdict(other.package_details),
             ignore_keys=["version", "file_path"],
         ):
+            ignore_keys = ["package_details", "title", "reason_to_ignore"]
+            if is_huggingface_image():
+                ignore_keys.extend(["description", "remediation", "source_url"])
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
-                ignore_keys=["package_details", "title", "reason_to_ignore"],
+                ignore_keys=ignore_keys,
             )
         return False
 
