@@ -739,7 +739,7 @@ def is_rc_test_context():
 
 
 def is_huggingface_image():
-    return os.getenv("FRAMEWORK_BUILD_SPEC_FILE").startswith("huggingface")
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
 
 
 def is_covered_by_ec2_sm_split(image_uri):
