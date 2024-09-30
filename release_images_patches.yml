@@ -329,24 +329,37 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  # 26:
-  #   framework: "pytorch"
-  #   version: "2.4.0"
-  #   arch_type: "x86"
-  #   customer_type: "sagemaker"
-  #   inference:
-  #     device_types: [ "cpu", "gpu" ]
-  #     python_versions: [ "py311" ]
-  #     os_version: "ubuntu22.04"
-  #     cuda_version: "cu124"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
   26:
+    framework: "pytorch"
+    version: "2.4.0"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  27:
     framework: "pytorch"
     version: "2.4.0"
     arch_type: "graviton"
     customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  28:
+    framework: "pytorch"
+    version: "2.4.0"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py311" ]
@@ -356,7 +369,7 @@ release_images:
       force_release: False
 
   # TensorFlow 2.14 Images
-  27:
+  29:
     framework: "tensorflow"
     version: "2.14.1"
     customer_type: "ec2"
@@ -369,7 +382,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  28:
+  30:
     framework: "tensorflow"
     version: "2.14.1"
     customer_type: "sagemaker"
@@ -436,7 +449,7 @@ release_images:
   #     force_release: False
 
   # TensorFlow 2.16 Images
-  29:
+  31:
     framework: "tensorflow"
     version: "2.16.2"
     customer_type: "ec2"
@@ -449,7 +462,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  30:
+  32:
     framework: "tensorflow"
     version: "2.16.2"
     customer_type: "sagemaker"
