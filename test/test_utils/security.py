@@ -160,7 +160,6 @@ class AllowListFormatVulnerabilityForEnhancedScan:
             dataclasses.asdict(other.package_details),
             ignore_keys=["version", "file_path"],
         ):
-
             ignore_keys = ["package_details", "title", "reason_to_ignore"]
             if is_huggingface_image():
                 ignore_keys.extend(["description", "remediation", "source_url"])
