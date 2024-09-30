@@ -69,8 +69,10 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
         test_results = p.starmap(
             sm_utils.execute_local_tests, [[image, pytest_cache_params] for image in images]
         )
+        print("sallyseo test_results:\n", test_results) ### sallyseo temp
     if not all(test_results):
         failed_images = [images[index] for index, result in enumerate(test_results) if not result]
+        print("sallyseo failed results: ", [result for index, result in enumerate(test_results) if not result]) ### sallyseo temp
         raise RuntimeError(
             f"SageMaker Local tests failed on the following DLCs:\n"
             f"{json.dumps(failed_images, indent=4)}"
