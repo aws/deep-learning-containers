@@ -739,6 +739,8 @@ def is_rc_test_context():
 
 
 def is_huggingface_image():
+    if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        return False
     return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
 
 
