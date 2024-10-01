@@ -1,6 +1,586 @@
 {
   "linux-libc-dev": [
     {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (adc128d818) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46759",
+      "name": "CVE-2024-46759",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46759.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46759 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup report_fixup for the Cougar 500k Gaming Keyboard was not verifying that the report descriptor size was correct before accessing it",
+      "vulnerability_id": "CVE-2024-46747",
+      "name": "CVE-2024-46747",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46747.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46747 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: fix mc_data out-of-bounds read warning Clear warning that read mc_data[i-1] may out-of-bounds.",
+      "vulnerability_id": "CVE-2024-46722",
+      "name": "CVE-2024-46722",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46722.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46722 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ila: call nf_unregister_net_hooks() sooner syzbot found an use-after-free Read in ila_nf_input [1] Issue here is that ila_xlat_exit_net() frees the rhashtable, then call nf_unregister_net_hooks(). It should be done in the reverse way, with a synchronize_rcu(). This is a good match for a pre_exit() method. [1] BUG: KASAN: use-after-free in rht_key_hashfn include/linux/rhashtable.h:159 [inline] BUG: KASAN: use-after-free in __rhashtable_lookup include/linux/rhashtable.h:604 [inline] BUG: KASAN: use-after-free in rhashtable_lookup include/linux/rhashtable.h:646 [inline] BUG: KASAN: use-after-free in rhashtable_lookup_fast+0x77a/0x9b0 include/linux/rhashtable.h:672 Read of size 4 at addr ffff888064620008 by task ksoftirqd/0/16 CPU: 0 UID: 0 PID: 16 Comm: ksoftirqd/0 Not tainted 6.11.0-rc4-syzkaller-00238-g2ad6d23f465a #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024 Call Trace: <TASK> __dump_stack lib/d",
+      "vulnerability_id": "CVE-2024-46782",
+      "name": "CVE-2024-46782",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46782.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46782 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: binder: fix UAF caused by offsets overwrite Binder objects are processed and copied individually into the target buffer during transactions. Any raw data in-between these objects is copied as well. However, this raw data copy lacks an out-of-bounds check. If the raw data exceeds the data section size then the copy overwrites the offsets section. This eventually triggers an error that attempts to unwind the processed objects. However, at this point the offsets used to index these objects are now corrupted. Unwinding with corrupted offsets can result in decrements of arbitrary nodes and lead to their premature release. Other users of such nodes are left with a dangling pointer triggering a use-after-free. This issue is made evident by the following KASAN report (trimmed): ================================================================== BUG: KASAN: slab-use-after-free in _raw_spin_lock+0xe4/0x19c Write of size 4 at addr ffff47fc91598f04 by tas",
+      "vulnerability_id": "CVE-2024-46740",
+      "name": "CVE-2024-46740",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46740.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46740 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: wifi: mac80211: Avoid address calculations via out of bounds array indexing req->n_channels must be set before req->channels[] can be used. This patch fixes one of the issues encountered in [1]. [ 83.964255] UBSAN: array-index-out-of-bounds in net/mac80211/scan.c:364:4 [ 83.964258] index 0 is out of range for type 'struct ieee80211_channel *[]' [...] [ 83.964264] Call Trace: [ 83.964267] <TASK> [ 83.964269] dump_stack_lvl+0x3f/0xc0 [ 83.964274] __ubsan_handle_out_of_bounds+0xec/0x110 [ 83.964278] ieee80211_prep_hw_scan+0x2db/0x4b0 [ 83.964281] __ieee80211_start_scan+0x601/0x990 [ 83.964291] nl80211_trigger_scan+0x874/0x980 [ 83.964295] genl_family_rcv_msg_doit+0xe8/0x160 [ 83.964298] genl_rcv_msg+0x240/0x270 [...] [1] https://bugzilla.kernel.org/show_bug.cgi?id=218810",
+      "vulnerability_id": "CVE-2024-41071",
+      "name": "CVE-2024-41071",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41071.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41071 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object When using kernel with the following extra config, - CONFIG_KASAN=y - CONFIG_KASAN_GENERIC=y - CONFIG_KASAN_INLINE=y - CONFIG_KASAN_VMALLOC=y - CONFIG_FRAME_WARN=4096 kernel detects that snd_pcm_suspend_all() access a freed 'snd_soc_pcm_runtime' object when the system is suspended, which leads to a use-after-free bug: [ 52.047746] BUG: KASAN: use-after-free in snd_pcm_suspend_all+0x1a8/0x270 [ 52.047765] Read of size 1 at addr ffff0000b9434d50 by task systemd-sleep/2330 [ 52.047785] Call trace: [ 52.047787] dump_backtrace+0x0/0x3c0 [ 52.047794] show_stack+0x34/0x50 [ 52.047797] dump_stack_lvl+0x68/0x8c [ 52.047802] print_address_description.constprop.0+0x74/0x2c0 [ 52.047809] kasan_report+0x210/0x230 [ 52.047815] __asan_report_load1_noabort+0x3c/0x50 [ 52.047820] snd_pcm_suspend_all+0x1a8/0x270 [ 52.047824] snd_soc_suspend+0x19c/0x4e0 The snd_pcm_sync_stop() has a NULL check on 'substream->ru",
+      "vulnerability_id": "CVE-2024-46798",
+      "name": "CVE-2024-46798",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46798.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46798 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: rcu-tasks: Fix show_rcu_tasks_trace_gp_kthread buffer overflow There is a possibility of buffer overflow in show_rcu_tasks_trace_gp_kthread() if counters, passed to sprintf() are huge. Counter numbers, needed for this are unrealistically high, but buffer overflow is still possible. Use snprintf() with buffer size instead of sprintf(). Found by Linux Verification Center (linuxtesting.org) with SVACE.",
+      "vulnerability_id": "CVE-2024-38577",
+      "name": "CVE-2024-38577",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38577.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-38577 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amd/pm: fix the Out-of-bounds read warning using index i - 1U may beyond element index for mc_data[] when i = 0.",
+      "vulnerability_id": "CVE-2024-46731",
+      "name": "CVE-2024-46731",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46731.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46731 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (w83627ehf) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46756",
+      "name": "CVE-2024-46756",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46756.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46756 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Fix out-of-bounds read of df_v1_7_channel_number Check the fb_channel_number range to avoid the array out-of-bounds read error",
+      "vulnerability_id": "CVE-2024-46724",
+      "name": "CVE-2024-46724",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46724.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46724 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (lm95234) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46758",
+      "name": "CVE-2024-46758",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46758.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46758 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: HID: amd_sfh: free driver_data after destroying hid device HID driver callbacks aren't called anymore once hid_destroy_device() has been called. Hence, hid driver_data should be freed only after the hid_destroy_device() function returned as driver_data is used in several callbacks. I observed a crash with kernel 6.10.0 on my T14s Gen 3, after enabling KASAN to debug memory allocation, I got this output: [ 13.050438] ================================================================== [ 13.054060] BUG: KASAN: slab-use-after-free in amd_sfh_get_report+0x3ec/0x530 [amd_sfh] [ 13.054809] psmouse serio1: trackpoint: Synaptics TrackPoint firmware: 0x02, buttons: 3/3 [ 13.056432] Read of size 8 at addr ffff88813152f408 by task (udev-worker)/479 [ 13.060970] CPU: 5 PID: 479 Comm: (udev-worker) Not tainted 6.10.0-arch1-2 #1 893bb55d7f0073f25c46adbb49eb3785fefd74b0 [ 13.063978] Hardware name: LENOVO 21CQCTO1WW/21CQCTO1WW, BIOS R22ET70W (1.40 ) 03/21/2024",
+      "vulnerability_id": "CVE-2024-46746",
+      "name": "CVE-2024-46746",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46746.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46746 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: VMCI: Fix use-after-free when removing resource in vmci_resource_remove() When removing a resource from vmci_resource_table in vmci_resource_remove(), the search is performed using the resource handle by comparing context and resource fields. It is possible though to create two resources with different types but same handle (same context and resource fields). When trying to remove one of the resources, vmci_resource_remove() may not remove the intended one, but the object will still be freed as in the case of the datagram type in vmci_datagram_destroy_handle(). vmci_resource_table will still hold a pointer to this freed resource leading to a use-after-free vulnerability. BUG: KASAN: use-after-free in vmci_handle_is_equal include/linux/vmw_vmci_defs.h:142 [inline] BUG: KASAN: use-after-free in vmci_resource_remove+0x3a1/0x410 drivers/misc/vmw_vmci/vmci_resource.c:147 Read of size 4 at addr ffff88801c16d800 by task syz-executor197/1592 Call Tra",
+      "vulnerability_id": "CVE-2024-46738",
+      "name": "CVE-2024-46738",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46738.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46738 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (nct6775-core) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46757",
+      "name": "CVE-2024-46757",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46757.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46757 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: of/irq: Prevent device address out-of-bounds read in interrupt map walk When of_irq_parse_raw() is invoked with a device address smaller than the interrupt parent node (from #address-cells property), KASAN detects the following out-of-bounds read when populating the initial match table (dyndbg=\"func of_irq_parse_* +p\"): OF: of_irq_parse_one: dev=/soc@0/picasso/watchdog, index=0 OF: parent=/soc@0/pci@878000000000/gpio0@17,0, intsize=2 OF: intspec=4 OF: of_irq_parse_raw: ipar=/soc@0/pci@878000000000/gpio0@17,0, size=2 OF: -> addrsize=3 ================================================================== BUG: KASAN: slab-out-of-bounds in of_irq_parse_raw+0x2b8/0x8d0 Read of size 4 at addr ffffff81beca5608 by task bash/764 CPU: 1 PID: 764 Comm: bash Tainted: G O 6.1.67-484c613561-nokia_sm_arm64 #1 Hardware name: Unknown Unknown Product/Unknown Product, BIOS 2023.01-12.24.03-dirty 01/01/2023 Call trace: dump_backtrace+0xdc/0x130 show_stack+0x1c/0x30",
+      "vulnerability_id": "CVE-2024-46743",
+      "name": "CVE-2024-46743",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46743.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46743 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: mptcp: pm: avoid possible UaF when selecting endp select_local_address() and select_signal_address() both select an endpoint entry from the list inside an RCU protected section, but return a reference to it, to be read later on. If the entry is dereferenced after the RCU unlock, reading info could cause a Use-after-Free. A simple solution is to copy the required info while inside the RCU protected section to avoid any risk of UaF later. The address ID might need to be modified later to handle the ID0 case later, so a copy seems OK to deal with.",
+      "vulnerability_id": "CVE-2024-44974",
+      "name": "CVE-2024-44974",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44974.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44974 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: sch/netem: fix use after free in netem_dequeue If netem_dequeue() enqueues packet to inner qdisc and that qdisc returns __NET_XMIT_STOLEN. The packet is dropped but qdisc_tree_reduce_backlog() is not called to update the parent's q.qlen, leading to the similar use-after-free as Commit e04991a48dbaf382 (\"netem: fix return value if duplicate enqueue fails\") Commands to trigger KASAN UaF: ip link add type dummy ip link set lo up ip link set dummy0 up tc qdisc add dev lo parent root handle 1: drr tc filter add dev lo parent 1: basic classid 1:1 tc class add dev lo classid 1:1 drr tc qdisc add dev lo parent 1:1 handle 2: netem tc qdisc add dev lo parent 2: handle 3: drr tc filter add dev lo parent 3: basic classid 3:1 action mirred egress redirect dev dummy0 tc class add dev lo classid 3:1 drr ping -c1 -W0.01 localhost # Trigger bug tc class del dev lo classid 1:1 tc class add dev lo classid 1:1 drr ping -c1 -W0.01 localhost # UaF",
+      "vulnerability_id": "CVE-2024-46800",
+      "name": "CVE-2024-46800",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46800.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46800 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Fix out-of-bounds write warning Check the ring type value to fix the out-of-bounds write warning",
+      "vulnerability_id": "CVE-2024-46725",
+      "name": "CVE-2024-46725",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46725.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46725 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: fix ucode out-of-bounds read warning Clear warning that read ucode[] may out-of-bounds.",
+      "vulnerability_id": "CVE-2024-46723",
+      "name": "CVE-2024-46723",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46723.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46723 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
       "description": "In the Linux kernel, the following vulnerability has been resolved: ipv6: prevent possible UAF in ip6_xmit() If skb_expand_head() returns NULL, skb has been freed and the associated dst/idev could also have been freed. We must use rcu_read_lock() to prevent a possible UAF.",
       "vulnerability_id": "CVE-2024-44985",
       "name": "CVE-2024-44985",
@@ -2407,6 +2987,586 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-42285 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (adc128d818) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46759",
+      "name": "CVE-2024-46759",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46759.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46759 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: HID: cougar: fix slab-out-of-bounds Read in cougar_report_fixup report_fixup for the Cougar 500k Gaming Keyboard was not verifying that the report descriptor size was correct before accessing it",
+      "vulnerability_id": "CVE-2024-46747",
+      "name": "CVE-2024-46747",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46747.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46747 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: fix mc_data out-of-bounds read warning Clear warning that read mc_data[i-1] may out-of-bounds.",
+      "vulnerability_id": "CVE-2024-46722",
+      "name": "CVE-2024-46722",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46722.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46722 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ila: call nf_unregister_net_hooks() sooner syzbot found an use-after-free Read in ila_nf_input [1] Issue here is that ila_xlat_exit_net() frees the rhashtable, then call nf_unregister_net_hooks(). It should be done in the reverse way, with a synchronize_rcu(). This is a good match for a pre_exit() method. [1] BUG: KASAN: use-after-free in rht_key_hashfn include/linux/rhashtable.h:159 [inline] BUG: KASAN: use-after-free in __rhashtable_lookup include/linux/rhashtable.h:604 [inline] BUG: KASAN: use-after-free in rhashtable_lookup include/linux/rhashtable.h:646 [inline] BUG: KASAN: use-after-free in rhashtable_lookup_fast+0x77a/0x9b0 include/linux/rhashtable.h:672 Read of size 4 at addr ffff888064620008 by task ksoftirqd/0/16 CPU: 0 UID: 0 PID: 16 Comm: ksoftirqd/0 Not tainted 6.11.0-rc4-syzkaller-00238-g2ad6d23f465a #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024 Call Trace: <TASK> __dump_stack lib/d",
+      "vulnerability_id": "CVE-2024-46782",
+      "name": "CVE-2024-46782",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46782.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46782 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: binder: fix UAF caused by offsets overwrite Binder objects are processed and copied individually into the target buffer during transactions. Any raw data in-between these objects is copied as well. However, this raw data copy lacks an out-of-bounds check. If the raw data exceeds the data section size then the copy overwrites the offsets section. This eventually triggers an error that attempts to unwind the processed objects. However, at this point the offsets used to index these objects are now corrupted. Unwinding with corrupted offsets can result in decrements of arbitrary nodes and lead to their premature release. Other users of such nodes are left with a dangling pointer triggering a use-after-free. This issue is made evident by the following KASAN report (trimmed): ================================================================== BUG: KASAN: slab-use-after-free in _raw_spin_lock+0xe4/0x19c Write of size 4 at addr ffff47fc91598f04 by tas",
+      "vulnerability_id": "CVE-2024-46740",
+      "name": "CVE-2024-46740",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46740.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46740 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: wifi: mac80211: Avoid address calculations via out of bounds array indexing req->n_channels must be set before req->channels[] can be used. This patch fixes one of the issues encountered in [1]. [ 83.964255] UBSAN: array-index-out-of-bounds in net/mac80211/scan.c:364:4 [ 83.964258] index 0 is out of range for type 'struct ieee80211_channel *[]' [...] [ 83.964264] Call Trace: [ 83.964267] <TASK> [ 83.964269] dump_stack_lvl+0x3f/0xc0 [ 83.964274] __ubsan_handle_out_of_bounds+0xec/0x110 [ 83.964278] ieee80211_prep_hw_scan+0x2db/0x4b0 [ 83.964281] __ieee80211_start_scan+0x601/0x990 [ 83.964291] nl80211_trigger_scan+0x874/0x980 [ 83.964295] genl_family_rcv_msg_doit+0xe8/0x160 [ 83.964298] genl_rcv_msg+0x240/0x270 [...] [1] https://bugzilla.kernel.org/show_bug.cgi?id=218810",
+      "vulnerability_id": "CVE-2024-41071",
+      "name": "CVE-2024-41071",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-41071.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-41071 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: ASoC: dapm: Fix UAF for snd_soc_pcm_runtime object When using kernel with the following extra config, - CONFIG_KASAN=y - CONFIG_KASAN_GENERIC=y - CONFIG_KASAN_INLINE=y - CONFIG_KASAN_VMALLOC=y - CONFIG_FRAME_WARN=4096 kernel detects that snd_pcm_suspend_all() access a freed 'snd_soc_pcm_runtime' object when the system is suspended, which leads to a use-after-free bug: [ 52.047746] BUG: KASAN: use-after-free in snd_pcm_suspend_all+0x1a8/0x270 [ 52.047765] Read of size 1 at addr ffff0000b9434d50 by task systemd-sleep/2330 [ 52.047785] Call trace: [ 52.047787] dump_backtrace+0x0/0x3c0 [ 52.047794] show_stack+0x34/0x50 [ 52.047797] dump_stack_lvl+0x68/0x8c [ 52.047802] print_address_description.constprop.0+0x74/0x2c0 [ 52.047809] kasan_report+0x210/0x230 [ 52.047815] __asan_report_load1_noabort+0x3c/0x50 [ 52.047820] snd_pcm_suspend_all+0x1a8/0x270 [ 52.047824] snd_soc_suspend+0x19c/0x4e0 The snd_pcm_sync_stop() has a NULL check on 'substream->ru",
+      "vulnerability_id": "CVE-2024-46798",
+      "name": "CVE-2024-46798",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46798.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46798 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: rcu-tasks: Fix show_rcu_tasks_trace_gp_kthread buffer overflow There is a possibility of buffer overflow in show_rcu_tasks_trace_gp_kthread() if counters, passed to sprintf() are huge. Counter numbers, needed for this are unrealistically high, but buffer overflow is still possible. Use snprintf() with buffer size instead of sprintf(). Found by Linux Verification Center (linuxtesting.org) with SVACE.",
+      "vulnerability_id": "CVE-2024-38577",
+      "name": "CVE-2024-38577",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38577.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-38577 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amd/pm: fix the Out-of-bounds read warning using index i - 1U may beyond element index for mc_data[] when i = 0.",
+      "vulnerability_id": "CVE-2024-46731",
+      "name": "CVE-2024-46731",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46731.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46731 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (w83627ehf) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46756",
+      "name": "CVE-2024-46756",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46756.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46756 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Fix out-of-bounds read of df_v1_7_channel_number Check the fb_channel_number range to avoid the array out-of-bounds read error",
+      "vulnerability_id": "CVE-2024-46724",
+      "name": "CVE-2024-46724",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46724.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46724 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (lm95234) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46758",
+      "name": "CVE-2024-46758",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46758.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46758 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: HID: amd_sfh: free driver_data after destroying hid device HID driver callbacks aren't called anymore once hid_destroy_device() has been called. Hence, hid driver_data should be freed only after the hid_destroy_device() function returned as driver_data is used in several callbacks. I observed a crash with kernel 6.10.0 on my T14s Gen 3, after enabling KASAN to debug memory allocation, I got this output: [ 13.050438] ================================================================== [ 13.054060] BUG: KASAN: slab-use-after-free in amd_sfh_get_report+0x3ec/0x530 [amd_sfh] [ 13.054809] psmouse serio1: trackpoint: Synaptics TrackPoint firmware: 0x02, buttons: 3/3 [ 13.056432] Read of size 8 at addr ffff88813152f408 by task (udev-worker)/479 [ 13.060970] CPU: 5 PID: 479 Comm: (udev-worker) Not tainted 6.10.0-arch1-2 #1 893bb55d7f0073f25c46adbb49eb3785fefd74b0 [ 13.063978] Hardware name: LENOVO 21CQCTO1WW/21CQCTO1WW, BIOS R22ET70W (1.40 ) 03/21/2024",
+      "vulnerability_id": "CVE-2024-46746",
+      "name": "CVE-2024-46746",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46746.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46746 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: VMCI: Fix use-after-free when removing resource in vmci_resource_remove() When removing a resource from vmci_resource_table in vmci_resource_remove(), the search is performed using the resource handle by comparing context and resource fields. It is possible though to create two resources with different types but same handle (same context and resource fields). When trying to remove one of the resources, vmci_resource_remove() may not remove the intended one, but the object will still be freed as in the case of the datagram type in vmci_datagram_destroy_handle(). vmci_resource_table will still hold a pointer to this freed resource leading to a use-after-free vulnerability. BUG: KASAN: use-after-free in vmci_handle_is_equal include/linux/vmw_vmci_defs.h:142 [inline] BUG: KASAN: use-after-free in vmci_resource_remove+0x3a1/0x410 drivers/misc/vmw_vmci/vmci_resource.c:147 Read of size 4 at addr ffff88801c16d800 by task syz-executor197/1592 Call Tra",
+      "vulnerability_id": "CVE-2024-46738",
+      "name": "CVE-2024-46738",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46738.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46738 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: hwmon: (nct6775-core) Fix underflows seen when writing limit attributes DIV_ROUND_CLOSEST() after kstrtol() results in an underflow if a large negative number such as -9223372036854775808 is provided by the user. Fix it by reordering clamp_val() and DIV_ROUND_CLOSEST() operations.",
+      "vulnerability_id": "CVE-2024-46757",
+      "name": "CVE-2024-46757",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46757.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46757 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: of/irq: Prevent device address out-of-bounds read in interrupt map walk When of_irq_parse_raw() is invoked with a device address smaller than the interrupt parent node (from #address-cells property), KASAN detects the following out-of-bounds read when populating the initial match table (dyndbg=\"func of_irq_parse_* +p\"): OF: of_irq_parse_one: dev=/soc@0/picasso/watchdog, index=0 OF: parent=/soc@0/pci@878000000000/gpio0@17,0, intsize=2 OF: intspec=4 OF: of_irq_parse_raw: ipar=/soc@0/pci@878000000000/gpio0@17,0, size=2 OF: -> addrsize=3 ================================================================== BUG: KASAN: slab-out-of-bounds in of_irq_parse_raw+0x2b8/0x8d0 Read of size 4 at addr ffffff81beca5608 by task bash/764 CPU: 1 PID: 764 Comm: bash Tainted: G O 6.1.67-484c613561-nokia_sm_arm64 #1 Hardware name: Unknown Unknown Product/Unknown Product, BIOS 2023.01-12.24.03-dirty 01/01/2023 Call trace: dump_backtrace+0xdc/0x130 show_stack+0x1c/0x30",
+      "vulnerability_id": "CVE-2024-46743",
+      "name": "CVE-2024-46743",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46743.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46743 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: mptcp: pm: avoid possible UaF when selecting endp select_local_address() and select_signal_address() both select an endpoint entry from the list inside an RCU protected section, but return a reference to it, to be read later on. If the entry is dereferenced after the RCU unlock, reading info could cause a Use-after-Free. A simple solution is to copy the required info while inside the RCU protected section to avoid any risk of UaF later. The address ID might need to be modified later to handle the ID0 case later, so a copy seems OK to deal with.",
+      "vulnerability_id": "CVE-2024-44974",
+      "name": "CVE-2024-44974",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-44974.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-44974 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: sch/netem: fix use after free in netem_dequeue If netem_dequeue() enqueues packet to inner qdisc and that qdisc returns __NET_XMIT_STOLEN. The packet is dropped but qdisc_tree_reduce_backlog() is not called to update the parent's q.qlen, leading to the similar use-after-free as Commit e04991a48dbaf382 (\"netem: fix return value if duplicate enqueue fails\") Commands to trigger KASAN UaF: ip link add type dummy ip link set lo up ip link set dummy0 up tc qdisc add dev lo parent root handle 1: drr tc filter add dev lo parent 1: basic classid 1:1 tc class add dev lo classid 1:1 drr tc qdisc add dev lo parent 1:1 handle 2: netem tc qdisc add dev lo parent 2: handle 3: drr tc filter add dev lo parent 3: basic classid 3:1 action mirred egress redirect dev dummy0 tc class add dev lo classid 3:1 drr ping -c1 -W0.01 localhost # Trigger bug tc class del dev lo classid 1:1 tc class add dev lo classid 1:1 drr ping -c1 -W0.01 localhost # UaF",
+      "vulnerability_id": "CVE-2024-46800",
+      "name": "CVE-2024-46800",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46800.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46800 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: Fix out-of-bounds write warning Check the ring type value to fix the out-of-bounds write warning",
+      "vulnerability_id": "CVE-2024-46725",
+      "name": "CVE-2024-46725",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46725.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46725 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: drm/amdgpu: fix ucode out-of-bounds read warning Clear warning that read ucode[] may out-of-bounds.",
+      "vulnerability_id": "CVE-2024-46723",
+      "name": "CVE-2024-46723",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.15.0",
+        "release": "122.132"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-46723.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-46723 - linux-libc-dev, linux",
       "reason_to_ignore": "N/A"
     }
   ]
