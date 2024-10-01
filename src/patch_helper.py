@@ -237,6 +237,16 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
     )
 
+    torchserve_entrypoint_path = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "pytorch",
+        "inference",
+        "docker",
+        "build_artifacts",
+        "torchserve-entrypoint.py",
+    )
+
     verify_artifact_contents_for_patch_builds(
         patching_info_folder_path=complete_patching_info_dump_location,
         miscellaneous_scripts_path=miscellaneous_scripts_path,
@@ -260,6 +270,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "patching-info": {
             "source": complete_patching_info_dump_location,
             "target": "patching-info",
+        },
+        "new-torchserve-entrypoint": {
+            "source": torchserve_entrypoint_path,
+            "target": "new-torchserve-entrypoint",
         },
     }
     context = Context(
