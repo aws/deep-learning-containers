@@ -8,5 +8,7 @@ ARG LATEST_RELEASED_IMAGE_URI=""
 COPY patching-info /opt/aws/dlc/patching-info
 COPY miscellaneous_scripts /opt/aws/dlc/miscellaneous_scripts
 
+COPY new-torchserve-entrypoint /tmp/new-torchserve-entrypoint
+
 RUN chmod +x /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh && \
     /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh $LATEST_RELEASED_IMAGE_SHA $LATEST_RELEASED_IMAGE_URI
