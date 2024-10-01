@@ -738,10 +738,6 @@ def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
 
 
-def is_huggingface_image():
-    return os.getenv("FRAMEWORK_BUILD_SPEC_FILE").startswith("huggingface")
-
-
 def is_covered_by_ec2_sm_split(image_uri):
     ec2_sm_split_images = {
         "pytorch": SpecifierSet(">=1.10.0"),
@@ -773,10 +769,6 @@ def is_ec2_image(image_uri):
 
 def is_sagemaker_image(image_uri):
     return "-sagemaker" in image_uri
-
-
-def is_trcomp_image(image_uri):
-    return "-trcomp" in image_uri
 
 
 def is_time_for_canary_safety_scan():
@@ -1843,6 +1835,11 @@ def get_framework_from_image_uri(image_uri):
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
     return "trcomp" in framework
+
+
+def is_huggingface_image(image_uri):
+    framework = get_framework_from_image_uri(image_uri)
+    return "huggingface" in framework
 
 
 def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
