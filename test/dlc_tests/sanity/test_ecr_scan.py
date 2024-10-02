@@ -294,9 +294,8 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
     allowlist_for_daily_scans = image_scan_allowlist
-    LOGGER.info("vulerability_list", ecr_image_vulnerability_list)
-    LOGGER.info("image_scan_allowlist", image_scan_allowlist)
-    LOGGER.info("non_patchable_vulnerabilities", non_patchable_vulnerabilities)
+    LOGGER.info("vulerability_list", ecr_image_vulnerability_list.vulnerability_list)
+    LOGGER.info("image_scan_allowlist", image_scan_allowlist.vulnerability_list)
 
     if remove_non_patchable_vulns:
         non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
