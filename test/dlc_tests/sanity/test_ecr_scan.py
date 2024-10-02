@@ -312,6 +312,9 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             image_scan_allowlist=image_scan_allowlist,
             non_patchable_vulnerabilities=non_patchable_vulnerabilities,
         )
+        print("vulerability_list", ecr_image_vulnerability_list)
+        print("image_scan_allowlist", image_scan_allowlist)
+        print("non_patchable_vulnerabilities", non_patchable_vulnerabilities)
         allowlist_for_daily_scans = future_allowlist
 
         # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
