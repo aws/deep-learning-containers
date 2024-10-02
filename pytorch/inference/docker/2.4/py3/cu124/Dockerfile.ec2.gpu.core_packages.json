@@ -1,57 +1,20 @@
 {
-  "captum": {
-    "version_specifier": "==0.6.0",
-    "skip": "True"
+  "idna":{
+    "version_specifier":">=3.7"
   },
-  "torchaudio": {
-    "version_specifier": "==2.3.0+cu121",
-    "skip": "True"
+  "tqdm":{
+    "version_specifier":">=4.66.3"
   },
-  "torchtext": {
-    "version_specifier": "==0.18.0+cu121",
-    "skip": "True"
+  "requests":{
+    "version_specifier":">=2.32.2"
   },
-  "torchvision": {
-    "version_specifier": "==0.18.0+cu121",
-    "skip": "True"
+  "setuptools":{
+    "version_specifier":">=70.0.0"
   },
-  "triton": {
-    "version_specifier": "==2.3.0"
+  "urllib3":{
+    "version_specifier":"<2"
   },
-  "awscli": {
-    "version_specifier": "<2"
-  },
-  "idna": {
-    "version_specifier": ">=3.7"
-  },
-  "tqdm": {
-    "version_specifier": ">=4.66.3"
-  },
-  "zstandard": {
-    "version_specifier": ">=0.22.0"
-  },
-  "pyopenssl": {
-    "version_specifier": ">=24.0.0"
-  },
-  "cryptography": {
-    "version_specifier": ">=42.0.5"
-  },
-  "ipython": {
-    "version_specifier": ">=8.10.0,<9.0"
-  },
-  "urllib3": {
-    "version_specifier": ">=1.26.18,<2"
-  },
-  "prompt-toolkit": {
-    "version_specifier": "<3.0.39"
-  },
-  "requests": {
-    "version_specifier": ">=2.32.3"
-  },
-  "torchserve": {
-    "version_specifier": "==0.11.0"
-  },
-  "torch-model-archiver": {
-    "version_specifier": "==0.11.0"
+  "awscli":{
+    "version_specifier":"<2"
   }
 }
