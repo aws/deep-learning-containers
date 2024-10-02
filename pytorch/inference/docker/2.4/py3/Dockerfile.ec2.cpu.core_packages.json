@@ -1,0 +1,20 @@
+{
+  "idna":{
+    "version_specifier":">=3.7"
+  },
+  "tqdm":{
+    "version_specifier":">=4.66.3"
+  },
+  "requests":{
+    "version_specifier":">=2.32.2"
+  },
+  "setuptools":{
+    "version_specifier":">=70.0.0"
+  },
+  "urllib3":{
+    "version_specifier":"<2"
+  },
+  "awscli":{
+    "version_specifier":"<2"
+  }
+}
