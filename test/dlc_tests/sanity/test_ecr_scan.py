@@ -79,8 +79,9 @@ def get_minimum_sev_threshold_level(image):
 
     :param image: str Image URI for which threshold has to be set
     """
-    if is_huggingface_image():
-        return "CRITICAL"
+    # Temporarily disabling this to unblock the release pipelines
+    # if is_huggingface_image():
+    #    return "CRITICAL"
     if is_generic_image():
         return "HIGH"
     if is_image_covered_by_allowlist_feature(image):
