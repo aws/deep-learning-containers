@@ -305,22 +305,46 @@ def eks_forward_port_between_host_and_container(
     )
 
 
-@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=60, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
         namespace, selector_name: str
     """
+    # run_out = run(
+    #     "kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(
+    #         namespace, selector_name
+    #     ),
+    #     warn=True,
+    # )
+
+    # LOGGER.info("The run_out output is: " + run_out.stdout)
+
+    # if run_out.stdout == "Running":
+    #     return True
+    # else:
+    #     raise ValueError("Service not running yet, try again")
     run_out = run(
-        "kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.phase}}' ".format(
+        "kubectl get pods -n {} --selector=app={} -o jsonpath='{{.items[0].status.conditions}}' ".format(
             namespace, selector_name
         ),
         warn=True,
     )
-    
-    LOGGER.info("The run_out output is: " + run_out.stdout)
 
-    if run_out.stdout == "Running":
+    conditions = run_out.stdout.strip("'")  # Remove the single quotes from the output
+    conditions_list = conditions.split(",")  # Split the conditions into a list
+
+    for condition in conditions_list:
+        condition_dict = {}
+        for kv in condition.split(" "):
+            key, value = kv.split(":")
+            condition_dict[key] = value
+
+        if condition_dict.get("type") == "PodReady" and condition_dict.get("status") == "False":
+            pending_reason = condition_dict.get("reason", "Unknown reason")
+            raise ValueError(f"Service not running yet, pending reason: {pending_reason}")
+
+    if "Running" in conditions:
         return True
     else:
         raise ValueError("Service not running yet, try again")
