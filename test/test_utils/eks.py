@@ -317,6 +317,8 @@ def is_service_running(selector_name, namespace="default"):
         ),
         warn=True,
     )
+    
+    print("The run_out output is: " + run_out.stdout)
 
     if run_out.stdout == "Running":
         return True
