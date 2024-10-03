@@ -162,7 +162,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         ):
             ignore_keys = ["package_details", "title", "reason_to_ignore"]
             if is_huggingface_image():
-                ignore_keys.extend(["description", "remediation", "source_url"])
+                ignore_keys.extend(["description"])
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
