@@ -12,30 +12,25 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import pytest
+import os
 
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-from sagemaker import utils
+import pytest
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
 from ....training import get_efa_test_instance_type
-from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
+from .test_torch_distributed import validate_or_skip_distributed_training
 
 
-def validate_or_skip_pytorchddp(ecr_image):
-    if not can_run_pytorchddp(ecr_image):
-        pytest.skip("PyTorch DDP distribution is supported on Python 3 on PyTorch v1.10 and above")
-
-
-def can_run_pytorchddp(ecr_image):
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    return Version(image_framework_version) in SpecifierSet(">=1.10")
-
-
-# Skip due to known issue: https://github.com/pytorch/pytorch/issues/99074
+@pytest.mark.skipif(
+    os.getenv("SM_EFA_TEST_INSTANCE_TYPE") == "ml.p5.48xlarge",
+    reason="Low availability of instance type; Must ensure test works on new instances.",
+)
+@pytest.mark.skip_pytorchddp_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_inductor_test
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.multinode(2)
@@ -43,18 +38,13 @@ def can_run_pytorchddp(ecr_image):
 @pytest.mark.parametrize(
     "efa_instance_type", get_efa_test_instance_type(default=["ml.p4d.24xlarge"]), indirect=True
 )
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
 @pytest.mark.efa()
-@pytest.mark.skip_inductor_test
 @pytest.mark.team("training-compiler")
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_pytorchddp(ecr_image)
+        validate_or_skip_distributed_training(ecr_image)
         distribution = {"pytorchddp": {"enabled": True}}
         estimator_parameter = {
             "entry_point": "pytorchddp_throughput_mnist.py",

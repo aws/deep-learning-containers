@@ -1,0 +1,7 @@
+#### First image: sha256:4e2bd083e10da23c246995551ae9f5f419ef3244c12f9883a7c207aa1d346f0e ####
+#### Patch contents for patch-1: sha256:b6cf495a112f3e1ecaef932dfad98818b43badb3dff5d0c374199e524f6264f2 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libssh-4 linux-libc-dev
+#### Current Patch contents ####
+pip install cryptography==42.0.5 pyopenssl==24.0.0
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils libbinutils libctf-nobfd0 libctf0 libgnutls30 libpam-modules libssh-4 libssl1.1 libtiff5 libuv1 libxml2 linux-libc-dev login openjdk-11-jdk-headless openjdk-11-jdk openjdk-11-jre-headless openjdk-11-jre passwd

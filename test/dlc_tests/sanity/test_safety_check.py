@@ -1,3 +1,9 @@
+##################################################################################################
+#
+# NOTE: IMPORTANT
+# ./test/dlc_tests/sanity/test_safety_check.py is obsolete and no longer used.
+#
+##################################################################################################
 import json
 import logging
 import os
@@ -705,6 +711,8 @@ IGNORE_SAFETY_IDS = {
                 # for cryptography until e have 39.0.0 release
                 "51159",
                 "51358",
+                # for scipy version 1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference
+                "62894",
             ]
         },
         "inference-eia": {"py3": []},

@@ -157,7 +157,11 @@ def _test_mnist_distributed(
     instance_groups=None,
     use_inductor=False,
 ):
-    dist_method = "pytorchddp" if dist_backend.lower() == "nccl" else "torch_distributed"
+    if dist_backend.lower() == "nccl":
+        dist_method = {"smdistributed": {"dataparallel": {"enabled": True}}}
+    else:
+        dist_method = {"torch_distributed": {"enabled": True}}
+
     est_params = {
         "entry_point": mnist_script,
         "role": "SageMakerRole",
@@ -165,7 +169,7 @@ def _test_mnist_distributed(
         "image_uri": ecr_image,
         "hyperparameters": {"backend": dist_backend, "epochs": 1, "inductor": int(use_inductor)},
         "framework_version": framework_version,
-        "distribution": {dist_method: {"enabled": True}},
+        "distribution": dist_method,
     }
     if not instance_groups:
         est_params["instance_type"] = instance_type

@@ -1,0 +1,22 @@
+#### First image: sha256:0fae86869df3fe19d9fe4cdacb2a7f74ffd7768d37f0b2b0fedb84f80df2727a ####
+#### Patch contents for patch-1: sha256:7df95c34d6a93a1d5171206a49cd5392cb3d2a7866f2b598ed853d0602e34272 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libtiff5
+#### Patch contents for patch-2: sha256:8aad6781739842d9488e0bba9cef6cbfa6e2024434d22407399f162162acf0d7 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libtiff5 linux-libc-dev
+#### Patch contents for patch-3: sha256:fa0c26d38b226613dac0c5e0e7ba3c4eb5e3b74f7bf49fb5ffc54a8640453cde ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:e84ebd1bab2c7d2931965c478c23278e1c86bfae01668ab139fe0def53ba23fa ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev
+#### Patch contents for patch-5: sha256:68f6d736fcd9145e7ce30339428cfa0b0f77c2d2712db13ee3252e916a9c268b ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-6: sha256:3cc5b5db0c76bd8edce72595b90ce1dc7dbe5facb1a11faeb7f1077a955c690f ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget

@@ -15,6 +15,7 @@ from test.test_utils import (
     EnhancedJSONEncoder,
     ecr as ecr_utils,
     get_installed_python_packages_with_version,
+    is_huggingface_image,
 )
 import dataclasses
 from dataclasses import dataclass
@@ -157,12 +158,15 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         if test_utils.check_if_two_dictionaries_are_equal(
             dataclasses.asdict(self.package_details),
             dataclasses.asdict(other.package_details),
-            ignore_keys=["version"],
+            ignore_keys=["version", "file_path"],
         ):
+            ignore_keys = ["package_details", "title", "reason_to_ignore"]
+            if is_huggingface_image():
+                ignore_keys.extend(["description", "remediation", "source_url"])
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
-                ignore_keys=["package_details", "title", "reason_to_ignore"],
+                ignore_keys=ignore_keys,
             )
         return False
 
@@ -382,7 +386,7 @@ class ScanVulnerabilityList:
         if not self.vulnerability_list:
             return None
         if not other or not other.vulnerability_list:
-            return self
+            return copy.deepcopy(self)
 
         missing_vulnerabilities = [
             vulnerability
@@ -407,7 +411,9 @@ class ScanVulnerabilityList:
         :return: Union of vulnerabilites exisiting in self and other
         """
         flattened_vulnerability_list_self = self.get_flattened_vulnerability_list()
-        flattened_vulnerability_list_other = other.get_flattened_vulnerability_list()
+        flattened_vulnerability_list_other = (
+            other.get_flattened_vulnerability_list() if other else []
+        )
         all_vulnerabilities = flattened_vulnerability_list_self + flattened_vulnerability_list_other
         if not all_vulnerabilities:
             return None
@@ -1308,6 +1314,8 @@ def extract_non_patchable_vulnerabilities(
     :param image_uri: str, URI of the image
     :return: Object of type ECREnhancedScanVulnerabilityList, object that only non-patchable vulnerabilities with appropriate reasons in it.
     """
+    from src import constants
+
     assert vulnerability_list_object, "`vulnerability_list_object` cannot be None."
     segregated_package_names = segregate_impacted_package_names_based_on_manager(
         vulnerability_list_object
@@ -1329,7 +1337,9 @@ def extract_non_patchable_vulnerabilities(
     )
     # We then extract the patch evaluation data that was embedded in the DLC at the time of build.
     embedded_apt_patch_evaluation_data = {}
-    display_embdedded_patch_eval_data_cmd = "cat /opt/aws/dlc/patch-details/os_summary.json"
+    display_embdedded_patch_eval_data_cmd = (
+        f"cat {constants.PATCHING_INFO_PATH_WITHIN_DLC}/patch-details/os_summary.json"
+    )
     display_output = run(f"{docker_exec_cmd} {display_embdedded_patch_eval_data_cmd}", warn=True)
     if display_output.ok:
         embedded_apt_patch_evaluation_data = json.loads(display_output.stdout.strip())

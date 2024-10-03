@@ -1,0 +1,125 @@
+{
+   "accelerate":{
+      "version_specifier":"==0.22.0",
+      "skip":"True",
+      "_comment":"accelerate has Torch as a child dependency and might end up changing torch version"
+   },
+   "smart-sifting":{
+      "version_specifier":"==1.0",
+      "skip":"True",
+      "_comment":"smart-sifting has Torch as a child dependency and might end up changing torch version"
+   },
+   "pytorch-lightning":{
+      "version_specifier":"==2.1.2",
+      "skip":"True",
+      "_comment":"pytorch-lightning has Torch as a child dependency and might end up changing torch version"
+   },
+   "deepspeed":{
+      "version_specifier":"==0.6.1+1ea3d4b",
+      "skip":"True",
+      "_comment":"deepspeed has Torch as a child dependency and might end up changing torch version"
+   },
+   "fastai":{
+      "version_specifier":"==2.7.13",
+      "skip":"True",
+      "_comment":"fastai has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchaudio":{
+      "version_specifier":"==2.0.2",
+      "skip":"True",
+      "_comment":"torchaudio has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchdata":{
+      "version_specifier":"==0.6.1",
+      "skip":"True",
+      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchtext":{
+      "version_specifier":"==0.15.2",
+      "skip":"True",
+      "_comment":"torchtext has torchdata/Torch as a child dependency and might end up changing torch version"
+   },
+   "torchmetrics":{
+      "version_specifier":"==1.2.0",
+      "skip":"True",
+      "_comment":"torchmetrics has torchdata/Torch as a child dependency and might end up changing torch version"
+   },
+   "torchvision":{
+      "version_specifier":"==0.15.2",
+      "skip":"True",
+      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchnet":{
+      "version_specifier":"==0.0.4",
+      "skip":"True",
+      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
+   },
+   "triton":{
+      "version_specifier":"==2.0.0.dev20221202",
+      "skip":"True",
+      "_comment":"triton has Torch as a child dependency and might end up changing torch version"
+   },
+   "flash-attn":{
+      "version_specifier":"==0.2.8",
+      "skip":"True",
+      "_comment":"flash-attn has Torch as a child dependency and might end up changing torch version"
+   },
+   "torch":{
+      "version_specifier":"==2.0.1"
+   },
+   "cryptography":{
+      "version_specifier":">=41.0.2"
+   },
+   "mpi4py":{
+      "version_specifier":">=3.1.4,<3.2"
+   },
+   "apex":{
+      "version_specifier":"==0.1",
+      "skip":"True",
+      "_comment":"Apex is pinned at a specific commit."
+   },
+   "sagemaker":{
+      "version_specifier":">=2,<3"
+   },
+   "sagemaker-experiments":{
+      "version_specifier":"<1"
+   },
+   "argparse":{
+      "version_specifier":"==1.4.0",
+      "skip":"True",
+      "_comment":"Argparse development as a separate package has stopped a long ago (https://github.com/ThomasWaldmann/argparse/). It happens in the python standard library nowadays (https://github.com/python/cpython/blob/3.11/Lib/argparse.py). Thus we do not need to include it in the installation at all."
+   },
+   "pillow":{
+      "version_specifier":">=9.5"
+   },
+   "pyyaml":{
+      "version_specifier":">=6.0.1"
+   },
+   "opencv-python":{
+      "version_specifier":">=4.8.1"
+   },
+   "requests":{
+      "version_specifier":">=2.31.0"
+   },
+   "urllib3":{
+      "version_specifier":">=1.26.18"
+   },
+   "pyopenssl":{
+      "version_specifier":">=23.2.0"
+   },
+   "smdistributed-dataparallel":{
+      "version_specifier":"==2.0.1",
+      "skip":"True"
+   },
+   "smdistributed-modelparallel":{
+      "version_specifier":"==1.15.0",
+      "skip":"True"
+   },
+   "smprof":{
+      "version_specifier":"==0.3.334",
+      "skip":"True"
+   },
+   "zstandard":{
+      "version_specifier":">=0.21.0"
+   }
+}

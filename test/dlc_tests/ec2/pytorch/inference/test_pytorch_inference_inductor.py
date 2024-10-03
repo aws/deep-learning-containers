@@ -1,30 +1,37 @@
+import os
+
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 import pytest
 
 from test import test_utils
 from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     get_inference_server_type,
     UL20_CPU_ARM64_US_WEST_2,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
 )
-from test.test_utils.ec2 import (
-    get_ec2_instance_type,
-    execute_ec2_inference_test,
-    get_ec2_accelerator_type,
-)
+from test.test_utils.ec2 import get_ec2_instance_type, is_mainline_context
 from test.dlc_tests.conftest import LOGGER
 
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
-PT_EC2_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
+PT_EC2_CPU_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
+PT_EC2_GPU_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.4xlarge", processor="gpu", arch_type="graviton"
+)
+
 PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["p3.2xlarge", "g4dn.4xlarge", "g5.4xlarge"]
 
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
 @pytest.mark.team("training-compiler")
+@pytest.mark.skipif(
+    is_mainline_context() and os.getenv("EC2_GPU_INSTANCE_TYPE") != "g4dn.xlarge",
+    reason="Enforce test deduplication by running only alongside g4dn.xlarge tests.",
+)
 def test_ec2_pytorch_inference_gpu_inductor(
     pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
@@ -49,10 +56,14 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
 
 
 @pytest.mark.model("densenet")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GRAVITON_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.team("training-compiler")
-def test_ec2_pytorch_inference_cpu_compilation(
+@pytest.mark.skipif(
+    is_mainline_context() and os.getenv("EC2_CPU_GRAVITON_INSTANCE_TYPE") != "c6g.4xlarge",
+    reason="Enforce test deduplication by running only alongside c6g.4xlarge tests.",
+)
+def test_ec2_pytorch_inference_graviton_compilation_cpu(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
@@ -63,21 +74,35 @@ def test_ec2_pytorch_inference_cpu_compilation(
     ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
 
 
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.team("training-compiler")
+def test_ec2_pytorch_inference_graviton_compilation_gpu(
+    pytorch_inference_graviton, ec2_connection, region, gpu_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
+
+
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-ec2"
     model_name = "pytorch-densenet-inductor"
 
     inference_cmd = test_utils.get_inference_run_command(image_uri, model_name, processor)
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
 
     docker_run_cmd = (
-        f"{docker_cmd} run -itd --name {container_name}"
+        f"docker run {docker_runtime} -itd --name {container_name}"
         f" -p 80:8080 -p 8081:8081"
         f" {image_uri} {inference_cmd}"
     )
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = get_account_id_from_image_uri(image_uri)
+        login_to_ecr_registry(ec2_connection, account_id, region)
         LOGGER.info(docker_run_cmd)
         ec2_connection.run(docker_run_cmd, hide=True)
         server_type = get_inference_server_type(image_uri)

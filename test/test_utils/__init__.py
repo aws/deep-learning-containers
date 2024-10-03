@@ -5,6 +5,7 @@ import re
 import subprocess
 import sys
 import time
+import pprint
 
 from enum import Enum
 
@@ -19,10 +20,11 @@ from invoke import run
 from invoke.context import Context
 from packaging.version import InvalidVersion, Version, parse
 from packaging.specifiers import SpecifierSet
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from retrying import retry
 from pathlib import Path
 import dataclasses
+import uuid
 
 # from security import EnhancedJSONEncoder
 
@@ -40,7 +42,7 @@ P3DN_REGION = "us-east-1"
 P4DE_REGION = "us-east-1"
 
 
-def get_ami_id_boto3(region_name, ami_name_pattern):
+def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
     """
     For a given region and ami name pattern, return the latest ami-id
     """
@@ -52,8 +54,20 @@ def get_ami_id_boto3(region_name, ami_name_pattern):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami_list = ec2_client.describe_images(
-        Filters=[{"Name": "name", "Values": [ami_name_pattern]}], Owners=["amazon"]
+        Filters=[{"Name": "name", "Values": [ami_name_pattern]}],
+        Owners=["amazon"],
+        IncludeDeprecated=IncludeDeprecated,
     )
+
+    # NOTE: Hotfix for fetching latest DLAMI before certain creation date.
+    # replace `ami_list["Images"]` with `filtered_images` in max() if needed.
+    # filtered_images = [
+    #     element
+    #     for element in ami_list["Images"]
+    #     if datetime.strptime(element["CreationDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
+    #     < datetime.strptime("2024-05-02", "%Y-%m-%d")
+    # ]
+
     ami = max(ami_list["Images"], key=lambda x: x["CreationDate"])
     return ami["ImageId"]
 
@@ -74,31 +88,69 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-# The Ubuntu 20.04 AMI which adds GDRCopy is used only for GDRCopy feature that is supported on PT1.13 and PT2.0
-UBUNTU_20_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+# DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-UBUNTU_20_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base GPU AMI (Ubuntu 20.04) ????????"
+UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+)
+AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+)
+AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
 )
 UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning AMI Graviton GPU CUDA 11.4.2 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
 )
+UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
+)
+
+# Using latest ARM64 AMI (pytorch) - however, this will fail for TF benchmarks, so TF benchmarks are currently
+# disabled for Graviton.
 UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Graviton GPU TensorFlow 2.7.0 (Ubuntu 20.04) ????????",
+    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
@@ -138,8 +190,10 @@ NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 UBUNTU_18_HPU_DLAMI_US_WEST_2 = "ami-03cdcfc91a96a8f92"
 UBUNTU_18_HPU_DLAMI_US_EAST_1 = "ami-0d83d7487f322545a"
 UL_AMI_LIST = [
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+    UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
@@ -250,6 +304,22 @@ class CudaVersionTagNotFoundException(Exception):
     pass
 
 
+class DockerImagePullException(Exception):
+    """
+    When a docker image could not be pulled from ECR
+    """
+
+    pass
+
+
+class SerialTestCaseExecutorException(Exception):
+    """
+    Raise for execute_serial_test_cases function
+    """
+
+    pass
+
+
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
     EnhancedJSONEncoder is required to dump dataclass objects as JSON.
@@ -261,6 +331,52 @@ class EnhancedJSONEncoder(json.JSONEncoder):
         if isinstance(o, (datetime, date)):
             return o.isoformat()
         return super().default(o)
+
+
+def execute_serial_test_cases(test_cases, test_description="test"):
+    """
+    Helper function to execute tests in serial
+
+    Args:
+        test_cases (List): list of test cases, formatted as [(test_fn, (fn_arg1, fn_arg2 ..., fn_argN))]
+        test_description (str, optional): Describe test for custom error message. Defaults to "test".
+        bins (int, optional): If interested in optimizing the test across bins, use this feature
+    """
+    exceptions = []
+    logging_stack = []
+    times = {}
+    for fn, args in test_cases:
+        log_stack = []
+        fn_name = fn.__name__
+        start_time = datetime.now()
+        log_stack.append(f"*********\nStarting {fn_name} at {start_time}\n")
+        try:
+            fn(*args)
+            end_time = datetime.now()
+            log_stack.append(f"\nEnding {fn_name} at {end_time}\n")
+        except Exception as e:
+            exceptions.append(f"{fn_name} FAILED WITH {type(e).__name__}:\n{e}")
+            end_time = datetime.now()
+            log_stack.append(f"\nFailing {fn_name} at {end_time}\n")
+        finally:
+            log_stack.append(
+                f"Total execution time for {fn_name} {end_time - start_time}\n*********"
+            )
+            times[fn_name] = end_time - start_time
+            logging_stack.append(log_stack)
+
+    # Save logging to the end, as there may be other conccurent jobs
+    for log_case in logging_stack:
+        for line in log_case:
+            LOGGER.info(line)
+
+    pretty_times = pprint.pformat(times)
+    LOGGER.info(pretty_times)
+
+    if exceptions:
+        raise SerialTestCaseExecutorException(
+            f"Found {len(exceptions)} errors in {test_description}\n" + "\n\n".join(exceptions)
+        )
 
 
 def get_dockerfile_path_for_image(image_uri, python_version=None):
@@ -282,6 +398,8 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
         framework_path = framework.replace("_", os.path.sep)
     elif "habana" in image_uri:
         framework_path = os.path.join("habana", framework)
+    elif "stabilityai" in framework:
+        framework_path = framework.replace("_", os.path.sep)
     else:
         framework_path = framework
 
@@ -312,7 +430,6 @@ def get_dockerfile_path_for_image(image_uri, python_version=None):
     neuron_sdk_version = get_neuron_sdk_version_from_tag(image_uri)
 
     dockerfile_name = get_expected_dockerfile_filename(device_type, image_uri)
-
     dockerfiles_list = [
         path
         for path in glob(os.path.join(python_version_path, "**", dockerfile_name), recursive=True)
@@ -499,7 +616,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
-        2. p2.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
+        2. p3.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -519,7 +636,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "mxnet"
         and get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
-        and ec2_instance_type in ["p2.8xlarge"]
+        and ec2_instance_type in ["p3.8xlarge"]
     )
     incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
@@ -527,7 +644,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "pytorch"
         and Version(framework_version) in SpecifierSet("==1.11.*")
         and get_processor_from_image_uri(image_uri) == "gpu"
-        and ec2_instance_type in ["p2.8xlarge"]
+        and ec2_instance_type in ["p3.8xlarge"]
     )
     incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
 
@@ -617,13 +734,14 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
     return os.getenv("ALLOWLIST_PATH_ENHSCAN")
 
 
-def is_benchmark_dev_context():
-    return config.is_benchmark_mode_enabled()
-
-
 def is_rc_test_context():
-    sm_remote_tests_val = config.get_sagemaker_remote_tests_config_value()
-    return sm_remote_tests_val == config.AllowedSMRemoteConfigValues.RC.value
+    return config.is_sm_rc_test_enabled()
+
+
+def is_huggingface_image():
+    if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        return False
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
 
 
 def is_covered_by_ec2_sm_split(image_uri):
@@ -679,6 +797,10 @@ def is_time_for_invoking_ecr_scan_failure_routine_lambda():
     """
     current_utc_time = time.gmtime()
     return current_utc_time.tm_hour == 16 and (0 < current_utc_time.tm_min < 20)
+
+
+def is_test_phase():
+    return "TEST_TYPE" in os.environ
 
 
 def _get_remote_override_flags():
@@ -861,10 +983,13 @@ def request_pytorch_inference_densenet(
     # The run_out.return_code is not reliable, since sometimes predict request may succeed but the returned result
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
-        LOGGER.error("run_out.return_code != 0")
+        LOGGER.error(
+            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\nReturn Code: {run_out.return_code}\nError: {run_out.stderr}\nStdOut: {run_out.stdout}"
+        )
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
         if not (
             (
                 "neuron" in model_name
@@ -883,7 +1008,6 @@ def request_pytorch_inference_densenet(
             )
         ):
             return False
-        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -1005,8 +1129,15 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         server_cmd = "multi-model-server"
 
     if processor != "neuron":
+        # PyTorch 2.4 requires token authentication to be disabled.
+        _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
+        auth_arg = (
+            " --disable-token-auth"
+            if _framework == "pytorch" and Version(_version) in SpecifierSet(">=2.4")
+            else ""
+        )
         mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            f"{server_cmd} --start{auth_arg} --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
         )
     else:
@@ -1234,8 +1365,10 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py38"
         if Version(version) >= Version("1.13") and Version(version) < Version("2.0"):
             return "py39"
-        if Version(version) >= Version("2.0"):
+        if Version(version) >= Version("2.0") and Version(version) < Version("2.3"):
             return "py310"
+        if Version(version) >= Version("2.3"):
+            return "py311"
 
     return "py3"
 
@@ -1299,7 +1432,9 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
             ## Trcomp tags like v1.0-trcomp-hf-4.21.1-pt-1.11.0-tr-gpu-py38 cause incorrect image URIs to be processed
             ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
             ## huggingface_pytorch and huggingface_tensorflow images.
-            if "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type:
+            if (
+                "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type
+            ) or "tgi" in tag_str:
                 continue
             version = match.group(2)
             if not versions_counter.get(version):
@@ -1730,6 +1865,26 @@ def get_all_the_tags_of_an_image_from_ecr(ecr_client, image_uri):
         ],
     )
     return response["imageDetails"][0]["imageTags"]
+
+
+def get_image_push_time_from_ecr(ecr_client, image_uri):
+    """
+    Uses ecr describe to get the time when an image was pushed in the ECR.
+
+    :param ecr_client: boto3 Client for ECR
+    :param image_uri: str Image URI
+    :return: datetime.datetime Object, Returns time
+    """
+    account_id = get_account_id_from_image_uri(image_uri)
+    image_repo_name, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    response = ecr_client.describe_images(
+        registryId=account_id,
+        repositoryName=image_repo_name,
+        imageIds=[
+            {"imageTag": image_tag},
+        ],
+    )
+    return response["imageDetails"][0]["imagePushedAt"]
 
 
 def get_sha_of_an_image_from_ecr(ecr_client, image_uri):
@@ -2214,15 +2369,13 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
     """
     package_version_dict = {}
 
-    python_cmd_to_extract_package_set = """ python -c "import pkg_resources; \
-        import json; \
-        print(json.dumps([{'name':d.key, 'version':d.version} for d in pkg_resources.working_set]))" """
+    python_cmd_to_extract_package_set = "pip list --format json"
 
-    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}")
+    run_output = run(f"{docker_exec_command} {python_cmd_to_extract_package_set}", hide=True)
     list_of_package_data_dicts = json.loads(run_output.stdout)
 
     for package_data_dict in list_of_package_data_dicts:
-        package_name = package_data_dict["name"].lower()
+        package_name = package_data_dict["name"].lower().replace("_", "-")
         if package_name in package_version_dict:
             raise Exception(
                 f""" Package {package_name} existing multiple times in {list_of_package_data_dicts}"""
@@ -2230,3 +2383,141 @@ def get_installed_python_packages_with_version(docker_exec_command: str):
         package_version_dict[package_name] = package_data_dict["version"]
 
     return package_version_dict
+
+
+def get_installed_python_packages_using_image_uri(context, image_uri, container_name=""):
+    """
+    This method returns the python package versions that are installed within and image_uri. This method
+    handles all the overhead of creating a container for the image and then running the command on top of
+    it and then removing the container.
+
+    :param context: Invoke context object
+    :param image_uri: str, Image URI
+    :param container_name: str, Custom name for the container
+    :return: Dict, Dictionary with key=package_name and value=package_version in str
+    """
+    container_name = container_name or get_container_name(
+        f"py-version-extraction-{uuid.uuid4()}", image_uri
+    )
+    start_container(container_name, image_uri, context)
+    docker_exec_command_for_current_image = f"""docker exec --user root {container_name}"""
+    current_image_package_version_dict = get_installed_python_packages_with_version(
+        docker_exec_command=docker_exec_command_for_current_image
+    )
+    stop_and_remove_container(container_name=container_name, context=context)
+    return current_image_package_version_dict
+
+
+def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
+    """
+    This method reads the BuildSpec file for the given image_uri and returns that image_spec within
+    the BuildSpec file that corresponds to the given image_uri.
+
+    :param image_uri: str, Image URI
+    :param dlc_folder_path: str, Path of the DLC folder on the current host
+    :return: dict, the image_spec dictionary corresponding to the given image
+    """
+    from src.buildspec import Buildspec
+
+    _, image_tag = get_repository_and_tag_from_image_uri(image_uri)
+    buildspec_path = get_buildspec_path(dlc_folder_path)
+    buildspec_def = Buildspec()
+    buildspec_def.load(buildspec_path)
+    matched_image_spec = None
+
+    for _, image_spec in buildspec_def["images"].items():
+        # If an image_spec in the buildspec matches the input image tag:
+        #   - if there is no pre-existing matched image spec, choose the image_spec
+        #   - if there is a pre-existing matched image spec, choose the image_spec that has
+        #     a larger overlap with the input image tag.
+        if image_tag.startswith(image_spec["tag"]):
+            if not matched_image_spec or len(matched_image_spec["tag"]) < len(image_spec["tag"]):
+                matched_image_spec = image_spec
+
+    if not matched_image_spec:
+        raise ValueError(f"No corresponding entry found for {image_uri} in {buildspec_path}")
+
+    return matched_image_spec
+
+
+def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+    """
+    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
+    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
+    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
+                                                     "g4dn.2xlarge",
+                                                     "g4dn.4xlarge",
+                                                     "g4dn.8xlarge",
+                                                     "g4dn.16xlarge",
+                                                     "g4dn.12xlarge",
+                                                     "g4dn.metal",
+                                                     "g4dn.xlarge",
+                                                     "g5.xlarge",
+                                                     "g5.2xlarge",
+                                                     "g5.4xlarge",
+                                                     "g5.8xlarge",
+                                                     "g5.16xlarge",
+                                                     "g5.12xlarge",
+                                                     "g5.24xlarge",
+                                                     "g5.48xlarge",
+                                                     "p4d.24xlarge",
+                                                     "p4de.24xlarge",
+                                                     "p5.48xlarge",]
+
+    Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
+                                                             "p3.8xlarge",
+                                                             "p3.16xlarge",
+                                                             "p3dn.24xlarge",
+                                                             "g3s.xlarge",
+                                                             "g3.4xlarge",
+                                                             "g3.8xlarge",]
+
+    Other instances will default to Proprietary Nvidia Driver DLAMI
+    """
+
+    base_proprietary_dlami_instances = [
+        "p3.2xlarge",
+        "p3.8xlarge",
+        "p3.16xlarge",
+        "p3dn.24xlarge",
+        "g3s.xlarge",
+        "g3.4xlarge",
+        "g3.8xlarge",
+    ]
+
+    ami_patterns = {
+        "AML2": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+        "UBUNTU_20": {
+            "oss": {
+                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
+            },
+            "proprietary": {
+                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
+                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
+                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
+            },
+        },
+    }
+
+    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
+    instance_ami = ami_patterns[linux_dist][ami_type].get(
+        region,
+        get_ami_id_boto3(
+            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
+        ),
+    )
+
+    return instance_ami

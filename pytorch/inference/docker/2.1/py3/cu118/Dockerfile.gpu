@@ -15,6 +15,7 @@ ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorc
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cuda11.8.0/torchaudio-2.1.0%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cuda11.8.0/torchtext-0.16.0%2Bcu118-cp310-cp310-linux_x86_64.whl
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.1.0/cuda11.8.0/torchdata-0.7.0%2B7c7597b-cp310-cp310-linux_x86_64.whl
+ARG TRITON_VERSION=2.1.0
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
 
@@ -26,7 +27,7 @@ ARG SM_TOOLKIT_VERSION
 # |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
 #                                         |___/
 #  ____           _
-# |  _ \ ___  ___(_)_ __   ___ 
+# |  _ \ ___  ___(_)_ __   ___
 # | |_) / _ \/ __| | '_ \ / _ \
 # |  _ <  __/ (__| | |_) |  __/
 # |_| \_\___|\___|_| .__/ \___|
@@ -49,6 +50,7 @@ ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
 ARG TORCHDATA_URL
+ARG TRITON_VERSION
 ARG TORCHSERVE_VERSION
 
 # Nvidia passed Arguments
@@ -157,8 +159,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
  && rm ~/mambaforge.sh \
  && /opt/conda/bin/conda install -c conda-forge python=${PYTHON_VERSION} \
     cython \
-    "mkl>=2023.2.0" \
-    mkl-include \
+    "mkl>=2023.2.0,<2024" \
+    "mkl-include>=2023.2.0,<2024" \
     parso \
     scipy \
     typing \
@@ -166,7 +168,8 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     requests \
     libgcc \
     # Below 2 are included in miniconda base, but not mamba so need to install
-    conda-content-trust \
+    "conda-content-trust>=0.2.0" \
+    "zstandard>=0.21.0" \
     charset-normalizer \
  && /opt/conda/bin/conda install -c pytorch magma-cuda118 \
  && /opt/conda/bin/conda clean -ya
@@ -178,17 +181,18 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
     boto3 \
-    scipy \
     opencv-python \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
-    # due to incompatibility with SM hosts 
+    # due to incompatibility with SM hosts
     nvgpu \
-    pyOpenSSL \
-    cryptography \
+    "pyOpenSSL>=24.0.0" \
+    "cryptography>=42.0.5" \
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
-    "urllib3>=1.26.18,<2"
+    "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "tqdm>=4.66.3"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
@@ -198,7 +202,7 @@ RUN pip uninstall -y torch torchvision torchaudio torchdata model-archiver multi
 # install pytorch wheels
 RUN pip install --no-cache-dir -U \
     # triton required for torch inductor
-    triton \
+    triton==${TRITON_VERSION} \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
@@ -209,10 +213,14 @@ RUN pip install --no-cache-dir -U \
 # NOTE: This also brings in unnecessary cpu dependencies like nvgpu
 # -> Numpy is higer version as required by torch
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
- && pip install --no-cache-dir -U \ 
-    "numpy>=1.22.2,<1.23" \
+ && pip install --no-cache-dir -U \
+    numpy \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
+
+# Patches
+# py-vuln: 71064
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -287,7 +295,14 @@ RUN conda install -y -c conda-forge \
     scikit-learn \
     pandas
 
-RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION}
+RUN pip install --no-cache-dir sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
+    # hardcoded dependencies of sagemaker-pytorch-inference
+    "scipy==1.10.1" \
+    "boto3==1.28.60" \
+    # solve below package version again given above hardcoded dependencies
+    "awscli" \
+    "botocore" \
+    "s3transfer"
 
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 

@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.10.12
 ARG MAMBA_VERSION=23.3.1-1
 ARG PYTORCH_VERSION_EC2=2.1.0
 ARG PYTORCH_VERSION_SM=2.1.0
-ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
 
 FROM ubuntu:20.04 AS base_image
 
@@ -112,12 +112,14 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 # install core conda dependency packages (and pin essential packages)
 RUN /opt/conda/bin/mamba install -y --override-channels \
     -c conda-forge \
-    conda=23.1.0 \
     # patch CVE
-    "cryptography>=41.0.4" \
+    "cryptography>=42.0.5" \
+    # patch CVE
+    "pyopenssl>=24.0.0" \
     cmake \
+    curl \
+    libcurl \
     requests \
-    pyopenssl \
     python=$PYTHON_VERSION \
     cython \
     # force conda to install h5py with openmpi build, not mpich (rubik error)
@@ -125,7 +127,7 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     "mpi4py>=3.1.4,<3.2" \
     mpi4py \
     h5py \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -142,12 +144,17 @@ RUN /opt/conda/bin/mamba install -y --override-channels \
     fsspec \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "setuptools>=0.70.0" \
+    "tqdm>=4.66.3" \
     # Adding package for studio kernels
     ipykernel \
   && /opt/conda/bin/mamba clean -afy
 
 RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/license.txt
 
@@ -198,7 +205,7 @@ RUN /opt/conda/bin/mamba install -y pytorch=${PYTORCH_VERSION_EC2} \
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # install fastai (depends on PyTorch)
@@ -277,7 +284,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow "pyyaml>=6.0.1" opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
@@ -302,8 +309,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     boto3
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
+RUN pip install --no-cache-dir -U bokeh \
   imageio \
   numba \
   pandas \

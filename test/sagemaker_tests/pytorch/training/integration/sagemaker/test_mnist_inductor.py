@@ -34,7 +34,7 @@ inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"
 def test_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -83,7 +83,7 @@ def test_mnist_distributed_gpu(
 def test_hc_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
         "framework_version": framework_version,

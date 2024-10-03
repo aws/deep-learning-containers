@@ -15,9 +15,15 @@ from utils import (
     get_core_packages_path,
     get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
     get_overall_history_path,
+    get_folder_size_in_bytes,
+    check_if_folder_contents_are_valid,
+    verify_if_child_image_is_built_on_top_of_base_image,
+    remove_repo_root_folder_path_from_the_given_path,
 )
 from codebuild_environment import get_cloned_folder_path
 from context import Context
+
+from src.constants import PATCHING_INFO_PATH_WITHIN_DLC
 
 FORMATTER = OutputFormatter(constants.PADDING)
 
@@ -76,7 +82,10 @@ def get_impacted_os_packages(image_uri, python_version=None):
         remaining_vulnerabilities,
         _,
     ) = helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
-        image_uri, python_version=python_version
+        image_uri,
+        python_version=python_version,
+        minimum_sev_threshold="UNDEFINED",
+        allowlist_removal_enabled=False,
     )
     impacted_packages = set()
     if remaining_vulnerabilities:
@@ -102,6 +111,7 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
     impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
+
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
         os.sep, patch_details_path
@@ -110,7 +120,8 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
-        container_setup_cmd = "apt-get update"
+        ## Update key in case nginx exists
+        container_setup_cmd = """bash -c 'VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && if [ "$VARIABLE" != 0 ]; then echo "Nginx exists, thus upgrade" && curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor | tee /usr/share/keyrings/nginx-archive-keyring.gpg >/dev/null && apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg; fi && apt-get update'"""
         run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
         save_file_name = "os_summary.json"
         script_run_cmd = f"""python /deep-learning-containers/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path /image-specific-patch-folder/{save_file_name} --mode_type generate"""
@@ -148,36 +159,75 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     :param download_path: str, Path of the file where the relevant scripts have alread been downloaded.
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
-    info = pre_push_image_object.info
-    image_name = info.get("name")
-    released_image_uri = info.get("release_image_uri")
-
     from test.test_utils import get_sha_of_an_image_from_ecr
 
-    patch_details_path = os.path.join(
-        os.sep, download_path, released_image_uri.replace("/", "_").replace(":", "_")
-    )
-    if not os.path.exists(patch_details_path):
-        run(f"mkdir {patch_details_path}", hide=True)
+    info = pre_push_image_object.info
+    image_name = info.get("name")
+    latest_released_image_uri = info.get("release_image_uri")
 
-    run(f"docker pull {released_image_uri}", hide=True)
+    run(f"docker pull {latest_released_image_uri}", hide=True)
+
+    first_image_sha = extract_first_image_sha_using_patching_info_contents_of_given_image(
+        image_uri=latest_released_image_uri
+    )
+    base_image_uri_for_patch_builds = latest_released_image_uri
+    if first_image_sha:
+        # In case the latest released image is an autopatched image first_image_sha will not be None
+        # In those cases, pull the first image using the SHA and use that as base
+        base_image_uri_for_patch_builds = pull_base_image_uri_for_patch_builds_and_get_the_tag(
+            latest_released_image_uri=latest_released_image_uri, first_image_sha=first_image_sha
+        )
+
+    assert verify_if_child_image_is_built_on_top_of_base_image(
+        base_image_uri=base_image_uri_for_patch_builds, child_image_uri=latest_released_image_uri
+    ), f"Child image {latest_released_image_uri} is not built on {base_image_uri_for_patch_builds}"
+
+    ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
+    latest_released_image_sha = get_sha_of_an_image_from_ecr(
+        ecr_client=ecr_client, image_uri=latest_released_image_uri
+    )
+
+    current_patch_details_path = os.path.join(
+        os.sep, download_path, base_image_uri_for_patch_builds.replace("/", "_").replace(":", "_")
+    )
+    if not os.path.exists(current_patch_details_path):
+        run(f"mkdir {current_patch_details_path}", hide=True)
+
+    complete_patching_info_dump_location = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        f"""{base_image_uri_for_patch_builds.replace("/", "_").replace(":", "_")}_patch-dump""",
+    )
+    if not os.path.exists(complete_patching_info_dump_location):
+        run(f"mkdir {complete_patching_info_dump_location}", hide=True)
+
+    extract_patching_relevant_data_from_latest_released_image(
+        image_uri=latest_released_image_uri,
+        extraction_location=complete_patching_info_dump_location,
+    )
 
     THREADS = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         get_dummy_boto_client()
-        THREADS[f"trigger_language_patching-{released_image_uri}"] = executor.submit(
+        THREADS[f"trigger_language_patching-{base_image_uri_for_patch_builds}"] = executor.submit(
             trigger_language_patching,
-            image_uri=released_image_uri,
+            image_uri=base_image_uri_for_patch_builds,
             s3_downloaded_path=download_path,
             python_version=info.get("python_version"),
         )
-        THREADS[f"trigger_enhanced_scan_patching-{released_image_uri}"] = executor.submit(
+        THREADS[
+            f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"
+        ] = executor.submit(
             trigger_enhanced_scan_patching,
-            image_uri=released_image_uri,
-            patch_details_path=patch_details_path,
+            image_uri=base_image_uri_for_patch_builds,
+            patch_details_path=current_patch_details_path,
             python_version=info.get("python_version"),
         )
     FORMATTER.progress(THREADS)
+
+    run(
+        f"cp -r {current_patch_details_path}/. {complete_patching_info_dump_location}/patch-details-current"
+    )
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.autopatch"
@@ -187,14 +237,26 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
     )
 
-    pre_push_image_object.target = None
-    ecr_client = boto3.client("ecr", region_name=os.getenv("REGION"))
-    released_image_sha = get_sha_of_an_image_from_ecr(
-        ecr_client=ecr_client, image_uri=released_image_uri
+    torchserve_entrypoint_path = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "pytorch",
+        "inference",
+        "docker",
+        "build_artifacts",
+        "torchserve-entrypoint.py",
     )
 
-    info["extra_build_args"].update({"RELEASED_IMAGE": released_image_uri})
-    info["extra_build_args"].update({"RELEASED_IMAGE_SHA": released_image_sha})
+    verify_artifact_contents_for_patch_builds(
+        patching_info_folder_path=complete_patching_info_dump_location,
+        miscellaneous_scripts_path=miscellaneous_scripts_path,
+    )
+
+    pre_push_image_object.target = None
+
+    info["extra_build_args"].update({"BASE_IMAGE_FOR_PATCH_BUILD": base_image_uri_for_patch_builds})
+    info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_SHA": latest_released_image_sha})
+    info["extra_build_args"].update({"LATEST_RELEASED_IMAGE_URI": latest_released_image_uri})
 
     autopatch_artifacts = {
         "miscellaneous_scripts": {
@@ -205,9 +267,13 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": pre_push_image_object.dockerfile,
             "target": "Dockerfile",
         },
-        "patch-details": {
-            "source": patch_details_path,
-            "target": "patch-details",
+        "patching-info": {
+            "source": complete_patching_info_dump_location,
+            "target": "patching-info",
+        },
+        "new-torchserve-entrypoint": {
+            "source": torchserve_entrypoint_path,
+            "target": "new-torchserve-entrypoint",
         },
     }
     context = Context(
@@ -265,7 +331,9 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     try:
         docker_exec_cmd = f"docker exec -i {container_id}"
-        history_retrieval_command = f"cat /opt/aws/dlc/patch-details/overall_history.txt"
+        history_retrieval_command = (
+            f"cat {PATCHING_INFO_PATH_WITHIN_DLC}/patch-details/overall_history.txt"
+        )
         data = run(f"{docker_exec_cmd} {history_retrieval_command}", hide=True)
         upload_path = get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
             image_uri=image_uri.replace("-multistage-common", ""), file_name="overall_history.txt"
@@ -273,7 +341,11 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
         tag_set = [
             {
                 "Key": "upload_path",
-                "Value": get_overall_history_path(image_uri.replace("-multistage-common", "")),
+                "Value": remove_repo_root_folder_path_from_the_given_path(
+                    given_path=get_overall_history_path(
+                        image_uri=image_uri.replace("-multistage-common", "")
+                    )
+                ),
             },
             {"Key": "image_uri", "Value": image_uri.replace("-multistage-common", "")},
         ]
@@ -283,3 +355,113 @@ def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
     finally:
         run(f"docker rm -f {container_id}", hide=True, warn=True)
     return data.stdout
+
+
+def extract_first_image_sha_using_patching_info_contents_of_given_image(image_uri):
+    """
+    This method takes an image_uri and looks into the patching-info/patch-details-archive/first_image_sha.txt file of the
+    image to get the SHA of the first manually released image. In case the SHA is not found, it returns None.
+
+    :param image_uri: str, URI of the image
+    :return: str, SHA of the first image or None in case the SHA is not found.
+    """
+    docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
+    container_id = run(f"{docker_run_cmd}").stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    sha_file_path = f"{PATCHING_INFO_PATH_WITHIN_DLC}/patch-details-archive/first_image_sha.txt"
+    image_sha_extraction_cmd = (
+        f"""bash -c "if [ -f {sha_file_path} ]; then cat {sha_file_path}; else echo ''; fi" """
+    )
+    docker_extraction_cmd = f"{docker_exec_cmd} {image_sha_extraction_cmd}"
+    FORMATTER.print(f"[extract_sha_cmd] {docker_extraction_cmd}")
+    result = run(docker_extraction_cmd, hide=True)
+    first_image_sha = result.stdout.strip()
+    return first_image_sha
+
+
+def extract_patching_relevant_data_from_latest_released_image(image_uri, extraction_location):
+    """
+    Extracts the patching-info data from the given image-uri and dumps it in a folder that is then put into the new DLC.
+
+    param image_uri: str, URI of the image
+    """
+    docker_run_cmd = f"docker run -v {extraction_location}:/dlc-extraction-folder -id --entrypoint='/bin/bash' {image_uri} "
+    FORMATTER.print(f"[extract_relevant_data] docker_run_cmd : {docker_run_cmd}")
+    container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
+    docker_exec_cmd = f"docker exec -i {container_id}"
+    extraction_cmd = f"""bash -c "if [ -d {PATCHING_INFO_PATH_WITHIN_DLC} ] ; then cp -r {PATCHING_INFO_PATH_WITHIN_DLC}/. /dlc-extraction-folder ; fi" """
+    FORMATTER.print(f"Extraction Command: {docker_exec_cmd} {extraction_cmd}")
+    run(f"{docker_exec_cmd} {extraction_cmd}")
+
+
+def verify_artifact_contents_for_patch_builds(
+    patching_info_folder_path, miscellaneous_scripts_path
+):
+    """
+    This method ensures that the folder being copied into the new DLC meets size requirements and that the contents within the
+    folder are of specific type.
+
+    :param patching_info_folder_path: str, Local path of the patching-info dump that will be onboarded to the new DLC.
+    :param miscellaneous_scripts_path: str, Path of the miscellaneous_scripts folder that is present on Github.
+    :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
+    """
+    folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
+    folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
+    assert (
+        folder_size_in_megabytes <= 0.7
+    ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
+
+    assert check_if_folder_contents_are_valid(
+        folder_path=patching_info_folder_path,
+        hidden_files_allowed=False,
+        subdirs_allowed=True,
+        only_acceptable_file_types=[".sh", ".txt", ".json"],
+    ), f"Root folder {patching_info_folder_path} contents are invalid"
+
+    patch_details_current_folder_path = os.path.join(
+        os.sep, patching_info_folder_path, "patch-details-current"
+    )
+    if os.path.exists(patch_details_current_folder_path):
+        assert check_if_folder_contents_are_valid(
+            folder_path=patch_details_current_folder_path,
+            hidden_files_allowed=False,
+            subdirs_allowed=False,
+            only_acceptable_file_types=[".sh", ".txt", ".json"],
+        ), f"{patch_details_current_folder_path} contents are invalid"
+
+    patch_details_folder_path = os.path.join(os.sep, patching_info_folder_path, "patch-details")
+    if os.path.exists(patch_details_folder_path):
+        assert check_if_folder_contents_are_valid(
+            folder_path=patch_details_folder_path,
+            hidden_files_allowed=False,
+            subdirs_allowed=False,
+            only_acceptable_file_types=[".sh", ".txt", ".json"],
+        ), f"{patch_details_folder_path} contents are invalid"
+
+    folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
+    folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
+    assert (
+        folder_size_in_megabytes <= 0.7
+    ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
+
+
+def pull_base_image_uri_for_patch_builds_and_get_the_tag(
+    latest_released_image_uri, first_image_sha
+):
+    """
+    Pulls Base image from ECR using the SHA and LOCALLY tags it using the tag of the latest released image uri appended with -FIMG.
+
+    :param latest_released_image_uri: str, Image URI of the latest released image.
+    :param first_image_sha: str, SHA of the first non-autopatched image that would be used as base.
+    :return: str, Base Image URI that would be used for building the new image.
+    """
+    FORMATTER.print(
+        f"Latest released image is different from the first image that has sha: {first_image_sha}"
+    )
+    prod_repo = latest_released_image_uri.split(":")[0]
+    first_image_uri_with_sha = f"{prod_repo}@{first_image_sha}"
+    first_image_uri = f"{latest_released_image_uri}-FIMG"
+    run(f"docker pull {first_image_uri_with_sha}")
+    run(f"docker tag {first_image_uri_with_sha} {first_image_uri}")
+    FORMATTER.print(f"First Image URI tagged as: {first_image_uri}")
+    return first_image_uri

@@ -1,0 +1,5 @@
+#### First image: sha256:ae3da463b2beeffb190d3fc26ef4db6face6e7b3d13932f759434ebb372f0951 ####
+#### Current Patch contents ####
+pip install certifi==2023.11.17 gevent==23.9.1 greenlet==3.0.3 grpcio==1.60.0 requests==2.31.0 urllib3==1.26.18 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade binutils-common binutils-x86-64-linux-gnu binutils curl imagemagick-6-common libavahi-client3 libavahi-common3 libbinutils libc-bin libc6 libcap2 libctf-nobfd0 libctf0 libcups2 libcurl3-gnutls libcurl4 libglib2.0-0 libgnutls30 libgssapi-krb5-2 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libncurses6 libncursesw6 libnghttp2-14 libperl5.30 libprocps8 libpython3.8-minimal libpython3.8-stdlib libpython3.8 librsvg2-2 libsqlite3-0 libssh-4 libssl-dev libssl1.1 libtiff5 libtinfo6 libwebp6 libwebpmux3 libx11-6 libxpm4 linux-libc-dev ncurses-bin openssl perl-base perl-modules-5.30 perl procps vim-common vim-runtime vim xxd

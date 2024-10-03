@@ -1,0 +1,113 @@
+{
+  "accelerate": {
+    "version_specifier": "==0.33.0",
+    "skip": "True"
+  },
+  "deepspeed": {
+    "version_specifier": "==0.6.1+4c3ff1a",
+    "skip": "True"
+  },
+  "fastai": {
+    "version_specifier": "==2.7.15",
+    "skip": "True"
+  },
+  "flash-attn": {
+    "version_specifier": "==0.2.8",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==0.13.1+cu117",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.5.1",
+    "skip": "True"
+  },
+  "torchnet": {
+    "version_specifier": "==0.0.4",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.14.1+cu117",
+    "skip": "True"
+  },
+  "triton": {
+    "version_specifier": "==2.1.0",
+    "skip": "True"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
+  },
+  "awscli": {
+    "version_specifier": ">1.27,<2"
+  },
+  "click": {
+    "version_specifier": ">=8.1.2,<9"
+  },
+  "cmake": {
+    "version_specifier": ">=3.24.3,<3.25"
+  },
+  "cryptography": {
+    "version_specifier": ">=42.0.5"
+  },
+  "mpi4py": {
+    "version_specifier": ">=3.1.4,<3.2"
+  },
+  "psutil": {
+    "version_specifier": ">=5.9.4,<5.10"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0.1"
+  },
+  "scipy": {
+    "version_specifier": ">=1.9.3,<2"
+  },
+  "sagemaker": {
+    "version_specifier": ">=2.173.0,<3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "<1"
+  },
+  "bokeh": {
+    "version_specifier": ">=3.0.1,<4"
+  },
+  "imageio": {
+    "version_specifier": ">=2.22,<3"
+  },
+  "plotly": {
+    "version_specifier": ">=5.11,<6"
+  },
+  "seaborn": {
+    "version_specifier": ">=0.12,<1"
+  },
+  "numba": {
+    "version_specifier": ">=0.56.4,<0.57"
+  },
+  "shap": {
+    "version_specifier": ">=0.41,<1"
+  },
+  "attrs": {
+    "version_specifier": ">=23.1.0"
+  },
+  "importlib-metadata": {
+    "version_specifier": ">=6.8.0"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
+  }
+}

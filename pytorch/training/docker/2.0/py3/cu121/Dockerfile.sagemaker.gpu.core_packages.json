@@ -1,0 +1,88 @@
+{
+   "accelerate":{
+      "version_specifier":"==0.24.1",
+      "skip":"True",
+      "_comment":"accelerate has Torch as a child dependency and might end up changing torch version"
+   },
+   "fastai":{
+      "version_specifier":"==2.7.13",
+      "skip":"True",
+      "_comment":"fastai has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchaudio":{
+      "version_specifier":"==2.0.2",
+      "skip":"True",
+      "_comment":"torchaudio has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchdata":{
+      "version_specifier":"==0.6.1",
+      "skip":"True",
+      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchtext":{
+      "version_specifier":"==0.15.2",
+      "skip":"True",
+      "_comment":"torchtext has torchdata/Torch as a child dependency and might end up changing torch version"
+   },
+   "torchtnt":{
+      "version_specifier":"==0.2.1",
+      "skip":"True",
+      "_comment":"torchtnt has Torch as a child dependency and might end up changing torch version"
+   },
+   "torchvision":{
+      "version_specifier":"==0.15.2",
+      "skip":"True",
+      "_comment":"torchdata has Torch as a child dependency and might end up changing torch version"
+   },
+   "triton":{
+      "version_specifier":"==2.0.0",
+      "skip":"True",
+      "_comment":"triton has Torch as a child dependency and might end up changing torch version"
+   },
+   "flash-attn":{
+      "version_specifier":"==2.0.4",
+      "skip":"True",
+      "_comment":"flash-attn has Torch as a child dependency and might end up changing torch version"
+   },
+   "transformer-engine":{
+      "version_specifier":"==0.12.0+170797",
+      "skip":"True",
+      "_comment":"transformer-engine has Torch, flash-attn as a child dependency and might end up changing torch version"
+   },
+   "torch":{
+      "version_specifier":"==2.0.1"
+   },
+   "cryptography":{
+      "version_specifier":">=41.0.4"
+   },
+   "mpi4py":{
+      "version_specifier":">=3.1.4,<3.2"
+   },
+   "apex":{
+      "version_specifier":"==0.1",
+      "skip":"True",
+      "_comment":"Apex is pinned at a specific commit."
+   },
+   "sagemaker":{
+      "version_specifier":">=2,<3"
+   },
+   "sagemaker-experiments":{
+      "version_specifier":"<1"
+   },
+   "smprof":{
+      "version_specifier":"==0.3.334",
+      "skip":"True"
+   },
+   "pillow":{
+      "version_specifier":">=9.5"
+   },
+   "requests":{
+      "version_specifier":">=2.31.0"
+   },
+   "pyopenssl":{
+      "version_specifier":">=23.2.0"
+   },
+   "zstandard":{
+      "version_specifier":">=0.21.0"
+   }
+}

@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 1.13.1
-short_version: &SHORT_VERSION "1.13"
+version: &VERSION 2.1.2
+short_version: &SHORT_VERSION "2.1"
 contributor: huggingface
 arch_type: x86
 
@@ -30,14 +30,14 @@ images:
   BuildNeuronHFPytorchPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_INF_TRAINING_PY3 false
-    image_size_baseline: 14000
+    image_size_baseline: 20000
     device_type: &DEVICE_TYPE neuronx
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
-    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.15.0
+    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.19.1
     os_version: &OS_VERSION ubuntu20.04
-    transformers_version: &TRANSFORMERS_VERSION 4.34.1
-    datasets_version: &DATASETS_VERSION 2.14.6
+    transformers_version: &TRANSFORMERS_VERSION 4.41.1
+    datasets_version: &DATASETS_VERSION 2.18.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION,"-", *NEURON_SDK_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:

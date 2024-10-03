@@ -61,6 +61,11 @@ def validate_or_skip_smmodelparallel_efa(ecr_image):
         pytest.skip("EFA is only supported on CUDA 11, and on PyTorch 1.8.1 or higher")
 
 
+def skip_unsupported_instances_smmodelparallel(instance_type):
+    if instance_type.startswith("ml.p5"):
+        pytest.skip(f"{instance_type} is not supported by smdataparallel")
+
+
 def can_run_smmodelparallel_efa(ecr_image):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
@@ -79,7 +84,7 @@ def can_run_smmodelparallel_efa(ecr_image):
 def test_dist_operations_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
-    instance_type = instance_type or "ml.c4.xlarge"
+    instance_type = instance_type or "ml.c5.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -102,7 +107,7 @@ def test_dist_operations_gpu(
     """
     Test is run as multinode
     """
-    instance_type = instance_type or "ml.p2.xlarge"
+    instance_type = instance_type or "ml.p3.xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -165,15 +170,14 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode(
@@ -270,15 +274,14 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
@@ -377,16 +380,15 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_smmodelparallel_mnist_multigpu_multinode(
@@ -437,16 +439,15 @@ def test_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 def test_hc_smmodelparallel_mnist_multigpu_multinode(
@@ -499,19 +500,18 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("smmodelparallel_pt_mnist.py", 8)])
 @pytest.mark.efa()
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_mnist_multigpu_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
@@ -519,6 +519,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             "entry_point": test_script,
@@ -559,18 +560,17 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
         )
 
 
+@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip_cpu
+@pytest.mark.skip_py2_containers
+@pytest.mark.skip_trcomp_containers
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("gpt2")
 @pytest.mark.processor("gpu")
 @pytest.mark.multinode(2)
-@pytest.mark.skip_cpu
-@pytest.mark.skip_py2_containers
-@pytest.mark.skip_trcomp_containers
-@pytest.mark.skip_pt21_test
 @pytest.mark.team("smmodelparallel")
 @pytest.mark.parametrize("test_script, num_processes", [("train_gpt_simple.py", 8)])
 @pytest.mark.efa()
-@pytest.mark.skip_pt20_cuda121_tests
 def test_smmodelparallel_gpt2_sdp_multinode_efa(
     ecr_image, efa_instance_type, sagemaker_regions, test_script, num_processes
 ):
@@ -614,6 +614,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
     )
     inputs = {"train": train, "test": train}
     validate_or_skip_smmodelparallel(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     mp_params = {
         "partitions": 1,
         "tensor_parallel_degree": 1,
@@ -673,6 +674,7 @@ def test_sanity_efa(ecr_image, efa_instance_type, sagemaker_regions):
     Tests pt mnist command via script mode
     """
     validate_or_skip_smmodelparallel_efa(ecr_image)
+    skip_unsupported_instances_smmodelparallel(efa_instance_type)
     efa_test_path = os.path.join(RESOURCE_PATH, "efa", "test_efa.sh")
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {

@@ -12,7 +12,8 @@ Pillow
 h5py
 tox
 flake8
-pytest
+# Preserve pytest caching behavior in earlier versions
+pytest<8.1
 pytest-cov
 pytest-rerunfailures
 pytest-xdist

@@ -145,7 +145,7 @@ class TensorflowModelServerTester(object):
         """Run tensorflow_model_server using test config."""
         print("Starting test server...")
 
-        command = "docker" if processor == "cpu" else "nvidia-docker"
+        docker_runtime = "" if processor == "cpu" else "--runtime=nvidia --gpus all"
 
         env_command = (
             " -e TENSORFLOW_INTER_OP_PARALLELISM=2 -e TENSORFLOW_INTRA_OP_PARALLELISM=72 -e KMP_AFFINITY='granularity=fine,verbose,compact,1,0' -e OMP_NUM_THREADS=36 -e TENSORFLOW_SESSION_PARALLELISM=9 -e KMP_BLOCKTIME=1 -e KMP_SETTINGS=0 "
@@ -153,8 +153,10 @@ class TensorflowModelServerTester(object):
             else ""
         )
 
-        command += (
-            " run --rm --name "
+        command = (
+            "docker run "
+            + docker_runtime
+            + " --rm --name "
             + DOCKER_NAME
             + env_command
             + " -p 8500:8500 -v /home/ubuntu/src/container_tests:/test --mount type=bind,source="

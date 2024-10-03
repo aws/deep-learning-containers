@@ -76,6 +76,13 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -129,7 +136,7 @@ def tag(request, framework_version, processor, py_version):
 @pytest.fixture(scope="session")
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c4.xlarge" if processor == "cpu" else "ml.p2.xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 

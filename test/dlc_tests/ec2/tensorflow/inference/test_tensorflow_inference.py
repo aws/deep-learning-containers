@@ -1,8 +1,10 @@
 import os
 import re
-import json
 from time import sleep
 import pytest
+
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 import test.test_utils.ec2 as ec2_utils
 
@@ -32,6 +34,57 @@ TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 )
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_gpu_deep_canary(
+    tensorflow_inference, ec2_connection, region, gpu_only
+):
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_cpu_deep_canary(
+    tensorflow_inference, ec2_connection, region, cpu_only
+):
+    if ":2.14" in tensorflow_inference:
+        # TF 2.14 deep canaries are failing due to numpy mismatch
+        ec2_connection.run("pip install numpy==1.26.4")
+    run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_graviton_cpu_deep_canary(
+    tensorflow_inference_graviton, ec2_connection, region, cpu_only
+):
+    run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, "8500", region)
+
+
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
@@ -47,7 +100,6 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     indirect=True,
 )
 @pytest.mark.team("neuron")
-# FIX ME: Sharing the AMI from neuron account to DLC account; use public DLAMI with inf1 support instead
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
@@ -90,21 +142,25 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     model_path = os.path.join(
         serving_folder_path, "tensorflow_serving", "example", "models", model_name
     )
-    upstream_build_image_uri = f"""tensorflow/tensorflow:{"2.12.0" if framework_version=="2.12.1" else framework_version}-gpu"""
+
+    # Use helper function pull_tensorrt_build_image to get the closest matching major.minor.patch
+    # version for a particular TF inference framework version. Sometimes TF serving versions
+    # are a patch version or two ahead of the corresponding TF version.
+    upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
-        f"nvidia-docker run --rm --name {build_container_name} "
+        f"docker run --runtime=nvidia --gpus all --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
         f"python /script_folder/create_tensorrt_model.py"
     )
     docker_run_server_cmd = (
-        f"nvidia-docker run -id --name {serving_container_name} -p 8501:8501 "
+        f"docker run --runtime=nvidia --gpus all -id --name {serving_container_name} -p 8501:8501 "
         f"--mount type=bind,source={model_path},target=/models/{model_name}/1 -e TEST_MODE=1 -e MODEL_NAME={model_name}"
         f" {tensorflow_inference}"
     )
 
-    tensorrt_test_failed = False
     try:
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(tensorflow_inference)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         host_setup_for_tensorflow_inference(serving_folder_path, framework_version, ec2_connection)
         sleep(2)
 
@@ -119,17 +175,16 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
             inference_string=f"""'{{"instances": [[{",".join([str([1]*28)]*28)}]]}}'""",
         )
         assert test_results, "TensorRt test failed!"
-    except:
-        tensorrt_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(
             f"docker logs {serving_container_name}", warn=True, hide=True
         )
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {serving_container_name}", warn=True, hide=True)
-    assert not tensorrt_test_failed, "TensorRt tests have failed - please take a look at the logs."
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -224,7 +279,8 @@ def run_ec2_tensorflow_inference(
     is_neuron_x = "neuronx" in image_uri
     is_graviton = "graviton" in image_uri
 
-    docker_cmd = "nvidia-docker" if "gpu" in image_uri else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
+
     if is_neuron:
         # For 2.5 using rest api port instead of grpc since using curl for prediction instead of grpc
         if str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -237,7 +293,7 @@ def run_ec2_tensorflow_inference(
             dst_port = "8500"
 
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {src_port}:{dst_port} "
+            f"docker run {docker_runtime} -id --name {container_name} -p {src_port}:{dst_port} "
             f"--device=/dev/neuron0 --net=host  --cap-add IPC_LOCK "
             f"--mount type=bind,source={model_path},target=/models/{model_name} -e TEST_MODE=1 -e MODEL_NAME={model_name} "
             f"-e NEURON_MONITOR_CW_REGION=us-east-1 -e NEURON_MONITOR_CW_NAMESPACE=tf1 "
@@ -245,11 +301,11 @@ def run_ec2_tensorflow_inference(
         )
     else:
         docker_run_cmd = (
-            f"{docker_cmd} run -id --name {container_name} -p {grpc_port}:8500 "
+            f"docker run {docker_runtime} -id --name {container_name} -p {grpc_port}:8500 "
             f"--mount type=bind,source={model_path},target=/models/mnist -e TEST_MODE=1 -e MODEL_NAME=mnist"
             f" {image_uri}"
         )
-    inference_test_failed = False
+
     try:
         host_setup_for_tensorflow_inference(
             serving_folder_path,
@@ -263,7 +319,8 @@ def run_ec2_tensorflow_inference(
         if not is_neuron:
             train_mnist_model(serving_folder_path, ec2_connection)
             sleep(10)
-        ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+        account_id = test_utils.get_account_id_from_image_uri(image_uri)
+        test_utils.login_to_ecr_registry(ec2_connection, account_id, region)
         ec2_connection.run(docker_run_cmd, hide=True)
         sleep(20)
         if is_neuron and str(framework_version).startswith(TENSORFLOW2_VERSION):
@@ -278,15 +335,14 @@ def run_ec2_tensorflow_inference(
             )
         if telemetry_mode:
             check_telemetry(ec2_connection, container_name)
-    except:
-        inference_test_failed = True
+    except Exception:
         remote_out = ec2_connection.run(f"docker logs {container_name}", warn=True, hide=True)
         LOGGER.info(
             f"--- TF container logs ---\n--- STDOUT ---\n{remote_out.stdout}\n--- STDERR ---\n{remote_out.stderr}"
         )
+        raise
     finally:
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
-    assert inference_test_failed is False, "tensorflow inference test failed"
 
 
 def train_mnist_model(serving_folder_path, ec2_connection):
@@ -303,30 +359,38 @@ def host_setup_for_tensorflow_inference(
     is_graviton=False,
     model_name=None,
 ):
-    # Wait for any existing apt-get calls to finish before moving on
-    # TODO(Mike Schneider): Improve this by adding a check for running apt-get processes and wait for them to finish,
-    # then timeout after a given amount of time if other apt-get calls are taking too long.
-    ec2_connection.run((f"sleep 180"), hide=True)
-
-    # Install PIP so we can test
-    ec2_connection.run((f"sudo apt-get update && sudo apt-get install -y python3-pip"), hide=True)
-
     # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6
     # which is not compatible with TF 2.9+ and this is the recommended action.
     if is_graviton:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
+
+        # If framework_version is only major.minor, then append .* for tensorflow-serving-api installation
+        tfs_api_version = framework_version
+        if re.fullmatch(r"\d+\.\d+", tfs_api_version):
+            tfs_api_version += ".*"
+
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --no-dependencies --no-cache-dir "
-                f"'tensorflow-serving-api=={framework_version}' 'protobuf>=3.20,<3.21'"
+                f"'tensorflow-serving-api=={tfs_api_version}'"
             ),
             hide=True,
         )
     else:
+        # Removed the protobuf version constraint because it prevents the matching version
+        # of tensorflow and tensorflow-serving-api from being installed.
+        # If we face protobuf-related version mismatch issues in the future,
+        # please add a constraint at the necessary version back to this code, such as
+        # 'protobuf>=3.20,<3.21'.
         ec2_connection.run(
             (
                 f"pip install --user -qq -U 'tensorflow<={framework_version}' "
-                f" 'tensorflow-serving-api<={framework_version}' 'protobuf>=3.20,<3.21'"
+                f" 'tensorflow-serving-api<={framework_version}'"
             ),
             hide=True,
         )
@@ -374,3 +438,41 @@ def check_telemetry(ec2_connection, container_name):
     ec2_connection.run(
         f"docker exec -i {container_name} bash -c '[ -f /tmp/test_tag_request.txt ]'"
     )
+
+
+def pull_tensorrt_build_image(ec2_connection, framework_version):
+    """
+    Download tensorflow/tensorflow:<framework_version>-gpu image used for tensorrt model builds.
+    Since tensorflow/tensorflow does not always have all patch versions of a particular TF version,
+    we want to download the closest available version below the patch version of the TF DLC image.
+
+    :param ec2_connection: fabric.Connection object
+    :param framework_version: str framework version of TF image being tested
+    :return: str tensorrt build image tag
+    """
+    tf_image_version = Version(framework_version)
+    if tf_image_version in SpecifierSet("==2.14.*"):
+        # Add a special case for TF 2.14 to account for mismatch in TensorRT version between
+        # tensorflow/tensorflow:2.14 (8.6.1) and tensorflow/serving:2.14 (8.4.3).
+        # Do not change the range of versions covered by the SpecifierSet in the if-condition
+        # unless it is confirmed that TF images for the newer framework version have the same issue.
+        return "tensorflow/tensorflow:2.13.0-gpu"
+    patch_version = tf_image_version.micro
+    upstream_build_image_uri = f"tensorflow/tensorflow:{framework_version}-gpu"
+    while patch_version >= 0:
+        major_version = tf_image_version.major
+        minor_version = tf_image_version.minor
+        tf_image_version = Version(f"{major_version}.{minor_version}.{patch_version}")
+        upstream_build_image_uri = f"tensorflow/tensorflow:{tf_image_version.base_version}-gpu"
+        response = ec2_connection.run(
+            f"docker pull {upstream_build_image_uri}", warn=True, hide=True
+        )
+        if response.failed:
+            patch_version -= 1
+        else:
+            break
+    if patch_version < 0:
+        raise RuntimeError(
+            f"Failed to pull an image for tensorflow/tensorflow matching {framework_version}"
+        )
+    return upstream_build_image_uri

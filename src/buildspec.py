@@ -45,6 +45,20 @@ class Buildspec:
             None
 
         """
+        # Check to see if buildspec file is a pointer
+        with open(path, "r") as bf:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                pointer_check = self.yaml.load(bf)
+                pointer = pointer_check.get("buildspec_pointer")
+                if pointer:
+                    if os.getenv("BUILD_CONTEXT") != "PR":
+                        raise RuntimeError(
+                            f"Detected pointer in buildspec: {path} - this is only supported in PRs"
+                        )
+                    print(f"Buildspec {path} points to another buildspec file {pointer}")
+                    path = os.path.join(os.path.dirname(path), pointer)
+                    print(f"Inferring buildspec path to be {path}")
 
         with open(path, "r") as buildspec_file:
             with warnings.catch_warnings():

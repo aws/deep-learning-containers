@@ -131,7 +131,18 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     :param images: list
     :return: dictionary
     """
-    DLC_IMAGES = {"sagemaker": [], "ecs": [], "eks": [], "ec2": [], "sanity": [], "autopr": []}
+    DLC_IMAGES = {
+        "sagemaker": [],
+        "sagemaker-efa": [],
+        "sagemaker-rc": [],
+        "sagemaker-benchmark": [],
+        "ecs": [],
+        "eks": [],
+        "ec2": [],
+        "ec2-benchmark": [],
+        "sanity": [],
+        "autopr": [],
+    }
 
     build_enabled = is_build_enabled()
 
@@ -210,7 +221,7 @@ def get_overall_history_path(image_uri):
     Retrieves the overall_history_path for each image_uri.
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
-    :return: string, safety scan allowlist path for the image
+    :return: string, overall history path for the image
     """
     from test.test_utils import get_ecr_scan_allowlist_path
 
@@ -219,6 +230,20 @@ def get_overall_history_path(image_uri):
         ".os_scan_allowlist.json", ".overall_history.txt"
     )
     return overall_history_path
+
+
+def remove_repo_root_folder_path_from_the_given_path(given_path: str):
+    """
+    Takes the given path and removes the get_cloned_folder_path string from it to ensure that the exact path
+    of a file/folder within the DLC repo can be retrieved. The get_cloned_folder_path() returns a string that
+    looks like "/home/deep-learning-containers" (without a `/` at the end). However, while removing the root folder path
+    this method ensures it removes f"{get_cloned_folder_path()}/" (with a `/`) from the given_path.
+
+    :param given_path: str, Given path
+    :return: str, Path with repo root folder removed
+    """
+    cloned_folder_path_with_appended_seperator = f"{get_cloned_folder_path()}{os.sep}"
+    return given_path.replace(cloned_folder_path_with_appended_seperator, "")
 
 
 def get_safety_ignore_dict_from_image_specific_safety_allowlists(image_uri):
@@ -323,7 +348,9 @@ def derive_future_safety_allowlist_and_upload_to_s3(
         tag_set = [
             {
                 "Key": "upload_path",
-                "Value": get_safety_scan_allowlist_path(image_uri),
+                "Value": remove_repo_root_folder_path_from_the_given_path(
+                    given_path=get_safety_scan_allowlist_path(image_uri)
+                ),
             },
             {"Key": "image_uri", "Value": image_uri.replace("-pre-push", "")},
         ]
@@ -350,19 +377,21 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
-    install_safety_cmd = "pip install 'safety>=2.2.0'"
+    install_safety_cmd = "pip install 'safety>=2.2.0,<3'"
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
     ignore_dict = get_safety_ignore_dict(
         image_uri, image_info["framework"], image_info["python_version"], image_info["image_type"]
     )
-    safety_report_generator_object = SafetyReportGenerator(container_id, ignore_dict=ignore_dict)
+    safety_report_generator_object = SafetyReportGenerator(
+        container_id, ignore_dict=ignore_dict, image_uri=image_uri, image_info=image_info
+    )
     safety_scan_output = safety_report_generator_object.generate()
     ctx.run(f"docker rm -f {container_id}", hide=True, warn=True)
     if storage_file_path:
         with open(storage_file_path, "w", encoding="utf-8") as f:
             json.dump(safety_scan_output, f, indent=4)
-    if is_autopatch_build_enabled():
+    if is_autopatch_build_enabled(buildspec_path=image_info["buildspec_path"]):
         derive_future_safety_allowlist_and_upload_to_s3(
             safety_report_generator_object=safety_report_generator_object, image_uri=image_uri
         )
@@ -450,9 +479,12 @@ def derive_prod_image_uri_using_image_config_from_buildspec(
     :param new_account_id: str, Account ID of the prod repo
     :return: str, image_uri
     """
-    prod_repo = image_config.get(
-        "release_repository"
-    ) or derive_prod_repository_using_image_config_from_buildspec(
+    prod_repo = (
+        image_config.get("example_release_repository")
+        if image_config.get("tag").endswith("-example")
+        else image_config.get("release_repository")
+    )
+    prod_repo = prod_repo or derive_prod_repository_using_image_config_from_buildspec(
         image_config=image_config, framework=framework, new_account_id=new_account_id
     )
     prod_tag = image_config.get("latest_release_tag") or image_config.get("tag")
@@ -488,6 +520,8 @@ def derive_prod_repository_using_image_config_from_buildspec(
         # We retrive the prod repo name using the buildspec and get rid of the additional prefix i.e. "abcd".
         image_type = image_config.get("image_type")
         desired_prod_repo_name = f"{framework}-{image_type}"
+        if image_config.get("tag").endswith("-example"):
+            desired_prod_repo_name = f"aws-samples-{desired_prod_repo_name}"
         current_repo_name = release_repository.split("/")[-1]
         release_repository = release_repository.replace(current_repo_name, desired_prod_repo_name)
     else:
@@ -512,3 +546,95 @@ def get_dummy_boto_client():
     :return: BotocoreClientSTS
     """
     return boto3.client("sts", region_name=os.getenv("REGION"))
+
+
+def get_folder_size_in_bytes(folder_path):
+    """
+    Calculates the size of the given folder and return the size in bytes. On the other hand, we could have used `du -s` command.
+    However, the `du` command calculates the disk usage (not file size) by looking at the blocks that a file consumes and allocating the complete
+    block size to the file even if it does not consume the entire block. Thus, we have used the os.path.getsize() method here.
+
+    :param folder_path: str, Path of the folder
+    :return: float, Size of the folder in bytes
+    """
+    size_in_bytes = 0.0
+    for dir_path, dir_names, file_names in os.walk(folder_path):
+        for file_name in file_names:
+            file_path = os.path.join(dir_path, file_name)
+            size_in_bytes += os.path.getsize(file_path)
+    LOGGER.info(f"Folder {folder_path} has size {size_in_bytes/(1024*1024)} MB")
+    return size_in_bytes
+
+
+def check_if_folder_contents_are_valid(
+    folder_path, hidden_files_allowed=True, subdirs_allowed=True, only_acceptable_file_types=[]
+):
+    """
+    This method checks if the contents of a folder are valid based on the provided arguments and returns True if they are
+    valid, otherwise False. The arguments guide this method to make decisions if the folder contents are valid or not.
+
+    :param hidden_files_allowed: boolean, If the `hidden_files_allowed` argument is set to True, it would consider hidden files within the folder as valid files.
+    :param subdirs_allowed: boolean, If the `subdirs_allowed` argument is set to True, it would allow the folder to have sub-directories.
+    :param only_acceptable_file_types: list, Is a list of valid file types - foe eg. ".py"(Python), ".txt"(Text), ".json"(JSON). If
+        it is empty, all the file types would be considered valid. Otherwise, only the file types mentioned in the list would be
+        considered valid.
+    :return: boolean, True if the folder matches all the criterions, False otherwise.
+    """
+    validity_flag = True
+    level_count = 0
+    violating_content = []
+    for dir_path, dir_names, file_names in os.walk(folder_path):
+        level_count += 1
+        if not subdirs_allowed and dir_names:
+            violating_content += dir_names
+            validity_flag = False
+        for file_name in file_names:
+            if not hidden_files_allowed and file_name.startswith("."):
+                violating_content.append(file_name)
+                validity_flag = False
+            if only_acceptable_file_types:
+                if not any(
+                    [file_name.endswith(file_type) for file_type in only_acceptable_file_types]
+                ):
+                    violating_content.append(file_name)
+                    validity_flag = False
+    if not subdirs_allowed and level_count > 1:
+        validity_flag = False
+    LOGGER.info(f"Violation Contents in {folder_path} are {violating_content}")
+    return validity_flag
+
+
+def get_image_layers(image_uri):
+    """
+    Extracts the layers of an image.
+
+    :param image_uri: str, Image URI
+    :return: List, List of all the layers in the image
+    """
+    ctx = Context()
+    layer_retrieval_command = """docker image inspect --format='{{json .RootFS.Layers}}' """
+    layer_retrieval_command += image_uri
+    run_output = ctx.run(layer_retrieval_command, hide=True)
+    layer_list_str = run_output.stdout.strip()
+    layer_list = json.loads(layer_list_str)
+    return layer_list
+
+
+def verify_if_child_image_is_built_on_top_of_base_image(base_image_uri, child_image_uri):
+    """
+    This method verifies if a child image is built on top of the base image, by ensure that all the base image layers are present
+    in the child image.
+
+    :param base_image_uri: str, Image URI of base image
+    :param child_image_uri: str, Image URI of child image
+    :return: boolean, True if child is built on base image. False otherwise.
+    """
+    base_image_layers = get_image_layers(image_uri=base_image_uri)
+    child_image_layers = get_image_layers(image_uri=child_image_uri)
+    if len(base_image_layers) > len(child_image_layers):
+        return False
+    for i, base_layer_sha in enumerate(base_image_layers):
+        child_layer_sha = child_image_layers[i]
+        if base_layer_sha != child_layer_sha:
+            return False
+    return True

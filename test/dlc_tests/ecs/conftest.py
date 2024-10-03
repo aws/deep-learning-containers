@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 
 from test import test_utils
 import test.test_utils.ecs as ecs_utils
+import test.test_utils.ec2 as ec2_utils
 
 
 @pytest.fixture(scope="function")
@@ -75,7 +76,22 @@ def ecs_ami(request):
 
 @pytest.fixture(scope="session")
 def ecs_instance_type(request):
-    return request.param
+    instance_type = request.param if hasattr(request, "param") else "g4dn.xlarge"
+    _restrict_instance_usage(instance_type)
+    return instance_type
+
+
+def _restrict_instance_usage(instance_type):
+    restricted_instances = {"c": ["c4"], "m": ["m4"], "p": ["p2"]}
+
+    for instance_serie, instance_list in restricted_instances.items():
+        for instance_family in instance_list:
+            if f"{instance_family}." in instance_type:
+                raise RuntimeError(
+                    f"{instance_family.upper()}-family instances are no longer supported in our system."
+                    f"Please use a different instance type (i.e. another {instance_serie.upper()} series instance type)."
+                )
+    return
 
 
 @pytest.fixture(scope="session")
@@ -107,7 +123,6 @@ def ecs_container_instance(
     ecs_instance_type,
     ecs_ami,
     region,
-    ei_accelerator_type,
     use_large_storage,
 ):
     """
@@ -148,22 +163,30 @@ def ecs_container_instance(
             {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 90, "VolumeType": "gp2"}}
         ]
 
-    if ei_accelerator_type:
-        params["ElasticInferenceAccelerators"] = [{"Type": ei_accelerator_type, "Count": 1}]
-        availability_zones = {
-            "us-west-2": ["us-west-2a", "us-west-2b", "us-west-2c"],
-            "us-east-1": ["us-east-1a", "us-east-1b", "us-east-1c"],
+    reservations = ec2_utils.get_available_reservations(
+        ec2_client=ec2_client, instance_type=instance_type, min_availability=params["MinCount"]
+    )
+    fn_name = request.node.name
+    instances = None
+    while reservations:
+        reservation = reservations.pop(0)
+        params["CapacityReservationSpecification"] = {
+            "CapacityReservationTarget": {
+                "CapacityReservationId": reservation["CapacityReservationId"]
+            }
         }
-        for a_zone in availability_zones[region]:
-            params["Placement"] = {"AvailabilityZone": a_zone}
-            try:
-                instances = ec2_client.run_instances(**params)
-                if instances:
-                    break
-            except ClientError as e:
-                print(f"Failed to launch in {a_zone} with Error: {e}")
-                continue
-    else:
+        try:
+            instances = ec2_client.run_instances(**params)
+            test_utils.LOGGER.info(
+                f"Your reservation is ready for {fn_name}, please wait to be seated. Launching..."
+            )
+            if test_utils.is_mainline_context():
+                test_utils.LOGGER.info(f"Launched instance for {fn_name} via {reservation}")
+        except ClientError as e:
+            test_utils.LOGGER.error(f"Failed to launch via reservation for {fn_name} - {e}")
+
+    if not instances:
+        params.pop("CapacityReservationSpecification", None)
         instances = ec2_client.run_instances(**params)
     instance_id = instances.get("Instances")[0].get("InstanceId")
 

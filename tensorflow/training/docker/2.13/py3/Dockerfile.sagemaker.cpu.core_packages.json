@@ -1,0 +1,60 @@
+{
+   "awscli":{
+      "version_specifier": ">=1.33.13,<2"
+   },
+   "pyyaml":{
+      "version_specifier":">=6.0,<6.1"
+   },
+   "protobuf":{
+      "version_specifier":">=3.20.3,<4"
+   },
+   "tensorflow-io":{
+      "version_specifier":"==0.33.0"
+   },
+   "tensorflow-cpu":{
+      "version_specifier":"==2.13.0"
+   },
+   "cython":{
+      "version_specifier":"<3"
+   },
+   "tf-models-official":{
+      "version_specifier":"==2.13.0",
+      "skip":"True",
+      "_comment":"Needs pyyaml <6 and can cause issues with the SM requirements which need PyYAML >6"
+   },
+   "tensorflow-model-optimization":{
+      "version_specifier":">=0.4.1"
+   },
+   "tensorflow-text":{
+      "version_specifier":"==2.13.0",
+      "skip":"True",
+      "_comment":"Will complain about tensorflow not installed even when tensorflow-cpu is installed."
+   },
+   "tensorflow-hub":{
+      "version_specifier":">=0.16.1"
+   },
+   "sagemaker":{
+      "version_specifier":"<3"
+   },
+   "sagemaker-experiments":{
+      "version_specifier":"==0.*"
+   },
+   "sagemaker-studio-analytics-extension":{
+      "version_specifier":"<1"
+   },
+   "sparkmagic":{
+      "version_specifier":"<1"
+   },
+   "sagemaker-studio-sparkmagic-lib":{
+      "version_specifier":"<1"
+   },
+   "sagemaker-tensorflow":{
+      "version_specifier":"==2.13.0.1.19.1"
+   },
+   "jinja2": {
+      "version_specifier": ">=3.1.4"
+   },
+   "urllib3": {
+      "version_specifier": ">=2.0.7"
+   }
+}

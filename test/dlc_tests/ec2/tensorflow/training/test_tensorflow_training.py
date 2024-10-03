@@ -29,18 +29,54 @@ TF_DATASERVICE_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testDataservice"
 TF_DATASERVICE_DISTRIBUTE_TEST_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "testDataserviceDistribute"
 )
+TF_IO_S3_PLUGIN_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflowIoS3Plugin")
 TF_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaTFSuite")
 
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
-TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.16xlarge", processor="gpu")
-TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c4.8xlarge", processor="cpu")
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+# Timeouts in t3.2xlarge
+TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c5.9xlarge", processor="cpu", filter_function=ec2_utils.filter_no_t32x
+)
 TF_EC2_HPU_INSTANCE_TYPE = get_ec2_instance_type(default="dl1.24xlarge", processor="hpu")
 
 
 class TFTrainingTestFailure(Exception):
     pass
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_train_mnist_gpu_deep_canary(
+    tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_train_mnist_cpu_deep_canary(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_MNIST_CMD)
 
 
 @pytest.mark.integration("tensorflow_sanity_test")
@@ -247,12 +283,13 @@ def test_tensorflow_tensorboard_cpu(tensorflow_training, ec2_connection, tf2_onl
 
 # TensorFlow Addons is actively working towards forward compatibility with TensorFlow 2.x
 # https://github.com/tensorflow/addons#python-op-compatility
+# TF-Addons is deprecated and does not work with latest Keras 3. Skipping test for TF2.16 and later versions
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_addons_gpu(
-    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type
+    tensorflow_training, ec2_connection, tf2_only, gpu_only, ec2_instance_type, below_tf216_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -261,12 +298,48 @@ def test_tensorflow_addons_gpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
+# TF-Addons is deprecated and does not work with latest Keras 3. Skipping test for TF2.16 and later versions
 @pytest.mark.model("sequential")
 @pytest.mark.integration("tensorflow_addons, keras")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_addons_cpu(tensorflow_training, ec2_connection, tf2_only, cpu_only):
+def test_tensorflow_addons_cpu(
+    tensorflow_training, ec2_connection, tf2_only, cpu_only, below_tf216_only
+):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
+
+
+## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("mnist")
+@pytest.mark.integration("tensorflow_io, tensorflow_datasets")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_io_s3_plugin_gpu(
+    tensorflow_training,
+    ec2_connection,
+    tf2_only,
+    gpu_only,
+    ec2_instance_type,
+    skip_tf216,
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
+
+
+## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("mnist")
+@pytest.mark.integration("tensorflow_io, tensorflow_datasets")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_io_s3_plugin_cpu(
+    tensorflow_training, ec2_connection, tf2_only, cpu_only, skip_tf216
+):
+    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 
 # Helper function to test data service

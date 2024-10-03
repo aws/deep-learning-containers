@@ -30,9 +30,11 @@ distribution = {"torch_distributed": {"enabled": True}}
 # hyperparameters, which are passed into the training job
 hyperparameters = {
     "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
-    "dataset_name": "philschmid/emotion",
+    "dataset_name": "imdb",
     "do_train": True,
     "bf16": True,
+    "max_seq_length": 128,
+    "max_train_samples": 10,
     "per_device_train_batch_size": 4,
     "num_train_epochs": 1,
     "logging_steps": 1,
@@ -122,8 +124,8 @@ def _test_neuronx_text_classification_function(
     num_neuron_cores=2,
 ):
     pytorch_version = get_pytorch_version(ecr_image)
-    if pytorch_version in SpecifierSet("==1.13.*"):
-        optimum_neuron_version = "0.0.13"
+    if pytorch_version in SpecifierSet("==2.1.*"):
+        optimum_neuron_version = "0.0.24"
     else:
         raise ValueError(
             f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."

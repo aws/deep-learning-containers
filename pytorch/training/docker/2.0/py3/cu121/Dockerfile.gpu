@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.10.8
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-0
 ARG PYTORCH_VERSION_EC2=2.0.1
-ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -236,7 +236,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.2 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl=1.7.2 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -359,7 +359,7 @@ WORKDIR /
 
 # Install ec2 PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc=1.7.3 \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl=1.7.3 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -467,6 +467,10 @@ ENV NVTE_FRAMEWORK=pytorch
 RUN MAX_JOBS=4 pip install flash-attn==2.0.4 --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install git+https://github.com/NVIDIA/TransformerEngine.git@release_v0.12
+
+# Install SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
+RUN pip install --no-cache-dir -U ${SMP_URL}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

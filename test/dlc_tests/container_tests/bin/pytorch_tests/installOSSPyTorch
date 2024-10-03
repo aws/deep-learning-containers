@@ -2,14 +2,25 @@
 
 set -e
 
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
 # get version info from AWS-PyTorch
 PT_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0]);")
 HAS_CUDA=$(python -c "import torch; print(torch.version.cuda is not None)")
 
 # install OSS PyTorch
-conda remove -y --force pytorch torchvision torchaudio 
-if [ -n "$HAS_CUDA" ]; then
-    mamba install -y pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda -c pytorch -c nvidia
+if [ $(version $PT_VERSION) -lt $(version "2.0") ] || [ $(version $PT_VERSION) -ge $(version "2.4") ]; then
+    pip uninstall -y torch torchvision torchaudio torchdata
 else
-    mamba install -y pytorch=$PT_VERSION torchvision torchaudio -c pytorch
+    conda remove -y --force pytorch torchvision torchaudio
+fi
+
+if [ -n "$HAS_CUDA" ]; then
+    if [ $(version $PT_VERSION) -lt $(version "2.0") ]; then
+        mamba install -y -c pytorch -c nvidia pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda "mkl<2024.1"
+    else
+        mamba install -y -c pytorch -c nvidia pytorch=$PT_VERSION torchvision torchaudio pytorch-cuda
+    fi
+else
+    mamba install -y -c pytorch pytorch=$PT_VERSION torchvision torchaudio cpuonly
 fi

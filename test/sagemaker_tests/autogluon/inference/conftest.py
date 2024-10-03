@@ -87,7 +87,7 @@ def pytest_addoption(parser):
     parser.addoption("--docker-base-name", default="autogluon")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
-    parser.addoption("--py-version", choices=["37", "38"], default="38")
+    parser.addoption("--py-version", choices=["38", "39", "310", "311"], default="311")
     parser.addoption("--processor", choices=["gpu", "cpu"], default="cpu")
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -119,6 +119,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 

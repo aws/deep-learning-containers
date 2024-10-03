@@ -19,7 +19,11 @@ import sagemaker.huggingface
 from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_cuda_version_from_tag,
+    get_transformers_version_from_image_uri,
+)
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 from ...integration import DEFAULT_TIMEOUT
@@ -27,21 +31,28 @@ from ...integration.sagemaker.timeout import timeout
 import sagemaker
 import re
 
-# configuration for running training on smdistributed Data Parallel
-distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
+# configurations for running training on smdistributed Data Parallel
+torch_distribution = {
+    "torch_distributed": {
+        "enabled": True,
+    }
+}
+
+sm_distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "bert-large-uncased-whole-word-masking",
+    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
     "dataset_name": "squad",
     "do_train": True,
     "do_eval": True,
     "fp16": True,
-    "per_device_train_batch_size": 4,
-    "per_device_eval_batch_size": 4,
+    "per_device_train_batch_size": 1,
+    "per_device_eval_batch_size": 1,
     "num_train_epochs": 1,
     "max_seq_length": 384,
     "max_steps": 10,
+    "max_train_samples": 10,
     "pad_to_max_length": True,
     "doc_stride": 128,
     "output_dir": "/opt/ml/model",
@@ -67,15 +78,6 @@ def can_run_smdataparallel(ecr_image):
     return Version(image_framework_version) in SpecifierSet(">=1.6") and Version(
         image_cuda_version.strip("cu")
     ) >= Version("110")
-
-
-def get_transformers_version(ecr_image):
-    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", ecr_image)
-    if transformers_version_search:
-        transformers_version = transformers_version_search.group(1)
-        return transformers_version
-    else:
-        raise LookupError("HF transformers version not found in image URI")
 
 
 @pytest.mark.integration("smdataparallel")
@@ -114,7 +116,7 @@ def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_vers
 def _test_smdp_question_answering_function(
     ecr_image, sagemaker_session, py_version, instances_quantity
 ):
-    transformers_version = get_transformers_version(ecr_image)
+    transformers_version = get_transformers_version_from_image_uri(ecr_image)
     git_config = {
         "repo": "https://github.com/huggingface/transformers.git",
         "branch": "v" + transformers_version,
@@ -127,8 +129,12 @@ def _test_smdp_question_answering_function(
 
     source_dir = (
         "./examples/question-answering"
-        if Version(transformers_version) < Version("4.6")
+        if Version(transformers_version) < Version("4.26")
         else "./examples/pytorch/question-answering"
+    )
+
+    distribution = (
+        sm_distribution if Version(transformers_version) < Version("4.26") else torch_distribution
     )
 
     with timeout(minutes=DEFAULT_TIMEOUT):

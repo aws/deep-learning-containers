@@ -1,20 +1,24 @@
 {
-  "libzmq5": [
+  "libzmq5":
+  [
     {
       "reason_to_ignore": "The current version is marked as a fix version in the CVE notes, and this is the latest version.",
       "description": "\n It was discovered that ZeroMQ incorrectly handled certain application metadata.\n A remote attacker could use this issue to cause ZeroMQ to crash, or possibly\n execute arbitrary code.",
       "vulnerability_id": "CVE-2019-13132",
       "name": "CVE-2019-13132",
       "package_name": "libzmq5",
-      "package_details": {
+      "package_details":
+      {
         "file_path": null,
         "name": "libzmq5",
         "package_manager": "OS",
         "version": "4.3.2",
         "release": "2ubuntu1"
       },
-      "remediation": {
-        "recommendation": {
+      "remediation":
+      {
+        "recommendation":
+        {
           "text": "None Provided"
         }
       },
@@ -28,6 +32,105 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2019-13132 - libzmq5"
+    }
+  ],
+  "transformers":
+  [
+    {
+      "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs.",
+      "description": "\n Insecure Temporary File in GitHub repository huggingface/transformers prior to 4.30.0..",
+      "vulnerability_id": "CVE-2023-2800",
+      "name": "CVE-2023-2800",
+      "package_name": "transformers",
+      "package_details":
+      {
+        "file_path": null,
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.26.0",
+        "release": ""
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "Update transformers to 4.30.0."
+        }
+      },
+      "cvss_v3_score": 4.7,
+      "cvss_v30_score": 4.7,
+      "cvss_v31_score": 4.7,
+      "cvss_v2_score": 4.7,
+      "cvss_v3_severity": "MEDIUM",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-2800",
+      "source": "NVD",
+      "severity": "MEDIUM",
+      "status": "ACTIVE",
+      "title": "CVE-2023-2800 - transformers"
+    },
+    {
+      "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
+      "vulnerability_id": "CVE-2023-7018",
+      "name": "CVE-2023-7018",
+      "package_name": "transformers",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.10/site-packages/transformers-4.28.1.dist-info/METADATA",
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.28.1",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-7018",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-7018 - transformers",
+      "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs."
+    },
+    {
+      "description": "Deserialization of Untrusted Data in GitHub repository huggingface/transformers prior to 4.36.",
+      "vulnerability_id": "CVE-2023-6730",
+      "name": "CVE-2023-6730",
+      "package_name": "transformers",
+      "package_details":
+      {
+        "file_path": "opt/conda/lib/python3.10/site-packages/transformers-4.28.1.dist-info/METADATA",
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.28.1",
+        "release": null
+      },
+      "remediation":
+      {
+        "recommendation":
+        {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-6730",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6730 - transformers",
+      "reason_to_ignore": "Need guidance from HF team on how to upgrade as it's breaking the image. Temporarily ignoring to patch other CVEs."
     }
   ]
 }

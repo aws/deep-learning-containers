@@ -125,7 +125,8 @@ RUN pip install --no-cache-dir -U \
     "numpy>=1.22.2, <=1.25.2" \
     scikit-learn \
     cryptography \
-    "opencv-python>=4.8.1.78"
+    "opencv-python>=4.8.1.78" \
+    pyarrow
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \

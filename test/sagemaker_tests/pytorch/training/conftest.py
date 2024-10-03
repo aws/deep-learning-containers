@@ -33,7 +33,6 @@ from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
 from .integration import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
-    get_processor_from_image_uri,
 )
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
 
@@ -118,6 +117,11 @@ NO_P4_REGIONS = [
     "il-central-1",
 ]
 
+P5_AVAIL_REGIONS = [
+    "us-east-1",
+    "us-west-2",
+]
+
 
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
@@ -129,7 +133,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310"],
+        choices=["2", "3", "37", "38", "39", "310", "311"],
         default=str(sys.version_info.major),
     )
     parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
@@ -166,11 +170,9 @@ def pytest_configure(config):
     config.addinivalue_line(
         "markers", "skip_inductor_test(): skip inductor test on incompatible images"
     )
-    config.addinivalue_line(
-        "markers", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
-    )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
     config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
+    config.addinivalue_line("markers", "skip_smppy_test(): skip smppy test")
 
 
 def pytest_runtest_setup(item):
@@ -182,6 +184,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -205,7 +215,7 @@ NIGHTLY_FIXTURES = {
     },
     "feature_smmp_present": {NightlyFeatureLabel.AWS_SMMP_INSTALLED.value},
     "feature_aws_framework_present": {NightlyFeatureLabel.AWS_FRAMEWORK_INSTALLED.value},
-    "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+    "feature_smart_sifting_present": {NightlyFeatureLabel.AWS_SMART_SIFTING_INSTALLED.value},
 }
 
 
@@ -237,7 +247,7 @@ def feature_aws_framework_present():
 
 
 @pytest.fixture(scope="session")
-def feature_s3_plugin_present():
+def feature_smart_sifting_present():
     pass
 
 
@@ -416,6 +426,13 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
 
 
 @pytest.fixture(autouse=True)
+def skip_gpu_instance_restricted_regions_efa(region, efa_instance_type):
+    # NOTE list for P5 instances is *available* regions
+    if region not in P5_AVAIL_REGIONS and efa_instance_type.startswith("ml.p5"):
+        pytest.skip("Skipping GPU test in region {}".format(region))
+
+
+@pytest.fixture(autouse=True)
 def skip_neuron_trn1_test_in_region(request, region):
     if request.node.get_closest_marker("skip_neuron_trn1_test_in_region"):
         if region not in NEURON_TRN1_REGIONS:
@@ -454,40 +471,135 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_s3plugin_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
+def skip_smdebug_v1_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
+    ):
+        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_dgl_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
+    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
+    when the binaries are added in.
+    """
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_dgl_test", skip_dict
+    ):
+        pytest.skip(f"DGL binary is removed, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_pytorchddp_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
+    For each currency release, Once SMDDP binary is added, we skip pytorchddp tests due to `pytorchddp` and `smdistributed` launcher consolidation.
+    See https://github.com/aws/sagemaker-python-sdk/pull/4698.
+    """
+    skip_dict = {">=2.1,<2.4": ["cu121"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
+    ):
+        pytest.skip(f"SM Data Parallel binaries exist in this image, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_smdmodelparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
+    ):
+        pytest.skip(
+            f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_smddataparallel_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
+    For each currency release, we can skip SMDDP tests if the binary does not exist.
+    However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
+    """
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.4": ["cu124"]}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
+    ):
+        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_smppy_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
+    However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
+    """
+    skip_dict = {}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smppy_test", skip_dict
+    ):
+        pytest.skip(f"Profiler binaries do not exist in this image, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_p5_tests(request, processor, ecr_image):
+    if "efa_instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("efa_instance_type")
+    elif "instance_type" in request.fixturenames:
+        test_instance_type = request.getfixturevalue("instance_type")
     else:
         return
-    if request.node.get_closest_marker("skip_s3plugin_test"):
-        if Version(fw_ver) not in SpecifierSet("<=1.12.1,>=1.6.0"):
-            pytest.skip(
-                f"s3 plugin is only supported in PT 1.6.0 - 1.12.1, skipping this container with tag {fw_ver}"
-            )
 
-
-@pytest.fixture(autouse=True)
-def skip_pt20_cuda121_tests(request, ecr_image):
-    if request.node.get_closest_marker("skip_pt20_cuda121_tests"):
-        _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+    if "p5." in test_instance_type:
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if Version(image_framework_version) in SpecifierSet("==2.0.1") and Version(
-            image_cuda_version.strip("cu")
-        ) == Version("121"):
-            pytest.skip("PyTorch 2.0 + CUDA12.1 image doesn't support current test")
+        if processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
+            pytest.skip("P5 EC2 instance require CUDA 12.0 or higher.")
 
 
-@pytest.fixture(autouse=True)
-def skip_p5_tests(request, ecr_image, instance_type):
-    if "p5." in instance_type:
-        framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+def _validate_pytorch_framework_version(request, processor, ecr_image, test_name, skip_dict):
+    """
+    Expected format of skip_dic:
+    {
+        SpecifierSet("<comparable version string">): ["cpu", "cu118", "cu121"],
+    }
+    """
+    if request.node.get_closest_marker(test_name):
+        image_framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
+        image_cuda_version = get_cuda_version_from_tag(ecr_image) if processor == "gpu" else ""
 
-        image_processor = get_processor_from_image_uri(img_uri)
-        image_cuda_version = get_cuda_version_from_tag(ecr_image)
-        if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
-            pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
+        if image_framework == "pytorch":
+            for framework_condition, processor_conditions in skip_dict.items():
+                if Version(image_framework_version) in SpecifierSet(framework_condition) and (
+                    processor in processor_conditions or image_cuda_version in processor_conditions
+                ):
+                    return True
+
+    return False
 
 
 def _get_remote_override_flags():
@@ -579,18 +691,3 @@ def skip_test_successfully_executed_before(request):
         test_name in failed_test_name for failed_test_name in lastfailed.keys()
     ):
         pytest.skip(f"Skipping {test_name} because it was successfully executed for this commit")
-
-
-@pytest.fixture(autouse=True)
-def skip_pt21_test(request):
-    if "framework_version" in request.fixturenames:
-        fw_ver = request.getfixturevalue("framework_version")
-    elif "ecr_image" in request.fixturenames:
-        fw_ver = request.getfixturevalue("ecr_image")
-    else:
-        return
-    if request.node.get_closest_marker("skip_pt21_test"):
-        if Version(fw_ver) in SpecifierSet("==2.1"):
-            pytest.skip(
-                f"PT2.1 SM DLC doesn't support Rubik and Herring for now, so skipping this container with tag {fw_ver}"
-            )

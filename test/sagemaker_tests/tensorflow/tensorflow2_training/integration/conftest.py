@@ -79,6 +79,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -165,7 +173,7 @@ def account_id(request):
 @pytest.fixture
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c4.xlarge" if processor == "cpu" else "ml.p2.xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
@@ -213,6 +221,18 @@ def ecr_image(account_id, docker_base_name, tag, region):
 def sm_below_tf213_only(framework_version):
     if Version(framework_version) in SpecifierSet(">=2.13"):
         pytest.skip("Test only supports Tensorflow version below 2.13")
+
+
+@pytest.fixture
+def sm_below_tf216_only(framework_version):
+    if Version(framework_version) in SpecifierSet(">=2.16"):
+        pytest.skip("Test only supports Tensorflow version below 2.16")
+
+
+@pytest.fixture
+def skip_tf216_only(framework_version):
+    if Version(framework_version) in SpecifierSet("==2.16.*"):
+        pytest.skip("Test does not support Tensorflow 2.16")
 
 
 @pytest.fixture(autouse=True)

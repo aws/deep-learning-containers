@@ -121,6 +121,7 @@ def get_message_body_to_be_sent_to_autopr_queue(
     pr_title,
     repo_owner="dummyUser812",
     repo_name="deep-learning-containers",
+    base_owner=None,
 ):
     message_body = {
         "repo_owner": repo_owner,
@@ -130,6 +131,8 @@ def get_message_body_to_be_sent_to_autopr_queue(
         "pr_body": pr_body,
         "pr_title": pr_title,
     }
+    if base_owner:
+        message_body["base_owner"] = base_owner
     return message_body
 
 
@@ -150,16 +153,15 @@ def generate_edited_files_data(image_list, bucket=S3_BUCKET, folder="temp"):
         )
         tag_set_dict = get_tag_set_dictionary_from_response(response["TagSet"])
         upload_path = tag_set_dict.get("upload_path", "")
-        truncated_upload_path = upload_path.split("deep-learning-containers/")[-1]
         image_uri_corresponding_to_the_file = tag_set_dict.get("image_uri", "")
         if image_uri_corresponding_to_the_file not in image_list:
             continue
-        if truncated_upload_path:
+        if upload_path:
             edited_files_data.append(
                 {
                     "s3_bucket": bucket,
                     "s3_filename": s3_object.key,
-                    "github_filepath": truncated_upload_path,
+                    "github_filepath": upload_path,
                 }
             )
 
@@ -177,8 +179,10 @@ def main():
 
     dlc_images = test_utils.get_dlc_images()
     image_list = dlc_images.split(" ")
-    if not image_list:
-        LOGGER.info(f"No image in image_list: {image_list}")
+    if not image_list or all(
+        ["autopatch" not in single_image_uri for single_image_uri in image_list]
+    ):
+        LOGGER.info(f"No appropriate image in image_list: {image_list}")
         return
     edited_files_data = generate_edited_files_data(
         image_list=image_list, folder=os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "temp")
@@ -188,25 +192,27 @@ def main():
     branch_name_prefix = generate_branch_name_prefix(common_image_specs)
     pr_title = get_pr_title(common_image_specs)
     pr_body = get_pr_body()
-    ## TODO: Change repo-owner
+
     message_body_to_be_sent_to_autopr_queue = get_message_body_to_be_sent_to_autopr_queue(
         branch_name_prefix=branch_name_prefix,
         edited_files=edited_files_data,
         pr_body=pr_body,
         pr_title=pr_title,
-        repo_owner="dummyUser812",
+        repo_owner="aws-dlinfra-bot",
         repo_name="deep-learning-containers",
+        base_owner="aws",
     )
     LOGGER.info(f"Common Image Specs: {common_image_specs}")
     LOGGER.info(
         f"Message body to be sent to AutoPR Queue: {json.dumps(message_body_to_be_sent_to_autopr_queue)}"
     )
-    ## TODO: only allow pr creation on mainline
-    send_message_to_queue(
-        queue_name=AUTOPR_PROD_QUEUE,
-        queue_region=QUEUE_REGION,
-        message_body_string=json.dumps(message_body_to_be_sent_to_autopr_queue),
-    )
+    # TODO: Uncomment when feature is re-enabled
+    # if os.getenv("BUILD_CONTEXT") == "MAINLINE":
+    #     send_message_to_queue(
+    #         queue_name=AUTOPR_PROD_QUEUE,
+    #         queue_region=QUEUE_REGION,
+    #         message_body_string=json.dumps(message_body_to_be_sent_to_autopr_queue),
+    #     )
 
 
 if __name__ == "__main__":

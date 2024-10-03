@@ -3,6 +3,9 @@ import datetime
 import os
 import re
 
+from concurrent import futures
+from venv import EnvBuilder
+
 from invoke.context import Context
 
 from test.test_utils import LOGGER, get_repository_local_path
@@ -48,6 +51,7 @@ class TestReportGenerator:
     ALLOWED_SINGLE_GPU_TESTS = (
         "telemetry",
         "test_framework_and_cuda_version_gpu",
+        "test_framework_and_cuda_version_graviton_gpu",
         "test_curand_gpu",
         "test_dependency_check_gpu",
         "test_tensorflow_addons_gpu",
@@ -55,15 +59,20 @@ class TestReportGenerator:
         "test_smclarify",
         "test_ec2_pytorch_inference_gpu_inductor",
         "test_mnist_distributed_gpu_inductor",
+        "test_ecs_tensorflow_training_mnist_gpu",
+        "test_ecs_tensorflow_inference_gpu",
+        "test_ecs_tensorflow_inference_gpu_nlp",
+        "test_ecs_pytorch_training_mnist_gpu",
+        "test_ecs_pytorch_s3_plugin_training_gpu",
+        "test_ecs_pytorch_training_dgl_gpu",
+        "test_ecs_pytorch_inference_gpu",
+        "test_ecs_pytorch_inference_graviton_gpu",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),
         os.path.join("pytorch", "inference"),
-        os.path.join("tensorflow", "tensorflow1_training"),
         os.path.join("tensorflow", "tensorflow2_training"),
         os.path.join("tensorflow", "inference"),
-        os.path.join("mxnet", "training"),
-        os.path.join("mxnet", "inference"),
     )
     COVERAGE_DOC_COMMAND = "pytest -s --collect-only --generate-coverage-doc"
 
@@ -210,6 +219,17 @@ class TestReportGenerator:
         else:
             return markers[0].args[0]
 
+    @staticmethod
+    def generate_sm_venvs(venv_path):
+        ctx = Context()
+        EnvBuilder(with_pip=True).create(venv_path)
+        requirements_path = os.path.join(os.path.dirname(venv_path), "requirements.txt")
+        pip_path = os.path.join(venv_path, "bin", "pip")
+        ctx.run(
+            f"{pip_path} install --upgrade pip && {pip_path} install -r {requirements_path}",
+            warn=True,
+        )
+
     def generate_sagemaker_reports(self):
         """
         Append SageMaker data to the report
@@ -217,19 +237,24 @@ class TestReportGenerator:
         ctx = Context()
         git_repo_path = get_repository_local_path()
 
+        venv_paths = []
         for repo in self.SM_REPOS:
             framework, job_type = repo.split(os.sep)
             pytest_framework_path = os.path.join(
                 git_repo_path, "test", "sagemaker_tests", framework, job_type
             )
+            venv_paths.append(os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}"))
+
+        # install venvs in parallel
+        with futures.ThreadPoolExecutor() as executor:
+            executor.map(self.generate_sm_venvs, venv_paths)
+
+        for venv in venv_paths:
+            pytest_framework_path = os.path.dirname(venv)
             with ctx.cd(pytest_framework_path):
-                # We need to install requirements in order to use the SM pytest frameworks
-                venv = os.path.join(pytest_framework_path, f".{repo.replace('/', '-')}")
-                ctx.run(f"virtualenv {venv}")
                 with ctx.prefix(f"source {os.path.join(venv, 'bin', 'activate')}"):
-                    ctx.run("pip install -r requirements.txt", warn=True)
                     # TF inference separates remote/local conftests, and must be handled differently
-                    if framework == "tensorflow" and job_type == "inference":
+                    if os.path.basename(venv) == ".tensorflow-inference":
                         with ctx.cd(os.path.join(pytest_framework_path, "test", "integration")):
                             # Handle local tests
                             ctx.run(
@@ -240,25 +265,6 @@ class TestReportGenerator:
                             ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/", hide=True)
                     else:
                         ctx.run(f"{self.COVERAGE_DOC_COMMAND} integration/", hide=True)
-
-        # Handle TF inference remote tests
-        tf_inf_path = os.path.join(
-            git_repo_path, "test", "sagemaker_tests", "tensorflow", "inference"
-        )
-
-        with ctx.cd(tf_inf_path):
-            # Install TF inference pip requirements
-            ctx.run(f"virtualenv .tf_inference")
-            with ctx.prefix(
-                f"source {os.path.join(tf_inf_path, '.tf_inference', 'bin', 'activate')}"
-            ):
-                ctx.run("pip install -r requirements.txt", warn=True)
-                with ctx.cd(os.path.join(tf_inf_path, "test", "integration")):
-                    # Handle local tests
-                    ctx.run(f"{self.COVERAGE_DOC_COMMAND} --framework-version 2 local/")
-
-                    # Handle remote integration tests
-                    ctx.run(f"{self.COVERAGE_DOC_COMMAND} sagemaker/")
 
     def generate_coverage_doc(self, framework=None, job_type=None):
         """

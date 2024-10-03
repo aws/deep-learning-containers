@@ -25,8 +25,6 @@ from test_utils import (
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
     SAGEMAKER_NEURONX_EXECUTION_REGIONS,
-    UBUNTU_20_BASE_DLAMI_US_EAST_1,
-    UBUNTU_20_BASE_DLAMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
@@ -34,6 +32,8 @@ from test_utils import (
     UBUNTU_HOME_DIR,
     DEFAULT_REGION,
     is_nightly_context,
+    get_instance_type_base_dlami,
+    login_to_ecr_registry,
 )
 from test_utils.pytest_cache import PytestCache
 
@@ -61,12 +61,14 @@ def assign_sagemaker_remote_job_instance_type(image):
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
+    elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
+        return "ml.g5.8xlarge"
     elif "gpu" in image:
         return "ml.p3.8xlarge"
     elif "tensorflow" in image:
-        return "ml.c4.4xlarge"
+        return "ml.c5.4xlarge"
     else:
-        return "ml.c4.8xlarge"
+        return "ml.c5.9xlarge"
 
 
 def assign_sagemaker_local_job_instance_type(image):
@@ -78,10 +80,12 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     elif "trcomp" in image:
         return "p3.2xlarge"
+    elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
+        return "g5.8xlarge"
     return "p3.8xlarge" if "gpu" in image else "c5.18xlarge"
 
 
-def assign_sagemaker_local_test_ami(image, region):
+def assign_sagemaker_local_test_ami(image, region, instance_type):
     """
     Helper function to get the needed AMI for launching the image.
     Needed to support Graviton(ARM) images
@@ -92,13 +96,10 @@ def assign_sagemaker_local_test_ami(image, region):
         else:
             return UL20_CPU_ARM64_US_WEST_2
     else:
-        if region == "us-east-1":
-            return UBUNTU_20_BASE_DLAMI_US_EAST_1
-        else:
-            return UBUNTU_20_BASE_DLAMI_US_WEST_2
+        return get_instance_type_base_dlami(instance_type, region)
 
 
-def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
+def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
     """
     Launch Ec2 instance for running sagemaker local tests
     :param image: str
@@ -108,14 +109,13 @@ def launch_sagemaker_local_ec2_instance(image, ami_id, ec2_key_name, region):
     :return: str, str
     """
     instance_type = assign_sagemaker_local_job_instance_type(image)
+    ami_id = assign_sagemaker_local_test_ami(image, region, instance_type)
     instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,
         region=region,
         ec2_key_name=ec2_key_name,
         instance_type=instance_type,
-        # EIA does not have SM Local test
-        ei_accelerator_type=None,
         user_data=None,
         iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
         instance_name=f"sm-local-{instance_name}",
@@ -181,6 +181,8 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         if py_version == "py39"
         else "310"
         if py_version == "py310"
+        else "311"
+        if py_version == "py311"
         else "2"
         if py_version == "py27"
         else "3"
@@ -296,7 +298,6 @@ def execute_local_tests(image, pytest_cache_params):
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
-    ec2_ami_id = assign_sagemaker_local_test_ami(image, region)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
     instance_id = ""
@@ -306,14 +307,13 @@ def execute_local_tests(image, pytest_cache_params):
         print(f"Launching new Instance for image: {image}")
         instance_id, ip_address = launch_sagemaker_local_ec2_instance(
             image,
-            ec2_ami_id,
             ec2_key_name,
             region,
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
-        ec2_conn.run(f"$(aws ecr get-login --no-include-email --region {region})")
+        login_to_ecr_registry(ec2_conn, account_id, region)
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
         except invoke.exceptions.CommandTimedOut as e:

@@ -1,0 +1,9 @@
+{
+    "71670": "ignore since it requires a functional change",
+    "71601": "Transformers version upgrade needs to be handled in a separate image",
+    "72089": "nltk",
+    "71671": "Pytorch version upgrade needs to be handled in a separate image",
+    "71672": "Pytorch version upgrade needs to be handled in a separate image",
+    "73169": "Sentence-transformers affected versions are vulnerable to arbitrary code execution when loading PyTorch model files. The `torch.load()` function, used without the `weights_only=True` parameter, could deserialize malicious Python objects from manipulated model files. This vulnerability potentially allows attackers to execute arbitrary code on the system."
+
+}

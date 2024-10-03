@@ -1,0 +1,5 @@
+#### First image: sha256:8afd3e7d4ac59aa4c1a6897d45b6fa6bf859c7b0916d8e4f76dfb322e6941847 ####
+#### Current Patch contents ####
+pip install requests==2.32.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade python3-idna

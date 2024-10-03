@@ -2,8 +2,11 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.10.12
 ARG PYTHON_SHORT_VERSION=3.10
 ARG MAMBA_VERSION=23.3.1-1
-ARG PYTORCH_VERSION_EC2=2.1.0
-ARG CONDA_CHANNEL=https://aws-ml-conda-ec2.s3.us-west-2.amazonaws.com
+ARG PYTORCH_VERSION=2.1.0
+ARG CONDA_CHANNEL=https://aws-ml-conda.s3.us-west-2.amazonaws.com
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.amazonaws.com/binary/pytorch/2.1.0/cu121/2024-02-04/smdistributed_dataparallel-2.1.0-cp310-cp310-linux_x86_64.whl
 
 FROM nvidia/cuda:12.1.0-base-ubuntu20.04 AS base_image
 
@@ -113,14 +116,15 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
 
 # Install common conda packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    pyopenssl \
     requests \
     libgcc \
     pybind11 \
     cmake \
+    curl \
+    libcurl \
     python=$PYTHON_VERSION \
     cython \
-    mkl \
+    "mkl<2024.1.0" \
     mkl-include \
     parso \
     typing \
@@ -136,9 +140,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # Adding package for studio kernels
     ipykernel \
     # patch CVE
-    "cryptography>=41.0.4" \
+    "pyopenssl>=24.0.0" \
+    # patch CVE
+    "cryptography>=42.0.5" \
     # patch CVE
     "urllib3>=1.26.18,<2" \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
     pillow \
     "mpi4py>=3.1.4,<3.2" \
     h5py \
@@ -164,8 +172,10 @@ RUN mkdir /tmp/efa \
 ENV PATH="$OPEN_MPI_PATH/bin:$EFA_PATH/bin:$PATH"
 ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
 
-RUN pip install --no-cache-dir --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade "pip<24.2" --no-cache-dir --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+
+RUN pip install --no-cache-dir -U "setuptools>=0.70.0"
 
 WORKDIR /root
 
@@ -227,7 +237,7 @@ FROM common AS ec2
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION_EC2
+ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
@@ -236,8 +246,8 @@ ARG NCCL_ASYNC_ERROR_HANDLING
 WORKDIR /
 
 # Install ec2 PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -247,8 +257,8 @@ RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYT
 # CUDA libraries should be installed as a separate installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_EC2} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -276,7 +286,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -349,28 +359,37 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION_SM
+ARG PYTORCH_VERSION
 ARG CONDA_CHANNEL
 ARG CUDA_HOME
 ARG TORCH_CUDA_ARCH_LIST
 ARG NCCL_ASYNC_ERROR_HANDLING
+ARG SMP_URL
+ARG SMD_DATA_PARALLEL_URL
 
 WORKDIR /
 
 # Install sm PyTorch
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_SM} \
-  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl-dlc \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+  pytorch-cuda=12.1 cuda-nvcc=12.1.* torchvision torchaudio torchtext aws-ofi-nccl \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
   -c conda-forge \
   && /opt/conda/bin/mamba clean -afy
 
+
+# Install SageMaker Profiler Binary
+RUN pip install --no-cache-dir -U ${SMP_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+
 # CUDA libraries should be installed after pytorch installation command to reduce memory size of single layer.
 # If single layer is huge in size (like 17 GB), then ECR pull can timeout on smaller EC2 instances like P3.2x.
 # Have added python and pytorch again in below command to make sure pytorch version wont be changed.
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION_SM} \
-  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 \
+RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
+  cuda-libraries-dev=12.1 cuda-libraries-static=12.1 cuda-compiler=12.1 cuda-version=12.1 \
   --override-channels \
   -c ${CONDA_CHANNEL} \
   -c nvidia \
@@ -398,7 +417,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Patches
 RUN pip install pillow opencv-python
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  "requests>=2.31.0" \
+  "requests>=2.32.2" \
   && /opt/conda/bin/mamba clean -afy
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -451,8 +470,7 @@ RUN pip install --no-cache-dir -U \
     boto3
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-  bokeh \
+RUN pip install --no-cache-dir -U bokeh \
   imageio \
   numba \
   pandas \
@@ -461,6 +479,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
   scikit-learn \
   seaborn \
  && /opt/conda/bin/mamba clean -afy
+
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 WORKDIR /
 

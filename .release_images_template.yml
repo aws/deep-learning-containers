@@ -1216,7 +1216,8 @@ release_images:
       cuda_version: "cu117"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: False # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
-      # to images being published.
+      # to images being published. Hugging Face images set this to True because they're inherantly built for SageMaker,
+      # unlike other images which may be built for both SageMaker and EC2 and therefore need to distinguish variants.
       force_release: False  # [Default: False] Set to True to force images to be published even if the same image
       # has already been published. Re-released image will have minor version incremented by 1.
   79:
@@ -1338,4 +1339,19 @@ release_images:
       cuda_version: "cu118"
       example: False
       disable_sm_tag: False
+      force_release: False
+  88:
+    framework: "huggingface_pytorch"
+    version: "1.13.1"
+    arch_type: "x86"
+    hf_transformers: "4.34.1"
+    training:
+      device_types: [ "neuronx" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      neuron_sdk_version: "sdk2.15.0"
+      example: False
+      disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
+      # to images being published. Hugging Face images set this to True because they're inherantly built for SageMaker,
+      # unlike other images which may be built for both SageMaker and EC2 and therefore need to distinguish variants.
       force_release: False

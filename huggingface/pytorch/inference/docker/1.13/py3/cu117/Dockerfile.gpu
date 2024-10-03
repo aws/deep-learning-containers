@@ -29,7 +29,7 @@ ARG TORCHAUDIO_VERSION=0.13.1+cu117
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.27.2
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -75,6 +75,8 @@ RUN apt-get update \
     libcusparse-dev-11-7 \
     cuda-nvml-dev-11-7=${NVML_VERSION}-1 \
     libgl1-mesa-glx \
+    libgssapi-krb5-2 \
+    libk5crypto3 \
     libglib2.0-0 \
     libgomp1 \
     libibverbs-dev \
@@ -169,7 +171,8 @@ RUN pip uninstall -y torch torchvision torchaudio model-archiver multi-model-ser
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cu117 -U \
     "awscli<2" \
     boto3 \
-    "cryptography>3.2" \
+    "cryptography~=41.0" \
+    "pyOpenSSL~=24.1.0" \
     enum-compat==0.0.3 \
     numpy==1.22.2 \
     opencv-python \
@@ -220,13 +223,13 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+    kenlm==0.1 \
+    transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \
-	"protobuf>=3.19.5,<=3.20.2" \
-	numpy>=1.21.5 \
-	"sagemaker-huggingface-inference-toolkit<3"
-
+    "protobuf>=3.19.5,<=3.20.2" \
+    numpy>=1.21.5 \
+    "sagemaker-huggingface-inference-toolkit<3"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

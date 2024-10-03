@@ -24,9 +24,6 @@ huggingface_trcomp_mode = false
 # Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
 # This mode is used to build PT1.12 and above DLC
 trcomp_mode = false
-# Please only set it to True if you are preparing a Benchmark related PR
-# Do remember to revert it back to False before merging any PR (including Benchmark dedicated PR)
-benchmark_mode = false
 # Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
 # build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
 # regardless of whether they are enabled or disabled below.
@@ -43,12 +40,16 @@ build_frameworks = []
 build_training = true
 build_inference = true
 
-# Set to false in order to remove datetime tag on PR builds
-datetime_tag = true
-# Note: Need to build the images at least once with datetime_tag = false
-# before disabling new builds, or tests will fail
+# Set do_build to "false" to skip builds and test the latest image built by this PR
+# Note: at least one build is required to set do_build to "false"
 do_build = true
-autopatch_build = false
+
+[notify]
+### Notify on test failures
+### Off by default
+notify_test_failures = false
+  # Valid values: medium or high
+  notification_severity = "medium"
 
 [test]
 ### On by default
@@ -58,6 +59,8 @@ sanity_tests = true
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
+# Set it to true if you are preparing a Benchmark related PR
+ec2_benchmark_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -66,15 +69,17 @@ ec2_tests = true
 ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
-### Off by default
-sagemaker_local_tests = false
+### On by default
+sagemaker_local_tests = true
 
-# SM remote test valid values:
-# "off" --> do not trigger sagemaker remote tests (default)
-# "standard" --> run standard sagemaker remote tests from test/sagemaker_tests
-# "rc" --> run release_candidate_integration tests
-# "efa" --> run efa sagemaker tests
-sagemaker_remote_tests = "off"
+# run standard sagemaker remote tests from test/sagemaker_tests
+sagemaker_remote_tests = true
+# run efa sagemaker tests
+sagemaker_efa_tests = false
+# run release_candidate_integration tests
+sagemaker_rc_tests = false
+# run sagemaker benchmark tests
+sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""

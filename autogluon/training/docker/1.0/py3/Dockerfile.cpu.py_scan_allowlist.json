@@ -1,0 +1,5 @@
+{
+    "50916": "Pydantic 1.10.2 prevents long strings as int inputs to fix CVE-2020-10735 - upstream dependencies are still not patched",
+    "51358": "Safety 2.2.0 updates its dependency 'dparse' to include a security fix. - not packaged with container, result of security scanning process",
+    "65213": "PyOpenSSL doesn't have this fix yet - the issue only applicable to PowerPC architecture and not applicable to this container"
+}

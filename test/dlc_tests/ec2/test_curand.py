@@ -16,6 +16,7 @@ CURAND_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 )
 
 
+@pytest.mark.skip_serialized_release_pt_test
 @pytest.mark.integration("curand")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")

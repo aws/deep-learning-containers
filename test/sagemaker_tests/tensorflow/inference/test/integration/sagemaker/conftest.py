@@ -80,6 +80,15 @@ NO_P4_REGIONS = [
     "il-central-1",
 ]
 
+# TODO: Expand this list
+G5_AVAILABLE_REGIONS = [
+    "ca-central-1",
+    "us-west-2",
+    "us-east-1",
+    "us-east-2",
+    "eu-west-1",
+]
+
 
 def pytest_addoption(parser):
     parser.addoption("--region", default="us-west-2")
@@ -113,6 +122,13 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -124,7 +140,7 @@ def pytest_configure(config):
     os.environ["TEST_REGION"] = config.getoption("--region")
     os.environ["TEST_VERSIONS"] = config.getoption("--versions") or "1.11.1,1.12.0,1.13.0"
     os.environ["TEST_INSTANCE_TYPES"] = (
-        config.getoption("--instance-types") or "ml.m5.xlarge,ml.p2.xlarge"
+        config.getoption("--instance-types") or "ml.m5.xlarge,ml.p3.xlarge"
     )
 
     os.environ["TEST_EI_VERSIONS"] = config.getoption("--versions") or "1.11,1.12"
@@ -199,8 +215,11 @@ def skip_gpu_instance_restricted_regions(region, instance_type):
         (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
         or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
         or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
+        or (region not in G5_AVAILABLE_REGIONS and instance_type.startswith("ml.g5"))
     ):
-        pytest.skip("Skipping GPU test in region {}".format(region))
+        pytest.skip(
+            "Skipping GPU test in region {} with instance type {}".format(region, instance_type)
+        )
 
 
 @pytest.fixture(autouse=True)

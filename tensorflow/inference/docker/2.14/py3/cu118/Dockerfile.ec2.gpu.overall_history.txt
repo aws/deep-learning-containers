@@ -1,0 +1,78 @@
+#### First image: sha256:2ecffae9335f311773221a550230a11e531edd4260084813955553559780a434 ####
+#### Patch contents for patch-1: sha256:90779ef8b8b12a4f5af0e0ba9897eb0cca7dc4444f432bd58dfb12c449fa39f7 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4 libfdisk1 libgnutls30 libmount1 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-2: sha256:f04abb030c8dc45fb8951d576865f37e663c9fca10edc10ebaf562f9127d3a10 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc6 libcurl3-gnutls libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-3: sha256:074dd1b20db211c0928b67d72ea9d915bb458b640a47d4d33376ce60b4f5d027 ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-4: sha256:1a3b3fd52de1364a8534cad745495087ea40c064ca0783d6aa914d788bdf301f ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-5: sha256:27ef2f2b9d088d1fee4643339a856d82071ddd5c99e03bd05154d3587118dadc ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-6: sha256:9aa622bef3d87660e008a1fdb241a7827ed4b33d650f324bdcfec3ed55a1c35a ####
+pip install idna==3.7 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-7: sha256:43ee2926ff7defc966decc38b0c46f01c666536ed5cf5e1ae5437bf6561b3d64 ####
+pip install idna==3.7 requests==2.32.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-8: sha256:294833f530fc8e43fda83ac1d74fe636f051ac0c86c4e1086dc3719d03c08936 ####
+pip install idna==3.7 requests==2.32.2 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-9: sha256:aa7f4e19ce4f9941107115d9e7edd7c0fdc2e1e02c3ea018f95df57b87a80c55 ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-10: sha256:4fedb40139bd91708b84d5266e51b2fe815ad96d73d5777f98b29085a0ef3edf ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-11: sha256:dd36561a9203b000a19196bfb94ff8daf93bc7fe410edc6c311f79865d49cc94 ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-12: sha256:25574a26c886d3a2b022824fc7ae818ba5d662f76e60d38b46549ef4aa83a3ff ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-13: sha256:9b9d3fabab7524c25ddc91c7951a56f18e3ce2d09a73ec3efba3424a54c46c5c ####
+pip install idna==3.7 requests==2.32.3
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-14: sha256:617a46ed96f5203f53b7599a62ebac5d367f3a39f2cb27537c76daf99be4dcd8 ####
+pip install awscli==1.33.13 botocore==1.34.131 idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-15: sha256:f556164a62128b147d4f060a3eb564ce161924e8db0e078968e226c8d1324da8 ####
+pip install awscli==1.33.16 botocore==1.34.134 idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim xxd
+#### Patch contents for patch-16: sha256:09525dfeee71b0f7feaec65041b3a3392bd6eb74155d7fa5845290fc22adf13d ####
+pip install awscli==1.33.18 botocore==1.34.136 idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-17: sha256:88e220c2436d6198d3f29e7325293204c49470f056529148b0b7d391f6120a62 ####
+pip install awscli==1.33.21 botocore==1.34.139 idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-18: sha256:cb57f7f5705ab0a6c094b84319c0ba233bc0c71257963c3d4e35aa557113e125 ####
+pip install awscli==1.33.22 botocore==1.34.140 idna==3.7 requests==2.32.3 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libmount1 libnghttp2-14 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-19: sha256:d34cacb061a9670211715b9e71ad99a82a43763cc780012c732c895725d1e2d3 ####
+pip install awscli==1.33.29 botocore==1.34.147 certifi==2024.7.4 idna==3.7 requests==2.32.3 setuptools==71.1.0 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libgtk-3-0 libmount1 libnghttp2-14 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount python3.8-minimal python3.8 util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-20: sha256:7d513f9b6f02689058872b4045ad15c6f025821afd639663108b02b7d53527e8 ####
+pip install awscli==1.33.33 botocore==1.34.151 certifi==2024.7.4 idna==3.7 requests==2.32.3 setuptools==72.1.0 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git imagemagick-6-common libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount1 libnghttp2-14 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsmartcols1 libtiff5 libuuid1 linux-libc-dev mount python3.8-minimal python3.8 util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-21: sha256:11eda105a61dd33a3c0b37ea90c58a5a0bad4086ad718ed935f76d5d8e694c54 ####
+pip install awscli==1.33.38 botocore==1.34.156 certifi==2024.7.4 idna==3.7 requests==2.32.3 setuptools==72.1.0 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git imagemagick-6-common libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount1 libnghttp2-14 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsmartcols1 libssl1.1 libtiff5 libuuid1 linux-libc-dev mount python3.8-minimal python3.8 util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Patch contents for patch-22: sha256:ed8d12c42b2d56b3a31178ec4bf144e9103758359c220b0d40e80299680e60df ####
+pip install awscli==1.33.43 botocore==1.34.161 certifi==2024.7.4 idna==3.7 requests==2.32.3 setuptools==72.2.0 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git imagemagick-6-common libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount1 libnghttp2-14 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsmartcols1 libssl1.1 libtiff5 libuuid1 linux-libc-dev mount python3.8-minimal python3.8 util-linux uuid-dev vim-common vim-runtime vim wget xxd
+#### Current Patch contents ####
+pip install awscli==1.34.10 boto3==1.35.10 botocore==1.35.10 certifi==2024.8.30 idna==3.8 requests==2.32.3 setuptools==74.1.0 urllib3==2.2.2
+apt-get update && apt-get install -y --only-upgrade bsdutils curl fdisk git-man git imagemagick-6-common libblkid1 libc-bin libc-dev-bin libc6-dev libc6 libcups2 libcurl3-gnutls libcurl4 libfdisk1 libgdk-pixbuf2.0-0 libglib2.0-0 libgnutls30 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libmount1 libnghttp2-14 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libsmartcols1 libssl1.1 libtiff5 libuuid1 linux-libc-dev mount python3.8-minimal python3.8 util-linux uuid-dev vim-common vim-runtime vim wget xxd

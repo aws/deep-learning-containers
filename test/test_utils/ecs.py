@@ -189,61 +189,6 @@ def list_ecs_container_instances(
         raise Exception(f"Failed list instances with given arguments. Exception - {e}")
 
 
-def attach_ecs_worker_node(
-    worker_instance_type,
-    ami_id,
-    cluster_name,
-    cluster_arn=None,
-    region=DEFAULT_REGION,
-    worker_eia_capable=False,
-):
-    """
-    Launch a worker instance in a cluster.
-    :param worker_instance_type:
-    :param ami_id:
-    :param cluster_name:
-    :param cluster_arn:
-    :param region:
-    :return: <tuple> instance_id, public_ip_address
-    """
-    ecs_user_data = f"#!/bin/bash\necho ECS_CLUSTER={cluster_name} >> /etc/ecs/ecs.config"
-
-    sts_client = boto3.client("sts")
-    account_id = sts_client.get_caller_identity().get("Account")
-    ecs_role_name = "ecsInstanceRole"
-    ecs_instance_role_arn = f"arn:aws:iam::{account_id}:instance-profile/{ecs_role_name}"
-
-    instc = ec2_utils.launch_instance(
-        ami_id,
-        region=region,
-        instance_type=worker_instance_type,
-        user_data=ecs_user_data,
-        iam_instance_profile_arn=ecs_instance_role_arn,
-        instance_name=f"ecs worker {cluster_name}",
-        eia_capable=worker_eia_capable,
-    )
-
-    instance_id = instc["InstanceId"]
-    public_ip_address = ec2_utils.get_public_ip(instance_id, region=region)
-    ec2_utils.check_instance_state(instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        instance_id, system_status="ok", instance_status="ok", region=region
-    )
-
-    list_container_filter = f"ec2InstanceId in ['{instance_id}'] and agentConnected==true"
-    if cluster_arn is None:
-        cluster_arn = cluster_name
-    container_arns = list_ecs_container_instances(
-        cluster_arn, list_container_filter, "ACTIVE", region
-    )
-
-    if not container_arns:
-        raise Exception(
-            f"No ACTIVE container instance found on instance-id {instance_id} in cluster {cluster_arn}"
-        )
-    return instance_id, public_ip_address
-
-
 def register_ecs_task_definition(
     family_name,
     image,
@@ -836,7 +781,7 @@ def setup_ecs_inference_service(
 
     port_mappings = get_ecs_port_mappings(framework)
     log_group_name = f"/ecs/{framework}-inference-{processor}"
-    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region)
+    num_cpus = ec2_utils.get_instance_num_cpus(worker_instance_id, region=region) * 1024 // 2
     # We assume that about 80% of RAM is free on the instance, since we are not directly querying it to find out
     # what the memory utilization is.
     memory = int(ec2_utils.get_instance_memory(worker_instance_id, region=region) * 0.8)

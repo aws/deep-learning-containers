@@ -1,0 +1,24 @@
+{
+   "grpcio":{
+      "version_specifier":">=1.24.3,<2.0"
+   },
+   "protobuf":{
+      "version_specifier":">=3.20.3,<5.0.0dev,!=4.21.5,!=4.21.4,!=4.21.3,!=4.21.2,!=4.21.1,!=4.21.0"
+   },
+   "awscli":{
+      "version_specifier":"<2"
+   },
+   "cython":{
+      "version_specifier":"<3.0"
+   },
+   "tensorflow-serving-api":{
+      "version_specifier":"==2.13.0",
+      "skip":"True"
+   },
+   "falcon":{
+      "version_specifier":"==3.1.0"
+   },
+   "gunicorn":{
+      "version_specifier":"==20.1.0"
+   }
+}

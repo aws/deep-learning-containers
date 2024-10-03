@@ -1,0 +1,53 @@
+{
+  "accelerate": {
+    "version_specifier": "==0.22.0",
+    "skip": "True"
+  },
+  "fastai": {
+    "version_specifier": "==2.7.16",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.1.0",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.7.0",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.16.0",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.16.0",
+    "skip": "True"
+  },
+  "cryptography": {
+    "version_specifier": ">=42.0.5"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
+  },
+  "mpi4py": {
+    "version_specifier": ">=3.1.4,<3.2"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.18,<2"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0.1"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "sagemaker": {
+    "version_specifier": ">=2,<3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "<1"
+  }
+}

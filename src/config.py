@@ -44,20 +44,27 @@ def is_graviton_mode_enabled():
     return parse_dlc_developer_configs("dev", "graviton_mode")
 
 
-def is_benchmark_mode_enabled():
-    return parse_dlc_developer_configs("dev", "benchmark_mode")
-
-
 def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
 
-def is_autopatch_build_enabled():
-    return parse_dlc_developer_configs("build", "autopatch_build") or os.getenv("AUTOPATCH")
+def is_autopatch_build_enabled(buildspec_path=None):
+    from buildspec import Buildspec
+
+    if not buildspec_path:
+        return False
+    image_buildspec_object = Buildspec()
+    image_buildspec_object.load(buildspec_path)
+    autopatch_build_flag = image_buildspec_object.get("autopatch_build", "False").lower() == "true"
+    return autopatch_build_flag
 
 
 def is_ec2_test_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests")
+
+
+def is_ec2_benchmark_test_enabled():
+    return parse_dlc_developer_configs("test", "ec2_benchmark_tests")
 
 
 def are_heavy_instance_ec2_tests_enabled():
@@ -70,6 +77,22 @@ def is_ecs_test_enabled():
 
 def is_eks_test_enabled():
     return parse_dlc_developer_configs("test", "eks_tests")
+
+
+def is_sm_remote_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_remote_tests")
+
+
+def is_sm_rc_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_rc_tests")
+
+
+def is_sm_efa_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_efa_tests")
+
+
+def is_sm_benchmark_test_enabled():
+    return parse_dlc_developer_configs("test", "sagemaker_benchmark_tests")
 
 
 def is_sanity_test_enabled():
@@ -96,50 +119,35 @@ def is_ecr_scan_allowlist_feature_enabled():
     return parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature")
 
 
-class AllowedSMRemoteConfigValues(Enum):
-    OFF = "off"
-    RC = "rc"
-    STANDARD = "standard"
-    EFA = "efa"
+def is_notify_test_failures_enabled():
+    return parse_dlc_developer_configs("notify", "notify_test_failures")
 
 
-def get_sagemaker_remote_tests_config_value():
-    """
-    Get the actual config option for sm remote tests
-    """
-    return parse_dlc_developer_configs("test", "sagemaker_remote_tests")
+class AllowedNotificationSeverity(Enum):
+    MEDIUM = "medium"
+    HIGH = "high"
 
 
-def is_sm_remote_test_enabled():
-    """
-    Check to see if sm remote test is enabled by config
-    """
-    sm_remote_tests_value = get_sagemaker_remote_tests_config_value()
-    allowed_values = [cfg_opt.value for cfg_opt in AllowedSMRemoteConfigValues]
+def get_notification_severity():
+    notification_severity = parse_dlc_developer_configs("notify", "notification_severity")
+    allowed_values = [cfg_opt.value for cfg_opt in AllowedNotificationSeverity]
 
-    # Sanitize value in case of extra whitespace or inconsistent capitalization
-    if isinstance(sm_remote_tests_value, str):
-        sm_remote_tests_value = sm_remote_tests_value.lower().strip()
+    if isinstance(notification_severity, str):
+        notification_severity = notification_severity.lower().strip()
 
-    if sm_remote_tests_value in {
-        True,
-        AllowedSMRemoteConfigValues.STANDARD.value,
-        AllowedSMRemoteConfigValues.RC.value,
-        AllowedSMRemoteConfigValues.EFA.value,
+    if notification_severity in {
+        AllowedNotificationSeverity.HIGH.value,
+        AllowedNotificationSeverity.MEDIUM.value,
     }:
-        return True
+        return notification_severity
 
-    if sm_remote_tests_value != AllowedSMRemoteConfigValues.OFF.value:
+    if notification_severity != "":
         LOGGER.warning(
-            f"Unrecognized sagemaker_remote_tests setting {sm_remote_tests_value}. "
-            f"Please choose one of {allowed_values}. Disabling sagemaker remote tests."
+            f"Unrecognized notification_severity setting {notification_severity}. "
+            f"Please choose one of {allowed_values}. Using medium severity for notification"
         )
-    return False
 
-
-def are_sm_efa_tests_enabled():
-    sm_remote_value = get_sagemaker_remote_tests_config_value()
-    return sm_remote_value == AllowedSMRemoteConfigValues.EFA.value
+    return AllowedNotificationSeverity.MEDIUM.value
 
 
 def get_sagemaker_remote_efa_instance_type():

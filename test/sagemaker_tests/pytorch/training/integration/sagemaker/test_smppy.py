@@ -23,24 +23,25 @@ import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from sagemaker import utils, ProfilerConfig, Profiler
+from sagemaker import ProfilerConfig, Profiler
 
 from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
-from .test_pytorchddp import validate_or_skip_pytorchddp
+from .test_torch_distributed import validate_or_skip_distributed_training
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
 
 
 def _skip_if_image_is_not_compatible_with_smppy(image_uri):
     _, framework_version = get_framework_and_version_from_tag(image_uri)
-    compatible_versions = SpecifierSet("==1.13.*")
+    compatible_versions = SpecifierSet(">=2.0")
     if Version(framework_version) not in compatible_versions:
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
+@pytest.mark.skip_smppy_test
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
@@ -72,6 +73,7 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
         _check_and_cleanup_s3_output(pytorch, 40)
 
 
+@pytest.mark.skip_smppy_test
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
@@ -82,8 +84,8 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
 def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regions):
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_pytorchddp(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
+        validate_or_skip_distributed_training(ecr_image)
+        distribution = {"torch_distributed": {"enabled": True}}
         estimator_parameters = {
             "entry_point": smppy_mnist_script,
             "role": "SageMakerRole",

@@ -270,7 +270,9 @@ ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.1
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
-   tensorflow-io \
+   # Due to https://github.com/tensorflow/io/issues/1912, Need to Lock tensorflow-io to 0.33.0
+    # TO-DO: Remove Limit for TF IO Once Fixed
+   "tensorflow-io==0.33.0" \
    tensorflow-datasets
 
 # Install Horovod, temporarily using CUDA stubs
@@ -309,6 +311,11 @@ CMD ["/bin/bash"]
 
 FROM common AS sagemaker
 
+# Install SageMaker Profiler binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu118/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
+RUN apt-get update && apt-get install -y libunwind-dev && apt-get clean \
+ && ${PYTHON} -m pip install --no-cache-dir ${SMP_URL}
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
@@ -326,7 +333,9 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN ${PIP} uninstall -y tensorflow tensorflow-gpu \
   ; ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    # Due to https://github.com/tensorflow/io/issues/1912, Need to Lock tensorflow-io to 0.33.0
+    # TO-DO: Remove Limit for TF IO Once Fixed
+    "tensorflow-io==0.33.0" \
     tensorflow-datasets
 
 # Install Horovod, temporarily using CUDA stubs
@@ -361,7 +370,7 @@ RUN git clone https://github.com/awslabs/sagemaker-debugger.git \
     && $PYTHON setup.py install && cd .. && rm -rf sagemaker-debugger
 
 # install sagemaker-tensorflow from source
-ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.0
+ARG SAGEMAKER_TENSORFLOW_TAG=v1.18.1
 RUN git clone -b tf-2 https://github.com/aws/sagemaker-tensorflow-extensions.git \
     && cd sagemaker-tensorflow-extensions \
     && git checkout tags/$SAGEMAKER_TENSORFLOW_TAG -b $SAGEMAKER_TENSORFLOW_TAG \

@@ -1,0 +1,528 @@
+{
+  "linux": [
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved:  net: dsa: mv88e6xxx: Correct check for empty list  Since commit a3c53be55c95 (\"net: dsa: mv88e6xxx: Support multiple MDIO busses\") mv88e6xxx_default_mdio_bus() has checked that the return value of list_first_entry() is non-NULL.  This appears to be intended to guard against the list chip->mdios being empty.  However, it is not the correct check as the implementation of list_first_entry is not designed to return NULL for empty lists.  Instead, use list_first_entry_or_null() which does return NULL if the list is empty.  Flagged by Smatch. Compile tested only.",
+      "vulnerability_id": "CVE-2024-42224",
+      "name": "CVE-2024-42224",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-42224.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-42224 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved:  jfs: xattr: fix buffer overflow for invalid xattr  When an xattr size is not what is expected, it is printed out to the kernel log in hex format as a form of debugging.  But when that xattr size is bigger than the expected size, printing it out can cause an access off the end of the buffer.  Fix this all up by properly restricting the size of the debug hex dump in the kernel log.",
+      "vulnerability_id": "CVE-2024-40902",
+      "name": "CVE-2024-40902",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-40902.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-40902 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
+      "vulnerability_id": "CVE-2023-52752",
+      "name": "CVE-2023-52752",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52752 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: gfs2: Fix slab-use-after-free in gfs2_qd_dealloc In gfs2_put_super(), whether withdrawn or not, the quota should be cleaned up by gfs2_quota_cleanup(). Otherwise, struct gfs2_sbd will be freed before gfs2_qd_dealloc (rcu callback) has run for all gfs2_quota_data objects, resulting in use-after-free. Also, gfs2_destroy_threads() and gfs2_quota_cleanup() is already called by gfs2_make_fs_ro(), so in gfs2_put_super(), after calling gfs2_make_fs_ro(), there is no need to call them again.",
+      "vulnerability_id": "CVE-2023-52760",
+      "name": "CVE-2023-52760",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52760.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52760 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved:  greybus: Fix use-after-free bug in gb_interface_release due to race condition.  In gb_interface_create, &intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &intf->mode_switch_work)) { \t... }  If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows:  CPU0                            CPU1                              |   gb_interface_create                             |   gb_interface_request_mode_switch gb_interface_release        | kfree(intf) (free)          |                         ",
+      "vulnerability_id": "CVE-2024-39495",
+      "name": "CVE-2024-39495",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-39495 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved:  greybus: Fix use-after-free bug in gb_interface_release due to race condition.  In gb_interface_create, &#38;intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &#38;intf->mode_switch_work)) { \t... }  If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows:  CPU0                            CPU1                              |   gb_interface_create                             |   gb_interface_request_mode_switch gb_interface_release        | kfree(intf) (free)          |                         ",
+      "vulnerability_id": "CVE-2024-39495",
+      "name": "CVE-2024-39495",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-39495.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-39495 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
+      "vulnerability_id": "CVE-2023-52434",
+      "name": "CVE-2023-52434",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52434 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
+      "vulnerability_id": "CVE-2022-48674",
+      "name": "CVE-2022-48674",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48674 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: scsi: qla2xxx: Fix double free of fcport The server was crashing after LOGO because fcport was getting freed twice. -----------[ cut here ]----------- kernel BUG at mm/slub.c:371! invalid opcode: 0000 1 SMP PTI CPU: 35 PID: 4610 Comm: bash Kdump: loaded Tainted: G OE --------- - - 4.18.0-425.3.1.el8.x86_64 #1 Hardware name: HPE ProLiant DL360 Gen10/ProLiant DL360 Gen10, BIOS U32 09/03/2021 RIP: 0010:set_freepointer.part.57+0x0/0x10 RSP: 0018:ffffb07107027d90 EFLAGS: 00010246 RAX: ffff9cb7e3150000 RBX: ffff9cb7e332b9c0 RCX: ffff9cb7e3150400 RDX: 0000000000001f37 RSI: 0000000000000000 RDI: ffff9cb7c0005500 RBP: fffff693448c5400 R08: 0000000080000000 R09: 0000000000000009 R10: 0000000000000000 R11: 0000000000132af0 R12: ffff9cb7c0005500 R13: ffff9cb7e3150000 R14: ffffffffc06990e0 R15: ffff9cb7ea85ea58 FS: 00007ff6b79c2740(0000) GS:ffff9cb8f7ec0000(0000) knlGS:0000000000000000 CS: 0010 DS: 0000 ES: 0000 CR0: 0000000080050033 CR2: 000055b426b7d70",
+      "vulnerability_id": "CVE-2024-26929",
+      "name": "CVE-2024-26929",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "192.212"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26929.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26929 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
+      "vulnerability_id": "CVE-2024-36971",
+      "name": "CVE-2024-36971",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-36971 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: nilfs2: fix use-after-free of timer for log writer thread Patch series \"nilfs2: fix log writer related issues\". This bug fix series covers three nilfs2 log writer-related issues, including a timer use-after-free issue and potential deadlock issue on unmount, and a potential freeze issue in event synchronization found during their analysis. Details are described in each commit log. This patch (of 3): A use-after-free issue has been reported regarding the timer sc_timer on the nilfs_sc_info structure. The problem is that even though it is used to wake up a sleeping log writer thread, sc_timer is not shut down until the nilfs_sc_info structure is about to be freed, and is used regardless of the thread's lifetime. Fix this issue by limiting the use of sc_timer only while the log writer thread is alive.",
+      "vulnerability_id": "CVE-2024-38583",
+      "name": "CVE-2024-38583",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-38583.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-38583 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": " An out-of-bounds read vulnerability was found in smbCalcSize in fs/smb/client/netmisc.c in the Linux Kernel. This issue could allow a local attacker to crash the system or leak internal kernel information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "169.187"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "169.187"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that the CIFS network file system implementation in\n the Linux kernel did not properly validate the server frame size in\n certain situation, leading to an out-of-bounds read vulnerability. An\n attacker could use this to construct a malicious CIFS image that, when\n operated on, could cause a denial of service (system crash) or possibly\n expose sensitive information.",
+      "vulnerability_id": "CVE-2023-6606",
+      "name": "CVE-2023-6606",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "170.188"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-6606.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-6606 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that a race condition existed in the AppleTalk\n networking subsystem of the Linux kernel, leading to a use-after-free\n vulnerability. A local attacker could use this to cause a denial of\n service (system crash) or possibly execute arbitrary code.",
+      "vulnerability_id": "CVE-2023-51781",
+      "name": "CVE-2023-51781",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "171.189"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51781.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-51781 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that a race condition existed in the ATM (Asynchronous\n Transfer Mode) subsystem of the Linux kernel, leading to a use-after-free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
+      "vulnerability_id": "CVE-2023-51780",
+      "name": "CVE-2023-51780",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "172.190"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51780.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-51780 - linux",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "\n It was discovered that a race condition existed in the Rose X.25 protocol\n implementation in the Linux kernel, leading to a use-after- free\n vulnerability. A local attacker could use this to cause a denial of service\n (system crash) or possibly execute arbitrary code.",
+      "vulnerability_id": "CVE-2023-51782",
+      "name": "CVE-2023-51782",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "172.190"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-51782.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-51782 - linux",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "pip":[
+      {
+         "description":"An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely",
+         "vulnerability_id":"CVE-2018-20225",
+         "name":"CVE-2018-20225",
+         "package_name":"pip",
+         "package_details":{
+            "file_path":"opt/conda/lib/python3.10/site-packages/pip-24.1.2.dist-info/METADATA",
+            "name":"pip",
+            "package_manager":"PYTHONPKG",
+            "version":"24.1.2",
+            "release":null
+         },
+         "remediation":{
+            "recommendation":{
+               "text":"None Provided"
+            }
+         },
+         "cvss_v3_score":7.8,
+         "cvss_v30_score":0.0,
+         "cvss_v31_score":7.8,
+         "cvss_v2_score":0.0,
+         "cvss_v3_severity":"HIGH",
+         "source_url":"https://nvd.nist.gov/vuln/detail/CVE-2018-20225",
+         "source":"NVD",
+         "severity":"HIGH",
+         "status":"ACTIVE",
+         "title":"CVE-2018-20225 - pip",
+         "reason_to_ignore":"This is a disputed CVE and impacts all pip versions."
+      }
+   ]
+}

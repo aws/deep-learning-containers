@@ -1,0 +1,17 @@
+{
+    "awscli": {
+        "version_specifier": "<2"
+    },
+    "pyyaml": {
+        "version_specifier": ">=6.0,<6.1"
+    },
+    "protobuf": {
+        "version_specifier": "<4"
+    },
+    "tensorflow-io": {
+        "version_specifier": "==0.33.0"
+    },
+    "tensorflow-gpu": {
+        "version_specifier": "==2.13.0"
+    }
+}

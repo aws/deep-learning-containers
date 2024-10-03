@@ -1,0 +1,25 @@
+#### First image: sha256:f5e4bdbd809717585a426a5d7ffa5e78fa10a4bc23e69470eacdb6fd3b3e4608 ####
+#### Patch contents for patch-1: sha256:942c2638b099a1867c5f80d00cdfa75b47f34e4e34a1870c597371b14eb599f1 ####
+echo N/A 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6
+#### Patch contents for patch-2: sha256:11a5e14f3b2c805da2f3e00f70226a066d6e614733e4a3b3cfa56dba1a5df59f ####
+echo N/A 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libgdk-pixbuf2.0-0
+#### Patch contents for patch-3: sha256:d17f26e10b19d62ab1d9043c1fc3d4637bfce5b6b96b1be753eff0c68833e58f ####
+pip install cryptography==42.0.8 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev
+#### Patch contents for patch-4: sha256:0c40a65f391aae4c3566df010047c70a4be684e25501c802558aa3666f156a56 ####
+pip install cryptography==42.0.8 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-5: sha256:291987c5bd4880f029958c92689f32f4c3ce2749acb196a0d55fa7a26fd1c973 ####
+pip install cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget
+#### Current Patch contents ####
+pip install cryptography==42.0.8 tornado==6.4.1 urllib3==1.26.19 
+python -m pip install --upgrade pip
+apt-get update && apt-get install -y --only-upgrade git-man git libc-bin libc-dev-bin libc6-dev libc6 libcups2 libgdk-pixbuf2.0-0 libtiff5 linux-libc-dev wget

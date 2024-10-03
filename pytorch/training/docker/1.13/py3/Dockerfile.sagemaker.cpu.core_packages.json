@@ -1,0 +1,104 @@
+{
+  "accelerate": {
+    "version_specifier": "==0.33.0",
+    "skip": "True"
+  },
+  "fastai": {
+    "version_specifier": "==2.7.15",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==0.13.1+cpu",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.5.1",
+    "skip": "True"
+  },
+  "torchnet": {
+    "version_specifier": "==0.0.4",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.14.1+cpu",
+    "skip": "True"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "urllib3": {
+    "version_specifier": ">=1.26.17"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
+  },
+  "awscli": {
+    "version_specifier": ">1.27,<2"
+  },
+  "botocore": {
+    "version_specifier": ">=1.34.8"
+  },
+  "s3transfer": {
+    "version_specifier": ">=0.10.0"
+  },
+  "click": {
+    "version_specifier": ">=8.1.2,<9"
+  },
+  "cryptography": {
+    "version_specifier": ">=42.0.5"
+  },
+  "psutil": {
+    "version_specifier": ">=5.9.4,<5.10"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0.1"
+  },
+  "scipy": {
+    "version_specifier": ">=1.11.1"
+  },
+  "sagemaker": {
+    "version_specifier": ">=2.203.0,<3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "<1"
+  },
+  "bokeh": {
+    "version_specifier": ">=3.0.1,<4"
+  },
+  "imageio": {
+    "version_specifier": ">=2.22,<3"
+  },
+  "plotly": {
+    "version_specifier": ">=5.11,<6"
+  },
+  "seaborn": {
+    "version_specifier": ">=0.12,<1"
+  },
+  "numba": {
+    "version_specifier": ">=0.56.4,<0.57"
+  },
+  "shap": {
+    "version_specifier": ">=0.41,<1"
+  },
+  "attrs": {
+    "version_specifier": ">=23.2.0"
+  },
+  "importlib-metadata": {
+    "version_specifier": ">=6.11.0"
+  },
+  "tblib": {
+    "version_specifier": ">=2.0.0"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
+  }
+}

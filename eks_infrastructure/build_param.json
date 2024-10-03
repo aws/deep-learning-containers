@@ -1,7 +1,6 @@
 {
-    "operation": "upgrade_nodegroup",
+    "operation": "new_operation",
     "contexts": [
-        "PR",
         "MAINLINE"
     ],
     "eks_clusters": [

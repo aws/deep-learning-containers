@@ -1,0 +1,44 @@
+#!/bin/bash
+
+set -ex
+
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+TRAINING_LOG=${LOG_DIR}/tensorflow_io_s3_plugin_train_mnist.log
+
+if [[ ! -d $LOG_DIR ]]; then
+    mkdir -p $LOG_DIR
+fi
+
+apt-get update -qq
+apt-get install -y -qq jq
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity | jq -r ".Account")
+S3_BUCKET="s3://dlc-cicd-helper-${AWS_ACCOUNT_ID}"
+DOCKER_CONTAINER_ID=$(cat /etc/hostname)
+S3_CHECKPOINT_UPLOAD_PATH="${S3_BUCKET}/testTensorflowIoS3Plugin/${DOCKER_CONTAINER_ID}"
+
+# Delete S3 paths that we expect to upload into
+aws s3 rm --recursive ${S3_CHECKPOINT_UPLOAD_PATH}/
+
+python3 ${BIN_DIR}/testTensorflowIoS3Plugin.py \
+    --batch-size 128 \
+    --model-dir="${S3_CHECKPOINT_UPLOAD_PATH}" \
+    | tee ${TRAINING_LOG}
+
+# Test ${PIPESTATUS[0]} to avoid false positive from tee's return code of 0
+test ${PIPESTATUS[0]} -eq 0
+
+set +e
+
+aws s3 ls ${S3_CHECKPOINT_UPLOAD_PATH}/
+VALIDATION_ERR=$?
+
+if [ ${VALIDATION_ERR} -ne 0 ]; then
+    echo "Failed to validate S3 plugin usage through tensorflow-io. Check ${S3_CHECKPOINT_UPLOAD_PATH}/"
+    exit 1
+fi
+
+set -e
+aws s3 rm --recursive ${S3_CHECKPOINT_UPLOAD_PATH}/

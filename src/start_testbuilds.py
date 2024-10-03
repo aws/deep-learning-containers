@@ -43,10 +43,6 @@ def run_test_job(commit, codebuild_project, images_str=""):
     with open(test_env_file) as test_env_file:
         env_overrides = json.load(test_env_file)
 
-    # For SM tests, if EFA_DEDICATED is True, test job will only launch SM Remote EFA tests,
-    # or else will only launch standard/rc tests.
-    is_test_efa_dedicated = config.are_sm_efa_tests_enabled() and "sagemaker" in codebuild_project
-
     # For EC2 tests, if HEAVY_INSTANCE_EC2_TESTS_ENABLED is True, the test job will run tests on
     # large/expensive instance types as well as small/regular instance types, based on the config of
     # the test function. If False, the test job will only run tests on small/regular instance types.
@@ -82,12 +78,6 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "value": str(config.is_scheduler_enabled()),
                 "type": "PLAINTEXT",
             },
-            # If EFA_DEDICATED is True, only launch SM Remote EFA tests, else only launch standard/rc tests
-            {
-                "name": "EFA_DEDICATED",
-                "value": str(is_test_efa_dedicated),
-                "type": "PLAINTEXT",
-            },
             # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",
@@ -121,26 +111,31 @@ def is_test_job_enabled(test_type):
     Check to see if a test job is enabled
     See if we should run the tests based on test types and config options.
     """
-    if test_type == constants.SAGEMAKER_TESTS and config.is_sm_remote_test_enabled():
+    if test_type == constants.SAGEMAKER_REMOTE_TESTS and config.is_sm_remote_test_enabled():
+        return True
+    if test_type == constants.SAGEMAKER_EFA_TESTS and config.is_sm_efa_test_enabled():
+        return True
+    if test_type == constants.SAGEMAKER_RC_TESTS and config.is_sm_rc_test_enabled():
+        return True
+    if test_type == constants.SAGEMAKER_BENCHMARK_TESTS and config.is_sm_benchmark_test_enabled():
         return True
     if test_type == constants.EC2_TESTS and config.is_ec2_test_enabled():
         return True
-
-    # We have no ECS/EKS/SANITY benchmark tests
-    if not config.is_benchmark_mode_enabled():
-        if test_type == constants.ECS_TESTS and config.is_ecs_test_enabled():
-            return True
-        if test_type == constants.EKS_TESTS and config.is_eks_test_enabled():
-            return True
-        if test_type == constants.SANITY_TESTS and config.is_sanity_test_enabled():
-            return True
+    if test_type == constants.EC2_BENCHMARK_TESTS and config.is_ec2_benchmark_test_enabled():
+        return True
+    if test_type == constants.ECS_TESTS and config.is_ecs_test_enabled():
+        return True
+    if test_type == constants.EKS_TESTS and config.is_eks_test_enabled():
+        return True
+    if test_type == constants.SANITY_TESTS and config.is_sanity_test_enabled():
+        return True
 
     return False
 
 
 def is_test_job_implemented_for_framework(images_str, test_type):
     """
-    Check to see if a test job is implemnted and supposed to be executed for this particular set of images
+    Check to see if a test job is implemented and supposed to be executed for this particular set of images
     """
     is_trcomp_image = False
     is_huggingface_trcomp_image = False
@@ -157,6 +152,7 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 
     if (is_huggingface_image or is_autogluon_image) and test_type in [
         constants.EC2_TESTS,
+        constants.EC2_BENCHMARK_TESTS,
         constants.ECS_TESTS,
         constants.EKS_TESTS,
     ]:
@@ -168,8 +164,8 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         in [
             constants.ECS_TESTS,
             constants.EKS_TESTS,
+            constants.EC2_BENCHMARK_TESTS,
         ]
-        or config.is_benchmark_mode_enabled()
     ):
         LOGGER.debug(f"Skipping {test_type} tests for huggingface trcomp containers")
         return False
@@ -178,8 +174,8 @@ def is_test_job_implemented_for_framework(images_str, test_type):
         test_type
         in [
             constants.EKS_TESTS,
+            constants.EC2_BENCHMARK_TESTS,
         ]
-        or config.is_benchmark_mode_enabled()
     ):
         LOGGER.debug(f"Skipping {test_type} tests for trcomp containers")
         return False
@@ -255,17 +251,14 @@ def main():
             ):
                 run_test_job(commit, pr_test_job, images_str)
 
-            ## TODO: Merge with the above condition
-            if test_type == "autopr":
+            if test_type == "autopr" and config.is_autopatch_build_enabled(
+                buildspec_path=config.get_buildspec_override()
+                or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
+            ):
                 run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-            # sagemaker local test is not supported in benchmark dev mode
-            if (
-                test_type == "sagemaker"
-                and not config.is_benchmark_mode_enabled()
-                and config.is_sm_local_test_enabled()
-            ):
+            if test_type == "sagemaker" and config.is_sm_local_test_enabled():
                 test_job = f"dlc-pr-{test_type}-local-test"
                 run_test_job(commit, test_job, images_str)
 

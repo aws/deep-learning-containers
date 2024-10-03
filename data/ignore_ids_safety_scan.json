@@ -23,7 +23,8 @@
                 "48551": "tensorflow-estimator and tensorflow versions must match. For all TF versions below TF 2.9.0, we cannot upgrade tf-estimator to 2.9.0",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51516":"keras>2.10.0 does not exist yet",
-                "51499":"wheel>0.37.1 does not exist yet"
+                "51499":"wheel>0.37.1 does not exist yet",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference":{
@@ -38,8 +39,9 @@
                 "42098":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "42062":"Can't upgrade TF version to 2.7.x in non 2.7 images.",
                 "51159": "for cryptography until we have 39.0.0 release",
-                "44715":"False positive for numpy. Was fixed in 1.22.2",                
-                "51516":"keras>2.10.0 does not exist yet"
+                "44715":"False positive for numpy. Was fixed in 1.22.2",
+                "51516":"keras>2.10.0 does not exist yet",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference-eia": {
@@ -901,14 +903,17 @@
                 "38449":"for shipping pillow<=6.2.2 - the last available version for py2",
                 "38450":"for shipping pillow<=6.2.2 - the last available version for py2",
                 "38451":"for shipping pillow<=6.2.2 - the last available version for py2",
-                "38452":"for shipping pillow<=6.2.2 - the last available version for py2"
+                "38452":"for shipping pillow<=6.2.2 - the last available version for py2",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             },
             "py3": {
                 "42772":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42814":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "48298":"for shipping PT1.12 on safety check tools might report a vulnerability for the package commonmarker, which is a dependency of deepspeed. This package is only used to build the documentation pages of deepspeed and won’t be used in the package that gets installed into the DLC. This security issue can be safely ignored and an attempt to upgrade deepspeed version to remediate it might have an inadvertent negative impact on the DLC components functionality.",
-                "51159":"cryptography>38.0.1 does not exist yet"
+                "51159":"cryptography>38.0.1 does not exist yet",
+                "65213":"for shipping pyopenssl>=22.0.0 - no current fix",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "training-neuron":{
@@ -952,7 +957,11 @@
             "py3": {
                 "52510":"Future 0.18.2 is the latest package version - no fix version is available",
                 "54718": "Fix for issue available in torch version 1.13.1",
-                "51499": "Fix for issue contained in Wheel 0.38.1"
+                "51499": "Fix for issue contained in Wheel 0.38.1",
+                "62894": "for scipy-1.10.1 which is a hardcoded dependency of sagemaker-pytorch-inference",
+                "65213": "for shipping pyopenssl>=22.0.0 - no current fix",
+                "65345": "for shipping torchserve==0.8.2, torchserve should skip 0.9.0 and wait for 0.10.0",
+                "67599":"** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
             }
         },
         "inference-eia": {
@@ -1343,7 +1352,45 @@
                 "42815":"for shipping bokeh<=2.3.3 - the last available version for py3.6",
                 "45521":"pytorch-lightning is never installed as a dependency of transformers",
                 "44715":"False positive for numpy. Was fixed in 1.22.2",
-                "48547":"Latest version of rdflib is being installed"
+                "48547":"Latest version of rdflib is being installed",
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "61601": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "61416": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "61893": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "63227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "63408": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64438": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64436": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64437": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "63406": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "64227": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
+                "62556": "Covered elsewhere",
+                "65647": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "62044": "Covered elsewhere",
+                "65501": "Covered elsewhere",
+                "61949": "Covered elsewhere", 
+                "65581": "Covered elsewhere",
+                "65095": "Covered elsewhere",
+                "61503": "Covered elsewhere",
+                "65193": "Covered elsewhere",
+                "62019": "Covered elsehwere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
+                "67895": "CVE-2024-3651 impacts the idna.encode() function",
+		            "71601": "Transformers version upgrade needs to be handled in a separate image",
+		            "71670": "Pytorch version upgrade needs to be handled in a separate image",
+		            "71671": "Pytorch version upgrade needs to be handled in a separate image",
+		            "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference": {
@@ -1358,7 +1405,26 @@
                 "48547":"Latest version of rdflib is being installed",
                 "51159":"cryptography>38.0.1 does not exist yet",
                 "51450": "This bug is in Jax/Flax backend that would need Transformers 4.23 for fix.",
-                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable."
+                "51396": "Protobuf is only a runtime dependency of transformers. Current version of Protobuf installed in the image is not vulnerable.",
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace",
+                "65213": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64402": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
+                "65647": "Covered elsewhere",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
+                "67895": "CVE-2024-3651 impacts the idna.encode() function",
+                "71601": "Transformers version upgrade needs to be handled in a separate image",
+                "71670": "Pytorch version upgrade needs to be handled in a separate image",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference-neuron": {
@@ -1369,7 +1435,22 @@
                 "44716":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "44717":"for shipping numpy 1.21.5 - the last available version for py3.7",
                 "59398": "scipy bug - according to maintainer, not a vulnerability",
-                "59399": "scipy bug - no CVE attached"
+                "59399": "scipy bug - no CVE attached",
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely."
+            }
+        },
+        "inference-neuronx": {
+            "_comment":"py2 is deprecated",
+            "py2": {},
+            "py3": {
+                "64402":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "65213":"Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "training-neuronx": {
@@ -1379,7 +1460,27 @@
                 "51668":"Derived from the base container. Installed as a dependency of another package that does not allow the upgrade of SqlAlchemy to 2.",
                 "44715": "Neuronx Dependency wants version to be <=1.21.6",
                 "44716": "Neuronx Dependency wants version to be <=1.21.6",
-                "44717": "Neuronx Dependency wants version to be <=1.21.6"
+                "44717": "Neuronx Dependency wants version to be <=1.21.6",
+                "64227": "Covered elsewhere",
+                "64437": "Covered elsewhere",
+                "66704": "Covered elsewhere",
+                "66777": "Covered elsewhere",
+                "65278": "Covered elsewhere",
+                "65401": "Covered elsewhere",
+                "65193": "Covered elsewhere",
+                "65398": "Covered elsewhere",
+                "64436": "Covered elsewhere",
+                "62556": "Covered elsewhere",
+                "66710": "Covered elsewhere",
+                "65215": "Covered elsewhere",
+                "65212": "Covered elsewhere",
+                "71684": "Covered elsehwere",
+                "64402": "Covered elsewhere",
+                "65647": "Covered elsewhere",
+                "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+                "67136": "Pillow 10.3.0 introduces a security update addressing CVE-2024-28219 by replacing certain functions with strncpy to prevent buffer overflow issues.",
+                "67895": "CVE-2024-3651 impacts the idna.encode() function",
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062"
             }
         }
     },
@@ -1389,7 +1490,8 @@
             "py3": {
                 "48547":"Latest version of rdflib is being installed",
                 "51396":"Protobuf is only a runtime dependency of transformers and we build our own transformers.",
-                "51450":"We build our own transformers specifically for PyTorch. This bug is in Jax/Flax backend."
+                "51450":"We build our own transformers specifically for PyTorch. This bug is in Jax/Flax backend.",
+                "60235": "Temporarily ignoring to patch CRITICAL vulnerabilties at SEV2 pace"
             }
         }
     },

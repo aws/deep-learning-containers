@@ -10,6 +10,7 @@ from test.test_utils import (
     get_region_from_image_uri,
     is_pr_context,
     is_efa_dedicated,
+    are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
@@ -35,6 +36,8 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
+DEFAULT_EFA_TIMEOUT = 300
+
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=filter_efa_instance_type,
@@ -46,6 +49,7 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 
+@pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -53,11 +57,11 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 @pytest.mark.allow_p4de_use
 @pytest.mark.multinode(2)
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.team("conda")
 @pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
-@pytest.mark.team("conda")
 def test_pytorch_efa(
     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
 ):
@@ -87,7 +91,7 @@ def test_pytorch_efa(
         master_connection,
         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
@@ -131,10 +135,13 @@ def test_efa_tensorflow(
         master_connection,
         f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
+@pytest.mark.skip(
+    "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
+)
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("efa")
@@ -142,13 +149,11 @@ def test_efa_tensorflow(
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.allow_p4de_use
 @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.team("conda")
 @pytest.mark.skipif(
-    is_pr_context() and not is_efa_dedicated(),
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
     reason="Skip EFA test in PR context unless explicitly enabled",
 )
-@pytest.mark.team("conda")
-@pytest.mark.skip_pt21_test
-@pytest.mark.skip_pt20_cuda121_tests
 def test_pytorch_efa_healthcheck(
     pytorch_training,
     efa_ec2_instances,
@@ -176,7 +181,7 @@ def test_pytorch_efa_healthcheck(
         master_connection,
         f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
         hide=False,
-        timeout=300,
+        timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
@@ -206,7 +211,7 @@ def _setup_multinode_efa_instances(
         MASTER_CONTAINER_NAME,
         master_connection,
         BUILD_ALL_REDUCE_PERF_CMD,
-        timeout=180,
+        timeout=DEFAULT_EFA_TIMEOUT,
         asynchronous=True,
     )
     build_all_reduce_perf_promises.append(promise)
@@ -218,7 +223,7 @@ def _setup_multinode_efa_instances(
             WORKER_CONTAINER_NAME,
             worker_connection,
             BUILD_ALL_REDUCE_PERF_CMD,
-            timeout=180,
+            timeout=DEFAULT_EFA_TIMEOUT,
             asynchronous=True,
         )
         build_all_reduce_perf_promises.append(promise)
@@ -275,13 +280,12 @@ def _setup_container(connection, docker_image, container_name):
     # Remove pre-existing containers if reusing an instance
     connection.run(f"docker rm -f {container_name}", hide=True)
 
-    # Run docker container with nvidia-docker to give access to all GPUs
     # Use network mode host, rather than the default "bridge" to allow direct access to container
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
     connection.run(
-        f"nvidia-docker run -id --name {container_name} --network host --ulimit memlock=-1:-1 "
+        f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
         f"{docker_all_devices_arg} -v $HOME/container_tests:/test {docker_image} bash"
     )
 

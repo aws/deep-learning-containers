@@ -1,6 +1,6 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.9.16
-ARG MAMBA_VERSION=22.11.1-2
+ARG PYTHON_VERSION=3.9.19
+ARG MAMBA_VERSION=22.11.1-4
 
 # PyTorch Binaries
 ARG PT_EC2_TRAINING_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.com/r1.13.1_ec2/20221217-194030/54406b8eed7fbd61be629cb06229dfb7b6b2954e/torch-1.13.1%2Bcpu-cp39-cp39-linux_x86_64.whl
@@ -111,14 +111,15 @@ RUN rm -rf /root/.ssh/ \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-# for conda ssl verification
+# For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases/download/${MAMBA_VERSION}/Mambaforge-${MAMBA_VERSION}-Linux-x86_64.sh \
  && chmod +x ~/mambaforge.sh \
  && ~/mambaforge.sh -b -p /opt/conda \
- && rm ~/mambaforge.sh \
- && /opt/conda/bin/conda update -y conda \
- && /opt/conda/bin/conda install -y -c conda-forge \
+ && rm ~/mambaforge.sh
+
+RUN /opt/conda/bin/mamba install -y -c conda-forge \
+    conda \
     python=$PYTHON_VERSION \
     cython \
     mkl \
@@ -127,46 +128,36 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
-    pyopenssl \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
-    # needed by fastai.distributed
-    accelerate \
- # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
- && /opt/conda/bin/conda install -c dglteam -y dgl=0.9.1 \
- && /opt/conda/bin/conda install -c fastai fastai \
-# fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
- # conda pathy installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#L29
- # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#L3
- # dataclasses package is not needed for py>=37
- # install plainly will oversize the image
- && pip uninstall -y dataclasses \
- && /opt/conda/bin/conda clean -ya
-
-# remove the default mamba installation
-RUN rm -rf /root/micromamba/
-
-# Conda installs links for libtinfo.so.6 and libtinfo.so.6.2 both
-# Which causes "/opt/conda/lib/libtinfo.so.6: no version information available" warning
-# Removing link for libtinfo.so.6. This change is needed only for ubuntu 20.04-conda, and can be reverted
-# once conda fixes the issue
-RUN rm -rf /opt/conda/lib/libtinfo.so.6
+    "requests>=2.32.2" \
+    "tqdm>=4.66.3" \
+    "idna>=3.7" \
+    "urllib3>=1.26.17" \
+    "setuptools>=70.0.0" \
+    # pin dgl to 0.9.1 as upstream test has not caught up, currently having accuracy error
+ && /opt/conda/bin/mamba install -y -c dglteam dgl=0.9.1 \
+ && /opt/conda/bin/mamba clean -afy \
+ && rm -rf /etc/apt/sources.list.d/*
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install --no-cache-dir -U \
+    "pyopenssl>=24.1.0" \
     "awscli>1.27,<2" \
+    "botocore>=1.34.8" \
+    "s3transfer>=0.10.0" \
     boto3 \
-    "click==8.1.2,<9" \
-    "cryptography>41,<42" \
+    "click>=8.1.2,<9" \
+    "cryptography>=42.0.5" \
     ipython \
-    "opencv-python>=4.6.0,<4.7" \
+    opencv-python \
     packaging \
     Pillow \
     "psutil>=5.9.4,<5.10" \
-    "pyyaml>=5.4,<5.5" \
-    "scipy>=1.9.3,<2"
+    "pyyaml>=6.0.1" \
+    "scipy>=1.11.1"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -204,8 +195,23 @@ ARG PT_TORCHDATA_URL
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_EC2_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U \
+    ${PT_EC2_TRAINING_URL} \
+    ${PT_TORCHVISION_URL} \
+    ${PT_TORCHAUDIO_URL} \
+    ${PT_TORCHDATA_URL} \
+    torchnet \
+    # fastai and accelerate must be pip installed with torch to avoid conda overwriting torch versions
+    # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+    # conda path installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#l29
+    # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#l3
+    # dataclasses package is not needed for py>=37
+    # install plainly will oversize the image
+    fastai \
+    accelerate \
+ && pip uninstall dataclasses
 
+# needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 RUN HOME_DIR=/root \
@@ -259,7 +265,21 @@ ARG PT_TORCHDATA_URL
 
 # Install AWS-PyTorch and other torch packages
 RUN pip uninstall -y torch torchvision torchaudio torchdata \
- && pip install --no-cache-dir -U ${PT_SM_TRAINING_URL} ${PT_TORCHVISION_URL} ${PT_TORCHAUDIO_URL} ${PT_TORCHDATA_URL}
+ && pip install --no-cache-dir -U \
+    ${PT_SM_TRAINING_URL} \
+    ${PT_TORCHVISION_URL} \
+    ${PT_TORCHAUDIO_URL} \
+    ${PT_TORCHDATA_URL} \
+    torchnet \
+    # fastai and accelerate must be pip installed with torch to avoid conda overwriting torch versions
+    # fastai conda has a dependency chain of fastai -> spacy -> pathy -> dataclasses
+    # conda path installs dataclasses regardless of py version: https://github.com/conda-forge/pathy-feedstock/blob/1e6da43da5c8e11e09c063c79b09236bbacb7780/recipe/meta.yaml#l29
+    # pypi solves this issue: https://github.com/justindujardin/pathy/blob/master/requirements.txt#l3
+    # dataclasses package is not needed for py>=37
+    # install plainly will oversize the image
+    fastai \
+    accelerate \
+ && pip uninstall dataclasses
 
 # needed by torchdata
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -283,7 +303,7 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
     # smdebug==${SMDEBUG_VERSION} \
     smclarify \
     "sagemaker>=2,<3" \
-    sagemaker-experiments==0.* \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training
 
 # Install smdebug from souce
@@ -301,7 +321,12 @@ RUN pip install --no-cache-dir -U \
     "plotly>=5.11,<6" \
     "seaborn>=0.12,<1" \
     "numba>=0.56.4,<0.57" \
-    "shap>=0.41,<1"
+    "shap>=0.41,<1" \
+    # requirement for accelerate
+    huggingface-hub \
+    safetensors
+
+RUN /opt/conda/bin/mamba clean -afy
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

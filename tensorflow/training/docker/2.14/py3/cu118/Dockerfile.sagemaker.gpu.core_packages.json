@@ -1,0 +1,70 @@
+{
+  "awscli": {
+    "version_specifier": ">=1.33.13,<2"
+  },
+  "cython": {
+    "version_specifier": "<3.0"
+  },
+  "protobuf": {
+    "version_specifier": ">=3.20.3,<4"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0,<6.1"
+  },
+  "sagemaker": {
+    "version_specifier": ">=2.207.1,<3"
+  },
+  "sagemaker-tensorflow": {
+    "version_specifier": "==2.14.*"
+  },
+  "sagemaker-tensorflow-training": {
+    "version_specifier": ">=20.4.1,<21"
+  },
+  "sagemaker-training": {
+    "version_specifier": ">=4.7.4,<5"
+  },
+  "tensorboard": {
+    "version_specifier": "==2.14.1"
+  },
+  "tensorboard-data-server": {
+    "version_specifier": ">=0.7.0,<0.8.0"
+  },
+  "tensorflow-gpu": {
+    "version_specifier": "==2.14.1"
+  },
+  "tensorflow-datasets": {
+    "version_specifier": ">=4.9.4"
+  },
+  "tensorflow-estimator": {
+    "version_specifier": ">=2.14.0,<2.15"
+  },
+  "tensorflow-hub": {
+    "version_specifier": ">=0.13.0"
+  },
+  "tensorflow-io": {
+    "version_specifier": "==0.33.*"
+  },
+  "tensorflow-io-gcs-filesystem": {
+    "version_specifier": "==0.33.*"
+  },
+  "tensorflow-metadata": {
+    "version_specifier": ">=1.14.0"
+  },
+  "tensorflow-model-optimization": {
+    "version_specifier": ">=0.4.1"
+  },
+  "tf-models-official": {
+    "version_specifier": "==2.14.2",
+    "skip": "True"
+  },
+  "tensorflow-text": {
+    "version_specifier": "==2.14.0",
+    "skip": "True"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.4"
+  },
+  "urllib3": {
+    "version_specifier": ">=2.0.7"
+  }
+}

@@ -1,6 +1,7 @@
 import os
 import time
 import pytest
+
 from src.benchmark_metrics import (
     PYTORCH_INFERENCE_GPU_THRESHOLD,
     PYTORCH_INFERENCE_CPU_THRESHOLD,
@@ -10,6 +11,8 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
     UL20_CPU_ARM64_US_WEST_2,
+    login_to_ecr_registry,
+    get_account_id_from_image_uri,
     LOGGER,
 )
 from test.test_utils.ec2 import (
@@ -56,38 +59,18 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     )
 
 
-@pytest.mark.skip(
-    reason="PT graviton benchmarks are still in development due to latency and timeouts"
-)
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
-def test_performance_ec2_pytorch_inference_graviton_cpu(
-    pytorch_inference_graviton, ec2_connection, region, cpu_only
-):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
-    ec2_performance_pytorch_inference(
-        pytorch_inference_graviton,
-        "cpu",
-        ec2_connection,
-        region,
-        PT_PERFORMANCE_INFERENCE_CPU_CMD,
-        threshold,
-    )
-
-
 def ec2_performance_pytorch_inference(
     image_uri, processor, ec2_connection, region, test_cmd, threshold
 ):
-    docker_cmd = "nvidia-docker" if processor == "gpu" else "docker"
+    docker_runtime = "--runtime=nvidia --gpus all" if processor == "gpu" else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
 
     # Make sure we are logged into ECR so we can pull the image
-    ec2_connection.run(f"$(aws ecr get-login --no-include-email --region {region})", hide=True)
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(ec2_connection, account_id, region)
 
-    ec2_connection.run(f"{docker_cmd} pull -q {image_uri} ")
+    ec2_connection.run(f"docker pull -q {image_uri} ")
 
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
@@ -95,11 +78,11 @@ def ec2_performance_pytorch_inference(
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"synthetic_{commit_info}_{time_str}.log"
     ec2_connection.run(
-        f"{docker_cmd} run -d --name {container_name}  -e OMP_NUM_THREADS=1 "
+        f"docker run {docker_runtime} -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
     ec2_connection.run(
-        f"{docker_cmd} exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
+        f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
     )
     ec2_connection.run(f"docker rm -f {container_name}")
     ec2_performance_upload_result_to_s3_and_validate(

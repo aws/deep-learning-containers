@@ -16,10 +16,10 @@
       "skip":"True"
    },
    "torchserve":{
-      "version_specifier":"==0.8.2"
+      "version_specifier":"==0.11.0"
    },
    "torch-model-archiver":{
-      "version_specifier":"==0.8.2"
+      "version_specifier":"==0.11.0"
    },
    "torch":{
       "version_specifier":"==1.13.1+cpu"
@@ -44,5 +44,17 @@
    },
     "pillow": {
       "version_specifier": ">=10.0.1"
+   },
+   "pyopenssl": {
+      "version_specifier": ">=24.1.0"
+   },
+   "zstandard": {
+      "version_specifier": ">=0.21.0"
+   },
+   "requests": {
+      "version_specifier": ">=2.32.3"
+   },
+   "setuptools": {
+      "version_specifier": "<70.0.0"
    }
 }

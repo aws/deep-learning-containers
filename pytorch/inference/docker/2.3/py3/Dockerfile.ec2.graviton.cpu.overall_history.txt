@@ -1,0 +1,4 @@
+#### First image: sha256:47972cb08eb15526c5c7b6158bf30e2ae4d4a10141bbc3eb7f59bd60ffe351b7 ####
+#### Current Patch contents ####
+echo N/A
+echo N/A

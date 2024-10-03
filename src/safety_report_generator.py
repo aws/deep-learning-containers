@@ -32,7 +32,7 @@ class SafetyReportGenerator:
     ]
     """
 
-    def __init__(self, container_id, ignore_dict={}):
+    def __init__(self, container_id, ignore_dict={}, image_uri="", image_info=None):
         self.container_id = container_id
         self.vulnerability_dict = {}
         self.vulnerability_list = []
@@ -42,6 +42,8 @@ class SafetyReportGenerator:
         self.docker_exec_cmd = f"docker exec -i {container_id}"
         self.safety_check_output = None
         self.vulnerabilities_to_be_added_to_ignore_list = {}
+        self.image_uri = image_uri
+        self.image_info = image_info
 
     def insert_vulnerabilites_into_report(self, scanned_vulnerabilities):
         """
@@ -131,9 +133,9 @@ class SafetyReportGenerator:
         """
         This method extracts the dumped ignore lists within the DLCs that have been dumped by the autopatch procedure.
         """
-        dumped_ignore_list_command = (
-            f"{self.docker_exec_cmd} cat /opt/aws/dlc/patch-details/vuln_deactivation_data.json"
-        )
+        from src import constants
+
+        dumped_ignore_list_command = f"{self.docker_exec_cmd} cat {constants.PATCHING_INFO_PATH_WITHIN_DLC}/patch-details/vuln_deactivation_data.json"
         return_data = {}
         try:
             run_out = self.ctx.run(dumped_ignore_list_command, hide=True)
@@ -159,7 +161,7 @@ class SafetyReportGenerator:
                     ## If autopatch, confirm if the package is not deactivated. If it is, add it to vulnerabilities_to_be_added_to_ignore_list and call it IGNORED
                     ## else call the package as failed itself
                     package_scan_results["scan_status"] = "FAILED"
-                    if is_autopatch_build_enabled():
+                    if is_autopatch_build_enabled(buildspec_path=self.image_info["buildspec_path"]):
                         ignored_package_dict = self.get_autopatched_dumped_ignore_dict_of_packages()
                         if package in ignored_package_dict:
                             ignore_message = f"""[Package: {package}] Conflicts for: {",".join(ignored_package_dict.get(package).keys())}"""

@@ -16,7 +16,6 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
     assert config.parse_dlc_developer_configs("dev", "neuronx_mode") is False
     assert config.parse_dlc_developer_configs("dev", "graviton_mode") is False
-    assert config.parse_dlc_developer_configs("dev", "benchmark_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
     assert config.parse_dlc_developer_configs("dev", "trcomp_mode") is False
     assert config.parse_dlc_developer_configs("dev", "deep_canary_mode") is False
@@ -28,23 +27,29 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "build_frameworks") == []
     assert config.parse_dlc_developer_configs("build", "build_training") is True
     assert config.parse_dlc_developer_configs("build", "build_inference") is True
-    assert config.parse_dlc_developer_configs("build", "datetime_tag") is True
     assert config.parse_dlc_developer_configs("build", "do_build") is True
-    assert config.parse_dlc_developer_configs("build", "autopatch_build") is False
 
     # Check test settings
     assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
-    assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") == "off"
+    assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") is True
+    assert config.parse_dlc_developer_configs("test", "sagemaker_efa_tests") is False
+    assert config.parse_dlc_developer_configs("test", "sagemaker_rc_tests") is False
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_efa_instance_type") == ""
-    assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is False
+    assert config.parse_dlc_developer_configs("test", "sagemaker_local_tests") is True
     assert config.parse_dlc_developer_configs("test", "ecs_tests") is True
     assert config.parse_dlc_developer_configs("test", "eks_tests") is True
     assert config.parse_dlc_developer_configs("test", "ec2_tests") is True
+    assert config.parse_dlc_developer_configs("test", "ec2_benchmark_tests") is False
+    assert config.parse_dlc_developer_configs("test", "sagemaker_benchmark_tests") is False
     assert config.parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances") is False
     assert config.parse_dlc_developer_configs("test", "nightly_pr_test_mode") is False
     assert config.parse_dlc_developer_configs("test", "use_scheduler") is False
     assert config.parse_dlc_developer_configs("test", "safety_check_test") is False
     assert config.parse_dlc_developer_configs("test", "ecr_scan_allowlist_feature") is False
+
+    # Check notify settings
+    assert config.parse_dlc_developer_configs("notify", "notify_test_failures") is False
+    assert config.parse_dlc_developer_configs("notify", "notification_severity") == "medium"
 
 
 @pytest.mark.quick_checks
@@ -55,19 +60,24 @@ def test_developer_config_wrappers_defaults():
     Test defaults of config file wrappers
     """
     # Check test settings
-    assert config.are_sm_efa_tests_enabled() is False
     assert config.is_sanity_test_enabled() is True
-    assert config.is_sm_local_test_enabled() is False
-    assert config.is_sm_remote_test_enabled() is False
+    assert config.is_sm_local_test_enabled() is True
+    assert config.is_sm_remote_test_enabled() is True
+    assert config.is_sm_efa_test_enabled() is False
+    assert config.is_sm_rc_test_enabled() is False
     assert config.get_sagemaker_remote_efa_instance_type() == ""
     assert config.is_ecs_test_enabled() is True
     assert config.is_eks_test_enabled() is True
     assert config.is_ec2_test_enabled() is True
+    assert config.is_ec2_benchmark_test_enabled() is False
+    assert config.is_sm_benchmark_test_enabled() is False
     assert config.are_heavy_instance_ec2_tests_enabled() is False
     assert config.is_nightly_pr_test_mode_enabled() is False
     assert config.is_scheduler_enabled() is False
     assert config.is_safety_check_test_enabled() is False
     assert config.is_ecr_scan_allowlist_feature_enabled() is False
+    assert config.is_notify_test_failures_enabled() is False
+    assert config.get_notification_severity() == "medium"
 
 
 @pytest.mark.quick_checks

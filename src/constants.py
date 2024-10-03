@@ -83,9 +83,13 @@ LINK_TYPE = ["s3", "pypi"]
 ARTIFACT_DOWNLOAD_PATH = os.path.join(os.sep, "docker", "build_artifacts")
 
 # Test types for running code build test jobs
-SAGEMAKER_TESTS = "sagemaker"
+SAGEMAKER_REMOTE_TESTS = "sagemaker"
+SAGEMAKER_EFA_TESTS = "sagemaker-efa"
+SAGEMAKER_RC_TESTS = "sagemaker-rc"
+SAGEMAKER_BENCHMARK_TESTS = "sagemaker-benchmark"
 SANITY_TESTS = "sanity"
 EC2_TESTS = "ec2"
+EC2_BENCHMARK_TESTS = "ec2-benchmark"
 ECS_TESTS = "ecs"
 EKS_TESTS = "eks"
 ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
@@ -93,6 +97,8 @@ ALL_TESTS = ["sagemaker", "ec2", "eks", "ecs"]
 # Timeout in seconds for Docker API client.
 API_CLIENT_TIMEOUT = 600
 MAX_WORKER_COUNT_FOR_PUSHING_IMAGES = 3
+
+PATCHING_INFO_PATH_WITHIN_DLC = "/opt/aws/dlc/patching-info"
 
 ## TODO: Make this account specific: pr-creation-data-helper-<12_digit_account_id>
 PR_CREATION_DATA_HELPER_BUCKET = "pr-creation-data-helper"

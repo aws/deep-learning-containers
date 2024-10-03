@@ -26,7 +26,7 @@ ARG TORCH_URL=https://aws-pytorch-unified-cicd-binaries.s3.us-west-2.amazonaws.c
 ARG TORCHVISION_VERSION=0.14.1+cpu
 ARG TORCHAUDIO_VERSION=0.13.1+cpu
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.16.1
+ARG DIFFUSERS_VERSION=0.27.2
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -42,7 +42,7 @@ ENV DLC_CONTAINER_TYPE=inference
 
 RUN apt-get update \
  # TODO: Remove systemd upgrade once it is updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y upgrade \
  && apt-get install -y --no-install-recommends \
     software-properties-common \
     ca-certificates \
@@ -69,6 +69,7 @@ RUN apt-get update \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+ 
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
@@ -123,7 +124,8 @@ RUN pip uninstall -y torch torchvision torchaudio multi-model-server
 
 # Install AWS-PyTorch, and other torch packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    "cryptography>3.2" \
+    "cryptography~=41.0" \
+    "pyOpenSSL~=24.1.0" \
     enum-compat==0.0.3 \
     packaging \
     "Pillow>=9.0.0" \
@@ -161,6 +163,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    kenlm==0.1 \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     "accelerate>=0.11.0" \

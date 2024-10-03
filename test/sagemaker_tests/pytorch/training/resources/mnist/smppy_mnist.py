@@ -27,7 +27,7 @@ import sys
 
 import cv2 as cv
 import sagemaker_training.environment
-import smppy
+import smprof
 import torch
 import torch.distributed as dist
 import torch.nn as nn
@@ -163,8 +163,8 @@ def train(args):
     # for SM local mode
     os.makedirs("/opt/ml/output/profiler/framework", exist_ok=True)
 
-    smp = smppy.SMProfiler.instance()
-    config = smppy.Config()
+    smp = smprof.SMProfiler.instance()
+    config = smprof.Config()
     config.profiler = {
         "EnableCuda": "1",
     }
@@ -181,13 +181,13 @@ def train(args):
             else:
                 data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
-            with smppy.annotate("Forward"):
+            with smprof.annotate("Forward"):
                 output = model(data)
-            with smppy.annotate("Loss"):
+            with smprof.annotate("Loss"):
                 loss = F.nll_loss(output, target)
-            with smppy.annotate("Backward"):
+            with smprof.annotate("Backward"):
                 loss.backward()
-            with smppy.annotate("Optimizer"):
+            with smprof.annotate("Optimizer"):
                 optimizer.step()
             if batch_idx % args.log_interval == 0:
                 logger.debug(

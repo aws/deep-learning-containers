@@ -1,0 +1,8 @@
+{
+    "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
+    "65213": "From OpenSSL: Due to the low severity of this issue we are not issuing new releases of OpenSSL at this time. The fix will be included in the next releases when they become available.",
+    "70612": "This Jinja2 CVE is disputed and has no fix.",
+    "71670": "[Package: torch] Conflicts for: torch",
+    "71671": "[Package: torch] Conflicts for: torch",
+    "71672": "[Package: torch] Conflicts for: torch"
+}

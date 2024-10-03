@@ -1,6 +1,7 @@
 boto3
 sagemaker
-pytest
+# Preserve pytest caching behavior in earlier versions
+pytest<8.1
 pytest-rerunfailures
 pytest-timeout
 pytest-xdist

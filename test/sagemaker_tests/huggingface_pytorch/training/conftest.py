@@ -26,12 +26,15 @@ import boto3
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 from .utils import image_utils, get_ecr_registry
 from .integration import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
+    get_transformers_version_from_image_uri,
 )
 
 logger = logging.getLogger(__name__)
@@ -117,6 +120,30 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "efa(): explicitly mark to run efa tests")
+    config.addinivalue_line("markers", "deploy_test(): mark to run deploy tests")
+    config.addinivalue_line("markers", "skip_test_in_region(): mark to skip test in some regions")
+    config.addinivalue_line("markers", "skip_py2_containers(): skip testing py2 containers")
+    config.addinivalue_line("markers", "model(): note the model being tested")
+    config.addinivalue_line("markers", "integration(): note the feature being tested")
+    config.addinivalue_line("markers", "skip_cpu(): skip cpu images on test")
+    config.addinivalue_line("markers", "skip_gpu(): skip gpu images on test")
+    config.addinivalue_line("markers", "gpu_test(): only test gpu images")
+    config.addinivalue_line("markers", "skip_unless_tlr_supported(): skip unless tlr supported")
+    config.addinivalue_line("markers", "multinode(): mark as multi-node test")
+    config.addinivalue_line("markers", "processor(): note the processor type being tested")
+    config.addinivalue_line("markers", "team(): note the team responsible for the test")
+    config.addinivalue_line("markers", "skip_trcomp_containers(): skip trcomp images on test")
+    config.addinivalue_line(
+        "markers", "skip_huggingface_containers(): skip huggingface images on test"
+    )
+    config.addinivalue_line(
+        "markers", "skip_inductor_test(): skip inductor test on incompatible images"
+    )
+    config.addinivalue_line(
+        "markers", "skip_s3plugin_test(): skip s3plugin test on incompatible images"
+    )
+    config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
+    config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
 
 
 def pytest_runtest_setup(item):
@@ -127,6 +154,14 @@ def pytest_runtest_setup(item):
 
 
 def pytest_collection_modifyitems(session, config, items):
+    for item in items:
+        print(f"item {item}")
+        for marker in item.iter_markers(name="team"):
+            print(f"item {marker}")
+            team_name = marker.args[0]
+            item.user_properties.append(("team_marker", team_name))
+            print(f"item.user_properties {item.user_properties}")
+
     if config.getoption("--generate-coverage-doc"):
         from test.test_utils.test_reporting import TestReportGenerator
 
@@ -318,7 +353,7 @@ def skip_p5_tests(request, ecr_image, instance_type):
     if "p5." in instance_type:
         framework, image_framework_version = get_framework_and_version_from_tag(ecr_image)
 
-        image_processor = get_processor_from_image_uri(img_uri)
+        image_processor = get_processor_from_image_uri(ecr_image)
         image_cuda_version = get_cuda_version_from_tag(ecr_image)
         if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
@@ -329,6 +364,23 @@ def skip_huggingface_containers(request, ecr_image):
     if request.node.get_closest_marker("skip_huggingface_containers"):
         if "trcomp" not in ecr_image:
             pytest.skip("Skipping huggingface container with tag {}".format(ecr_image))
+
+
+@pytest.fixture(autouse=True)
+def skip_unless_tlr_supported(request, ecr_image):
+    if request.node.get_closest_marker("skip_unless_tlr_supported"):
+        framework, framework_version = get_framework_and_version_from_tag(ecr_image)
+        transformers_version = get_transformers_version_from_image_uri(ecr_image)
+        if not (
+            framework == "huggingface-pytorch"
+            and Version(framework_version) in SpecifierSet(">=2.1.0")
+            and Version(transformers_version) in SpecifierSet(">=4.36.0")
+        ):
+            pytest.skip(
+                "Skipping Transfer Reinforcement Learning (TLR) test for tag {}. TLR support was added with Transformers==4.36.0 and PyTorch==2.1.0.".format(
+                    ecr_image
+                )
+            )
 
 
 def _get_remote_override_flags():

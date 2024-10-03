@@ -12,13 +12,16 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import re
 import os
+
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 scripts_path = os.path.join(resources_path, "scripts")
-distrilbert_script = os.path.join(scripts_path, "train.py")
-distrilbert_torch_compiled_script = os.path.join(scripts_path, "train_torch_compiled.py")
+distilbert_script = os.path.join(scripts_path, "train.py")
+distilbert_torch_compiled_script = os.path.join(scripts_path, "train_torch_compiled.py")
 diffusers_script = os.path.join(scripts_path, "diffusers_entrypoint.py")
+peft_sft_script = os.path.join(scripts_path, "train_peft_sft.py")
 
 ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 60
@@ -54,26 +57,12 @@ def get_framework_and_version_from_tag(image_uri):
     :param image_uri: ECR image URI
     :return: framework name, framework version
     """
-    tested_framework = get_framework_from_image_uri(image_uri)
-    allowed_frameworks = (
-        "huggingface_tensorflow_trcomp",
-        "huggingface_pytorch_trcomp",
-        "huggingface_tensorflow",
-        "huggingface_pytorch",
-        "tensorflow",
-        "mxnet",
-        "pytorch",
-    )
-
-    if not tested_framework:
-        raise RuntimeError(
-            f"Cannot find framework in image uri {image_uri} "
-            f"from allowed frameworks {allowed_frameworks}"
-        )
+    if "huggingface-pytorch" not in image_uri:
+        raise RuntimeError(f"Cannot find 'huggingface-pytorch' in image uri {image_uri}")
 
     tag_framework_version = re.search(r"(\d+(\.\d+){1,2})", image_uri).groups()[0]
 
-    return tested_framework, tag_framework_version
+    return "huggingface_pytorch", tag_framework_version
 
 
 def get_processor_from_image_uri(image_uri):
@@ -92,3 +81,12 @@ def get_processor_from_image_uri(image_uri):
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
+
+
+def get_transformers_version_from_image_uri(image_uri):
+    transformers_version_search = re.search(r"transformers(\d+(\.\d+){1,2})", image_uri)
+    if transformers_version_search:
+        transformers_version = transformers_version_search.group(1)
+        return transformers_version
+    else:
+        raise LookupError("HF transformers version not found in image URI")

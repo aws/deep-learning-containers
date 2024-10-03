@@ -98,6 +98,7 @@ pip_packages:
   - mkl
   - mkl-include
   - pybind11
+  - smart-sifting
 apt_packages:
   - cuda-command-line-tools
   - cuda-cufft
