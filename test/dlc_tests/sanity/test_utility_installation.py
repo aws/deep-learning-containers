@@ -41,7 +41,7 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
 
 
 # TODO: Need to be added to all DLC images in furture.
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
 def test_awscli(mxnet_inference):
@@ -59,7 +59,7 @@ def test_awscli(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "aws --version")
 
 
-@pytest.mark.usefixtures("sagemaker_only", "huggingface", "non_autogluon_only")
+@pytest.mark.usefixtures("sagemaker_only", "huggingface", "non_autogluon_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
 def test_utility_packages_using_import(training):
@@ -112,7 +112,7 @@ def test_utility_packages_using_import(training):
 
 
 @pytest.mark.model("N/A")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("common pytorch training utility packages")
 def test_common_pytorch_utility_packages_using_import(pytorch_training):
     """
@@ -167,7 +167,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
         raise ImportError(f"Import failed for packages: {list_of_packages}")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("boto3")
 def test_boto3(mxnet_inference):
@@ -184,7 +184,7 @@ def test_boto3(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("emacs")
 def test_emacs(image):
@@ -202,7 +202,7 @@ def test_emacs(image):
     test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")
 @pytest.mark.parametrize(
@@ -247,7 +247,7 @@ def test_sagemaker_studio_analytics_extension(training, package_name):
     test_utils.run_cmd_on_container(container_name, ctx, import_test_cmd, executable="python")
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("ipykernel")
 def test_ipykernel_presence(tensorflow_training):

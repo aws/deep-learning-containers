@@ -13,7 +13,7 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.skipif(
     not is_deep_canary_context() or os.getenv("REGION") == "us-west-2",
     reason="This test only needs to run in deep-canary context",

@@ -107,6 +107,9 @@ FRAMEWORK_FIXTURES = (
     # Job Type fixtures
     "training",
     "inference",
+    # Sanity fixtures
+    "security_sanity",
+    "functionality_sanity",
 )
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
@@ -1038,6 +1041,16 @@ def dlc_images(request):
 def pull_images(docker_client, dlc_images):
     for image in dlc_images:
         docker_client.images.pull(image)
+
+
+@pytest.fixture(scope="session")
+def security_sanity():
+    pass
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    pass
 
 
 @pytest.fixture(scope="session")
