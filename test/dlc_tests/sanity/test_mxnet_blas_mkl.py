@@ -10,7 +10,7 @@ from test.test_utils import (
     start_container,
     stop_and_remove_container,
     is_pr_context,
-    is_functionality_sanity_test_enabled
+    is_functionality_sanity_test_enabled,
 )
 
 
