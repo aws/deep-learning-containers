@@ -9,12 +9,17 @@ from test.test_utils import (
     PR_ONLY_REASON,
     is_trcomp_image,
     get_framework_and_version_from_tag,
+    is_functionality_sanity_test_enabled,
 )
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_binary_visibility(image: str):
     """
     Test to check if the binary built with image is public/private. Assumes that URIs beginning with 's3://' are private.

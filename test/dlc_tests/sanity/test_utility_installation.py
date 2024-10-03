@@ -44,6 +44,10 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("awscli")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_awscli(mxnet_inference):
     """
     Ensure that boto3 is installed on mxnet inference
@@ -62,6 +66,10 @@ def test_awscli(mxnet_inference):
 @pytest.mark.usefixtures("sagemaker_only", "huggingface", "non_autogluon_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("utility pacakges")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_utility_packages_using_import(training):
     """
     Verify that utility packages are installed in the Training DLC image
@@ -114,6 +122,10 @@ def test_utility_packages_using_import(training):
 @pytest.mark.model("N/A")
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("common pytorch training utility packages")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_common_pytorch_utility_packages_using_import(pytorch_training):
     """
     Verify that common utility packages are installed in the Training DLC image
@@ -170,6 +182,10 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("boto3")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_boto3(mxnet_inference):
     """
     Ensure that boto3 is installed on mxnet inference
@@ -187,6 +203,10 @@ def test_boto3(mxnet_inference):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("emacs")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_emacs(image):
     """
     Ensure that emacs is installed on every image
@@ -213,6 +233,10 @@ def test_emacs(image):
         "sagemaker-studio-sparkmagic-lib",
         "sagemaker-studio-analytics-extension",
     ],
+)
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
 )
 def test_sagemaker_studio_analytics_extension(training, package_name):
     framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
@@ -250,6 +274,10 @@ def test_sagemaker_studio_analytics_extension(training, package_name):
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("ipykernel")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_ipykernel_presence(tensorflow_training):
     """
     ipykernel installed by sagemaker-studio-sparkmagic-lib package should be removed in order to make the DLC compatible with SM studio

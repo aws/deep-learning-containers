@@ -5,9 +5,10 @@ from packaging.version import Version
 
 from test.test_utils import (
     get_container_name,
-    get_framework_and_version_from_tag,
     run_cmd_on_container,
     start_container,
+    is_pr_context,
+    is_functionality_sanity_test_enabled,
 )
 
 
@@ -15,6 +16,10 @@ from test.test_utils import (
 @pytest.mark.usefixtures("huggingface_only", "functionality_sanity")
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_pt_s3_sanity(pytorch_training, outside_versions_skip):
     """
     Check that the internally built PT S3 binary is properly installed.

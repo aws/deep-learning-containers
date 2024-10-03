@@ -11,6 +11,10 @@ from packaging.version import Version
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_dlc_major_version_label(image, region):
     """
     Test to ensure that all DLC images have the LABEL "dlc_major_version"
@@ -30,6 +34,10 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_dlc_standard_labels(image, region):
     customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
 
@@ -94,6 +102,10 @@ def test_dlc_standard_labels(image, region):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_max_sagemaker_labels(image, region):
     # Max ml engines sagemaker labels allowed:
     max_labels = 10
@@ -115,6 +127,10 @@ def test_max_sagemaker_labels(image, region):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_dlc_major_version_dockerfiles(image):
     """
     Test to make sure semantic versioning scheme in Dockerfiles is correct
@@ -253,13 +269,13 @@ def test_dlc_major_version_dockerfiles(image):
     )
 
 
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.integration("dlc_nightly_feature_label")
+@pytest.mark.model("N/A")
 @pytest.mark.skipif(
     not test_utils.is_mainline_context(),
     reason="This test only applies to Release Candidate images",
 )
-@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
-@pytest.mark.integration("dlc_nightly_feature_label")
-@pytest.mark.model("N/A")
 def test_dlc_nightly_feature_labels(image, region):
     """
     Test to ensure that nightly feature labels are not applied on prod DLCs

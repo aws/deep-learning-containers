@@ -20,7 +20,6 @@ from src.buildspec import Buildspec
 import src.utils as src_utils
 from test.test_utils import (
     LOGGER,
-    CONTAINER_TESTS_PREFIX,
     ec2,
     get_container_name,
     get_framework_and_version_from_tag,
@@ -41,8 +40,6 @@ from test.test_utils import (
     is_nightly_context,
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     get_installed_python_packages_with_version,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
@@ -51,6 +48,9 @@ from test.test_utils import (
     get_installed_python_packages_with_version,
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
+    is_pr_context,
+    is_security_sanity_test_enabled,
+    is_functionality_sanity_test_enabled,
 )
 
 
@@ -92,6 +92,10 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_stray_files(image):
     """
     Test to ensure that unnecessary build artifacts are not present in any easily visible or tmp directories
@@ -139,6 +143,10 @@ def test_stray_files(image):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_python_version(image):
     """
     Check that the python version in the image tag is the same as the one on a running container.
@@ -168,6 +176,10 @@ def test_python_version(image):
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_ubuntu_version(image):
     """
     Check that the ubuntu version in the image tag is the same as the one on a running container.
@@ -192,6 +204,10 @@ def test_ubuntu_version(image):
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_image_tags(image, ecr_client):
     all_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
     assert not any("benchmark-tested" in tag for tag in all_tags)
@@ -200,6 +216,10 @@ def test_image_tags(image, ecr_client):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_tf_serving_version_cpu(tensorflow_inference):
     """
     For non-huggingface non-GPU TF inference images, check that the tag version matches the version of TF serving
@@ -252,6 +272,10 @@ def test_tf_serving_version_cpu(tensorflow_inference):
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_tf_serving_api_version(tensorflow_inference):
     """
     For non-huggingface TF inference images, check that the tag version matches the version of TF serving api
@@ -294,18 +318,30 @@ def test_tf_serving_api_version(tensorflow_inference):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference, region)
 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)
 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
@@ -313,6 +349,10 @@ def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, regi
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_framework_version_cpu(image):
     """
     Check that the framework version in the image tag is the same as the one on a running container.
@@ -416,6 +456,10 @@ def test_framework_version_cpu(image):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_framework_and_neuron_sdk_version(neuron):
     """
     Gets the neuron sdk tag from the image. For that neuron sdk and the frame work version from
@@ -503,6 +547,10 @@ def test_framework_and_neuron_sdk_version(neuron):
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
@@ -511,12 +559,20 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_dataclasses_check(image):
     """
     Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
@@ -549,6 +605,10 @@ def test_dataclasses_check(image):
 
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_security_sanity_test_enabled(),
+    reason="Skip security sanity test in PR context if explicitly disabled",
+)
 def test_pip_check(image):
     """
     Ensure there are no broken requirements on the containers by running "pip check"
@@ -678,6 +738,10 @@ def test_pip_check(image):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_cuda_paths(gpu):
     """
     Test to ensure that:
@@ -936,6 +1000,10 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
 @pytest.mark.skipif(
     not is_dlc_cicd_context(), reason="We need to test OSS compliance only on PRs and pipelines"
 )
+@pytest.mark.skipif(
+    is_pr_context() and not is_security_sanity_test_enabled(),
+    reason="Skip security sanity test in PR context if explicitly disabled",
+)
 def test_oss_compliance(image):
     """
     Run oss compliance check on a container to check if license attribution files exist.
@@ -1008,6 +1076,10 @@ def test_oss_compliance(image):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_pytorch_training_sm_env_variables(pytorch_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"}
     container_name_prefix = "pt_training_sm_env"
@@ -1020,6 +1092,10 @@ def test_pytorch_training_sm_env_variables(pytorch_training):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_pytorch_inference_sm_env_variables(pytorch_inference):
     env_vars = {"SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"}
     container_name_prefix = "pt_inference_sm_env"
@@ -1032,6 +1108,10 @@ def test_pytorch_inference_sm_env_variables(pytorch_inference):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_tensorflow_training_sm_env_variables(tensorflow_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_tensorflow_container.training:main"}
     container_name_prefix = "tf_training_sm_env"
@@ -1044,6 +1124,10 @@ def test_tensorflow_training_sm_env_variables(tensorflow_training):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     _, fw_version = get_framework_and_version_from_tag(tensorflow_inference)
     version_obj = Version(fw_version)
@@ -1059,6 +1143,10 @@ def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_functionality_sanity_test_enabled(),
+    reason="Skip functionality sanity test in PR context if explicitly disabled",
+)
 def test_mxnet_training_sm_env_variables(mxnet_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_mxnet_container.training:main"}
     container_name_prefix = "mx_training_sm_env"
@@ -1071,6 +1159,10 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
 
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_security_sanity_test_enabled(),
+    reason="Skip security sanity test in PR context if explicitly disabled",
+)
 def test_core_package_version(image):
     """
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
@@ -1117,6 +1209,10 @@ def test_core_package_version(image):
 
 @pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    is_pr_context() and not is_security_sanity_test_enabled(),
+    reason="Skip security sanity test in PR context if explicitly disabled",
+)
 def test_package_version_regression_in_image(image):
     """
     This test verifies if the python package versions in the already released image are not being downgraded/deleted in the

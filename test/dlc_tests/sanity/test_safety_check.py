@@ -20,9 +20,9 @@ from invoke import run
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     is_dlc_cicd_context,
-    is_canary_context,
-    is_mainline_context,
     is_safety_test_context,
+    is_pr_context,
+    is_security_sanity_test_enabled,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -1059,6 +1059,10 @@ def _get_latest_package_version(package):
         "Skipping the test to decrease the number of calls to the Safety Check DB. "
         "Test will be executed in the 'mainline' pipeline and canaries pipeline."
     ),
+)
+@pytest.mark.skipif(
+    is_pr_context() and not is_security_sanity_test_enabled(),
+    reason="Skip security sanity test in PR context if explicitly disabled",
 )
 def test_safety(image):
     """

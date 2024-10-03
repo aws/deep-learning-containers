@@ -99,6 +99,14 @@ def is_sanity_test_enabled():
     return parse_dlc_developer_configs("test", "sanity_tests")
 
 
+def is_security_sanity_test_enabled():
+    return parse_dlc_developer_configs("test", "security_sanity_tests")
+
+
+def is_functionality_sanity_test_enabled():
+    return parse_dlc_developer_configs("test", "functionality_sanity_tests")
+
+
 def is_sm_local_test_enabled():
     return parse_dlc_developer_configs("test", "sagemaker_local_tests")
 
