@@ -127,7 +127,9 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.EKS_TESTS and config.is_eks_test_enabled():
         return True
-    if test_type == constants.SANITY_TESTS and (config.is_security_sanity_test_enabled() or config.is_functionality_sanity_test_enabled()):
+    if test_type == constants.SANITY_TESTS and (
+        config.is_security_sanity_test_enabled() or config.is_functionality_sanity_test_enabled()
+    ):
         return True
 
     return False

@@ -9,6 +9,8 @@ from test.test_utils import (
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
+    is_pr_context,
+    is_functionality_sanity_test_enabled
 )
 
 
