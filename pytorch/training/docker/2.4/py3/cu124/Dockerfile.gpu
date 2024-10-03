@@ -235,7 +235,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     packaging \
     boto3 \
     pyyaml \
-    numpy \
     scipy \
     click \
     psutil \
@@ -245,6 +244,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
+    "numpy>=2" \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
