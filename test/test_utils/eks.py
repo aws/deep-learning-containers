@@ -305,7 +305,7 @@ def eks_forward_port_between_host_and_container(
     )
 
 
-@retry(stop_max_attempt_number=60, wait_fixed=30000, retry_on_exception=retry_if_value_error)
+@retry(stop_max_attempt_number=30, wait_fixed=30000, retry_on_exception=retry_if_value_error)
 def is_service_running(selector_name, namespace="default"):
     """Check if the service pod is running
     Args:
@@ -333,6 +333,7 @@ def is_service_running(selector_name, namespace="default"):
 
     conditions = run_out.stdout.strip("'")  # Remove the single quotes from the output
     conditions_list = conditions.split(",")  # Split the conditions into a list
+    LOGGER.info(conditions_list)
 
     for condition in conditions_list:
         condition_dict = {}
