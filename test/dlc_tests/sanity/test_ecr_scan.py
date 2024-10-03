@@ -1,6 +1,8 @@
 import json
 import os
 from time import sleep
+from typing import List
+
 import boto3
 
 import pytest
@@ -43,7 +45,7 @@ from test.test_utils.security import (
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
-    generate_future_allowlist,
+    generate_future_allowlist, AllowListFormatVulnerabilityForEnhancedScan,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
@@ -126,6 +128,30 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
                 image = new_image_uri
 
     return image
+
+
+def remove_allowlisted_image_vulnerabilities(
+    ecr_image_vuln_list: ECREnhancedScanVulnerabilityList, vuln_allowlist: ECREnhancedScanVulnerabilityList
+):
+    """
+    Removes allowlisted vulnerabilities from ecr_image_vulnerability_list based on (package, CVE) only.
+
+    :param ecr_image_vuln_list: ECREnhancedScanVulnerabilityList of detected image vulnerabilities
+    :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
+    :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
+    """
+
+    new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
+    for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
+        if pkg_name not in new_image_vuln_list.vulnerability_list:
+            continue
+        pkg_cves_in_allowlist = set(list([vuln.name for vuln in allowed_pkg_vuln_list]))
+        new_image_vuln_list.remove_vulnerabilities_for_package(
+            package_name=pkg_name,
+            vulnerability_id_list=pkg_cves_in_allowlist,
+        )
+
+    return new_image_vuln_list
 
 
 def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
@@ -211,7 +237,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+    remaining_vulnerabilities = remove_allowlisted_image_vulnerabilities(
+        ecr_image_vuln_list=ecr_image_vulnerability_list,
+        vuln_allowlist=image_scan_allowlist,
+    )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
 
     if remove_non_patchable_vulns and remaining_vulnerabilities:
