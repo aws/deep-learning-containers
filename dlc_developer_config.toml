@@ -101,7 +101,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-mxnet-training = ""
-dlc-pr-pytorch-training = "pytorch/inference/buildspec-2-4-ec2.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -130,7 +130,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-4-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
