@@ -198,7 +198,6 @@ def remove_allowlisted_image_vulnerabilities(
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
     :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
     """
-
     new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
     for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
         if pkg_name not in new_image_vuln_list.vulnerability_list:
@@ -319,10 +318,12 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}"
         )
 
-    remaining_vulnerabilities = remove_allowlisted_image_vulnerabilities(
-        ecr_image_vuln_list=ecr_image_vulnerability_list,
-        vuln_allowlist=image_scan_allowlist,
-    )
+    remaining_vulnerabilities = ecr_image_vulnerability_list
+    if ecr_image_vulnerability_list and image_scan_allowlist:
+        remaining_vulnerabilities = remove_allowlisted_image_vulnerabilities(
+            ecr_image_vuln_list=ecr_image_vulnerability_list,
+            vuln_allowlist=image_scan_allowlist,
+        )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
     allowlist_for_daily_scans = image_scan_allowlist
 
