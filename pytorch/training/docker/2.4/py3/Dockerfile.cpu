@@ -221,6 +221,7 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     accelerate \
     fastai \
+    "numpy>=2" \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
