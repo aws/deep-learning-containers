@@ -659,7 +659,9 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         summarized_list = sorted(list(set(summarized_list)))
         return summarized_list
 
-    def remove_vulnerabilities_for_package(self, package_name: str, vulnerability_id_list: Set[str]):
+    def remove_vulnerabilities_for_package(
+        self, package_name: str, vulnerability_id_list: Set[str]
+    ):
         """Removes any vulnerabilities for the package_name whose id is in the cve_id_list."""
         if package_name in self.vulnerability_list:
             self.vulnerability_list[package_name] = [
