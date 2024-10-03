@@ -1,20 +1,36 @@
 {
-  "idna":{
-    "version_specifier":">=3.7"
+  "captum": {
+    "version_specifier": "==0.6.0",
+    "skip": "True"
   },
-  "tqdm":{
-    "version_specifier":">=4.66.3"
+  "torchaudio": {
+    "version_specifier": "==2.4.0+cu124",
+    "skip": "True"
   },
-  "requests":{
-    "version_specifier":">=2.32.2"
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu124",
+    "skip": "True"
   },
-  "setuptools":{
-    "version_specifier":">=70.0.0"
+  "torchvision": {
+    "version_specifier": "==0.19.0+cu124",
+    "skip": "True"
   },
-  "urllib3":{
-    "version_specifier":"<2"
+  "idna": {
+    "version_specifier": ">=3.7"
   },
-  "awscli":{
-    "version_specifier":"<2"
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.2"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
+  "urllib3": {
+    "version_specifier": "<2"
+  },
+  "awscli": {
+    "version_specifier": "<2"
   }
 }
