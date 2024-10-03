@@ -49,7 +49,8 @@ from test.test_utils.security import (
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
-    generate_future_allowlist, AllowListFormatVulnerabilityForEnhancedScan,
+    generate_future_allowlist,
+    AllowListFormatVulnerabilityForEnhancedScan,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
@@ -187,7 +188,8 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
 
 
 def remove_allowlisted_image_vulnerabilities(
-    ecr_image_vuln_list: ECREnhancedScanVulnerabilityList, vuln_allowlist: ECREnhancedScanVulnerabilityList
+    ecr_image_vuln_list: ECREnhancedScanVulnerabilityList,
+    vuln_allowlist: ECREnhancedScanVulnerabilityList,
 ):
     """
     Removes allowlisted vulnerabilities from ecr_image_vulnerability_list based on (package, CVE) only.
@@ -305,7 +307,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     except:
         LOGGER.info(f"[Allowlist] Image scan allowlist path could not be derived for {image}")
         traceback.print_exc()
-        
+
     if (
         allowlist_removal_enabled
         and os.path.exists(common_allowlist_path)
