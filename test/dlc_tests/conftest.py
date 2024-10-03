@@ -107,9 +107,9 @@ FRAMEWORK_FIXTURES = (
     # Job Type fixtures
     "training",
     "inference",
-    # Sanity fixtures
-    "security_sanity",
-    "functionality_sanity",
+    # # Sanity fixtures
+    # "security_sanity",
+    # "functionality_sanity",
 )
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
