@@ -308,7 +308,8 @@ RUN rm -rf /root/.cache | true
 #     s3torchconnector \
 #     fastai \
 #     accelerate \
-#     "numpy>=2" \
+#     # pin numpy requirement for fastai dependency
+#     "numpy<2" \
 #  && pip uninstall dataclasses
 #
 # # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -416,7 +417,8 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
-    "numpy>=2" \
+    # pin numpy requirement for fastai dependency
+    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary

@@ -221,7 +221,8 @@ RUN rm -rf /root/.cache | true
 #     s3torchconnector \
 #     fastai \
 #     accelerate \
-#     "numpy>=2" \
+#     # pin numpy requirement for fastai dependency
+#     "numpy<2" \
 #  && pip uninstall -y dataclasses
 #
 # RUN HOME_DIR=/root \
@@ -280,7 +281,8 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
-    "numpy>=2" \
+    # pin numpy requirement for fastai dependency
+    "numpy<2" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
