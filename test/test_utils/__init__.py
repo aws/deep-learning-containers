@@ -747,7 +747,9 @@ def is_functionality_sanity_test_enabled():
 
 
 def is_huggingface_image():
-    return os.getenv("FRAMEWORK_BUILD_SPEC_FILE").startswith("huggingface")
+    if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        return False
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
 
 
 def is_covered_by_ec2_sm_split(image_uri):
