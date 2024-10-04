@@ -38,6 +38,9 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_security_sanity_test_enabled,
+    is_functionality_sanity_test_enabled,
+    is_pr_context,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -1033,6 +1036,34 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
 
 @pytest.fixture(scope="session")
+def security_sanity():
+    if _validate_sanity_test_type("security_sanity")
+        pytest.skip(
+            f"Test in not running in 'security_sanity' test type within the pipeline context or 'security_sanity' test is not enabled within the PR context. Skipping security sanity tests"
+        )
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    if _validate_sanity_test_type("functionality_sanity")
+        pytest.skip(
+            f"Test in not running in 'functionality_sanity' test type within the pipeline context or 'functionality_sanity' test is not enabled within the PR context. Skipping functionality sanity tests"
+        )
+
+
+def _validate_sanity_test_type(test_type):
+    developer_config = {
+        "security_sanity": is_security_sanity_test_enabled(),
+        "functionality_sanity": is_functionality_sanity_test_enabled()
+    }
+    pipeline_test_type = os.getenv("SANITY_TYPE")
+    pr_test_type = developer_config[test_type]
+
+    return (is_pr_context() and pr_test_type) or (pipeline_test_type and pipeline_test_type == test_type)
+
+
+
+@pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
 
@@ -1041,16 +1072,6 @@ def dlc_images(request):
 def pull_images(docker_client, dlc_images):
     for image in dlc_images:
         docker_client.images.pull(image)
-
-
-@pytest.fixture(scope="session")
-def security_sanity():
-    pass
-
-
-@pytest.fixture(scope="session")
-def functionality_sanity():
-    pass
 
 
 @pytest.fixture(scope="session")
@@ -1733,14 +1754,14 @@ def pytest_generate_tests(metafunc):
             else:
                 metafunc.parametrize(fixture, images_to_parametrize)
 
-    for fixture in ["security_sanity", "functionality_sanity"]:
-        developer_config_func = getattr(test_utils, f"is_{fixture}_test_enabled")
-        if "image" in metafunc.fixturenames and fixture in metafunc.fixturenames and developer_config_func():
-            metafunc.parametrize("image", images)
+    # for fixture in ["security_sanity", "functionality_sanity"]:
+    #     developer_config_func = getattr(test_utils, f"is_{fixture}_test_enabled")
+    #     if "image" in metafunc.fixturenames and fixture in metafunc.fixturenames and developer_config_func():
+    #         metafunc.parametrize("image", images)
 
     # Parametrize for framework agnostic tests, i.e. sanity
-    # if "image" in metafunc.fixturenames:
-    #     metafunc.parametrize("image", images)
+    if "image" in metafunc.fixturenames:
+        metafunc.parametrize("image", images)
 
 
 @pytest.fixture(autouse=True)
