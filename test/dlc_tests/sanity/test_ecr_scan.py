@@ -381,10 +381,11 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
 
     if is_mainline_context() and is_test_phase() and not is_generic_image():
+        upload_data = allowlist_for_daily_scans.vulnerability_list if allowlist_for_daily_scans else []
         upload_list = [
             {
                 "s3_filename": "ecr_allowlist.json",
-                "upload_data": allowlist_for_daily_scans.vulnerability_list,
+                "upload_data": upload_data,
             }
         ]
         add_core_packages_to_upload_list_if_exists(image, upload_list)
