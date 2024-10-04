@@ -17,10 +17,10 @@ from test.test_utils import (
 @pytest.mark.usefixtures("feature_torchvision_present")
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    is_pr_context() and not is_functionality_sanity_test_enabled(),
-    reason="Skip functionality sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_functionality_sanity_test_enabled(),
+#     reason="Skip functionality sanity test in PR context if explicitly disabled",
+# )
 def test_torchvision_nms_training(pytorch_training):
     """
     Check that the internally built torchvision binary is used to resolve the missing nms issue.
@@ -50,10 +50,10 @@ def test_torchvision_nms_training(pytorch_training):
 @pytest.mark.usefixtures("feature_torchvision_present")
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    is_pr_context() and not is_functionality_sanity_test_enabled(),
-    reason="Skip functionality sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_functionality_sanity_test_enabled(),
+#     reason="Skip functionality sanity test in PR context if explicitly disabled",
+# )
 def test_torchvision_nms_inference(pytorch_inference, non_huggingface_only):
     """
     Check that the internally built torchvision binary is used to resolve the missing nms issue.

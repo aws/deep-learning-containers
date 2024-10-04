@@ -16,10 +16,10 @@ from test.test_utils import (
 @pytest.mark.usefixtures("huggingface_only", "functionality_sanity")
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    is_pr_context() and not is_functionality_sanity_test_enabled(),
-    reason="Skip functionality sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_functionality_sanity_test_enabled(),
+#     reason="Skip functionality sanity test in PR context if explicitly disabled",
+# )
 def test_pt_s3_sanity(pytorch_training, outside_versions_skip):
     """
     Check that the internally built PT S3 binary is properly installed.

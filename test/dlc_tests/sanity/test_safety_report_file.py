@@ -66,10 +66,10 @@ class SafetyPythonEnvironmentVulnerabilityReport:
 @pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(is_canary_context(), reason="Skipping test because it does not run on canary")
-@pytest.mark.skipif(
-    is_pr_context() and not is_security_sanity_test_enabled(),
-    reason="Skip security sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_security_sanity_test_enabled(),
+#     reason="Skip security sanity test in PR context if explicitly disabled",
+# )
 def test_safety_file_exists_and_is_valid(image):
     """
     Checks if the image has a safety report at the desired location and fails if any of the
@@ -123,10 +123,10 @@ def test_safety_file_exists_and_is_valid(image):
 
 @pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.skipif(
-    is_pr_context() and not is_security_sanity_test_enabled(),
-    reason="Skip security sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_security_sanity_test_enabled(),
+#     reason="Skip security sanity test in PR context if explicitly disabled",
+# )
 def test_safety_package_not_installed(image):
     """
     We do not ship safety within DLCs. This test confirms that safety is not installed in the image.

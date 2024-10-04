@@ -1733,6 +1733,11 @@ def pytest_generate_tests(metafunc):
             else:
                 metafunc.parametrize(fixture, images_to_parametrize)
 
+    for fixture in ["security_sanity", "functionality_sanity"]:
+        developer_config_func = getattr(test_utils, f"is_{fixture}_test_enabled")
+        if "image" in metafunc.fixturenames and fixture in metafunc.fixturenames and developer_config_func():
+            metafunc.parametrize("image", images)
+
     # Parametrize for framework agnostic tests, i.e. sanity
     if "image" in metafunc.fixturenames:
         metafunc.parametrize("image", images)

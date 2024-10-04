@@ -360,10 +360,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("ECR Enhanced Scans on Images")
-@pytest.mark.skipif(
-    is_pr_context() and not is_security_sanity_test_enabled(),
-    reason="Skip security sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_security_sanity_test_enabled(),
+#     reason="Skip security sanity test in PR context if explicitly disabled",
+# )
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     """
     Run ECR Enhanced Scan Tool on an image being tested, and raise Error if vulnerabilities found

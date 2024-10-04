@@ -10,10 +10,10 @@ from test.test_utils import (
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
-@pytest.mark.skipif(
-    is_pr_context() and not is_functionality_sanity_test_enabled(),
-    reason="Skip functionality sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_functionality_sanity_test_enabled(),
+#     reason="Skip functionality sanity test in PR context if explicitly disabled",
+# )
 def test_security(image):
     repo_name, image_tag = image.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-security"

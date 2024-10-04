@@ -33,10 +33,10 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")
-@pytest.mark.skipif(
-    is_pr_context() and not is_functionality_sanity_test_enabled(),
-    reason="Skip functionality sanity test in PR context if explicitly disabled",
-)
+# @pytest.mark.skipif(
+#     is_pr_context() and not is_functionality_sanity_test_enabled(),
+#     reason="Skip functionality sanity test in PR context if explicitly disabled",
+# )
 def test_health_check_local_efa(pytorch_training, ec2_connection, gpu_only):
     # Run local EFA test on Pytorch DLC
     account_id = test_utils.get_account_id_from_image_uri(pytorch_training)
