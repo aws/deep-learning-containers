@@ -481,9 +481,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.231.0
-    "cloudpickle" \
-    "mlflow>=2.8,<2.9.2" \
+    # pinned for sagemaker==2.232.2
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
