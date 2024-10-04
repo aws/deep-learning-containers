@@ -60,6 +60,7 @@ RUN apt-get update \
     libcap-dev \
     gpg-agent \
     libexpat1 \
+    apparmor \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
