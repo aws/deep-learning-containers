@@ -9,8 +9,6 @@ from test.test_utils import (
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    is_pr_context,
-    is_functionality_sanity_test_enabled,
 )
 
 
@@ -18,10 +16,6 @@ from test.test_utils import (
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("mxnet_blas_mkl_sanity")
-# @pytest.mark.skipif(
-#     is_pr_context() and not is_functionality_sanity_test_enabled(),
-#     reason="Skip functionality sanity test in PR context if explicitly disabled",
-# )
 def test_mxnet_blas_mkl_sanity(mxnet_inference, cpu_only):
     """
     Check that the container's version of MXNet includes BLAS MKL.

@@ -7,10 +7,6 @@ from test import test_utils
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("remote_function")
-# @pytest.mark.skipif(
-#     test_utils.is_pr_context() and not test_utils.is_functionality_sanity_test_enabled(),
-#     reason="Skip functionality sanity test in PR context if explicitly disabled",
-# )
 def test_remote_function(training):
     """
     Test to check compatibility of sagemaker training images with sagemaker remote function.

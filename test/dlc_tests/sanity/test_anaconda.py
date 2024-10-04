@@ -6,10 +6,6 @@ from test import test_utils
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("anaconda_removal")
-# @pytest.mark.skipif(
-#     test_utils.is_pr_context() and not test_utils.is_security_sanity_test_enabled(),
-#     reason="Skip security sanity test in PR context if explicitly disabled",
-# )
 def test_repo_anaconda_not_present(image):
     """Test to see if all packages installed in the image do not come from repo.anaconda.com"""
     try:

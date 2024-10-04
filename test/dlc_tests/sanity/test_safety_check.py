@@ -21,8 +21,6 @@ from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     is_dlc_cicd_context,
     is_safety_test_context,
-    is_pr_context,
-    is_security_sanity_test_enabled,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -1060,10 +1058,6 @@ def _get_latest_package_version(package):
         "Test will be executed in the 'mainline' pipeline and canaries pipeline."
     ),
 )
-# @pytest.mark.skipif(
-#     is_pr_context() and not is_security_sanity_test_enabled(),
-#     reason="Skip security sanity test in PR context if explicitly disabled",
-# )
 def test_safety(image):
     """
     Runs safety check on a container with the capability to ignore safety issues that cannot be fixed, and only raise
