@@ -1037,30 +1037,35 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
 @pytest.fixture(scope="session")
 def security_sanity():
-    if _validate_sanity_test_type("security_sanity")
+    if not _validate_sanity_test_type("security_sanity"):
         pytest.skip(
-            f"Test in not running in 'security_sanity' test type within the pipeline context or 'security_sanity' test is not enabled within the PR context. Skipping security sanity tests"
+            f"Test in not running in 'security_sanity' test type within the pipeline context"
+            f"or 'security_sanity' test is not enabled within the PR context."
+            f"Skipping security sanity tests."
         )
 
 
 @pytest.fixture(scope="session")
 def functionality_sanity():
-    if _validate_sanity_test_type("functionality_sanity")
+    if not _validate_sanity_test_type("functionality_sanity"):
         pytest.skip(
-            f"Test in not running in 'functionality_sanity' test type within the pipeline context or 'functionality_sanity' test is not enabled within the PR context. Skipping functionality sanity tests"
+            f"Test in not running in 'functionality_sanity' test type within the pipeline context"
+            f"or 'functionality_sanity' test is not enabled within the PR context."
+            f"Skipping functionality sanity tests."
         )
 
 
 def _validate_sanity_test_type(test_type):
     developer_config = {
         "security_sanity": is_security_sanity_test_enabled(),
-        "functionality_sanity": is_functionality_sanity_test_enabled()
+        "functionality_sanity": is_functionality_sanity_test_enabled(),
     }
-    pipeline_test_type = os.getenv("SANITY_TYPE")
     pr_test_type = developer_config[test_type]
+    pipeline_test_type = os.getenv("SANITY_TYPE")
 
-    return (is_pr_context() and pr_test_type) or (pipeline_test_type and pipeline_test_type == test_type)
-
+    return (is_pr_context() and pr_test_type) or (
+        pipeline_test_type and pipeline_test_type == test_type
+    )
 
 
 @pytest.fixture(scope="session")
