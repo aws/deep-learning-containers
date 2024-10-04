@@ -110,9 +110,6 @@ FRAMEWORK_FIXTURES = (
     # Job Type fixtures
     "training",
     "inference",
-    # # Sanity fixtures
-    # "security_sanity",
-    # "functionality_sanity",
 )
 
 # Nightly image fixture dictionary, maps nightly fixtures to set of image labels
@@ -1039,8 +1036,8 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 def security_sanity():
     if not _validate_sanity_test_type("security_sanity"):
         pytest.skip(
-            f"Test in not running in 'security_sanity' test type within the pipeline context"
-            f"or 'security_sanity' test is not enabled within the PR context."
+            f"Test in not running in `security_sanity` test type within the pipeline context"
+            f"or `security_sanity` test is not enabled within the PR context."
             f"Skipping security sanity tests."
         )
 
@@ -1049,22 +1046,22 @@ def security_sanity():
 def functionality_sanity():
     if not _validate_sanity_test_type("functionality_sanity"):
         pytest.skip(
-            f"Test in not running in 'functionality_sanity' test type within the pipeline context"
-            f"or 'functionality_sanity' test is not enabled within the PR context."
+            f"Test in not running in `functionality_sanity` test type within the pipeline context"
+            f"or `functionality_sanity` test is not enabled within the PR context."
             f"Skipping functionality sanity tests."
         )
 
 
-def _validate_sanity_test_type(test_type):
-    developer_config = {
+def _validate_sanity_test_type(sanity_test_type):
+    pr_config = {
         "security_sanity": is_security_sanity_test_enabled(),
         "functionality_sanity": is_functionality_sanity_test_enabled(),
     }
-    pr_test_type = developer_config[test_type]
-    pipeline_test_type = os.getenv("SANITY_TYPE")
+    pr_test_type = pr_config[sanity_test_type]
+    pipeline_test_type = os.getenv("SANITY_TEST_TYPE")
 
     return (is_pr_context() and pr_test_type) or (
-        pipeline_test_type and pipeline_test_type == test_type
+        pipeline_test_type and pipeline_test_type == sanity_test_type
     )
 
 
