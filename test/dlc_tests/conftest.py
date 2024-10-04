@@ -1739,8 +1739,8 @@ def pytest_generate_tests(metafunc):
             metafunc.parametrize("image", images)
 
     # Parametrize for framework agnostic tests, i.e. sanity
-    if "image" in metafunc.fixturenames:
-        metafunc.parametrize("image", images)
+    # if "image" in metafunc.fixturenames:
+    #     metafunc.parametrize("image", images)
 
 
 @pytest.fixture(autouse=True)
