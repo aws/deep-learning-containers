@@ -32,5 +32,11 @@
   },
   "awscli": {
     "version_specifier": "<2"
+  },
+  "torchserve": {
+    "version_specifier": "==0.11.1"
+  },
+  "torch-model-archiver": {
+    "version_specifier": "==0.11.1"
   }
 }
