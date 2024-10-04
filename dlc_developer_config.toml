@@ -53,8 +53,8 @@ notify_test_failures = false
 
 [test]
 ### On by default
-security_sanity_tests = false
-functionality_sanity_tests = true
+security_sanity_tests = true
+functionality_sanity_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
