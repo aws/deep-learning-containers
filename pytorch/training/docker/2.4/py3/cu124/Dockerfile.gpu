@@ -483,7 +483,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     seaborn \
     # pinned for sagemaker==2.231.0
     "cloudpickle" \
-    "mlfow<2.9.2" \
+    "mlflow>=2.8,<2.9.2" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
