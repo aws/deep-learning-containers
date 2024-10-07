@@ -927,7 +927,6 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     assert cuda_version in cuda_output.stdout.replace(".", "")
 
 
-@pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
