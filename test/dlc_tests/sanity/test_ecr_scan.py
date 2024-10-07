@@ -192,12 +192,17 @@ def remove_allowlisted_image_vulnerabilities(
     vuln_allowlist: ECREnhancedScanVulnerabilityList,
 ):
     """
-    Removes allowlisted vulnerabilities from ecr_image_vulnerability_list based on (package, CVE) only.
+    If huggingface image, removes allowlisted vulnerabilities based on (package, CVE) only.
+    Else, removes based on the subtract operator. 
 
     :param ecr_image_vuln_list: ECREnhancedScanVulnerabilityList of detected image vulnerabilities
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
     :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
     """
+    if not is_huggingface_image():
+        return ecr_image_vuln_list - vuln_allowlist
+
+    # Relax constraints for HF images
     new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
     for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
         if pkg_name not in new_image_vuln_list.vulnerability_list:
