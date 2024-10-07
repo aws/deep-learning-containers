@@ -1060,9 +1060,10 @@ def _validate_sanity_test_type(sanity_test_type):
     pr_test_type = pr_config[sanity_test_type]
     pipeline_test_type = os.getenv("SANITY_TEST_TYPE")
 
-    return (is_pr_context() and pr_test_type) or (
-        pipeline_test_type and pipeline_test_type == sanity_test_type
-    )
+    if not pipeline_test_type:
+        return True
+
+    return (is_pr_context() and pr_test_type) or pipeline_test_type == sanity_test_type
 
 
 @pytest.fixture(scope="session")
