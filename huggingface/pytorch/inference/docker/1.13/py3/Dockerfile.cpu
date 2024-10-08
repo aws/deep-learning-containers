@@ -67,6 +67,9 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
+    apparmor \
+    libgssapi-krb5-2 \
+    expat \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
  

@@ -97,6 +97,9 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
+    apparmor \
+    libk5crypto3 \
+    libexpat1 \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
