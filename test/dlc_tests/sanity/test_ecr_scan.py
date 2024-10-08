@@ -193,7 +193,7 @@ def remove_allowlisted_image_vulnerabilities(
 ):
     """
     If huggingface image, removes allowlisted vulnerabilities based on (package, CVE) only.
-    Else, removes based on the subtract operator. 
+    Else, removes based on the subtract operator.
 
     :param ecr_image_vuln_list: ECREnhancedScanVulnerabilityList of detected image vulnerabilities
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
