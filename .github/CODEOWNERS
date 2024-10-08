@@ -10,8 +10,8 @@
 
 # Common files that is managed by multiple owners
 available_images.md @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers @aws/dlc-triton-reviewers
-release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers @aws/dlc-triton-reviewers
-release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers
+# release_images_inference.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-lmi-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers @aws/dlc-triton-reviewers
+# release_images_training.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/sagemaker-1p-algorithms @aws/dlc-pytorch-reviewers
 .release_images_template.yml @aws/dl-containers @aws/dlc-autogluon-reviewers @aws/dlc-neuron-reviewers @aws/dlc-eia-reviewers @aws/dlc-trcomp-reviewers @aws/dlc-pytorch-reviewers @aws/dlc-triton-reviewers
 data/ignore_ids_safety_scan.json @aws/dl-containers @aws/sagemaker-1p-algorithms
 # Any files modified under autogluon/ will be assigned to the autogluon reviewer team
