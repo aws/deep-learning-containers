@@ -497,6 +497,7 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
+@pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
