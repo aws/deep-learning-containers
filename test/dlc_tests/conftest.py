@@ -1034,7 +1034,7 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 @pytest.fixture(scope="session")
 def telemetry():
     telemetry_test = os.getenv("TELEMETRY", "false").lower()
-    if not telemetry_test:
+    if not telemetry_test or telemetry_test == "false":
         pytest.skip(f"Test in not running in telemtry job, Skipping current test.")
 
 
