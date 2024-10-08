@@ -67,6 +67,7 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
+    linux-libc-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
  
