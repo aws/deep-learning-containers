@@ -61,6 +61,7 @@ RUN apt-get update \
     gpg-agent \
     libexpat1 \
     apparmor \
+    linux-libc-dev \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
