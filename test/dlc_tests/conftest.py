@@ -38,6 +38,9 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_pr_context,
+    is_security_sanity_test_enabled,
+    is_functionality_sanity_test_enabled,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -1027,6 +1030,44 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
                     return True
 
     return False
+
+@pytest.fixture(scope="session")
+def telemetry():
+    telemetry_test = os.getenv("TELEMETRY", "false").lower()
+    if not telemetry_test:
+        pytest.skip(f"Test in not running in telemtry job, Skipping current test.")
+
+
+@pytest.fixture(scope="session")
+def security_sanity():
+    if not _validate_sanity_test_type("security_sanity"):
+        pytest.skip(
+            f"Test in not running in `security_sanity` test type within the pipeline context"
+            f"or `security_sanity` test is not enabled within the PR context."
+            f"Skipping security sanity tests."
+        )
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    if not _validate_sanity_test_type("functionality_sanity"):
+        pytest.skip(
+            f"Test in not running in `functionality_sanity` test type within the pipeline context"
+            f"or `functionality_sanity` test is not enabled within the PR context."
+            f"Skipping functionality sanity tests."
+        )
+
+
+def _validate_sanity_test_type(sanity_test_type):
+    pr_config = {
+        "security_sanity": is_security_sanity_test_enabled(),
+        "functionality_sanity": is_functionality_sanity_test_enabled(),
+    }
+    pr_test_type = pr_config[sanity_test_type]
+    pipeline_test_type = os.getenv("SANITY_TEST_TYPE")
+    return pipeline_test_type and (
+        (is_pr_context() and pr_test_type) or pipeline_test_type == sanity_test_type
+    )
 
 
 @pytest.fixture(scope="session")
