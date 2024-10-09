@@ -1044,7 +1044,15 @@ def telemetry():
 
 @pytest.fixture(scope="session")
 def security_sanity():
-    if not _validate_sanity_test_type("security_sanity"):
+    """
+    skip test if security sanity test is disabled in pr context
+    or is not the correct sanity test type in mainline context
+    otherwise, tests can run as usual such as canary/deep canary
+    """
+    pipeline_test_type = os.getenv("SANITY_TEST_TYPE", "empty")
+    if (is_pr_context() and not is_security_sanity_test_enabled()) or (
+        is_mainline_context() and pipeline_test_type != "sanity_test_type"
+    ):
         pytest.skip(
             f"Test in not running in `security_sanity` test type within the pipeline context"
             f"or `security_sanity` test is not enabled within the PR context."
@@ -1054,25 +1062,20 @@ def security_sanity():
 
 @pytest.fixture(scope="session")
 def functionality_sanity():
-    if not _validate_sanity_test_type("functionality_sanity"):
+    """
+    skip test if functionality sanity test is disabled in pr context
+    or is not the correct sanity test type in mainline context
+    otherwise, tests can run as usual such as canary/deep canary
+    """
+    pipeline_test_type = os.getenv("SANITY_TEST_TYPE", "empty")
+    if (is_pr_context() and not is_functionality_sanity_test_enabled()) or (
+        is_mainline_context() and pipeline_test_type != "functionality_sanity"
+    ):
         pytest.skip(
             f"Test in not running in `functionality_sanity` test type within the pipeline context"
             f"or `functionality_sanity` test is not enabled within the PR context."
             f"Skipping functionality sanity tests."
         )
-
-
-def _validate_sanity_test_type(sanity_test_type):
-    pr_config = {
-        "security_sanity": is_security_sanity_test_enabled(),
-        "functionality_sanity": is_functionality_sanity_test_enabled(),
-    }
-    pr_test_type = pr_config[sanity_test_type]
-    pipeline_test_type = os.getenv("SANITY_TEST_TYPE")
-    return pipeline_test_type and (
-        (is_pr_context() and pr_test_type)
-        or (is_mainline_context() and pipeline_test_type == sanity_test_type)
-    )
 
 
 @pytest.fixture(scope="session")
