@@ -1200,6 +1200,7 @@ def test_pytorch_training_job_type_env_var(pytorch_training):
         container_name_prefix=container_name_prefix,
     )
 
+
 @pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")

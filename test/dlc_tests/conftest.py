@@ -38,6 +38,7 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_mainline_context,
     is_pr_context,
     is_security_sanity_test_enabled,
     is_functionality_sanity_test_enabled,
@@ -1031,11 +1032,14 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
     return False
 
+
 @pytest.fixture(scope="session")
 def telemetry():
     telemetry_test = os.getenv("TELEMETRY", "false").lower()
-    if not telemetry_test or telemetry_test == "false":
-        pytest.skip(f"Test in not running in telemtry job, Skipping current test.")
+    if is_mainline_context() and telemetry_test == "false":
+        pytest.skip(
+            f"Test in not running in telemetry job in the pipeline context, Skipping current test."
+        )
 
 
 @pytest.fixture(scope="session")
@@ -1066,7 +1070,8 @@ def _validate_sanity_test_type(sanity_test_type):
     pr_test_type = pr_config[sanity_test_type]
     pipeline_test_type = os.getenv("SANITY_TEST_TYPE")
     return pipeline_test_type and (
-        (is_pr_context() and pr_test_type) or pipeline_test_type == sanity_test_type
+        (is_pr_context() and pr_test_type)
+        or (is_mainline_context() and pipeline_test_type == sanity_test_type)
     )
 
 

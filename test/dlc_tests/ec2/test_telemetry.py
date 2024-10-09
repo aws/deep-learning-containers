@@ -259,6 +259,7 @@ def test_telemetry_s3_query_bucket_success_neuron(
 ):
     _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
+
 def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connection):
     ec2_instance_id, _ = ec2_instance
     account_id = test_utils.get_account_id_from_image_uri(image_uri)
