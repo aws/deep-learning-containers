@@ -63,7 +63,7 @@ function upgrade_nodegroups() {
   fi
 
   if [ ${UPGRADE_FAILED:-0} -eq 1 ]; then
-     echo "One of nodegroup failed to upgrade failed"
+     echo "Error: One of nodegroup failed to upgrade"
      exit 1
   fi
 }
