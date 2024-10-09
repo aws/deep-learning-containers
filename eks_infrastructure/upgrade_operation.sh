@@ -56,10 +56,15 @@ function upgrade_nodegroups() {
         --cluster ${CLUSTER} \
         --kubernetes-version ${EKS_VERSION} \
         --timeout 90m \
-        --region ${REGION}
+        --region ${REGION} || UPGRADE_FAILED=1
     done
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
+  fi
+
+  if [ ${UPGRADE_FAILED:-0} -eq 1 ]; then
+     echo "One of nodegroup failed to upgrade failed"
+     exit 1
   fi
 }
 
