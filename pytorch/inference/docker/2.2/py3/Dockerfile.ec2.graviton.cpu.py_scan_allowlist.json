@@ -1,5 +1,6 @@
 {
-  "65213": "From OpenSSL: Due to the low severity of this issue we are not issuing new releases of OpenSSL at this time. The fix will be included in the next releases when they become available.",
-  "67599": "It has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely",
-  "70612": "This Jinja2 CVE is disputed and has no fix."
+    "65213": "From OpenSSL: Due to the low severity of this issue we are not issuing new releases of OpenSSL at this time. The fix will be included in the next releases when they become available.",
+    "67599": "It has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely",
+    "70612": "This Jinja2 CVE is disputed and has no fix.",
+    "71670": "[Package: torch] Conflicts for: torch"
 }
