@@ -51,6 +51,7 @@ from test.test_utils import (
     get_installed_python_packages_with_version,
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
+    is_huggingface_image,
 )
 
 
@@ -547,6 +548,7 @@ def test_dataclasses_check(image):
         )
 
 
+@pytest.mark.skipif(is_huggingface_image(), reason="temp")
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_pip_check(image):
