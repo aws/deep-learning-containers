@@ -39,12 +39,17 @@ if __name__ == "__main__":
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     # download model from model hub
+    logger.info(f"args are {args}")
+    logger.info("downloading model")
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
+    logger.info("downloading tokenizer")
     # download tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
+    logger.info("loading dataset")
     # load dataset
     dataset = load_dataset("imdb")
+    logger.info("evaluate load")
     metric = evaluate.load("accuracy")
 
     # tokenizer helper function
@@ -52,16 +57,19 @@ if __name__ == "__main__":
         return tokenizer(batch["text"], padding="max_length", truncation=True)
 
     # load dataset
+    logger.info("split train and test dataset")
     train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
     test_dataset = test_dataset.shuffle().select(
         range(100)
     )  # smaller the size for test dataset to 10k
 
     # tokenize dataset
+    logger.info("tokenize")
     train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
     test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
+    logger.info("set format")
     train_dataset = train_dataset.rename_column("label", "labels")
     train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
     test_dataset = test_dataset.rename_column("label", "labels")
