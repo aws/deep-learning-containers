@@ -10,7 +10,7 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-
+import gevent.monkey
 import boto3
 import logging
 import os
@@ -197,6 +197,7 @@ class ServiceManager(object):
             f.write(config)
 
     def _setup_gunicorn(self):
+        gevent.monkey.patch_all()
         python_path_content = []
         python_path_option = ""
 
