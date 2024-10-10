@@ -265,7 +265,9 @@ class ServiceManager(object):
         boto_session = boto3.session.Session()
         boto_region = boto_session.region_name
         if boto_region in ("us-iso-east-1", "us-gov-west-1"):
-            raise ValueError("Universal scripts are not supported in us-iso-east-1 or us-gov-west-1")
+            raise ValueError(
+                "Universal scripts are not supported in us-iso-east-1 or us-gov-west-1"
+            )
 
         log.info("downloading universal scripts ...")
 
