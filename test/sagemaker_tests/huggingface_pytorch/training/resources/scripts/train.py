@@ -66,7 +66,6 @@ if __name__ == "__main__":
     # tokenize dataset
     logger.info("tokenize")
 
-
     def timeout_handler(signum, frame):
         raise TimeoutError("Operation timed out")
 
@@ -86,8 +85,14 @@ if __name__ == "__main__":
         finally:
             signal.alarm(0)  # Clear the alarm
 
-    train_dataset = run_with_timeout(train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset)), timeout=10)
-    test_dataset = run_with_timeout(test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset)), timeout=10)
+    train_dataset = run_with_timeout(
+        train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset)),
+        timeout=10
+    )
+    test_dataset = run_with_timeout(
+        test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset)),
+        timeout=10
+    )
 
     # set format for pytorch
     logger.info("set train format")
