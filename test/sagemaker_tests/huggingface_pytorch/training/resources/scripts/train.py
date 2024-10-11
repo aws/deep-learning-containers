@@ -26,7 +26,7 @@ if __name__ == "__main__":
     # Data, model, and output directories
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
-    parser.add_argument("--n_gpus", type=str, default='1')
+    parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
     args, _ = parser.parse_known_args()
 
     # Set up logging
