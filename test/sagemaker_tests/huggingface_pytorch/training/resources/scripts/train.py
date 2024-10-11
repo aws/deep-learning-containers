@@ -87,11 +87,11 @@ if __name__ == "__main__":
 
     train_dataset = run_with_timeout(
         train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset)),
-        timeout=10
+        timeout=10,
     )
     test_dataset = run_with_timeout(
         test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset)),
-        timeout=10
+        timeout=10,
     )
 
     # set format for pytorch
