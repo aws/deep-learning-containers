@@ -4,6 +4,7 @@ import sys
 import argparse
 import evaluate
 import numpy as np
+import torch
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -27,7 +28,9 @@ if __name__ == "__main__":
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default='1')
-
+    # map is hanging
+    # https://discuss.huggingface.co/t/using-num-proc-1-in-dataset-map-hangs/44310/7
+    torch.setnum_threads(1)
     args, _ = parser.parse_known_args()
 
     # Set up logging
@@ -69,9 +72,10 @@ if __name__ == "__main__":
     test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
-    logger.info("set format")
+    logger.info("set train format")
     train_dataset = train_dataset.rename_column("label", "labels")
     train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+    logger.info("set test format")
     test_dataset = test_dataset.rename_column("label", "labels")
     test_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
@@ -85,6 +89,7 @@ if __name__ == "__main__":
         return metric.compute(predictions=predictions, references=labels)
 
     # define training args
+    logger.info("define training args")
     training_args = TrainingArguments(
         output_dir=args.model_dir,
         dataloader_drop_last=True,
@@ -98,6 +103,7 @@ if __name__ == "__main__":
     )
 
     # create Trainer instance
+    logger.info("create trainer")
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -107,9 +113,11 @@ if __name__ == "__main__":
     )
 
     # train model
+    logger.info("train model")
     trainer.train()
 
     # evaluate model
+    logger.info("evaluate model")
     eval_result = trainer.evaluate(eval_dataset=test_dataset)
 
     # writes eval result to file which can be accessed later in s3 ouput
