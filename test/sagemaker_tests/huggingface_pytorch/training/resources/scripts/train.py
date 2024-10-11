@@ -4,6 +4,7 @@ import sys
 import argparse
 import evaluate
 import numpy as np
+import signal
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     # download model from model hub
     logger.info(f"args are {args}")
     logger.info("downloading model")
+
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
     logger.info("downloading tokenizer")
     # download tokenizer
@@ -47,7 +49,7 @@ if __name__ == "__main__":
 
     logger.info("loading dataset")
     # load dataset
-    dataset = load_dataset("imdb")
+    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
     logger.info("evaluate load")
     metric = evaluate.load("accuracy")
 
@@ -57,15 +59,35 @@ if __name__ == "__main__":
 
     # load dataset
     logger.info("split train and test dataset")
-    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
     test_dataset = test_dataset.shuffle().select(
         range(100)
     )  # smaller the size for test dataset to 10k
 
     # tokenize dataset
     logger.info("tokenize")
-    train_dataset = train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset))
-    test_dataset = test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset))
+
+
+    def timeout_handler(signum, frame):
+        raise TimeoutError("Operation timed out")
+
+    def run_with_timeout(func, timeout=5):
+        # Set the signal handler and a 5-second alarm
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout)
+
+        try:
+            result = func()
+            signal.alarm(0)  # Clear the alarm
+            return result
+        except TimeoutError:
+            print("Operation took too long, sending interrupt...")
+            # Send interrupt to the main thread
+            signal.raise_signal(signal.SIGINT)
+        finally:
+            signal.alarm(0)  # Clear the alarm
+
+    train_dataset = run_with_timeout(train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset)), timeout=10)
+    test_dataset = run_with_timeout(test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset)), timeout=10)
 
     # set format for pytorch
     logger.info("set train format")
