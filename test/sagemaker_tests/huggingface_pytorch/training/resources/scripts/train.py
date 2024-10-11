@@ -4,7 +4,6 @@ import sys
 import argparse
 import evaluate
 import numpy as np
-import torch
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -28,9 +27,6 @@ if __name__ == "__main__":
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default='1')
-    # map is hanging
-    # https://discuss.huggingface.co/t/using-num-proc-1-in-dataset-map-hangs/44310/7
-    torch.setnum_threads(1)
     args, _ = parser.parse_known_args()
 
     # Set up logging
@@ -47,7 +43,7 @@ if __name__ == "__main__":
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
     logger.info("downloading tokenizer")
     # download tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
 
     logger.info("loading dataset")
     # load dataset
@@ -69,7 +65,7 @@ if __name__ == "__main__":
     # tokenize dataset
     logger.info("tokenize")
     train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
+    test_dataset = test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
     logger.info("set train format")
