@@ -43,7 +43,7 @@ if __name__ == "__main__":
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
     logger.info("downloading tokenizer")
     # download tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.model_name, use_fast=True)
+    tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     logger.info("loading dataset")
     # load dataset
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     # tokenize dataset
     logger.info("tokenize")
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
+    train_dataset = train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset))
     test_dataset = test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
