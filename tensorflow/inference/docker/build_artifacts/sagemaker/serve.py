@@ -10,6 +10,7 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
+
 import boto3
 import logging
 import os
@@ -17,7 +18,6 @@ import re
 import signal
 import subprocess
 import tfs_utils
-import importlib
 
 from contextlib import contextmanager
 
@@ -229,7 +229,6 @@ class ServiceManager(object):
                         self._stop()
                         raise ChildProcessError("failed to install required packages.")
 
-        importlib.reload(boto3)
         gunicorn_command = (
             "python3 /sagemaker/python_service.py -b unix:/tmp/gunicorn.sock -k {} --chdir /sagemaker "
             "--workers {} --threads {} --log-level {} --timeout {} "
@@ -264,26 +263,19 @@ class ServiceManager(object):
         boto_session = boto3.session.Session()
         boto_region = boto_session.region_name
         if boto_region in ("us-iso-east-1", "us-gov-west-1"):
-            raise ValueError(
-                "Universal scripts are not supported in us-iso-east-1 or us-gov-west-1"
-            )
+            raise ValueError("Universal scripts is not supported in us-iso-east-1 or us-gov-west-1")
 
         log.info("downloading universal scripts ...")
-
-        # Use with-statement for resource management
-        with boto3.client("s3") as client, boto3.resource("s3") as resource:
-            # download files using paginator
-            paginator = client.get_paginator("list_objects")
-            for result in paginator.paginate(Bucket=bucket, Delimiter="/", Prefix=prefix):
-                for file in result.get("Contents", []):
-                    destination = os.path.join(CODE_DIR, file.get("Key").split("/")[-1])
-                    if not os.path.exists(os.path.dirname(destination)):
-                        os.makedirs(os.path.dirname(destination))
-                    resource.meta.client.download_file(bucket, file.get("Key"), destination)
-
-        # Explicitly delete boto3 session and other objects
-        del boto_session
-        log.info("boto session and clients closed after download.")
+        client = boto3.client("s3")
+        resource = boto3.resource("s3")
+        # download files
+        paginator = client.get_paginator("list_objects")
+        for result in paginator.paginate(Bucket=bucket, Delimiter="/", Prefix=prefix):
+            for file in result.get("Contents", []):
+                destination = os.path.join(CODE_DIR, file.get("Key").split("/")[-1])
+                if not os.path.exists(os.path.dirname(destination)):
+                    os.makedirs(os.path.dirname(destination))
+                resource.meta.client.download_file(bucket, file.get("Key"), destination)
 
     def _create_nginx_tfs_upstream(self):
         indentation = "    "
