@@ -34,7 +34,7 @@ if __name__ == "__main__":
 
     logging.basicConfig(
         level=logging.getLevelName("INFO"),
-        handlers=[logging.StreamHandler(sys.stdout)],
+        handlers=[logging.StreamHandler(sys.stdout), logging.StreamHandler(sys.stderr)],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     # download model from model hub
