@@ -19,7 +19,7 @@ from test.test_utils import (
 )
 import dataclasses
 from dataclasses import dataclass
-from typing import Any, List
+from typing import Any, List, Set
 from packaging.version import Version
 
 from tenacity import (
@@ -162,7 +162,7 @@ class AllowListFormatVulnerabilityForEnhancedScan:
         ):
             ignore_keys = ["package_details", "title", "reason_to_ignore"]
             if is_huggingface_image():
-                ignore_keys.extend(["description", "remediation", "source_url"])
+                ignore_keys.extend(["description"])
             return test_utils.check_if_two_dictionaries_are_equal(
                 dataclasses.asdict(self),
                 dataclasses.asdict(other),
@@ -658,6 +658,17 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 )
         summarized_list = sorted(list(set(summarized_list)))
         return summarized_list
+
+    def remove_vulnerabilities_for_package(
+        self, package_name: str, vulnerability_id_list: Set[str]
+    ):
+        """Removes any vulnerabilities for the package_name whose id is in the cve_id_list."""
+        if package_name in self.vulnerability_list:
+            self.vulnerability_list[package_name] = [
+                vulnerability
+                for vulnerability in self.vulnerability_list[package_name]
+                if vulnerability.vulnerability_id not in vulnerability_id_list
+            ]
 
 
 def get_ecr_vulnerability_package_version(vulnerability):

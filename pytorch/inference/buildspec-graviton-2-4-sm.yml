@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.4.0
 short_version: &SHORT_VERSION "2.4"
 arch_type: graviton
-# autopatch_build: "True"
+autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
@@ -43,7 +43,7 @@ images:
     torch_serve_version: &TORCHSERVE_VERSION 0.11.1
     tool_kit_version: &SM_TOOLKIT_VERSION 2.0.24
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-sagemaker"]
-    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     # build_tag_override: "beta:2.4.0-cpu-py311-ubuntu22.04-sagemaker"
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: sagemaker
