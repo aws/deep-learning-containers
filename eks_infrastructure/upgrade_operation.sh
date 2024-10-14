@@ -47,6 +47,7 @@ function upgrade_nodegroups() {
   REGION=${3}
 
   LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER} -o json | jq -r '.[].Name')
+  FAILED_NODE_GROUPS=()
 
   if [ -n "${LIST_NODE_GROUPS}" ]; then
 
@@ -56,10 +57,15 @@ function upgrade_nodegroups() {
         --cluster ${CLUSTER} \
         --kubernetes-version ${EKS_VERSION} \
         --timeout 90m \
-        --region ${REGION}
+        --region ${REGION} || FAILED_NODE_GROUPS+=( ${NODEGROUP} )
     done
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
+  fi
+  if [ ${#FAILED_NODE_GROUPS[@]} -ne 0 ]; then
+    echo "The following node groups failed to upgrade"
+    echo "${FAILED_NODE_GROUPS[@]}"
+    exit 1
   fi
 }
 
