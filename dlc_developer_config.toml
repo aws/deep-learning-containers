@@ -131,7 +131,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 # Standard Framework Inference
 dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-16-graviton.yml"
+dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
@@ -151,7 +151,7 @@ dlc-pr-stabilityai-pytorch-inference = ""
 # Graviton Inference
 dlc-pr-mxnet-graviton-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
-dlc-pr-tensorflow-2-graviton-inference = ""
+dlc-pr-tensorflow-2-graviton-inference = "tensorflow/inference/buildspec-2-16-graviton.yml"
 
 # EIA Inference
 dlc-pr-mxnet-eia-inference = ""
