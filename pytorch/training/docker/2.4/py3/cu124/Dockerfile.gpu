@@ -308,6 +308,8 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
+    # pin numpy requirement for fastai dependency
+    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -415,6 +417,11 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
+    # pin numpy requirement for fastai dependency
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -474,7 +481,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.231.0
+    # pinned for sagemaker==2.232.2
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
