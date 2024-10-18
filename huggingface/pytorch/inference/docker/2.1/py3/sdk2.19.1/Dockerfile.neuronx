@@ -62,6 +62,7 @@ RUN apt-get update \
     gpg-agent \
     libexpat1 \
     apparmor \
+    libarchive13 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
