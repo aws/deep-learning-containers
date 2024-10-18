@@ -104,7 +104,7 @@ def _test_bucket(region, boto_session):
     sts_regional_endpoint = "https://sts.{}.amazonaws.com{}".format(region, domain_suffix)
     sts = boto_session.client("sts", region_name=region, endpoint_url=sts_regional_endpoint)
     account = sts.get_caller_identity()["Account"]
-    return "sagemaker-{}-{}".format(region, account)
+    return "sagemaker-{}-{}-test".format(region, account)
 
 
 def find_or_put_model_data(region, boto_session, local_path):
