@@ -343,29 +343,29 @@ release_images:
   #     example: False
   #     disable_sm_tag: False
   #     force_release: False
-  # 27:
-  #   framework: "tensorflow"
-  #   version: "2.16.1"
-  #   arch_type: "graviton"
-  #   customer_type: "ec2"
-  #   inference:
-  #     device_types: [ "cpu" ]
-  #     python_versions: [ "py310" ]
-  #     os_version: "ubuntu20.04"
-  #     cuda_version: "cu122"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
-  # 28:
-  #   framework: "tensorflow"
-  #   version: "2.16.1"
-  #   arch_type: "graviton"
-  #   customer_type: "sagemaker"
-  #   inference:
-  #     device_types: [ "cpu" ]
-  #     python_versions: [ "py310" ]
-  #     os_version: "ubuntu20.04"
-  #     cuda_version: "cu122"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
+  25:
+    framework: "tensorflow"
+    version: "2.16.1"
+    arch_type: "graviton"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu122"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  26:
+    framework: "tensorflow"
+    version: "2.16.1"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu122"
+      example: False
+      disable_sm_tag: False
+      force_release: False
