@@ -330,20 +330,20 @@ release_images:
   #     example: False
   #     disable_sm_tag: False
   #     force_release: False
-  # 26:
-  #   framework: "tensorflow"
-  #   version: "2.16.1"
-  #   arch_type: "x86"
-  #   customer_type: "sagemaker"
-  #   inference:
-  #     device_types: [ "cpu", "gpu" ]
-  #     python_versions: [ "py310" ]
-  #     os_version: "ubuntu20.04"
-  #     cuda_version: "cu122"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
   25:
+    framework: "tensorflow"
+    version: "2.16.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu122"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  26:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "graviton"
@@ -356,7 +356,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  26:
+  27:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "graviton"
