@@ -106,7 +106,7 @@ def _test_bucket(region, boto_session):
     sts_regional_endpoint = "https://sts.{}.amazonaws.com{}".format(region, domain_suffix)
     sts = boto_session.client("sts", region_name=region, endpoint_url=sts_regional_endpoint)
     account = sts.get_caller_identity()["Account"]
-    return "sagemaker-{}-{}-test".format(region, account)
+    return "sagemaker-{}-{}-test-1".format(region, account)
 
 
 def find_or_put_model_data(region, boto_session, local_path):
@@ -115,7 +115,7 @@ def find_or_put_model_data(region, boto_session, local_path):
     bucket = _test_bucket(region, boto_session)
     key = "test-tfs/{}".format(model_file)
 
-     # Get the current file path
+    # Get the current file path
     current_file_path = os.path.abspath(__file__)
     current_dir = os.path.dirname(current_file_path)
 
