@@ -120,10 +120,11 @@ def find_or_put_model_data(region, boto_session, local_path):
     current_dir = os.path.dirname(current_file_path)
 
     # Print the current directory path
+
+    # Current directory: /codebuild/output/src2502299760/src/github.com/aws/deep-learning-containers/test/sagemaker_tests/tensorflow/inference/test/integration/sagemaker
     LOGGER.info("Current directory: %s", current_dir)
 
-    LOGGER.info("local_path is s%", local_path)
-    LOGGER.info("bucket is s%", bucket)
+    LOGGER.info("local_path is %s", local_path)
 
     s3 = boto_session.client("s3", region)
 
@@ -186,7 +187,7 @@ def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list)
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] != "404":
                 raise
-
+            LOGGER.info("mme model local_path is %s", local_path)
             # file doesn't exist - upload it
             s3.upload_file(local_path, bucket, key)
 
