@@ -20,6 +20,8 @@ import random
 import time
 import sys
 
+from test.test_utils import LOGGER
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
@@ -112,6 +114,16 @@ def find_or_put_model_data(region, boto_session, local_path):
 
     bucket = _test_bucket(region, boto_session)
     key = "test-tfs/{}".format(model_file)
+
+     # Get the current file path
+    current_file_path = os.path.abspath(__file__)
+    current_dir = os.path.dirname(current_file_path)
+
+    # Print the current directory path
+    LOGGER.info("Current directory: %s", current_dir)
+
+    LOGGER.info("local_path is s%", local_path)
+    LOGGER.info("bucket is s%", bucket)
 
     s3 = boto_session.client("s3", region)
 
