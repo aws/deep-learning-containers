@@ -45,8 +45,8 @@ RUN pip install --no-cache-dir \
 	multiprocess==${MULTIPROCESS_VERSION} \
 	dill==${DILL_VERSION} \
     ninja==${NINJA_VERSION} \
-	huggingface_hub=={HUGGING_HUB_VERSION} \
-	gevent=={GEVENT_VERSION}
+	huggingface_hub==${HUGGING_HUB_VERSION} \
+	gevent==${GEVENT_VERSION}
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
