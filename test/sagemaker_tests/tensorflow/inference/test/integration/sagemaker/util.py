@@ -115,10 +115,6 @@ def find_or_put_model_data(region, boto_session, local_path):
     bucket = _test_bucket(region, boto_session)
     key = "test-tfs/{}".format(model_file)
 
-    # Get the current file path
-    current_file_path = os.path.abspath(__file__)
-    current_dir = os.path.dirname(current_file_path)
-
     s3 = boto_session.client("s3", region)
 
     try:
