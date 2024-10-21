@@ -309,6 +309,10 @@ RUN pip install --no-cache-dir -U \
     fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
     "numpy<2" \
  && pip uninstall dataclasses
 
@@ -418,6 +422,7 @@ RUN pip install --no-cache-dir -U \
     fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
     spacy \
     thinc \
     blis \
