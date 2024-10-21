@@ -107,7 +107,7 @@ dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
-dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec1.13.yml"
+dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec-1-13.yml"
 
 # Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
