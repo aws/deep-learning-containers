@@ -27,6 +27,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
  && pip install --no-cache-dir -U numpy numba \
+ # capping spaCy to prevent failure of pip install on AutoGluon - https://github.com/autogluon/autogluon/issues/4515
+ && pip install --no-cache-dir "spacy<3.8" \
 # Install AutoGluon, ensuring no vulnerable dependencies are left behind
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
 # Update requests to a secure version that fixes CVE-2023-32681

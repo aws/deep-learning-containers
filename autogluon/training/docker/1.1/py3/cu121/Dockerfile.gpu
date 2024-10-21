@@ -26,6 +26,8 @@ ARG AUTOGLUON_VERSION=1.1.1
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U numpy numba \
+ # capping spaCy to prevent failure of pip install on AutoGluon - https://github.com/autogluon/autogluon/issues/4515
+ && pip install --no-cache-dir "spacy<3.8" \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv==2.1.0 --timeout 600 \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
