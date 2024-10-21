@@ -64,6 +64,7 @@ RUN apt-get update \
     gpg-agent \
     expat \
     libexpat1 \
+    libarchive13 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
