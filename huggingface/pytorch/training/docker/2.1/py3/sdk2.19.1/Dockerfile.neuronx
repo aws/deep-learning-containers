@@ -35,7 +35,7 @@ RUN pip install -U \
 	"urllib3>=1.26.17,<1.27" 
 
 RUN apt-get update \
- && apt-get install -y --no-instal-recommends \
+ && apt-get install -y --no-install-recommends \
     git-lfs \
 	libgssapi-krb5-2 \
 	libexpat1 \
