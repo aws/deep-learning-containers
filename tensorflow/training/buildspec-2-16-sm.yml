@@ -38,7 +38,7 @@ images:
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
-    build_tag_override: "pr:2.16.2-cpu-py310-ubuntu20.04-sagemaker-pr-4362"
+    build_tag_override: "pr:2.16.2-cpu-py310-ubuntu20.04-sagemaker-pr-4362-autopatch-2024-10-22-00-15-00"
     target: sagemaker
     enable_test_promotion: true
     context:
@@ -58,7 +58,7 @@ images:
                                 *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
                          /Dockerfile., *DEVICE_TYPE ]
-    build_tag_override: "pr:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker-pr-4362"
+    build_tag_override: "pr:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker-pr-4362-autopatch-2024-10-22-00-15-00"
     target: sagemaker
     enable_test_promotion: true
     context:
