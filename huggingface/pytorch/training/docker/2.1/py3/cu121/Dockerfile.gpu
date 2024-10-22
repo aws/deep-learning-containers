@@ -46,7 +46,7 @@ RUN pip install --no-cache-dir \
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 libarchive13 expat \
  && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
