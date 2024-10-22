@@ -30,6 +30,7 @@ ARG TORCHAUDIO_VERSION=0.13.1+cu117
 # HF ARGS
 ARG TRANSFORMERS_VERSION
 ARG DIFFUSERS_VERSION=0.27.2
+ARG HUGGINGFACE_HUB_VERSION=0.25.2
 
 # Set Debian interaction
 ARG DEBIAN_FRONTEND=noninteractive
@@ -232,7 +233,8 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.11.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     numpy>=1.21.5 \
-    "sagemaker-huggingface-inference-toolkit<3"
+    "sagemaker-huggingface-inference-toolkit<3" \
+    huggingface_hub==${HUGGINGFACE_HUB_VERSION} \
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
