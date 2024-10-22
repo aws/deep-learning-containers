@@ -53,7 +53,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # update tqdm to a secure version that fixes CVE-2024-34062
  && pip install --no-cache-dir -U tqdm>=4.66.3 \
  # update urllib3 to fix vulnerability id 71608
- && pip install --no-cache-dir -U urllib3
+ && pip install --no-cache-dir -U urllib3 \
+  # Cap pillow & ninja to fix sanity test
+ && pip install --no-cache-dir "pillow<11.0.0" \
+ && pip install --no-cache-dir "ninja<1.11.1.1"
 
 
 # add TS entrypoint
