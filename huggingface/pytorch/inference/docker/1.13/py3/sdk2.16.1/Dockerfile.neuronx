@@ -62,9 +62,9 @@ RUN apt-get update \
     zlib1g-dev \
     libcap-dev \
     gpg-agent \
+    libarchive13 \
     expat \
     libexpat1 \
-    libarchive13 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
