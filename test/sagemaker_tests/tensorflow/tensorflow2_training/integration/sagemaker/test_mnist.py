@@ -268,12 +268,11 @@ def _test_distributed_mnist_custom_ps(
     _assert_checkpoint_exists_v2(sagemaker_session.boto_region_name, estimator.model_dir, 10)
 
 
-@pytest.mark.skip_tf216_only
 # @pytest.mark.skipif(is_pr_context(), reason=SKIP_PR_REASON)
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.team("frameworks")
-def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version):
+def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_s3_plugin_function, instance_type, framework_version
     )
