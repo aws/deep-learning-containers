@@ -12,6 +12,7 @@ ARG OPTIMUM_NEURON_VERSION=0.0.24
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
 ARG PYTHON=python3
+ARG GEVENT_VERSION=24.10.1
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
@@ -20,7 +21,8 @@ RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-    peft
+    peft \
+	gevent==${GEVENT_VERSION}
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities

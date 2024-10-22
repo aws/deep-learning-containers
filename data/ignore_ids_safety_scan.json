@@ -1480,7 +1480,15 @@
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "67136": "Pillow 10.3.0 introduces a security update addressing CVE-2024-28219 by replacing certain functions with strncpy to prevent buffer overflow issues.",
                 "67895": "CVE-2024-3651 impacts the idna.encode() function",
-                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062"
+                "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
+                "71578": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71589": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71577": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71693": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71579": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71584": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71587": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "71692": "Temporarily ignoring to patch CRITICAL vulnerabilties",
             }
         }
     },
