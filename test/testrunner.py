@@ -358,8 +358,8 @@ def main():
         return
 
     if specific_test_type in (
-        "security-sanity",
-        "functionality-sanity",
+        "security_sanity",
+        "functionality_sanity",
         "ecs",
         "ec2",
         "eks",
