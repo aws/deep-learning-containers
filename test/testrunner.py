@@ -324,6 +324,8 @@ def main():
 
     if benchmark_mode:
         test_path = os.path.join("benchmark", specific_test_type)
+    elif specific_test_type == "telemetry":
+        test_path = "ec2"
     elif "sanity" in specific_test_type:
         test_path = "sanity"
     else:
@@ -360,6 +362,7 @@ def main():
     if specific_test_type in (
         "security_sanity",
         "functionality_sanity",
+        "telemetry"
         "ecs",
         "ec2",
         "eks",
@@ -382,7 +385,7 @@ def main():
         os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
-        if specific_test_type == "sanity":
+        if "sanity" in specific_test_type or specific_test_type == "telemetry":
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
