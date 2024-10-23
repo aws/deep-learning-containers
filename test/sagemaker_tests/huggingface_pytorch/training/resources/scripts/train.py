@@ -4,6 +4,7 @@ import sys
 import argparse
 import evaluate
 import numpy as np
+import signal
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -62,8 +63,10 @@ if __name__ == "__main__":
     test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
 
     # set format for pytorch
+    logger.info("set train format")
     train_dataset = train_dataset.rename_column("label", "labels")
     train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+    logger.info("set test format")
     test_dataset = test_dataset.rename_column("label", "labels")
     test_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
@@ -77,6 +80,7 @@ if __name__ == "__main__":
         return metric.compute(predictions=predictions, references=labels)
 
     # define training args
+    logger.info("define training args")
     training_args = TrainingArguments(
         output_dir=args.model_dir,
         dataloader_drop_last=True,
@@ -88,8 +92,10 @@ if __name__ == "__main__":
         logging_dir=f"{args.output_data_dir}/logs",
         learning_rate=float(args.learning_rate),
     )
+    logger.info("training args defined")
 
     # create Trainer instance
+    logger.info("create trainer")
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -97,18 +103,28 @@ if __name__ == "__main__":
         train_dataset=train_dataset,
         eval_dataset=test_dataset,
     )
+    logger.info("trainer defined")
 
     # train model
+    logger.info("starting to train")
     trainer.train()
+    logger.info("training ended")
 
     # evaluate model
+    logger.info("evaluating the model")
     eval_result = trainer.evaluate(eval_dataset=test_dataset)
+    logger.info("evaluation ended")
 
     # writes eval result to file which can be accessed later in s3 ouput
+    logger.info("writes eval result to file")
     with open(os.path.join(args.output_data_dir, "eval_results.txt"), "w") as writer:
         print("***** Eval results *****")
         for key, value in sorted(eval_result.items()):
             writer.write(f"{key} = {value}\n")
 
+    logger.info("file written")
+
     # Saves the model to s3
+    logger.info("saving model")
     trainer.save_model(args.model_dir)
+    logger.info("model saved")
