@@ -362,7 +362,7 @@ def main():
     if specific_test_type in (
         "security_sanity",
         "functionality_sanity",
-        "telemetry"
+        "telemetry",
         "ecs",
         "ec2",
         "eks",
@@ -572,7 +572,7 @@ def main():
             sm_utils.generate_empty_report(report, test_type, "eia")
     else:
         raise NotImplementedError(
-            f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker and sanity currently"
+            f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker, telemetry and sanity currently"
         )
 
 
