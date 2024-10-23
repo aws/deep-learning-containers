@@ -27,6 +27,7 @@ RUN pip install --no-cache-dir \
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
 RUN pip install -U \
+	"tensorboard>=2.11.0" \
 	"numpy>=1.24.3,<=1.25.2" \
 	"numba==0.58.1" \
 	"protobuf>=3.18.3,<3.20.0" \
