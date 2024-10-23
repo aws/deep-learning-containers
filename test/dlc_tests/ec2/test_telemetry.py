@@ -10,7 +10,7 @@ from packaging.specifiers import SpecifierSet
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -24,7 +24,7 @@ def test_telemetry_instance_tag_failure_gpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
@@ -38,7 +38,7 @@ def test_telemetry_instance_tag_failure_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -74,7 +74,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
@@ -112,7 +112,7 @@ def test_telemetry_instance_tag_success_gpu(
 
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
@@ -133,7 +133,7 @@ def test_telemetry_instance_tag_success_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -148,7 +148,7 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
@@ -163,7 +163,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
@@ -179,7 +179,7 @@ def test_telemetry_instance_tag_success_neuron(
 
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -199,7 +199,7 @@ def test_telemetry_s3_query_bucket_success_gpu(
 
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
@@ -219,7 +219,7 @@ def test_telemetry_s3_query_bucket_success_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
@@ -233,7 +233,7 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
@@ -247,7 +247,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(
 
 
 @pytest.mark.flaky(reruns=2)
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("neuron")
 @pytest.mark.integration("telemetry")
