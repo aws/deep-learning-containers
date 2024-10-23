@@ -932,7 +932,6 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     assert cuda_version in cuda_output.stdout.replace(".", "")
 
 
-@pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
@@ -1185,7 +1184,6 @@ def test_package_version_regression_in_image(image):
     ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"
 
 
-@pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_pytorch_training_job_type_env_var(pytorch_training):
@@ -1201,7 +1199,6 @@ def test_pytorch_training_job_type_env_var(pytorch_training):
     )
 
 
-@pytest.mark.skip("temp")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_job_type_env_var(pytorch_inference):
