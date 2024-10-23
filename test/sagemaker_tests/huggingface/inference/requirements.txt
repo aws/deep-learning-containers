@@ -28,3 +28,4 @@ invoke
 gitpython
 toml
 transformers==4.28.1
+huggingface_hub==0.24.7
