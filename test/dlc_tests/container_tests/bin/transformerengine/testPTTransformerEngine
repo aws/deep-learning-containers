@@ -2,14 +2,39 @@
 
 set -ex
 
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
 TE_VERSION=$(pip show transformer_engine | awk '/^Version:/ {split($2, v, "."); print v[1] "." v[2]}')
 
-git clone --branch release_v${TE_VERSION} https://github.com/NVIDIA/TransformerEngine.git
-cd TransformerEngine/tests/pytorch
+git clone -b v${TE_VERSION} https://github.com/NVIDIA/TransformerEngine.git
+TE_PATH="./TransformerEngine"
 
-pip install pytest==6.2.5 # onnxruntime==1.17.3 onnx
-pytest -v -s test_sanity.py
-PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s test_numerics.py
-# Disable onnx test due lack of TE prioritization on onnx (eg: https://github.com/NVIDIA/TransformerEngine/issues/528)
-# NVTE_TORCH_COMPILE=0 pytest -v -s test_onnx_export.py
-pytest -v -s test_jit.py
+if [ $(version $TE_VERSION) -lt $(version "1.0") ]; then
+  pip install pytest==6.2.5 # onnxruntime==1.17.3 onnx
+  pytest -v -s $TE_PATH/tests/pytorch/test_sanity.py
+  PYTORCH_JIT=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s $TE_PATH/tests/pytorch/test_numerics.py
+  # Disable onnx test due lack of TE prioritization on onnx: https://github.com/NVIDIA/TransformerEngine/issues/528
+  # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_jit.py
+else
+  pip install pytest==8.2.1 onnxruntime onnx expecttest
+  pytest -v -s $TE_PATH/tests/pytorch/test_sanity.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_recipe.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_deferred_init.py
+  # Disabled test due to bug: https://github.com/NVIDIA/TransformerEngine/issues/1165
+  # PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s $TE_PATH/tests/pytorch/test_numerics.py
+  PYTORCH_JIT=0 NVTE_TORCH_COMPILE=0 NVTE_ALLOW_NONDETERMINISTIC_ALGO=0 pytest -v -s $TE_PATH/tests/pytorch/test_cuda_graphs.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_jit.py
+  NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/fused_attn/test_fused_attn.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_fused_rope.py
+  # Disable onnx test due lack of TE prioritization on onnx: https://github.com/NVIDIA/TransformerEngine/issues/528
+  # NVTE_TORCH_COMPILE=0 pytest -v -s $TE_PATH/tests/pytorch/test_onnx_export.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_float8tensor.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_torch_save_load.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_gqa.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_recipe.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_fused_optimizer.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_multi_tensor.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_fusible_ops.py
+  pytest -v -s $TE_PATH/tests/pytorch/test_fusible_ops_distributed.py
+fi

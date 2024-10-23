@@ -20,10 +20,12 @@ import random
 import time
 import sys
 
+from test.test_utils import LOGGER
+
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(logging.StreamHandler(sys.stdout))
-BATCH_CSV = os.path.join("data", "batch.csv")
+BATCH_CSV = os.path.join("test", "data", "batch.csv")
 
 
 def _botocore_resolver():
@@ -174,7 +176,6 @@ def find_or_put_mme_model_data(region, boto_session, mme_folder_name, path_list)
         except botocore.exceptions.ClientError as e:
             if e.response["Error"]["Code"] != "404":
                 raise
-
             # file doesn't exist - upload it
             s3.upload_file(local_path, bucket, key)
 
