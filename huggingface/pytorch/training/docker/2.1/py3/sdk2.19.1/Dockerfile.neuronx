@@ -33,7 +33,7 @@ RUN pip install -U \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
 	"urllib3>=1.26.17,<1.27" \
-	"google-auth<2,>=1.6.3"
+	"google-auth>=1.35.0,<2.0"
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
