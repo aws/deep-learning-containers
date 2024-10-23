@@ -486,7 +486,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
-            if installed_framework_version == "0.10.x":
+            if installed_framework_version == "0.12.x":
                 # skip the check due to transformers_neuronx version bug
                 # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
                 continue

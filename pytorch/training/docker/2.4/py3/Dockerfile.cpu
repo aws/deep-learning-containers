@@ -219,8 +219,14 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     torchtnt \
     s3torchconnector \
-    accelerate \
     fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
@@ -277,8 +283,14 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     torchtnt \
     s3torchconnector \
-    accelerate \
     fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
@@ -299,7 +311,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    # pinned for sagemaker==2.231.0
+    # pinned for sagemaker==2.232.2
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
