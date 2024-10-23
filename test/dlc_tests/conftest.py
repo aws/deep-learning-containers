@@ -1049,7 +1049,7 @@ def security_sanity():
     or is not the correct sanity test type in mainline context
     otherwise, tests can run as usual such as canary/deep canary
     """
-    pipeline_test_type = os.getenv("SANITY_TEST_TYPE", "empty")
+    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() and not is_security_sanity_test_enabled()) or (
         is_mainline_context() and pipeline_test_type != "sanity_test_type"
     ):
@@ -1067,7 +1067,7 @@ def functionality_sanity():
     or is not the correct sanity test type in mainline context
     otherwise, tests can run as usual such as canary/deep canary
     """
-    pipeline_test_type = os.getenv("SANITY_TEST_TYPE", "empty")
+    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() and not is_functionality_sanity_test_enabled()) or (
         is_mainline_context() and pipeline_test_type != "functionality_sanity"
     ):
@@ -1679,7 +1679,7 @@ def pytest_generate_tests(metafunc):
                     if (
                         "stabilityai" not in metafunc.fixturenames
                         and "stabilityai" in image
-                        and os.getenv("TEST_TYPE") != "sanity"
+                        and "sanity" not in os.getenv("TEST_TYPE")
                     ):
                         LOGGER.info(
                             f"Skipping test, as this function is not marked as 'stabilityai'"
