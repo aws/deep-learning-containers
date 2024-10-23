@@ -4,6 +4,7 @@ import sys
 import argparse
 import evaluate
 import numpy as np
+import signal
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -27,7 +28,6 @@ if __name__ == "__main__":
     parser.add_argument("--output-data-dir", type=str, default=os.environ["SM_OUTPUT_DATA_DIR"])
     parser.add_argument("--model-dir", type=str, default=os.environ["SM_MODEL_DIR"])
     parser.add_argument("--n_gpus", type=str, default=os.environ["SM_NUM_GPUS"])
-
     args, _ = parser.parse_known_args()
 
     # Set up logging
@@ -35,16 +35,22 @@ if __name__ == "__main__":
 
     logging.basicConfig(
         level=logging.getLevelName("INFO"),
-        handlers=[logging.StreamHandler(sys.stdout)],
+        handlers=[logging.StreamHandler(sys.stdout), logging.StreamHandler(sys.stderr)],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
     # download model from model hub
+    logger.info(f"args are {args}")
+    logger.info("downloading model")
+
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
+    logger.info("downloading tokenizer")
     # download tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
+    logger.info("loading dataset")
     # load dataset
-    dataset = load_dataset("imdb")
+    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+    logger.info("evaluate load")
     metric = evaluate.load("accuracy")
 
     # tokenizer helper function
@@ -52,18 +58,47 @@ if __name__ == "__main__":
         return tokenizer(batch["text"], padding="max_length", truncation=True)
 
     # load dataset
-    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+    logger.info("split train and test dataset")
     test_dataset = test_dataset.shuffle().select(
         range(100)
     )  # smaller the size for test dataset to 10k
 
     # tokenize dataset
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
+    logger.info("tokenize")
+
+    def timeout_handler(signum, frame):
+        raise TimeoutError("Operation timed out")
+
+    def run_with_timeout(func, timeout=5):
+        # Set the signal handler and a 5-second alarm
+        signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout)
+
+        try:
+            result = func()
+            signal.alarm(0)  # Clear the alarm
+            return result
+        except TimeoutError:
+            print("Operation took too long, sending interrupt...")
+            # Send interrupt to the main thread
+            signal.raise_signal(signal.SIGINT)
+        finally:
+            signal.alarm(0)  # Clear the alarm
+
+    train_dataset = run_with_timeout(
+        train_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(train_dataset)),
+        timeout=10,
+    )
+    test_dataset = run_with_timeout(
+        test_dataset.map(tokenize, num_proc=1, batched=True, batch_size=len(test_dataset)),
+        timeout=10,
+    )
 
     # set format for pytorch
+    logger.info("set train format")
     train_dataset = train_dataset.rename_column("label", "labels")
     train_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
+    logger.info("set test format")
     test_dataset = test_dataset.rename_column("label", "labels")
     test_dataset.set_format("torch", columns=["input_ids", "attention_mask", "labels"])
 
@@ -77,6 +112,7 @@ if __name__ == "__main__":
         return metric.compute(predictions=predictions, references=labels)
 
     # define training args
+    logger.info("define training args")
     training_args = TrainingArguments(
         output_dir=args.model_dir,
         dataloader_drop_last=True,
@@ -90,6 +126,7 @@ if __name__ == "__main__":
     )
 
     # create Trainer instance
+    logger.info("create trainer")
     trainer = Trainer(
         model=model,
         args=training_args,
@@ -99,9 +136,11 @@ if __name__ == "__main__":
     )
 
     # train model
+    logger.info("train model")
     trainer.train()
 
     # evaluate model
+    logger.info("evaluate model")
     eval_result = trainer.evaluate(eval_dataset=test_dataset)
 
     # writes eval result to file which can be accessed later in s3 ouput

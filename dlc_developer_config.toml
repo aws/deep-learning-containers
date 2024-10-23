@@ -7,11 +7,7 @@ ei_mode = false
 # Please only set it to true if you are preparing a NEURON related PR
 # Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
 neuron_mode = false
-# Please only set it to true if you are preparing a NEURONX related PR
-# Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
 neuronx_mode = false
-# Please only set it to true if you are preparing a GRAVITON related PR
-# Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
@@ -32,16 +28,9 @@ trcomp_mode = false
 deep_canary_mode = false
 
 [build]
-# Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
-# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch", "stabilityai_pytorch"]
-build_frameworks = []
-
-# By default we build both training and inference containers. Set true/false values to determine which to build.
+build_frameworks = [ "huggingface_pytorch",]
 build_training = true
-build_inference = true
-
-# Set do_build to "false" to skip builds and test the latest image built by this PR
-# Note: at least one build is required to set do_build to "false"
+build_inference = false
 do_build = true
 
 [notify]
@@ -107,9 +96,7 @@ dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
-dlc-pr-huggingface-pytorch-training = ""
-
-# Training Compiler
+dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec.yml"
 dlc-pr-huggingface-pytorch-trcomp-training = ""
 dlc-pr-huggingface-tensorflow-2-trcomp-training = ""
 dlc-pr-pytorch-trcomp-training = ""
@@ -157,3 +144,4 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
+
