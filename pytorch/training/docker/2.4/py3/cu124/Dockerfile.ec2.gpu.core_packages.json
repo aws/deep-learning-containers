@@ -1,0 +1,52 @@
+{
+
+}
+{
+  "accelerate": {
+    "version_specifier": "==0.30.1",
+    "skip": "True"
+  },
+  "fastai": {
+    "version_specifier": "==2.7.15",
+    "skip": "True"
+  },
+  "flash-attn": {
+    "version_specifier": "==2.0.4",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.3.0",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0",
+    "skip": "True"
+  },
+  "torchtnt": {
+    "version_specifier": "==0.2.3",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.18.0",
+    "skip": "True"
+  },
+  "transformer-engine": {
+    "version_specifier": "==0.12.0+170797",
+    "skip": "True"
+  },
+  "urllib3": {
+    "version_specifier": "<2"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.0"
+  },
+  "pyopenssl": {
+    "version_specifier": ">=24.0.0"
+  }
+}
