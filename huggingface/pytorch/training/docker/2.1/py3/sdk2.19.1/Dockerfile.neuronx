@@ -43,9 +43,9 @@ RUN apt-get update \
     git-lfs \
 	libgssapi-krb5-2 \
 	libexpat1 \
-	apparmor \
 	expat \
 	libarchive13 \
+ && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
