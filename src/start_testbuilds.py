@@ -129,7 +129,10 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.SECURITY_SANITY_TESTS and config.is_security_sanity_test_enabled():
         return True
-    if test_type == constants.FUNCTIONALITY_SANITY_TESTS and config.is_functionality_sanity_test_enabled():
+    if (
+        test_type == constants.FUNCTIONALITY_SANITY_TESTS
+        and config.is_functionality_sanity_test_enabled()
+    ):
         return True
 
     return False
@@ -246,7 +249,7 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
             # Maintaining separate codebuild project for graviton sanity test
-            if "graviton" in images_str and test_type == "sanity":
+            if "graviton" in images_str and "sanity" in test_type:
                 pr_test_job += "-graviton"
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(
                 images_str, test_type
