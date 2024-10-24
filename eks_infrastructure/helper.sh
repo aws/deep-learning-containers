@@ -59,16 +59,16 @@ function upgrade_nodegroup() {
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
       if check_cluster_status $CLUSTER_NAME; then
-        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION || FAILED_CLUSTER+=( ${CLUSTER_NAME} )
+        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION || UPGRADE_FAILED=1
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
       fi
     done
   done
 
-  if [ ${#FAILED_CLUSTER[@]} -ne 0 ]; then
-    echo "The following cluster failed to upgrade. Check logs of the failed cluster for specific nodegroups"
-    echo "${FAILED_CLUSTER[@]}"
+  if [ ${UPGRADE_FAILED:-0} ] && [ -f failed_nodegroups.txt ]; then
+    echo "The following nodegroups failed to upgrade."
+    fcat failed_nodegroups.txt
     exit 1
   fi
 }
