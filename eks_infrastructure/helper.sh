@@ -68,7 +68,7 @@ function upgrade_nodegroup() {
 
   if [ ${UPGRADE_FAILED:-0} ] && [ -f failed_nodegroups.txt ]; then
     echo "The following nodegroups failed to upgrade."
-    fcat failed_nodegroups.txt
+    cat failed_nodegroups.txt
     exit 1
   fi
 }
