@@ -91,6 +91,8 @@ if __name__ == "__main__":
         evaluation_strategy="epoch",
         logging_dir=f"{args.output_data_dir}/logs",
         learning_rate=float(args.learning_rate),
+        early_stopping_patience=None,
+        load_best_model_at_end=False,
     )
     logger.info("training args defined")
 
