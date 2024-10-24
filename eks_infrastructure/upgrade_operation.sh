@@ -60,7 +60,6 @@ function upgrade_nodegroups() {
       #   --timeout 90m \
       #   --region ${REGION} || echo "${NODEGROUP}" >> ${ERROR_LOG}
     done
-  exit 1
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
   fi
