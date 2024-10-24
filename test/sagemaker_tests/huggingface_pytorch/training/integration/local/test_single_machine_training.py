@@ -30,7 +30,7 @@ def test_distilbert_base(
 ):
     # hyperparameters, which are passed into the training job
     hyperparameters = {
-        "train_batch_size": 4,
+        "train_batch_size": 25,
         "model_name": "distilbert-base-uncased",
     }
 
