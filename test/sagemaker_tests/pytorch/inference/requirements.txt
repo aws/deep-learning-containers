@@ -25,5 +25,5 @@ sagemaker-inference
 six
 tenacity
 toml
-torch
+torch<2.5.0
 torchvision

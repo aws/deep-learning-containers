@@ -26,6 +26,8 @@ ARG AUTOGLUON_VERSION=1.1.1
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U numpy numba \
+ # capping spaCy to prevent failure of pip install on AutoGluon - https://github.com/autogluon/autogluon/issues/4515
+ && pip install --no-cache-dir "spacy<3.8" \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && mim install -q mmcv==2.1.0 --timeout 600 \
  && pip install --no-cache-dir -U mmdet>=3.0.0 \
@@ -45,7 +47,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # update idna to a secure version that fixes vulnerability id 67895
  && pip install --no-cache-dir -U idna>=3.7.0 \
  # update tqdm to a secure version that fixes CVE-2024-34062
- && pip install --no-cache-dir -U tqdm>=4.66.3
+ && pip install --no-cache-dir -U tqdm>=4.66.3 \
+  # Cap pillow & ninja to fix sanity test
+ && pip install --no-cache-dir "pillow<11.0.0" \
+ && pip install --no-cache-dir "ninja<1.11.1.1"
 
 
 RUN HOME_DIR=/root \
