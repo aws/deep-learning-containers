@@ -29,7 +29,7 @@ def log_resource_usage():
 class CustomTrainer(Trainer):
     def training_step(self, model, inputs):
         outputs = super().training_step(model, inputs)
-        logger.info(f"Step {self.state.global_step}: Loss: {outputs.loss.item()}")
+        logger.info(f"Step {self.state.global_step}")
         if self.state.global_step % 10 == 0:  # Log resource usage every 10 steps
             log_resource_usage()
         return outputs
