@@ -53,7 +53,6 @@ function upgrade_nodegroups() {
 
     for NODEGROUP in ${LIST_NODE_GROUPS}; do
       echo "${NODEGROUP}" >> ${ERROR_LOG}
-      exit 1
       # eksctl upgrade nodegroup \
       #   --name ${NODEGROUP} \
       #   --cluster ${CLUSTER} \
@@ -61,6 +60,7 @@ function upgrade_nodegroups() {
       #   --timeout 90m \
       #   --region ${REGION} || echo "${NODEGROUP}" >> ${ERROR_LOG}
     done
+  exit 1
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
   fi
