@@ -53,7 +53,6 @@ function upgrade_cluster() {
 # Invokes upgrade_operation.sh script to upgrade the EKS nodegroup for a cluster
 function upgrade_nodegroup() {
   FAILED_CLUSTER=()
-  echo "============================THIS IS A TEST============================="
   TARGET="NODEGROUP"
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
