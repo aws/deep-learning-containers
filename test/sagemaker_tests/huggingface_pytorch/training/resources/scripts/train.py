@@ -5,6 +5,7 @@ import argparse
 import evaluate
 import numpy as np
 import signal
+import psutil
 from datasets import load_dataset
 from transformers import (
     AutoModelForSequenceClassification,
@@ -12,6 +13,26 @@ from transformers import (
     Trainer,
     TrainingArguments,
 )
+
+def signal_handler(signum, frame):
+    logger.warning(f"Received signal {signum}. Stopping training.")
+    sys.exit(0)
+
+signal.signal(signal.SIGTERM, signal_handler)
+signal.signal(signal.SIGINT, signal_handler)
+
+def log_resource_usage():
+    cpu_percent = psutil.cpu_percent()
+    memory_percent = psutil.virtual_memory().percent
+    logger.info(f"CPU usage: {cpu_percent}%, Memory usage: {memory_percent}%")
+
+class CustomTrainer(Trainer):
+    def training_step(self, model, inputs):
+        outputs = super().training_step(model, inputs)
+        logger.info(f"Step {self.state.global_step}: Loss: {outputs.loss.item()}")
+        if self.state.global_step % 10 == 0:  # Log resource usage every 10 steps
+            log_resource_usage()
+        return outputs
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -35,10 +56,13 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 
     logging.basicConfig(
-        level=logging.getLevelName("INFO"),
+        level=logging.INFO,
         handlers=[logging.StreamHandler(sys.stdout)],
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
+
+    logger.info(f"Arguments: {args}")
+
     # download model from model hub
     model = AutoModelForSequenceClassification.from_pretrained(args.model_name)
     # download tokenizer
@@ -88,17 +112,23 @@ if __name__ == "__main__":
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
         warmup_steps=args.warmup_steps,
-        evaluation_strategy="epoch",
+        evaluation_strategy="steps",
         logging_dir=f"{args.output_data_dir}/logs",
         learning_rate=float(args.learning_rate),
+        logging_steps=10,  # Log every 10 steps
+        save_steps=100,    # Save model every 100 steps
         early_stopping_patience=None,
         load_best_model_at_end=False,
+        max_steps=args.max_steps,
     )
+
+    logger.info(f"Training arguments: {training_args}")
+
     logger.info("training args defined")
 
     # create Trainer instance
     logger.info("create trainer")
-    trainer = Trainer(
+    trainer = CustomTrainer(
         model=model,
         args=training_args,
         compute_metrics=compute_metrics,
@@ -109,8 +139,13 @@ if __name__ == "__main__":
 
     # train model
     logger.info("starting to train")
-    trainer.train()
-    logger.info("training ended")
+    try:
+        trainer.train()
+    except Exception as e:
+        logger.error(f"An error occurred during training: {str(e)}")
+        raise
+    
+    logger.info("Training completed")
 
     # evaluate model
     logger.info("evaluating the model")
