@@ -34,16 +34,18 @@ RUN pip install -U \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
 	"urllib3>=1.26.17,<1.27" \
-	"google-auth~=2.0"
+	"google-auth~=2.0" \
+    "cachetools>=5.0.0,<6.0.0" \
+    "databricks-sdk>=0.20.0,<1.0.0"
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
     git-lfs \
 	libgssapi-krb5-2 \
 	libexpat1 \
+	apparmor \
 	expat \
 	libarchive13 \
-	apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
