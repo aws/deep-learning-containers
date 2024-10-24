@@ -61,7 +61,3 @@ ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
-
-
-def set_disable_token_auth_env(framework_version):
-    return {}

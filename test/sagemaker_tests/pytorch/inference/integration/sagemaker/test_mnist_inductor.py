@@ -28,7 +28,7 @@ import time
 import json
 import logging
 
-from ...integration import model_cpu_dir, set_disable_token_auth_env
+from ...integration import model_cpu_dir
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -50,7 +50,6 @@ def test_mnist_distributed_cpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.c5.9xlarge"
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
@@ -75,7 +74,6 @@ def test_mnist_distributed_graviton_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
     if "graviton" not in ecr_image:
@@ -101,7 +99,6 @@ def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     if Version(framework_version) in SpecifierSet("<2.0") or Version(
         framework_version
     ) in SpecifierSet("==2.2.0"):
