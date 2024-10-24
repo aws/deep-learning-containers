@@ -119,7 +119,6 @@ if __name__ == "__main__":
         save_steps=100,    # Save model every 100 steps
         early_stopping_patience=None,
         load_best_model_at_end=False,
-        max_steps=args.max_steps,
     )
 
     logger.info(f"Training arguments: {training_args}")
