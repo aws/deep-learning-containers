@@ -117,8 +117,6 @@ if __name__ == "__main__":
         learning_rate=float(args.learning_rate),
         logging_steps=10,  # Log every 10 steps
         save_steps=100,    # Save model every 100 steps
-        early_stopping_patience=None,
-        load_best_model_at_end=False,
     )
 
     logger.info(f"Training arguments: {training_args}")
