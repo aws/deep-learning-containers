@@ -45,6 +45,7 @@ function upgrade_nodegroups() {
   CLUSTER=${1}
   EKS_VERSION=${2}
   REGION=${3}
+  ERROR_LOG=${4}
 
   LIST_NODE_GROUPS=$(eksctl get nodegroup --cluster ${CLUSTER} -o json | jq -r '.[].Name')
 
@@ -56,12 +57,12 @@ function upgrade_nodegroups() {
         --cluster ${CLUSTER} \
         --kubernetes-version ${EKS_VERSION} \
         --timeout 90m \
-        --region ${REGION} || echo "${NODEGROUP}" >> failed_nodegroups.txt
+        --region ${REGION} || echo "${NODEGROUP}" >> ${ERROR_LOG}
     done
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
   fi
-  if [ -f failed_nodegroups.txt ]; then
+  if [ -f ${ERROR_LOG} ]; then
     exit 1
   fi
 }
@@ -97,7 +98,11 @@ fi
 TARGET=${1}
 CLUSTER=${2}
 EKS_VERSION=${3}
-CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
+if [ "${TARGET}" = "CLUSTER" ]; then
+  CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
+elif [ "${TARGET}" = "NODEGROUP" ]; then
+  ERROR_LOG=${4}
+fi
 
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
@@ -113,5 +118,5 @@ if [ "${TARGET}" = "CLUSTER" ]; then
   #scale back to 1
   scale_cluster_autoscalar 1
 elif [ "${TARGET}" = "NODEGROUP" ]; then
-  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${ERROR_LOG}
 fi
