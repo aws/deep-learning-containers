@@ -20,7 +20,7 @@ notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = true
+sanity_tests = false
 safety_check_test = false
 ecr_scan_allowlist_feature = false
 ecs_tests = false
@@ -28,7 +28,7 @@ eks_tests = false
 ec2_tests = false
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 sagemaker_remote_tests = true
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
