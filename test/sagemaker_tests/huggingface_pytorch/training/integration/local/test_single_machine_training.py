@@ -30,7 +30,7 @@ def test_distilbert_base(
 ):
     # hyperparameters, which are passed into the training job
     hyperparameters = {
-        "train_batch_size": 25,
+        "train_batch_size": 500,
         "model_name": "distilbert-base-uncased",
     }
 
@@ -62,8 +62,7 @@ def test_distilbert_base_torch_compiled(
 
     # hyperparameters, which are passed into the training job
     hyperparameters = {
-        "max_steps": 5,
-        "train_batch_size": 4,
+        "train_batch_size": 500,
         "model_name": "distilbert-base-uncased",
     }
 
