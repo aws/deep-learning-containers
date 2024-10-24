@@ -35,18 +35,24 @@ function create_cluster() {
 # 4. Upgrade core k8s components
 # 5. Scale cluster autoscalar back to 1
 function upgrade_cluster() {
+  FAILED_CLUSTER=()
   TARGET="CLUSTER"
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
       if check_cluster_status $CLUSTER_NAME; then
-        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+        ./upgrade_operation.sh $TARGET $CLUSTER_NAME $EKS_VERSION $CLUSTER_AUTOSCALAR_IMAGE_VERSION || FAILED_CLUSTER+=( ${CLUSTER_NAME} )
+
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: does not exists. Skipping upgrade operation."
       fi
     done
   done
-
+  if [ ${#FAILED_CLUSTER[@]} -ne 0 ]; then
+    echo "The following cluster failed to upgrade. Check logs of the failed cluster for specific nodegroups"
+    echo "${FAILED_CLUSTER[@]}"
+    exit 1
+  fi
 }
 
 # Upgrade nodegroup operation function
