@@ -46,6 +46,7 @@ function upgrade_cluster() {
       fi
     done
   done
+
 }
 
 # Upgrade nodegroup operation function
@@ -64,6 +65,7 @@ function upgrade_nodegroup() {
       fi
     done
   done
+
   if [ ${#FAILED_CLUSTER[@]} -ne 0 ]; then
     echo "The following cluster failed to upgrade. Check logs of the failed cluster for specific nodegroups"
     echo "${FAILED_CLUSTER[@]}"
