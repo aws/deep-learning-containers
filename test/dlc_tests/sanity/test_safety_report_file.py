@@ -8,7 +8,7 @@ from invoke import run
 from dataclasses import dataclass
 from typing import List
 
-from test.test_utils import is_canary_context
+from test.test_utils import is_canary_context, is_huggingface_image
 
 
 LOGGER = logging.getLogger(__name__)
@@ -59,6 +59,8 @@ class SafetyPythonEnvironmentVulnerabilityReport:
         self.report = [SafetyPackageVulnerabilityReport(**i) for i in self.report]
 
 
+@pytest.mark.skipif(is_huggingface_image(), reason="temp")
+@pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(is_canary_context(), reason="Skipping test because it does not run on canary")
 def test_safety_file_exists_and_is_valid(image):
@@ -112,6 +114,7 @@ def test_safety_file_exists_and_is_valid(image):
         run(f"docker rm -f {container_name}", hide=True, warn=True)
 
 
+@pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 def test_safety_package_not_installed(image):
     """

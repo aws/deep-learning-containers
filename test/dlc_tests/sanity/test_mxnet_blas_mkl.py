@@ -13,7 +13,7 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("mxnet_blas_mkl_sanity")

@@ -22,7 +22,8 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 VALID_TEST_TYPES = [
-    "sanity_tests",
+    "security_sanity_tests",
+    "functionality_sanity_tests",
     "ec2_tests",
     "ecs_tests",
     "eks_tests",

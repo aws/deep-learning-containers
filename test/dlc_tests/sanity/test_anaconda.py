@@ -3,7 +3,7 @@ from invoke.context import Context
 from test import test_utils
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("anaconda_removal")
 def test_repo_anaconda_not_present(image):

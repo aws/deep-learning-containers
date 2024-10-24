@@ -38,6 +38,10 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_mainline_context,
+    is_pr_context,
+    is_security_sanity_test_enabled,
+    is_functionality_sanity_test_enabled,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -1030,6 +1034,51 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
 
 @pytest.fixture(scope="session")
+def telemetry():
+    telemetry_test = os.getenv("TEST_TYPE")
+    if is_mainline_context() and telemetry_test != "telemetry":
+        pytest.skip(
+            f"Test in not running in telemetry job in the pipeline context, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
+def security_sanity():
+    """
+    skip test if security sanity test is disabled in pr context
+    or is not the correct sanity test type in mainline context
+    otherwise, tests can run as usual such as canary/deep canary
+    """
+    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
+    if (is_pr_context() and not is_security_sanity_test_enabled()) or (
+        is_mainline_context() and pipeline_test_type != "security_sanity"
+    ):
+        pytest.skip(
+            f"Test in not running in `security_sanity` test type within the pipeline context"
+            f"or `security_sanity` test is not enabled within the PR context."
+            f"Skipping security sanity tests."
+        )
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    """
+    skip test if functionality sanity test is disabled in pr context
+    or is not the correct sanity test type in mainline context
+    otherwise, tests can run as usual such as canary/deep canary
+    """
+    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
+    if (is_pr_context() and not is_functionality_sanity_test_enabled()) or (
+        is_mainline_context() and pipeline_test_type != "functionality_sanity"
+    ):
+        pytest.skip(
+            f"Test in not running in `functionality_sanity` test type within the pipeline context"
+            f"or `functionality_sanity` test is not enabled within the PR context."
+            f"Skipping functionality sanity tests."
+        )
+
+
+@pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
 
@@ -1630,7 +1679,7 @@ def pytest_generate_tests(metafunc):
                     if (
                         "stabilityai" not in metafunc.fixturenames
                         and "stabilityai" in image
-                        and os.getenv("TEST_TYPE") != "sanity"
+                        and "sanity" not in os.getenv("TEST_TYPE")
                     ):
                         LOGGER.info(
                             f"Skipping test, as this function is not marked as 'stabilityai'"

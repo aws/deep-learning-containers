@@ -1,5 +1,4 @@
 import pytest
-
 from invoke.context import Context
 from packaging.version import Version
 
@@ -12,7 +11,7 @@ from test.test_utils import (
 
 
 @pytest.mark.usefixtures("feature_s3_plugin_present")
-@pytest.mark.usefixtures("huggingface_only")
+@pytest.mark.usefixtures("huggingface_only", "functionality_sanity")
 @pytest.mark.integration("pt_s3_plugin_sanity")
 @pytest.mark.model("N/A")
 def test_pt_s3_sanity(pytorch_training, outside_versions_skip):

@@ -27,7 +27,7 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 @pytest.mark.skip(
     "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
 )
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)

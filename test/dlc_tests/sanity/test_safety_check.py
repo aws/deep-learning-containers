@@ -1047,7 +1047,7 @@ def _get_latest_package_version(package):
     return str(max(Version(v) for v in versions))
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run safety tests regularly on production images")
 @pytest.mark.skipif(
