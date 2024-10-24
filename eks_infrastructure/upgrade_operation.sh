@@ -62,9 +62,6 @@ function upgrade_nodegroups() {
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
   fi
-  if [ -f ${ERROR_LOG} ]; then
-    exit 1
-  fi
 }
 
 #Function to upgrade core k8s components
