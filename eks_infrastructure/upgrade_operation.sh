@@ -52,15 +52,13 @@ function upgrade_nodegroups() {
   if [ -n "${LIST_NODE_GROUPS}" ]; then
 
     for NODEGROUP in ${LIST_NODE_GROUPS}; do
-      echo "${NODEGROUP}" >> ${ERROR_LOG}
-      # eksctl upgrade nodegroup \
-      #   --name ${NODEGROUP} \
-      #   --cluster ${CLUSTER} \
-      #   --kubernetes-version ${EKS_VERSION} \
-      #   --timeout 90m \
-      #   --region ${REGION} || echo "${NODEGROUP}" >> ${ERROR_LOG}
+      eksctl upgrade nodegroup \
+        --name ${NODEGROUP} \
+        --cluster ${CLUSTER} \
+        --kubernetes-version ${EKS_VERSION} \
+        --timeout 90m \
+        --region ${REGION} || echo "${NODEGROUP}" >> ${ERROR_LOG}
     done
-  exit 1
   else
     echo "No Nodegroups present in the EKS cluster ${1}"
   fi
