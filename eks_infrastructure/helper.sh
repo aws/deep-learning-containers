@@ -53,8 +53,8 @@ function upgrade_cluster() {
 #
 # Invokes upgrade_operation.sh script to upgrade the EKS nodegroup for a cluster
 function upgrade_nodegroup() {
-  # Initialie and ensure error logs does not exist
-  ERROR_LOG="failed_nodegroups.txt"
+  # Initialize error log and ensure log does not exist
+  ERROR_LOG="failed_nodegroups.log"
   rm -f ${ERROR_LOG}
 
   TARGET="NODEGROUP"
