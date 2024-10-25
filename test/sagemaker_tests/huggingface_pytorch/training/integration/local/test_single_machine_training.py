@@ -30,6 +30,7 @@ def test_distilbert_base(
 ):
     if "pytorch" in docker_image and Version(framework_version) < Version("2.2"):
         pytest.skip("Skipping distilbert SM local tests for PT")
+        
     # hyperparameters, which are passed into the training job
     hyperparameters = {
         "max_steps": 5,
