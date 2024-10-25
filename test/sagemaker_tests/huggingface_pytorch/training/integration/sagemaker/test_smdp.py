@@ -108,9 +108,6 @@ def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_vers
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
-    if "pytorch" in ecr_image and Version(framework_version) < Version("2.2"):
-        pytest.skip("Skipping smdp question answering multinode tests for PT")
-        
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdp_question_answering_function, py_version, 2
     )
