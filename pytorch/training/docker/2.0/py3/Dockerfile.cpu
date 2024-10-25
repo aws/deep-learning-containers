@@ -5,7 +5,7 @@ ARG PYTORCH_VERSION_EC2=2.0.1
 ARG PYTORCH_VERSION_SM=2.0.1
 
 # SmartSifting Binary
-ARG SMART_SIFTING_URL=https://smart-sifting-release.s3.amazonaws.com/pytorch-training/smart_sifting-1.0-py3-none-any.whl
+ARG SMART_SIFTING_URL=""
 
 FROM ubuntu:20.04 AS base_image
 
@@ -330,7 +330,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && /opt/conda/bin/mamba clean -afy
 
 # Install SmartSifting binary
-RUN pip install --no-cache-dir ${SMART_SIFTING_URL}
+# RUN pip install --no-cache-dir ${SMART_SIFTING_URL}
 
 # Patches
 RUN pip install \
