@@ -104,10 +104,13 @@ def test_smdp_question_answering(ecr_image, sagemaker_regions, py_version):
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_version):
+def test_smdp_question_answering_multinode(ecr_image, sagemaker_regions, py_version, framework_version):
     """
     Tests SM Distributed DataParallel single-node via script mode
     """
+    if "pytorch" in ecr_image and Version(framework_version) < Version("2.2"):
+        pytest.skip("Skipping smdp question answering multinode tests for PT")
+        
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_smdp_question_answering_function, py_version, 2
     )
