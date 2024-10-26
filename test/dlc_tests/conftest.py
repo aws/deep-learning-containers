@@ -1052,9 +1052,7 @@ def security_sanity():
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "security_sanity":
         pytest.skip(
-            f"Test in not running in `security_sanity` test type within the pipeline context"
-            f"or `security_sanity` test is not enabled within the PR context."
-            f"Skipping security sanity tests."
+            f"Test in not running in `security_sanity` test type within the pipeline context, Skipping current test."
         )
 
 
@@ -1068,9 +1066,7 @@ def functionality_sanity():
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "functionality_sanity":
         pytest.skip(
-            f"Test in not running in `functionality_sanity` test type within the pipeline context"
-            f"or `functionality_sanity` test is not enabled within the PR context."
-            f"Skipping functionality sanity tests."
+            f"Test in not running in `functionality_sanity` test type within the pipeline context, Skipping current test."
         )
 
 
