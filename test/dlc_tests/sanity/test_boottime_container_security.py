@@ -3,7 +3,7 @@ import pytest
 from invoke import run
 
 
-@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):

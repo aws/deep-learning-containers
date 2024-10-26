@@ -1050,9 +1050,7 @@ def security_sanity():
     otherwise, tests can run as usual such as canary/deep canary
     """
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
-    if (is_pr_context() and not is_security_sanity_test_enabled()) or (
-        is_mainline_context() and pipeline_test_type != "security_sanity"
-    ):
+    if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "security_sanity":
         pytest.skip(
             f"Test in not running in `security_sanity` test type within the pipeline context"
             f"or `security_sanity` test is not enabled within the PR context."
@@ -1068,9 +1066,7 @@ def functionality_sanity():
     otherwise, tests can run as usual such as canary/deep canary
     """
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
-    if (is_pr_context() and not is_functionality_sanity_test_enabled()) or (
-        is_mainline_context() and pipeline_test_type != "functionality_sanity"
-    ):
+    if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "functionality_sanity":
         pytest.skip(
             f"Test in not running in `functionality_sanity` test type within the pipeline context"
             f"or `functionality_sanity` test is not enabled within the PR context."
