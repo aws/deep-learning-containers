@@ -1,6 +1,14 @@
 {
-  "captum": {
-    "version_specifier": "==0.6.0",
+  "accelerate": {
+    "version_specifier": "==1.0.1",
+    "skip": "True"
+  },
+  "fastai": {
+    "version_specifier": "==2.7.18",
+    "skip": "True"
+  },
+  "s3torchconnector": {
+    "version_specifier": "==1.2.6",
     "skip": "True"
   },
   "torchaudio": {
@@ -9,6 +17,10 @@
   },
   "torchtext": {
     "version_specifier": "==0.18.0+cpu",
+    "skip": "True"
+  },
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
     "skip": "True"
   },
   "torchvision": {
@@ -22,7 +34,7 @@
     "version_specifier": ">=4.66.3"
   },
   "requests": {
-    "version_specifier": ">=2.32.2"
+    "version_specifier": ">=2.32.0"
   },
   "setuptools": {
     "version_specifier": ">=70.0.0"
@@ -33,13 +45,7 @@
   "awscli": {
     "version_specifier": "<2"
   },
-  "torchserve": {
-    "version_specifier": "==0.12.0"
-  },
-  "torch-model-archiver": {
-    "version_specifier": "==0.12.0"
-  },
-  "sagemaker-pytorch-inference": {
-    "version_specifier": "==2.0.25"
+  "numpy": {
+    "version_specifier": "<2"
   }
 }
