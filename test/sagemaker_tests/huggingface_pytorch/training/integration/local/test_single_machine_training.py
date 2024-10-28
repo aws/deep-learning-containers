@@ -17,6 +17,7 @@ from packaging.version import Version
 from sagemaker.huggingface import HuggingFace
 
 from ...integration import ROLE, distilbert_script, distilbert_torch_compiled_script
+from ...integration.local.timeout import timeout
 
 
 @pytest.mark.model("hf_bert")
@@ -29,7 +30,7 @@ def test_distilbert_base(
     docker_image, processor, instance_type, sagemaker_local_session, py_version, framework_version
 ):
     if "pytorch" in docker_image and Version(framework_version) < Version("2.2"):
-        pytest.skip("Skipping distilbert SM local tests for PT")
+        pytest.skip("Skipping distilbert SM local tests for PT")  
 
     # hyperparameters, which are passed into the training job
     hyperparameters = {
@@ -39,18 +40,19 @@ def test_distilbert_base(
         # "model_dir": "/opt/ml/model",
     }
 
-    estimator = HuggingFace(
-        entry_point=distilbert_script,
-        instance_type="local_gpu",
-        sagemaker_session=sagemaker_local_session,
-        image_uri=docker_image,
-        instance_count=1,
-        role=ROLE,
-        py_version=py_version,
-        hyperparameters=hyperparameters,
-    )
+    with timeout(minutes=30):
+        estimator = HuggingFace(
+            entry_point=distilbert_script,
+            instance_type="local_gpu",
+            sagemaker_session=sagemaker_local_session,
+            image_uri=docker_image,
+            instance_count=1,
+            role=ROLE,
+            py_version=py_version,
+            hyperparameters=hyperparameters,
+        )
 
-    estimator.fit()
+        estimator.fit()
 
 
 @pytest.mark.model("hf_bert")
@@ -72,15 +74,16 @@ def test_distilbert_base_torch_compiled(
         "model_name": "distilbert/distilbert-base-uncased",
     }
 
-    estimator = HuggingFace(
-        entry_point=distilbert_torch_compiled_script,
-        instance_type="local_gpu",
-        sagemaker_session=sagemaker_local_session,
-        image_uri=docker_image,
-        instance_count=1,
-        role=ROLE,
-        py_version=py_version,
-        hyperparameters=hyperparameters,
-    )
+    with timeout(minutes=30):
+        estimator = HuggingFace(
+            entry_point=distilbert_torch_compiled_script,
+            instance_type="local_gpu",
+            sagemaker_session=sagemaker_local_session,
+            image_uri=docker_image,
+            instance_count=1,
+            role=ROLE,
+            py_version=py_version,
+            hyperparameters=hyperparameters,
+        )
 
-    estimator.fit()
+        estimator.fit()
