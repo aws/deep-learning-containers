@@ -28,7 +28,7 @@ import time
 import json
 import logging
 
-from ...integration import model_cpu_dir
+from ...integration import model_cpu_dir, set_disable_token_auth_env
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
 
@@ -49,6 +49,8 @@ SM_GRAVITON_C7G = ["ml.c7g.4xlarge"]
 def test_mnist_distributed_cpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     instance_type = instance_type or "ml.c5.9xlarge"
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
@@ -57,6 +59,7 @@ def test_mnist_distributed_cpu_inductor(
         "framework_version": framework_version,
         "instance_type": instance_type,
         "model_dir": model_dir,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -71,6 +74,8 @@ def test_mnist_distributed_cpu_inductor(
 def test_mnist_distributed_graviton_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
     if "graviton" not in ecr_image:
@@ -80,6 +85,7 @@ def test_mnist_distributed_graviton_inductor(
         "framework_version": framework_version,
         "instance_type": instance_type,
         "model_dir": model_dir,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -94,6 +100,8 @@ def test_mnist_distributed_graviton_inductor(
 def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
+    env = {}
+    env.update(set_disable_token_auth_env(framework_version))
     if Version(framework_version) in SpecifierSet("<2.0") or Version(
         framework_version
     ) in SpecifierSet("==2.2.0"):
@@ -108,6 +116,7 @@ def test_mnist_distributed_gpu_inductor(
         "framework_version": framework_version,
         "instance_type": instance_type,
         "model_dir": model_dir,
+        "env": env,
     }
     invoke_pytorch_helper_function(
         ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
@@ -122,6 +131,7 @@ def _test_mnist_distributed(
     model_dir,
     accelerator_type=None,
     verify_logs=True,
+    env=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -137,6 +147,7 @@ def _test_mnist_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
+        env=env,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):

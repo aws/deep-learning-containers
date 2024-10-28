@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.11.9
 ARG PYTHON_SHORT_VERSION=3.11
 ARG PYTORCH_VERSION=2.4.0
 
-ARG MINIFORGE3_VERSION=24.3.0-0
+ARG MINIFORGE3_VERSION=24.7.1-2
 ARG CUDA_VERSION=12.4.1
 ARG CUDNN_VERSION=9.1.0.70
 ARG NCCL_VERSION=2.22.3
@@ -308,6 +308,12 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -396,7 +402,13 @@ ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
 
+# SageMaker Profiler Binary
+ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
+
 WORKDIR /
+
+# Install SageMaker Profiler Binary
+RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -409,6 +421,12 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -468,7 +486,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.231.0
+    # pinned for sagemaker==2.232.2
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 

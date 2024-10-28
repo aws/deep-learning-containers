@@ -6,6 +6,8 @@ import sys
 import uuid
 import copy
 
+from random import randint
+
 from collections import Counter
 
 from inspect import signature
@@ -303,6 +305,14 @@ def launch_instance(
             return response["Instances"][0]
         except ClientError as e:
             LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
+            # Refresh available reservations
+            time.sleep(randint(10, 30))
+            reservations = get_available_reservations(
+                ec2_client=client,
+                instance_type=instance_type,
+                min_availability=arguments_dict["MinCount"],
+            )
+
     # Clean up cap reservation if we don't find one
     arguments_dict.pop("CapacityReservationSpecification", None)
     LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")

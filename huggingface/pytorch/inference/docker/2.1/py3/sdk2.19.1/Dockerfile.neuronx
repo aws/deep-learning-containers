@@ -17,6 +17,7 @@ ARG NEURONX_TRANSFORMERS_VERSION=0.11.351
 ARG NEURONX_COLLECTIVES_LIB_VERSION=2.21.46.0-69b77134b
 ARG NEURONX_RUNTIME_LIB_VERSION=2.21.41.0-fb1705f5f
 ARG NEURONX_TOOLS_VERSION=2.18.3.0
+ARG NEURONX_XLA_VERSION=2.0.2335 
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
@@ -60,6 +61,8 @@ RUN apt-get update \
     libcap-dev \
     gpg-agent \
     libexpat1 \
+    libarchive13 \
+    apparmor \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -131,6 +134,7 @@ RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
     transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
+    libneuronxla==$NEURONX_XLA_VERSION \
  && pip install "protobuf>=3.18.3,<4" \
  && pip install --no-deps --no-cache-dir -U torchvision==0.16.*
 
