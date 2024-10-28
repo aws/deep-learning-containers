@@ -204,21 +204,26 @@ RUN pip install --no-cache-dir \
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
+#####################
+# IPEX installation #
+#####################
+
+# Skip ipex installation for now due to error: 0.18.0+cpu, the required version for compiling is 0.18.0+cpu...
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
-RUN pip install --no-cache-dir intel-openmp tbb pyyaml
-RUN cd /opt/ \
- && mkdir -p ipex \
- && cd /opt/ipex \
- && wget https://github.com/intel/intel-extension-for-pytorch/raw/v2.3.0%2Bcpu/scripts/compile_bundle.sh \
- && MODE=3 bash compile_bundle.sh \
- && rm -rf /opt/ipex && cd /opt/
+# RUN pip install --no-cache-dir intel-openmp tbb pyyaml
+# RUN cd /opt/ \
+#  && mkdir -p ipex \
+#  && cd /opt/ipex \
+#  && wget https://github.com/intel/intel-extension-for-pytorch/raw/v2.3.0%2Bcpu/scripts/compile_bundle.sh \
+#  && MODE=3 bash compile_bundle.sh \
+#  && rm -rf /opt/ipex && cd /opt/
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-RUN pip install --no-cache-dir \
-    "numpy<1.25" \
-    "pyyaml>=5.4"
+# RUN pip install --no-cache-dir \
+#     "numpy<1.25" \
+#     "pyyaml>=5.4"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
