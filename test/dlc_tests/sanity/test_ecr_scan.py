@@ -1,6 +1,8 @@
 import json
 import os
 from time import sleep
+from typing import List
+
 import boto3
 
 import pytest
@@ -22,6 +24,7 @@ from test.test_utils import (
     ECR_SCAN_HELPER_BUCKET,
     is_canary_context,
     get_all_the_tags_of_an_image_from_ecr,
+    is_huggingface_image,
     is_image_available_locally,
     login_to_ecr_registry,
     get_region_from_image_uri,
@@ -47,6 +50,7 @@ from test.test_utils.security import (
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
     generate_future_allowlist,
+    AllowListFormatVulnerabilityForEnhancedScan,
 )
 from src.config import is_ecr_scan_allowlist_feature_enabled
 from src import utils as src_utils
@@ -78,6 +82,8 @@ def get_minimum_sev_threshold_level(image):
 
     :param image: str Image URI for which threshold has to be set
     """
+    if is_huggingface_image():
+        return "CRITICAL"
     if is_generic_image():
         return "HIGH"
     if is_image_covered_by_allowlist_feature(image):
@@ -179,6 +185,35 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
                 image = new_image_uri
 
     return image
+
+
+def remove_allowlisted_image_vulnerabilities(
+    ecr_image_vuln_list: ECREnhancedScanVulnerabilityList,
+    vuln_allowlist: ECREnhancedScanVulnerabilityList,
+):
+    """
+    If huggingface image, removes allowlisted vulnerabilities based on (package, CVE) only.
+    Else, removes based on the subtract operator.
+
+    :param ecr_image_vuln_list: ECREnhancedScanVulnerabilityList of detected image vulnerabilities
+    :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
+    :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
+    """
+    if not is_huggingface_image():
+        return ecr_image_vuln_list - vuln_allowlist
+
+    # Relax constraints for HF images
+    new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
+    for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
+        if pkg_name not in new_image_vuln_list.vulnerability_list:
+            continue
+        pkg_cves_in_allowlist = set(list([vuln.name for vuln in allowed_pkg_vuln_list]))
+        new_image_vuln_list.remove_vulnerabilities_for_package(
+            package_name=pkg_name,
+            vulnerability_id_list=pkg_cves_in_allowlist,
+        )
+
+    return new_image_vuln_list
 
 
 def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
@@ -288,7 +323,12 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}"
         )
 
-    remaining_vulnerabilities = ecr_image_vulnerability_list - image_scan_allowlist
+    remaining_vulnerabilities = ecr_image_vulnerability_list
+    if ecr_image_vulnerability_list and image_scan_allowlist:
+        remaining_vulnerabilities = remove_allowlisted_image_vulnerabilities(
+            ecr_image_vuln_list=ecr_image_vulnerability_list,
+            vuln_allowlist=image_scan_allowlist,
+        )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
     allowlist_for_daily_scans = image_scan_allowlist
 
@@ -346,10 +386,13 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
 
     if is_mainline_context() and is_test_phase() and not is_generic_image():
+        upload_data = (
+            allowlist_for_daily_scans.vulnerability_list if allowlist_for_daily_scans else []
+        )
         upload_list = [
             {
                 "s3_filename": "ecr_allowlist.json",
-                "upload_data": allowlist_for_daily_scans.vulnerability_list,
+                "upload_data": upload_data,
             }
         ]
         add_core_packages_to_upload_list_if_exists(image, upload_list)

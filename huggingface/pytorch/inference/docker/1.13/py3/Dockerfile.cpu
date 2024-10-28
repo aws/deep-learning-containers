@@ -11,6 +11,7 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+
 # Specify multi-models LABEL to indicate container is capable of loading and serving multiple models concurrently
 # https://docs.aws.amazon.com/sagemaker/latest/dg/build-multi-model-build-container.html
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
@@ -67,6 +68,9 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     zlib1g-dev \
+    apparmor \
+    libgssapi-krb5-2 \
+    expat \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
  
@@ -110,8 +114,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     typing \
     h5py \
     requests \
-    libk5crypto3 \
-    libgssapi-krb5-2 \
     # Below 2 are included in miniconda base, but not mamba so need to install
     conda-content-trust \
     charset-normalizer \
