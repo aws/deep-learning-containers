@@ -95,10 +95,6 @@ def is_sm_benchmark_test_enabled():
     return parse_dlc_developer_configs("test", "sagemaker_benchmark_tests")
 
 
-def is_sanity_test_enabled():
-    return parse_dlc_developer_configs("test", "sanity_tests")
-
-
 def is_security_sanity_test_enabled():
     return parse_dlc_developer_configs("test", "security_sanity_tests")
 
