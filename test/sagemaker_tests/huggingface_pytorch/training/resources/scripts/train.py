@@ -44,7 +44,7 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     # load dataset
-    dataset = load_dataset("imdb")
+    dataset = load_dataset("stanfordnlp/imdb")
     metric = evaluate.load("accuracy")
 
     # tokenizer helper function
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         return tokenizer(batch["text"], padding="max_length", max_length=512, truncation=True)
 
     # load dataset
-    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+    train_dataset, test_dataset = load_dataset("stanfordnlp/imdb", split=["train", "test"])
     test_dataset = test_dataset.shuffle().select(
         range(100)
     )  # smaller the size for test dataset to 10k

@@ -36,6 +36,7 @@ def test_distilbert_base(
         "max_steps": 5,
         "train_batch_size": 4,
         "model_name": "distilbert/distilbert-base-uncased",
+        # "model_dir": "/opt/ml/model",
     }
 
     estimator = HuggingFace(
