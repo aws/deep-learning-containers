@@ -10,11 +10,12 @@ LABEL dlc_major_version="1"
 # version args
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
-ARG DIFFUSERS_VERSION=0.30.3
+ARG HUGGINGFACE_HUB_VERSION=0.25.1
+ARG DIFFUSERS_VERSION=0.31.0
 ARG EVALUATE_VERSION=0.4.3
-ARG ACCELERATE_VERSION=1.0.0
-ARG TRL_VERSION=0.10.1
-ARG PEFT_VERSION=0.12.0
+ARG ACCELERATE_VERSION=1.0.1
+ARG TRL_VERSION=0.11.4
+ARG PEFT_VERSION=0.13.2
 ARG FLASH_ATTN_VERSION=2.6.3
 ARG PYTHON=python3
 
@@ -26,6 +27,8 @@ RUN pip install --upgrade pip \
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+	# hf_transfer will be a built-in feature, remove the extra then
+    huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
 	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
@@ -37,6 +40,9 @@ RUN pip install --no-cache-dir \
 	trl==${TRL_VERSION} \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION}
+
+# hf_transfer will be a built-in feature, remove the env variavle then
+ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image

@@ -24,8 +24,8 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py311
     cuda_version: &CUDA_VERSION cu121
     os_version: &OS_VERSION ubuntu20.04
-    transformers_version: &TRANSFORMERS_VERSION 4.45.0
-    datasets_version: &DATASETS_VERSION 3.0.0
+    transformers_version: &TRANSFORMERS_VERSION 4.46.0
+    datasets_version: &DATASETS_VERSION 3.0.2
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
