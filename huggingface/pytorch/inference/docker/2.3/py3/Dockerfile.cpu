@@ -201,21 +201,17 @@ RUN pip install --no-cache-dir \
     "protobuf>=3.19.5,<=3.20.2" \
     "sagemaker-huggingface-inference-toolkit==2.4.1"
 
+# hf_transfer will be a built-in feature, remove the env variavle then
+ENV HF_HUB_ENABLE_HF_TRANSFER="1"
+
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
-RUN pip install --no-cache-dir intel-openmp tbb
+RUN pip install --no-cache-dir intel-openmp tbb pyyaml
 RUN cd /opt/ \
  && mkdir -p ipex \
  && cd /opt/ipex \
- && git clone https://github.com/intel/intel-extension-for-pytorch.git \
- && cd intel-extension-for-pytorch/ \
- && git checkout v2.3.0+cpu \
- && git submodule sync \
- && git submodule update --init --recursive \
- && cd .. \
- && ln -s intel-extension-for-pytorch/scripts/compile_bundle.sh \
+ && wget https://github.com/intel/intel-extension-for-pytorch/raw/v2.3.0%2Bcpu/scripts/compile_bundle.sh \
  && bash compile_bundle.sh \
- && /opt/conda/bin/conda install -y jemalloc gperftools -c conda-forge \
  && rm -rf /opt/ipex && cd /opt/
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
