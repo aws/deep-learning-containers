@@ -26,9 +26,10 @@ ARG TRITON_VERSION=2.3.0
 
 # HF ARGS
 ARG TRANSFORMERS_VERSION
-ARG DIFFUSERS_VERSION=0.30.3
-ARG PEFT_VERSION=0.12.0
-ARG ACCELERATE_VERSION=1.0.0
+ARG HUGGINGFACE_HUB_VERSION=0.25.1
+ARG DIFFUSERS_VERSION=0.31.0
+ARG PEFT_VERSION=0.13.2
+ARG ACCELERATE_VERSION=1.0.1
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -231,11 +232,16 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    # hf_transfer will be a built-in feature, remove the extra then
+    huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
-	"sagemaker-huggingface-inference-toolkit==2.4.0"
+	"sagemaker-huggingface-inference-toolkit==2.4.1"
+
+# hf_transfer will be a built-in feature, remove the env variavle then
+ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
