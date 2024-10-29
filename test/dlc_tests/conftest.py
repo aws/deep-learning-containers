@@ -40,8 +40,6 @@ from test.test_utils import (
     NightlyFeatureLabel,
     is_mainline_context,
     is_pr_context,
-    is_security_sanity_test_enabled,
-    is_functionality_sanity_test_enabled,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -1045,9 +1043,10 @@ def telemetry():
 @pytest.fixture(scope="session")
 def security_sanity():
     """
-    skip test if security sanity test is disabled in pr context
-    or is not the correct sanity test type in mainline context
-    otherwise, tests can run as usual such as canary/deep canary
+    Skip test if job type is not `security_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
     """
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "security_sanity":
@@ -1059,9 +1058,10 @@ def security_sanity():
 @pytest.fixture(scope="session")
 def functionality_sanity():
     """
-    skip test if functionality sanity test is disabled in pr context
-    or is not the correct sanity test type in mainline context
-    otherwise, tests can run as usual such as canary/deep canary
+    Skip test if job type is not `functionality_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
     """
     pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
     if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "functionality_sanity":
