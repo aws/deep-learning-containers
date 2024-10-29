@@ -330,10 +330,6 @@ def main():
         test_path = "sanity"
     else:
         test_path = specific_test_type
-    # NOTE: TEMP
-    # test_path = (
-    #     os.path.join("benchmark", specific_test_type) if benchmark_mode else specific_test_type
-    # )
 
     # Skipping non HuggingFace/AG specific tests to execute only sagemaker tests
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)

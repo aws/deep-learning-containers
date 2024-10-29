@@ -548,7 +548,6 @@ def test_dataclasses_check(image):
         )
 
 
-@pytest.mark.skipif(is_huggingface_image(), reason="temp")
 @pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_pip_check(image):

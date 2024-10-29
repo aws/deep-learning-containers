@@ -59,7 +59,6 @@ class SafetyPythonEnvironmentVulnerabilityReport:
         self.report = [SafetyPackageVulnerabilityReport(**i) for i in self.report]
 
 
-@pytest.mark.skipif(is_huggingface_image(), reason="temp")
 @pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(is_canary_context(), reason="Skipping test because it does not run on canary")
