@@ -51,7 +51,6 @@ from test.test_utils import (
     get_installed_python_packages_with_version,
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
-    is_huggingface_image,
 )
 
 
