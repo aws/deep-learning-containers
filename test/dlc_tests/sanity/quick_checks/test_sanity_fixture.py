@@ -28,9 +28,9 @@ def test_sanity_fixture():
     test_method_pattern = r"def (test_(.*))\("
     fixture_per_test = []
 
-    # Tests that do not in PR or MAINLINE contexts do not need to have
+    # Tests that do not run in PR or MAINLINE contexts do not need to have
     # `security_sanity` or `functionality_sanity` fixtures
-    method_allowlist = ["test_deep_canary_integration"]
+    non_pr_mainline_tests = ["test_deep_canary_integration"]
 
     # Navigate through files and look at test files at the top level test/dlc_tests/sanity/
     for item in os.listdir(sanity_test_path):
@@ -41,7 +41,8 @@ def test_sanity_fixture():
                     # If sees a `usefixtures` marker, add the list of fixtures to fixture_per_test
                     # to collect all the fixture names used within a single test method
                     if re.match(fixture_pattern, line):
-                        # If sees a multiline `usefixtures` marker, append line until see a closing `)`
+                        # If sees a multiline `usefixtures` marker,
+                        # append line until closing `)` for fixture regex matching
                         while ")" not in line:
                             line += next(file)
                         line = re.sub(r"[\"\n\t\s]*", "", line)
@@ -49,8 +50,8 @@ def test_sanity_fixture():
                         pytest_fixtures = fixture_regex.group(1).split(",")
                         fixture_per_test += pytest_fixtures
 
-                    # If sees a `test_*` method, assert XOR condition that the test must have either
-                    # `security_sanity` or `functionality_sanity` fixture, not both
+                    # If sees a `test_*` method, look for `security_sanity` or `functionality_sanity`
+                    # in the list of fixtures for that specific test
                     if re.match(test_method_pattern, line):
                         function_name = re.match(test_method_pattern, line).group(1)
                         LOGGER.debug(
@@ -59,8 +60,10 @@ def test_sanity_fixture():
                             f"within file: {file_path}"
                         )
 
-                        # Don't check tests that do not run in PR or MAINLINE contexts
-                        if function_name not in method_allowlist:
+                        # Check only tests that run in PR or MAINLINE contexts
+                        if function_name not in non_pr_mainline_tests:
+                            # Assert XOR condition that the test must have either
+                            # `security_sanity` or `functionality_sanity` fixture, not both
                             assert ("security_sanity" in fixture_per_test) ^ (
                                 "functionality_sanity" in fixture_per_test
                             ), f"{function_name} must have either `security_sanity` or `functionality_sanity` fixture"
