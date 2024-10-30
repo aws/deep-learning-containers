@@ -1183,7 +1183,7 @@ def test_package_version_regression_in_image(image):
     ), f"Package regression observed between already released image: {previous_released_image_uri} and current image: {image}. Violating packages: {json.dumps(violating_packages)}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_training_job_type_env_var(pytorch_training):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
@@ -1198,7 +1198,7 @@ def test_pytorch_training_job_type_env_var(pytorch_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_job_type_env_var(pytorch_inference):
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference)
