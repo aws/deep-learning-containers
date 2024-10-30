@@ -70,5 +70,5 @@ def test_sanity_fixture():
                                 "functionality_sanity" in test_fixtures
                             ), f"{function_name} must have either `security_sanity` or `functionality_sanity` fixture"
 
-                        # Empty fixture_per_test variable for the next test method
+                        # Empty test_fixtures list for the next test method
                         test_fixtures = []
