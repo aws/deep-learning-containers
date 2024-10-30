@@ -30,9 +30,7 @@ def test_sanity_fixture():
 
     # Tests that do not in PR or MAINLINE contexts do not need to have
     # `security_sanity` or `functionality_sanity` fixtures
-    method_allowlist = [
-        "test_deep_canary_integration"
-    ]
+    method_allowlist = ["test_deep_canary_integration"]
 
     # Navigate through files and look at test files at the top level test/dlc_tests/sanity/
     for item in os.listdir(sanity_test_path):
@@ -55,9 +53,11 @@ def test_sanity_fixture():
                     # `security_sanity` or `functionality_sanity` fixture, not both
                     if re.match(test_method_pattern, line):
                         function_name = re.match(test_method_pattern, line).group(1)
-                        LOGGER.info(f"Checking test method: {function_name}\n"
-                                    f"with the following fixtures {fixture_per_test}\n"
-                                    f"within file: {file_path}")
+                        LOGGER.info(
+                            f"Checking test method: {function_name}\n"
+                            f"with the following fixtures {fixture_per_test}\n"
+                            f"within file: {file_path}"
+                        )
 
                         # Don't check tests that do not run in PR or MAINLINE contexts
                         if function_name not in method_allowlist:
