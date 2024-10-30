@@ -26,7 +26,7 @@ def test_sanity_fixture():
 
     fixture_pattern = r"@pytest.mark.usefixtures\("
     test_method_pattern = r"def (test_(.*))\("
-    fixture_per_test = []
+    test_fixtures = []
 
     # Tests that do not run in PR or MAINLINE contexts do not need to have
     # `security_sanity` or `functionality_sanity` fixtures
@@ -45,10 +45,12 @@ def test_sanity_fixture():
                         # append line until closing `)` for fixture regex matching
                         while ")" not in line:
                             line += next(file)
+                        # Remove quotes, newlines, tabs, spaces from string
                         line = re.sub(r"[\"\n\t\s]*", "", line)
+                        # Get only the fixture names and remove `@pytest*` prefix
                         fixture_regex = re.match(rf"{fixture_pattern}(.*)\)", line)
-                        pytest_fixtures = fixture_regex.group(1).split(",")
-                        fixture_per_test += pytest_fixtures
+                        fixture_list = fixture_regex.group(1).split(",")
+                        test_fixtures += fixture_list
 
                     # If sees a `test_*` method, look for `security_sanity` or `functionality_sanity`
                     # in the list of fixtures for that specific test
@@ -56,7 +58,7 @@ def test_sanity_fixture():
                         function_name = re.match(test_method_pattern, line).group(1)
                         LOGGER.debug(
                             f"Checking test method: {function_name}\n"
-                            f"with the following fixtures {fixture_per_test}\n"
+                            f"with the following fixtures {test_fixtures}\n"
                             f"within file: {file_path}"
                         )
 
@@ -64,9 +66,9 @@ def test_sanity_fixture():
                         if function_name not in non_pr_mainline_tests:
                             # Assert XOR condition that the test must have either
                             # `security_sanity` or `functionality_sanity` fixture, not both
-                            assert ("security_sanity" in fixture_per_test) ^ (
-                                "functionality_sanity" in fixture_per_test
+                            assert ("security_sanity" in test_fixtures) ^ (
+                                "functionality_sanity" in test_fixtures
                             ), f"{function_name} must have either `security_sanity` or `functionality_sanity` fixture"
 
                         # Empty fixture_per_test variable for the next test method
-                        fixture_per_test = []
+                        test_fixtures = []
