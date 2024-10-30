@@ -52,14 +52,14 @@ def test_sanity_fixture():
                         fixture_per_test += pytest_fixtures
 
                     # If sees a `test_*` method, assert XOR condition that the test must have either
-                    # `security_sanity` or `functionality_sanity` fixture, not both.
+                    # `security_sanity` or `functionality_sanity` fixture, not both
                     if re.match(test_method_pattern, line):
                         function_name = re.match(test_method_pattern, line).group(1)
                         LOGGER.info(f"Checking test method: {function_name}\n"
                                     f"with the following fixtures {fixture_per_test}\n"
                                     f"within file: {file_path}")
 
-                        # If method is within the allowlist, skip
+                        # Don't check tests that do not run in PR or MAINLINE contexts
                         if function_name not in method_allowlist:
                             assert ("security_sanity" in fixture_per_test) ^ (
                                 "functionality_sanity" in fixture_per_test
