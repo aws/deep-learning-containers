@@ -22,7 +22,7 @@ def test_sanity_fixture():
 
     # Look only at test files within the sanity test directory
     sanity_test_path = os.path.join(repository_path, "test", "dlc_tests", "sanity")
-    LOGGER.info(f"Test directory: {sanity_test_path}")
+    LOGGER.debug(f"Test directory: {sanity_test_path}")
 
     fixture_pattern = r"@pytest.mark.usefixtures\("
     test_method_pattern = r"def (test_(.*))\("
@@ -53,7 +53,7 @@ def test_sanity_fixture():
                     # `security_sanity` or `functionality_sanity` fixture, not both
                     if re.match(test_method_pattern, line):
                         function_name = re.match(test_method_pattern, line).group(1)
-                        LOGGER.info(
+                        LOGGER.debug(
                             f"Checking test method: {function_name}\n"
                             f"with the following fixtures {fixture_per_test}\n"
                             f"within file: {file_path}"
