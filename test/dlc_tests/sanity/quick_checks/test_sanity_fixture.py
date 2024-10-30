@@ -16,6 +16,14 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
 def test_sanity_fixture():
+    """
+    Checks that each sanity test that run within PR or MAINLINE contexts
+    under test/dlc_tests/sanity/ directory contains either
+    `security_sanity` or `functionality_sanity`, not both.
+
+    This test assumes that each test method declare the fixtures
+    using marker pattern `@pytest.mark.usefixtures()` for regex matching.
+    """
     repository_path = os.getenv("CODEBUILD_SRC_DIR")
     if not repository_path:
         repository_path = get_repository_local_path()
@@ -65,7 +73,7 @@ def test_sanity_fixture():
                         # Check only tests that run in PR or MAINLINE contexts
                         if function_name not in non_pr_mainline_tests:
                             # Assert XOR condition that the test must have either
-                            # `security_sanity` or `functionality_sanity` fixture, not both
+                            # `security_sanity` or `functionality_sanity` fixture
                             assert ("security_sanity" in test_fixtures) ^ (
                                 "functionality_sanity" in test_fixtures
                             ), f"{function_name} must have either `security_sanity` or `functionality_sanity` fixture"
