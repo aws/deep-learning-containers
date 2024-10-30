@@ -356,6 +356,7 @@ def main():
         return
 
     if specific_test_type in (
+        "sanity",
         "security_sanity",
         "functionality_sanity",
         "telemetry",
@@ -381,7 +382,7 @@ def main():
         os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
-        if "sanity" in specific_test_type or specific_test_type == "telemetry":
+        if "sanity" in specific_test_type:
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
@@ -568,7 +569,7 @@ def main():
             sm_utils.generate_empty_report(report, test_type, "eia")
     else:
         raise NotImplementedError(
-            f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker, telemetry and sanity currently"
+            f"{test_type} test is not supported. Only support ec2, ecs, eks, sagemaker, telemetry, security_sanity, and functionality_sanity currently"
         )
 
 

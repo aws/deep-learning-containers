@@ -1033,8 +1033,12 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
 @pytest.fixture(scope="session")
 def telemetry():
-    telemetry_test = os.getenv("TEST_TYPE", "UNDEFINED")
-    if is_mainline_context() and telemetry_test != "telemetry":
+    """
+    Telemetry tests are run in ec2 job in PR context but will run in its own job in MAINLINE context.
+    This fixture ensures that only telemetry tests are run in the `telemetry` job in the MAINLINE context.
+    """
+    is_telemetry_test_job = os.getenv("TEST_TYPE") == "telemetry"
+    if is_mainline_context() and not is_telemetry_test_job:
         pytest.skip(
             f"Test in not running in telemetry job in the pipeline context, Skipping current test."
         )
@@ -1048,8 +1052,8 @@ def security_sanity():
     Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
     Both should not be used at the same time. If neither are used, the test will run in both jobs.
     """
-    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
-    if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "security_sanity":
+    is_security_sanity_test_job = os.getenv("TEST_TYPE") == "security_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_security_sanity_test_job:
         pytest.skip(
             f"Test in not running in `security_sanity` test type within the pipeline context, Skipping current test."
         )
@@ -1063,8 +1067,8 @@ def functionality_sanity():
     Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
     Both should not be used at the same time. If neither are used, the test will run in both jobs.
     """
-    pipeline_test_type = os.getenv("TEST_TYPE", "UNDEFINED")
-    if (is_pr_context() or is_mainline_context()) and pipeline_test_type != "functionality_sanity":
+    is_functionality_sanity_test_job = os.getenv("TEST_TYPE") == "functionality_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_functionality_sanity_test_job:
         pytest.skip(
             f"Test in not running in `functionality_sanity` test type within the pipeline context, Skipping current test."
         )
