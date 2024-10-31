@@ -99,7 +99,7 @@ def test_sanity_fixture_api():
     sanity_test_path = os.path.join(repository_path, "test", "dlc_tests", "sanity")
     LOGGER.info(f"Test directory: {sanity_test_path}")
 
-    files = [file for file in os.listdir(sanity_test_path) if re.match(r"test_(.*)\.py", file)]
+    files = [os.path.join(sanity_test_path, file) for file in os.listdir(sanity_test_path) if re.match(r"test_(.*)\.py", file)]
 
     for file in files:
         nodes = pytest.main([str(file), "--collect-only"])
