@@ -7,6 +7,8 @@ import glob
 import pytest
 
 from pprint import pprint
+import subprocess
+
 
 from test.test_utils import PR_ONLY_REASON, get_repository_local_path, is_pr_context
 
@@ -100,5 +102,5 @@ def test_sanity_fixture_api():
     files = glob.glob("test_*.py", root_dir=sanity_test_path)
 
     for file in files:
-        nodes = pytest.main([str(file), "--collect-only"])
+        nodes = subprocess.run(["python", "-m", "pytest", str(file), "--collect-only"])
         LOGGER.info(nodes)
