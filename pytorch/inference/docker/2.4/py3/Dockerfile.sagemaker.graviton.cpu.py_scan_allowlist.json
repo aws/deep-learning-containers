@@ -1,0 +1,5 @@
+{
+  "70612": "In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the \"source\" parameter as a template object, renders it, and then returns it. The attacker can exploit it with {{INJECTION COMMANDS}} in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
+  "71670": "torch is a core package, and this version is not affected: 'A vulnerability in the PyTorch's torch.distributed.rpc framework, specifically in versions prior to 2.2.2, allows for remote code execution (RCE)'",
+  "65213": "From OpenSSL: Due to the low severity of this issue we are not issuing new releases of OpenSSL at this time. The fix will be included in the next releases when they become available."
+}

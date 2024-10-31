@@ -70,6 +70,7 @@ RUN apt-get update \
     libcudnn8=${CUDNN_VERSION}-1+cuda11.8 \
     curl \
     emacs \
+    expat \
     git \
     jq \
     libgl1-mesa-glx \
@@ -78,6 +79,7 @@ RUN apt-get update \
     libibverbs-dev \
     libnuma1 \
     libnuma-dev \
+    libkrb5-3 \
     libsm6 \
     libssl1.1 \
     libssl-dev \
@@ -95,6 +97,7 @@ RUN apt-get update \
     ffmpeg \
     openssh-client \
     openssh-server \
+    apparmor \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean

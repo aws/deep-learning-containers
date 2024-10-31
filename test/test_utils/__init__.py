@@ -132,6 +132,18 @@ UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
+UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
+)
 
 # Using latest ARM64 AMI (pytorch) - however, this will fail for TF benchmarks, so TF benchmarks are currently
 # disabled for Graviton.
@@ -726,6 +738,12 @@ def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
 
 
+def is_huggingface_image():
+    if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        return False
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
+
+
 def is_covered_by_ec2_sm_split(image_uri):
     ec2_sm_split_images = {
         "pytorch": SpecifierSet(">=1.10.0"),
@@ -966,13 +984,12 @@ def request_pytorch_inference_densenet(
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
         LOGGER.error(
-            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\n",
-            f"Return Code: {run_out.return_code=}\n",
-            f"Error: {run_out.stderr=}",
+            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\nReturn Code: {run_out.return_code}\nError: {run_out.stderr}\nStdOut: {run_out.stdout}"
         )
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
         if not (
             (
                 "neuron" in model_name
@@ -991,7 +1008,6 @@ def request_pytorch_inference_densenet(
             )
         ):
             return False
-        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -1113,8 +1129,15 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         server_cmd = "multi-model-server"
 
     if processor != "neuron":
+        # PyTorch 2.4 requires token authentication to be disabled.
+        _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
+        auth_arg = (
+            " --disable-token-auth"
+            if _framework == "pytorch" and Version(_version) in SpecifierSet(">=2.4")
+            else ""
+        )
         mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            f"{server_cmd} --start{auth_arg} --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
         )
     else:
