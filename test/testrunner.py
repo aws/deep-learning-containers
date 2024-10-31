@@ -356,7 +356,6 @@ def main():
         return
 
     if specific_test_type in (
-        "sanity",
         "security_sanity",
         "functionality_sanity",
         "telemetry",
