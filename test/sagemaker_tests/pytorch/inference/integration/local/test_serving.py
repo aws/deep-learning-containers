@@ -35,7 +35,6 @@ from ...integration import (
     model_cpu_1d_dir,
     call_model_fn_once_script,
     ROLE,
-    set_disable_token_auth_env,
 )
 from ...utils import local_mode_utils
 
@@ -64,8 +63,6 @@ def fixture_test_loader():
 def test_serve_json_npy(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     model_dir = model_gpu_dir if use_gpu else model_cpu_dir
     with _predictor(
         model_dir,
@@ -74,7 +71,6 @@ def test_serve_json_npy(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        env,
         1,
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
@@ -87,8 +83,6 @@ def test_serve_json_npy(
 def test_serve_csv(
     test_loader, use_gpu, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_1d_dir,
         mnist_1d_script,
@@ -96,7 +90,6 @@ def test_serve_csv(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        env,
     ) as predictor:
         for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
             _assert_prediction_csv(predictor, test_loader, accept)
@@ -109,8 +102,6 @@ def test_serve_csv(
 def test_serve_cpu_model_on_gpu(
     test_loader, docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_1d_dir,
         mnist_1d_script,
@@ -118,7 +109,6 @@ def test_serve_cpu_model_on_gpu(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        env,
     ) as predictor:
         _assert_prediction_npy_json(predictor, test_loader, content_types.NPY, content_types.JSON)
 
@@ -130,8 +120,6 @@ def test_serve_cpu_model_on_gpu(
 def test_serving_calls_model_fn_once(
     docker_image, framework_version, sagemaker_local_session, instance_type
 ):
-    env = {}
-    env.update(set_disable_token_auth_env(framework_version))
     with _predictor(
         model_cpu_dir,
         call_model_fn_once_script,
@@ -139,7 +127,6 @@ def test_serving_calls_model_fn_once(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        env,
         model_server_workers=2,
     ) as predictor:
         predictor.deserializer = deserializers.BytesDeserializer()
