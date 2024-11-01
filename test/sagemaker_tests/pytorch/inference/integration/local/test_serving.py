@@ -71,7 +71,7 @@ def test_serve_json_npy(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        1,
+        model_server_workers=1,
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
@@ -146,8 +146,8 @@ def _predictor(
     framework_version,
     sagemaker_local_session,
     instance_type,
-    env=None,
     model_server_workers=None,
+    env=None,
 ):
     model = PyTorchModel(
         "file://{}/model.tar.gz".format(model_dir),
