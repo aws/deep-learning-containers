@@ -21,7 +21,7 @@ ARG TRANSFORMERS_VERSION
 ARG HUGGINGFACE_HUB_VERSION=0.25.1
 ARG DIFFUSERS_VERSION=0.31.0
 ARG PEFT_VERSION=0.13.2
-ARG ACCELERATE_VERSION=1.0.1
+ARG ACCELERATE_VERSION=1.1.0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -143,7 +143,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "ipython>=8.10.0,<9.0" \
     "awscli<2" \
     "urllib3>=1.26.18,<2" \
-    "prompt-toolkit<3.0.39"
+    "prompt-toolkit<3.0.39" \
+    "setuptools>=70.0.0"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # is CPU image, removing nvgpu
