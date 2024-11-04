@@ -43,6 +43,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 | Asia Pacific (Melbourne)		 | ap-southeast-4 	 |Available 			|None			| 457447274322.dkr.ecr.ap-southeast-4.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Canada (Central)			        | ca-central-1		   |Available 			|None				| 763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
+| Canada (Calgary)			        | ca-west-1		   |Available 			|None				| 204538143572.dkr.ecr.ca-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Frankfurt) 			         | eu-central-1		   |Available 			|Available			| 763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Zurich) 			            | eu-central-2		   |Available 			|None			| 380420809688.dkr.ecr.eu-central-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Ireland) 				          | eu-west-1			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
@@ -184,6 +185,7 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 
 | Framework                                                                                                                    | Job Type  | Accelerator | Python Version Options | Example URL                                                                               |
 |------------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|-------------------------------------------------------------------------------------------|
+| DJLServing 0.30.0 with LMI Dist 12.0.0, vLLM 0.6.2, HuggingFace Transformers 4.45.2, and HuggingFace Accelerate 1.0.1        | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.30.0-lmi12.0.0-cu124         | 
 | DJLServing 0.29.0 with TensorRT-LLM 0.11.0, HuggingFace Transformers 4.42.4, and HuggingFace Accelerate 0.32.1               | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.29.0-tensorrtllm0.11.0-cu124 |
 | DJLServing 0.29.0 with LMI Dist 11.0.0, HuggingFace Transformers 4.43.2, HuggingFace Accelerate 0.32.1                       | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.29.0-lmi11.0.0-cu124         |
 | DJLServing 0.29.0 with Neuron SDK 2.19.1, TransformersNeuronX 0.11.351 and HuggingFace Transformers 4.43.1                   | inference | Neuron      | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.29.0-neuronx-sdk2.19.1       |
@@ -191,7 +193,6 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 | DJLServing 0.28.0 with LMI Dist 0.10.0, HuggingFace Transformers 4.41.1, HuggingFace Accelerate 0.30.1                       | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-lmi10.0.0-cu124         |
 | DJLServing 0.28.0 with Neuron SDK 2.18.2, TransformersNeuronX 0.10.0.360 and HuggingFace Transformers 4.36.2                 | inference | Neuron      | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-neuronx-sdk2.18.2       |
 | DJLServing 0.27.0 with TensorRT-LLM 0.8.0, HuggingFace Transformers 4.38.1, and HuggingFace Accelerate 0.27.0                | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-tensorrtllm0.8.0-cu122  |
-| DJLServing 0.27.0 with DeepSpeed 0.12.6, HuggingFace Transformers 4.39.0, Diffusers 0.16.0 and HuggingFace Accelerate 0.28.0 | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-deepspeed0.12.6-cu121   |
 | DJLServing 0.27.0 with Neuron SDK 2.18.1, TransformersNeuronX 0.10.0.360 and HuggingFace Transformers 4.36.2                 | inference | Neuron      | 3.9 (py39)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-neuronx-sdk2.18.1       |
 
 DJL CPU Full Inference Containers
