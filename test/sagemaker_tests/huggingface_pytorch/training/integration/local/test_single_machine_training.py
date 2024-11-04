@@ -29,7 +29,7 @@ def test_distilbert_base(
     docker_image, processor, instance_type, sagemaker_local_session, py_version, framework_version
 ):
     if "pytorch" in docker_image and Version(framework_version) < Version("2.2"):
-        pytest.skip("Skipping distilbert SM local tests for PT")  
+        pytest.skip("Skipping distilbert SM local tests for PT")
 
     # hyperparameters, which are passed into the training job
     hyperparameters = {
