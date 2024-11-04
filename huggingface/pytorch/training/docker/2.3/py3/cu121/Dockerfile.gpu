@@ -20,7 +20,7 @@ ARG FLASH_ATTN_VERSION=2.6.3
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
-RUN pip install --upgrade pip \
+RUN pip install --upgrade "pip==24.1.2" \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
