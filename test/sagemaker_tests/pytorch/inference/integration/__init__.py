@@ -11,8 +11,6 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
 import os
 
@@ -61,7 +59,3 @@ ROLE = "dummy/unused-role"
 DEFAULT_TIMEOUT = 20
 
 RESOURCE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
-
-
-def set_disable_token_auth_env(framework_version):
-    return {}

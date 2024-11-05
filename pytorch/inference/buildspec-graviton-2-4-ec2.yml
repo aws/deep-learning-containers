@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.4.0
 short_version: &SHORT_VERSION "2.4"
 arch_type: graviton
-autopatch_build: "True"
+# autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
@@ -40,7 +40,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
     os_version: &OS_VERSION ubuntu22.04
-    torch_serve_version: &TORCHSERVE_VERSION 0.11.1
+    torch_serve_version: &TORCHSERVE_VERSION 0.12.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     # build_tag_override: "beta:2.4.0-cpu-py311-ubuntu22.04-ec2"
@@ -57,7 +57,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py311
     cuda_version: &CUDA_VERSION cu124
     os_version: &OS_VERSION ubuntu22.04
-    torch_serve_version: &TORCHSERVE_VERSION 0.11.1
+    torch_serve_version: &TORCHSERVE_VERSION 0.12.0
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION , "-ec2"]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     # build_tag_override: "beta:2.4.0-gpu-py311-cu124-ubuntu22.04-ec2"
