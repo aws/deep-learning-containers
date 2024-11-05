@@ -135,7 +135,7 @@ RUN apt-get update \
  && apt-get clean
 
 # Install OpenMPI
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
  && cd openmpi-${OPEN_MPI_VERSION} \
  && ./configure --prefix=/home/.openmpi --with-cuda \
