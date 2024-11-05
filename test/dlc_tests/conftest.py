@@ -38,6 +38,8 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_mainline_context,
+    is_pr_context,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -1030,6 +1032,49 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
 
 
 @pytest.fixture(scope="session")
+def telemetry():
+    """
+    Telemetry tests are run in ec2 job in PR context but will run in its own job in MAINLINE context.
+    This fixture ensures that only telemetry tests are run in the `telemetry` job in the MAINLINE context.
+    """
+    is_telemetry_test_job = os.getenv("TEST_TYPE") == "telemetry"
+    if is_mainline_context() and not is_telemetry_test_job:
+        pytest.skip(
+            f"Test in not running in telemetry job in the pipeline context, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
+def security_sanity():
+    """
+    Skip test if job type is not `security_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
+    """
+    is_security_sanity_test_job = os.getenv("TEST_TYPE") == "security_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_security_sanity_test_job:
+        pytest.skip(
+            f"Test in not running in `security_sanity` test type within the pipeline context, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    """
+    Skip test if job type is not `functionality_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
+    """
+    is_functionality_sanity_test_job = os.getenv("TEST_TYPE") == "functionality_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_functionality_sanity_test_job:
+        pytest.skip(
+            f"Test in not running in `functionality_sanity` test type within the pipeline context, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
 def dlc_images(request):
     return request.config.getoption("--images")
 
@@ -1630,7 +1675,7 @@ def pytest_generate_tests(metafunc):
                     if (
                         "stabilityai" not in metafunc.fixturenames
                         and "stabilityai" in image
-                        and os.getenv("TEST_TYPE") != "sanity"
+                        and "sanity" not in os.getenv("TEST_TYPE")
                     ):
                         LOGGER.info(
                             f"Skipping test, as this function is not marked as 'stabilityai'"

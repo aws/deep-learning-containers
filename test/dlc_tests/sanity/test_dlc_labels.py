@@ -8,7 +8,7 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
 def test_dlc_major_version_label(image, region):
@@ -27,7 +27,7 @@ def test_dlc_major_version_label(image, region):
     test_utils.LOGGER.info(f"{image} has 'dlc_major_version' = {major_version}")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
@@ -91,7 +91,7 @@ def test_dlc_standard_labels(image, region):
         )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_max_sagemaker_labels(image, region):
@@ -112,7 +112,7 @@ def test_max_sagemaker_labels(image, region):
     )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_major_version_label")
 @pytest.mark.model("N/A")
 def test_dlc_major_version_dockerfiles(image):
@@ -257,7 +257,7 @@ def test_dlc_major_version_dockerfiles(image):
     not test_utils.is_mainline_context(),
     reason="This test only applies to Release Candidate images",
 )
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.integration("dlc_nightly_feature_label")
 @pytest.mark.model("N/A")
 def test_dlc_nightly_feature_labels(image, region):
