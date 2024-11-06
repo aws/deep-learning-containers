@@ -12,7 +12,7 @@ from test.test_utils import (
 )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.skipif(not is_pr_context(), reason=PR_ONLY_REASON)
 @pytest.mark.model("N/A")
 def test_binary_visibility(image: str):

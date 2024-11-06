@@ -738,6 +738,14 @@ def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
 
 
+def is_security_sanity_test_enabled():
+    return config.is_security_sanity_test_enabled()
+
+
+def is_functionality_sanity_test_enabled():
+    return config.is_functionality_sanity_test_enabled()
+
+
 def is_huggingface_image():
     if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
         return False
@@ -1270,7 +1278,7 @@ def get_dlc_images():
         with open(test_env_file) as test_env:
             test_images = json.load(test_env)
         for dlc_test_type, images in test_images.items():
-            if dlc_test_type == "sanity":
+            if "sanity" in dlc_test_type:
                 return " ".join(images)
         raise RuntimeError(f"Cannot find any images for in {test_images}")
     return None
