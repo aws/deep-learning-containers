@@ -1040,7 +1040,7 @@ def telemetry():
     is_telemetry_test_job = os.getenv("TEST_TYPE") == "telemetry"
     if is_mainline_context() and not is_telemetry_test_job:
         pytest.skip(
-            f"Test in not running in telemetry job in the pipeline context, Skipping current test."
+            f"Test in not running in `telemetry` job in the pipeline context, Skipping current test."
         )
 
 
@@ -1055,7 +1055,7 @@ def security_sanity():
     is_security_sanity_test_job = os.getenv("TEST_TYPE") == "security_sanity"
     if (is_pr_context() or is_mainline_context()) and not is_security_sanity_test_job:
         pytest.skip(
-            f"Test in not running in `security_sanity` test type within the pipeline context, Skipping current test."
+            f"Test in not running in `security_sanity` test type job, Skipping current test."
         )
 
 
@@ -1070,7 +1070,7 @@ def functionality_sanity():
     is_functionality_sanity_test_job = os.getenv("TEST_TYPE") == "functionality_sanity"
     if (is_pr_context() or is_mainline_context()) and not is_functionality_sanity_test_job:
         pytest.skip(
-            f"Test in not running in `functionality_sanity` test type within the pipeline context, Skipping current test."
+            f"Test in not running in `functionality_sanity` test type job, Skipping current test."
         )
 
 
