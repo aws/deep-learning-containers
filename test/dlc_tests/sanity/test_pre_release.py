@@ -89,7 +89,7 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     return rf"{overall_regex_string}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
@@ -136,7 +136,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
@@ -166,7 +166,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
@@ -190,14 +190,14 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_image_tags(image, ecr_client):
     all_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
     assert not any("benchmark-tested" in tag for tag in all_tags)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
 def test_tf_serving_version_cpu(tensorflow_inference):
@@ -250,7 +250,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tf_serving_api_version(tensorflow_inference):
     """
@@ -292,25 +292,25 @@ def test_tf_serving_api_version(tensorflow_inference):
         stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference, region)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
@@ -414,7 +414,7 @@ def test_framework_version_cpu(image):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_framework_and_neuron_sdk_version(neuron):
     """
@@ -500,14 +500,14 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
@@ -515,7 +515,7 @@ def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_c
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_dataclasses_check(image):
     """
@@ -547,7 +547,7 @@ def test_dataclasses_check(image):
         )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_pip_check(image):
     """
@@ -676,7 +676,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -930,7 +930,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     assert cuda_version in cuda_output.stdout.replace(".", "")
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
@@ -1006,7 +1006,7 @@ def test_oss_compliance(image):
                     raise
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_training_sm_env_variables(pytorch_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"}
@@ -1018,7 +1018,7 @@ def test_pytorch_training_sm_env_variables(pytorch_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_sm_env_variables(pytorch_inference):
     env_vars = {"SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"}
@@ -1030,7 +1030,7 @@ def test_pytorch_inference_sm_env_variables(pytorch_inference):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tensorflow_training_sm_env_variables(tensorflow_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_tensorflow_container.training:main"}
@@ -1042,7 +1042,7 @@ def test_tensorflow_training_sm_env_variables(tensorflow_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     _, fw_version = get_framework_and_version_from_tag(tensorflow_inference)
@@ -1057,7 +1057,7 @@ def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_mxnet_training_sm_env_variables(mxnet_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_mxnet_container.training:main"}
@@ -1069,7 +1069,7 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_core_package_version(image):
     """
@@ -1115,6 +1115,7 @@ def test_core_package_version(image):
     ), f"Few packages violate the core_package specifications: {violation_data}"
 
 
+@pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 def test_package_version_regression_in_image(image):
     """

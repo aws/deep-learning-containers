@@ -403,7 +403,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("ECR Enhanced Scans on Images")
 def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
