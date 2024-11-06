@@ -54,7 +54,7 @@ def test_sanity_fixture():
         if test_name not in non_pr_mainline_tests:
             # Append to failed assertion result on XOR condition that the test
             # must have either `security_sanity` or `functionality_sanity` fixture
-            if ("security_sanity" in test_fixtures) ^ ("functionality_sanity" in test_fixtures):
+            if not (("security_sanity" in test_fixtures) ^ ("functionality_sanity" in test_fixtures)):
                 failed_assertion = "\n".join([failed_assertion, f"{test_name} must have either `security_sanity` or `functionality_sanity` fixture"])
 
     # Throw assertion error if failed_assertion string is not empty
@@ -76,14 +76,14 @@ def test_telemetry_fixture():
     if not repository_path:
         repository_path = get_repository_local_path()
 
-    # Look only at test files within the sanity test directory
+    # Look only at ec2 telemetry test file
     telemetry_test_path = os.path.join(repository_path, "test", "dlc_tests", "ec2", "test_telemetry.py")
     LOGGER.debug(f"Test path: {telemetry_test_path}")
 
     telemetry_test_fixture_mapping = {}
     failed_assertion = ""
 
-    # Navigate through files and look at test files at the top level test/dlc_tests/sanity/
+    # Look at ec2 telemetry test file
     _update_test_fixtures_mapping(telemetry_test_path, telemetry_test_fixture_mapping)
 
     for test_name, test_fixtures in telemetry_test_fixture_mapping.items():
@@ -92,7 +92,7 @@ def test_telemetry_fixture():
             f"with the following fixtures {test_fixtures}\n"
         )
         # Append to failed assertion result if ec2 telemetry tests doesn't contain a `telemetry` fixture
-        if "telemetry" in test_fixtures:
+        if "telemetry" not in test_fixtures:
             failed_assertion = "\n".join([failed_assertion, f"{test_name} must have `telemetry` fixture"])
 
     # Throw assertion error if failed_assertion string is not empty
@@ -120,11 +120,10 @@ def _update_test_fixtures_mapping(file_to_check, test_fixtures_mapping):
                 fixture_list = fixture_regex.group(1).split(",")
                 fixture_list += fixture_list
 
-            # If sees a `test_*` method, look for `security_sanity` or `functionality_sanity`
-            # in the list of fixtures for that specific test
+            # If sees a `test_*` method, update the <test_name> : <fixture_list> dictionary
             if re.match(test_func_pattern, line):
                 function_name = re.match(test_func_pattern, line).group(1)
                 # Map list of fixtures per tests
-                test_fixtures_mapping[function_name] = fixture_list
+                test_fixtures_mapping[f"{os.path.basename(file_to_check)}::{function_name}"] = fixture_list
                 # Empty test_fixtures list for the next test method
                 fixture_list = []
