@@ -9,7 +9,7 @@ ARG OPEN_MPI_VERSION=4.1.7
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torch-2.5.1%2Bcpu-cp311-cp311-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torchvision-0.20.0%2Bcpu-cp311-cp311-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torchvision-0.20.1%2Bcpu-cp311-cp311-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torchaudio-2.5.1%2Bcpu-cp311-cp311-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torchtext-0.18.0%2Bcpu-cp311-cp311-linux_x86_64.whl
 

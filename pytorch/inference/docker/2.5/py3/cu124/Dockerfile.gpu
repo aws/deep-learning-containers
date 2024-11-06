@@ -10,7 +10,7 @@ ARG NCCL_VERSION=2.23.4
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cu124/torch-2.5.1%2Bcu124-cp311-cp311-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cu124/torchvision-0.20.0%2Bcu124-cp311-cp311-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cu124/torchvision-0.20.1%2Bcu124-cp311-cp311-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cu124/torchaudio-2.5.1%2Bcu124-cp311-cp311-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.4.0/x86/cu124/torchtext-0.18.0%2Bcu124-cp311-cp311-linux_x86_64.whl
 
