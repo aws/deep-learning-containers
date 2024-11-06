@@ -47,15 +47,21 @@ def test_sanity_fixture():
 
     for test_name, test_fixtures in sanity_test_fixture_mapping.items():
         LOGGER.debug(
-            f"Checking test method: {test_name}\n"
-            f"with the following fixtures {test_fixtures}\n"
+            f"Checking test method: {test_name} with the following fixtures {test_fixtures}\n"
         )
         # Check only tests that run in PR or MAINLINE contexts
         if test_name not in non_pr_mainline_tests:
             # Append to failed assertion result on XOR condition that the test
             # must have either `security_sanity` or `functionality_sanity` fixture
-            if not (("security_sanity" in test_fixtures) ^ ("functionality_sanity" in test_fixtures)):
-                failed_assertion = "\n".join([failed_assertion, f"{test_name} must have either `security_sanity` or `functionality_sanity` fixture"])
+            if not (
+                ("security_sanity" in test_fixtures) ^ ("functionality_sanity" in test_fixtures)
+            ):
+                failed_assertion = "\n".join(
+                    [
+                        failed_assertion,
+                        f"{test_name} must have either `security_sanity` or `functionality_sanity` fixture, current fixtures: {test_fixtures}",
+                    ]
+                )
 
     # Throw assertion error if failed_assertion string is not empty
     assert not failed_assertion, f"{failed_assertion}"
@@ -77,7 +83,9 @@ def test_telemetry_fixture():
         repository_path = get_repository_local_path()
 
     # Look only at ec2 telemetry test file
-    telemetry_test_path = os.path.join(repository_path, "test", "dlc_tests", "ec2", "test_telemetry.py")
+    telemetry_test_path = os.path.join(
+        repository_path, "test", "dlc_tests", "ec2", "test_telemetry.py"
+    )
     LOGGER.debug(f"Test path: {telemetry_test_path}")
 
     telemetry_test_fixture_mapping = {}
@@ -88,12 +96,16 @@ def test_telemetry_fixture():
 
     for test_name, test_fixtures in telemetry_test_fixture_mapping.items():
         LOGGER.debug(
-            f"Checking test method: {test_name}\n"
-            f"with the following fixtures {test_fixtures}\n"
+            f"Checking test method: {test_name} with the following fixtures {test_fixtures}\n"
         )
         # Append to failed assertion result if ec2 telemetry tests doesn't contain a `telemetry` fixture
         if "telemetry" not in test_fixtures:
-            failed_assertion = "\n".join([failed_assertion, f"{test_name} must have `telemetry` fixture"])
+            failed_assertion = "\n".join(
+                [
+                    failed_assertion,
+                    f"{test_name} must have `telemetry` fixture, current fixtures: {test_fixtures}",
+                ]
+            )
 
     # Throw assertion error if failed_assertion string is not empty
     assert not failed_assertion, f"{failed_assertion}"
@@ -124,6 +136,8 @@ def _update_test_fixtures_mapping(file_to_check, test_fixtures_mapping):
             if re.match(test_func_pattern, line):
                 function_name = re.match(test_func_pattern, line).group(1)
                 # Map list of fixtures per tests
-                test_fixtures_mapping[f"{os.path.basename(file_to_check)}::{function_name}"] = fixture_list
+                test_fixtures_mapping[
+                    f"{os.path.basename(file_to_check)}::{function_name}"
+                ] = fixture_list
                 # Empty test_fixtures list for the next test method
                 fixture_list = []
