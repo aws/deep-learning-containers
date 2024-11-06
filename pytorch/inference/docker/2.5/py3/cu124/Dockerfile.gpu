@@ -183,12 +183,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipython \
     h5py \
     mpi4py \
-    # "idna>=3.7" \
-    # "tqdm>=4.66.3" \
-    # "requests>=2.32.2" \
-    # "setuptools>=70.0.0" \
-    # "urllib3<2" \
-    # "awscli<2" \
     idna \
     tqdm \
     requests \
@@ -231,8 +225,6 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # Patches
-# py-vuln: 71064
-# RUN pip install --no-cache-dir -U "requests>=2.32.3"
 RUN pip install --no-cache-dir -U requests
 
 # create user and folders
