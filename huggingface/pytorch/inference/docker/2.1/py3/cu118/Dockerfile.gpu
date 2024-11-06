@@ -167,7 +167,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     "urllib3>=1.26.18,<2" \
     "idna>=3.7" \
-    ninja==1.11.1 \
+    ninja==1.11.1
 
 WORKDIR /root
 
@@ -223,8 +223,7 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.25.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.24" \
-	"sagemaker-huggingface-inference-toolkit==2.3" \
-    "huggingface_hub==0.25.2"
+	"sagemaker-huggingface-inference-toolkit==2.3"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
