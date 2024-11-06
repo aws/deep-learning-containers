@@ -4,7 +4,7 @@ ARG PYTHON_SHORT_VERSION=3.11
 ARG PYTORCH_VERSION=2.5.1
 
 ARG MINIFORGE3_VERSION=24.7.1-2
-ARG OPEN_MPI_VERSION=5.0.5
+ARG OPEN_MPI_VERSION=4.1.7
 ARG CUDNN_VERSION=9.1.0.70
 ARG NCCL_VERSION=2.23.4
 
@@ -135,7 +135,7 @@ RUN apt-get update \
  && apt-get clean
 
 # Install OpenMPI
-RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v5.0/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
  && cd openmpi-${OPEN_MPI_VERSION} \
  && ./configure --prefix=/home/.openmpi --with-cuda \

@@ -5,7 +5,7 @@ ARG PYTORCH_VERSION=2.5.1
 
 ARG MINIFORGE3_VERSION=24.7.1-2
 # confirm
-ARG OPEN_MPI_VERSION=5.0.5
+ARG OPEN_MPI_VERSION=4.1.7
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cpu/torch-2.5.1%2Bcpu-cp311-cp311-linux_x86_64.whl
@@ -101,7 +101,7 @@ RUN apt-get update \
  && apt-get clean
 
 # Install OpenMPI
-RUN wget https://www.open-mpi.org/software/ompi/v5.0/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
+RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-${OPEN_MPI_VERSION}.tar.gz \
  && gunzip -c openmpi-${OPEN_MPI_VERSION}.tar.gz | tar xf - \
  && cd openmpi-${OPEN_MPI_VERSION} \
  && ./configure --prefix=/home/.openmpi \
