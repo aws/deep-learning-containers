@@ -37,7 +37,7 @@ def test_sanity_fixture():
 
     # Tests that do not run in PR or MAINLINE contexts do not need to have
     # `security_sanity` or `functionality_sanity` fixtures
-    non_pr_mainline_tests = ["test_deep_canary_integration"]
+    non_pr_mainline_tests = ["test_canary_integration.py::test_deep_canary_integration"]
 
     # Navigate through files and look at test files at the top level test/dlc_tests/sanity/
     for item in os.listdir(sanity_test_path):
