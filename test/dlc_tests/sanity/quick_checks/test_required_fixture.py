@@ -129,8 +129,8 @@ def _update_test_fixtures_mapping(file_to_check, test_fixtures_mapping):
                 line = re.sub(r"[\"\n\t\s]*", "", line)
                 # Get only the fixture names and remove `@pytest*` prefix
                 fixture_regex = re.match(rf"{fixture_pattern}(.*)\)", line)
-                fixture_list = fixture_regex.group(1).split(",")
-                fixture_list += fixture_list
+                current_fixtures = fixture_regex.group(1).split(",")
+                fixture_list += current_fixtures
 
             # If sees a `test_*` method, update the <test_name> : <fixture_list> dictionary
             if re.match(test_func_pattern, line):
