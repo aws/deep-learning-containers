@@ -738,12 +738,12 @@ def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
 
 
-def is_security_sanity_test_enabled():
-    return config.is_security_sanity_test_enabled()
+def is_sanity_test_enabled():
+    return config.is_sanity_test_enabled()
 
 
-def is_functionality_sanity_test_enabled():
-    return config.is_functionality_sanity_test_enabled()
+def is_security_test_enabled():
+    return config.is_security_test_enabled()
 
 
 def is_huggingface_image():
