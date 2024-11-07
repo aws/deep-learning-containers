@@ -225,7 +225,8 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torch-model-archiver==${TORCHSERVE_VERSION}
 
 # Patches
-RUN pip install --no-cache-dir -U requests
+# py-vuln: 71064
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # create user and folders
 RUN useradd -m model-server \
