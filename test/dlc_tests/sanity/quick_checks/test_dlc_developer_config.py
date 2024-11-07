@@ -30,8 +30,8 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "do_build") is True
 
     # Check test settings
-    assert config.parse_dlc_developer_configs("test", "security_sanity_tests") is True
-    assert config.parse_dlc_developer_configs("test", "functionality_sanity_tests") is True
+    assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
+    assert config.parse_dlc_developer_configs("test", "security_tests") is True
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") is True
     assert config.parse_dlc_developer_configs("test", "sagemaker_efa_tests") is False
     assert config.parse_dlc_developer_configs("test", "sagemaker_rc_tests") is False
@@ -61,8 +61,8 @@ def test_developer_config_wrappers_defaults():
     Test defaults of config file wrappers
     """
     # Check test settings
-    assert config.is_security_sanity_test_enabled() is True
-    assert config.is_functionality_sanity_test_enabled() is True
+    assert config.is_sanity_test_enabled() is True
+    assert config.is_security_test_enabled() is True
     assert config.is_sm_local_test_enabled() is True
     assert config.is_sm_remote_test_enabled() is True
     assert config.is_sm_efa_test_enabled() is False
