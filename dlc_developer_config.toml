@@ -20,8 +20,9 @@ notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-security_sanity_tests = true
-functionality_sanity_tests = true
+### On by default
+sanity_tests = true
+security_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
 ecs_tests = true
