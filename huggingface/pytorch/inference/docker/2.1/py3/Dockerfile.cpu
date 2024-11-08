@@ -190,7 +190,7 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.25.0" \
     "protobuf>=3.19.5,<=3.20.2" \
     "sagemaker-huggingface-inference-toolkit==2.3" \
-    "huggingface_hub==0.25.2"
+    "huggingface_hub==0.23.2"
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317

@@ -223,7 +223,8 @@ RUN pip install --no-cache-dir \
     "accelerate>=0.25.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.24" \
-	"sagemaker-huggingface-inference-toolkit==2.3"
+	"sagemaker-huggingface-inference-toolkit==2.3" \
+    "huggingface_hub==0.23.2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

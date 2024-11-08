@@ -20,12 +20,12 @@ Pillow
 retrying==1.3.3
 urllib3==1.26.0
 pluggy==0.13.1
-requests_mock
+requests_mock   
 sagemaker-inference
 tenacity
 fabric
 invoke
 gitpython
 toml
-huggingface_hub==0.25.2
+huggingface_hub==0.23.2
 transformers==4.28.1
