@@ -167,7 +167,8 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     "urllib3>=1.26.18,<2" \
     "idna>=3.7" \
-    ninja==1.11.1
+    ninja==1.11.1 \
+    kenlm
 
 WORKDIR /root
 

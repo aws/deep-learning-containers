@@ -136,7 +136,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "awscli<2" \
     "urllib3>=1.26.18,<2" \
     "idna>=3.7" \
-    ninja==1.11.1
+    ninja==1.11.1 \
+    kenlm
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # is CPU image, removing nvgpu
