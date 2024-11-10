@@ -102,6 +102,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+RUN apt-get update && apt-get install -y cmake \
+ && /opt/conda/bin/conda install -y cmake
+
+RUN cmake --version
+
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
