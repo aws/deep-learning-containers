@@ -194,7 +194,8 @@ RUN pip install --no-cache-dir \
     peft==${PEFT_VERSION} \
     "accelerate>=0.25.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "sagemaker-huggingface-inference-toolkit==2.3"
+    "sagemaker-huggingface-inference-toolkit==2.3" \
+    "huggingface_hub==0.23.2"
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317
