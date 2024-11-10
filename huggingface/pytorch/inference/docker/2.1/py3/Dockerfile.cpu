@@ -86,8 +86,7 @@ RUN apt-get update \
  && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
  && apt-get clean
 
-RUN apt-get update && apt-get install -y cmake \
- && /opt/conda/bin/conda install -y cmake
+RUN apt-get update && apt-get install -y cmake
 
 RUN cmake --version
 
