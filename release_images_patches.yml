@@ -263,6 +263,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      
   # TensorFlow 2.16 Images
   21:
     framework: "tensorflow"
