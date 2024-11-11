@@ -21,8 +21,8 @@ notification_severity = "medium"
 
 [test]
 ### On by default
-sanity_tests = true
-security_tests = true
+security_sanity_tests = true
+functionality_sanity_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
 ecs_tests = true
