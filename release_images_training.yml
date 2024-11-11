@@ -64,3 +64,16 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+  6:
+    framework: "huggingface_pytorch"
+    version: "2.3.0"
+    hf_transformers: "4.46.1"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu121"
+      example: False
+      disable_sm_tag: False
+      force_release: False
