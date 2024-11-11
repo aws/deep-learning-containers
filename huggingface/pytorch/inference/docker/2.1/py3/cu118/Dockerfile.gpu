@@ -104,8 +104,6 @@ RUN apt-get update \
 
 RUN apt-get update && apt-get install -y cmake
 
-RUN cmake --version
-
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -221,7 +219,6 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-    kenlm==0.1 \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
