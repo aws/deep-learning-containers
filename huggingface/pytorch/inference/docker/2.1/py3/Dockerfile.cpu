@@ -186,6 +186,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    kenlm==0.1 \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
