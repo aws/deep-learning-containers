@@ -13,19 +13,19 @@ deep_canary_mode = false
 build_frameworks = [ "pytorch",]
 build_training = true
 build_inference = false
-do_build = false
+do_build = true
 
 [notify]
 notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = false
-security_tests = false
+sanity_tests = true
+security_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
+ecs_tests = true
+eks_tests = true
 ec2_tests = true
 ec2_benchmark_tests = true
 ec2_tests_on_heavy_instances = true
