@@ -12,6 +12,8 @@ ARG HWLOC_VERSION=2.11.1
 ARG AWS_OFI_NCCL_VERSION=1.12.1
 ARG GDRCOPY_VERSION=2.4.2
 ARG APEX_VERSION=24.04.01
+ARG TE_VERSION=1.11
+ARG FLASH_ATTN_VERSION=2.6.3
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.5.1/x86/cu124/torch-2.5.1%2Bcu124-cp311-cp311-linux_x86_64.whl
@@ -290,6 +292,8 @@ ARG PYTHON
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG APEX_VERSION
+ARG TE_VERSION
+ARG FLASH_ATTN_VERSION
 ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
@@ -351,9 +355,9 @@ RUN cd /tmp \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.4.2 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v1.9
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION}
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
