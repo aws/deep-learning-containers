@@ -94,10 +94,9 @@ def test_mnist_distributed_arm64_inductor(
 def test_mnist_distributed_gpu_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
-    if (
-        Version(framework_version) in SpecifierSet("<2.0")
-        or Version(framework_version) in SpecifierSet("==2.2.0")
-    ):
+    if Version(framework_version) in SpecifierSet("<2.0") or Version(
+        framework_version
+    ) in SpecifierSet("==2.2.0"):
         pytest.skip(
             f"skip the test as torch.compile is only supported after 2.0"
             f"\nskip PyTorch 2.2.0 due to https://github.com/pytorch/pytorch/pull/119750"

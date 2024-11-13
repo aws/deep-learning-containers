@@ -239,9 +239,7 @@ def test_build_version_override_configuration():
     )
 
     assert (
-        config.parse_dlc_developer_configs(
-            "buildspec_override", "dlc-pr-pytorch-arm64-inference"
-        )
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-inference")
         == ""
     )
     assert (

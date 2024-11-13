@@ -52,8 +52,7 @@ class TestReportGenerator:
         "telemetry",
         "test_framework_and_cuda_version_gpu",
         "test_framework_and_cuda_version_graviton_gpu",
-        "test_framework_and_cuda_version_arm64_gpu"
-        "test_curand_gpu",
+        "test_framework_and_cuda_version_arm64_gpu" "test_curand_gpu",
         "test_dependency_check_gpu",
         "test_tensorflow_addons_gpu",
         "test_tensorflow_standalone_gpu",
@@ -68,7 +67,7 @@ class TestReportGenerator:
         "test_ecs_pytorch_training_dgl_gpu",
         "test_ecs_pytorch_inference_gpu",
         "test_ecs_pytorch_inference_graviton_gpu",
-        "test_ecs_pytorch_inference_arm64_gpu"
+        "test_ecs_pytorch_inference_arm64_gpu",
     )
     SM_REPOS = (
         os.path.join("pytorch", "training"),

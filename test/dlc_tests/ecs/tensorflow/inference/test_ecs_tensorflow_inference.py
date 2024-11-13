@@ -245,9 +245,7 @@ def test_ecs_tensorflow_inference_graviton_cpu_nlp(
 def test_ecs_tensorflow_inference_arm64_cpu_nlp(
     tensorflow_inference_arm64, ecs_container_instance, region, cpu_only
 ):
-    __ecs_tensorflow_inference_cpu_nlp(
-        tensorflow_inference_arm64, ecs_container_instance, region
-    )
+    __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference_arm64, ecs_container_instance, region)
 
 
 def __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region):

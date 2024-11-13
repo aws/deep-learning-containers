@@ -647,7 +647,7 @@ def ec2_instance(
         or (
             "tensorflow_inference" in request.fixturenames
             and (
-                "graviton_compatible_only" in request.fixturenames 
+                "graviton_compatible_only" in request.fixturenames
                 or "arm64_compatible_only" in request.fixturenames
             )
         )
@@ -1587,9 +1587,7 @@ def generate_unique_values_for_fixtures(
                                     f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
                                 )
                             elif "arm64" in image:
-                                instance_type_env = (
-                                    f"EC2_{processor.upper()}_ARM64_INSTANCE_TYPE"
-                                )
+                                instance_type_env = f"EC2_{processor.upper()}_ARM64_INSTANCE_TYPE"
                             else:
                                 instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
                             instance_type = os.getenv(instance_type_env)
@@ -1708,7 +1706,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if "x86_compatible_only" in metafunc.fixturenames and ("graviton" in image or "arm64" in image):
+                    if "x86_compatible_only" in metafunc.fixturenames and (
+                        "graviton" in image or "arm64" in image
+                    ):
                         continue
                     if "training_compiler_only" in metafunc.fixturenames and not (
                         "trcomp" in image
@@ -1733,10 +1733,7 @@ def pytest_generate_tests(metafunc):
                             and "graviton" in image
                         ):
                             images_to_parametrize.append(image)
-                        elif (
-                            "arm64_compatible_only" in metafunc.fixturenames
-                            and "arm64" in image
-                        ):
+                        elif "arm64_compatible_only" in metafunc.fixturenames and "arm64" in image:
                             images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames

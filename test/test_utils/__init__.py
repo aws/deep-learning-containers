@@ -1473,9 +1473,8 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
 
     versions = []
     for v, inf_train in versions_counter.items():
-        if (
-            (inf_train["inf"] and image_type == "inference")
-            or (inf_train["tr"] and image_type == "training")
+        if (inf_train["inf"] and image_type == "inference") or (
+            inf_train["tr"] and image_type == "training"
         ):
             versions.append(v)
 
@@ -1716,13 +1715,7 @@ def get_image_arch_type_from_tag(image_uri):
     :param image_uri: str ECR image URI
     :return: str "graviton" or "arm64" or "x86"
     """
-    return (
-        "graviton"
-        if "graviton" in image_uri
-        else "arm64"
-        if "arm64" in image_uri
-        else "x86"
-    )
+    return "graviton" if "graviton" in image_uri else "arm64" if "arm64" in image_uri else "x86"
 
 
 def get_framework_and_version_from_tag(image_uri):

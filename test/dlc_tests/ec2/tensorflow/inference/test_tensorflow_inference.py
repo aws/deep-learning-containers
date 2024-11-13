@@ -294,9 +294,7 @@ def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
 def test_ec2_tensorflow_inference_arm64_cpu_telemetry(
     tensorflow_inference_arm64, ec2_connection, region, cpu_only
 ):
-    run_ec2_tensorflow_inference(
-        tensorflow_inference_arm64, ec2_connection, "8500", region, True
-    )
+    run_ec2_tensorflow_inference(tensorflow_inference_arm64, ec2_connection, "8500", region, True)
 
 
 def run_ec2_tensorflow_inference(

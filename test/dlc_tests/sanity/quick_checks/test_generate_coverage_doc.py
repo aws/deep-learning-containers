@@ -6,7 +6,12 @@ import pytest
 from botocore.exceptions import ClientError
 from invoke.context import Context
 
-from test.test_utils import LOGGER, is_mainline_context, is_graviton_architecture, is_arm64_architecture
+from test.test_utils import (
+    LOGGER,
+    is_mainline_context,
+    is_graviton_architecture,
+    is_arm64_architecture,
+)
 from test.test_utils.test_reporting import get_test_coverage_file_path
 
 
