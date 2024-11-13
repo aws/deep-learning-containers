@@ -125,6 +125,7 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
+    ninja \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
