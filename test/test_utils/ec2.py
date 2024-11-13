@@ -191,7 +191,7 @@ def get_ec2_instance_type(
             f"Please choose from {allowed_processors}"
         )
     instance_type = os.getenv(f"EC2_{processor.upper()}{job_type_str}_INSTANCE_TYPE")
-    if arch_type == "graviton":
+    if arch_type == "graviton" or arch_type == "arm64":
         instance_type = os.getenv(
             f"EC2_{processor.upper()}_{arch_type.upper()}{job_type_str}_INSTANCE_TYPE"
         )

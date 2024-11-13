@@ -58,6 +58,24 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_failure_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
+    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
@@ -65,6 +83,24 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
+):
+    ec2_connection.run(f"sudo apt-get update -y")
+    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
+    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_failure_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
     ec2_connection.run(f"sudo apt-get update -y")
     ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
@@ -150,6 +186,21 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_success_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
@@ -157,6 +208,21 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
+):
+    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_success_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -235,6 +301,20 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_s3_query_bucket_success_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
@@ -242,6 +322,20 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
+):
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.timeout(1200)
+def test_telemetry_s3_query_bucket_success_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 

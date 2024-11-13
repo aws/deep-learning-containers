@@ -32,6 +32,9 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="c6g.4xlarge", processor="cpu", arch_type="graviton"
 )
+TF_EC2_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="c6g.4xlarge", processor="cpu", arch_type="arm64"
+)
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -83,6 +86,21 @@ def test_ec2_tensorflow_inference_graviton_cpu_deep_canary(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
     run_ec2_tensorflow_inference(tensorflow_inference_graviton, ec2_connection, "8500", region)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_arm64_cpu_deep_canary(
+    tensorflow_inference_arm64, ec2_connection, region, cpu_only
+):
+    run_ec2_tensorflow_inference(tensorflow_inference_arm64, ec2_connection, "8500", region)
 
 
 @pytest.mark.model("mnist")
@@ -251,6 +269,15 @@ def test_ec2_tensorflow_inference_graviton_cpu(
 
 
 @pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_arm64_cpu(
+    tensorflow_inference_arm64, ec2_connection, region, cpu_only
+):
+    run_ec2_tensorflow_inference(tensorflow_inference_arm64, ec2_connection, "8500", region)
+
+
+@pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
@@ -258,6 +285,17 @@ def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
 ):
     run_ec2_tensorflow_inference(
         tensorflow_inference_graviton, ec2_connection, "8500", region, True
+    )
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_ec2_tensorflow_inference_arm64_cpu_telemetry(
+    tensorflow_inference_arm64, ec2_connection, region, cpu_only
+):
+    run_ec2_tensorflow_inference(
+        tensorflow_inference_arm64, ec2_connection, "8500", region, True
     )
 
 
@@ -277,7 +315,7 @@ def run_ec2_tensorflow_inference(
 
     is_neuron = "neuron" in image_uri
     is_neuron_x = "neuronx" in image_uri
-    is_graviton = "graviton" in image_uri
+    is_arm64 = "graviton" in image_uri or "arm64" in image_uri
 
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in image_uri else ""
 
@@ -312,7 +350,7 @@ def run_ec2_tensorflow_inference(
             framework_version,
             ec2_connection,
             is_neuron,
-            is_graviton,
+            is_arm64,
             model_name,
         )
         sleep(2)
@@ -356,12 +394,12 @@ def host_setup_for_tensorflow_inference(
     framework_version,
     ec2_connection,
     is_neuron=False,
-    is_graviton=False,
+    is_arm64=False,
     model_name=None,
 ):
     # Attempting a pin will result in pip not finding the version. The internal repo only has a custom Tensorflow 2.6
     # which is not compatible with TF 2.9+ and this is the recommended action.
-    if is_graviton:
+    if is_arm64:
         ec2_connection.run(f"pip install --no-cache-dir -U tensorflow-cpu-aws", hide=True)
 
         # If framework_version is only major.minor, then append .* for tensorflow-serving-api installation
