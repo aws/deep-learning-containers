@@ -1,0 +1,20 @@
+{
+  "torchaudio": {
+    "version_specifier": "==2.5.1+cu124",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu124",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.20.1+cu124",
+    "skip": "True"
+  },
+  "torchserve": {
+    "version_specifier": "==0.12.0"
+  },
+  "torch-model-archiver": {
+    "version_specifier": "==0.12.0"
+  }
+}
