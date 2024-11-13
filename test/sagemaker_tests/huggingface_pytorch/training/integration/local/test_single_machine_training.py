@@ -34,8 +34,9 @@ def test_distilbert_base(
     # hyperparameters, which are passed into the training job
     hyperparameters = {
         "max_steps": 5,
+        "warmup_steps": 3,
         "train_batch_size": 4,
-        "model_name": "distilbert-base-uncased",
+        "model_name": "distilbert/distilbert-base-uncased",
     }
 
     estimator = HuggingFace(
@@ -67,8 +68,9 @@ def test_distilbert_base_torch_compiled(
     # hyperparameters, which are passed into the training job
     hyperparameters = {
         "max_steps": 5,
+        "warmup_steps": 3,
         "train_batch_size": 4,
-        "model_name": "distilbert-base-uncased",
+        "model_name": "distilbert/distilbert-base-uncased",
     }
 
     estimator = HuggingFace(

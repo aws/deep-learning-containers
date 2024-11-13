@@ -20,6 +20,7 @@ if __name__ == "__main__":
     parser.add_argument("--train-batch-size", type=int, default=32)
     parser.add_argument("--eval-batch-size", type=int, default=64)
     parser.add_argument("--warmup_steps", type=int, default=500)
+    parser.add_argument("--max_steps", type=int, default=5000)
     parser.add_argument("--model_name", type=str)
     parser.add_argument("--learning_rate", type=str, default=5e-5)
 
@@ -44,15 +45,15 @@ if __name__ == "__main__":
     tokenizer = AutoTokenizer.from_pretrained(args.model_name)
 
     # load dataset
-    dataset = load_dataset("imdb")
+    dataset = load_dataset("stanfordnlp/imdb")
     metric = evaluate.load("accuracy")
 
     # tokenizer helper function
     def tokenize(batch):
-        return tokenizer(batch["text"], padding="max_length", truncation=True)
+        return tokenizer(batch["text"], padding="max_length", max_length=512, truncation=True)
 
     # load dataset
-    train_dataset, test_dataset = load_dataset("imdb", split=["train", "test"])
+    train_dataset, test_dataset = load_dataset("stanfordnlp/imdb", split=["train", "test"])
     test_dataset = test_dataset.shuffle().select(
         range(100)
     )  # smaller the size for test dataset to 10k
@@ -84,7 +85,8 @@ if __name__ == "__main__":
         per_device_train_batch_size=args.train_batch_size,
         per_device_eval_batch_size=args.eval_batch_size,
         warmup_steps=args.warmup_steps,
-        evaluation_strategy="epoch",
+        max_steps=args.max_steps,
+        eval_strategy="epoch",
         logging_dir=f"{args.output_data_dir}/logs",
         learning_rate=float(args.learning_rate),
     )
