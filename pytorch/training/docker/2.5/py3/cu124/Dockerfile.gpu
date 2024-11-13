@@ -8,7 +8,7 @@ ARG CUDA_VERSION=12.4.1
 ARG CUDNN_VERSION=9.1.0.70
 ARG NCCL_VERSION=2.23.4
 ARG EFA_VERSION=1.36.0
-ARG HWLOC_VERSION=2.11.1
+ARG HWLOC_VERSION=2.11.2
 ARG AWS_OFI_NCCL_VERSION=1.12.1
 ARG GDRCOPY_VERSION=2.4.2
 ARG TE_VERSION=1.11
@@ -125,7 +125,6 @@ RUN apt-get update \
     check \
     libsubunit0 \
     libsubunit-dev \
-    ninja \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
@@ -252,6 +251,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "urllib3<2" \
     "awscli<2" \
     libgcc \
+    ninja \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
