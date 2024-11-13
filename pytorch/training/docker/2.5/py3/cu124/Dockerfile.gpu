@@ -245,10 +245,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    idna \
-    tqdm \
-    requests \
-    setuptools \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+    "setuptools>=70.0.0" \
     urllib3 \
     awscli \
     libgcc \
@@ -260,7 +260,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -313,7 +313,7 @@ RUN pip install --no-cache-dir -U \
     spacy \
     thinc \
     blis \
-    numpy \
+    "numpy>=2.0.0,<2.1.0" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -426,7 +426,7 @@ RUN pip install --no-cache-dir -U \
     spacy \
     thinc \
     blis \
-    numpy \
+    "numpy>=2.0.0,<2.1.0" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -486,8 +486,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.232.2
-    cloudpickle \
+    # pinned for sagemaker==2.233.0
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname

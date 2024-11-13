@@ -165,10 +165,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     h5py \
     mpi4py \
     fsspec \
-    idna \
-    tqdm \
-    requests \
-    setuptools \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+    "setuptools>=70.0.0" \
     urllib3 \
     awscli \
  && /opt/conda/bin/mamba clean -afy \
@@ -226,7 +226,7 @@ RUN pip install --no-cache-dir -U \
     spacy \
     thinc \
     blis \
-    numpy \
+    "numpy>=2.0.0,<2.1.0" \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
@@ -290,7 +290,7 @@ RUN pip install --no-cache-dir -U \
     spacy \
     thinc \
     blis \
-    numpy \
+    "numpy>=2.0.0,<2.1.0" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
@@ -312,7 +312,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     seaborn \
     shap \
     # pinned for sagemaker==2.232.2
-    cloudpickle \
+    "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
