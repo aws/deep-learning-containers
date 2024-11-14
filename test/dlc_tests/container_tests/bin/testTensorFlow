@@ -4,8 +4,8 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
 
-if [[ ! -d $LOG_DIR ]]; then 
-    mkdir -p $LOG_DIR 
+if [[ ! -d $LOG_DIR ]]; then
+    mkdir -p $LOG_DIR
 fi
 
 # Use this to conditionally check TF version
