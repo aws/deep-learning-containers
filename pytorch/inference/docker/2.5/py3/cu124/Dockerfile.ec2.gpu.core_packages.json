@@ -16,7 +16,7 @@
     "skip": "True"
   },
   "requests": {
-    "version_specifier": ">=2.32.2"
+    "version_specifier": ">=2.32.3"
   },
   "torchserve": {
     "version_specifier": "==0.12.0"
