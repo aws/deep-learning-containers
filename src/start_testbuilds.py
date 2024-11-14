@@ -249,11 +249,12 @@ def main():
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
 
-            # Maintaining separate codebuild project for graviton/arm64 sanity test
-            if "graviton" in images_str and "sanity" in test_type:
-                pr_test_job += "-graviton"
-            elif "arm64" in images_str and "sanity" in test_type:
-                pr_test_job += "-arm64"
+            # Maintaining separate codebuild projects for graviton/arm64 sanity and security tests
+            if test_type == constants.SANITY_TESTS or test_type == constants.SECURITY_TESTS:
+                if "graviton" in images_str:
+                    pr_test_job += "-graviton"
+                elif "arm64" in images_str:
+                    pr_test_job += "-arm64"
 
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(
                 images_str, test_type
