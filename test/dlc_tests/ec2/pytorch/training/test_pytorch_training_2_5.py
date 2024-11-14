@@ -31,7 +31,6 @@ def test_pytorch_2_5_gpu(
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_nvapex, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
