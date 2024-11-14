@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 cuda_include_pth=/usr/local/cuda/include
 
 if python -c "import torch" &> /dev/null; then
