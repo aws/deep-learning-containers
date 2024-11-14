@@ -87,7 +87,7 @@ RUN apt-get update \
  # Set default gcc version
 RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 1 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 1 && \
-    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-10 1
+    update-alternatives --install /usr/bin/gfortran gfortran /usr/bin/gfortran-11 1
 
 # Install OpenMPI
 RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
