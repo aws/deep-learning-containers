@@ -257,7 +257,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python mpi4py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
