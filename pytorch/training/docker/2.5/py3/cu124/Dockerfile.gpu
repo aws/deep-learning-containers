@@ -11,7 +11,6 @@ ARG EFA_VERSION=1.36.0
 ARG HWLOC_VERSION=2.11.2
 ARG AWS_OFI_NCCL_VERSION=1.12.1
 ARG GDRCOPY_VERSION=2.4.2
-ARG APEX_VERSION=24.04.01
 ARG TE_VERSION=1.11
 ARG FLASH_ATTN_VERSION=2.6.3
 
@@ -243,7 +242,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipykernel \
     pillow \
     h5py \
-    mpi4py \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
@@ -257,7 +255,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python
+RUN pip install --no-cache-dir opencv-python mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
@@ -288,7 +286,6 @@ FROM common AS ec2
 ARG PYTHON
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
-ARG APEX_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 ARG TORCH_URL
@@ -333,19 +330,6 @@ RUN cd /tmp \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
-
-# Install Nvidia Apex (needs pytorch)
-RUN cd /tmp \
- && pip install --no-cache-dir packaging \
- && git clone https://github.com/NVIDIA/apex -b ${APEX_VERSION} \
- && cd apex \
- && pip install -v \
-                --disable-pip-version-check \
-                --no-cache-dir \
-                --no-build-isolation \
-                --config-settings "--build-option=--cpp_ext" \
-                --config-settings "--build-option=--cuda_ext" ./ \
- && rm -rf /tmp/apex
 
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
@@ -397,7 +381,8 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
-ARG APEX_VERSION
+ARG TE_VERSION
+ARG FLASH_ATTN_VERSION
 ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
@@ -447,27 +432,14 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
-# Install Nvidia Apex (needs pytorch)
-RUN cd /tmp \
- && pip install --no-cache-dir packaging \
- && git clone https://github.com/NVIDIA/apex -b ${APEX_VERSION} \
- && cd apex \
- && pip install -v \
-                --disable-pip-version-check \
-                --no-cache-dir \
-                --no-build-isolation \
-                --config-settings "--build-option=--cpp_ext" \
-                --config-settings "--build-option=--cuda_ext" ./ \
- && rm -rf /tmp/apex
-
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==2.4.2 --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v1.9
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION}
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
@@ -487,8 +459,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.232.2
-    "cloudpickle==2.2.1" \
+    cloudpickle \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
