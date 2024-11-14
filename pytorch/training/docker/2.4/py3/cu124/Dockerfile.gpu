@@ -243,7 +243,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipykernel \
     pillow \
     h5py \
-    mpi4py \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
@@ -258,7 +257,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python
+RUN pip install --no-cache-dir opencv-python mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
