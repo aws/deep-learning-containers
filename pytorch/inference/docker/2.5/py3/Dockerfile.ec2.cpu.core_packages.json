@@ -1,4 +1,8 @@
 {
+  "captum": {
+    "version_specifier": "==0.6.0",
+    "skip": "True"
+  },
   "torchaudio": {
     "version_specifier": "==2.5.1+cpu",
     "skip": "True"

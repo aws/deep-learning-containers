@@ -20,5 +20,8 @@
   },
   "torch-model-archiver": {
     "version_specifier": "==0.12.0"
+  },
+  "sagemaker-pytorch-inference": {
+    "version_specifier": "==2.0.25"
   }
 }

@@ -4,15 +4,15 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.5.1+cu124",
+    "version_specifier": "==2.5.1+cpu",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.18.0+cu124",
+    "version_specifier": "==0.18.0+cpu",
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.20.1+cu124",
+    "version_specifier": "==0.20.1+cpu",
     "skip": "True"
   },
   "torchserve": {
@@ -20,5 +20,8 @@
   },
   "torch-model-archiver": {
     "version_specifier": "==0.12.0"
+  },
+  "sagemaker-pytorch-inference": {
+    "version_specifier": "==2.0.25"
   }
 }
