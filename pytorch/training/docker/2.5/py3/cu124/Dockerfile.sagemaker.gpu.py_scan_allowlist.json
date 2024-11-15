@@ -1,3 +1,3 @@
 {
-  "70612": "[pkg: jinja2] In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the source parameter as a template object, renders it, and then returns it. The attacker can exploit it with INJECTION COMMANDS in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing, reason_to_ignore='N/A', spec='>=0'",
+  "70612": "[pkg: jinja2] In Jinja2, the from_string function is prone to Server Side Template Injection (SSTI) where it takes the source parameter as a template object, renders it, and then returns it. The attacker can exploit it with INJECTION COMMANDS in a URI. \r\nNOTE: The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing, reason_to_ignore='N/A', spec='>=0'"
 }
