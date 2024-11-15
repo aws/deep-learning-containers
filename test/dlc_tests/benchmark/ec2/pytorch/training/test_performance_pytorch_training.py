@@ -176,7 +176,7 @@ def execute_pytorch_gpu_py3_imagenet_ec2_training_performance_test(
 
 
 def post_process_pytorch_gpu_py3_synthetic_ec2_training_performance(connection, log_location):
-    line_to_read = 50  # increase this number if throughput is not in scope
+    line_to_read = 250  # increase this number if throughput is not in scope
     last_lines = connection.run(f"tail -n {line_to_read} {log_location}").stdout.split("\n")
     throughput = 0
     for line in reversed(last_lines):
