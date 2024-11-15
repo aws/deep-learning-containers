@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==1.0.1",
+    "version_specifier": "==1.1.1",
     "skip": "True"
   },
   "fastai": {
@@ -8,7 +8,7 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.2.6",
+    "version_specifier": "==1.2.7",
     "skip": "True"
   },
   "torchaudio": {
