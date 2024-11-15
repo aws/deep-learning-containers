@@ -243,7 +243,6 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipykernel \
     pillow \
     h5py \
-    mpi4py \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
@@ -258,7 +257,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python
+RUN pip install --no-cache-dir opencv-python mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
@@ -394,6 +393,7 @@ LABEL dlc_major_version="1"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
+ARG PYTHON_SHORT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG APEX_VERSION
@@ -405,10 +405,16 @@ ARG TORCHTEXT_URL
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
 
+# SageMaker DataParallel Binary
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.4.0/cu124/2024-11-04/smdistributed_dataparallel-2.5.0-cp311-cp311-linux_x86_64.whl
+
 WORKDIR /
 
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -489,6 +495,9 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     # pinned for sagemaker==2.232.2
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
+
+# Add SageMaker DataParallel to LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
