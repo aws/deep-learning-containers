@@ -3,13 +3,13 @@ partner_developer = ""
 ei_mode = false
 neuron_mode = false
 neuronx_mode = false
-graviton_mode = false
+graviton_mode = true
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
 deep_canary_mode = false
 # WARNING: Unrecognized key generated below
-arm64_mode = true
+arm64_mode = false
 
 [build]
 build_frameworks = [ "pytorch",]
@@ -69,11 +69,9 @@ dlc-pr-huggingface-pytorch-inference = ""
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-mxnet-graviton-inference = ""
-dlc-pr-pytorch-graviton-inference = ""
+dlc-pr-pytorch-graviton-inference = "pytorch/inference/buildspec-graviton-2-4-ec2.yml"
 dlc-pr-tensorflow-2-graviton-inference = ""
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
-# WARNING: Unrecognized key generated below
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-4-sm.yml"
 
