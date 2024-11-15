@@ -31,8 +31,8 @@ eks_tests = true
 ec2_tests = true
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = false
-sagemaker_remote_tests = false
+sagemaker_local_tests = true
+sagemaker_remote_tests = true
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
 sagemaker_benchmark_tests = false
@@ -75,5 +75,5 @@ dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
 # WARNING: Unrecognized key generated below
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-5-ec2.yml"
+dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-4-sm.yml"
 
