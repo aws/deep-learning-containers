@@ -310,7 +310,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    # pinned for sagemaker==2.232.2
+    # pinned for sagemaker==2.233.0
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
 
