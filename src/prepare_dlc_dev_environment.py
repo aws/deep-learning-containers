@@ -32,7 +32,7 @@ VALID_TEST_TYPES = [
 ]
 
 
-VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
+VALID_DEV_MODES = ["graviton_mode", "arm64_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
@@ -156,7 +156,7 @@ class TomlOverrider:
     def set_dev_mode(self, dev_mode):
         """
         Set the dev mode based on the user input.
-        Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
+        Valid choices are 'graviton_mode', 'arm64_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
         # Reset all dev modes to False
         for mode in VALID_DEV_MODES:
@@ -298,11 +298,12 @@ def extract_path_components(path, pattern):
 def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
     """
     Find the path to the latest existing version of the buildspec file based on the provided components.
-    Special condition checks if file is a graviton file
+    Special condition checks if file is a graviton/arm64 file.
     """
     path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
     graviton_pattern = r"buildspec-graviton-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
-    non_graviton_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
+    arm64_pattern = r"buildspec-arm64-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
+    general_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
         optional_tag or r"\w*", extra_tag or r"\w*"
     )
     latest_version = (int(major_version), 0)
@@ -310,7 +311,8 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
 
     for file_name in os.listdir(path_prefix):
         graviton_match = re.match(graviton_pattern, file_name)
-        non_graviton_match = re.match(non_graviton_pattern, file_name)
+        arm64_match = re.match(arm64_pattern, file_name)
+        general_match = re.match(general_pattern, file_name)
 
         if graviton_match:
             major_version_str, minor_version_str = graviton_match.groups()[:2]
@@ -318,8 +320,14 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
             if version > latest_version:
                 latest_version = version
                 latest_path = os.path.join(path_prefix, file_name)
-        elif non_graviton_match:
-            major_version_str, minor_version_str = non_graviton_match.groups()[:2]
+        elif arm64_match:
+            major_version_str, minor_version_str = arm64_match.groups()[:2]
+            version = (int(major_version_str), int(minor_version_str))
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+        elif general_match:
+            major_version_str, minor_version_str = general_match.groups()[:2]
             minor_version_str = int(minor_version_str)
             if extra_tag:
                 version = (int(major_version_str), minor_version_str, extra_tag)
@@ -379,10 +387,19 @@ def create_new_file_with_updated_version(currency_path, updated_content, previou
         os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
     )
 
+    # Update the arm64 pointer file
+    arm64_pointer_file_path = os.path.join(
+        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-arm64.yml"
+    )
+
     if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
         update_pointer_file(graviton_pointer_file_path, currency_path)
     elif "graviton" in new_file_path:
         LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+    elif "arm64" in new_file_path and os.path.exists(arm64_pointer_file_path):
+        update_pointer_file(arm64_pointer_file_path, currency_path)
+    elif "arm64" in new_file_path:
+        LOGGER.warning(f"ARM64 pointer file not found at {arm64_pointer_file_path}")
     else:
         pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
         if os.path.exists(pointer_file_path):

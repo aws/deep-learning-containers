@@ -1,1 +1,1 @@
-buildspec_pointer: buildspec-graviton-2-4-ec2.yml
+buildspec_pointer: buildspec-arm64-2-5-ec2.yml

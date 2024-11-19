@@ -39,7 +39,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 SM_SINGLE_GPU_INSTANCE_TYPES = ["ml.p3.2xlarge", "ml.g4dn.4xlarge", "ml.g5.4xlarge"]
-SM_GRAVITON_C7G = ["ml.c7g.4xlarge"]
+SM_ARM64_INSTANCE_TYPES = ["ml.c7g.4xlarge"]
 
 
 @pytest.mark.model("mnist")
@@ -66,15 +66,15 @@ def test_mnist_distributed_cpu_inductor(
 @pytest.mark.model("mnist")
 @pytest.mark.processor("cpu")
 @pytest.mark.cpu_test
-@pytest.mark.parametrize("instance_type", SM_GRAVITON_C7G)
+@pytest.mark.parametrize("instance_type", SM_ARM64_INSTANCE_TYPES)
 @pytest.mark.team("training-compiler")
-def test_mnist_distributed_graviton_inductor(
+def test_mnist_distributed_arm64_inductor(
     framework_version, ecr_image, instance_type, sagemaker_regions
 ):
     if Version(framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
-    if "graviton" not in ecr_image:
-        pytest.skip("skip SM tests for inductor on c7g")
+    if "graviton" not in ecr_image and "arm64" not in ecr_image:
+        pytest.skip("skip c7g test for non graviton/arm64 images")
     model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
     function_args = {
         "framework_version": framework_version,
@@ -98,11 +98,11 @@ def test_mnist_distributed_gpu_inductor(
         framework_version
     ) in SpecifierSet("==2.2.0"):
         pytest.skip(
-            f"skip the test as torch.compile only supported after 2.0"
-            f"skip PyTorch 2.2.0 due to https://github.com/pytorch/pytorch/pull/119750"
+            f"skip the test as torch.compile is only supported after 2.0"
+            f"\nskip PyTorch 2.2.0 due to https://github.com/pytorch/pytorch/pull/119750"
         )
-    if "graviton" in ecr_image:
-        pytest.skip("skip the graviton test for GPU instance types")
+    if "graviton" in ecr_image or "arm64" in ecr_image:
+        pytest.skip("skip gpu test for graviton/arm64 images")
     model_dir = os.path.join(model_cpu_dir, "model_mnist_inductor.tar.gz")
     function_args = {
         "framework_version": framework_version,

@@ -12,7 +12,7 @@ from test.test_utils import (
     ECS_AML2_CPU_USWEST2,
     ECS_AML2_GPU_USWEST2,
     ECS_AML2_NEURON_USWEST2,
-    ECS_AML2_GRAVITON_CPU_USWEST2,
+    ECS_AML2_ARM64_CPU_USWEST2,
 )
 
 
@@ -28,11 +28,20 @@ def test_ecs_tensorflow_inference_cpu(
 
 @pytest.mark.model("half_plus_two")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_ARM64_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ecs_container_instance, region, cpu_only
 ):
     __ecs_tensorflow_inference_cpu(tensorflow_inference_graviton, ecs_container_instance, region)
+
+
+@pytest.mark.model("half_plus_two")
+@pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_ARM64_CPU_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_arm64_cpu(
+    tensorflow_inference_arm64, ecs_container_instance, region, cpu_only
+):
+    __ecs_tensorflow_inference_cpu(tensorflow_inference_arm64, ecs_container_instance, region)
 
 
 def __ecs_tensorflow_inference_cpu(tensorflow_inference, ecs_container_instance, region):
@@ -220,13 +229,23 @@ def test_ecs_tensorflow_inference_cpu_nlp(
 # @pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
 @pytest.mark.model("albert")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_ARM64_CPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_inference_graviton_cpu_nlp(
     tensorflow_inference_graviton, ecs_container_instance, region, cpu_only
 ):
     __ecs_tensorflow_inference_cpu_nlp(
         tensorflow_inference_graviton, ecs_container_instance, region
     )
+
+
+# @pytest.mark.skipif(not is_nightly_context(), reason="Running additional model in nightly context only")
+@pytest.mark.model("albert")
+@pytest.mark.parametrize("ecs_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_ARM64_CPU_USWEST2], indirect=True)
+def test_ecs_tensorflow_inference_arm64_cpu_nlp(
+    tensorflow_inference_arm64, ecs_container_instance, region, cpu_only
+):
+    __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference_arm64, ecs_container_instance, region)
 
 
 def __ecs_tensorflow_inference_cpu_nlp(tensorflow_inference, ecs_container_instance, region):

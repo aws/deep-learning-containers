@@ -95,21 +95,31 @@ def test_set_dev_mode():
     # test with no dev mode provided
     overrider.set_dev_mode(None)
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("graviton_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is True
+    assert overrider.overrides["dev"]["arm64_mode"] is False
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
+    assert overrider.overrides["dev"]["deep_canary_mode"] is False
+
+    overrider.set_dev_mode("arm64_mode")
+    assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is True
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("neuronx_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is True
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("deep_canary_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is True
 
@@ -130,6 +140,7 @@ def test_set_buildspec_updates_buildspec_override():
 
     valid_buildspec_paths = [
         "pytorch/inference/buildspec-graviton.yml",
+        "pytorch/inference/buildspec-arm64.yml",
         "tensorflow/inference/buildspec-neuronx.yml",
         "huggingface/pytorch/training/buildspec.yml",
     ]
@@ -139,6 +150,7 @@ def test_set_buildspec_updates_buildspec_override():
     expected_buildspec_override = {
         "dlc-pr-huggingface-pytorch-training": "huggingface/pytorch/training/buildspec.yml",
         "dlc-pr-pytorch-graviton-inference": "pytorch/inference/buildspec-graviton.yml",
+        "dlc-pr-pytorch-arm64-inference": "pytorch/inference/buildspec-arm64.yml",
         "dlc-pr-tensorflow-2-neuronx-inference": "tensorflow/inference/buildspec-neuronx.yml",
     }
 

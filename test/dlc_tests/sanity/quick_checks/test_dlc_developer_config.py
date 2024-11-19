@@ -16,6 +16,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
     assert config.parse_dlc_developer_configs("dev", "neuronx_mode") is False
     assert config.parse_dlc_developer_configs("dev", "graviton_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "arm64_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
     assert config.parse_dlc_developer_configs("dev", "trcomp_mode") is False
     assert config.parse_dlc_developer_configs("dev", "deep_canary_mode") is False
@@ -233,6 +234,17 @@ def test_build_version_override_configuration():
     assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-tensorflow-2-graviton-inference"
+        )
+        == ""
+    )
+
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-arm64-inference"
         )
         == ""
     )

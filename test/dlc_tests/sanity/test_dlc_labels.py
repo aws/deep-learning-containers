@@ -47,8 +47,13 @@ def test_dlc_standard_labels(image, region):
     )
     os_version = test_utils.get_os_version_from_image_uri(image).replace(".", "-")
 
-    # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
-    arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
+    arch_type = (
+        "graviton"
+        if test_utils.is_graviton_architecture()
+        else "arm64"
+        if test_utils.is_arm64_architecture()
+        else "x86"
+    )
 
     contributor = test_utils.get_contributor_from_image_uri(image)
 

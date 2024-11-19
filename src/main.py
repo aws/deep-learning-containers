@@ -80,6 +80,13 @@ def main():
         and not config.is_deep_canary_mode_enabled()
     )
 
+    # An ARM64 dedicated builder will work if in ARM64 mode and its framework has not
+    # been disabled.
+    arm64_builder_enabled = (
+        config.is_arm64_builder_enabled_for_this_pr_build(args.framework)
+        and not config.is_deep_canary_mode_enabled()
+    )
+
     # A HABANA dedicated builder will work if in HABANA mode and its framework has not been disabled
     habana_builder_enabled = (
         config.is_habana_builder_enabled_for_this_pr_build(args.framework)
@@ -114,6 +121,7 @@ def main():
         or neuron_builder_enabled
         or neuronx_builder_enabled
         or graviton_builder_enabled
+        or arm64_builder_enabled
         or habana_builder_enabled
         or hf_trcomp_builder_enabled
         or trcomp_builder_enabled

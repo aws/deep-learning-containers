@@ -110,7 +110,7 @@ class DLCReleaseInformation:
         # TODO: Change how this process works as this using qemu with graviton is making part of the image
         # OS read-only. Thus, when installing pipdeptree, it does not install in the expected location and
         # the pipdeptree command will fail for graviton.
-        if "graviton" in self.dlc_repository:
+        if "graviton" in self.dlc_repository or "arm64" in self.dlc_repository:
             self.get_container_command_output("python3 -m pip install pipdeptree")
             return self.get_container_command_output("python3 -m pipdeptree")
         else:
