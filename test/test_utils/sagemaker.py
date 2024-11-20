@@ -55,7 +55,7 @@ def is_test_job_efa_dedicated():
 
 
 def assign_sagemaker_remote_job_instance_type(image):
-    if "graviton" in image:
+    if "graviton" in image or "arm64" in image:
         return "ml.c6g.2xlarge"
     elif "neuronx" in image or "training-neuron" in image:
         return "ml.trn1.2xlarge"
@@ -77,7 +77,7 @@ def assign_sagemaker_remote_job_instance_type(image):
 
 
 def assign_sagemaker_local_job_instance_type(image):
-    if "graviton" in image:
+    if "graviton" in image or "arm64" in image:
         return "c6g.2xlarge"
     elif "tensorflow" in image and "inference" in image and "gpu" in image:
         return "g4dn.xlarge"
@@ -93,9 +93,9 @@ def assign_sagemaker_local_job_instance_type(image):
 def assign_sagemaker_local_test_ami(image, region, instance_type):
     """
     Helper function to get the needed AMI for launching the image.
-    Needed to support Graviton(ARM) images
+    Needed to support Graviton/ARM64 images
     """
-    if "graviton" in image:
+    if "graviton" in image or "arm64" in image:
         if region == "us-east-1":
             return UL20_CPU_ARM64_US_EAST_1
         else:

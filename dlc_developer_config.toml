@@ -4,6 +4,11 @@ ei_mode = false
 neuron_mode = false
 neuronx_mode = false
 graviton_mode = false
+# Please only set it to true if you are preparing a ARM64 related PR
+# Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
+arm64_mode = false
+# Please only set it to True if you are preparing a HABANA related PR
+# Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
@@ -69,6 +74,12 @@ dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-mxnet-graviton-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
+
+# ARM64 Inference
+dlc-pr-pytorch-arm64-inference = ""
+dlc-pr-tensorflow-2-arm64-inference = ""
+
+# EIA Inference
 dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
