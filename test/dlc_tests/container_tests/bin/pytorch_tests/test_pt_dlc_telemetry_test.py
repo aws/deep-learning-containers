@@ -10,13 +10,13 @@ def _clean_up_reports():
         os.system("rm /tmp/test_tag_request.txt")
 
 
-def opt_in_opt_out_test():
+def opt_in_opt_out_test(exec_cmd):
     os.environ["TEST_MODE"] = "1"
 
     for opt_out_value in ["True", "TRUE", "true"]:
         _clean_up_reports()
         os.environ["OPT_OUT_TRACKING"] = opt_out_value
-        cmd = "python -c 'import torch'"
+        cmd = f"python -c '{exec_cmd}'"
         os.system(cmd)
         time.sleep(5)
         assert not os.path.exists(
@@ -29,7 +29,7 @@ def opt_in_opt_out_test():
     for opt_out_value in ["False", "XYgg"]:
         _clean_up_reports()
         os.environ["OPT_OUT_TRACKING"] = opt_out_value
-        cmd = "python -c 'import torch'"
+        cmd = f"python -c '{exec_cmd}'"
         os.system(cmd)
         time.sleep(5)
         assert os.path.exists(
@@ -43,7 +43,7 @@ def opt_in_opt_out_test():
     print("Opt-In/Opt-Out Test passed")
 
 
-def perf_test():
+def perf_test(exec_cmd):
     os.environ["TEST_MODE"] = "0"
     os.environ["OPT_OUT_TRACKING"] = "False"
     NUM_ITERATIONS = 5
@@ -51,7 +51,7 @@ def perf_test():
     for itr in range(NUM_ITERATIONS):
         total_time_in = 0
         for x in range(NUM_ITERATIONS):
-            cmd = "python -c 'import torch'"
+            cmd = f"python -c '{exec_cmd}'"
             start = time.time()
             os.system(cmd)
             total_time_in += time.time() - start
@@ -59,7 +59,7 @@ def perf_test():
 
         total_time_out = 0
         for x in range(NUM_ITERATIONS):
-            cmd = "export OPT_OUT_TRACKING='true' && python -c 'import torch'"
+            cmd = f"export OPT_OUT_TRACKING='true' && python -c '{exec_cmd}'"
             start = time.time()
             os.system(cmd)
             total_time_out += time.time() - start
@@ -72,7 +72,11 @@ def perf_test():
         print("DLC Telemetry performance test Passed")
 
 
-perf_test()
-opt_in_opt_out_test()
+perf_test("import torch")
+opt_in_opt_out_test("import torch")
+
+# test generic python
+perf_test("import os")
+opt_in_opt_out_test("import os")
 
 print("All DLC telemetry test passed")
