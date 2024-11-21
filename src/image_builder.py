@@ -258,9 +258,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         template_fw_version = (
             str(image_config["framework_version"])
             if image_config.get("framework_version")
-            else str(image_config["version"])
+            else str(BUILDSPEC["version"])
         )
-        template_fw = str(image_config["framework"])
+        template_fw = str(BUILDSPEC["framework"])
         post_template_file = utils.generate_dlc_cmd(
             template_path=template_file,
             output_path="out.py",
