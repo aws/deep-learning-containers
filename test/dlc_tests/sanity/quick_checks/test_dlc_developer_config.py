@@ -16,6 +16,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("dev", "neuron_mode") is False
     assert config.parse_dlc_developer_configs("dev", "neuronx_mode") is False
     assert config.parse_dlc_developer_configs("dev", "graviton_mode") is False
+    assert config.parse_dlc_developer_configs("dev", "arm64_mode") is False
     assert config.parse_dlc_developer_configs("dev", "habana_mode") is False
     assert config.parse_dlc_developer_configs("dev", "trcomp_mode") is False
     assert config.parse_dlc_developer_configs("dev", "deep_canary_mode") is False
@@ -30,8 +31,8 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("build", "do_build") is True
 
     # Check test settings
-    assert config.parse_dlc_developer_configs("test", "security_sanity_tests") is True
-    assert config.parse_dlc_developer_configs("test", "functionality_sanity_tests") is True
+    assert config.parse_dlc_developer_configs("test", "sanity_tests") is True
+    assert config.parse_dlc_developer_configs("test", "security_tests") is True
     assert config.parse_dlc_developer_configs("test", "sagemaker_remote_tests") is True
     assert config.parse_dlc_developer_configs("test", "sagemaker_efa_tests") is False
     assert config.parse_dlc_developer_configs("test", "sagemaker_rc_tests") is False
@@ -61,8 +62,8 @@ def test_developer_config_wrappers_defaults():
     Test defaults of config file wrappers
     """
     # Check test settings
-    assert config.is_security_sanity_test_enabled() is True
-    assert config.is_functionality_sanity_test_enabled() is True
+    assert config.is_sanity_test_enabled() is True
+    assert config.is_security_test_enabled() is True
     assert config.is_sm_local_test_enabled() is True
     assert config.is_sm_remote_test_enabled() is True
     assert config.is_sm_efa_test_enabled() is False
@@ -233,6 +234,17 @@ def test_build_version_override_configuration():
     assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-tensorflow-2-graviton-inference"
+        )
+        == ""
+    )
+
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-arm64-inference"
         )
         == ""
     )

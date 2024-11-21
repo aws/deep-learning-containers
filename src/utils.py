@@ -140,8 +140,8 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
         "eks": [],
         "ec2": [],
         "ec2-benchmark": [],
-        "security-sanity": [],
-        "functionality-sanity": [],
+        "sanity": [],
+        "security": [],
         "autopr": [],
     }
 
@@ -300,6 +300,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
 
     if "graviton" in image_uri:
         framework = f"graviton_{framework}"
+
+    if "arm64" in image_uri:
+        framework = f"arm64_{framework}"
 
     ignore_data_file = os.path.join(
         os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json"

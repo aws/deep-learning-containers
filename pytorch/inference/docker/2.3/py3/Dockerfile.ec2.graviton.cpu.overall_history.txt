@@ -1,4 +1,46 @@
 #### First image: sha256:47972cb08eb15526c5c7b6158bf30e2ae4d4a10141bbc3eb7f59bd60ffe351b7 ####
+#### Patch contents for patch-1: sha256:9edbb2bb50425920e506c9d1f4c1be7b4487888166131ca87634668c753209ec ####
+echo N/A
+echo N/A
+#### Patch contents for patch-2: sha256:300ca73fc51807801c04a3797c88ea02bd715a26b125648725d972f1dbde99d4 ####
+pip install certifi==2024.7.4
+apt-get update && apt-get install -y --only-upgrade libpython3.8-minimal libpython3.8-stdlib libpython3.8 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-3: sha256:0530084975ad6a6acf337197c4c502e056b432d645b058e193b2ac527de721a6 ####
+pip install certifi==2024.7.4 setuptools==71.0.4
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 libpython3.8-minimal libpython3.8-stdlib libpython3.8 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-4: sha256:fd9ca8af90fa8a598b6e366e38ac81042850fa513d4a20bd06e032991b90d91b ####
+pip install certifi==2024.7.4 setuptools==71.1.0
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 libpython3.8-minimal libpython3.8-stdlib libpython3.8 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-5: sha256:9c516da0cf0bcf509a002be015d1fe2f2e97622bea767e5d5914bbf418450459 ####
+pip install certifi==2024.7.4 setuptools==71.1.0
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-6: sha256:6af10abfb4f21d32b9baeef298b14b9dd44056152bd03fbec6677274c141aede ####
+pip install certifi==2024.7.4 setuptools==72.1.0
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 linux-libc-dev python3.8-minimal python3.8
+#### Patch contents for patch-7: sha256:596e7d227a1072baa3fd3b6a6c9010e37508391f64ce889f522232a86d465ca5 ####
+pip install certifi==2024.7.4 setuptools==72.1.0
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-8: sha256:6c2f4f703998cb343d68b6fca91cc77e0238b06db20b446c2f887cc92fb71aea ####
+pip install certifi==2024.7.4 setuptools==72.1.0
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-9: sha256:90dd160902032586451b8273846d8601519d4267833ecc25de191dbe94300ddf ####
+pip install certifi==2024.7.4 setuptools==72.1.0
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-10: sha256:d51bab622e99fbdbd231fbafa86c173fff5be768e77a1ddf08332e47de2a6f82 ####
+pip install certifi==2024.7.4 setuptools==72.1.0
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-11: sha256:cb1e80fa8203eab928be3b598369a544b5050e127d3d27f7eda3658b911d67fe ####
+pip install certifi==2024.7.4 setuptools==72.2.0
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-12: sha256:755db3bbf05c49df34c629d0bbd9f8aca406e1260b6011012331f076546571e1 ####
+pip install certifi==2024.7.4 setuptools==73.0.1
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-13: sha256:1030eb003642f511f5290c17aea4528631b4c6c8d4712fe39cd4b7ab967333d9 ####
+pip install certifi==2024.7.4 setuptools==73.0.1
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
+#### Patch contents for patch-14: sha256:417eab1f06d320f68b05b0c267ddc4954339d7f13f75191b768500b3f28b7304 ####
+pip install certifi==2024.8.30 setuptools==74.0.0
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8
 #### Current Patch contents ####
-echo N/A
-echo N/A
+pip install certifi==2024.8.30 setuptools==74.1.0
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-minimal python3.8

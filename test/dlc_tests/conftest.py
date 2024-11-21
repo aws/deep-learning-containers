@@ -53,6 +53,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__5",
     "pytorch_training___2__4",
     "pytorch_training___2__3",
     "pytorch_training___2__2",
@@ -66,6 +67,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference_neuronx",
     "pytorch_training_neuronx",
     "pytorch_inference_graviton",
+    "pytorch_inference_arm64",
     # TensorFlow
     "tensorflow_training",
     "tensorflow_inference",
@@ -75,6 +77,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_training_neuron",
     "tensorflow_training_habana",
     "tensorflow_inference_graviton",
+    "tensorflow_inference_arm64",
     # MxNET
     "mxnet_training",
     "mxnet_inference",
@@ -106,6 +109,7 @@ FRAMEWORK_FIXTURES = (
     "hpu",
     # Architecture
     "graviton",
+    "arm64",
     # Job Type fixtures
     "training",
     "inference",
@@ -643,9 +647,13 @@ def ec2_instance(
         )
         or (
             "tensorflow_inference" in request.fixturenames
-            and "graviton_compatible_only" in request.fixturenames
+            and (
+                "graviton_compatible_only" in request.fixturenames
+                or "arm64_compatible_only" in request.fixturenames
+            )
         )
         or ("graviton" in request.fixturenames)
+        or ("arm64" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [
             {
@@ -996,7 +1004,7 @@ def skip_serialized_release_pt_test(request):
     skip_dict = {
         "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.5": ["cpu", "cu124"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
@@ -1122,6 +1130,11 @@ def x86_compatible_only():
 
 @pytest.fixture(scope="session")
 def graviton_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def arm64_compatible_only():
     pass
 
 
@@ -1574,6 +1587,8 @@ def generate_unique_values_for_fixtures(
                                 instance_type_env = (
                                     f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
                                 )
+                            elif "arm64" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_ARM64_INSTANCE_TYPE"
                             else:
                                 instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
                             instance_type = os.getenv(instance_type_env)
@@ -1616,7 +1631,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton")
+    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton", "arm64")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
@@ -1692,7 +1707,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                    if "x86_compatible_only" in metafunc.fixturenames and (
+                        "graviton" in image or "arm64" in image
+                    ):
                         continue
                     if "training_compiler_only" in metafunc.fixturenames and not (
                         "trcomp" in image
@@ -1717,10 +1734,13 @@ def pytest_generate_tests(metafunc):
                             and "graviton" in image
                         ):
                             images_to_parametrize.append(image)
+                        elif "arm64_compatible_only" in metafunc.fixturenames and "arm64" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
                             and "graviton_compatible_only" not in metafunc.fixturenames
+                            and "arm64_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

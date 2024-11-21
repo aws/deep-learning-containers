@@ -55,7 +55,7 @@ from test.test_utils import (
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
-    is_eia_enabled=False, is_graviton_enabled=False
+    is_eia_enabled=False, is_arm64_enabled=False
 ):
     """
     Creates a regex pattern that would be used by the tests to check if the repo names match the pattern or not and thereafter skip the
@@ -63,7 +63,7 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     to derive additional pattern that needs to be appended to base regex.
 
     :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
-    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
+    :param is_arm64_enabled: boolean, appends `-graviton|-arm64` to the base regex if set to True
     :return: str, derived regex
     """
     base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
@@ -75,11 +75,11 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
             if regex_prefix_string_derived_via_method_arguments
             else "-eia"
         )
-    if is_graviton_enabled:
+    if is_arm64_enabled:
         regex_prefix_string_derived_via_method_arguments = (
-            f"{regex_prefix_string_derived_via_method_arguments}|-graviton"
+            f"{regex_prefix_string_derived_via_method_arguments}|-graviton|-arm64"
             if regex_prefix_string_derived_via_method_arguments
-            else "-graviton"
+            else "-graviton|-arm64"
         )
 
     if regex_prefix_string_derived_via_method_arguments:
@@ -306,6 +306,12 @@ def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_arm64(pytorch_inference_arm64, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_arm64, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
+@pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
@@ -331,7 +337,7 @@ def test_framework_version_cpu(image):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(
         derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
+            is_eia_enabled=True, is_arm64_enabled=True
         ),
         image_repo_name,
     ):
@@ -512,6 +518,14 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
+    _test_framework_and_cuda_version(gpu, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
@@ -840,7 +854,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     # For tf inference containers, check TF model server version
     if re.fullmatch(
         derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
+            is_eia_enabled=True, is_arm64_enabled=True
         ),
         image_repo_name,
     ):
