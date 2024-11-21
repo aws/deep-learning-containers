@@ -286,10 +286,10 @@ RUN pip install --no-cache-dir -U \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc \
-    blis \
-    "numpy<2" \
+    # spacy \
+    # thinc \
+    # blis \
+    # "numpy<2" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
@@ -298,11 +298,11 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training \
-    spacy \
-    thinc \
-    blis \
-    "numpy<2"
+    sagemaker-training
+    # spacy \
+    # thinc \
+    # blis \
+    # "numpy<2"
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
