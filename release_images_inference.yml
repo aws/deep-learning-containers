@@ -68,7 +68,7 @@ release_images:
       cuda_version: "cu124"
       example: False
       disable_sm_tag: True
-      force_release: False
+      force_release: True
   6:
     framework: "huggingface_pytorch"
     version: "2.1.0"
