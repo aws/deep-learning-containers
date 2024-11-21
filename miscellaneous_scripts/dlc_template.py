@@ -6,7 +6,6 @@ try:
     ):
         import threading
 
-        dlc_container_type = os.getenv("DLC_CONTAINER_TYPE", "inference")
         cmd = "python /usr/local/bin/deep_learning_container.py --framework {FRAMEWORK} --framework-version {FRAMEWORK_VERSION} --container-type {CONTAINER_TYPE} &>/dev/null"
         x = threading.Thread(target=lambda: os.system(cmd))
         x.setDaemon(True)
