@@ -132,6 +132,18 @@ UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
+UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+)
+AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
+    region_name="us-west-2",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
+)
 
 # Using latest ARM64 AMI (pytorch) - however, this will fail for TF benchmarks, so TF benchmarks are currently
 # disabled for Graviton.
@@ -208,7 +220,7 @@ ECS_AML2_NEURON_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/inf/recommended",
 )
-ECS_AML2_GRAVITON_CPU_USWEST2 = get_ami_id_ssm(
+ECS_AML2_ARM64_CPU_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
@@ -469,6 +481,8 @@ def get_expected_dockerfile_filename(device_type, image_uri):
     if is_covered_by_ec2_sm_split(image_uri):
         if "graviton" in image_uri:
             return f"Dockerfile.graviton.{device_type}"
+        elif "arm64" in image_uri:
+            return f"Dockerfile.arm64.{device_type}"
         elif is_ec2_sm_in_same_dockerfile(image_uri):
             if "pytorch-trcomp-training" in image_uri:
                 return f"Dockerfile.trcomp.{device_type}"
@@ -509,7 +523,7 @@ def get_image_type():
 
 def get_test_job_arch_type():
     """
-    Env variable should return graviton, x86, or None
+    Env variable should return graviton, arm64, x86, or None
     """
     return os.getenv("ARCH_TYPE", "x86")
 
@@ -702,6 +716,10 @@ def is_graviton_architecture():
     return os.getenv("ARCH_TYPE") == "graviton"
 
 
+def is_arm64_architecture():
+    return os.getenv("ARCH_TYPE") == "arm64"
+
+
 def is_dlc_cicd_context():
     return os.getenv("BUILD_CONTEXT") in ["PR", "CANARY", "NIGHTLY", "MAINLINE"]
 
@@ -724,6 +742,20 @@ def get_allowlist_path_for_enhanced_scan_from_env_variable():
 
 def is_rc_test_context():
     return config.is_sm_rc_test_enabled()
+
+
+def is_sanity_test_enabled():
+    return config.is_sanity_test_enabled()
+
+
+def is_security_test_enabled():
+    return config.is_security_test_enabled()
+
+
+def is_huggingface_image():
+    if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
+        return False
+    return os.getenv("FRAMEWORK_BUILDSPEC_FILE").startswith("huggingface")
 
 
 def is_covered_by_ec2_sm_split(image_uri):
@@ -966,13 +998,12 @@ def request_pytorch_inference_densenet(
     # is 404. Hence the extra check.
     if run_out.return_code != 0:
         LOGGER.error(
-            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\n",
-            f"Return Code: {run_out.return_code=}\n",
-            f"Error: {run_out.stderr=}",
+            f"run_out.return_code is not reliable. Predict requests may succeed but return a 404 error instead.\nReturn Code: {run_out.return_code}\nError: {run_out.stderr}\nStdOut: {run_out.stdout}"
         )
         return False
     else:
         inference_output = json.loads(run_out.stdout.strip("\n"))
+        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
         if not (
             (
                 "neuron" in model_name
@@ -991,7 +1022,6 @@ def request_pytorch_inference_densenet(
             )
         ):
             return False
-        LOGGER.info(f"Inference Output = {json.dumps(inference_output, indent=4)}")
 
     return True
 
@@ -1113,8 +1143,15 @@ def get_inference_run_command(image_uri, model_names, processor="cpu"):
         server_cmd = "multi-model-server"
 
     if processor != "neuron":
+        # PyTorch 2.4 requires token authentication to be disabled.
+        _framework, _version = get_framework_and_version_from_tag(image_uri=image_uri)
+        auth_arg = (
+            " --disable-token-auth"
+            if _framework == "pytorch" and Version(_version) in SpecifierSet(">=2.4")
+            else ""
+        )
         mms_command = (
-            f"{server_cmd} --start --{server_type}-config /home/model-server/config.properties --models "
+            f"{server_cmd} --start{auth_arg} --{server_type}-config /home/model-server/config.properties --models "
             + " ".join(parameters)
         )
     else:
@@ -1247,7 +1284,7 @@ def get_dlc_images():
         with open(test_env_file) as test_env:
             test_images = json.load(test_env)
         for dlc_test_type, images in test_images.items():
-            if dlc_test_type == "sanity":
+            if "sanity" in dlc_test_type:
                 return " ".join(images)
         raise RuntimeError(f"Cannot find any images for in {test_images}")
     return None
@@ -1260,7 +1297,7 @@ def get_deep_canary_images(
     For an input combination of canary job specs, find a matching list of image uris to be tested
     :param canary_framework: str Framework Name
     :param canary_image_type: str "training" or "inference"
-    :param canary_arch_type: str "x86" or "graviton"
+    :param canary_arch_type: str "x86" or "graviton" or "arm64"
     :param canary_region: str Region Name
     :param canary_region_prod_account: str DLC Production Account ID in this region
     :return: list<str> List of image uris regionalized for canary_region
@@ -1370,17 +1407,13 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
             f"Image type is set to {image_type}. It must be set to an allowed image type in {allowed_image_types}"
         )
 
-    # initialize graviton variables
-    use_graviton = False
-
-    # seperating framework from regex match pattern for graviton as it is ARCH_TYPE instead of FRAMEWORK
-    canary_type = framework
-
-    # Setting whether Graviton Arch is used
-    # NOTE: If Graviton arch is used with a framework, not in the list below, the match search will "KeyError".
-    if os.getenv("ARCH_TYPE") == "graviton":
-        use_graviton = True
-        canary_type = "graviton_" + framework
+    canary_type = (
+        "graviton_" + framework
+        if os.getenv("ARCH_TYPE") == "graviton"
+        else "arm64_" + framework
+        if os.getenv("ARCH_TYPE") == "arm64"
+        else framework
+    )
 
     version_regex = {
         "tensorflow": rf"tf(-sagemaker)?{customer_type_tag}-(\d+.\d+)",
@@ -1392,6 +1425,8 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
         "graviton_tensorflow": rf"tf-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
         "graviton_pytorch": rf"pt-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
         "graviton_mxnet": rf"mx-graviton(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "arm64_tensorflow": rf"tf-arm64(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
+        "arm64_pytorch": rf"pt-arm64(-sagemaker)?{customer_type_tag}-(\d+.\d+)\S*-(py\d+)",
     }
 
     # Get tags from repo releases
@@ -1438,12 +1473,8 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
 
     versions = []
     for v, inf_train in versions_counter.items():
-        # Earlier versions of huggingface did not have inference, Graviton is only inference
-        if (
-            (inf_train["inf"] and image_type == "inference")
-            or (inf_train["tr"] and image_type == "training")
-            or framework.startswith("huggingface")
-            or use_graviton
+        if (inf_train["inf"] and image_type == "inference") or (
+            inf_train["tr"] and image_type == "training"
         ):
             versions.append(v)
 
@@ -1532,9 +1563,25 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
                 "graviton_pytorch": {
                     "training": [],
                     "inference": [
+                        # f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-gpu-{py_version}",
                         f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-graviton:{fw_version}-cpu-{py_version}",
                     ],
                 },
+                # "arm64_tensorflow": {
+                #     "training": [],
+                #     "inference": [
+                #         f"{registry}.dkr.ecr.{region}.amazonaws.com/tensorflow-inference-arm64:{fw_version}-cpu-{py_version}",
+                #     ],
+                # },
+                # "arm64_pytorch": {
+                #     "training": [
+                #         f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-training-arm64:{fw_version}-gpu-{py_version}",
+                #     ],
+                #     "inference": [
+                #         f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-arm64:{fw_version}-gpu-{py_version}",
+                #         f"{registry}.dkr.ecr.{region}.amazonaws.com/pytorch-inference-arm64:{fw_version}-cpu-{py_version}",
+                #     ],
+                # },
             }
 
             # ec2 Images have an additional "ec2" tag to distinguish them from the regular "sagemaker" tag
@@ -1664,11 +1711,11 @@ def get_image_type_from_tag(image_uri):
 
 def get_image_arch_type_from_tag(image_uri):
     """
-    All images are assumed by default to be x86, unless they are graviton type
+    All images are assumed by default to be x86, unless they are graviton/arm64 type
     :param image_uri: str ECR image URI
-    :return: str "graviton" or "x86"
+    :return: str "graviton" or "arm64" or "x86"
     """
-    return "graviton" if "graviton" in image_uri else "x86"
+    return "graviton" if "graviton" in image_uri else "arm64" if "arm64" in image_uri else "x86"
 
 
 def get_framework_and_version_from_tag(image_uri):
@@ -2193,7 +2240,8 @@ def get_eks_k8s_test_type_label(image_uri):
     :param image_uri: ECR image URI
     :return: <string> node label
     """
-    if "graviton" in image_uri:
+    if "graviton" in image_uri or "arm64" in image_uri:
+        # using the graviton nodegroup (c6g.4xlarge) for both graviton and arm64 for now
         test_type = "graviton"
     elif "neuron" in image_uri:
         test_type = "neuron"

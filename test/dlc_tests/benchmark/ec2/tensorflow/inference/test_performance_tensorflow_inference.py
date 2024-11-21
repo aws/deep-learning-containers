@@ -66,14 +66,28 @@ def test_performance_ec2_tensorflow_inference_graviton_cpu(
     )
 
 
+@pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_BENCHMARK_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.skip(reason="Skipping until latest version of TF ARM64 AMI is available.")
+def test_performance_ec2_tensorflow_inference_arm64_cpu(
+    tensorflow_inference_arm64, ec2_connection, ec2_instance_ami, region, cpu_only
+):
+    _, framework_version = get_framework_and_version_from_tag(tensorflow_inference_arm64)
+    threshold = get_threshold_for_image(framework_version, TENSORFLOW_INFERENCE_CPU_THRESHOLD)
+    ec2_performance_tensorflow_inference(
+        tensorflow_inference_arm64, "cpu", ec2_connection, ec2_instance_ami, region, threshold
+    )
+
+
 def ec2_performance_tensorflow_inference(
     image_uri, processor, ec2_connection, ec2_instance_ami, region, threshold
 ):
-    is_graviton = "graviton" in image_uri
+    is_arm64 = "graviton" in image_uri or "arm64" in image_uri
 
     # active python env location used with graviton AMI is different than x86_64 AMI
     # using only "python3" on graviton will not yeiled the python env where tensorflow is installed
-    python_cmd = "/usr/bin/python3" if "graviton" in image_uri else "python3"
+    python_cmd = "/usr/bin/python3" if is_arm64 else "python3"
 
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     tf_version = "1" if is_tf_version("1", image_uri) else "2"
@@ -82,13 +96,13 @@ def ec2_performance_tensorflow_inference(
     # setting 1000 iterations on graviton causes the test to timeout thru codebuild, this does not
     # happen when the test is ran manually. Setting graviton to same iteration as PR.
     # TODO: revamp test supporting same configurations on x86_64 and graviton
-    num_iterations = 500 if is_pr_context() or is_graviton else 1000
+    num_iterations = 500 if is_pr_context() or is_arm64 else 1000
 
     # Make sure we are logged into ECR so we can pull the image
     account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(ec2_connection, account_id, region)
     ec2_connection.run(f"docker pull -q {image_uri} ")
-    if is_graviton:
+    if is_arm64:
         # TF training binary is used that is compatible for graviton instance type
         ec2_connection.run(
             (

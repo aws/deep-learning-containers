@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
