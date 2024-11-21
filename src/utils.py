@@ -660,4 +660,5 @@ def generate_dlc_cmd(template_path, output_path, framework, framework_version, c
     with open(output_path, "w") as out_f:
         out_f.write(content)
 
-    return output_path
+    # Return base path and set as artifact
+    return os.path.basename(output_path)
