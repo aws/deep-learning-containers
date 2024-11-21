@@ -263,7 +263,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         template_fw = str(BUILDSPEC["framework"])
         post_template_file = utils.generate_dlc_cmd(
             template_path=template_file,
-            output_path="out.py",
+            output_path=os.path.join(image_config["root"], "out.py"),
             framework=template_fw,
             framework_version=template_fw_version,
             container_type=label_job_type,
