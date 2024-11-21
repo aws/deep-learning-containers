@@ -250,22 +250,27 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 f"Cannot find inference or training job type in {image_repo_uri}. "
                 f"This is required to set job_type label."
             )
-        
+
         template_file = os.path.join(
             os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
         )
 
-        template_fw_version = str(image_config["framework_version"]) if image_config.get("framewrok_version") else str(image_config["version"])
+        template_fw_version = (
+            str(image_config["framework_version"])
+            if image_config.get("framewrok_version")
+            else str(image_config["version"])
+        )
         template_fw = str(image_config["framework"])
-        post_template_file = utils.generate_dlc_cmd(template_path=template_file, output_path="out.py", framework=template_fw, framework_version=template_fw_version, container_type=label_job_type)
+        post_template_file = utils.generate_dlc_cmd(
+            template_path=template_file,
+            output_path="out.py",
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
 
         ARTIFACTS.update(
-            {
-                "customize": {
-                    "source": post_template_file,
-                    "target": "sitecustomize.py"
-                }
-            }
+            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
         )
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
