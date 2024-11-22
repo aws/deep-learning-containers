@@ -24,7 +24,7 @@
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.20.0+cpu",
+    "version_specifier": "==0.20.1+cpu",
     "skip": "True"
   },
   "idna": {
