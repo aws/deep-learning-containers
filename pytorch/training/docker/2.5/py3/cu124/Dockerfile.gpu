@@ -174,7 +174,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
  && cd /tmp/aws-ofi-nccl \
  && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}.tar.gz \
  && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}.tar.gz \
- && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
+ && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION} \
  && ./autogen.sh \
  && ./configure --with-mpi=${OPEN_MPI_PATH} \
                 --with-libfabric=${EFA_PATH} \
