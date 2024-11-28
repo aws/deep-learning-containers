@@ -64,6 +64,7 @@ check_efa_nccl_all_reduce(){
     # the container. Not using full-paths of mpirun and other executables because these paths can change across PyTorch
     # versions in DLC images.
     mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
+        -x CUDA_HOME="/usr/local/cuda" \
         -x NCCL_TUNER_PLUGIN=/usr/local/lib/libnccl-ofi-tuner.so \
         -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
         -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
