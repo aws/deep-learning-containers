@@ -83,6 +83,8 @@ python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
 
 python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
+python /opt/aws/dlc/miscellaneous_scripts/move_customize.py /tmp/sitecustomize.py
+
 set -e
 
 HOME_DIR=/root \

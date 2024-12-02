@@ -276,6 +276,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "target": "new-torchserve-entrypoint",
         },
     }
+
+    # Add customize artifact
+    autopatch_artifacts.update({"customize": pre_push_image_object.context.artifact["customize"]})
+
     context = Context(
         autopatch_artifacts,
         f"build/{image_name}.tar.gz",
