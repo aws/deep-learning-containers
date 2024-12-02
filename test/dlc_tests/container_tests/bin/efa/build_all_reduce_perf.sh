@@ -7,10 +7,6 @@ if [ $TORCH_VERSION_2x -ne 0 ]; then
   CUDA_HOME=/usr/local/cuda
 fi
 
-echo "CUDA_HOME is ${CUDA_HOME}"
-
-CUDA_HOME=/usr/local/cuda
-
 set -e
 
 echo "Building all_reduce_perf from nccl-tests"
