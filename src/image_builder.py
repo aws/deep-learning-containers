@@ -261,9 +261,12 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else str(BUILDSPEC["version"])
         )
         template_fw = str(BUILDSPEC["framework"])
+        customize_path = image_config["root"]
+        if is_autopatch_build_enabled(buildspec_path=buildspec):
+            customize_path = os.path.join(os.sep, get_cloned_folder_path(), "src")
         post_template_file = utils.generate_dlc_cmd(
             template_path=template_file,
-            output_path=os.path.join(image_config["root"], "out.py"),
+            output_path=os.path.join(customize_path, "out.py"),
             framework=template_fw,
             framework_version=template_fw_version,
             container_type=label_job_type,
