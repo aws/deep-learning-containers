@@ -139,6 +139,8 @@ instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functi
 
 SageMaker Framework ARM64/Graviton Containers (SM support only)
 ============================
+Important note: Starting with PyTorch 2.5, we are changing the name of Graviton DLCs to ARM64 DLCs in order to generalize the usage. For example, the ECR repository name is now "pytorch-inference-arm64" 
+instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functionally equivalent.
 
 | Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						                                                                                 |
 |-------------------|-----------|----------------|---------|------------------------|-------------------------------------------------------------------------------------------------------------------|
