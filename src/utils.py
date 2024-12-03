@@ -660,5 +660,13 @@ def generate_dlc_cmd(template_path, output_path, framework, framework_version, c
     with open(output_path, "w") as out_f:
         out_f.write(content)
 
+    base_path = os.path.basename(output_path)
+
+    # Write out autopatch separately
+    with open(
+        os.path.join(os.sep, get_cloned_folder_path(), "src", base_path), "w"
+    ) as autopatch_out:
+        autopatch_out.write(content)
+
     # Return base path and set as artifact
-    return os.path.basename(output_path)
+    return base_path
