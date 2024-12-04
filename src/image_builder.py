@@ -220,6 +220,14 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
                 )
             else:
+                # replace the account ID of tag override
+                pattern = r"^(\d+)\.dkr\.ecr"
+                replacement = rf"910539337338.\g<1>"
+                image_repo_uri = re.sub(pattern, replacement, image_repo_uri)
+                FORMATTER.print(
+                    f"THE NEW IMAGE REPO IS {image_repo_uri}"
+                )
+
                 repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                     source_uri = (
