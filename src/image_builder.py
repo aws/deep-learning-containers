@@ -225,10 +225,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 pattern = r"(\d+)\.dkr\.ecr\.(.+)"
                 replacement = rf"{new_account_id}.\g<2>"
                 image_repo_uri = re.sub(pattern, replacement, image_repo_uri)
-        
-                FORMATTER.print(
-                    f"THE NEW IMAGE REPO IS {image_repo_uri}"
-                )
+
+                FORMATTER.print(f"THE NEW IMAGE REPO IS {image_repo_uri}")
 
                 repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
