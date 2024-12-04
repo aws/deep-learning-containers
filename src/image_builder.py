@@ -223,8 +223,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 FORMATTER.print(f"THE OLD IMAGE REPO IS {image_repo_uri}")
                 # replace the account ID of tag override
                 new_account_id = "910539337338"
-                pattern = r"(\d+)\.dkr\.ecr\.(.+)"
-                replacement = rf"{new_account_id}.\g<2>"
+                pattern = r"(\d+)\.dkr\.ecr\.(.+?)"
+                replacement = rf"{new_account_id}.dkr.ecr.\g<2>"
                 image_repo_uri = re.sub(pattern, replacement, image_repo_uri)
 
                 FORMATTER.print(f"THE NEW IMAGE REPO IS {image_repo_uri}")
