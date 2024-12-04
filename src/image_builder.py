@@ -220,6 +220,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
                 )
             else:
+                FORMATTER.print(f"THE OLD IMAGE REPO IS {image_repo_uri}")
                 # replace the account ID of tag override
                 new_account_id = "910539337338"
                 pattern = r"(\d+)\.dkr\.ecr\.(.+)"
