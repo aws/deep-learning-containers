@@ -31,6 +31,6 @@ git clone https://github.com/pytorch/benchmark.git
 cd benchmark
 git checkout 350bb04  # pin commit for Python 3.11 support
 pip install -r requirements.txt
-pip uninstall pynvml
+pip uninstall pynvml -y
 pip install pynvml==11.5.3
 pip install numba
