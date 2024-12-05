@@ -31,6 +31,12 @@ git clone https://github.com/pytorch/benchmark.git
 cd benchmark
 git checkout 350bb04  # pin commit for Python 3.11 support
 pip install -r requirements.txt
+
+# pin pynvml to 11.5.3 to avoid issues with 12.0.0
+# https://github.com/pytorch/benchmark/issues/2552
+# PR: https://github.com/pytorch/benchmark/pull/2553
+# when this issue is fixed can revert back
 pip uninstall pynvml -y
 pip install pynvml==11.5.3
+
 pip install numba
