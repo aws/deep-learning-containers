@@ -37,6 +37,6 @@ pip install -r requirements.txt
 # PR: https://github.com/pytorch/benchmark/pull/2553
 # when this issue is fixed can revert back
 pip uninstall pynvml -y
-pip install pynvml==11.5.3
+pip install "pynvml<12"
 
 pip install numba
