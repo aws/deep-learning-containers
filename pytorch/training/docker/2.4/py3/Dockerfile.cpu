@@ -284,12 +284,6 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc \
-    blis \
-    "numpy<2" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
@@ -310,8 +304,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    # pinned for sagemaker==2.232.2
+    # pinned for sagemaker==2.235.1
     "cloudpickle==2.2.1" \
+    # pin numpy requirement for sagemaker dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
  && /opt/conda/bin/mamba clean -afy
 
 # Copy workaround script for incorrect hostname
