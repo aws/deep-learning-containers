@@ -153,6 +153,8 @@ class DockerImage:
         """
         self.summary["start_time"] = datetime.now()
 
+        print("building")
+
         # Confirm if building the image is required or not
         if not self.to_build:
             self.log.append(["Not built"])
@@ -161,9 +163,12 @@ class DockerImage:
             return self.build_status
 
         # Conduct some preprocessing before building the image
+
+        print("updating pre build config")
         self.update_pre_build_configuration()
 
         # Start building the image
+        print("trying to build image")
         with open(self.context.context_path, "rb") as context_file:
             self.docker_build(fileobj=context_file, custom_context=True)
             self.context.remove()
@@ -178,6 +183,7 @@ class DockerImage:
             self.summary["end_time"] = datetime.now()
 
         # check the size after image is built.
+        print("running image size check")
         self.image_size_check()
 
         # This return is necessary. Otherwise FORMATTER fails while displaying the status.
