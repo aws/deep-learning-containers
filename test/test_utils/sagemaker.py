@@ -87,7 +87,7 @@ def assign_sagemaker_local_job_instance_type(image):
         return "p3.2xlarge"
     elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
         return "g5.8xlarge"
-    return "p4d.24xlarge" if "gpu" in image else "c5.18xlarge"
+    return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"
 
 
 def assign_sagemaker_local_test_ami(image, region, instance_type):
