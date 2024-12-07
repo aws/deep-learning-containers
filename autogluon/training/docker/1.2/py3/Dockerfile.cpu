@@ -1,0 +1,71 @@
+ARG PYTHON_VERSION=3.11.9
+
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-sagemaker
+
+# PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
+# ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+# Install dependencies
+RUN apt-get update \
+ && apt-get -y upgrade \
+ && apt-get install -y --no-install-recommends \
+ && apt-get autoremove -y \
+ # Install tesseract-ocr to support automm document classification
+ && apt-get install tesseract-ocr -y \
+ # Install rsync to support ray distributed training
+ && apt-get install rsync -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ARG AUTOGLUON_VERSION=1.2.0
+
+# Upgrading pip and installing/updating Python dependencies
+# Comments are added to explain the reason behind each update
+RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
+ && pip install --no-cache-dir -U wheel \
+ && pip install --no-cache-dir -U numpy numba \
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+#  && mim install -q mmcv==2.1.0 --timeout 600 \
+#  && pip install --no-cache-dir -U mmdet>=3.0.0 \
+#  && pip install --no-cache-dir -U "mmengine" \
+# Update requests to a secure version that fixes CVE-2023-32681
+ && pip install --no-cache-dir -U requests>=2.31.0 \
+ && pip install --no-cache-dir -U pyOpenSSL>=23.2.0 \
+ # Capping setuptools to 69.5.1 to fix AutoMM tests
+ && pip install --no-cache-dir setuptools==69.5.1 \
+ # Update pillow to a secure version that fixes CVE-2023-50447
+ && pip install --no-cache-dir -U pillow>=10.2.0 \
+  # Update Jinja2 to a secure version that fixes vulnerability id 64227
+ && pip install --no-cache-dir -U Jinja2>=3.1.3 \
+ # Update aiohttp to a secure version that fixes vulnerability id 64642
+ && pip install --no-cache-dir -U aiohttp>=3.9.2 \
+ # update paramiko to a secure version that fixes vulnerability id 65193
+ && pip install --no-cache-dir -U paramiko>=3.4.0 \
+ # update idna to a secure version that fixes vulnerability id 67895
+ && pip install --no-cache-dir -U idna>=3.7.0 \
+ # update tqdm to a secure version that fixes CVE-2024-34062
+ && pip install --no-cache-dir -U tqdm>=4.66.3 \
+ # Cap pillow & ninja to fix sanity test
+ && pip install --no-cache-dir "pillow<11.0.0" \
+ && pip install --no-cache-dir "ninja<1.11.1.1" \
+ # Fix pip test
+ && pip install --no-cache-dir "dill<0.3.9" \
+ && pip install --no-cache-dir "multiprocess>0.70.16"
+
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip -o ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
+
+RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
+
+CMD ["/bin/bash"]
