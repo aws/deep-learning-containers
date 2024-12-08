@@ -31,9 +31,6 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
 # Update requests to a secure version that fixes CVE-2023-32681
  && pip install --no-cache-dir -U requests>=2.31.0 \  
-#  && mim install -q mmcv==2.1.0 --timeout 600 \
-#  && pip install --no-cache-dir -U mmdet>=3.0.0 \
-#  && pip install --no-cache-dir -U "mmengine" \
 # Capping setuptools to 69.5.1 to fix AutoMM tests
  && pip install --no-cache-dir setuptools==69.5.1 \  
  # Update pillow to a secure version that fixes CVE-2023-50447
