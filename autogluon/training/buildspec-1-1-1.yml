@@ -1,8 +1,8 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK autogluon
-version: &VERSION 1.2.0
-short_version: &SHORT_VERSION 1.2
+version: &VERSION 1.1.1
+short_version: &SHORT_VERSION 1.1
 arch_type: x86
 
 repository_info:
@@ -29,7 +29,7 @@ images:
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
-    os_version: &OS_VERSION ubuntu22.04
+    os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
@@ -42,8 +42,8 @@ images:
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py311
-    cuda_version: &CUDA_VERSION cu124
-    os_version: &OS_VERSION ubuntu22.04
+    cuda_version: &CUDA_VERSION cu121
+    os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
