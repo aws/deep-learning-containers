@@ -373,6 +373,8 @@ def test_framework_version_cpu(image):
                 # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
+            if output == '1.2':
+                output = '1.2.0'
             assert output.startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:

@@ -1,5 +1,6 @@
 {
     "72236": "setuptools - autogluon uses setuptools == 69.5.1",
     "72089": "NLTK - autogluon uses nltk <= 3.8.1",
-    "65189": "Ray - autogluon uses ray <= 2.39.0"
+    "65189": "Ray - autogluon uses ray <= 2.39.0",
+    "74439": "Tornado - parent base image uses tornado 6.4.1"
 }
