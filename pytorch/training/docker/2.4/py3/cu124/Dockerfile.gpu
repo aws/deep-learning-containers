@@ -488,13 +488,16 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     seaborn \
     # pinned for sagemaker==2.235.1
     "cloudpickle==2.2.1" \
+ && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir -U \
     # pin numpy requirement for sagemaker dependency
     # requires explicit declaration of spacy, thic, blis
+    # pip install due to pip check conflict with conda package
     spacy \
     thinc \
-    "blis<1" \
-    "numpy<2" \
- && /opt/conda/bin/mamba clean -afy
+    blis \
+    "numpy<2"
 
 # Add SageMaker DataParallel to LD_LIBRARY_PATH
 ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"

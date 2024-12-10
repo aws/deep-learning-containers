@@ -311,6 +311,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install --no-cache-dir -U \
     # pin numpy requirement for sagemaker dependency
     # requires explicit declaration of spacy, thic, blis
+    # pip install due to pip check conflict with conda package
     spacy \
     thinc \
     blis \
