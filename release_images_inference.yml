@@ -58,14 +58,14 @@ release_images:
       force_release: False
   5:
     framework: "djl"
-    version: "0.31.0"
+    version: "0.27.0"
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py311" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
-      lmi_version: "13.0.0"
-      cuda_version: "cu124"
+      deepspeed_version: "0.12.6"
+      cuda_version: "cu121"
       example: False
       disable_sm_tag: True
       force_release: False
