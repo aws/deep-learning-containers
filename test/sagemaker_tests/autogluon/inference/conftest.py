@@ -87,7 +87,7 @@ def pytest_addoption(parser):
     parser.addoption("--docker-base-name", default="autogluon")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
-    parser.addoption("--py-version", choices=["38", "39", "310", "311"], default="311")
+    parser.addoption("--py-version", choices=["39", "310", "311"], default="311")
     parser.addoption("--processor", choices=["gpu", "cpu"], default="cpu")
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
