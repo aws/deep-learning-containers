@@ -25,6 +25,7 @@ from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
+
 from ...integration import (
     training_dir,
     mnist_script,
@@ -70,7 +71,7 @@ def test_serve_json_npy(
         framework_version,
         sagemaker_local_session,
         instance_type,
-        1,
+        model_server_workers=1,
     ) as predictor:
         for content_type in (content_types.JSON, content_types.NPY):
             for accept in (content_types.JSON, content_types.CSV, content_types.NPY):
@@ -146,6 +147,7 @@ def _predictor(
     sagemaker_local_session,
     instance_type,
     model_server_workers=None,
+    env=None,
 ):
     model = PyTorchModel(
         "file://{}/model.tar.gz".format(model_dir),
@@ -155,6 +157,7 @@ def _predictor(
         framework_version=framework_version,
         sagemaker_session=sagemaker_local_session,
         model_server_workers=model_server_workers,
+        env=env,
     )
 
     with local_mode_utils.lock():

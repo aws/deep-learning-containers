@@ -129,6 +129,8 @@ def is_test_job_enabled(test_type):
         return True
     if test_type == constants.SANITY_TESTS and config.is_sanity_test_enabled():
         return True
+    if test_type == constants.SECURITY_TESTS and config.is_security_test_enabled():
+        return True
 
     return False
 
@@ -184,8 +186,8 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 
 def run_deep_canary_pr_testbuilds():
     """
-    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton
-    DLC images.
+    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton/
+    ARM64 DLC images.
     This helper function determines whether this PR build job has been enabled, and this job has
     corresponding Deep Canaries that can be executed.
     If both these conditions are true, then it configures and launches a "dlc-pr-deep-canary-test"
@@ -199,8 +201,9 @@ def run_deep_canary_pr_testbuilds():
     build_framework = os.getenv("FRAMEWORK")
     general_builder_enabled = config.is_general_builder_enabled_for_this_pr_build(build_framework)
     graviton_builder_enabled = config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
+    arm64_builder_enabled = config.is_arm64_builder_enabled_for_this_pr_build(build_framework)
     if config.is_deep_canary_mode_enabled() and (
-        general_builder_enabled or graviton_builder_enabled
+        general_builder_enabled or graviton_builder_enabled or arm64_builder_enabled
     ):
         commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
         # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
@@ -213,6 +216,8 @@ def run_deep_canary_pr_testbuilds():
         pr_test_job = f"dlc-pr-{test_type}-test"
         if graviton_builder_enabled:
             pr_test_job += "-graviton"
+        elif arm64_builder_enabled:
+            pr_test_job += "-arm64"
         run_test_job(commit, pr_test_job)
 
 
@@ -243,9 +248,14 @@ def main():
         if images:
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
-            # Maintaining separate codebuild project for graviton sanity test
-            if "graviton" in images_str and test_type == "sanity":
-                pr_test_job += "-graviton"
+
+            # Maintaining separate codebuild projects for graviton/arm64 sanity and security tests
+            if test_type == constants.SANITY_TESTS or test_type == constants.SECURITY_TESTS:
+                if "graviton" in images_str:
+                    pr_test_job += "-graviton"
+                elif "arm64" in images_str:
+                    pr_test_job += "-arm64"
+
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(
                 images_str, test_type
             ):

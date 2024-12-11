@@ -1,4 +1,7 @@
 #!/bin/bash
+
+set -e
+
 INSTANCE_TYPE=$1
 if [ -z "$INSTANCE_TYPE" ];then
   echo "Usage: "$0" <INSTANCE_TYPE>"

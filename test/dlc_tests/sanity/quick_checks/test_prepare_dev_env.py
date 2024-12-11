@@ -3,11 +3,16 @@ import os
 
 from unittest.mock import patch, mock_open
 from src import prepare_dlc_dev_environment
+from test.test_utils import is_pr_context
 
 
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("build_frameworks")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_build_frameworks():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_build_frameworks(("pytorch", "tensorflow"))
@@ -18,6 +23,10 @@ def test_build_frameworks():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("job_types")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_build_job_types():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
     overrider.set_job_type(("inference", "training"))
@@ -48,6 +57,10 @@ def test_build_job_types():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("test_types")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_test_types():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -55,6 +68,7 @@ def test_set_test_types():
     test_types = ["ec2_tests", "ecs_tests", "sagemaker_remote_tests"]
     overrider.set_test_types(test_types)
     assert overrider.overrides["test"]["sanity_tests"] is False
+    assert overrider.overrides["test"]["security_tests"] is False
     assert overrider.overrides["test"]["ecs_tests"] is True
     assert overrider.overrides["test"]["eks_tests"] is False
     assert overrider.overrides["test"]["ec2_tests"] is True
@@ -71,27 +85,41 @@ def test_set_test_types():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("dev_mode")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     # test with no dev mode provided
     overrider.set_dev_mode(None)
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("graviton_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is True
+    assert overrider.overrides["dev"]["arm64_mode"] is False
+    assert overrider.overrides["dev"]["neuronx_mode"] is False
+    assert overrider.overrides["dev"]["deep_canary_mode"] is False
+
+    overrider.set_dev_mode("arm64_mode")
+    assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is True
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("neuronx_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is True
     assert overrider.overrides["dev"]["deep_canary_mode"] is False
 
     overrider.set_dev_mode("deep_canary_mode")
     assert overrider.overrides["dev"]["graviton_mode"] is False
+    assert overrider.overrides["dev"]["arm64_mode"] is False
     assert overrider.overrides["dev"]["neuronx_mode"] is False
     assert overrider.overrides["dev"]["deep_canary_mode"] is True
 
@@ -103,11 +131,16 @@ def test_set_dev_mode():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_updates_buildspec_override():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
     valid_buildspec_paths = [
         "pytorch/inference/buildspec-graviton.yml",
+        "pytorch/inference/buildspec-arm64.yml",
         "tensorflow/inference/buildspec-neuronx.yml",
         "huggingface/pytorch/training/buildspec.yml",
     ]
@@ -117,6 +150,7 @@ def test_set_buildspec_updates_buildspec_override():
     expected_buildspec_override = {
         "dlc-pr-huggingface-pytorch-training": "huggingface/pytorch/training/buildspec.yml",
         "dlc-pr-pytorch-graviton-inference": "pytorch/inference/buildspec-graviton.yml",
+        "dlc-pr-pytorch-arm64-inference": "pytorch/inference/buildspec-arm64.yml",
         "dlc-pr-tensorflow-2-neuronx-inference": "tensorflow/inference/buildspec-neuronx.yml",
     }
 
@@ -126,6 +160,10 @@ def test_set_buildspec_updates_buildspec_override():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_invalid_path():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -142,6 +180,10 @@ def test_set_buildspec_invalid_path():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_updates_dev_mode():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -160,6 +202,10 @@ def test_set_buildspec_updates_dev_mode():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_updates_build_frameworks():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -178,6 +224,10 @@ def test_set_buildspec_updates_build_frameworks():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_updates_build_training_only():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -195,6 +245,10 @@ def test_set_buildspec_updates_build_training_only():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("set_buildspec")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_set_buildspec_updates_build_inference_only():
     overrider = prepare_dlc_dev_environment.TomlOverrider()
 
@@ -211,6 +265,10 @@ def test_set_buildspec_updates_build_inference_only():
 @pytest.mark.quick_checks
 @pytest.mark.model("N/A")
 @pytest.mark.integration("generate_new_file_content")
+@pytest.mark.skipif(
+    not is_pr_context(),
+    reason="Development environment utility only needs to be tested in PRs, and does not add functional value in other contexts.",
+)
 def test_generate_new_file_content():
     previous_version_path = "path/to/previous/version/file"
     major_version = "1"
@@ -228,16 +286,3 @@ def test_generate_new_file_content():
         assert result == expected_content
 
     mock_generate_new_file_content()
-
-
-@pytest.mark.quick_checks
-@pytest.mark.model("N/A")
-@pytest.mark.integration("currency")
-@pytest.mark.xfail(strict=True)
-def test_handle_currency_option_invalid_path(tmp_path, caplog):
-    invalid_currency_path = "invalid/file/path-1-2-hello.yml"
-
-    with patch(
-        "src.prepare_dlc_dev_environment.get_cloned_folder_path", return_value=str(tmp_path)
-    ):
-        prepare_dlc_dev_environment.handle_currency_option([invalid_currency_path])

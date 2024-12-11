@@ -172,6 +172,7 @@ def pytest_configure(config):
     )
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx image test")
     config.addinivalue_line("markers", "gdrcopy(): mark as gdrcopy integration test")
+    config.addinivalue_line("markers", "skip_smppy_test(): skip smppy test")
 
 
 def pytest_runtest_setup(item):
@@ -476,7 +477,7 @@ def skip_smdebug_v1_test(
     ecr_image,
 ):
     """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
     ):
@@ -493,7 +494,7 @@ def skip_dgl_test(
     The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
     when the binaries are added in.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_dgl_test", skip_dict
     ):
@@ -510,7 +511,7 @@ def skip_pytorchddp_test(
     For each currency release, Once SMDDP binary is added, we skip pytorchddp tests due to `pytorchddp` and `smdistributed` launcher consolidation.
     See https://github.com/aws/sagemaker-python-sdk/pull/4698.
     """
-    skip_dict = {">=2.1,<2.4": ["cu121"]}
+    skip_dict = {">=2.1,<=2.4": ["cu121"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
     ):
@@ -523,7 +524,7 @@ def skip_smdmodelparallel_test(
     processor,
     ecr_image,
 ):
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
     ):
@@ -542,11 +543,27 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">2.4": ["cu124"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
         pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
+
+
+@pytest.fixture(autouse=True)
+def skip_smppy_test(
+    request,
+    processor,
+    ecr_image,
+):
+    """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
+    However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
+    """
+    skip_dict = {}
+    if _validate_pytorch_framework_version(
+        request, processor, ecr_image, "skip_smppy_test", skip_dict
+    ):
+        pytest.skip(f"Profiler binaries do not exist in this image, skipping test")
 
 
 @pytest.fixture(autouse=True)

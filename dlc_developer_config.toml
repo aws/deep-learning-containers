@@ -13,6 +13,9 @@ neuronx_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
+# Please only set it to true if you are preparing a ARM64 related PR
+# Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
+arm64_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -27,7 +30,7 @@ trcomp_mode = false
 # Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
 # build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
 # regardless of whether they are enabled or disabled below.
-# Set graviton_mode to true to run Deep Canaries on Graviton images.
+# Set graviton_mode/arm64_mode to true to run Deep Canaries on Graviton/ARM64 images.
 # Do remember to revert it back to false before merging any PR.
 deep_canary_mode = false
 
@@ -54,6 +57,7 @@ notify_test_failures = false
 [test]
 ### On by default
 sanity_tests = true
+security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
@@ -152,6 +156,10 @@ dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-mxnet-graviton-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
+
+# ARM64 Inference
+dlc-pr-pytorch-arm64-inference = ""
+dlc-pr-tensorflow-2-arm64-inference = ""
 
 # EIA Inference
 dlc-pr-mxnet-eia-inference = ""

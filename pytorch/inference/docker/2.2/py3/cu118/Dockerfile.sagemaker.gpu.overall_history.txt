@@ -17,6 +17,39 @@ apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff
 #### Patch contents for patch-6: sha256:3cc5b5db0c76bd8edce72595b90ce1dc7dbe5facb1a11faeb7f1077a955c690f ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
-#### Current Patch contents ####
+#### Patch contents for patch-7: sha256:fddbeb6e3094598b3fd936c767eaaaf43e293c104b9f58a1067ea2c05b0a10a8 ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-8: sha256:993a5ac40cd41ed8a427c62d5bbb7e64e0af312bf457bc9b1b6534ebfcbf6f1c ####
+pip install certifi==2024.7.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-9: sha256:7261964e649fa6d5512d8ee6c30db72c77d80a136f5aef447286e24f211f6f64 ####
+pip install certifi==2024.7.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-10: sha256:cbcc6bc07728cbb9e161f3442c0469ba45fe3da347018573b78c8d04470ea0f8 ####
+pip install certifi==2024.7.4 setuptools==71.0.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-11: sha256:a57f77c117d84729fca5832c4c5a54b1fc63a8ad9fae0719bbef21490829d080 ####
+pip install certifi==2024.7.4 setuptools==71.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgtk-3-0 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-12: sha256:b57afa6d2deaac1c0fa90c3400a2e3ca9ef8f47ebb261f6f53c2f5adb15bc34d ####
+pip install certifi==2024.7.4 setuptools==71.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git imagemagick-6-common libcups2 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-13: sha256:26090fbb1f4bee59680ee8f609d9af1440c12ad7d563d137ad6784249ad432b9 ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git imagemagick-6-common libcups2 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-14: sha256:dacaea12fab03b0438cbc048228e893c0bbf4878ca2eae1106e36e69fcc7d033 ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-15: sha256:fbe5591e2421e9748d45d9bdb183439de0cb2cf8b5d66ab1de6d2d745ca31b60 ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-16: sha256:acb00b48081cb3a7988ebcf35f1ba00471ad7d374a70290edd387f164b8d2ad9 ####
+pip install certifi==2024.7.4 setuptools==72.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Patch contents for patch-17: sha256:aa030b0c19c4090dd642ecbfc4c387be14b264f1e6aad3c0e7e7b62d83e99baa ####
+pip install certifi==2024.7.4 setuptools==73.0.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget
+#### Current Patch contents ####
+pip install certifi==2024.8.30 setuptools==74.0.0 urllib3==1.26.20
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-dev libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre python3.8-dev python3.8-minimal python3.8 wget

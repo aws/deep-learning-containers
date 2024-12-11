@@ -38,6 +38,8 @@ from test.test_utils import (
     get_ecr_repo_name,
     UBUNTU_HOME_DIR,
     NightlyFeatureLabel,
+    is_mainline_context,
+    is_pr_context,
 )
 from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
 from test.test_utils.test_reporting import TestReportGenerator
@@ -51,6 +53,8 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__5",
+    "pytorch_training___2__4",
     "pytorch_training___2__3",
     "pytorch_training___2__2",
     "pytorch_training___2__1",
@@ -63,6 +67,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_inference_neuronx",
     "pytorch_training_neuronx",
     "pytorch_inference_graviton",
+    "pytorch_inference_arm64",
     # TensorFlow
     "tensorflow_training",
     "tensorflow_inference",
@@ -72,6 +77,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_training_neuron",
     "tensorflow_training_habana",
     "tensorflow_inference_graviton",
+    "tensorflow_inference_arm64",
     # MxNET
     "mxnet_training",
     "mxnet_inference",
@@ -103,6 +109,7 @@ FRAMEWORK_FIXTURES = (
     "hpu",
     # Architecture
     "graviton",
+    "arm64",
     # Job Type fixtures
     "training",
     "inference",
@@ -640,9 +647,13 @@ def ec2_instance(
         )
         or (
             "tensorflow_inference" in request.fixturenames
-            and "graviton_compatible_only" in request.fixturenames
+            and (
+                "graviton_compatible_only" in request.fixturenames
+                or "arm64_compatible_only" in request.fixturenames
+            )
         )
         or ("graviton" in request.fixturenames)
+        or ("arm64" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [
             {
@@ -894,7 +905,7 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu121"]}
+    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
@@ -913,7 +924,7 @@ def skip_smdebug_v1_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
@@ -931,7 +942,7 @@ def skip_dgl_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1": ["cpu", "cu121"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
 
@@ -993,6 +1004,7 @@ def skip_serialized_release_pt_test(request):
     skip_dict = {
         "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
@@ -1025,6 +1037,49 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
                     return True
 
     return False
+
+
+@pytest.fixture(scope="session")
+def telemetry():
+    """
+    Telemetry tests are run in ec2 job in PR context but will run in its own job in MAINLINE context.
+    This fixture ensures that only telemetry tests are run in the `telemetry` job in the MAINLINE context.
+    """
+    is_telemetry_test_job = os.getenv("TEST_TYPE") == "telemetry"
+    if is_mainline_context() and not is_telemetry_test_job:
+        pytest.skip(
+            f"Test in not running in `telemetry` job in the pipeline context, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
+def security_sanity():
+    """
+    Skip test if job type is not `security_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
+    """
+    is_security_sanity_test_job = os.getenv("TEST_TYPE") == "security_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_security_sanity_test_job:
+        pytest.skip(
+            f"Test in not running in `security_sanity` test type job, Skipping current test."
+        )
+
+
+@pytest.fixture(scope="session")
+def functionality_sanity():
+    """
+    Skip test if job type is not `functionality_sanity` in either PR or Pipeline contexts.
+    Otherwise, sanity tests can run as usual in Canary/Deep Canary contexts.
+    Each sanity tests should only have either `security_sanity` or `functionality_sanity` fixtures.
+    Both should not be used at the same time. If neither are used, the test will run in both jobs.
+    """
+    is_functionality_sanity_test_job = os.getenv("TEST_TYPE") == "functionality_sanity"
+    if (is_pr_context() or is_mainline_context()) and not is_functionality_sanity_test_job:
+        pytest.skip(
+            f"Test in not running in `functionality_sanity` test type job, Skipping current test."
+        )
 
 
 @pytest.fixture(scope="session")
@@ -1075,6 +1130,11 @@ def x86_compatible_only():
 
 @pytest.fixture(scope="session")
 def graviton_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def arm64_compatible_only():
     pass
 
 
@@ -1527,6 +1587,8 @@ def generate_unique_values_for_fixtures(
                                 instance_type_env = (
                                     f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
                                 )
+                            elif "arm64" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_ARM64_INSTANCE_TYPE"
                             else:
                                 instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
                             instance_type = os.getenv(instance_type_env)
@@ -1569,7 +1631,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton")
+    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton", "arm64")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
@@ -1628,7 +1690,7 @@ def pytest_generate_tests(metafunc):
                     if (
                         "stabilityai" not in metafunc.fixturenames
                         and "stabilityai" in image
-                        and os.getenv("TEST_TYPE") != "sanity"
+                        and "sanity" not in os.getenv("TEST_TYPE")
                     ):
                         LOGGER.info(
                             f"Skipping test, as this function is not marked as 'stabilityai'"
@@ -1645,7 +1707,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                    if "x86_compatible_only" in metafunc.fixturenames and (
+                        "graviton" in image or "arm64" in image
+                    ):
                         continue
                     if "training_compiler_only" in metafunc.fixturenames and not (
                         "trcomp" in image
@@ -1670,10 +1734,13 @@ def pytest_generate_tests(metafunc):
                             and "graviton" in image
                         ):
                             images_to_parametrize.append(image)
+                        elif "arm64_compatible_only" in metafunc.fixturenames and "arm64" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
                             and "graviton_compatible_only" not in metafunc.fixturenames
+                            and "arm64_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 
