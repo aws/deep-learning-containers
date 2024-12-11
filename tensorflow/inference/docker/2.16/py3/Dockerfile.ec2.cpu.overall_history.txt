@@ -1,0 +1,22 @@
+#### First image: sha256:3cee248fb5171ec8e75127f650b2257e6b091f1b20eeac800adae0ef5d3cf9c9 ####
+#### Patch contents for patch-1: sha256:109e7b00696ae371b51e23d973e2d72721f2f5d818852d7caaf4b850be17f3f0 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-2: sha256:57c0eea3c723f073d5b5df5101aa6dcf93a4911e6bb456e2ab972d1ec5a32401 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade libgtk-3-0 linux-libc-dev
+#### Patch contents for patch-3: sha256:8e0fc469db41b2bd3e79fc98e4ffdbb864f9bae1ff4edb1930577e442038f045 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade imagemagick-6-common libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 linux-libc-dev
+#### Patch contents for patch-4: sha256:2a8c6c899820642d3b28a60359f36847877b2fb36867dd122b9073f67430ace4 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev
+#### Patch contents for patch-5: sha256:49c315d3c7ca831cfce82285268661d39b8096e9ab3d145ec45fbec80d4c1668 ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev
+#### Patch contents for patch-6: sha256:3af14eeb8d144524f1b91e3cc4c4f623443d3361c6018a11227895be5b4fb2ca ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev
+#### Current Patch contents ####
+echo N/A
+apt-get update && apt-get install -y --only-upgrade curl imagemagick-6-common libcurl3-gnutls libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 linux-libc-dev
