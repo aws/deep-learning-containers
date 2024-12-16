@@ -55,7 +55,7 @@ from test.test_utils import (
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
-    is_eia_enabled=False, is_graviton_enabled=False
+    is_eia_enabled=False, is_arm64_enabled=False
 ):
     """
     Creates a regex pattern that would be used by the tests to check if the repo names match the pattern or not and thereafter skip the
@@ -63,7 +63,7 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     to derive additional pattern that needs to be appended to base regex.
 
     :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
-    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
+    :param is_arm64_enabled: boolean, appends `-graviton|-arm64` to the base regex if set to True
     :return: str, derived regex
     """
     base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
@@ -75,11 +75,11 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
             if regex_prefix_string_derived_via_method_arguments
             else "-eia"
         )
-    if is_graviton_enabled:
+    if is_arm64_enabled:
         regex_prefix_string_derived_via_method_arguments = (
-            f"{regex_prefix_string_derived_via_method_arguments}|-graviton"
+            f"{regex_prefix_string_derived_via_method_arguments}|-graviton|-arm64"
             if regex_prefix_string_derived_via_method_arguments
-            else "-graviton"
+            else "-graviton|-arm64"
         )
 
     if regex_prefix_string_derived_via_method_arguments:
@@ -89,7 +89,7 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     return rf"{overall_regex_string}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run stray file test regularly on production images")
 def test_stray_files(image):
@@ -136,7 +136,7 @@ def test_stray_files(image):
     _assert_artifact_free(root, stray_artifacts)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run python version test regularly on production images")
 def test_python_version(image):
@@ -166,7 +166,7 @@ def test_python_version(image):
     assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_ubuntu_version(image):
     """
@@ -190,14 +190,14 @@ def test_ubuntu_version(image):
     assert ubuntu_version in container_ubuntu_version
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_image_tags(image, ecr_client):
     all_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
     assert not any("benchmark-tested" in tag for tag in all_tags)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu tf serving version test regularly on production images")
 def test_tf_serving_version_cpu(tensorflow_inference):
@@ -250,7 +250,7 @@ def test_tf_serving_version_cpu(tensorflow_inference):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tf_serving_api_version(tensorflow_inference):
     """
@@ -292,25 +292,31 @@ def test_tf_serving_api_version(tensorflow_inference):
         stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch(pytorch_inference, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference, region)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_graviton, region)
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
+@pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_arm64(pytorch_inference_arm64, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_arm64, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run non-gpu framework version test regularly on production images")
 def test_framework_version_cpu(image):
@@ -331,7 +337,7 @@ def test_framework_version_cpu(image):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(
         derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
+            is_eia_enabled=True, is_arm64_enabled=True
         ),
         image_repo_name,
     ):
@@ -380,24 +386,16 @@ def test_framework_version_cpu(image):
                         f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
                     )
                 else:
-                    if (
-                        Version(tag_framework_version) >= Version("2.0.0")
-                        and "training" in image_repo_name
-                    ):
-                        cuda_output = run_cmd_on_container(
-                            container_name,
-                            ctx,
-                            f"import {tested_framework}; print({tested_framework}.version.cuda)",
-                            executable="python",
-                        ).stdout.strip()
-                        torch_version_pattern = r"{torch_version}".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert cuda_output == "None", f"cuda version has value: {cuda_output}"
-                    else:
-                        torch_version_pattern = r"{torch_version}(\+cpu)".format(
-                            torch_version=tag_framework_version
-                        )
+                    cuda_output = run_cmd_on_container(
+                        container_name,
+                        ctx,
+                        f"import {tested_framework}; print({tested_framework}.version.cuda)",
+                        executable="python",
+                    ).stdout.strip()
+                    assert cuda_output == "None", f"cuda version has value: {cuda_output}"
+                    torch_version_pattern = r"{torch_version}(\+cpu)?".format(
+                        torch_version=tag_framework_version
+                    )
                     assert re.fullmatch(torch_version_pattern, output), (
                         f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
                         f"Please specify framework version as X.Y.Z+cpu"
@@ -422,7 +420,7 @@ def test_framework_version_cpu(image):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_framework_and_neuron_sdk_version(neuron):
     """
@@ -493,7 +491,7 @@ def test_framework_and_neuron_sdk_version(neuron):
         version_list = release_manifest[package_name]
         # temporary hack because transformers_neuronx reports its version as 0.6.x
         if package_name == "transformers-neuronx":
-            if installed_framework_version == "0.10.x":
+            if installed_framework_version == "0.12.x":
                 # skip the check due to transformers_neuronx version bug
                 # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
                 continue
@@ -508,135 +506,30 @@ def test_framework_and_neuron_sdk_version(neuron):
     stop_and_remove_container(container_name, ctx)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
-def test_framework_and_cuda_version_gpu(gpu, ec2_connection):
-    """
-    Check that the framework  and cuda version in the image tag is the same as the one on a running container.
-
-    :param gpu: ECR image URI with "gpu" in the name
-    :param ec2_connection: fixture to establish connection with an ec2 instance
-    """
-    image = gpu
-    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
-
-    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
-
-    if re.fullmatch(
-        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
-    ) and Version(tag_framework_version) == Version("2.6.3"):
-        pytest.skip(
-            "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
-        )
-
-    # Framework Version Check #
-    # For tf inference containers, check TF model server version
-    if re.fullmatch(
-        derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
-        ),
-        image_repo_name,
-    ):
-        cmd = f"tensorflow_model_server --version"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
-        assert re.match(
-            rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output
-        ), f"Cannot find model server version {tag_framework_version} in {output}"
-    else:
-        # Framework name may include huggingface
-        if any(
-            [tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]
-        ):
-            tested_framework = "_".join(tested_framework.split("_")[1:])
-            # Replace the trcomp string as it is extracted from ECR repo name
-            tested_framework = tested_framework.replace("_trcomp", "")
-        # Framework name may include trcomp
-        if "trcomp" in tested_framework:
-            # Replace the trcomp string as it is extracted from ECR repo name
-            tested_framework = tested_framework.replace("_trcomp", "")
-        # Module name is "torch"
-        if tested_framework == "pytorch":
-            tested_framework = "torch"
-        elif tested_framework == "autogluon":
-            tested_framework = "autogluon.core"
-        cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
-        output = ec2.execute_ec2_training_test(
-            ec2_connection, image, cmd, executable="python"
-        ).stdout.strip()
-        if is_canary_context():
-            assert tag_framework_version in output
-        else:
-            if tested_framework == "autogluon.core":
-                # If tag and framework are not matching:
-                # version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
-                # assert output.stdout.strip().startswith(version_to_check)
-                pass
-            elif tested_framework == "torch" and Version(tag_framework_version) >= Version(
-                "1.10.0"
-            ):
-                if is_nightly_context():
-                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(
-                        torch_version=tag_framework_version
-                    )
-                    assert re.fullmatch(torch_version_pattern, output), (
-                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
-                    )
-                else:
-                    if (
-                        Version(tag_framework_version) >= Version("2.0.0")
-                        and "training" in image_repo_name
-                    ):
-                        cuda_output = ec2.execute_ec2_training_test(
-                            ec2_connection,
-                            image,
-                            'import torch; print(torch.version.cuda.replace(".", ""));',
-                            executable="python",
-                            container_name="PT2",
-                        ).stdout.strip()
-                        cuda_ver = get_cuda_version_from_tag(image)
-                        torch_version_pattern = r"{torch_version}".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert (
-                            output == tag_framework_version
-                        ), f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                        assert (
-                            cuda_ver == "cu" + cuda_output
-                        ), f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
-                    else:
-                        torch_version_pattern = r"{torch_version}(\+cu\d+)".format(
-                            torch_version=tag_framework_version
-                        )
-                        assert re.fullmatch(torch_version_pattern, output), (
-                            f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
-                            f"Please specify framework version as X.Y.Z+cuXXX"
-                        )
-            else:
-                assert tag_framework_version == output
-
-    # CUDA Version Check #
-    cuda_version = re.search(r"-cu(\d+)-", image).group(1)
-
-    # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
-    if (
-        "mxnet-inference" in image
-        or "autogluon" in image
-        or "huggingface-tensorflow-inference" in image
-    ):
-        cuda_cmd = "readlink -f /usr/local/cuda"
-    else:
-        cuda_cmd = "nvcc --version"
-    cuda_output = ec2.execute_ec2_training_test(
-        ec2_connection, image, cuda_cmd, container_name="cuda_version_test"
-    )
-
-    # Ensure that cuda version in tag is in the container
-    assert cuda_version in cuda_output.stdout.replace(".", "")
+def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
+    _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
+    _test_framework_and_cuda_version(gpu, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compatible_only):
+    _test_framework_and_cuda_version(gpu, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_dataclasses_check(image):
     """
@@ -668,7 +561,7 @@ def test_dataclasses_check(image):
         )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_pip_check(image):
     """
@@ -754,11 +647,7 @@ def test_pip_check(image):
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
 
-    if (
-        framework in ["pytorch"]
-        and Version(framework_version) in SpecifierSet("==2.3.*")
-        and all([substr_to_find in image for substr_to_find in ["gpu", "training"]])
-    ):
+    if framework in ["pytorch"]:
         exception_strings = []
 
         # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
@@ -801,7 +690,7 @@ def test_pip_check(image):
             ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True)
 
 
-@pytest.mark.usefixtures("sagemaker", "huggingface")
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_cuda_paths(gpu):
     """
@@ -942,7 +831,120 @@ def _test_sm_toolkit_and_ts_version(image, region):
     ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
-@pytest.mark.usefixtures("sagemaker")
+def _test_framework_and_cuda_version(gpu, ec2_connection):
+    """
+    Check that the framework  and cuda version in the image tag is the same as the one on a running container.
+
+    :param gpu: ECR image URI with "gpu" in the name
+    :param ec2_connection: fixture to establish connection with an ec2 instance
+    """
+    image = gpu
+    tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
+
+    image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
+
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(), image_repo_name
+    ) and Version(tag_framework_version) == Version("2.6.3"):
+        pytest.skip(
+            "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
+        )
+
+    # Framework Version Check #
+    # For tf inference containers, check TF model server version
+    if re.fullmatch(
+        derive_regex_for_skipping_tensorflow_inference_tests(
+            is_eia_enabled=True, is_arm64_enabled=True
+        ),
+        image_repo_name,
+    ):
+        cmd = f"tensorflow_model_server --version"
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
+        assert re.match(
+            rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output
+        ), f"Cannot find model server version {tag_framework_version} in {output}"
+    else:
+        # Framework name may include huggingface
+        if any(
+            [tested_framework.startswith(prefix) for prefix in ["huggingface_", "stabilityai_"]]
+        ):
+            tested_framework = "_".join(tested_framework.split("_")[1:])
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
+        # Framework name may include trcomp
+        if "trcomp" in tested_framework:
+            # Replace the trcomp string as it is extracted from ECR repo name
+            tested_framework = tested_framework.replace("_trcomp", "")
+        # Module name is "torch"
+        if tested_framework == "pytorch":
+            tested_framework = "torch"
+        elif tested_framework == "autogluon":
+            tested_framework = "autogluon.core"
+        cmd = f"import {tested_framework}; print({tested_framework}.__version__)"
+        output = ec2.execute_ec2_training_test(
+            ec2_connection, image, cmd, executable="python"
+        ).stdout.strip()
+        if is_canary_context():
+            assert tag_framework_version in output
+        else:
+            if tested_framework == "autogluon.core":
+                # If tag and framework are not matching:
+                # version_to_check = "0.3.1" if tag_framework_version == "0.3.2" else tag_framework_version
+                # assert output.stdout.strip().startswith(version_to_check)
+                pass
+            elif tested_framework == "torch" and Version(tag_framework_version) >= Version(
+                "1.10.0"
+            ):
+                if is_nightly_context():
+                    torch_version_pattern = r"{torch_version}(\+cu\d+|\.dev\d+)".format(
+                        torch_version=tag_framework_version
+                    )
+                    assert re.fullmatch(torch_version_pattern, output), (
+                        f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                        f"Please specify nightly framework version as X.Y.Z.devYYYYMMDD"
+                    )
+                else:
+                    cuda_output = ec2.execute_ec2_training_test(
+                        ec2_connection,
+                        image,
+                        'import torch; print(torch.version.cuda.replace(".", ""));',
+                        executable="python",
+                        container_name="PT2",
+                    ).stdout.strip()
+                    cuda_ver = get_cuda_version_from_tag(image)
+                    torch_version_pattern = r"{torch_version}(\+cu\d+)?".format(
+                        torch_version=tag_framework_version
+                    )
+                    assert re.fullmatch(
+                        torch_version_pattern, output
+                    ), f"torch.__version__ = {output} does not match {torch_version_pattern}\n"
+                    assert (
+                        cuda_ver == "cu" + cuda_output
+                    ), f"torch.version.cuda {cuda_ver} doesn't match {cuda_output}"
+            else:
+                assert tag_framework_version == output
+
+    # CUDA Version Check #
+    cuda_version = re.search(r"-cu(\d+)-", image).group(1)
+
+    # MXNet inference/HF tensorflow inference and Autogluon containers do not currently have nvcc in /usr/local/cuda/bin, so check symlink
+    if (
+        "mxnet-inference" in image
+        or "autogluon" in image
+        or "huggingface-tensorflow-inference" in image
+    ):
+        cuda_cmd = "readlink -f /usr/local/cuda"
+    else:
+        cuda_cmd = "nvcc --version"
+    cuda_output = ec2.execute_ec2_training_test(
+        ec2_connection, image, cuda_cmd, container_name="cuda_version_test"
+    )
+
+    # Ensure that cuda version in tag is in the container
+    assert cuda_version in cuda_output.stdout.replace(".", "")
+
+
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.integration("oss_compliance")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
@@ -1018,7 +1020,7 @@ def test_oss_compliance(image):
                     raise
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_training_sm_env_variables(pytorch_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_pytorch_container.training:main"}
@@ -1030,7 +1032,7 @@ def test_pytorch_training_sm_env_variables(pytorch_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_sm_env_variables(pytorch_inference):
     env_vars = {"SAGEMAKER_SERVING_MODULE": "sagemaker_pytorch_serving_container.serving:main"}
@@ -1042,7 +1044,7 @@ def test_pytorch_inference_sm_env_variables(pytorch_inference):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tensorflow_training_sm_env_variables(tensorflow_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_tensorflow_container.training:main"}
@@ -1054,7 +1056,7 @@ def test_tensorflow_training_sm_env_variables(tensorflow_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     _, fw_version = get_framework_and_version_from_tag(tensorflow_inference)
@@ -1069,7 +1071,7 @@ def test_tensorflow_inference_sm_env_variables(tensorflow_inference):
     )
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_mxnet_training_sm_env_variables(mxnet_training):
     env_vars = {"SAGEMAKER_TRAINING_MODULE": "sagemaker_mxnet_container.training:main"}
@@ -1081,7 +1083,7 @@ def test_mxnet_training_sm_env_variables(mxnet_training):
     )
 
 
-@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
 @pytest.mark.model("N/A")
 def test_core_package_version(image):
     """
@@ -1127,6 +1129,7 @@ def test_core_package_version(image):
     ), f"Few packages violate the core_package specifications: {violation_data}"
 
 
+@pytest.mark.usefixtures("security_sanity")
 @pytest.mark.model("N/A")
 def test_package_version_regression_in_image(image):
     """

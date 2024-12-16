@@ -18,9 +18,9 @@ from ..sagemaker import util
 from ...... import invoke_sm_endpoint_helper_function
 
 
-MODEL_WITH_REQUIREMENTS_PATH = "data/tfs-model_greater_than_equal_to_tf26.tar.gz"
-MODEL_WITH_LIB_PATH = "data/python-with-lib.tar.gz"
-TFS_MODEL_PATH = "data/tfs-model.tar.gz"
+MODEL_WITH_REQUIREMENTS_PATH = "test/data/tfs-model_greater_than_equal_to_tf26.tar.gz"
+MODEL_WITH_LIB_PATH = "test/data/python-with-lib.tar.gz"
+TFS_MODEL_PATH = "test/data/tfs-model.tar.gz"
 TFS_NEURONX_MODEL_PATH = "data/tfs-neuronx-model.tar.gz"
 TFS_NEURON_MODEL_PATH = "data/tfs-neuron-model.tar.gz"
 MME1_MODEL_PATHS = [
@@ -176,8 +176,8 @@ def test_tfs_neuronx_model(
 @pytest.mark.model("unknown_model")
 @pytest.mark.team("frameworks")
 def test_batch_transform(sagemaker_regions, model_name, image_uri, instance_type):
-    if "graviton" in image_uri:
-        pytest.skip("Test not supported with Graviton test instance.")
+    if "graviton" in image_uri or "arm64" in image_uri:
+        pytest.skip("Test not supported with Graviton/ARM64 test instance.")
 
     results = invoke_sm_endpoint_helper_function(
         ecr_image=image_uri,
@@ -256,8 +256,8 @@ def test_mme1(
     instance_type,
     accelerator_type,
 ):
-    if "graviton" in image_uri:
-        pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri or "arm64" in image_uri:
+        pytest.skip("MME test not supported with Graviton/ARM64 test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}
@@ -297,8 +297,8 @@ def test_mme2(
     instance_type,
     accelerator_type,
 ):
-    if "graviton" in image_uri:
-        pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri or "arm64" in image_uri:
+        pytest.skip("MME test not supported with Graviton/ARM64 test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
@@ -339,8 +339,8 @@ def test_mme3(
     instance_type,
     accelerator_type,
 ):
-    if "graviton" in image_uri:
-        pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri or "arm64" in image_uri:
+        pytest.skip("MME test not supported with Graviton/ARM64 test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = "1.0,2.0,5.0"
@@ -381,8 +381,8 @@ def test_mme4(
     instance_type,
     accelerator_type,
 ):
-    if "graviton" in image_uri:
-        pytest.skip("MME test not supported with Graviton test instance.")
+    if "graviton" in image_uri or "arm64" in image_uri:
+        pytest.skip("MME test not supported with Graviton/ARM64 test instance.")
 
     # the python service needs to transform this to get a valid prediction
     input_data = {"instances": [1.0, 2.0, 5.0]}

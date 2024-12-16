@@ -4,7 +4,7 @@ from invoke.context import Context
 from test import test_utils
 
 
-@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("remote_function")
 def test_remote_function(training):

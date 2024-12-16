@@ -58,7 +58,7 @@ def get_dlc_images(build_context):
         with open(test_env_file) as test_env:
             test_images = json.load(test_env)
         for dlc_test_type, images in test_images.items():
-            if dlc_test_type == "sanity":
+            if "sanity" in dlc_test_type:
                 return " ".join(images)
         raise RuntimeError(f"Cannot find any images for in {test_images}")
 

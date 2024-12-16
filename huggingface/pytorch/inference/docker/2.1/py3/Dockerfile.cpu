@@ -73,7 +73,11 @@ RUN apt-get update \
     libxext6 \
     libxrender-dev \
     linux-libc-dev \
+    libkrb5-3 \
     zlib1g-dev \
+    emacs-common \
+    expat \
+    apparmor \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
@@ -81,6 +85,8 @@ RUN apt-get update \
  && update-alternatives --install /usr/bin/cc cc /usr/bin/gcc 100 \
  && update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++ 100 \
  && apt-get clean
+
+RUN apt-get update && apt-get install -y cmake
 
 # Install OpenMPI
 RUN wget https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
@@ -180,12 +186,14 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.1/
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    kenlm==0.1 \
     transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     "accelerate>=0.25.0" \
     "protobuf>=3.19.5,<=3.20.2" \
-    "sagemaker-huggingface-inference-toolkit==2.3"
+    "sagemaker-huggingface-inference-toolkit==2.3" \
+    "huggingface_hub==0.23.2"
 
 # Install IPEx and its dependencies
 # from source is mandatory for cutomized AWS PyTorch binaries: https://github.com/intel/intel-extension-for-pytorch/issues/317

@@ -117,6 +117,7 @@ def _test_mnist_distributed(
     mnist_script,
     accelerator_type=None,
     verify_logs=True,
+    env=None,
 ):
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-pytorch-serving")
 
@@ -132,6 +133,7 @@ def _test_mnist_distributed(
         framework_version=framework_version,
         image_uri=ecr_image,
         sagemaker_session=sagemaker_session,
+        env=env,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=30):

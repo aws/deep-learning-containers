@@ -26,13 +26,14 @@ RUN pip install --no-cache-dir \
     multiprocess==0.70.14 \
     dill==0.3.6 \
     sagemaker==2.227.0 \
+    deepspeed==0.15.2 \
     evaluate \
-    gevent~=23.9.0 \
+    gevent~=24.10.1 \
     pyarrow~=14.0.1
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup expat libarchive13 apparmor\
  && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
