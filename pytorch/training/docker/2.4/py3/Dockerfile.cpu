@@ -306,13 +306,16 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     # pinned for sagemaker==2.235.1
     "cloudpickle==2.2.1" \
+ && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir -U \
     # pin numpy requirement for sagemaker dependency
     # requires explicit declaration of spacy, thic, blis
+    # pip install due to pip check conflict with conda package
     spacy \
     thinc \
     blis \
-    "numpy<2" \
- && /opt/conda/bin/mamba clean -afy
+    "numpy<2"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
