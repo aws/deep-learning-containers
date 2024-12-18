@@ -19,6 +19,7 @@ from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
+from packaging.version import Version
 
 from ...integration import model_dir, ROLE, pt_model, tf_model
 from ...utils import local_mode_utils
@@ -60,6 +61,8 @@ def _assert_prediction(predictor):
 @pytest.mark.model("tiny-distilbert")
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_serve_json(docker_image, framework_version, sagemaker_local_session, instance_type):
+    if "pytorch" in docker_image and Version(framework_version) < Version("2.4"):
+        pytest.skip("Skipping distilbert SM local tests for PT")
     with _predictor(
         model_dir, docker_image, framework_version, sagemaker_local_session, instance_type
     ) as predictor:
