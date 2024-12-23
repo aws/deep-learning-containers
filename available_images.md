@@ -216,16 +216,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version  | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|--------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.1 | 1.1.1              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.1.1-gpu-py311-cu121-ubuntu20.04 |
-| AutoGluon 1.1.1 | 1.1.1              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.1.1-cpu-py311-ubuntu20.04       |
+| AutoGluon 1.2.0 | 1.2.0              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.2.0 | 1.2.0              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-cpu-py311-ubuntu22.04       |
 
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version  | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|--------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.1 | 1.1.1              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.1.1-gpu-py311-cu121-ubuntu20.04 |
-| AutoGluon 1.1.1 | 1.1.1              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.1.1-cpu-py311-ubuntu20.04       |
+| AutoGluon 1.2.0 | 1.2.0              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.2.0 | 1.2.0              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-cpu-py311-ubuntu22.04       |
 
 HuggingFace Training Containers
 ===============================
@@ -299,6 +299,8 @@ Note: Starting from Neuron SDK 2.17.0, Dockerfiles for PyTorch Neuron Containers
 
 | Framework                                                                                                                                          | Neuron Package                                           | Neuron SDK Version | Job Type  | Supported EC2 Instance Types | Python Version Options | Example URL                                                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|--------------------|-----------|------------------------------|------------------------|----------------------------------------------------------------------------------------------------------------------|
+| [PyTorch 2.5.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.21.0/docker/pytorch/inference/2.5.1/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.21.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.5.1-neuronx-py310-sdk2.21.0-ubuntu22.04     |
+| [PyTorch 2.5.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.21.0/docker/pytorch/training/2.5.1/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.21.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.5.1-neuronx-py310-sdk2.21.0-ubuntu22.04     |
 | [PyTorch 2.1.2](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/inference/2.1.2/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed | Neuron 2.20.2      | inference | trn1,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.1.2-neuronx-py310-sdk2.20.2-ubuntu20.04     |
 | [PyTorch 2.1.2](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/training/2.1.2/Dockerfile.neuronx)               | torch-neuronx, neuronx_distributed                       | Neuron 2.20.2      | training  | trn1, inf2                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.1.2-neuronx-py310-sdk2.20.2-ubuntu20.04      |
 | [PyTorch 1.13.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/inference/1.13.1/Dockerfile.neuron)             | torch-neuron                                             | Neuron 2.20.2      | inference | inf1                         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.13.1-neuron-py310-sdk2.20.2-ubuntu20.04      |
@@ -371,16 +373,16 @@ Prior AutoGluon Training Containers
 
 | Framework       | AutoGluon Version | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|-------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.0 | 1.1.0              | training | GPU     | 3.10 (py310)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.0-gpu-py310-cu118-ubuntu20.04 |
-| AutoGluon 1.1.0 | 1.1.0              | training | CPU     | 3.10 (py310)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.0-cpu-py310-ubuntu20.04       |
+| AutoGluon 1.1.1 | 1.1.1              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.1-gpu-py311-cu121-ubuntu20.04 |
+| AutoGluon 1.1.1 | 1.1.1              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.1-cpu-py311-ubuntu20.04       |
 
 Prior AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.0 | 1.1.0              | inference | GPU     | 3.10 (py310)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.0-gpu-py310-cu118-ubuntu20.04 |
-| AutoGluon 1.1.0 | 1.1.0              | inference | CPU     | 3.10 (py310)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.0-cpu-py310-ubuntu20.04       |
+| AutoGluon 1.1.1 | 1.1.1              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.1-gpu-py311-cu121-ubuntu20.04 |
+| AutoGluon 1.1.1 | 1.1.1              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.1-cpu-py311-ubuntu20.04       |
 
 Prior SageMaker Training Compiler Containers
 ===============================
