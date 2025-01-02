@@ -5,7 +5,7 @@ invoke<2.1.0
 junit-xml==1.9
 packaging
 # Pin pytest to preserve pytest cache behavior
-pytest<8.1
+pytest<8.4
 pytest-rerunfailures
 pytest-timeout
 pytest-json-report
