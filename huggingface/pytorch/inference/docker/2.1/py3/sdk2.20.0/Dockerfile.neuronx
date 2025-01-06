@@ -8,7 +8,6 @@ ARG PYTHON=python3.10
 ARG PYTHON_VERSION=3.10.12
 ARG MMS_VERSION=1.1.11
 ARG MAMBA_VERSION=23.1.0-4
-ARG BOTOCORE_VERSION=1.34.94
 
 # Neuron SDK components version numbers
 ARG NEURONX_FRAMEWORK_VERSION=2.1.2.2.3.0
@@ -97,7 +96,6 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     cython \
     mkl-include \
     mkl \
-    botocore=$BOTOCORE_VERSION \
     parso \
     scipy \
     typing \
@@ -127,6 +125,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
+    botocore \
     cryptography
 
 # Install Neuronx-cc and PyTorch
