@@ -96,7 +96,7 @@ RUN curl -L -o ~/mambaforge.sh https://github.com/conda-forge/miniforge/releases
     cython \
     mkl-include \
     mkl \
-    botocotre \
+    botocore \
     parso \
     scipy \
     typing \
