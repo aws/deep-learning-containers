@@ -23,7 +23,7 @@ RUN pip install --no-cache-dir \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
-	"googleauth>=1.6.3,<2" \
+	"google-auth>=1.6.3,<2" \
 	gevent==${GEVENT_VERSION}
 
 # Pin numpy to version required by neuronx-cc
