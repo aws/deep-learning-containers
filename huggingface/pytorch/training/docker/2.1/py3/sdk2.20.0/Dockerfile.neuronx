@@ -39,7 +39,7 @@ RUN pip install -U \
 	"awscli<2" \
 	boto3 \
 	botocore \
-	"google-auth>=1.6.3,<2" \
+	google-auth \
 	"urllib3>=1.26.17,<1.27"
 
 RUN apt-get update \
