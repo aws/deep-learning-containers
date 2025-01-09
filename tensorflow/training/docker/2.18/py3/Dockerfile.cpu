@@ -40,12 +40,14 @@ ARG PYTHON_VERSION=3.10.14
 
 ARG PIP=pip3
 
-ARG OMPI_VERSION=4.1.6
+ARG OMPI_VERSION=4.1.9
 
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
+
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/cpu/2025-01-09-08-37/tensorflow_cpu-2.18.0-cp310-cp310-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -181,7 +183,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 ########################################################
 
 FROM common AS ec2
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-12-00-09/tensorflow_cpu-2.16.2-cp310-cp310-linux_x86_64.whl
+ARG TF_URL
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -222,7 +224,7 @@ FROM common AS sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/cpu/2024-07-12-00-09/tensorflow_cpu-2.16.2-cp310-cp310-linux_x86_64.whl
+ARG TF_URL
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -252,8 +254,8 @@ RUN pip install wheel \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.16.0 \
-    tensorflow-text==2.16.1 \
+    tf-models-official==2.18.0 \
+    tensorflow-text==2.18.1 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
