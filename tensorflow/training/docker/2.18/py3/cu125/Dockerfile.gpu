@@ -85,7 +85,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    libhdf5-serial-dev \
    liblzma-dev \
    libpng-dev \
-   libssl1.1 \
    libtemplate-perl \
    libtool \
    libzmq3-dev \
