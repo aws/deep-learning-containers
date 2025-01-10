@@ -51,6 +51,9 @@ ARG CUDA_DASH=12-5
 ARG CUDNN=9.3.0.75
 ARG NCCL_VERSION=2.23.4-1+cuda12.5
 
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/gpu/2025-01-09-09-51/tensorflow_gpu-2.18.0-cp310-cp310-linux_x86_64.whl
+
+
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
@@ -274,7 +277,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-17-01-40/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
+ARG TF_URL
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -323,7 +326,7 @@ RUN apt-get update  \
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.16_aws/gpu/2024-07-17-01-40/tensorflow_gpu-2.16.2-cp310-cp310-linux_x86_64.whl
+ARG TF_URL
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
