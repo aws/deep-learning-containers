@@ -54,8 +54,6 @@ ARG CUDNN=9.3.0.75
 ARG NCCL_VERSION=2.23.4-1+cuda12.5
 
 
-
-
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
