@@ -44,7 +44,7 @@ images:
     enable_test_promotion: true
     context:
       <<: *TRAINING_CONTEXT
-  BuildTensorflowEC2GpuCu123Py310TrainingDockerImage:
+  BuildTensorflowEC2GpuCu125Py310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
