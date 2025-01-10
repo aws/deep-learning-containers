@@ -42,7 +42,7 @@ ARG PYTHON_VERSION=3.10.14
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.37.0
-ARG OMPI_VERSION=4.1.7
+ARG OMPI_VERSION=4.1.6
 ARG BRANCH_OFI=1.13.2-aws
 
 
@@ -70,8 +70,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    emacs \
    git \
    hwloc \
-   libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
-   libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+   libcudnn9-cuda-12=${CUDNN}-1 \
+   libcudnn9-dev-cuda-12=${CUDNN}-1 \
    libcufft-${CUDA_DASH} \
    libcufft-dev-${CUDA_DASH} \
    libcurand-${CUDA_DASH} \
