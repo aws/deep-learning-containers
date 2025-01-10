@@ -40,7 +40,7 @@ ARG PYTHON_VERSION=3.10.14
 
 ARG PIP=pip3
 
-ARG OMPI_VERSION=4.1.9
+ARG OMPI_VERSION=4.1.7
 
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}

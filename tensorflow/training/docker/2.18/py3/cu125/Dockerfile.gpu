@@ -42,7 +42,7 @@ ARG PYTHON_VERSION=3.10.14
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.37.0
-ARG OMPI_VERSION=4.1.6
+ARG OMPI_VERSION=4.1.7
 ARG BRANCH_OFI=1.13.2-aws
 
 
@@ -103,8 +103,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
-   libnccl2=${NCCL_VERSION} \
-   libnccl-dev=${NCCL_VERSION} \
+   libnccl2 \
+   libnccl-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean \
  && mkdir -p /var/run/sshd
