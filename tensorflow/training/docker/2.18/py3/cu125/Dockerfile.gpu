@@ -1,3 +1,5 @@
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/gpu/2025-01-09-09-51/tensorflow_gpu-2.18.0-cp310-cp310-linux_x86_64.whl
+
 FROM nvidia/cuda:12.5.1-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -51,7 +53,7 @@ ARG CUDA_DASH=12-5
 ARG CUDNN=9.3.0.75
 ARG NCCL_VERSION=2.23.4-1+cuda12.5
 
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/gpu/2025-01-09-09-51/tensorflow_gpu-2.18.0-cp310-cp310-linux_x86_64.whl
+
 
 
 # To be passed to ec2 and sagemaker stages

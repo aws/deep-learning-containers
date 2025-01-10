@@ -9,6 +9,9 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/cpu/2025-01-09-08-37/tensorflow_cpu-2.18.0-cp310-cp310-linux_x86_64.whl
+
+
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
@@ -46,8 +49,6 @@ ARG OMPI_VERSION=4.1.7
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
 ENV PIP=${PIP}
-
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/cpu/2025-01-09-08-37/tensorflow_cpu-2.18.0-cp310-cp310-linux_x86_64.whl
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
