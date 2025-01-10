@@ -1,0 +1,14 @@
+{
+    "72236": "setuptools - autogluon uses setuptools == 69.5.1",
+    "72089": "NLTK - autogluon uses nltk <= 3.8.1",
+    "65189": "Ray - autogluon uses ray <= 2.39.0",
+    "71579": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71587": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71693": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71578": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71577": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71692": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71584": "mlflow - parent image uses mlflow <= 2.18.0",
+    "71589": "mlflow - parent image uses mlflow <= 2.18.0",
+    "74439": "Tornado - parent base image uses tornado 6.4.1"
+}
