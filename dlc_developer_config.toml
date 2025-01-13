@@ -36,8 +36,8 @@ deep_canary_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
-# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "mxnet", "pytorch", "stabilityai_pytorch"]
-build_frameworks = ["tensorflow"]
+# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
+build_frameworks = []
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
@@ -104,7 +104,6 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-mxnet-training = ""
 dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-ec2.yml"
 dlc-pr-autogluon-training = ""
@@ -119,7 +118,6 @@ dlc-pr-huggingface-tensorflow-2-trcomp-training = ""
 dlc-pr-pytorch-trcomp-training = ""
 
 # Neuron Training
-dlc-pr-mxnet-neuron-training = ""
 dlc-pr-pytorch-neuron-training = ""
 dlc-pr-tensorflow-2-neuron-training = ""
 
@@ -133,13 +131,11 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-mxnet-inference = ""
 dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
-dlc-pr-mxnet-neuron-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
@@ -153,7 +149,6 @@ dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 
 # Graviton Inference
-dlc-pr-mxnet-graviton-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
@@ -162,6 +157,5 @@ dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 
 # EIA Inference
-dlc-pr-mxnet-eia-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""

@@ -90,7 +90,6 @@ def test_build_version_override_configuration():
     """
     Ensure that buildspec override defaults are set back to normal before merge
     """
-    assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-training") == ""
     assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-training") == ""
     assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-tensorflow-2-training")
@@ -131,10 +130,6 @@ def test_build_version_override_configuration():
     )
 
     assert (
-        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-neuron-training")
-        == ""
-    )
-    assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-neuron-training")
         == ""
     )
@@ -163,7 +158,6 @@ def test_build_version_override_configuration():
         == ""
     )
 
-    assert config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-inference") == ""
     assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-inference") == ""
     )
@@ -175,10 +169,6 @@ def test_build_version_override_configuration():
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-autogluon-inference") == ""
     )
 
-    assert (
-        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-neuron-inference")
-        == ""
-    )
     assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-neuron-inference")
         == ""
@@ -222,10 +212,6 @@ def test_build_version_override_configuration():
     )
 
     assert (
-        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-graviton-inference")
-        == ""
-    )
-    assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-pytorch-graviton-inference"
         )
@@ -249,9 +235,6 @@ def test_build_version_override_configuration():
         == ""
     )
 
-    assert (
-        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-mxnet-eia-inference") == ""
-    )
     assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-eia-inference")
         == ""
