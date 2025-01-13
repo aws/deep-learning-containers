@@ -125,11 +125,10 @@ release_images:
     version: "0.28.0"
     arch_type: "x86"
     inference:
-      device_types: [ "gpu" ]
+      device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
-      lmi_version: "10.0.0"
-      cuda_version: "cu124"
+      neuron_sdk_version: "sdk2.18.2"
       example: False
       disable_sm_tag: True
       force_release: False
@@ -138,11 +137,10 @@ release_images:
     version: "0.29.0"
     arch_type: "x86"
     inference:
-      device_types: [ "gpu" ]
+      device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
-      lmi_version: "11.0.0"
-      cuda_version: "cu124"
+      neuron_sdk_version: "sdk2.19.1"
       example: False
       disable_sm_tag: True
       force_release: False
@@ -151,28 +149,14 @@ release_images:
     version: "0.30.0"
     arch_type: "x86"
     inference:
-      device_types: [ "gpu" ]
+      device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
-      lmi_version: "12.0.0"
-      cuda_version: "cu124"
+      neuron_sdk_version: "sdk2.20.1"
       example: False
       disable_sm_tag: True
       force_release: False
   13:
-    framework: "djl"
-    version: "0.31.0"
-    arch_type: "x86"
-    inference:
-      device_types: [ "gpu" ]
-      python_versions: [ "py311" ]
-      os_version: "ubuntu22.04"
-      lmi_version: "13.0.0"
-      cuda_version: "cu124"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  14:
     framework: "autogluon"
     version: "1.2.0"
     arch_type: "x86"
@@ -184,7 +168,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  14:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -197,7 +181,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  16:
+  15:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
