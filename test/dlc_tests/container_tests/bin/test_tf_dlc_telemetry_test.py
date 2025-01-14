@@ -76,7 +76,7 @@ def performance_test(exec_cmd):
 performance_test("import tensorflow")
 opt_in_opt_out_test("import tensorflow")
 
-# test base python functionality
+# Disabling os tests until it is added to all new images
 performance_test("import os")
 opt_in_opt_out_test("import os")
 
