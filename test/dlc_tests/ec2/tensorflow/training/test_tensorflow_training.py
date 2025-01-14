@@ -375,7 +375,6 @@ def test_tensorflow_dataservice_cpu(
 
 # Testing Data Service on only one GPU instance
 # Skip test for TF 2.3 and below
-# skip temporily with this issue https://github.com/aws/deep-learning-containers/pull/4485
 @pytest.mark.integration("tensorflow-dataservice-test")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
@@ -386,7 +385,6 @@ def test_tensorflow_dataservice_gpu(
     tf24_and_above_only,
     gpu_only,
     ec2_instance_type,
-    skip_tf218,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -409,7 +407,6 @@ def test_tensorflow_distribute_dataservice_cpu(
 
 # Testing Data Service Distributed mode on only one GPU instance
 # Skip test for TF 2.3 and below
-# skip temporily with this issue https://github.com/aws/deep-learning-containers/pull/4485
 @pytest.mark.integration("tensorflow-dataservice-distribute-test")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
@@ -420,7 +417,6 @@ def test_tensorflow_distribute_dataservice_gpu(
     tf24_and_above_only,
     gpu_only,
     ec2_instance_type,
-    skip_tf218,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
