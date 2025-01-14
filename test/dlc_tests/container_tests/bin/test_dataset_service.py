@@ -12,11 +12,11 @@ FLAGS = flags.FLAGS
 def local_service():
     print("Starting Local Service")
     dispatcher = tf.data.experimental.service.DispatchServer(
-        tf.data.experimental.service.DispatcherConfig(port=50050)
+        tf.data.experimental.service.DispatcherConfig(port=50050), start=True
     )
     dispatcher_address = dispatcher.target.split("://")[1]
     worker = tf.data.experimental.service.WorkerServer(
-        tf.data.experimental.service.WorkerConfig(dispatcher_address=dispatcher_address)
+        tf.data.experimental.service.WorkerConfig(dispatcher_address=dispatcher_address), start=True
     )
     print("Dispatcher target is ", dispatcher.target)
     return dispatcher, worker, dispatcher.target
