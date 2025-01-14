@@ -2,6 +2,7 @@ import os
 import boto3
 import concurrent.futures
 import json
+from datetime import datetime
 
 import constants
 
@@ -283,6 +284,8 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     )
     pre_push_image_object.info = info
     pre_push_image_object.context = context
+    datetime_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    pre_push_image_object.additional_tags.append(f"lastsha-{datetime_str}-{latest_released_image_sha}")
     return constants.SUCCESS
 
 
