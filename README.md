@@ -1,3 +1,9 @@
+### GIT Learning Session team
+Vinay
+Vijay
+Anil
+Sarath
+
 ## AWS Deep Learning Containers
 
 AWS [Deep Learning Containers (DLCs)](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/what-is-dlc.html) 
