@@ -284,8 +284,12 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     )
     pre_push_image_object.info = info
     pre_push_image_object.context = context
+    
     datetime_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-    pre_push_image_object.additional_tags.append(f"lastsha-{datetime_str}-{latest_released_image_sha}")
+    sha_after_colon = latest_released_image_sha.split(":")[1]
+    pre_push_image_object.additional_tags.append(
+        f"lastsha-{datetime_str}-{sha_after_colon}"
+    )
     return constants.SUCCESS
 
 
