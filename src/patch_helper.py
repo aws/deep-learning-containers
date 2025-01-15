@@ -288,7 +288,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     # add latest released image SHA as an additional tag
     datetime_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     sha_after_colon = latest_released_image_sha.split(":")[1]
-    pre_push_image_object.additional_tags.append(f"lastsha-{datetime_str}-{sha_after_colon}")
+    pre_push_image_object.additional_tags.insert(0, f"lastsha-{datetime_str}-{sha_after_colon}")
 
     return constants.SUCCESS
 
