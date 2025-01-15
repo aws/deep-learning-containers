@@ -63,9 +63,9 @@ dataset = dataset.apply(
     tf.data.experimental.service.distribute(processing_mode=processing_mode, service=service)
 )
 
-# Finite vs. Infinite Dataset: It's possible that the distributed dataset (dataset) is 
+# Finite vs. Infinite Dataset: It's possible that the distributed dataset (dataset) is
 # being treated as an infinite dataset, which could cause issues when trying to iterate over it entirely.
-# cause seg fault, add this to limit the number of elements in dataset to match the number of elements in ds_train. 
+# cause seg fault, add this to limit the number of elements in dataset to match the number of elements in ds_train.
 dataset = dataset.take(tf.data.experimental.cardinality(ds_train))
 
 for (x1, y1), (x2, y2) in zip(dataset, ds_train):
