@@ -41,7 +41,6 @@ ARG CUDA_DASH=12-2
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
 
-# https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/
 ENV NCCL_VERSION=2.21.5-1+cuda12.2
 ENV CUDNN_VERSION=8.9.4.25-1+cuda12.2
 
