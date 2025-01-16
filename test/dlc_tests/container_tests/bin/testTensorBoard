@@ -6,25 +6,21 @@ HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 
 # Use this to conditionally check TF version
-pip install packaging
-if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_tf27_or_greater_not_tf218 = Version(tf.__version__) >= Version('2.7') and Version(tf.__version__) != Version('2.18.0'); print(is_tf27_or_greater_not_tf218)") == 'True' ]]; then
-    LOG_DIR="/logs/plugins/profile"
-else
-    LOG_DIR="/logs/train/plugins/profile"
-fi
+LOG_DIR='*/plugins/profile/*'
 
-[ -d $LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $LOG_DIR
+echo "Cleanning existing logs" 
+find /logs -path "$LOG_DIR" -type f -delete 
 
 python ${BIN_DIR}/testTensorBoard.py || exit 1
 
-# profiler: tf > 2.* and < 2.2 generates local.trace where as tf > 2.2 generates *.pb and tf2.18 generate timestamp folder under /logs/train/plugins/profile
+# profiler: tf > 2.* and < 2.2 generates local.trace where as tf > 2.2 generates *.pb
 if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_less_than_tf22 = Version(tf.__version__) < Version('2.2'); print(is_less_than_tf22)") == 'True' ]]; then
-    LOG_RESULT=$(find $LOG_DIR -name "local.trace")
-elif [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_equal_tf218 = Version(tf.__version__) == Version('2.18'); print(is_equal_tf218)") == 'True' ]]; then
-    LOG_RESULT=$(find $LOG_DIR -wholename "**/*.pb")
+    LOG_FILE="local.trace"
 else
-    LOG_RESULT=$(find $LOG_DIR -name "*.pb")
+    LOG_FILE="*.pb"
 fi
+
+LOG_RESULT=$(find /logs -path "$LOG_DIR" -name $LOG_FILE)
 
 echo "Checking the logs result: $LOG_RESULT"
 
