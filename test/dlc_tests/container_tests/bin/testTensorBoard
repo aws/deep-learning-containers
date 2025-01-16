@@ -8,8 +8,10 @@ BIN_DIR=${HOME_DIR}/bin
 # Use this to conditionally check TF version
 LOG_DIR='*/plugins/profile/*'
 
-echo "Cleanning existing logs" 
-find /logs -path "$LOG_DIR" -type f -delete 
+if [ -d "/logs" ]; then
+    echo "Cleanning existing logs" 
+    find /logs -path "$LOG_DIR" -type f -delete 
+fi
 
 python ${BIN_DIR}/testTensorBoard.py || exit 1
 

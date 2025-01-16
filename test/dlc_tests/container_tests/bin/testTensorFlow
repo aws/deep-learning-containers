@@ -35,9 +35,10 @@ TRAINING_LOG=${LOG_DIR}/${KERAS_BACKEND}_train_mnist.log
 echo "Training mnist using $KERAS_BACKEND... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 
-
-echo "Cleanning existing logs"
-find /logs -path "$PROFILE_LOG_DIR" -type f -delete 
+if [ -d "/logs" ]; then
+    echo "Cleanning existing logs"
+    find /logs -path "$PROFILE_LOG_DIR" -type f -delete 
+fi
 
 python ${BIN_DIR}/testTensorflow.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
