@@ -642,3 +642,23 @@ def verify_if_child_image_is_built_on_top_of_base_image(base_image_uri, child_im
         if base_layer_sha != child_layer_sha:
             return False
     return True
+
+
+def generate_dlc_cmd(template_path, output_path, framework, framework_version, container_type):
+    with open(template_path, "r") as tf:
+        content = tf.read()
+
+    replacements = {
+        "FRAMEWORK": framework,
+        "FRAMEWORK_VERSION": framework_version,
+        "CONTAINER_TYPE": container_type,
+    }
+
+    for anchor, value in replacements.items():
+        content = content.replace(f"{{{anchor}}}", value)
+
+    with open(output_path, "w") as out_f:
+        out_f.write(content)
+
+    # Return base path and set as artifact
+    return os.path.basename(output_path)
