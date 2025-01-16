@@ -1,72 +1,161 @@
 [dev]
+# Set to "huggingface", for example, if you are a huggingface developer. Default is ""
 partner_developer = ""
+# Please only set it to true if you are preparing an EI related PR
+# Do remember to revert it back to false before merging any PR (including EI dedicated PR)
 ei_mode = false
+# Please only set it to true if you are preparing a NEURON related PR
+# Do remember to revert it back to false before merging any PR (including NEURON dedicated PR)
 neuron_mode = false
+# Please only set it to true if you are preparing a NEURONX related PR
+# Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
 neuronx_mode = false
+# Please only set it to true if you are preparing a GRAVITON related PR
+# Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
+# Please only set it to true if you are preparing a ARM64 related PR
+# Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
 arm64_mode = false
+# Please only set it to True if you are preparing a HABANA related PR
+# Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
+# Please only set it to True if you are preparing a HUGGINGFACE TRCOMP related PR
+# Do remember to revert it back to False before merging any PR (including HUGGINGFACE TRCOMP dedicated PR)
+# This mode is used to build TF 2.6 and PT1.11 DLC
 huggingface_trcomp_mode = false
+# Please only set it to True if you are preparing a TRCOMP related PR
+# Do remember to revert it back to False before merging any PR (including TRCOMP dedicated PR)
+# This mode is used to build PT1.12 and above DLC
 trcomp_mode = false
+# Set deep_canary_mode to true to simulate Deep Canary Test conditions on PR for all frameworks in the
+# build_frameworks list below. This will cause all image builds and non-deep-canary tests on the PR to be skipped,
+# regardless of whether they are enabled or disabled below.
+# Set graviton_mode/arm64_mode to true to run Deep Canaries on Graviton/ARM64 images.
+# Do remember to revert it back to false before merging any PR.
 deep_canary_mode = false
 
 [build]
-build_frameworks = [ "huggingface_pytorch",]
-build_training = false
+# Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
+# available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
+build_frameworks = []
+
+# By default we build both training and inference containers. Set true/false values to determine which to build.
+build_training = true
 build_inference = true
+
+# Set do_build to "false" to skip builds and test the latest image built by this PR
+# Note: at least one build is required to set do_build to "false"
 do_build = true
 
 [notify]
+### Notify on test failures
+### Off by default
 notify_test_failures = false
-notification_severity = "medium"
+  # Valid values: medium or high
+  notification_severity = "medium"
 
 [test]
+### On by default
 sanity_tests = true
-security_tests = false
-safety_check_test = false
-ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+security_tests = true
+  safety_check_test = false
+  ecr_scan_allowlist_feature = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
+# Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
+
+### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
+### default. If false, these types of tests will be skipped while other tests will run as usual.
+### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
+### Off by default (set to false)
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = false
-sagemaker_remote_tests = false
+
+### SM specific tests
+### On by default
+sagemaker_local_tests = true
+
+# run standard sagemaker remote tests from test/sagemaker_tests
+sagemaker_remote_tests = true
+# run efa sagemaker tests
 sagemaker_efa_tests = false
+# run release_candidate_integration tests
 sagemaker_rc_tests = false
+# run sagemaker benchmark tests
 sagemaker_benchmark_tests = false
+
+# SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
+
+# Run CI tests for nightly images
+# false by default
 nightly_pr_test_mode = false
+
 use_scheduler = false
 
 [buildspec_override]
+# Assign the path to the required buildspec file from the deep-learning-containers folder
+# For example:
+# dlc-pr-tensorflow-2-habana-training = "habana/tensorflow/training/buildspec-2-10.yml"
+# dlc-pr-pytorch-inference = "pytorch/inference/buildspec-1-12.yml"
+# Setting the buildspec file path to "" allows the image builder to choose the default buildspec file.
+
+### TRAINING PR JOBS ###
+
+# Standard Framework Training
 dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
+
+# HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
 dlc-pr-huggingface-pytorch-training = ""
+
+# Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
 dlc-pr-huggingface-tensorflow-2-trcomp-training = ""
 dlc-pr-pytorch-trcomp-training = ""
+
+# Neuron Training
 dlc-pr-pytorch-neuron-training = ""
 dlc-pr-tensorflow-2-neuron-training = ""
+
+# Stability AI Training
 dlc-pr-stabilityai-pytorch-training = ""
+
+# Habana Training
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
+
+### INFERENCE PR JOBS ###
+
+# Standard Framework Inference
 dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
+
+# Neuron Inference
 dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
+
+# HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec.yml"
+dlc-pr-huggingface-pytorch-inference = ""
 dlc-pr-huggingface-pytorch-neuron-inference = ""
+
+# Stability AI Inference
 dlc-pr-stabilityai-pytorch-inference = ""
+
+# Graviton Inference
 dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
+
+# ARM64 Inference
 dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
+
+# EIA Inference
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
-
