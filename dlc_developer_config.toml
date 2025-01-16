@@ -12,8 +12,8 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "pytorch",]
-build_training = true
-build_inference = false
+build_training = false
+build_inference = true
 do_build = true
 
 [notify]
