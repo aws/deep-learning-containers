@@ -21,17 +21,17 @@ notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = false
-security_tests = false
+sanity_tests = true
+security_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = false
-sagemaker_remote_tests = false
+sagemaker_local_tests = true
+sagemaker_remote_tests = true
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
 sagemaker_benchmark_tests = false
@@ -40,7 +40,7 @@ nightly_pr_test_mode = false
 use_scheduler = false
 
 [buildspec_override]
-dlc-pr-pytorch-training = "pytorch/training/buildspec.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 dlc-pr-huggingface-tensorflow-training = ""
@@ -53,7 +53,7 @@ dlc-pr-tensorflow-2-neuron-training = ""
 dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
