@@ -47,11 +47,10 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     try:
         model.export(SAVED_MODEL_DIR) if Version(keras.version()) in SpecifierSet(
             ">=3"
-        ) else model.save(SAVED_MODEL_DIR)
+        ) else model.export(SAVED_MODEL_DIR)
     except AttributeError as e:
         if "module 'keras.api._v2.keras' has no attribute 'version'" == f"{e}":
-            # model.save(SAVED_MODEL_DIR)
-            model.save(os.path.join(model_save_folder_path, "native_saved_model.keras"))
+            model.export(SAVED_MODEL_DIR)
         else:
             raise
 

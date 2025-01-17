@@ -165,7 +165,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     # version for a particular TF inference framework version. Sometimes TF serving versions
     # are a patch version or two ahead of the corresponding TF version.
     # upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
-    upstream_build_image_uri = "tensorflow/tensorflow:nightly-gpu"
+    upstream_build_image_uri = "tensorflow/tensorflow:2.17-gpu"
     docker_build_model_command = (
         f"docker run --runtime=nvidia --gpus all --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
