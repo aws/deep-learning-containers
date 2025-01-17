@@ -433,16 +433,13 @@ def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag
     :param tag_set: List[Dict], as described above
     :return: str, s3 file path
     """
-    ###
-    print("sally debugging")
-    ctx = Context()
-    ctx.run("pip show boto3; pip show botocore; pip show s3transfer")
-    ctx.run("pip freeze")
-    ctx.run("pip uninstall -y boto3 botocore s3transfer")
-    ctx.run("pip install boto3")
-    ctx.run("pip show boto3; pip show botocore; pip show s3transfer")
-    ###
-    s3_resource = boto3.resource("s3") ### failing
+    ### temporary workaround for breaking boto3 version
+    if boto3.__version__ == "1.36.1":
+        ctx = Context()
+        ctx.run("pip uninstall -y boto3 botocore s3transfer")
+        ctx.run("pip install boto3==1.34.94")
+    ### 
+    s3_resource = boto3.resource("s3")
     s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
     s3_client = s3_resource.meta.client
     s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
