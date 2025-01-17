@@ -301,10 +301,13 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
                                   modified by the conduct_autopatch_build_setup method.
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
     """
+    ### sally debugging
+    run("pip freeze")
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
-        hide=True,
+        ### hide=True,
     )
+    run("pip freeze")
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
     if not os.path.exists(download_path):
