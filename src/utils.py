@@ -439,7 +439,7 @@ def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag
     ctx.run("pip show boto3; pip show botocore; pip show s3transfer")
     ctx.run("pip freeze")
     ctx.run("pip uninstall -y boto3 botocore s3transfer")
-    ctx.run("pip install boto3==1.34.94")
+    ctx.run("pip install boto3")
     ctx.run("pip show boto3; pip show botocore; pip show s3transfer")
     ###
     s3_resource = boto3.resource("s3") ### failing
