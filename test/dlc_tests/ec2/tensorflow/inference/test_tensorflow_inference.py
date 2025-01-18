@@ -137,12 +137,13 @@ def test_ec2_tensorflow_inference_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
+# Start from Tf2.18, cuda build doesn't support tensorRT anymore
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
-    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type, below_tf218_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(
@@ -164,8 +165,7 @@ def test_ec2_tensorflow_inference_gpu_tensorrt(
     # Use helper function pull_tensorrt_build_image to get the closest matching major.minor.patch
     # version for a particular TF inference framework version. Sometimes TF serving versions
     # are a patch version or two ahead of the corresponding TF version.
-    # upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
-    upstream_build_image_uri = "tensorflow/tensorflow:2.16.2-gpu"
+    upstream_build_image_uri = pull_tensorrt_build_image(ec2_connection, framework_version)
     docker_build_model_command = (
         f"docker run --runtime=nvidia --gpus all --rm --name {build_container_name} "
         f"-v {model_creation_script_folder}:/script_folder/ -i {upstream_build_image_uri} "
