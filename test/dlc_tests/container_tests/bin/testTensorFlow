@@ -8,13 +8,11 @@ if [[ ! -d $LOG_DIR ]]; then
     mkdir -p $LOG_DIR
 fi
 
-# Use this to conditionally check TF version
-pip install packaging
-if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_tf27_or_greater = Version(tf.__version__) >= Version('2.7'); print(is_tf27_or_greater)") == 'True' ]]; then
-    PROFILER_LOG_DIR="/logs/plugins/profile"
-else
-    PROFILER_LOG_DIR="/logs/train/plugins/profile"
-fi
+# based on keras version bundled with tf, profiler directory is different,
+# for version bundled with keras=3.8.0 is /logs/train/plugins/profile/timestamp/*.pb
+# rebuilt TF2.16 will use keras=3.8.0 too
+# so use regex to match pattern 
+PROFILE_LOG_DIR='*/plugins/profile/*'
 
 set -e
 
@@ -37,7 +35,10 @@ TRAINING_LOG=${LOG_DIR}/${KERAS_BACKEND}_train_mnist.log
 echo "Training mnist using $KERAS_BACKEND... This may take a few minutes. You can follow progress on the log file : $TRAINING_LOG"
 set +e
 
-[ -d $PROFILER_LOG_DIR ] && echo "Cleanning existing logs" && rm -rf $PROFILER_LOG_DIR
+if [ -d "/logs" ]; then
+    echo "Cleanning existing logs"
+    find /logs -path "$PROFILE_LOG_DIR" -type f -delete 
+fi
 
 python ${BIN_DIR}/testTensorflow.py >$TRAINING_LOG 2>&1
 RETURN_VAL=`echo $?`
@@ -47,10 +48,12 @@ echo "Verify tensorflow profiler can generate logs."
 
 # profiler: tf > 2.* and < 2.2 generates local.trace where as tf > 2.2 generates *.pb
 if [[ $(python -c "import tensorflow as tf; from packaging.version import Version; is_less_than_tf22 = Version(tf.__version__) < Version('2.2'); print(is_less_than_tf22)") == 'True' ]]; then
-    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "local.trace")
+    LOG_FILE="local.trace"
 else
-    LOG_RESULT=$(find $PROFILER_LOG_DIR -name "*.pb")
+    LOG_FILE="*.pb"
 fi
+
+LOG_RESULT=$(find /logs -path "$PROFILE_LOG_DIR" -name $LOG_FILE)
 
 echo "Checking the logs result: $LOG_RESULT"
 

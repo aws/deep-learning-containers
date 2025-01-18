@@ -309,7 +309,7 @@ def test_tensorflow_addons_cpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
-## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+## Skip test for TF2.16/TF2.18 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
@@ -322,6 +322,7 @@ def test_tensorflow_io_s3_plugin_gpu(
     gpu_only,
     ec2_instance_type,
     skip_tf216,
+    skip_tf218,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -330,14 +331,19 @@ def test_tensorflow_io_s3_plugin_gpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 
-## Skip test for TF2.16 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+## Skip test for TF2.16/TF2.18 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_io_s3_plugin_cpu(
-    tensorflow_training, ec2_connection, tf2_only, cpu_only, skip_tf216
+    tensorflow_training,
+    ec2_connection,
+    tf2_only,
+    cpu_only,
+    skip_tf216,
+    skip_tf218,
 ):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
@@ -374,7 +380,11 @@ def test_tensorflow_dataservice_cpu(
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_dataservice_gpu(
-    tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training,
+    ec2_connection,
+    tf24_and_above_only,
+    gpu_only,
+    ec2_instance_type,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -402,7 +412,11 @@ def test_tensorflow_distribute_dataservice_cpu(
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_tensorflow_distribute_dataservice_gpu(
-    tensorflow_training, ec2_connection, tf24_and_above_only, gpu_only, ec2_instance_type
+    tensorflow_training,
+    ec2_connection,
+    tf24_and_above_only,
+    gpu_only,
+    ec2_instance_type,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(

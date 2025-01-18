@@ -1214,6 +1214,11 @@ def skip_tf216():
 
 
 @pytest.fixture(scope="session")
+def skip_tf218():
+    pass
+
+
+@pytest.fixture(scope="session")
 def mx18_and_above_only():
     pass
 
@@ -1354,6 +1359,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "skip_tf216" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.16.*", image, image_framework_name)
         )
+        not_tf218_requirement_failed = (
+            "skip_tf218" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.18.*", image, image_framework_name)
+        )
         if (
             tf2_requirement_failed
             or tf21_requirement_failed
@@ -1363,6 +1372,7 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf213_requirement_failed
             or tf216_requirement_failed
             or not_tf216_requirement_failed
+            or not_tf218_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
