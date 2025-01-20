@@ -137,12 +137,13 @@ def test_ec2_tensorflow_inference_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
+# Start from Tf2.18, cuda build doesn't support tensorRT anymore
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
-    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type, below_tf218_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(

@@ -1209,6 +1209,11 @@ def below_tf216_only():
 
 
 @pytest.fixture(scope="session")
+def below_tf218_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def skip_tf216():
     pass
 
@@ -1350,6 +1355,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "below_tf216_only" in metafunc_obj.fixturenames
             and not is_below_framework_version("2.16", image, image_framework_name)
         )
+        tf218_requrement_failed = (
+            "below_tf218_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.18", image, image_framework_name)
+        )
         not_tf216_requirement_failed = (
             "skip_tf216" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.16.*", image, image_framework_name)
@@ -1362,6 +1371,7 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf23_requirement_failed
             or tf213_requirement_failed
             or tf216_requirement_failed
+            or tf218_requrement_failed
             or not_tf216_requirement_failed
         ):
             return False
