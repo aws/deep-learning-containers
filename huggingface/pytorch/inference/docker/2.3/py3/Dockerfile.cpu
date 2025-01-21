@@ -76,6 +76,7 @@ RUN apt-get update \
     zlib1g-dev \
     libsndfile1-dev \
     ffmpeg \ 
+    libmysofa1 \ 
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 100 \
