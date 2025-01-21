@@ -2,6 +2,7 @@ import os
 import boto3
 import concurrent.futures
 import json
+from datetime import datetime
 
 import constants
 
@@ -283,6 +284,12 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     )
     pre_push_image_object.info = info
     pre_push_image_object.context = context
+
+    # add latest released image SHA as an additional tag
+    datetime_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    sha_after_colon = latest_released_image_sha.split(":")[1]
+    pre_push_image_object.additional_tags.insert(0, f"lastsha-{datetime_str}-{sha_after_colon}")
+
     return constants.SUCCESS
 
 
@@ -296,8 +303,12 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
     """
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
-        hide=True,
+        hide=False,
     )
+    # temporary workaround for breaking boto3 version
+    run("pip uninstall -y boto3 botocore s3transfer")
+    run("pip install boto3==1.35.75")  # minimum required version for sagemaker dependency currently
+
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
     if not os.path.exists(download_path):
