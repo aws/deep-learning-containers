@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.1.1-base-ubuntu20.04 AS base_image
+FROM nvidia/cuda:12.1.1-base-ubuntu22.04 AS base_image
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
