@@ -171,6 +171,7 @@ def test_csv_input():
             INVOCATION_URL.format(MODEL_NAME), data=data, headers=headers
         ).json()
         responses.append(response)
+    print("DEBUGING: ", responses)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     error = responses[1]["error"]
     assert (
