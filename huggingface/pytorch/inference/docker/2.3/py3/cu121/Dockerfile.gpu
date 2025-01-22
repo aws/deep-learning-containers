@@ -185,8 +185,7 @@ RUN pip install --no-cache-dir -U \
     "ipython>=8.10.0,<9.0" \
     "urllib3>=1.26.18,<2" \
     "prompt-toolkit<3.0.39" \
-    "setuptools>=70.0.0" \
-    "conda-libmamba-solver>=24.11.0"
+    "setuptools>=70.0.0"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
@@ -239,7 +238,8 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
-	"sagemaker-huggingface-inference-toolkit==2.4.1"
+	"sagemaker-huggingface-inference-toolkit==2.4.1" \
+    "conda-libmamba-solver>=24.11.0"
 
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
