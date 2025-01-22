@@ -9,7 +9,7 @@ BIN_DIR=${HOME_DIR}/bin
 LOG_DIR='*/plugins/profile/*'
 
 if [ -d "/logs" ]; then
-    echo "Cleanning existing logs" 
+    echo "Cleaning existing logs" 
     find /logs -path "$LOG_DIR" -type f -delete 
 fi
 
