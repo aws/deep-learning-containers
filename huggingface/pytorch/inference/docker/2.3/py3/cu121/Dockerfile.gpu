@@ -85,7 +85,6 @@ RUN apt-get update \
     libnuma1 \
     libnuma-dev \
     libsm6 \
-    libssl1.1 \
     libssl-dev \
     libxext6 \
     libxrender-dev \
