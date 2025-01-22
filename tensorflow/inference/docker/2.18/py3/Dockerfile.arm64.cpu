@@ -179,6 +179,7 @@ RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+ # pin gunicorn>=23.0.0 to address vul 72809
 RUN ${PIP} install --no-cache-dir \
     falcon==3.1.0 \
     "gunicorn>=23.0.0"
