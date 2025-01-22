@@ -634,11 +634,20 @@ def test_pip_check(image):
             "2.13.0",
             "2.14.2",
             "2.16.0",
-            "2.18.0"
+            "2.18.0",
         ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0", "2.16.1", "2.18.0"]:
+        for ex_ver in [
+            "2.9.0",
+            "2.10.0",
+            "2.11.0",
+            "2.12.0",
+            "2.13.0",
+            "2.14.0",
+            "2.16.1",
+            "2.18.1",
+        ]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
         for ex_ver in ["2.16.0", "2.18.0"]:
