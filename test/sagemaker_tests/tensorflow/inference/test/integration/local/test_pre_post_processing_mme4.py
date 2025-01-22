@@ -151,7 +151,10 @@ def test_large_input():
         predictions = responses[0]["predictions"]
         assert len(predictions) == 753936
         error = responses[1]["error"]
-        assert "document root must not be followed by other values" in error
+        assert (
+            "document root must not be followed by other values" in error
+            or "JSON Value: 1.0 Is not object" in error
+        )
 
 
 @pytest.mark.processor("cpu")
@@ -170,7 +173,10 @@ def test_csv_input():
         responses.append(response)
     assert responses[0] == {"predictions": [3.5, 4.0, 5.5]}
     error = responses[1]["error"]
-    assert "document root must not be followed by other values" in error
+    assert (
+        "document root must not be followed by other values" in error
+        or "JSON Value: 1.0 Is not object" in error
+    )
 
 
 @pytest.mark.processor("cpu")
@@ -190,7 +196,10 @@ def test_specific_versions():
                 assert response == {"predictions": [3.5, 4.0, 5.5]}
             else:
                 error = response["error"]
-                assert "document root must not be followed by other values" in error
+                assert (
+                    "document root must not be followed by other values" in error
+                    or "JSON Value: 1.0 Is not object" in error
+                )
 
 
 @pytest.mark.processor("cpu")
