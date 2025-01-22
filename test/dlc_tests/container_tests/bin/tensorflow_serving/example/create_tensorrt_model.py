@@ -43,6 +43,7 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     ## Versions of TF >= 2.16 come along with Keras 3. Model.save() API of keras 3 has significant differences with that of keras 2.
     ## Consequently, we continue to use save() for keras < 3 and shift to export for keras >= 3.
     ## Please refer to the following link for more details: https://keras.io/guides/migrating_to_keras_3/
+    ## https://keras.io/api/models/model_saving_apis/model_saving_and_loading/#save-method
     try:
         model.export(SAVED_MODEL_DIR) if Version(keras.version()) in SpecifierSet(
             ">=3"
