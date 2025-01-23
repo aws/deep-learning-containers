@@ -29,7 +29,8 @@ fi
 validate_all_reduce_performance_logs(){
     grep "aws-ofi-nccl" ${TRAINING_LOG} || { echo "aws-ofi-nccl is not working, please check if it is installed correctly"; exit 1; }
     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
-    grep "Using network AWS Libfabric" ${TRAINING_LOG}
+    # Tf218 the new log using  "Using network Libfabric" instead of "Using network AWS Libfabric"
+    grep -E "Using network (AWS )?Libfabric" ${TRAINING_LOG} || { echo "Libfabric is not working, please check if it is installed correctly"; exit 1; }
     if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
         grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}
         grep "NET/AWS Libfabric/0/GDRDMA" ${TRAINING_LOG}
