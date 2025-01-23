@@ -48,18 +48,3 @@ images:
     # build_tag_override: "beta:2.16.1-cpu-py310-ubuntu20.04-ec2"
     context:
       <<: *INFERENCE_CONTEXT
-  BuildSageMakerTensorflowArm64CPUInferencePy3DockerImage:
-    <<: *INFERENCE_REPOSITORY
-    build: &TENSORFLOW_CPU_INFERENCE_PY3 false
-    image_size_baseline: 4899
-    device_type: &DEVICE_TYPE cpu
-    python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py310
-    os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.arm64., *DEVICE_TYPE ]
-    target: sagemaker
-    # build_tag_override: "beta:2.16.1-cpu-py310-ubuntu20.04-sagemaker"
-    context:
-      <<: *INFERENCE_CONTEXT
