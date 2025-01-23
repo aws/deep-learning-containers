@@ -122,38 +122,29 @@ release_images:
       force_release: False
   10:
     framework: "djl"
-    version: "0.28.0"
+    version: "0.29.0"
     arch_type: "x86"
     inference:
-      device_types: [ "cpu" ]
+      device_types: [ "gpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
+      tensorrtllm_version: "0.11.0"
       example: False
       disable_sm_tag: True
       force_release: False
   11:
     framework: "djl"
-    version: "0.29.0"
+    version: "0.31.0"
     arch_type: "x86"
     inference:
-      device_types: [ "cpu" ]
+      device_types: [ "gpu" ]
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
+      tensorrtllm_version: "0.12.0"
       example: False
       disable_sm_tag: True
       force_release: False
   12:
-    framework: "djl"
-    version: "0.30.0"
-    arch_type: "x86"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu22.04"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  13:
     framework: "autogluon"
     version: "1.2.0"
     arch_type: "x86"
@@ -165,7 +156,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  13:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -178,7 +169,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  15:
+  14:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -186,17 +177,6 @@ release_images:
     inference:
       device_types: [ "cpu" ]
       python_versions: [ "py311" ]
-      os_version: "ubuntu22.04"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  16:
-    framework: "djl"
-    version: "0.31.0"
-    arch_type: "x86"
-    inference:
-      device_types: [ "cpu" ]
-      python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
       example: False
       disable_sm_tag: True
