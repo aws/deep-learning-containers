@@ -155,7 +155,7 @@ dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
 dlc-pr-pytorch-arm64-inference = ""
-dlc-pr-tensorflow-2-arm64-inference = "buildspec-arm64-2-18-ec2.yml"
+dlc-pr-tensorflow-2-arm64-inference = "tensorflow/inference/buildspec-arm64-2-18-ec2.yml"
 
 # EIA Inference
 dlc-pr-pytorch-eia-inference = ""
