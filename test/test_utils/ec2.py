@@ -311,7 +311,7 @@ def launch_instance(
             #     ec2_client=client,
             #     instance_type=instance_type,
             #     min_availability=arguments_dict["MinCount"],
-            )
+            # )
 
     # Clean up cap reservation if we don't find one
     arguments_dict.pop("CapacityReservationSpecification", None)
