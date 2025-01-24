@@ -307,10 +307,10 @@ def launch_instance(
             LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
             # Refresh available reservations
             # time.sleep(randint(10, 30))
-            reservations = get_available_reservations(
-                ec2_client=client,
-                instance_type=instance_type,
-                min_availability=arguments_dict["MinCount"],
+            # reservations = get_available_reservations(
+            #     ec2_client=client,
+            #     instance_type=instance_type,
+            #     min_availability=arguments_dict["MinCount"],
             )
 
     # Clean up cap reservation if we don't find one
