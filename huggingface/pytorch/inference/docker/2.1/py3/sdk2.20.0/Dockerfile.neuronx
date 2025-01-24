@@ -38,8 +38,11 @@ RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
+ && apt-get update
+
+RUN apt-get install -y --no-install-recommends gpg-agent
+
+RUN apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
@@ -59,7 +62,6 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent \
     libexpat1 \
     libxml2 \
     libgstreamer1.0-0 \
