@@ -306,8 +306,10 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
         hide=False,
     )
     # temporary workaround for breaking boto3 version
-    run("pip uninstall -y boto3 botocore s3transfer")
-    run("pip install boto3==1.35.75")  # minimum required version for sagemaker dependency currently
+    print("sally debugging")
+    run("pip freeze")
+    # run("pip uninstall -y boto3 botocore s3transfer")
+    # run("pip install boto3==1.35.75")  # minimum required version for sagemaker dependency currently
 
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
