@@ -306,7 +306,7 @@ def launch_instance(
         except ClientError as e:
             LOGGER.error(f"Failed to launch via {instance_type} reservation - {e}")
             # Refresh available reservations
-            time.sleep(randint(10, 30))
+            # time.sleep(randint(10, 30))
             reservations = get_available_reservations(
                 ec2_client=client,
                 instance_type=instance_type,
