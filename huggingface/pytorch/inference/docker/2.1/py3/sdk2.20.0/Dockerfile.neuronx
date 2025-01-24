@@ -37,10 +37,10 @@ ENV TEMP=/home/model-server/tmp
 RUN apt-get update
 RUN apt-get upgrade -y
 RUN apt-get install -y --no-install-recommends software-properties-common
+RUN apt-get install -y --no-install-recommends gpg-agent
 RUN add-apt-repository ppa:openjdk-r/ppa 
 RUN apt-get update
 
-RUN apt-get install -y --no-install-recommends gpg-agent
 
 RUN apt-get install -y --no-install-recommends \
     build-essential \
