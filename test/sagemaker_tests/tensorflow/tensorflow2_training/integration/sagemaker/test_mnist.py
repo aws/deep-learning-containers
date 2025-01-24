@@ -233,7 +233,7 @@ def _test_hc_distributed_mnist_ps_function(
 @pytest.mark.integration("parameter server")
 @pytest.mark.team("frameworks")
 def test_distributed_mnist_custom_ps(
-    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only, skip_tf218_only
 ):
     print("ecr image used for training", ecr_image)
     invoke_sm_helper_function(
@@ -271,7 +271,9 @@ def _test_distributed_mnist_custom_ps(
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.team("frameworks")
-def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only):
+def test_s3_plugin(
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only, skip_tf218_only
+):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_s3_plugin_function, instance_type, framework_version
     )
@@ -322,7 +324,7 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 @pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_hc_s3_plugin(
-    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only, skip_tf218_only
 ):
     from sagemaker.instance_group import InstanceGroup
 
