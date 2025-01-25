@@ -301,6 +301,7 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
                                   modified by the conduct_autopatch_build_setup method.
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
     """
+    run("pip install --upgrade awscli")
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
         hide=False,
