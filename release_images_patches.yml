@@ -368,7 +368,35 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  
+  # TensorFlow 2.18 Images
   21:
+    framework: "tensorflow"
+    version: "2.18.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu125"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  22:
+    framework: "tensorflow"
+    version: "2.18.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu125"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  23:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "x86"
@@ -381,7 +409,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  22:
+  24:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "x86"
