@@ -10,7 +10,7 @@ phases:
       - start-dockerd
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
-      - pip install --upgrade -r src/requirements.txt
+      - pip install -r src/requirements.txt
       - bash src/setup.sh $FRAMEWORK
       - python src/parse_partner_developers.py
       - python src/send_status.py --status 2
