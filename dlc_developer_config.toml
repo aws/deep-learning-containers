@@ -4,7 +4,7 @@ ei_mode = false
 neuron_mode = false
 neuronx_mode = false
 graviton_mode = false
-arm64_mode = true
+arm64_mode = false
 habana_mode = false
 huggingface_trcomp_mode = false
 trcomp_mode = false
@@ -12,8 +12,8 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "pytorch",]
-build_training = false
-build_inference = true
+build_training = true
+build_inference = false
 do_build = true
 
 [notify]
@@ -40,7 +40,7 @@ nightly_pr_test_mode = false
 use_scheduler = false
 
 [buildspec_override]
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-5-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 dlc-pr-huggingface-tensorflow-training = ""
@@ -65,7 +65,7 @@ dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-5-ec2.yml"
+dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
