@@ -112,7 +112,7 @@ RUN apt-get update \
     # required to upgrade emacs
     snapd \
  && snap install core \
- && snap instal emacs --classic \
+ && snap install emacs --classic \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
