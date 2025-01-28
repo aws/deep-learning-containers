@@ -104,10 +104,10 @@ EC2 Framework Containers (EC2, ECS, and EKS support only)
 | PyTorch 2.5.1     |training	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2       |
 | PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-ec2            |
 | PyTorch 2.5.1     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2      |
-| TensorFlow 2.16.2 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-ec2		      |
-| TensorFlow 2.16.2 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-ec2	 |
-| TensorFlow 2.16.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-ec2		      |
-| TensorFlow 2.16.1 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-ec2	 |
+| TensorFlow 2.18.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-cpu-py310-ubuntu22.04-ec2		      |
+| TensorFlow 2.18.0 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-gpu-py310-cu125-ubuntu22.04-ec2	 |
+| TensorFlow 2.18.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-cpu-py310-ubuntu20.04-ec2		      |
+| TensorFlow 2.18.0 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-gpu-py310-cu122-ubuntu20.04-ec2	 |
 
 
 SageMaker Framework Containers (SM support only)
@@ -119,10 +119,10 @@ SageMaker Framework Containers (SM support only)
 | PyTorch 2.5.1     | training	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker     |
 | PyTorch 2.5.1     | inference	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker           |
 | PyTorch 2.5.1     | inference	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker     |
-| TensorFlow 2.16.2 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-sagemaker		      |
-| TensorFlow 2.16.2 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker  |
-| TensorFlow 2.16.1 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-sagemaker	      |
-| TensorFlow 2.16.1 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-sagemaker |
+| TensorFlow 2.18.0 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-cpu-py310-ubuntu22.04-sagemaker		      |
+| TensorFlow 2.18.0 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-gpu-py310-cu125-ubuntu22.04-sagemaker  |
+| TensorFlow 2.18.0 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-cpu-py310-ubuntu20.04-sagemaker	      |
+| TensorFlow 2.18.0 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-gpu-py310-cu122-ubuntu20.04-sagemaker |
 
 
 EC2 Framework ARM64/Graviton Containers (EC2, ECS, and EKS support only)
@@ -333,6 +333,10 @@ Prior EC2 Framework Container Versions
 | PyTorch 2.2.0     |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-ec2       |
 | PyTorch 2.2.0     |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-ec2            |
 | PyTorch 2.2.0     |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-ec2      |
+| TensorFlow 2.16.2 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-ec2		      |
+| TensorFlow 2.16.2 |training	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-ec2	 |
+| TensorFlow 2.16.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-ec2		      |
+| TensorFlow 2.16.1 |inference	|No			|GPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-ec2	 |
 
 Prior SageMaker Framework Container Versions
 ==============
@@ -350,6 +354,10 @@ Prior SageMaker Framework Container Versions
 | PyTorch 2.2.0     | training   | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.2.0-gpu-py310-cu121-ubuntu20.04-sagemaker      |
 | PyTorch 2.2.0     | inference	| No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-cpu-py310-ubuntu20.04-sagemaker           |
 | PyTorch 2.2.0     | inference	| No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.2.0-gpu-py310-cu118-ubuntu20.04-sagemaker     |
+| TensorFlow 2.16.2 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-cpu-py310-ubuntu20.04-sagemaker		      |
+| TensorFlow 2.16.2 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker  |
+| TensorFlow 2.16.1 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-cpu-py310-ubuntu20.04-sagemaker	      |
+| TensorFlow 2.16.1 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.16.1-gpu-py310-cu122-ubuntu20.04-sagemaker |
 
 Prior EC2 Framework ARM64/Graviton Containers
 ============================
