@@ -1,13 +1,13 @@
 FROM ubuntu:22.04 AS base_image
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
 
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.11.9
-ARG MINIFORGE3_VERSION=23.11.0-0
+ARG MINIFORGE3_VERSION=24.11.0-0
 ARG OPEN_MPI_VERSION=4.1.5
 ARG MMS_VERSION=1.1.11
 
