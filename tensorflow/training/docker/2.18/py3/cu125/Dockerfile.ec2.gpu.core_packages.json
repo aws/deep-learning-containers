@@ -1,0 +1,35 @@
+{
+  "awscli": {
+    "version_specifier": ">=1.33.13,<2"
+  },
+  "protobuf": {
+    "version_specifier": ">=3.20.3,<4"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0,<6.1"
+  },
+  "tensorboard": {
+    "version_specifier": "==2.18.0"
+  },
+  "tensorboard-data-server": {
+    "version_specifier": ">=0.7.0,<0.8.0"
+  },
+  "tensorflow-gpu": {
+    "version_specifier": "==2.18.0"
+  },
+  "tensorflow-datasets": {
+    "version_specifier": ">=4.9.4"
+  },
+  "tensorflow-io": {
+    "version_specifier": "==0.37.*"
+  },
+  "tensorflow-io-gcs-filesystem": {
+    "version_specifier": "==0.37.*"
+  },
+  "tensorflow-metadata": {
+    "version_specifier": ">=1.14.0"
+  },
+  "urllib3": {
+    "version_specifier": ">=2.2.2"
+  }
+}
