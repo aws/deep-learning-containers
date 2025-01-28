@@ -81,7 +81,6 @@ RUN apt-get update \
     libcudnn8=$CUDNN_VERSION-1+cuda12.1 \
     libcudnn8-dev=$CUDNN_VERSION-1+cuda12.1 \
     curl \
-    emacs \
     git \
     jq \
     libcurl4-openssl-dev \
@@ -112,6 +111,16 @@ RUN apt-get update \
     ninja-build \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# Install emacs from source
+RUN wget https://ftpmirror.gnu.org/emacs/emacs-29.4.tar.xz \
+ && tar -xf emacs-29.4.tar.xz \
+ && cd emacs-29.4 \
+ && ./configure \
+ && make \
+ && make install \
+ && cd .. \
+ && rm -rf emacs-29.4 emacs-29.4.tar.xz
 
 # For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
