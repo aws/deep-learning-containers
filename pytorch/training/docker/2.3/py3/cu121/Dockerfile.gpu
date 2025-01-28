@@ -109,18 +109,12 @@ RUN apt-get update \
     libsubunit-dev \
     # ninja is needed for apex to speed up the build
     ninja-build \
+    # required to upgrade emacs
+    snapd \
+ && snap install core \
+ && snap instal emacs --classic \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# Install emacs from source
-RUN wget https://ftpmirror.gnu.org/emacs/emacs-29.4.tar.xz \
- && tar -xf emacs-29.4.tar.xz \
- && cd emacs-29.4 \
- && ./configure \
- && make \
- && make install \
- && cd .. \
- && rm -rf emacs-29.4 emacs-29.4.tar.xz
 
 # For conda ssl verification
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
