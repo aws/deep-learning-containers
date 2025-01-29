@@ -33,7 +33,7 @@ RUN apt-get update \
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 ARG PYTHON
 ARG PYTHON_VERSION
@@ -109,10 +109,6 @@ RUN apt-get update \
     libsubunit-dev \
     # ninja is needed for apex to speed up the build
     ninja-build \
-    # required to upgrade emacs
-    snapd \
- && snap install core \
- && snap install emacs --classic \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
