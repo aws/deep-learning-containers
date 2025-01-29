@@ -1,0 +1,18 @@
+{
+    "protobuf": {
+        "version_specifier": ">=3.20.3,<5.0.0dev,!=4.21.5,!=4.21.4,!=4.21.3,!=4.21.2,!=4.21.1,!=4.21.0"
+    },
+    "cython": {
+        "version_specifier": "<3.0"
+    },
+    "awscli": {
+        "version_specifier": "<2"
+    },
+    "tensorflow-serving-api-gpu": {
+        "version_specifier": "==2.18.0",
+        "skip": "True"
+    },
+    "urllib3": {
+        "version_specifier": ">=2.0.7"
+    }
+}
