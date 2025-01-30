@@ -7,7 +7,7 @@ docker==4.2.0
 pyfiglet==0.8.post1
 reprint==0.5.2
 ruamel.yaml==0.18.10
-black==23.3.0
+black==25.1.0
 junit-xml==1.9
 toml==0.10.2
 retrying
