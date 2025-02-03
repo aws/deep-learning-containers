@@ -102,6 +102,8 @@ RUN apt-get update \
     python3-dev \
     libsndfile1-dev \
     ffmpeg \
+    libmysofa1 \
+    emacs-common \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
