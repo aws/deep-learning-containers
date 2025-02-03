@@ -2,7 +2,7 @@
 partner_developer = ""
 ei_mode = false
 neuron_mode = false
-neuronx_mode = false
+neuronx_mode = true
 graviton_mode = false
 arm64_mode = false
 habana_mode = false
@@ -60,7 +60,7 @@ dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec.yml"
+dlc-pr-huggingface-pytorch-inference = ""
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-pytorch-graviton-inference = ""
@@ -69,4 +69,6 @@ dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
+# WARNING: Unrecognized key generated below
+dlc-pr-huggingface-pytorch-neuronx-inference = "huggingface/pytorch/inference/buildspec-neuronx.yml"
 
