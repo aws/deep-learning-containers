@@ -64,6 +64,8 @@ RUN apt-get update \
     libxml2 \
     libgstreamer1.0-0 \
     emacs-bin-common \
+    emacs \
+    emacs-common \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
