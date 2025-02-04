@@ -4,6 +4,8 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker
 
+apt remove -y --purge emacs
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
