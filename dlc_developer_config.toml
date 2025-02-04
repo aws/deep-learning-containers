@@ -12,8 +12,8 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "huggingface_pytorch",]
-build_training = true
-build_inference = false
+build_training = false
+build_inference = true
 do_build = true
 
 [notify]
@@ -70,5 +70,5 @@ dlc-pr-tensorflow-2-arm64-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
 # WARNING: Unrecognized key generated below
-dlc-pr-huggingface-pytorch-neuronx-training = "huggingface/pytorch/training/buildspec-neuronx.yml"
+dlc-pr-huggingface-pytorch-neuronx-inference = "huggingface/pytorch/inference/buildspec-neuronx.yml"
 

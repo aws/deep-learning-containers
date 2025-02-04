@@ -34,18 +34,20 @@ ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends software-properties-common \
- && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y --no-install-recommends software-properties-common
+RUN apt-get install -y --no-install-recommends gpg-agent
+RUN add-apt-repository ppa:openjdk-r/ppa 
+RUN apt-get update
+
+
+RUN apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
     cmake \
     curl \
-    emacs \
     git \
     jq \
     libgl1-mesa-glx \
