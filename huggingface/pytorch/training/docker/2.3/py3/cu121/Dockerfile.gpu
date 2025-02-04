@@ -47,7 +47,7 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 emacs-bin-common \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 emacs-bin-common emacs emacs-common \
  && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
