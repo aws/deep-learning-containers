@@ -1,7 +1,5 @@
 FROM ubuntu:20.04
 
-apt remove -y --purge emacs
-
 LABEL dlc_major_version="1"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
@@ -66,7 +64,8 @@ RUN apt-get update \
     libgstreamer1.0-0 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
- && apt-get clean
+ && apt-get clean \
+ && apt remove -y --purge emacs
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
