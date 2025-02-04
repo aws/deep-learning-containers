@@ -51,7 +51,9 @@ RUN apt-get update \
 	libarchive13 \
 	libgstreamer1.0-0 \
 	libgstreamer-plugins-base1.0-0 \
- && apt-get upgrade -y apparmor \
+ && apt-get upgrade -y \
+ 	apparmor \
+	emacs-common \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
