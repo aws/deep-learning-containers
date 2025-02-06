@@ -140,18 +140,14 @@ RUN cd /tmp/ \
 && cd Python-${PYTHON_VERSION} \
 && ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
 && make -j "$(nproc)" \
+&& make altinstall \
 && cd .. \
 && rm -rf Python-${PYTHON_VERSION} \
 && rm Python-${PYTHON_VERSION}.tgz \
 && ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
 && ln -s /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip 
 
-ENV PATH="/usr/local/bin/python${PYTHON_SHORT_VERSION}/bin/:$PATH"
-
-RUN which python \
- && python --version \
- && which pip \
- && pip --version
+ENV PATH="/usr/local/bin:${PATH}"
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
