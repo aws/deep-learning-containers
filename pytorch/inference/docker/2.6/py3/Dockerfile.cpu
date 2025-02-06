@@ -51,9 +51,9 @@ ARG TORCHSERVE_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
+# ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-ENV PATH="/opt/conda/bin:${PATH}"
+#vENV PATH="/opt/conda/bin:${PATH}"
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -82,13 +82,22 @@ RUN apt-get update \
     emacs \
     git \
     jq \
+    llvm \
     libcurl4-openssl-dev \
     libglib2.0-0 \
     libgl1-mesa-glx \
+    liblzma-dev \
+    libncurses5-dev \
+    libncursesw5-dev \
     libsm6 \
     libssl-dev \
+    libsqlite3-dev \
     libxext6 \
     libxrender-dev \
+    libbz2-dev \
+    libreadline-dev \
+    tk-dev \
+    xz-utils \
     zlib1g-dev \
     unzip \
     vim \
@@ -124,18 +133,55 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
- && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
+# && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
-    python=$PYTHON_VERSION \
+# RUN /opt/conda/bin/mamba install -y -c conda-forge \
+#     python=$PYTHON_VERSION \
+#     cython \
+#     cryptography \
+#     pyopenssl \
+#     cmake \
+#     curl \
+#     libcurl \
+#     mkl \
+#     mkl-include \
+#     parso \
+#     typing \
+#     charset-normalizer \
+#     packaging \
+#     boto3 \
+#     numpy \
+#     scipy \
+#     ipython \
+#     h5py \
+#     idna \
+#     tqdm \
+#     requests \
+#     setuptools \
+#     urllib3 \
+#     awscli \
+#  && /opt/conda/bin/mamba clean -afy \
+#  && rm -rf /etc/apt/sources.list.d/*
+
+# install python
+RUN cd /tmp/ \
+&& wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+&& tar xzf Python-${PYTHON_VERSION}.tgz \
+&& cd Python-${PYTHON_VERSION} \
+&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
+&& make -j "$(nproc)" \
+&& cd .. \
+&& rm -rf Python-${PYTHON_VERSION} \
+&& rm Python-${PYTHON_VERSION}.tgz \
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python 
+
+
+RUN pip install --no-cache-dir \
     cython \
     cryptography \
-    pyopenssl \
-    cmake \
-    curl \
-    libcurl \
+    pyOpenSSL \
     mkl \
     mkl-include \
     parso \
@@ -153,11 +199,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     setuptools \
     urllib3 \
     awscli \
- && /opt/conda/bin/mamba clean -afy \
- && rm -rf /etc/apt/sources.list.d/*
+    opencv-python
 
-# Install Common python packages
-RUN pip install --no-cache-dir opencv-python
+# # Install Common python packages
+# RUN pip install --no-cache-dir opencv-python
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -190,6 +235,8 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
