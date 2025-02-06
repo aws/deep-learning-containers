@@ -4,6 +4,8 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.1.2-neuronx-py310-sdk2.20.0-ubuntu20.04
 
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
