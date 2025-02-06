@@ -148,7 +148,10 @@ RUN cd /tmp/ \
 
 ENV PATH="/usr/local/bin/python${PYTHON_SHORT_VERSION}/bin/:$PATH"
 
-RUN which python3
+RUN which python \
+ && python --version \
+ && which pip \
+ && pip --version
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
