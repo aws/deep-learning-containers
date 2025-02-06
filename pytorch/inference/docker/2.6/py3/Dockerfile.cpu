@@ -143,10 +143,11 @@ RUN cd /tmp/ \
 && cd .. \
 && rm -rf Python-${PYTHON_VERSION} \
 && rm Python-${PYTHON_VERSION}.tgz \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
-&& ln -s /opt/python/3.12.8/bin/pip3.12 /opt/python/3.12.8/bin/pip
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python 
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
+# Install pip
+RUN python -m ensurepip --upgrade \
+&& pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
