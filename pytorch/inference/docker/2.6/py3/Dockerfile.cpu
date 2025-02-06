@@ -126,12 +126,12 @@ ENV PATH="/home/.openmpi/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/home/.openmpi/lib:${LD_LIBRARY_PATH}"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# For conda ssl verification
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
- && chmod +x ~/miniforge3.sh \
- && ~/miniforge3.sh -b -p /opt/conda \
- && rm ~/miniforge3.sh
+# # For conda ssl verification
+# ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+# RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
+#  && chmod +x ~/miniforge3.sh \
+#  && ~/miniforge3.sh -b -p /opt/conda \
+#  && rm ~/miniforge3.sh
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
