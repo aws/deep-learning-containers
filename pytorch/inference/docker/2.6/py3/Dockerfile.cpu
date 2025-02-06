@@ -138,12 +138,13 @@ RUN cd /tmp/ \
 && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
 && tar xzf Python-${PYTHON_VERSION}.tgz \
 && cd Python-${PYTHON_VERSION} \
-&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
+&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi with-ensurepip=install\
 && make -j "$(nproc)" \
 && cd .. \
 && rm -rf Python-${PYTHON_VERSION} \
 && rm Python-${PYTHON_VERSION}.tgz \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python 
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
+&& ln -s /opt/python/3.12.8/bin/pip3.12 /opt/python/3.12.8/bin/pip
 
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
