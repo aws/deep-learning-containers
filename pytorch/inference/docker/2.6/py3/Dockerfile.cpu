@@ -133,6 +133,18 @@ RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 #  && ~/miniforge3.sh -b -p /opt/conda \
 #  && rm ~/miniforge3.sh
 
+# install python
+RUN cd /tmp/ \
+&& wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+&& tar xzf Python-${PYTHON_VERSION}.tgz \
+&& cd Python-${PYTHON_VERSION} \
+&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
+&& make -j "$(nproc)" \
+&& cd .. \
+&& rm -rf Python-${PYTHON_VERSION} \
+&& rm Python-${PYTHON_VERSION}.tgz \
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python 
+
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 # && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
@@ -164,19 +176,6 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
 #     awscli \
 #  && /opt/conda/bin/mamba clean -afy \
 #  && rm -rf /etc/apt/sources.list.d/*
-
-# install python
-RUN cd /tmp/ \
-&& wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
-&& tar xzf Python-${PYTHON_VERSION}.tgz \
-&& cd Python-${PYTHON_VERSION} \
-&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
-&& make -j "$(nproc)" \
-&& cd .. \
-&& rm -rf Python-${PYTHON_VERSION} \
-&& rm Python-${PYTHON_VERSION}.tgz \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python 
-
 
 RUN pip install --no-cache-dir \
     cython \
