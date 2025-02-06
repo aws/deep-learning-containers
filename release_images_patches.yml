@@ -54,33 +54,33 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  # 11:
-  #   framework: "pytorch"
-  #   version: "2.3.0"
-  #   arch_type: "graviton"
-  #   customer_type: "ec2"
-  #   inference:
-  #     device_types: [ "cpu" ]
-  #     python_versions: [ "py311" ]
-  #     os_version: "ubuntu20.04"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
-  # 12:
-  #   framework: "pytorch"
-  #   version: "2.3.0"
-  #   arch_type: "graviton"
-  #   customer_type: "sagemaker"
-  #   inference:
-  #     device_types: [ "cpu" ]
-  #     python_versions: [ "py311" ]
-  #     os_version: "ubuntu20.04"
-  #     example: False
-  #     disable_sm_tag: False
-  #     force_release: False
+  5:
+    framework: "pytorch"
+    version: "2.3.0"
+    arch_type: "graviton"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  6:
+    framework: "pytorch"
+    version: "2.3.0"
+    arch_type: "graviton"
+    customer_type: "sagemaker"
+    inference:
+      device_types: [ "cpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu20.04"
+      example: False
+      disable_sm_tag: False
+      force_release: False
 
   # PyTorch 2.4 Images
-  5:
+  7:
     framework: "pytorch"
     version: "2.4.0"
     customer_type: "ec2"
@@ -93,7 +93,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  6:
+  8:
     framework: "pytorch"
     version: "2.4.0"
     customer_type: "sagemaker"
@@ -106,7 +106,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  7:
+  9:
     framework: "pytorch"
     version: "2.4.0"
     arch_type: "x86"
@@ -119,7 +119,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  8:
+  10:
     framework: "pytorch"
     version: "2.4.0"
     arch_type: "x86"
@@ -159,7 +159,7 @@ release_images:
   #     force_release: False
 
   # PyTorch 2.5 Images
-  9:
+  11:
     framework: "pytorch"
     version: "2.5.1"
     customer_type: "ec2"
@@ -172,7 +172,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  10:
+  12:
     framework: "pytorch"
     version: "2.5.1"
     customer_type: "sagemaker"
@@ -185,7 +185,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  11:
+  13:
     framework: "pytorch"
     version: "2.5.1"
     arch_type: "x86"
@@ -198,7 +198,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  12:
+  14:
     framework: "pytorch"
     version: "2.5.1"
     arch_type: "x86"
@@ -238,7 +238,7 @@ release_images:
   #     force_release: False
 
   # TensorFlow 2.16 Images
-  13:
+  15:
     framework: "tensorflow"
     version: "2.16.2"
     customer_type: "ec2"
@@ -251,7 +251,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  16:
     framework: "tensorflow"
     version: "2.16.2"
     customer_type: "sagemaker"
@@ -264,7 +264,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  17:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "x86"
@@ -277,7 +277,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  18:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "x86"
@@ -292,7 +292,7 @@ release_images:
       force_release: False
   
   # TensorFlow 2.18 Images
-  17:
+  19:
     framework: "tensorflow"
     version: "2.18.0"
     customer_type: "ec2"
@@ -305,7 +305,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  18:
+  20:
     framework: "tensorflow"
     version: "2.18.0"
     customer_type: "sagemaker"
@@ -318,7 +318,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  19:
+  21:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "x86"
@@ -331,7 +331,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  20:
+  22:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "x86"
