@@ -17,6 +17,8 @@ ARG DATASETS_VERSION
 ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
+RUN pip install --upgrade pip
+
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
