@@ -661,6 +661,17 @@ def test_pip_check(image):
             rf"tf-models-official 2.9.2 has requirement tensorflow-text~=2.9.0, but you have tensorflow-text 2.10.0."
         )
 
+    if framework in ["pytorch"]:
+        exception_strings = []
+
+        # Adding due to the latest pip check platform feature: https://github.com/pypa/pip/issues/12884
+        for ex_ver in ["1.11.1.1"]:
+            exception_strings += [f"ninja {ex_ver}".replace(".", r"\.")]
+
+        allowed_exceptions.append(
+            rf"^({'|'.join(exception_strings)}) is not supported on this platform"
+        )
+
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
             [
