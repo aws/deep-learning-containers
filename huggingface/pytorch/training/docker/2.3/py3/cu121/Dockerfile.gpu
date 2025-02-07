@@ -20,6 +20,7 @@ ARG ACCELERATE_VERSION=1.1.0
 ARG TRL_VERSION=0.11.4
 ARG PEFT_VERSION=0.13.2
 ARG FLASH_ATTN_VERSION=2.6.3
+ARG NINJA_VERSION=1.11.1
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
@@ -41,6 +42,7 @@ RUN pip install --no-cache-dir \
 	bitsandbytes \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
+	ninja==${NINJA_VERSION} \
 	trl==${TRL_VERSION} \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION}
