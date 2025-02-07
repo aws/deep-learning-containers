@@ -37,6 +37,7 @@ LABEL dlc_major_version="1"
 
 ARG PYTHON
 ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
 
 ARG MINIFORGE3_VERSION
 ARG OPEN_MPI_VERSION
@@ -144,13 +145,13 @@ RUN cd /tmp/ \
 && cd .. \
 && rm -rf Python-${PYTHON_VERSION} \
 && rm Python-${PYTHON_VERSION}.tgz \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
-&& ln -s /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip 
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python  
 
+# Python Path
 ENV PATH="/usr/local/bin:${PATH}"
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
-# && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
+# this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
+RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 
 # Install common conda packages
 # RUN /opt/conda/bin/mamba install -y -c conda-forge \
