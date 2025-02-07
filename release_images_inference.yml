@@ -111,11 +111,11 @@ release_images:
     framework: "huggingface_pytorch"
     version: "2.1.2"
     arch_type: "x86"
-    hf_transformers: "4.48.0"
+    hf_transformers: "4.48.1"
     inference:
       device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
-      os_version: "ubuntu22.04"
+      os_version: "ubuntu20.04"
       neuron_sdk_version: "sdk2.20.0"
       example: False
       disable_sm_tag: True
