@@ -185,6 +185,7 @@ def test_boto3(mxnet_inference):
 
     test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
 
+
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")
