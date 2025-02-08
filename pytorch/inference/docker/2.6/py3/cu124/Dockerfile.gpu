@@ -141,6 +141,7 @@ RUN apt-get update \
     xz-utils \
     liblzma-dev \
     tk-dev \
+    libffi-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
@@ -173,7 +174,7 @@ RUN cd /tmp/ \
 && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
 && tar xzf Python-${PYTHON_VERSION}.tgz \
 && cd Python-${PYTHON_VERSION} \
-&& ./configure --enable-optimizations --without-doc-strings --with-system-ffi \
+&& ./configure --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi \
 && make -j "$(nproc)" \
 && make altinstall \
 && cd .. \
