@@ -52,9 +52,7 @@ ARG TORCHSERVE_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
-# ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-#vENV PATH="/opt/conda/bin:${PATH}"
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -128,14 +126,7 @@ ENV PATH="/home/.openmpi/bin:${PATH}"
 ENV LD_LIBRARY_PATH="/home/.openmpi/lib:${LD_LIBRARY_PATH}"
 RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
 
-# # For conda ssl verification
-# ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-# RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE3_VERSION}/Miniforge3-${MINIFORGE3_VERSION}-Linux-x86_64.sh \
-#  && chmod +x ~/miniforge3.sh \
-#  && ~/miniforge3.sh -b -p /opt/conda \
-#  && rm ~/miniforge3.sh
-
-# install python
+# Install python
 RUN cd /tmp/ \
 && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
 && tar xzf Python-${PYTHON_VERSION}.tgz \
@@ -147,7 +138,9 @@ RUN cd /tmp/ \
 && rm -rf Python-${PYTHON_VERSION} \
 && rm Python-${PYTHON_VERSION}.tgz \
 && ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
+# This installation generate a .python_history file in the root directory leads sanity check to fail
+&& rm -f /root/.python_history
 
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
@@ -155,35 +148,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 # this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
 RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 
-# Install common conda packages
-# RUN /opt/conda/bin/mamba install -y -c conda-forge \
-#     python=$PYTHON_VERSION \
-#     cython \
-#     cryptography \
-#     pyopenssl \
-#     cmake \
-#     curl \
-#     libcurl \
-#     mkl \
-#     mkl-include \
-#     parso \
-#     typing \
-#     charset-normalizer \
-#     packaging \
-#     boto3 \
-#     numpy \
-#     scipy \
-#     ipython \
-#     h5py \
-#     idna \
-#     tqdm \
-#     requests \
-#     setuptools \
-#     urllib3 \
-#     awscli \
-#  && /opt/conda/bin/mamba clean -afy \
-#  && rm -rf /etc/apt/sources.list.d/*
-
+# Install pip pakcages
 RUN pip install --no-cache-dir \
     cython \
     cryptography \
@@ -206,9 +171,6 @@ RUN pip install --no-cache-dir \
     urllib3 \
     awscli \
     opencv-python
-
-# # Install Common python packages
-# RUN pip install --no-cache-dir opencv-python
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
