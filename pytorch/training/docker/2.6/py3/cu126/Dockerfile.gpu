@@ -61,7 +61,6 @@ ARG CUDNN_VERSION
 ARG NCCL_VERSION
 ARG EFA_VERSION
 ARG HWLOC_VERSION
-ARG AWS_OFI_NCCL_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -226,12 +225,18 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     pillow \
     h5py \
     fsspec \
-    "idna>=3.7" \
-    "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3<2" \
-    "awscli<2" \
+    # "idna>=3.7" \
+    # "tqdm>=4.66.3" \
+    # "requests>=2.32.0" \
+    # "setuptools>=70.0.0" \
+    # "urllib3<2" \
+    # "awscli<2" \
+    idna \
+    tqdm \
+    requests \
+    setuptools \
+    urllib3 \
+    awscli \
     libgcc \
     ninja \
  && /opt/conda/bin/mamba clean -afy \
@@ -240,7 +245,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 # Install common pip packages (in case of conda package is not available)
 RUN pip install --no-cache-dir opencv-python mpi4py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -275,6 +280,7 @@ ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
 
 WORKDIR /
 
@@ -284,6 +290,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    ${TORCHDATA} \
     torchtnt \
     triton \
     s3torchconnector \
@@ -291,10 +298,11 @@ RUN pip install --no-cache-dir -U \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
+    # "numpy<2" \
+    numpy \
     spacy \
     thinc \
     blis \
-    "numpy<2" \
  && pip uninstall dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -370,6 +378,7 @@ ARG TORCH_URL
 ARG TORCHVISION_URL
 ARG TORCHAUDIO_URL
 ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
 
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
@@ -385,6 +394,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL} \
     torchtnt \
     triton \
     s3torchconnector \
