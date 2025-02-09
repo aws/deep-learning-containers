@@ -253,7 +253,7 @@ COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

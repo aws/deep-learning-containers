@@ -7,11 +7,11 @@ ARG MINIFORGE3_VERSION=24.11.3-0
 ARG OPEN_MPI_VERSION=4.1.7
 
 # PyTorch Binaries
-ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torch-2.6.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torchvision-0.21.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torchaudio-2.6.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torchtext-0.18.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torchdata-0.10.0%2Bcu124-py3-none-any.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torch-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchvision-0.21.0%2Bcpu-cp312-cp312-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchaudio-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchtext-0.18.0%2Bcpu-cp312-cp312-linux_x86_64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchdata-0.10.0%2Bcpu-py3-none-any.whl
 
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
@@ -200,7 +200,7 @@ COPY torchserve-ec2-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 COPY config.properties /home/model-server
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
