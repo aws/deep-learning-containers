@@ -255,13 +255,9 @@ ARG TORCHSERVE_VERSION
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install extra packages
-RUN /opt/conda/bin/mamba install -y -c conda-forge \
+RUN pip install --no-cache-dir \
     scikit-learn \
     pandas \
- && /opt/conda/bin/mamba clean -afy
-
-
-RUN pip install --no-cache-dir \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
