@@ -290,7 +290,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
-    ${TORCHDATA} \
+    ${TORCHDATA_URL} \
     torchtnt \
     triton \
     s3torchconnector \
