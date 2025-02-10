@@ -905,7 +905,7 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4,<2.6": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
@@ -925,7 +925,7 @@ def skip_smdebug_v1_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4,<2.6": ["cpu", "cu124"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
