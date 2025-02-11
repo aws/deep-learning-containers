@@ -4,8 +4,11 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker
 
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
+
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 # version args
 ARG TRANSFORMERS_VERSION
@@ -17,10 +20,11 @@ ARG ACCELERATE_VERSION=1.1.0
 ARG TRL_VERSION=0.11.4
 ARG PEFT_VERSION=0.13.2
 ARG FLASH_ATTN_VERSION=2.6.3
+ARG NINJA_VERSION=1.11.1
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
-RUN pip install --upgrade "pip==24.1.2" \
+RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
@@ -38,6 +42,7 @@ RUN pip install --no-cache-dir \
 	bitsandbytes \
 	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
+	ninja==${NINJA_VERSION} \
 	trl==${TRL_VERSION} \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION}
