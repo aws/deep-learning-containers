@@ -1,4 +1,5 @@
 ARG PYTHON=python3
+
 ARG PYTHON_VERSION=3.12.8
 ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.6.0
@@ -331,6 +332,8 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION}
 
+# quickfix nsight-compute-2024.3.2 license file is on wrong encoding format
+RUN iconv -f WINDOWS-1252 -t UTF-8 /usr/share/doc/nsight-compute-2024.3.2/copyright -o /usr/share/doc/nsight-compute-2024.3.2/copyright
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -463,6 +466,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
+# quickfix nsight-compute-2024.3.2 license file is on wrong encoding format
+RUN iconv -f WINDOWS-1252 -t UTF-8 /usr/share/doc/nsight-compute-2024.3.2/copyright -o /usr/share/doc/nsight-compute-2024.3.2/copyright
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
