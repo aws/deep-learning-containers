@@ -66,20 +66,20 @@ function upgrade_nodegroups() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  eksctl utils update-kube-proxy \
+  eksctl update addon \
+    --name kube-proxy \
     --cluster ${1} \
-    --region ${2} \
-    --approve
+    --region ${2}
 
   eksctl utils update-aws-node \
     --cluster ${1} \
     --region ${2} \
     --approve
 
-  eksctl utils update-coredns \
+  eksctl update addon \
+    --name coredns \
     --cluster ${1} \
-    --region ${2} \
-    --approve
+    --region ${2}
 }
 
 if [ $# -lt 3 ]; then
