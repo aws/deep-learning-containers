@@ -10,7 +10,7 @@ ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchvision-0.21.0%2Bcpu-cp312-cp312-linux_x86_64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchaudio-2.6.0%2Bcpu-cp312-cp312-linux_x86_64.whl
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchtext-0.18.0%2Bcpu-cp312-cp312-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchdata-0.10.0%2Bcpu-py3-none-any.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchdata-0.10.1%2Bcpu-py3-none-any.whl
 
 ARG TORCHSERVE_VERSION
 ARG SM_TOOLKIT_VERSION
