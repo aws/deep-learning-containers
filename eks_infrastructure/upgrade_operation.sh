@@ -71,7 +71,7 @@ function update_eksctl_utils() {
     --cluster ${1} \
     --region ${2}
 
-  eksctl utils addon \
+  eksctl update addon \
     --name vpc-cni \
     --cluster ${1} \
     --region ${2}
