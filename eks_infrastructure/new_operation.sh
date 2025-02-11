@@ -105,20 +105,20 @@ function create_graviton_node_group() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  eksctl utils update-kube-proxy \
+  eksctl update addon \
+    --name kube-proxy \
     --cluster ${1} \
-    --region ${2} \
-    --approve
+    --region ${2}
 
-  eksctl utils update-aws-node \
+  eksctl update addon \
+    --name aws-node \
     --cluster ${1} \
-    --region ${2} \
-    --approve
+    --region ${2}
 
-  eksctl utils update-coredns \
+  eksctl update addon \
+    --name coredns \
     --cluster ${1} \
-    --region ${2} \
-    --approve
+    --region ${2}
 }
 
 if [ $# -ne 2 ]; then
