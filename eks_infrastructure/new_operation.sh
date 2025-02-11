@@ -110,10 +110,10 @@ function update_eksctl_utils() {
     --cluster ${1} \
     --region ${2}
 
-  eksctl update addon \
-    --name aws-node \
+  eksctl utils update-aws-node \
     --cluster ${1} \
-    --region ${2}
+    --region ${2} \
+    --approve
 
   eksctl update addon \
     --name coredns \
