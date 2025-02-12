@@ -66,20 +66,18 @@ function upgrade_nodegroups() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  eksctl update addon \
-    --name kube-proxy \
-    --cluster ${1} \
-    --region ${2}
+  LIST_ADDONS=$(eksctl get addon --cluster my-cluster -o json | jq -r '.addons[] | .name')
 
-  eksctl update addon \
-    --name vpc-cni \
-    --cluster ${1} \
-    --region ${2}
-
-  eksctl update addon \
-    --name coredns \
-    --cluster ${1} \
-    --region ${2}
+  if [ -n "${LIST_ADDONS}" ]; then
+    for ADDONS in ${LIST_ADDONS}; do
+      eksctl update addon \
+        --name ${ADDONS} \
+        --cluster ${1} \
+        --region ${2}
+    done
+  else
+    echo "No addons present in the EKS cluster ${CLUSTER_NAME}"
+  fi
 }
 
 if [ $# -lt 3 ]; then
