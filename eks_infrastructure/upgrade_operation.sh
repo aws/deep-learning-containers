@@ -66,7 +66,7 @@ function upgrade_nodegroups() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  LIST_ADDONS=$(eksctl get addon --cluster ${CLUSTER}  -o json | jq -r '.addons[] | .name')
+  LIST_ADDONS=$(eksctl get addon --cluster ${CLUSTER}  -o json | jq -r '.[].Name')
 
   if [ -n "${LIST_ADDONS}" ]; then
     for ADDONS in ${LIST_ADDONS}; do
