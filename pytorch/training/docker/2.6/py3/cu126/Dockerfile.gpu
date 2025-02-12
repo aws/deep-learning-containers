@@ -14,11 +14,11 @@ ARG TE_VERSION=1.13
 ARG FLASH_ATTN_VERSION=2.7.3
 
 # PyTorch Binaries
-ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torch-2.6.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchvision-0.21.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchaudio-2.6.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchtext-0.18.0%2Bcu124-cp312-cp312-linux_x86_64.whl
-ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchdata-0.10.1%2Bcu124-py3-none-any.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torch-2.6.0%2Bcu126-cp312-cp312-linux_x86_64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchvision-0.21.0%2Bcu126-cp312-cp312-linux_x86_64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchaudio-2.6.0%2Bcu126-cp312-cp312-linux_x86_64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchtext-0.18.0%2Bcu126-cp312-cp312-linux_x86_64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchdata-0.10.1%2Bcu126-py3-none-any.whl
 
 FROM nvidia/cuda:12.6.3-base-ubuntu22.04 AS base_image
 
@@ -238,7 +238,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Install common conda packages
-RUN install --no-cache-dir \
+RUN pip install --no-cache-dir \
     cython \
     cryptography \
     pyOpenSSL \
