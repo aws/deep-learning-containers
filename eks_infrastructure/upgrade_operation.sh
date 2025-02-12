@@ -95,11 +95,11 @@ fi
 TARGET=${1}
 CLUSTER=${2}
 EKS_VERSION=${3}
-if [ "${TARGET}" = "CLUSTER" ]; then
-  CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
-elif [ "${TARGET}" = "NODEGROUP" ]; then
-  ERROR_LOG=${4}
-fi
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
+
+# Initialize error log and ensure log does not exist
+UPGRADE_NODEGROUP_LOG="failed_nodegroups.log"
+rm -f ${ERROR_LOG}
 
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
@@ -110,10 +110,10 @@ if [ "${TARGET}" = "CLUSTER" ]; then
   scale_cluster_autoscalar 0
   upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
   upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
-  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${UPGRADE_NODEGROUP_LOG}
   update_eksctl_utils ${CLUSTER} ${AWS_REGION}
   #scale back to 1
   scale_cluster_autoscalar 1
 elif [ "${TARGET}" = "NODEGROUP" ]; then
-  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${ERROR_LOG}
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${UPGRADE_NODEGROUP_LOG}
 fi
