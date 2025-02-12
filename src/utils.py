@@ -281,6 +281,8 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia"
             if "eia" in image_uri
+            else "inference-neuronx"
+            if "neuronx" in image_uri
             else "inference-neuron"
             if "neuron" in image_uri
             else "inference"
