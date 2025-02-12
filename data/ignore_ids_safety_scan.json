@@ -1450,8 +1450,7 @@
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
                 "71671": "Pytorch version upgrade needs to be handled in a separate image",
-                "71672": "Pytorch version upgrade needs to be handled in a separate image",
-                "74882": "Ignoring due to Safety picking this up. This is already covered in our own scan config"
+                "71672": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "training-neuronx": {
