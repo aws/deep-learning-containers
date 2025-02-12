@@ -105,7 +105,7 @@ function create_graviton_node_group() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  LIST_ADDONS=$(eksctl get addon --cluster my-cluster -o json | jq -r '.addons[] | .name')
+  LIST_ADDONS=$(eksctl get addon --cluster ${CLUSTER}  -o json | jq -r '.addons[] | .name')
 
   if [ -n "${LIST_ADDONS}" ]; then
     for ADDONS in ${LIST_ADDONS}; do
@@ -115,7 +115,7 @@ function update_eksctl_utils() {
         --region ${2}
     done
   else
-    echo "No addons present in the EKS cluster ${CLUSTER_NAME}"
+    echo "No addons present in the EKS cluster ${CLUSTER}"
   fi
 }
 
