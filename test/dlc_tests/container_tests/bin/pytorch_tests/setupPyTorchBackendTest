@@ -22,9 +22,9 @@ fi
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
-# activate conda env (to prevent duplicate pip install)
-conda init
-source ~/.bashrc
+# # activate conda env (to prevent duplicate pip install)
+# conda init
+# source ~/.bashrc
 
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark.git
