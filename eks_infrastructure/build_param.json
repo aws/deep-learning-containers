@@ -1,7 +1,8 @@
 {
-    "operation": "upgrade_cluster",
+    "operation": "create",
     "contexts": [
-        "MAINLINE"
+        "MAINLINE",
+        "PR"
     ],
     "eks_clusters": [
         "dlc-pytorch",
