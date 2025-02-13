@@ -181,8 +181,8 @@ else
   fi
 fi
 
-# create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
-# create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
-# create_namespaces
+create_namespaces

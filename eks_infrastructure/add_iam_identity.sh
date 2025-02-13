@@ -56,9 +56,5 @@ if [ -n "${EKS_TEST_ROLE}" ]; then
 fi
 
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ] && [ -n "${EKS_TEST_ROLE}" ]; then
-  eksctl utils write-kubeconfig \
-    --cluster ${CLUSTER} \
-    --region "us-west-2"
-
   create_rbac_rules
 fi
