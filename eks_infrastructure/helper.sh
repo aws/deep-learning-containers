@@ -13,10 +13,10 @@ function create_cluster() {
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
 
-      if ! check_cluster_status $CLUSTER_NAME; then
+      if check_cluster_status $CLUSTER_NAME; then
         ./create_cluster.sh $CLUSTER_NAME $EKS_VERSION
         ./add_iam_identity.sh $CLUSTER_NAME
-        ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
+        # ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
       else
         echo "EKS Cluster :: ${CLUSTER_NAME} :: already exists. Skipping create operation."
       fi
