@@ -95,6 +95,22 @@ function create_node_group() {
     --ssh-public-key "${3}"
 }
 
+#Function to upgrade core k8s components
+function update_eksctl_utils() {
+  LIST_ADDONS=$(eksctl get addon --cluster ${CLUSTER}  -o json | jq -r '.[].Name')
+
+  if [ -n "${LIST_ADDONS}" ]; then
+    for ADDONS in ${LIST_ADDONS}; do
+      eksctl update addon \
+        --name ${ADDONS} \
+        --cluster ${1} \
+        --region ${2}
+    done
+  else
+    echo "No addons present in the EKS cluster ${CLUSTER}"
+  fi
+}
+
 # Attach IAM policy to nodegroup IAM role
 function add_iam_policy() {
   NODE_GROUP_NAME=${1}
@@ -200,9 +216,9 @@ else
   fi
 fi
 
-create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
-create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
-add_tags_asg ${CLUSTER} ${AWS_REGION}
-add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
-create_namespaces
-update_eksctl_utils ${CLUSTER} ${AWS_REGION}reate_namespaces
+# create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+# create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+# add_tags_asg ${CLUSTER} ${AWS_REGION}
+# add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
+# create_namespaces
+update_eksctl_utils ${CLUSTER} ${AWS_REGION}
