@@ -37,6 +37,7 @@ function create_node_group() {
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
   GPU_NODEGROUP_INSTANCE_TYPE="p3.16xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
+  GRAVITON_NODEGROUP_INSTANCE_TYPE="c6g.4xlarge"
 
   # static nodegroup
   eksctl create nodegroup \
@@ -78,6 +79,20 @@ function create_node_group() {
     --ssh-access \
     --ssh-public-key "${3}"
 
+  # dynamic graviton nodegroup
+  eksctl create nodegroup \
+    --name ${1}-graviton-nodegroup-${2/./-} \
+    --cluster ${1} \
+    --node-type ${GRAVITON_NODEGROUP_INSTANCE_TYPE} \
+    --nodes-min 0 \
+    --nodes-max 100 \
+    --node-volume-size 80 \
+    --node-labels "test_type=graviton" \
+    --tags "k8s.io/cluster-autoscaler/node-template/label/test_type=graviton" \
+    --asg-access \
+    --managed=true \
+    --ssh-access \
+    --ssh-public-key "${3}"
 }
 
 # Attach IAM policy to nodegroup IAM role
@@ -148,6 +163,10 @@ function add_tags_asg() {
         ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/hugepages-2Mi,Value=256Mi,PropagateAtLaunch=true
     fi
 
+    if [[ ${nodegroup_name} == *"graviton"* ]]; then
+      aws autoscaling create-or-update-tags \
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=graviton,PropagateAtLaunch=true
+    fi
   done
 
 }
@@ -186,3 +205,4 @@ create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
 create_namespaces
+update_eksctl_utils ${CLUSTER} ${AWS_REGION}reate_namespaces
