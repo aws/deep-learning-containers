@@ -1,5 +1,5 @@
 #!/bin/bash
-#/ Usage: 
+#/ Usage:
 #/ cluster name is required. operation is optional
 #/ ./install_kubeflow.sh eks_cluster_name [operation]
 
@@ -7,7 +7,7 @@ set -ex
 
 # Function to install kustomize
 install_kustomize(){
-    KUSTOMIZE_VERSION="v4.5.7"
+    KUSTOMIZE_VERSION="v5.5.0"
     KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 
     if ! command -v kustomize &> /dev/null
@@ -42,17 +42,17 @@ uninstall_kubeflow(){
 
 # Function to create directory and download kubeflow components
 setup_kubeflow(){
-    KUBEFLOW_VERSION="v1.7.0"
+    KUBEFLOW_VERSION="v1.9.1"
     local EKS_CLUSTER_NAME=$1
     DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}"
 
     if [ -d "${DIRECTORY}" ]; then
         rm -rf ${DIRECTORY};
     fi
-        
-    mkdir ${DIRECTORY} 
+
+    mkdir ${DIRECTORY}
     cd ${DIRECTORY}
-    
+
     # clones manifests from kubeflow github into a folder named manifests
     git clone -b ${KUBEFLOW_VERSION} --single-branch https://github.com/kubeflow/manifests.git
 }

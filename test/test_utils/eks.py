@@ -42,9 +42,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.20.4"
-EKSCTL_VERSION = "0.53.0"
-KUBETAIL_VERSION = "1.6.7"
+EKS_VERSION = "1.32.0"
+EKSCTL_VERSION = "0.203.0"
+KUBETAIL_VERSION = "1.6.20"
 
 
 def get_aws_secret_yml_path():
@@ -152,7 +152,7 @@ def setup_eksctl():
 
     platform = run("uname -s", echo=True).stdout.strip()
     eksctl_download_command = (
-        f"curl --silent --location https://github.com/weaveworks/eksctl/releases/download/"
+        f"curl --silent --location https://github.com/eksctl-io/eksctl/releases/download/v"
         f"{EKSCTL_VERSION}/eksctl_{platform}_amd64.tar.gz | tar xz -C /tmp"
     )
     run(eksctl_download_command, echo=True)
@@ -169,7 +169,7 @@ def eks_setup():
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run_out = run(
-        "eksctl version && kubectl version --short --client && aws-iam-authenticator version",
+        "eksctl version && kubectl version --client && aws-iam-authenticator version",
         warn=True,
     )
 
@@ -182,12 +182,12 @@ def eks_setup():
 
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2024-12-20/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2021-04-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2024-12-20/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
@@ -210,7 +210,7 @@ def eks_setup():
 
     # Run a quick check that the binaries are available in the PATH by listing the 'version'
     run("eksctl version", echo=True)
-    run("kubectl version --short --client", echo=True)
+    run("kubectl version --client", echo=True)
     run("aws-iam-authenticator version", echo=True)
 
 
