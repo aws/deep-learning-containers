@@ -8,7 +8,6 @@ phases:
     commands:
       - cd eks_infrastructure
       - bash env_setup.sh
-      - bash build.sh staging-cluster BETA
   build:
     commands:
       - bash build.sh
