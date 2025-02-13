@@ -1,7 +1,6 @@
 {
-    "operation": "create",
+    "operation": "delete",
     "contexts": [
-        "MAINLINE",
         "PR"
     ],
     "eks_clusters": [
