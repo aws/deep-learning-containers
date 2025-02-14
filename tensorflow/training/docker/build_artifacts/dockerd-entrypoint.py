@@ -16,7 +16,6 @@ import os.path
 import shlex
 import subprocess
 import sys
-import subprocess
 
 # run compat mounting by default
 try:
