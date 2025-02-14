@@ -57,21 +57,35 @@ fi
 
 # For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
-    mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-    mv /opt/aws/dlc/start_cuda_compat.py /usr/local/bin/dockerd-entrypoint.py
-    sed -i '1,/from __future__ import absolute_import/d' /tmp/new-torchserve-entrypoint
-    cat /tmp/new-torchserve-entrypoint.py >> /usr/local/bin/dockerd-entrypoint.py
-
+    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/dockerd-entrypoint.py
 else
     rm -f /tmp/new-torchserve-entrypoint
 fi
 
-# For PT training sagemaker images
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)sagemaker ]]; then
+# For PT inference gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)gpu(.+)sagemaker ]]; then
+    mv /usr/local/bin/dockerd-entrypoint.py /tmp/old-entrypoint.py
+    sed -i '1,/from __future__ import absolute_import/d' /tmp/old-entrypoint.py
+    mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+    mv /opt/aws/dlc/start_cuda_compat.py /usr/local/bin/dockerd-entrypoint.py
+    cat /tmp/old-entrypoint.py >> /usr/local/bin/dockerd-entrypoint.py
+fi
+
+# For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)gpu(.+)sagemaker ]]; then
     mv /usr/local/bin/start_with_right_hostname.sh /tmp/old-entrypoint.sh
     sed -i '/^#!/d' /tmp/old-entrypoint.sh
     mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_with_right_hostname.sh
     cat /tmp/old-entrypoint.sh >> /usr/local/bin/start_with_right_hostname.sh
+fi
+
+# For TF inference gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/tensorflow-inference(.+)gpu(.+)sagemaker ]]; then
+    mv /usr/bin/tf_serving_entrypoint.sh /tmp/old-entrypoint.sh
+    sed -i '/^#!/d' /tmp/old-entrypoint.sh
+    mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/bin/tf_serving_entrypoint.sh
+    cat /tmp/old-entrypoint.sh >> /usr/bin/tf_serving_entrypoint.sh
 fi
 
 pip cache purge
