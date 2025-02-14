@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 verlte() {
   [ "$1" = "$2" ] && return 1 || [ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
