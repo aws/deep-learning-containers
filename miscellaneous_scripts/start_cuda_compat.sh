@@ -8,6 +8,9 @@ if [ -f /usr/local/cuda/compat/libcuda.so.1 ]; then
   CUDA_COMPAT_MAX_DRIVER_VERSION=$(readlink /usr/local/cuda/compat/libcuda.so.1 | cut -d'.' -f 3-)
   echo "CUDA compat package should be installed for NVIDIA driver smaller than ${CUDA_COMPAT_MAX_DRIVER_VERSION}"
   NVIDIA_DRIVER_VERSION=$(sed -n 's/^NVRM.*Kernel Module *\([0-9.]*\).*$/\1/p' /proc/driver/nvidia/version 2>/dev/null || true)
+  if [ -z "$NVIDIA_DRIVER_VERSION" ]; then
+    NVIDIA_DRIVER_VERSION=$(nvidia-smi --query-gpu=driver_version --format=csv,noheader --id=0 2>/dev/null || true)
+  fi
   echo "Current installed NVIDIA driver version is ${NVIDIA_DRIVER_VERSION}"
   if verlte $NVIDIA_DRIVER_VERSION $CUDA_COMPAT_MAX_DRIVER_VERSION; then
     echo "Adding CUDA compat to LD_LIBRARY_PATH"
