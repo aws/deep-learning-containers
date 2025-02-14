@@ -58,7 +58,6 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="${CUDA_HOME}/compat:${LD_LIBRARY_PATH}"
 
 # Python won’t try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -181,7 +180,7 @@ RUN cd /tmp/ \
 ENV PATH="/usr/local/bin:${PATH}"
 
 # this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
-RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org 
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
@@ -215,7 +214,7 @@ RUN pip install --no-cache-dir -U \
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
     # due to incompatibility with SM hosts
     nvgpu
-
+    
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -316,10 +315,7 @@ RUN pip install --no-cache-dir \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
-COPY start_cuda_compat.sh /usr/local/bin/dockerd-entrypoint.sh
-COPY torchserve-entrypoint.py /tmp/torchserve-entrypoint.py
-RUN echo "python torchserve-entrypoint.py \$@" >> /usr/local/bin/dockerd-entrypoint.sh \
- && rm /tmp/torchserve-entrypoint.py
+COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
@@ -338,5 +334,5 @@ RUN pip cache purge \
  && rm -iRf /root/.cache
 
 EXPOSE 8080 8081
-ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd-entrypoint.sh"]
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
