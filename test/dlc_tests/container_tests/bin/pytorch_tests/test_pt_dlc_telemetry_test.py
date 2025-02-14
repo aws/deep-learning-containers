@@ -76,7 +76,7 @@ perf_test("import torch")
 opt_in_opt_out_test("import torch")
 
 # Disabling os tests until it is added to all new images
-# perf_test("import os")
-# opt_in_opt_out_test("import os")
+perf_test("import os")
+opt_in_opt_out_test("import os")
 
 print("All DLC telemetry test passed")
