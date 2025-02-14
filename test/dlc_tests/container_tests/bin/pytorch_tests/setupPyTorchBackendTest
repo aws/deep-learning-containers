@@ -22,41 +22,26 @@ fi
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
-# # activate conda env (to prevent duplicate pip install)
-# conda init
-# source ~/.bashrc
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+PT_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0]);")
 
-# Set the name for virtual environment
-VENV_NAME=".venv"
-
-# Create a virtual environment if it doesn't exist
-if [ ! -d "$VENV_NAME" ]; then
-    python3 -m venv $VENV_NAME
+if [ $(version $PT_VERSION) -lt $(version "2.6") ]; then
+   # activate conda env (to prevent duplicate pip install)
+   conda init
+   source ~/.bashrc
 fi
-
-# Activate the virtual environment
-source $VENV_NAME/bin/activate
-
-# Optionally, update pip
-pip install --upgrade pip
-
-# Add this to .bashrc or .bash_profile to automatically activate the venv
-echo "source $PWD/$VENV_NAME/bin/activate" >> ~/.bashrc
-
-# Reload .bashrc to apply changes
-source ~/.bashrc
 
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark.git
 cd benchmark
-git checkout 350bb04  # pin commit for Python 3.11 support
+# git checkout 350bb04  # pin commit for Python 3.11 support
 pip install -r requirements.txt
 
 # pin pynvml to avoid issues with 12.0.0
 # https://github.com/pytorch/benchmark/issues/2552
 # PR: https://github.com/pytorch/benchmark/pull/2553
 # when this issue is fixed can revert back
-pip uninstall pynvml -y
-pip install "pynvml<12"
+# pip uninstall pynvml -y
+# pip install "pynvml<12"
 
 pip install numba
