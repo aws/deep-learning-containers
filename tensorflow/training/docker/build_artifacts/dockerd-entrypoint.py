@@ -16,6 +16,10 @@ import os.path
 import shlex
 import subprocess
 import sys
+import subprocess
+
+# run compat mounting by default
+subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
 
 if not os.path.exists("/opt/ml/input/config"):
     subprocess.call(["python", "/usr/local/bin/deep_learning_container.py", "&>/dev/null", "&"])
