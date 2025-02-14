@@ -944,7 +944,7 @@ def skip_dgl_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124", "cu126"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
 
