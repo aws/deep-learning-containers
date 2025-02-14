@@ -59,7 +59,7 @@ fi
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
     mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
     mv /opt/aws/dlc/start_cuda_compat.py /usr/local/bin/dockerd-entrypoint.py
-    sed -i 1,14d /tmp/new-torchserve-entrypoint.py
+    sed -i '1,/from __future__ import absolute_import/d' /tmp/new-torchserve-entrypoint
     cat /tmp/new-torchserve-entrypoint.py >> /usr/local/bin/dockerd-entrypoint.py
 
 else
@@ -69,7 +69,7 @@ fi
 # For PT training sagemaker images
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)sagemaker ]]; then
     mv /usr/local/bin/start_with_right_hostname.sh /tmp/old-entrypoint.sh
-    sed -i 1d /tmp/new-torchserve-entrypoint.py
+    sed -i '/^#!/d' /tmp/old-entrypoint.sh
     mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_with_right_hostname.sh
     cat /tmp/old-entrypoint.sh >> /usr/local/bin/start_with_right_hostname.sh
 fi
