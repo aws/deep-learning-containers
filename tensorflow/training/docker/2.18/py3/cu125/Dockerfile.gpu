@@ -397,7 +397,7 @@ RUN rm -rf /tmp/*
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
