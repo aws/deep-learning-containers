@@ -68,7 +68,7 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     mv /usr/local/bin/dockerd-entrypoint.py /tmp/old-entrypoint.py
     sed -i '1,/from __future__ import absolute_import/d' /tmp/old-entrypoint.py
     mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-    mv /opt/aws/dlc/miscellaneous_script/start_cuda_compat.py /usr/local/bin/dockerd-entrypoint.py
+    mv /opt/aws/dlc/miscellaneous_scripts/start_cuda_compat.py /usr/local/bin/dockerd-entrypoint.py
     cat /tmp/old-entrypoint.py >> /usr/local/bin/dockerd-entrypoint.py
 fi
 
