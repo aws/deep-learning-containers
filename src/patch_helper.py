@@ -238,14 +238,56 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
     )
 
-    torchserve_entrypoint_path = os.path.join(
+    pytorch_inference_artifacts_path = os.path.join(
         os.sep,
         get_cloned_folder_path(),
         "pytorch",
         "inference",
         "docker",
         "build_artifacts",
+    )
+
+    pytorch_training_artifacts_path= os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "pytorch",
+        "training",
+        "docker",
+        "build_artifacts",
+    )
+
+    tensorflow_inference_artifacts_path= os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "tensorflow",
+        "inference",
+        "docker",
+        "build_artifacts",
+    )
+
+    torchserve_entrypoint_path = os.path.join(
+        pytorch_inference_artifacts_path,
         "torchserve-entrypoint.py",
+    )
+
+    start_with_right_hostname_path = os.path.join(
+        pytorch_training_artifacts_path,
+        "start_with_right_hostname.sh",
+    )
+
+    pytorch_inference_start_cuda_compat_path = os.path.join(
+        pytorch_inference_artifacts_path,
+        "start_cuda_compat.sh",
+    )
+
+    pytorch_training_start_cuda_compat_path = os.path.join(
+        pytorch_training_artifacts_path,
+        "start_cuda_compat.sh",
+    )
+
+    tensroflow_inference_start_cuda_compat_path = os.path.join(
+        tensorflow_inference_artifacts_path,
+        "start_cuda_compat.sh",
     )
 
     verify_artifact_contents_for_patch_builds(
@@ -276,6 +318,22 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": torchserve_entrypoint_path,
             "target": "new-torchserve-entrypoint",
         },
+        "new_start_with_right_hostname": {
+            "source": start_with_right_hostname_path,
+            "target": "new_start_with_right_hostname",
+        },
+        "new_pytorch_inference_start_cuda_compat": {
+            "source": pytorch_inference_start_cuda_compat_path,
+            "target": "new_pytorch_inference_start_cuda_compat",
+        },
+        "new_pytorch_training_start_cuda_compat": {
+            "source": pytorch_training_start_cuda_compat_path,
+            "target": "new_pytorch_training_start_cuda_compat",
+        },
+        "new_tensroflow_inference_start_cuda_compat": {
+            "source": tensroflow_inference_start_cuda_compat_path,
+            "target": "new_tensroflow_inference_start_cuda_compat",
+        }
     }
     context = Context(
         autopatch_artifacts,

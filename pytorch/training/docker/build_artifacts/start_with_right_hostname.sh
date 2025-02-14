@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+if [ -f /usr/local/bin/start_cuda_compat.sh ]; then
+    bash /usr/local/bin/start_cuda_compat.sh
+fi
+
+
 if [[ "$1" = "train" ]]; then
      CURRENT_HOST=$(jq .current_host  /opt/ml/input/config/resourceconfig.json)
      sed -ie "s/PLACEHOLDER_HOSTNAME/$CURRENT_HOST/g" changehostname.c
