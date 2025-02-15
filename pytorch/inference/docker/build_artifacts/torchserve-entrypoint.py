@@ -17,12 +17,14 @@ import subprocess
 import sys
 import os
 import signal
+import torch
 
-# run compat mounting by default
-try:
-    subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
-except Exception as e:
-    print(f"Error running script: {e}")
+if torch.cuda.is_available():
+    # run compat mounting by default
+    try:
+        subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
+    except Exception as e:
+        print(f"Error running script: {e}")
 
 
 def reap_zombies(signum, frame):
