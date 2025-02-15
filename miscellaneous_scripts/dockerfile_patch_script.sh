@@ -81,7 +81,7 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     sed -i '/^#!/d' /tmp/old-entrypoint.sh
     mv /tmp/new_tensroflow_inference_start_cuda_compat /usr/bin/tf_serving_entrypoint.sh
     cat /tmp/old-entrypoint.sh >> /usr/bin/tf_serving_entrypoint.sh
-    chmod +x /usr/bin/tf_serving_entrypoint
+    chmod +x /usr/bin/tf_serving_entrypoint.sh
 fi
 
 rm -f /tmp/new-torchserve-entrypoint
