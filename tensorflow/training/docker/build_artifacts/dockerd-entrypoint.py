@@ -18,7 +18,7 @@ import subprocess
 import sys
 import tensorflow as tf
 
-if tf.test.is_built_with_cuda()
+if tf.test.is_built_with_cuda():
     # run compat mounting by default
     try:
         subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
