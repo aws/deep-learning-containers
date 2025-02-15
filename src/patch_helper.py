@@ -247,7 +247,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "build_artifacts",
     )
 
-    pytorch_training_artifacts_path= os.path.join(
+    pytorch_training_artifacts_path = os.path.join(
         os.sep,
         get_cloned_folder_path(),
         "pytorch",
@@ -256,7 +256,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "build_artifacts",
     )
 
-    tensorflow_inference_artifacts_path= os.path.join(
+    tensorflow_inference_artifacts_path = os.path.join(
         os.sep,
         get_cloned_folder_path(),
         "tensorflow",
@@ -333,7 +333,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "new_tensroflow_inference_start_cuda_compat": {
             "source": tensroflow_inference_start_cuda_compat_path,
             "target": "new_tensroflow_inference_start_cuda_compat",
-        }
+        },
     }
     context = Context(
         autopatch_artifacts,
