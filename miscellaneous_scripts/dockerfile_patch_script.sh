@@ -65,7 +65,6 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
 elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
     mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
     chmod +x /usr/local/bin/dockerd-entrypoint.py
-else
 fi
 
 # For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
