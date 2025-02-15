@@ -39,7 +39,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     # build_tag_override: "pr:2.16.2-cpu-py310-ubuntu20.04-sagemaker-pr-4362-autopatch"
     target: sagemaker
@@ -55,12 +55,9 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu125
     os_version: &OS_VERSION ubuntu22.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
-                 "-sagemaker" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-",
-                                *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION,
-                         /Dockerfile., *DEVICE_TYPE ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     # build_tag_override: "pr:2.16.2-gpu-py310-cu123-ubuntu20.04-sagemaker-pr-4362-autopatch"
     target: sagemaker
     enable_test_promotion: true

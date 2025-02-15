@@ -393,7 +393,6 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # remove tmp files
 RUN rm -rf /tmp/*
 
-# Copy workaround script for incorrect hostname
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
