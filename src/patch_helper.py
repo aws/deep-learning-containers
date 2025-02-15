@@ -285,7 +285,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "start_cuda_compat.sh",
     )
 
-    tensroflow_inference_start_cuda_compat_path = os.path.join(
+    tensorflow_inference_start_cuda_compat_path = os.path.join(
         tensorflow_inference_artifacts_path,
         "start_cuda_compat.sh",
     )
@@ -330,9 +330,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": pytorch_training_start_cuda_compat_path,
             "target": "new_pytorch_training_start_cuda_compat",
         },
-        "new_tensroflow_inference_start_cuda_compat": {
-            "source": tensroflow_inference_start_cuda_compat_path,
-            "target": "new_tensroflow_inference_start_cuda_compat",
+        "new_tensorflow_inference_start_cuda_compat": {
+            "source": tensorflow_inference_start_cuda_compat_path,
+            "target": "new_tensorflow_inference_start_cuda_compat",
         },
     }
     context = Context(

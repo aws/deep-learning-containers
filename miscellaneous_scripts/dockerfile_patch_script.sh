@@ -79,7 +79,7 @@ fi
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/tensorflow-inference(.+)gpu(.+)sagemaker ]]; then
     mv /usr/bin/tf_serving_entrypoint.sh /tmp/old-entrypoint.sh
     sed -i '/^#!/d' /tmp/old-entrypoint.sh
-    mv /tmp/new_tensroflow_inference_start_cuda_compat /usr/bin/tf_serving_entrypoint.sh
+    mv /tmp/new_tensorflow_inference_start_cuda_compat /usr/bin/tf_serving_entrypoint.sh
     cat /tmp/old-entrypoint.sh >> /usr/bin/tf_serving_entrypoint.sh
     chmod +x /usr/bin/tf_serving_entrypoint.sh
 fi
@@ -88,7 +88,7 @@ rm -f /tmp/new-torchserve-entrypoint
 rm -f /tmp/start_with_right_hostname
 rm -f /tmp/new_pytorch_inference_start_cuda_compat
 rm -f /tmp/new_pytorch_training_start_cuda_compat
-rm -f /tmp/new_tensroflow_inference_start_cuda_compat
+rm -f /tmp/new_tensorflow_inference_start_cuda_compat
 
 pip cache purge
 
