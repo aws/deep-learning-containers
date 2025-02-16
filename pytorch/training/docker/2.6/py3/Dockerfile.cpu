@@ -236,6 +236,9 @@ RUN pip install --no-cache-dir -U \
     ${TORCHDATA_URL} \
     torchtnt \
     s3torchconnector \
+    # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
+    # it will install an very old version 2.1.10
+    # if try to install lastest 2.7.18 requires PyTorch <2.6
     fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
