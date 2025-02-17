@@ -17,7 +17,9 @@ import shlex
 import sys
 
 pip_list_output = subprocess.Popen(["pip", "list"], stdout=subprocess.PIPE)
-tf_serving_output = subprocess.check_output(('grep', 'tensorflow'), stdin=pip_list_output.stdout).decode("utf-8")
+tf_serving_output = subprocess.check_output(
+    ("grep", "tensorflow"), stdin=pip_list_output.stdout
+).decode("utf-8")
 if "gpu" in tf_serving_output:
     # run compat mounting by default
     try:
