@@ -44,7 +44,7 @@ images:
     tool_kit_version: &SM_TOOLKIT_VERSION 2.0.25
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    # build_tag_override: "beta:2.5.0-cpu-py311-ubuntu22.04-sagemaker"
+    build_tag_override: "beta:2.6.0-cpu-py312-ubuntu22.04-sagemaker"
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     context:
@@ -62,7 +62,7 @@ images:
     tool_kit_version: &SM_TOOLKIT_VERSION 2.0.25
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    # build_tag_override: "beta:2.5.0-gpu-py311-cu124-ubuntu22.04-sagemaker"
+    build_tag_override: "beta:2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     target: sagemaker
