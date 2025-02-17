@@ -146,7 +146,7 @@ RUN ${PIP} install -U --no-cache-dir \
     packaging \
     "certifi>2023.07.22" \
     "idna>3.6" \
-    "urllib3>2.0.7"
+    "urllib3>2.0.7" \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu=="2.18.0"
