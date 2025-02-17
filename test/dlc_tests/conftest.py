@@ -926,7 +926,11 @@ def skip_smdebug_v1_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4": ["cpu", "cu124", "cu126"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 

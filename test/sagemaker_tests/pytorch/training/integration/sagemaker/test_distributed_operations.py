@@ -151,6 +151,9 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
 
+    if Version(image_framework_version) == Version("2.6"):
+        pytest.skip("Fast ai hasn't released a version compatible with PyTorch 2.6")
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
             "entry_point": "train_distributed.py",

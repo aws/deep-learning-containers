@@ -178,23 +178,6 @@ RUN mkdir /tmp/hwloc \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# # Install aws-ofi-nccl plugin
-# RUN mkdir /tmp/aws-ofi-nccl \
-#  && cd /tmp/aws-ofi-nccl \
-#  && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
-#  && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
-#  && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
-#  && ./autogen.sh \
-#  && ./configure --with-mpi=${OPEN_MPI_PATH} \
-#                 --with-libfabric=${EFA_PATH} \
-#                 --with-cuda=${CUDA_HOME} \
-#                 --disable-tests \
-#  && make \
-#  && make install \
-#  && rm -rf /tmp/aws-ofi-nccl \
-#  && rm -rf /var/lib/apt/lists/* \
-#  && apt-get clean
-
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
@@ -321,7 +304,9 @@ RUN pip install --no-cache-dir -U \
     torchtnt \
     triton \
     s3torchconnector \
-    fastai \
+    # fastai hasn't released a version compatible with torch 2.6.0
+    # https://github.com/fastai/fastai/issues/4068
+    # fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
@@ -425,7 +410,9 @@ RUN pip install --no-cache-dir -U \
     torchtnt \
     triton \
     s3torchconnector \
-    fastai \
+    # fastai hasn't released a version compatible with torch 2.6.0
+    # https://github.com/fastai/fastai/issues/4068
+    # fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
