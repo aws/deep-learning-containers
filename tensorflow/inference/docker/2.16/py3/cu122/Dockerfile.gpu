@@ -239,6 +239,11 @@ RUN ${PIP} install -U --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+
 # Expose gRPC and REST port
 EXPOSE 8500 8501
 
@@ -253,4 +258,5 @@ RUN HOME_DIR=/root \
 
 RUN rm -rf /tmp/*
 
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]

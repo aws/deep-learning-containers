@@ -16,6 +16,15 @@ import subprocess
 import shlex
 import sys
 
+pip_list_output = subprocess.Popen(["pip", "list"], stdout=subprocess.PIPE)
+tf_serving_output = subprocess.check_output(('grep', 'tensorflow'), stdin=pip_list_output.stdout).decode("utf-8")
+if "gpu" in tf_serving_output:
+    # run compat mounting by default
+    try:
+        subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
+    except Exception as e:
+        print(f"Error running script: {e}")
+
 if not os.path.exists("/opt/ml/input/config"):
     subprocess.call(["python", "/usr/local/bin/deep_learning_container.py", "&>/dev/null", "&"])
 
