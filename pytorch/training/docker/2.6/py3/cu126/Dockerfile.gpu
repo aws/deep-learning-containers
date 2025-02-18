@@ -78,7 +78,7 @@ ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 # older archs are not supported on CUDA12.1 like 3.7 for P2 instance
 # 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
-ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
+# ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV DLC_CONTAINER_TYPE=training
@@ -342,6 +342,10 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -356,7 +360,7 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-# Starts framework
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 #################################################################
@@ -472,7 +476,8 @@ RUN pip install --no-cache-dir -U \
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \
