@@ -27,5 +27,7 @@ if "gpu" in tf_serving_output:
     except Exception as e:
         print(f"Error running script: {e}")
 
+if not os.path.exists("/opt/ml/input/config"):
+    subprocess.call(["python", "/usr/local/bin/deep_learning_container.py", "&>/dev/null", "&"])
 
 subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
