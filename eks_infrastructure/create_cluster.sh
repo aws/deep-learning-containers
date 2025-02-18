@@ -35,7 +35,7 @@ function create_eks_cluster() {
 function create_node_group() {
 
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
-  GPU_NODEGROUP_INSTANCE_TYPE="p3.16xlarge"
+  GPU_NODEGROUP_INSTANCE_TYPE="g5.24xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
   GRAVITON_NODEGROUP_INSTANCE_TYPE="c6g.4xlarge"
 
