@@ -1,9 +1,9 @@
 {
   "emacs": [
     {
-      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
-      "vulnerability_id": "CVE-2022-48338",
-      "name": "CVE-2022-48338",
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
       "package_name": "emacs",
       "package_details": {
         "file_path": null,
@@ -12,42 +12,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.3,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.3,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48338 - emacs-bin-common, emacs and 1 more",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
-      "vulnerability_id": "CVE-2022-45939",
-      "name": "CVE-2022-45939",
-      "package_name": "emacs",
-      "package_details": {
-        "file_path": null,
-        "name": "emacs",
-        "package_manager": "OS",
-        "version": "26.3+1",
-        "release": "1ubuntu2"
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-45939 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2023-28617 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -62,7 +41,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 9.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 9.8,
@@ -72,13 +55,13 @@
       "source": "UBUNTU_CVE",
       "severity": "CRITICAL",
       "status": "ACTIVE",
-      "title": "CVE-2022-48337 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48337 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
-      "vulnerability_id": "CVE-2023-28617",
-      "name": "CVE-2023-28617",
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
       "package_name": "emacs",
       "package_details": {
         "file_path": null,
@@ -87,17 +70,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.8,
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
       "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
+      "cvss_v31_score": 7.3,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-28617 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48338 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -112,7 +99,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -122,15 +113,44 @@
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-48339 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48339 - emacs, emacs-common and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     }
   ],
   "emacs-bin-common": [
     {
-      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
-      "vulnerability_id": "CVE-2022-48338",
-      "name": "CVE-2022-48338",
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
       "package_name": "emacs-bin-common",
       "package_details": {
         "file_path": null,
@@ -139,42 +159,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.3,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.3,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48338 - emacs-bin-common, emacs and 1 more",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
-      "vulnerability_id": "CVE-2022-45939",
-      "name": "CVE-2022-45939",
-      "package_name": "emacs-bin-common",
-      "package_details": {
-        "file_path": null,
-        "name": "emacs-bin-common",
-        "package_manager": "OS",
-        "version": "26.3+1",
-        "release": "1ubuntu2"
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-45939 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2023-28617 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -189,7 +188,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 9.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 9.8,
@@ -199,13 +202,13 @@
       "source": "UBUNTU_CVE",
       "severity": "CRITICAL",
       "status": "ACTIVE",
-      "title": "CVE-2022-48337 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48337 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
-      "vulnerability_id": "CVE-2023-28617",
-      "name": "CVE-2023-28617",
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
       "package_name": "emacs-bin-common",
       "package_details": {
         "file_path": null,
@@ -214,17 +217,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.8,
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
       "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
+      "cvss_v31_score": 7.3,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-28617 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48338 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -239,7 +246,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -249,15 +260,44 @@
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-48339 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48339 - emacs, emacs-common and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     }
   ],
   "emacs-common": [
     {
-      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
-      "vulnerability_id": "CVE-2022-48338",
-      "name": "CVE-2022-48338",
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
       "package_name": "emacs-common",
       "package_details": {
         "file_path": null,
@@ -266,42 +306,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.3,
-      "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.3,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2022-48338 - emacs-bin-common, emacs and 1 more",
-      "reason_to_ignore": "N/A"
-    },
-    {
-      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
-      "vulnerability_id": "CVE-2022-45939",
-      "name": "CVE-2022-45939",
-      "package_name": "emacs-common",
-      "package_details": {
-        "file_path": null,
-        "name": "emacs-common",
-        "package_manager": "OS",
-        "version": "26.3+1",
-        "release": "1ubuntu2"
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-45939 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2023-28617 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -316,7 +335,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 9.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 9.8,
@@ -326,13 +349,13 @@
       "source": "UBUNTU_CVE",
       "severity": "CRITICAL",
       "status": "ACTIVE",
-      "title": "CVE-2022-48337 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48337 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
-      "vulnerability_id": "CVE-2023-28617",
-      "name": "CVE-2023-28617",
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
       "package_name": "emacs-common",
       "package_details": {
         "file_path": null,
@@ -341,17 +364,21 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
-      "cvss_v3_score": 7.8,
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
       "cvss_v30_score": 0.0,
-      "cvss_v31_score": 7.8,
+      "cvss_v31_score": 7.3,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2023-28617 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48338 - emacs, emacs-common and 1 more",
       "reason_to_ignore": "N/A"
     },
     {
@@ -366,7 +393,11 @@
         "version": "26.3+1",
         "release": "1ubuntu2"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -376,7 +407,187 @@
       "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
-      "title": "CVE-2022-48339 - emacs-bin-common, emacs and 1 more",
+      "title": "CVE-2022-48339 - emacs, emacs-common and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs, emacs-common and 1 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "certifi": [
+    {
+      "description": "Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi 2022.12.07 removes root certificates from \"TrustCor\" from the root store. These are in the process of being removed from Mozilla's trust store. TrustCor's root certificates are being removed pursuant to an investigation prompted by media reporting that TrustCor's ownership also operated a business that produced spyware. Conclusions of Mozilla's investigation can be found in the linked google group discussion.",
+      "vulnerability_id": "CVE-2022-23491",
+      "name": "CVE-2022-23491",
+      "package_name": "certifi",
+      "package_details": {
+        "file_path": "/usr/lib/python3/dist-packages/certifi-2019.11.28.egg-info/PKG-INFO",
+        "name": "certifi",
+        "package_manager": "PYTHON",
+        "version": "2019.11.28",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-23491",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-23491 - certifi",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi prior to version 2023.07.22 recognizes \"e-Tugra\" root certificates. e-Tugra's root certificates were subject to an investigation prompted by reporting of security issues in their systems. Certifi 2023.07.22 removes root certificates from \"e-Tugra\" from the root store.",
+      "vulnerability_id": "CVE-2023-37920",
+      "name": "CVE-2023-37920",
+      "package_name": "certifi",
+      "package_details": {
+        "file_path": "/usr/lib/python3/dist-packages/certifi-2019.11.28.egg-info/PKG-INFO",
+        "name": "certifi",
+        "package_manager": "PYTHON",
+        "version": "2019.11.28",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-37920",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-37920 - certifi",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "idna": [
+    {
+      "description": "A vulnerability was identified in the kjd/idna library, specifically within the `idna.encode()` function, affecting version 3.6. The issue arises from the function's handling of crafted input strings, which can lead to quadratic complexity and consequently, a denial of service condition. This vulnerability is triggered by a crafted input that causes the `idna.encode()` function to process the input with considerable computational load, significantly increasing the processing time in a quadratic manner relative to the input size.",
+      "vulnerability_id": "CVE-2024-3651",
+      "name": "CVE-2024-3651",
+      "package_name": "idna",
+      "package_details": {
+        "file_path": "/usr/lib/python3/dist-packages/idna-2.8.egg-info/PKG-INFO",
+        "name": "idna",
+        "package_manager": "PYTHON",
+        "version": "2.8",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-3651 - idna",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "urllib3": [
+    {
+      "description": "An issue was discovered in urllib3 before 1.26.5. When provided with a URL containing many @ characters in the authority component, the authority regular expression exhibits catastrophic backtracking, causing a denial of service if a URL were passed as a parameter or redirected to via an HTTP redirect.",
+      "vulnerability_id": "CVE-2021-33503",
+      "name": "CVE-2021-33503",
+      "package_name": "urllib3",
+      "package_details": {
+        "file_path": "/usr/lib/python3/dist-packages/urllib3-1.25.8.egg-info/PKG-INFO",
+        "name": "urllib3",
+        "package_manager": "PYTHON",
+        "version": "1.25.8",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2021-33503",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2021-33503 - urllib3",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "urllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5.",
+      "vulnerability_id": "CVE-2023-43804",
+      "name": "CVE-2023-43804",
+      "package_name": "urllib3",
+      "package_details": {
+        "file_path": "/usr/lib/python3/dist-packages/urllib3-1.25.8.egg-info/PKG-INFO",
+        "name": "urllib3",
+        "package_manager": "PYTHON",
+        "version": "1.25.8",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-43804",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-43804 - urllib3",
       "reason_to_ignore": "N/A"
     }
   ]

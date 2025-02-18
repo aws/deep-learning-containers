@@ -534,7 +534,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -559,7 +563,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -584,7 +592,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -609,7 +621,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -634,7 +650,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -659,7 +679,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -684,7 +708,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -709,7 +737,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -734,7 +766,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -759,7 +795,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -784,7 +824,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -809,7 +853,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -834,7 +882,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -859,7 +911,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -884,7 +940,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -909,7 +969,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -934,7 +998,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -959,7 +1027,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -984,7 +1056,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1009,7 +1085,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1034,7 +1114,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1059,7 +1143,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1084,7 +1172,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1109,7 +1201,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1134,7 +1230,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1159,7 +1259,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1184,7 +1288,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1209,7 +1317,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1234,7 +1346,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1259,7 +1375,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1284,7 +1404,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1309,7 +1433,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1334,7 +1462,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1361,7 +1493,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1386,7 +1522,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1411,7 +1551,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1436,7 +1580,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1461,7 +1609,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1486,7 +1638,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1511,7 +1667,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1536,7 +1696,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1561,7 +1725,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1586,7 +1754,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1611,7 +1783,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1636,7 +1812,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1661,7 +1841,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1686,7 +1870,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1711,7 +1899,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1736,7 +1928,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1761,7 +1957,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1786,7 +1986,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1811,7 +2015,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1836,7 +2044,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1861,7 +2073,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1886,7 +2102,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1911,7 +2131,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1936,7 +2160,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1961,7 +2189,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -1986,7 +2218,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2011,7 +2247,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2036,7 +2276,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -2061,7 +2305,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2086,7 +2334,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.1,
@@ -2111,7 +2363,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2136,7 +2392,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2161,7 +2421,11 @@
         "version": "5.4.0",
         "release": "198.218"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2172,6 +2436,447 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-44987 - linux-libc-dev, linux",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "emacs": [
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. htmlfontify.el has a command injection vulnerability. In the hfy-istext-command function, the parameter file and parameter srcdir come from external input, and parameters are not escaped. If a file name or directory name contains shell metacharacters, code may be executed.",
+      "vulnerability_id": "CVE-2022-48339",
+      "name": "CVE-2022-48339",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48339.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48339 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48338 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the etags program. For example, a victim may use the \"etags -u *\" command (suggested in the etags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-48337",
+      "name": "CVE-2022-48337",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48337.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48337 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
+      "package_name": "emacs",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-28617 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "emacs-bin-common": [
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. htmlfontify.el has a command injection vulnerability. In the hfy-istext-command function, the parameter file and parameter srcdir come from external input, and parameters are not escaped. If a file name or directory name contains shell metacharacters, code may be executed.",
+      "vulnerability_id": "CVE-2022-48339",
+      "name": "CVE-2022-48339",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48339.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48339 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48338 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the etags program. For example, a victim may use the \"etags -u *\" command (suggested in the etags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-48337",
+      "name": "CVE-2022-48337",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48337.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48337 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
+      "package_name": "emacs-bin-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-bin-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-28617 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "emacs-common": [
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. htmlfontify.el has a command injection vulnerability. In the hfy-istext-command function, the parameter file and parameter srcdir come from external input, and parameters are not escaped. If a file name or directory name contains shell metacharacters, code may be executed.",
+      "vulnerability_id": "CVE-2022-48339",
+      "name": "CVE-2022-48339",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48339.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48339 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "An issue was discovered in GNU Emacs through 28.2. In ruby-mode.el, the ruby-find-library-file function has a local command injection vulnerability. The ruby-find-library-file function is an interactive function, and bound to C-c C-f. Inside the function, the external command gem is called through shell-command-to-string, but the feature-name parameters are not escaped. Thus, malicious Ruby source files may cause commands to be executed.",
+      "vulnerability_id": "CVE-2022-48338",
+      "name": "CVE-2022-48338",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48338.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48338 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the ctags program. For example, a victim may use the \"ctags *\" command (suggested in the ctags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-45939",
+      "name": "CVE-2022-45939",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-45939.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-45939 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "GNU Emacs through 28.2 allows attackers to execute commands via shell metacharacters in the name of a source-code file, because lib-src/etags.c uses the system C library function in its implementation of the etags program. For example, a victim may use the \"etags -u *\" command (suggested in the etags documentation) in a situation where the current working directory has contents that depend on untrusted input.",
+      "vulnerability_id": "CVE-2022-48337",
+      "name": "CVE-2022-48337",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48337.html",
+      "source": "UBUNTU_CVE",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48337 - emacs-common, emacs and 1 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "org-babel-execute:latex in ob-latex.el in Org Mode through 9.6.1 for GNU Emacs allows attackers to execute arbitrary commands via a file name or directory name that contains shell metacharacters.",
+      "vulnerability_id": "CVE-2023-28617",
+      "name": "CVE-2023-28617",
+      "package_name": "emacs-common",
+      "package_details": {
+        "file_path": null,
+        "name": "emacs-common",
+        "package_manager": "OS",
+        "version": "26.3+1",
+        "release": "1ubuntu2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-28617.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-28617 - emacs-common, emacs and 1 more",
       "reason_to_ignore": "N/A"
     }
   ]
