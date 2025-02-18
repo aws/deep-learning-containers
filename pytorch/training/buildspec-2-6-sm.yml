@@ -21,6 +21,9 @@ context:
     start_cuda_compat:
       source: docker/build_artifacts/start_cuda_compat.sh
       target: start_cuda_compat.sh
+    dockerd_entrypoint:
+      source: docker/build_artifacts/dockerd_entrypoint.sh
+      target: dockerd_entrypoint.sh
     changehostname:
       source: docker/build_artifacts/changehostname.c
       target: changehostname.c
