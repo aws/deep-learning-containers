@@ -247,5 +247,5 @@ RUN HOME_DIR=/root \
 
 RUN rm -rf /tmp/*
 
-# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
