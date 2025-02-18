@@ -242,6 +242,19 @@ release_images:
     framework: "pytorch"
     version: "2.6.0"
     arch_type: "x86"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  20:
+    framework: "pytorch"
+    version: "2.6.0"
+    arch_type: "x86"
     customer_type: "sagemaker"
     inference:
       device_types: [ "cpu", "gpu" ]
@@ -253,23 +266,10 @@ release_images:
       force_release: False
 
   # TensorFlow 2.16 Images
-  20:
-    framework: "tensorflow"
-    version: "2.16.2"
-    customer_type: "ec2"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu123"
-      example: False
-      disable_sm_tag: False
-      force_release: False
   21:
     framework: "tensorflow"
     version: "2.16.2"
-    customer_type: "sagemaker"
+    customer_type: "ec2"
     arch_type: "x86"
     training:
       device_types: [ "cpu", "gpu" ]
@@ -281,6 +281,19 @@ release_images:
       force_release: False
   22:
     framework: "tensorflow"
+    version: "2.16.2"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu123"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  23:
+    framework: "tensorflow"
     version: "2.16.1"
     arch_type: "x86"
     customer_type: "ec2"
@@ -292,7 +305,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  23:
+  24:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "x86"
@@ -305,7 +318,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  24:
+  25:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "graviton"
@@ -318,7 +331,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  25:
+  26:
     framework: "tensorflow"
     version: "2.16.1"
     arch_type: "graviton"
@@ -333,7 +346,7 @@ release_images:
       force_release: False
 
   # TensorFlow 2.18 Images
-  26:
+  27:
     framework: "tensorflow"
     version: "2.18.0"
     customer_type: "ec2"
@@ -343,38 +356,38 @@ release_images:
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
       cuda_version: "cu125"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  27:
-    framework: "tensorflow"
-    version: "2.18.0"
-    customer_type: "sagemaker"
-    arch_type: "x86"
-    training:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu125"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  27:
-    framework: "tensorflow"
-    version: "2.18.0"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      cuda_version: "cu122"
       example: False
       disable_sm_tag: False
       force_release: False
   28:
     framework: "tensorflow"
     version: "2.18.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu125"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  29:
+    framework: "tensorflow"
+    version: "2.18.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    inference:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu20.04"
+      cuda_version: "cu122"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  30:
+    framework: "tensorflow"
+    version: "2.18.0"
     arch_type: "x86"
     customer_type: "sagemaker"
     inference:
@@ -385,7 +398,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  29:
+  31:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "arm64"
@@ -398,7 +411,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  30:
+  32:
     framework: "tensorflow"
     version: "2.18.0"
     arch_type: "arm64"
