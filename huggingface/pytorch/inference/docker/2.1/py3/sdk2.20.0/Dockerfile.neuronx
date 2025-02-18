@@ -43,7 +43,6 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    certifi \
     cmake \
     curl \
     emacs \
@@ -181,7 +180,8 @@ RUN pip install --no-cache-dir \
 
 RUN pip install --no-cache-dir -U \
     "pillow>=10.0.1" \
-    "requests<2.32.0"
+    "requests<2.32.0" \
+    "certifi"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
