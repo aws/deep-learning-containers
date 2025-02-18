@@ -43,6 +43,7 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
+    certifi \
     cmake \
     curl \
     emacs \
