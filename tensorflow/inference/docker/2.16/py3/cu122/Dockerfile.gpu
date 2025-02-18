@@ -242,7 +242,7 @@ COPY ./sagemaker /sagemaker
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 # Expose gRPC and REST port
 EXPOSE 8500 8501
