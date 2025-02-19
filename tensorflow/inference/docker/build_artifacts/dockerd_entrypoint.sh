@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 
 TF_SERVING_PACKAGE=$(pip list | grep tensorflow-serving | cut -d ' ' -f 1)
 
