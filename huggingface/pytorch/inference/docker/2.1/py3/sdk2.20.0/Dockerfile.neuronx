@@ -180,7 +180,7 @@ RUN pip install --no-cache-dir \
 
 RUN pip install --no-cache-dir -U \
     "pillow>=10.0.1" \
-    "requests==2.32.3"
+    "requests<2.32.0"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

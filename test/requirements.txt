@@ -21,3 +21,4 @@ scrapy
 crochet
 tenacity
 requests
+certifi>=2023.7.22
