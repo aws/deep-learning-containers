@@ -1,1 +1,1 @@
-buildspec_pointer: buildspec-arm64-2-6-sm.yml
+buildspec_pointer: buildspec-arm64-2-6-ec2.yml
