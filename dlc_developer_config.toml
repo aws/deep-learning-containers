@@ -14,24 +14,24 @@ deep_canary_mode = false
 build_frameworks = [ "tensorflow",]
 build_training = false
 build_inference = true
-do_build = true
+do_build = false
 
 [notify]
 notify_test_failures = false
 notification_severity = "medium"
 
 [test]
-sanity_tests = false
-security_tests = false
+sanity_tests = true
+security_tests = true
 safety_check_test = false
 ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
+ecs_tests = true
+eks_tests = true
 ec2_tests = true
 ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
-sagemaker_local_tests = false
-sagemaker_remote_tests = false
+sagemaker_local_tests = true
+sagemaker_remote_tests = true
 sagemaker_efa_tests = false
 sagemaker_rc_tests = false
 sagemaker_benchmark_tests = false
