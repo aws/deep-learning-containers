@@ -14,7 +14,7 @@ deep_canary_mode = false
 build_frameworks = [ "tensorflow",]
 build_training = false
 build_inference = true
-do_build = false
+do_build = true
 
 [notify]
 notify_test_failures = false
@@ -54,7 +54,7 @@ dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-sm.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-16-sm.yml"
 dlc-pr-autogluon-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
