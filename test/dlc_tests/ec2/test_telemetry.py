@@ -605,6 +605,9 @@ def invoke_telemetry_call(
         env_vars = " ".join([f"-e {entry['name']}={entry['value']}" for entry in env_vars_list])
         inference_command = get_tensorflow_inference_command_tf27_above(image_uri, model_name)
         if test_mode:
+            print(
+                f"docker run {docker_runtime} {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
+            )
             ec2_connection.run(
                 f"docker run {docker_runtime} {env_vars} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri}  {inference_command}"
             )
@@ -613,6 +616,9 @@ def invoke_telemetry_call(
                 f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
+            print(
+                f"docker run {docker_runtime} {env_vars} --name {container_name} -id {image_uri} {inference_command}"
+            )
             ec2_connection.run(
                 f"docker run {docker_runtime} {env_vars} --name {container_name} -id {image_uri} {inference_command}"
             )
