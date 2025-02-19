@@ -170,10 +170,9 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
-###sally: delete later?
 # Patches
 # py-vuln: 71064
-# RUN pip install --no-cache-dir -U "requests>=2.32.3"
+RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
@@ -212,7 +211,6 @@ RUN pip cache purge \
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-###sally
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
 
 #################################################################
