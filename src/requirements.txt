@@ -11,4 +11,4 @@ black==23.3.0
 junit-xml==1.9
 toml==0.10.2
 retrying
-certifi>=2023.7.22
+certifi==2023.7.22
