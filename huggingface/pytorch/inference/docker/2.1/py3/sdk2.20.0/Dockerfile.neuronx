@@ -63,6 +63,7 @@ RUN apt-get update \
     libexpat1 \
     libxml2 \
     libgstreamer1.0-0 \
+    python3-certifi \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -116,9 +117,6 @@ RUN conda install -c conda-forge \
  && pip install packaging \
     enum-compat \
     ipython
-
-# Update certifi package
-RUN pip install certifi
 
 RUN pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
