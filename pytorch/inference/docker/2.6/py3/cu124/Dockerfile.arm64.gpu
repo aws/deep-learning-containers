@@ -64,6 +64,19 @@ RUN apt-get update \
     build-essential \
     ca-certificates \
     cmake \
+    curl \
+    wget \
+    scons \
+    unzip \
+    emacs \
+    vim \
+    git \
+    jq \
+    # Adding GCC 11 for ACL compile support
+    gfortran-11 \
+    g++-11 \
+    gcc-11 \
+    # CUDA packages
     cuda-cudart-12-4 \
     cuda-cudart-dev-12-4 \
     cuda-libraries-12-4 \
@@ -75,14 +88,6 @@ RUN apt-get update \
     libcublas-dev-12-4 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
-    curl \
-    emacs \
-    # Adding GCC 11 for ACL compile support
-    gfortran-11 \
-    g++-11 \
-    gcc-11 \
-    git \
-    jq \
     libgl1-mesa-glx \
     libglib2.0-0 \
     libsm6 \
@@ -90,10 +95,16 @@ RUN apt-get update \
     libxrender-dev \
     openjdk-17-jdk \
     openssl \
-    scons \
-    vim \
-    wget \
-    unzip \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    liblzma-dev \
     zlib1g-dev \
     libjpeg-dev \
     libpng-dev \
@@ -155,7 +166,7 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Install pip packages
-RUN pip install \
+RUN pip install --no-cache-dir \
     cython \
     boto3 \
     scipy \

@@ -76,6 +76,7 @@ perf_test("import torch")
 opt_in_opt_out_test("import torch")
 
 # Disabling os tests until it is added to all new images
+### revert this change later
 perf_test("import os")
 opt_in_opt_out_test("import os")
 
