@@ -127,7 +127,7 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3 \
     cryptography \
-    "certifi==2023.7.22"
+    "certifi>=2023.7.22"
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
