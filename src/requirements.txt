@@ -11,4 +11,3 @@ black==23.3.0
 junit-xml==1.9
 toml==0.10.2
 retrying
-certifi==2025.1.31

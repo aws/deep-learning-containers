@@ -117,6 +117,9 @@ RUN conda install -c conda-forge \
     enum-compat \
     ipython
 
+# Update certifi package
+RUN pip install certifi
+
 RUN pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
     "numpy>=1.22.2, <1.24" \
@@ -181,7 +184,6 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -U \
     "pillow>=10.0.1" \
     "requests<2.32.0" \
-    "certifi==2025.1.31"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
