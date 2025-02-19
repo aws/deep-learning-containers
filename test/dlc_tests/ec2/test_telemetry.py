@@ -374,6 +374,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     actual_output = invoke_telemetry_call(
         image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
     )
+    LOGGER.info(f" _run_s3_query_bucket_success output s3 TAH {actual_output}")
 
     py_version = (
         ec2_connection.run(
@@ -481,7 +482,8 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_utils.enforce_IMDSv1(ec2_instance_id)
 
-    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    actual_output = invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    LOGGER.info(f" _run_tag_success_IMDSv1 output IMDSv1 RAH {actual_output}")
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
