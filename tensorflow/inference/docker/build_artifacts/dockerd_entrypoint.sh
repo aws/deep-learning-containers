@@ -7,4 +7,4 @@ if [[ ${TF_SERVING_PACKAGE} == *"gpu"* ]]; then
   bash /usr/local/bin/start_cuda_compat.sh
 fi
 
-eval "$@"
+eval '"$@"'
