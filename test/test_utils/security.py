@@ -1244,9 +1244,10 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
     :return: [bool, str], returns 2 values, the first says True if the vulnerability/package is non-patchable and the second one stores the ignore message
              in case the vulnerability is non-patchable. This ignore message is used to insert into the allowlist.
     """
-    assert (
-        vulnerability.package_details.package_manager in ["PYTHONPKG", "PYTHON"]
-    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg or Python managed."
+    assert vulnerability.package_details.package_manager in [
+        "PYTHONPKG",
+        "PYTHON",
+    ], f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg or Python managed."
 
     package_name = vulnerability.package_name.lower()
     if package_name not in installed_python_package_version_dict:
