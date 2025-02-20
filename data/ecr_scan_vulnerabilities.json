@@ -49,14 +49,34 @@
          "advisory":"Werkzeug is a comprehensive WSGI web application library. The debugger in affected versions of Werkzeug can allow an attacker to execute code on a developer's machine under some circumstances. This requires the attacker to get the developer to interact with a domain and subdomain they control, and enter the debugger PIN, but if they are successful it allows access to the debugger even if it is only running on localhost. This also requires the attacker to guess a URL in the developer's application that will trigger the debugger. This vulnerability is fixed in 3.0.3."
       }
    ],
-   "pip":[
+   "mlflow":[
       {
-         "cve":"TEMP-DLC-1",
-         "id":"ECR-SCAN_CVE-TEMP-DLC-1",
+         "cve":"CVE-2024-37052",
+         "id":"ECR-SCAN_CVE-2024-37052",
          "specs":[
-            "<24"
+            "<=2.18.0"
          ],
-         "advisory":"Being used by DLC team to handle mismatches with upstream versions."
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.1.0 or newer, enabling a maliciously uploaded scikit-learn model to run arbitrary code on an end user\u2019s system when interacted with."
+      }
+   ],
+   "certifi":[
+      {
+         "cve":"CVE-2022-23491",
+         "id":"ECR-SCAN_CVE-2022-23491",
+         "specs":[
+            "<=2019.11.28"
+         ],
+         "advisory":"Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi 2022.12.07 removes root certificates from \"TrustCor\" from the root store. These are in the process of being removed from Mozilla's trust store. TrustCor's root certificates are being removed pursuant to an investigation prompted by media reporting that TrustCor's ownership also operated a business that produced spyware. Conclusions of Mozilla's investigation can be found in the linked google group discussion."
+      }
+   ],
+   "golang.org/x/net":[
+      {
+         "cve":"CVE-2023-39325",
+         "id":"ECR-SCAN_CVE-2023-39325",
+         "specs":[
+            "<=0.1.0"
+         ],
+         "advisory":"A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting, resetting an in-progress request allows the attacker to create a new request while the existing one is still executing. With the fix applied, HTTP/2 servers now bound the number of simultaneously executing handler goroutines to the stream concurrency limit (MaxConcurrentStreams). New requests arriving when at the limit (which can only happen after the client has reset an existing, in-flight request) will be queued until a handler exits. If the request queue grows too large, the server will terminate the connection. This issue is also fixed in golang.org/x/net/http2 for users manually configuring HTTP/2. The default stream concurrency limit is 250 streams (requests) per HTTP/2 connection. This value may be adjusted using the golang.org/x/net/http2 package; see the Server.MaxConcurrent"
       }
    ]
  }
