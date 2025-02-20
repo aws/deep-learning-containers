@@ -1138,7 +1138,7 @@ def segregate_impacted_package_names_based_on_manager(
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 segregated_package_names["os_packages"].add(package_name)
-            elif cve.package_details.package_manager == "PYTHONPKG":
+            elif cve.package_details.package_manager in ["PYTHONPKG", "PYTHON"]:
                 segregated_package_names["py_packages"].add(package_name)
     return segregated_package_names
 
@@ -1245,8 +1245,8 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
              in case the vulnerability is non-patchable. This ignore message is used to insert into the allowlist.
     """
     assert (
-        vulnerability.package_details.package_manager == "PYTHONPKG"
-    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg managed."
+        vulnerability.package_details.package_manager in ["PYTHONPKG", "PYTHON"]
+    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg or Python managed."
 
     package_name = vulnerability.package_name.lower()
     if package_name not in installed_python_package_version_dict:
@@ -1358,7 +1358,7 @@ def extract_non_patchable_vulnerabilities(
         vulnerabilities,
     ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
         package_manager = vulnerabilities[0].package_details.package_manager
-        if package_manager not in ["OS", "PYTHONPKG"]:
+        if package_manager not in ["OS", "PYTHONPKG", "PYTHON"]:
             patchable_packages.append(package_name)
             continue
         if package_manager == "OS":
@@ -1372,7 +1372,7 @@ def extract_non_patchable_vulnerabilities(
                 continue
             for package_vulnerability in vulnerabilities:
                 package_vulnerability.reason_to_ignore = ignore_msg
-        elif package_manager == "PYTHONPKG":
+        elif package_manager in ["PYTHONPKG", "PYTHON"]:
             # Similary, for python packages, we filter the vulnerabilities that are allowlistable i.e. non-patchable and let the non-patchable
             # ones remain in the non_patchable_vulnerabilities_with_reason Object.
             allowlistable_python_vulns = get_non_patchable_python_vulnerabilities(
