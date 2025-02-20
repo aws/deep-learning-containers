@@ -59,6 +59,16 @@
          "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.1.0 or newer, enabling a maliciously uploaded scikit-learn model to run arbitrary code on an end user\u2019s system when interacted with."
       }
    ],
+   "pip":[
+      {
+         "cve":"TEMP-DLC-1",
+         "id":"ECR-SCAN_CVE-TEMP-DLC-1",
+         "specs":[
+            "<24"
+         ],
+         "advisory":"Being used by DLC team to handle mismatches with upstream versions."
+      }
+   ],
    "certifi":[
       {
          "cve":"CVE-2022-23491",
