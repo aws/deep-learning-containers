@@ -295,7 +295,6 @@ RUN pip install --no-cache-dir -U \
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "mlflow>=1.20.2" \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
