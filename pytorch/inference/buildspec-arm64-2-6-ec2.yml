@@ -1,0 +1,67 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK pytorch
+version: &VERSION 2.6.0
+short_version: &SHORT_VERSION "2.6"
+arch_type: arm64
+# autopatch_build: "True"
+
+repository_info:
+  inference_repository: &INFERENCE_REPOSITORY
+    image_type: &INFERENCE_IMAGE_TYPE inference
+    root: !join [ *FRAMEWORK, "/", *INFERENCE_IMAGE_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [pr, "-", *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", arm64]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", *INFERENCE_IMAGE_TYPE, "-", arm64]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  inference_context: &INFERENCE_CONTEXT
+    torchserve-ec2-entrypoint:
+      source: docker/build_artifacts/torchserve-ec2-entrypoint.py
+      target: torchserve-ec2-entrypoint.py
+    torchserve-entrypoint:
+      source: docker/build_artifacts/torchserve-entrypoint.py
+      target: torchserve-entrypoint.py
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+    config:
+      source: docker/build_artifacts/config.properties
+      target: config.properties
+
+images:
+  BuildEC2PytorchArm64CPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &PYTORCH_CPU_INFERENCE_PY3 false
+    image_size_baseline: 10000
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu22.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.12.0
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
+    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
+    # build_tag_override: "beta:2.6.0-cpu-py312-ubuntu22.04-ec2"
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.arm64., *DEVICE_TYPE ]
+    target: ec2
+    context:
+      <<: *INFERENCE_CONTEXT
+  BuildEC2PytorchArm64GPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &PYTORCH_GPU_INFERENCE_PY3 false
+    image_size_baseline: 14000
+    device_type: &DEVICE_TYPE gpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    cuda_version: &CUDA_VERSION cu124
+    os_version: &OS_VERSION ubuntu22.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.12.0
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION , "-ec2"]
+    # latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    # build_tag_override: "beta:2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.arm64., *DEVICE_TYPE ]
+    target: ec2
+    context:
+      <<: *INFERENCE_CONTEXT
