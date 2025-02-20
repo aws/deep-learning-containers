@@ -45,7 +45,6 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
-    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -66,6 +65,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
+
+RUN apt remove -y --purge emacs
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
