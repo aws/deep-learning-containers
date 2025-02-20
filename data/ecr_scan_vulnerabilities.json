@@ -58,6 +58,96 @@
          ],
          "advisory":"Being used by DLC team to handle mismatches with upstream versions."
       }
+   ],
+   "mlflow":[
+      {
+         "cve":"CVE-2024-37057",
+         "id":"ECR-SCAN_CVE-2024-37057",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37061",
+         "id":"ECR-SCAN_CVE-2024-37061",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37055",
+         "id":"ECR-SCAN_CVE-2024-37055",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37056",
+         "id":"ECR-SCAN_CVE-2024-37056",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37058",
+         "id":"ECR-SCAN_CVE-2024-37058",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37055",
+         "id":"ECR-SCAN_CVE-2024-37055",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37054",
+         "id":"ECR-SCAN_CVE-2024-37054",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37059",
+         "id":"ECR-SCAN_CVE-2024-37059",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37060",
+         "id":"ECR-SCAN_CVE-2024-37060",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-37052",
+         "id":"ECR-SCAN_CVE-2024-37052",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      },
+      {
+         "cve":"CVE-2024-1560",
+         "id":"ECR-SCAN_CVE-2024-1560",
+         "specs":[
+            "<=2.18.0"
+         ],
+         "advisory":"Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
+      }
    ]
  }
  
