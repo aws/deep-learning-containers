@@ -84,7 +84,7 @@
          "cve":"CVE-2023-39325",
          "id":"ECR-SCAN_CVE-2023-39325",
          "specs":[
-            "<=0.1.0"
+            "<=v0.1.0"
          ],
          "advisory":"A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting."
       }
