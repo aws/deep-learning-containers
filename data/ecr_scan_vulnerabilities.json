@@ -79,10 +79,44 @@
          "advisory":"Certifi is a curated collection of Root Certificates for validating the trustworthiness of SSL certificates while verifying the identity of TLS hosts. Certifi 2022.12.07 removes root certificates from \"TrustCor\" from the root store. These are in the process of being removed from Mozilla's trust store. TrustCor's root certificates are being removed pursuant to an investigation prompted by media reporting that TrustCor's ownership also operated a business that produced spyware. Conclusions of Mozilla's investigation can be found in the linked google group discussion."
       }
    ],
+   "org.apache.ant:ant":[
+      {
+         "cve":"CVE-2020-11979",
+         "id":"ECR-SCAN_CVE-2020-11979",
+         "specs":[
+            "<=2019.11.28"
+         ],
+         "advisory":"CUDA toolkit CVE"
+      }
+   ],
    "golang.org/x/net":[
       {
          "cve":"CVE-2023-39325",
          "id":"ECR-SCAN_CVE-2023-39325",
+         "specs":[
+            "<=v0.1.0"
+         ],
+         "advisory":"A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting."
+      },
+      {
+         "cve":"CVE-2023-44487",
+         "id":"ECR-SCAN_CVE-2023-44487",
+         "specs":[
+            "<=v0.1.0"
+         ],
+         "advisory":"A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting."
+      },
+      {
+         "cve":"CVE-2022-41723",
+         "id":"ECR-SCAN_CVE-2022-41723",
+         "specs":[
+            "<=v0.1.0"
+         ],
+         "advisory":"A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting."
+      },
+      {
+         "cve":"CVE-2022-41721",
+         "id":"ECR-SCAN_CVE-2022-41721",
          "specs":[
             "<=v0.1.0"
          ],
