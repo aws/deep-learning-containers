@@ -71,7 +71,7 @@ fi
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)gpu(.+)sagemaker ]]; then
     mv /tmp/new_start_with_right_hostname /usr/local/bin/start_with_right_hostname.sh
     mv /tmp/new_pytorch_training_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
-    chmod +x /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/start_with_right_hostname.sh
     chmod +x /usr/local/bin/start_cuda_compat.sh
 fi
 
