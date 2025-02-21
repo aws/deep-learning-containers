@@ -58,15 +58,5 @@
          ],
          "advisory": "Being used by DLC team to handle mismatches with upstream versions."
       }
-   ],
-   "mlflow": [
-      {
-         "cve": "CVE-2024-37057",
-         "id": "ECR-SCAN_CVE-2024-37057",
-         "specs": [
-            "<=2.18.0"
-         ],
-         "advisory": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with."
-      }
    ]
 }
