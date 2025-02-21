@@ -281,80 +281,80 @@ RUN rm -rf /root/.cache | true
 #                  |_|
 ########################################################
 
-# FROM common AS ec2
+FROM common AS ec2
 
-# ARG PYTHON
-# ARG NCCL_VERSION
-# ARG GDRCOPY_VERSION
-# ARG TE_VERSION
-# ARG FLASH_ATTN_VERSION
-# ARG TORCH_URL
-# ARG TORCHVISION_URL
-# ARG TORCHAUDIO_URL
-# ARG TORCHTEXT_URL
+ARG PYTHON
+ARG NCCL_VERSION
+ARG GDRCOPY_VERSION
+ARG TE_VERSION
+ARG FLASH_ATTN_VERSION
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
 
-# WORKDIR /
+WORKDIR /
 
-# # Install PyTorch
-# RUN pip install --no-cache-dir -U \
-#     ${TORCH_URL} \
-#     ${TORCHVISION_URL} \
-#     ${TORCHAUDIO_URL} \
-#     ${TORCHTEXT_URL} \
-#     torchtnt \
-#     triton \
-#     s3torchconnector \
-#     fastai \
-#     accelerate \
-#     # pin numpy requirement for fastai dependency
-#     # requires explicit declaration of spacy, thic, blis
-#     spacy \
-#     thinc \
-#     blis \
-#     "numpy<2" \
-#  && pip uninstall dataclasses
+# Install PyTorch
+RUN pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
+    torchtnt \
+    triton \
+    s3torchconnector \
+    fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    "numpy<2" \
+ && pip uninstall dataclasses
 
-# # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# # The test binaries requires cuda driver library which could be found in conda
-# # So update the linker path to point to it to avoid -Lcuda not found
-# RUN cd /tmp \
-#  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
-#  && cd gdrcopy \
-#  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
-#  && CUDA=${CUDA_HOME} make install \
-#  && rm -rf /tmp/gdrcopy
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
 
-# # Install NCCL
-# RUN cd /tmp \
-#  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-#  && cd nccl \
-#  && make -j64 src.build BUILDDIR=/usr/local \
-#  && rm -rf /tmp/nccl
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
 
-# # Install flash attn and NVIDIA transformer engine.
-# # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-# ENV NVTE_FRAMEWORK=pytorch
-# # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# # Set MAX_JOBS=4 to avoid OOM issues in installation process
-# RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-# RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION}
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION}
 
-# RUN HOME_DIR=/root \
-#  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
-#  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
-#  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
-#  && chmod +x /usr/local/bin/testOSSCompliance \
-#  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
-#  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
-#  && rm -rf ${HOME_DIR}/oss_compliance* \
-#  && rm -rf /tmp/tmp*
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
 
-# # Removing the cache as it is needed for security verification
-# RUN rm -rf /root/.cache | true
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
 
-# # Starts framework
-# CMD ["/bin/bash"]
+# Starts framework
+CMD ["/bin/bash"]
 
 #################################################################
 #  ____                   __  __       _
@@ -447,8 +447,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training \
-    "mlflow>2.18.0"
+    sagemaker-training
 
 # Install extra packages
 RUN /opt/conda/bin/mamba install -y -c conda-forge \
