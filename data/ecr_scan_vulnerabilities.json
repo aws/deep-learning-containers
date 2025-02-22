@@ -1,63 +1,62 @@
 {
-    "gevent":[
-       {
-          "cve":"CVE-2023-41419",
-          "id": "ECR-SCAN_CVE-2023-41419",
-          "specs":[
-             "<=23.9.0"
-          ],
-          "advisory":"An issue in Gevent before version 23.9.0 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component."
-       }
-    ],
-    "cryptography":[
+   "gevent": [
       {
-         "cve":"CVE-2023-5363",
-         "id":"ECR-SCAN_CVE-2023-5363",
-         "specs":[
+         "cve": "CVE-2023-41419",
+         "id": "ECR-SCAN_CVE-2023-41419",
+         "specs": [
+            "<=23.9.0"
+         ],
+         "advisory": "An issue in Gevent before version 23.9.0 allows a remote attacker to escalate privileges via a crafted script to the WSGIServer component."
+      }
+   ],
+   "cryptography": [
+      {
+         "cve": "CVE-2023-5363",
+         "id": "ECR-SCAN_CVE-2023-5363",
+         "specs": [
             "<=41.0.4"
          ],
-         "advisory":"Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin"
+         "advisory": "Issue summary: A bug has been identified in the processing of key and\ninitialisation vector (IV) lengths.  This can lead to potential truncation\nor overruns during the initialisation of some symmetric ciphers.\n\nImpact summary: A truncation in the IV can result in non-uniqueness,\nwhich could result in loss of confidentiality for some cipher modes.\n\nWhen calling EVP_EncryptInit_ex2(), EVP_DecryptInit_ex2() or\nEVP_CipherInit_ex2() the provided OSSL_PARAM array is processed after\nthe key and IV have been established.  Any alterations to the key length,\nvia the \"keylen\" parameter or the IV length, via the \"ivlen\" parameter,\nwithin the OSSL_PARAM array will not take effect as intended, potentially\ncausing truncation or overreading of these values.  The following ciphers\nand cipher modes are impacted: RC2, RC4, RC5, CCM, GCM and OCB.\n\nFor the CCM, GCM and OCB cipher modes, truncation of the IV can result in\nloss of confidentiality.  For example, when following NIST's SP 800-38D\nsection 8.2.1 guidance for constructin"
       }
    ],
-   "sagemaker":[
+   "sagemaker": [
       {
-         "cve":"CVE-2024-34072",
-         "id":"ECR-SCAN_CVE-2024-34072",
-         "specs":[
+         "cve": "CVE-2024-34072",
+         "id": "ECR-SCAN_CVE-2024-34072",
+         "specs": [
             "<2.218.0"
          ],
-         "advisory":"sagemaker-python-sdk is a library for training and deploying machine learning models on Amazon SageMaker. The sagemaker.base_deserializers.NumpyDeserializer module before v2.218.0 allows potentially unsafe deserialization when untrusted data is passed as pickled object arrays. This consequently may allow an unprivileged third party to cause remote code execution, denial of service, affecting both confidentiality and integrity. Users are advised to upgrade to version 2.218.0. Users unable to upgrade should not pass pickled numpy object arrays which originated from an untrusted source, or that could have been tampered with. Only pass pickled numpy object arrays from trusted sources."
+         "advisory": "sagemaker-python-sdk is a library for training and deploying machine learning models on Amazon SageMaker. The sagemaker.base_deserializers.NumpyDeserializer module before v2.218.0 allows potentially unsafe deserialization when untrusted data is passed as pickled object arrays. This consequently may allow an unprivileged third party to cause remote code execution, denial of service, affecting both confidentiality and integrity. Users are advised to upgrade to version 2.218.0. Users unable to upgrade should not pass pickled numpy object arrays which originated from an untrusted source, or that could have been tampered with. Only pass pickled numpy object arrays from trusted sources."
       }
    ],
-   "jinja2":[
+   "jinja2": [
       {
-         "cve":"CVE-2024-34064",
-         "id":"ECR-SCAN_CVE-2024-34064",
-         "specs":[
+         "cve": "CVE-2024-34064",
+         "id": "ECR-SCAN_CVE-2024-34064",
+         "specs": [
             "<=3.1.3"
          ],
-         "advisory":"Jinja is an extensible templating engine. The xmlattr filter in affected versions of Jinja accepts keys containing non-attribute characters. XML/HTML attributes cannot contain spaces, /, >, or =, as each would then be interpreted as starting a separate attribute. If an application accepts keys (as opposed to only values) as user input, and renders these in pages that other users see as well, an attacker could use this to inject other attributes and perform XSS. The fix for CVE-2024-22195 only addressed spaces but not other characters. Accepting keys as user input is now explicitly considered an unintended use case of the xmlattr filter, and code that does so without otherwise validating the input should be flagged as insecure, regardless of Jinja version. Accepting values as user input continues to be safe. This vulnerability is fixed in 3.1.4."
+         "advisory": "Jinja is an extensible templating engine. The xmlattr filter in affected versions of Jinja accepts keys containing non-attribute characters. XML/HTML attributes cannot contain spaces, /, >, or =, as each would then be interpreted as starting a separate attribute. If an application accepts keys (as opposed to only values) as user input, and renders these in pages that other users see as well, an attacker could use this to inject other attributes and perform XSS. The fix for CVE-2024-22195 only addressed spaces but not other characters. Accepting keys as user input is now explicitly considered an unintended use case of the xmlattr filter, and code that does so without otherwise validating the input should be flagged as insecure, regardless of Jinja version. Accepting values as user input continues to be safe. This vulnerability is fixed in 3.1.4."
       }
    ],
-   "werkzeug":[
+   "werkzeug": [
       {
-         "cve":"CVE-2024-34069",
-         "id":"ECR-SCAN_CVE-2024-34069",
-         "specs":[
+         "cve": "CVE-2024-34069",
+         "id": "ECR-SCAN_CVE-2024-34069",
+         "specs": [
             "<3.0.3"
          ],
-         "advisory":"Werkzeug is a comprehensive WSGI web application library. The debugger in affected versions of Werkzeug can allow an attacker to execute code on a developer's machine under some circumstances. This requires the attacker to get the developer to interact with a domain and subdomain they control, and enter the debugger PIN, but if they are successful it allows access to the debugger even if it is only running on localhost. This also requires the attacker to guess a URL in the developer's application that will trigger the debugger. This vulnerability is fixed in 3.0.3."
+         "advisory": "Werkzeug is a comprehensive WSGI web application library. The debugger in affected versions of Werkzeug can allow an attacker to execute code on a developer's machine under some circumstances. This requires the attacker to get the developer to interact with a domain and subdomain they control, and enter the debugger PIN, but if they are successful it allows access to the debugger even if it is only running on localhost. This also requires the attacker to guess a URL in the developer's application that will trigger the debugger. This vulnerability is fixed in 3.0.3."
       }
    ],
-   "pip":[
+   "pip": [
       {
-         "cve":"TEMP-DLC-1",
-         "id":"ECR-SCAN_CVE-TEMP-DLC-1",
-         "specs":[
+         "cve": "TEMP-DLC-1",
+         "id": "ECR-SCAN_CVE-TEMP-DLC-1",
+         "specs": [
             "<24"
          ],
-         "advisory":"Being used by DLC team to handle mismatches with upstream versions."
+         "advisory": "Being used by DLC team to handle mismatches with upstream versions."
       }
    ]
- }
- 
+}

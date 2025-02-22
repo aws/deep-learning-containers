@@ -127,25 +127,25 @@ SageMaker Framework Containers (SM support only)
 
 EC2 Framework ARM64/Graviton Containers (EC2, ECS, and EKS support only)
 ============================
-Important note: Starting with PyTorch 2.5, we are changing the name of Graviton DLCs to ARM64 DLCs in order to generalize the usage. For example, the ECR repository name is now "pytorch-inference-arm64" 
+Important note: Starting with PyTorch 2.5, we are changing the name of Graviton DLCs to ARM64 DLCs in order to generalize the usage. For example, the ECR repository name is now "pytorch-inference-arm64"
 instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functionally equivalent.
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                             |
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-ec2		     |
-| PyTorch 2.5.1     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2		     |
-| TensorFlow 2.16.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.16.1-cpu-py310-ubuntu20.04-ec2		 |
+| PyTorch 2.6.0     |inference	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-cpu-py312-ubuntu22.04-ec2		     |
+| PyTorch 2.6.0     |inference	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-gpu-py312-cu124-ubuntu22.04-ec2		     |
+| TensorFlow 2.18.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-arm64:2.18.0-cpu-py310-ubuntu20.04-ec2		 |
 
 
 SageMaker Framework ARM64/Graviton Containers (SM support only)
 ============================
-Important note: Starting with PyTorch 2.5, we are changing the name of Graviton DLCs to ARM64 DLCs in order to generalize the usage. For example, the ECR repository name is now "pytorch-inference-arm64" 
+Important note: Starting with PyTorch 2.5, we are changing the name of Graviton DLCs to ARM64 DLCs in order to generalize the usage. For example, the ECR repository name is now "pytorch-inference-arm64"
 instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functionally equivalent.
 
 | Framework         | Job Type	| Horovod Options| CPU/GPU | Python Version Options	| Example URL																						                                                                                 |
 |-------------------|-----------|----------------|---------|------------------------|-------------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.5.1     | inference | No			 | CPU 	   | 3.11 (py311)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker     |
-| TensorFlow 2.16.1 | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.16.1-cpu-py310-ubuntu20.04-sagemaker |
+| PyTorch 2.6.0     | inference | No			 | CPU 	   | 3.12 (py312)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-cpu-py312-ubuntu22.04-sagemaker     |
+| TensorFlow 2.18.0 | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-arm64:2.18.0-cpu-py310-ubuntu20.04-sagemaker |
 
 
 NVIDIA Triton Inference Containers (SM support only)
@@ -355,16 +355,21 @@ Prior EC2 Framework ARM64/Graviton Containers
 ============================
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+| PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-ec2		     |
+| PyTorch 2.5.1     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2		     |
 | PyTorch 2.4.0     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.4.0-cpu-py311-ubuntu22.04-ec2		     |
 | PyTorch 2.4.0     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.4.0-gpu-py311-cu124-ubuntu22.04-ec2		     |
 | PyTorch 2.3.0     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.3.0-cpu-py311-ubuntu20.04-ec2		     |
+| TensorFlow 2.16.1 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.16.1-cpu-py310-ubuntu20.04-ec2		 |
 
 Prior SageMaker Framework ARM64/Graviton Containers
 ============================
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
+| PyTorch 2.5.1     | inference | No			 | CPU 	   | 3.11 (py311)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker     |
 | PyTorch 2.4.0     | inference | No			 | CPU 	   | 3.11 (py311)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.4.0-cpu-py311-ubuntu22.04-sagemaker     |
 | PyTorch 2.3.0     | inference | No			 | CPU 	   | 3.11 (py311)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-graviton:2.3.0-cpu-py311-ubuntu20.04-sagemaker     |
+| TensorFlow 2.16.1 | inference | No			 | CPU 	   | 3.10 (py310)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-graviton:2.16.1-cpu-py310-ubuntu20.04-sagemaker |
 
 Prior AutoGluon Training Containers
 ===============================
