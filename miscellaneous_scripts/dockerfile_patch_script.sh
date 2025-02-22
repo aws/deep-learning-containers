@@ -56,11 +56,23 @@ if pip show sagemaker-training; then
 fi
 
 # For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
+# replace start_cuda_compat.sh if it's a gpu image
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)gpu(.+)sagemaker ]]; then
+    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
+    mv /tmp/new_pytorch_inference_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
+    chmod +x /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/start_cuda_compat.sh
+elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
     mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
     chmod +x /usr/local/bin/dockerd-entrypoint.py
-else
-    rm -f /tmp/new-torchserve-entrypoint
+fi
+
+# For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)gpu(.+)sagemaker ]]; then
+    mv /tmp/new_start_with_right_hostname /usr/local/bin/start_with_right_hostname.sh
+    mv /tmp/new_pytorch_training_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
+    chmod +x /usr/local/bin/start_with_right_hostname.sh
+    chmod +x /usr/local/bin/start_cuda_compat.sh
 fi
 
 pip cache purge
