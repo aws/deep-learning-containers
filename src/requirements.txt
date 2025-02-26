@@ -1,4 +1,4 @@
-awscli==1.37.6
+awscli==1.38.1
 boto3==1.36.6
 fabric
 invoke
