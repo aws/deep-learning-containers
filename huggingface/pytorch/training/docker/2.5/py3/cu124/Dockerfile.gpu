@@ -57,9 +57,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Update vulnerable golang.org/x/net package
-RUN go get -u golang.org/x/net@0.1.1-0.20221104162952-702349b0e862
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip -o ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
