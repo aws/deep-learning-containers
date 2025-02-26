@@ -8,10 +8,11 @@ LOG_DIR=${HOME_DIR}/logs
 
 TORCHDATA_BRANCH_DEFAULT="main"
 TORCHDATA_REPO="https://github.com/pytorch/data.git"
-TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
 
-echo "Fetch Torchdata S3 IO test script."
+
+echo "Fetch Torchdata test script."
 TORCHDATA_RELEASE_TAG=$(python -c "import torchdata as td; print(td.__version__.split('+')[0])")
+
 git clone $TORCHDATA_REPO \
     && pushd data \
     && git checkout tags/v${TORCHDATA_RELEASE_TAG} -b ${TORCHDATA_RELEASE_TAG} \
@@ -25,14 +26,27 @@ sed -i "s/adlfs.*//g" data/test/requirements.txt
 echo "Installing pre-requisites."
 pip install -r data/test/requirements.txt
 
-echo "Running Torchdata S3 IO datapipe tests."
-pytest data/test/test_remote_io.py
+echo "Running Torchdata tests."
+
+# function to compare version numbers
+function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
+
+# torch data delete remote DataPipes and DataLoader2 from 0.10.0, 
+# so test_remote_io.py is deleted https://github.com/pytorch/data/pull/1332
+if [[ $(version $TORCHDATA_RELEASE_TAG) -ge $(version "0.10.0") ]]
+then
+    TORCHDATA_TEST_SCRIPT="data/test/smoke_test/smoke_test.py"
+    python $TORCHDATA_TEST_SCRIPT
+else
+    TORCHDATA_TEST_SCRIPT="data/test/test_remote_io.py"
+    pytest $TORCHDATA_TEST_SCRIPT
+fi
 
 if [ "$?" -eq "0" ]
 then
-    echo "Torchdata S3 IO tests succeeded."
+    echo "Torchdata tests succeeded."
 else
-    echo "Torchdata S3 IO tests failed at ${TORCHDATA_REPO} ${TORCHDATA_BRANCH} ${TORCHDATA_TEST_SCRIPT}"
+    echo "Torchdata tests failed at ${TORCHDATA_REPO} ${TORCHDATA_BRANCH} ${TORCHDATA_TEST_SCRIPT}"
     exit 1
 fi
 

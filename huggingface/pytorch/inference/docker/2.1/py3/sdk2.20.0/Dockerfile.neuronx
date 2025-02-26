@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
@@ -161,6 +161,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 # Hugging Face specific section #
 #################################
+
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /license.txt
 
