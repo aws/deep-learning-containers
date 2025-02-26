@@ -53,9 +53,10 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
- && apt install -y git git-lfs \
+ && apt install -y git git-lfs golang-go \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
