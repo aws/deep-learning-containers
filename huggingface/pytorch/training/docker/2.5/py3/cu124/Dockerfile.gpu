@@ -11,8 +11,8 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
 # version args
-ARG TRANSFORMERS_VERSION
-ARG DATASETS_VERSION
+ARG TRANSFORMERS_VERSION=4.49.0
+ARG DATASETS_VERSION=3.3.2
 ARG HUGGINGFACE_HUB_VERSION=0.29.1
 ARG DIFFUSERS_VERSION=0.32.2
 ARG EVALUATE_VERSION=0.4.3
@@ -56,6 +56,9 @@ RUN apt-get update \
  && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# Update vulnerable golang.org/x/net package
+RUN go get -u golang.org/x/net@0.1.1-0.20221104162952-702349b0e862
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
