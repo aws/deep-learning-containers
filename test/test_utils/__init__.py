@@ -1381,8 +1381,10 @@ def get_canary_default_tag_py3_version(framework, version):
             return "py39"
         if Version(version) >= Version("2.0") and Version(version) < Version("2.3"):
             return "py310"
-        if Version(version) >= Version("2.3"):
+        if Version(version) >= Version("2.3") and Version(version) < Version("2.6"):
             return "py311"
+        if Version(version) >= Version("2.6"):
+            return "py312"
 
     return "py3"
 

@@ -19,6 +19,12 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
+    start_cuda_compat:
+      source: docker/build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
+    dockerd_entrypoint:
+      source: docker/build_artifacts/dockerd_entrypoint.sh
+      target: dockerd_entrypoint.sh
     sagemaker_package_name:
       source: docker/build_artifacts/sagemaker
       target: sagemaker
@@ -43,8 +49,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     os_version: &OS_VERSION ubuntu20.04
     tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION,
-                                "-sagemaker" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     enable_test_promotion: true
@@ -60,12 +65,9 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py310
     cuda_version: &CUDA_VERSION cu122
     os_version: &OS_VERSION ubuntu20.04
-    tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,
-                 "-sagemaker" ]
-    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION,
-                                "-", *OS_VERSION, "-sagemaker" ]
-    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
-                         *DEVICE_TYPE ]
+    tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    latest_release_tag: !join [ *FRAMEWORK_VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
     enable_test_promotion: true
     context:
