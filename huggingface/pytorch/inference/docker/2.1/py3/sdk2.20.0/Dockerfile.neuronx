@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 LABEL dlc_major_version="2"
 LABEL maintainer="Amazon AI"
@@ -22,7 +22,7 @@ ARG NEURONX_TOOLS_VERSION=2.19.0.0
 ARG TRANSFORMERS_VERSION
 ARG DIFFUSERS_VERSION=0.28.2
 ARG HUGGINGFACE_HUB_VERSION=0.25.2 # For compatibility with diffusers 0.28.2
-ARG OPTIMUM_NEURON_VERSION=0.0.25
+ARG OPTIMUM_NEURON_VERSION=0.0.27
 ARG SENTENCE_TRANSFORMERS=3.0.1
 ARG PEFT_VERSION=0.12.0
 ARG DATASETS_VERSION=2.19.0
@@ -34,12 +34,15 @@ ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends software-properties-common \
- && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
+RUN apt-get update
+RUN apt-get upgrade -y
+RUN apt-get install -y --no-install-recommends software-properties-common
+RUN apt-get install -y --no-install-recommends gpg-agent
+RUN add-apt-repository ppa:openjdk-r/ppa 
+RUN apt-get update
+
+
+RUN apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
@@ -59,7 +62,6 @@ RUN apt-get update \
     unzip \
     zlib1g-dev \
     libcap-dev \
-    gpg-agent \
     libexpat1 \
     libxml2 \
     libgstreamer1.0-0 \
