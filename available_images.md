@@ -41,6 +41,7 @@ Deep Learning Containers Docker Images are available in the following regions:
 | Asia Pacific (Sydney)		    | ap-southeast-2 	 |Available 			|Available			| 763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Jakarta)		   | ap-southeast-3 	 |Available 			|None			| 907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Melbourne)		 | ap-southeast-4 	 |Available 			|None			| 457447274322.dkr.ecr.ap-southeast-4.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Malaysia)		 | ap-southeast-5 	 |Available 			|None			| 550225433462.dkr.ecr.ap-southeast-5.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Canada (Central)			        | ca-central-1		   |Available 			|None				| 763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | Canada (Calgary)			        | ca-west-1		   |Available 			|None				| 204538143572.dkr.ecr.ca-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |

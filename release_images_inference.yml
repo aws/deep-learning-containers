@@ -156,7 +156,7 @@ release_images:
       os_version: "ubuntu22.04"
       cuda_version: "cu121"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
   13:
     framework: "huggingface_pytorch"
@@ -168,7 +168,7 @@ release_images:
       python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
       example: False
-      disable_sm_tag: True
+      disable_sm_tag: False
       force_release: False
   14:
     framework: "djl"
