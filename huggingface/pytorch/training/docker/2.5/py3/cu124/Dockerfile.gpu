@@ -57,6 +57,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+COPY cuda-compatibility-lib.sh /usr/local/bin/cuda-compatibility-lib.sh
+RUN chmod +x /usr/local/bin/cuda-compatibility-lib.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
