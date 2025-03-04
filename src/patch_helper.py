@@ -347,9 +347,9 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
     )
 
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
-    download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
+    download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc-yadan-test")
     if not os.path.exists(download_path):
-        run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
+        run(f"aws s3 cp s3://patch-dlc-yadan-test {download_path} --recursive", hide=True)
     run(f"bash {download_path}/preprocessing_script.sh {download_path}", hide=True)
 
     THREADS = {}
