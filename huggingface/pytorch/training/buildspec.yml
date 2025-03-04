@@ -14,6 +14,12 @@ repository_info:
     repository_name: &REPOSITORY_NAME !join ["pr", "-", "huggingface", "-", *BASE_FRAMEWORK, "-", *TRAINING_IMAGE_TYPE]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
 
+context:
+  training_context: &TRAINING_CONTEXT
+    cuda-compatibility-libs:
+      source: ../../build_artifacts/training/cuda-compatibility-lib.sh
+      target: cuda-compatibility-lib.sh
+
 images:
   BuildHuggingFacePytorchGpuPy311Cu124TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
@@ -30,3 +36,5 @@ images:
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,
                          *CUDA_VERSION, /Dockerfile., *DEVICE_TYPE ]
+    context:
+      <<: *TRAINING_CONTEXT 
