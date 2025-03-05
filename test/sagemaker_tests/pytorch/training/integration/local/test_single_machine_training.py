@@ -27,7 +27,8 @@ from ...integration import (
     ROLE,
     get_framework_and_version_from_tag,
 )
-from packaging.version import Version, SpecifierSet
+from packaging.version import Version
+from packaging.specifiers import SpecifierSet
 
 
 @pytest.mark.model("mnist")
