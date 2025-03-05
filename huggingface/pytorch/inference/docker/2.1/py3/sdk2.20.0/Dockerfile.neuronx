@@ -46,6 +46,7 @@ RUN apt-get update \
     cmake \
     curl \
     emacs \
+    emacs-common \
     git \
     jq \
     libgl1-mesa-glx \
