@@ -11,7 +11,7 @@ trcomp_mode = false
 deep_canary_mode = false
 
 [build]
-build_frameworks = [ "_home_evakravi_workspace_github_dlc_deep-learning-containers_huggingface_pytorch",]
+build_frameworks = [ "huggingface_pytorch",]
 build_training = false
 build_inference = true
 do_build = true
@@ -70,5 +70,5 @@ dlc-pr-tensorflow-2-arm64-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
 # WARNING: Unrecognized key generated below
-dlc-pr--home-evakravi-workspace-github-dlc-deep-learning-containers-huggingface-pytorch-neuronx-inference = "/home/evakravi/workspace/github/dlc/deep-learning-containers/huggingface/pytorch/inference/buildspec-neuronx.yml"
+dlc-pr-huggingface-pytorch-neuronx-inference = "huggingface/pytorch/inference/buildspec-neuronx.yml"
 
