@@ -76,22 +76,14 @@ def perf_test(exec_cmd):
 perf_test("import torch")
 opt_in_opt_out_test("import torch")
 
+try:
+    import torch
 
-def get_torch_version():
-    try:
-        import torch
+    torch_version = torch.__version__
+except ImportError:
+    raise ImportError("PyTorch is not installed or cannot be imported.")
 
-        return torch.__version__
-    except ImportError:
-        print("PyTorch is not installed or cannot be imported.")
-        return None
-
-
-# Disabling os tests until it is added to all new images
-torch_version = get_torch_version()
-if torch_version is None:
-    raise ImportError("Failed to get PyTorch version.")
-elif Version(torch_version) >= Version("2.6"):
+if Version(torch_version) >= Version("2.6"):
     print("PyTorch version is 2.6 or higher. Running OS tests...")
     perf_test("import os")
     opt_in_opt_out_test("import os")

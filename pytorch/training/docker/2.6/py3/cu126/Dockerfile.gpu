@@ -7,10 +7,8 @@ ARG CUDA_VERSION=12.6.3
 ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.23.4
 ARG EFA_VERSION=1.38.0
-ARG HWLOC_VERSION=2.11.2
-# ARG AWS_OFI_NCCL_VERSION=1.12.1
 ARG GDRCOPY_VERSION=2.4.4
-ARG TE_VERSION=1.13
+ARG TE_VERSION=2.0
 ARG FLASH_ATTN_VERSION=2.7.3
 
 # PyTorch Binaries
@@ -59,8 +57,6 @@ ARG CUDA_VERSION
 ARG CUDNN_VERSION
 ARG NCCL_VERSION
 ARG EFA_VERSION
-ARG HWLOC_VERSION
-# ARG AWS_OFI_NCCL_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
@@ -165,19 +161,6 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install hwloc
-RUN mkdir /tmp/hwloc \
- && cd /tmp/hwloc \
- && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
- && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
- && cd hwloc-${HWLOC_VERSION} \
- && ./configure \
- && make \
- && make install \
- && rm -rf /tmp/hwloc \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
@@ -261,6 +244,9 @@ COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
@@ -343,8 +329,6 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 RUN HOME_DIR=/root \
@@ -476,8 +460,6 @@ RUN pip install --no-cache-dir -U \
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 RUN HOME_DIR=/root \

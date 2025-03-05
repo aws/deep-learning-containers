@@ -22,26 +22,13 @@ fi
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 
-function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
-PT_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0]);")
-
-if [ $(version $PT_VERSION) -lt $(version "2.6") ]; then
-   # activate conda env (to prevent duplicate pip install)
-   conda init
-   source ~/.bashrc
+if which conda >/dev/null 2>&1; then
+    conda init
+    source ~/.bashrc
 fi
 
 # setup benchmark repo
 git clone https://github.com/pytorch/benchmark.git
 cd benchmark
-# git checkout 350bb04  # pin commit for Python 3.11 support
 pip install -r requirements.txt
-
-# pin pynvml to avoid issues with 12.0.0
-# https://github.com/pytorch/benchmark/issues/2552
-# PR: https://github.com/pytorch/benchmark/pull/2553
-# when this issue is fixed can revert back
-# pip uninstall pynvml -y
-# pip install "pynvml<12"
-
 pip install numba
