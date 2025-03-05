@@ -45,8 +45,6 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
-    emacs \
-    emacs-common \
     git \
     jq \
     libgl1-mesa-glx \
