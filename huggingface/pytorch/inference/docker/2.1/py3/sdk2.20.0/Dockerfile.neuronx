@@ -116,7 +116,7 @@ RUN conda install -c conda-forge \
     enum-compat \
     ipython
 
-RUN pip uninstall certifi
+RUN pip uninstall -y certifi
 
 RUN pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
