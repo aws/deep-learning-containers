@@ -83,12 +83,16 @@ try:
 except ImportError:
     raise ImportError("PyTorch is not installed or cannot be imported.")
 
+# TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs
 if Version(torch_version) >= Version("2.6"):
     print("PyTorch version is 2.6 or higher. Running OS tests...")
     perf_test("import os")
     opt_in_opt_out_test("import os")
     print("OS tests completed.")
 else:
+    print(
+        "TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs"
+    )
     print("PyTorch version is below 2.6. Skipping OS tests.")
 
 print("All DLC telemetry test passed")
