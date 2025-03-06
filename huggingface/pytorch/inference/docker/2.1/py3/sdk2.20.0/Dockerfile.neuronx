@@ -116,6 +116,8 @@ RUN conda install -c conda-forge \
     enum-compat \
     ipython
 
+RUN pip uninstall -t /usr/lib/python3/dist-packages certifi
+
 RUN pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
     "numpy>=1.22.2, <1.24" \
