@@ -125,7 +125,8 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    cryptography
+    cryptography \
+    certifi
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
