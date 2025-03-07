@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.5.1+cu124",
+    "version_specifier": "==2.6.0+cu124",
     "skip": "True"
   },
   "torchdata": {
@@ -16,7 +16,7 @@
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.20.1+cu124",
+    "version_specifier": "==0.21.0+cu124",
     "skip": "True"
   },
   "requests": {
