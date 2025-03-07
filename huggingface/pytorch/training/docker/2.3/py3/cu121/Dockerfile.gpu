@@ -4,9 +4,6 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker
 
-RUN apt-get remove -y --purge emacs && \
-apt-get autoremove -y
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
@@ -52,10 +49,14 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev \
  && apt install -y git git-lfs \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
