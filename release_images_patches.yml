@@ -238,6 +238,32 @@ release_images:
       force_release: False
 
   # PyTorch 2.6 Images
+  13:
+    framework: "pytorch"
+    version: "2.6.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu126"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  14:
+    framework: "pytorch"
+    version: "2.6.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu126"
+      example: False
+      disable_sm_tag: False
+      force_release: False
   19:
     framework: "pytorch"
     version: "2.6.0"
