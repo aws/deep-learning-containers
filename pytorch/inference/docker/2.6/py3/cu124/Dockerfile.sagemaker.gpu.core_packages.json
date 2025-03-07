@@ -1,0 +1,34 @@
+{
+  "captum": {
+    "version_specifier": "==0.6.0",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.6.0+cu124",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu124",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.21.0+cu124",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.10.1+cu124",
+    "skip": "True"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.3"
+  },
+  "torchserve": {
+    "version_specifier": "==0.12.0"
+  },
+  "torch-model-archiver": {
+    "version_specifier": "==0.12.0"
+  },
+  "sagemaker-pytorch-inference": {
+    "version_specifier": "==2.0.25"
+  }
+}
