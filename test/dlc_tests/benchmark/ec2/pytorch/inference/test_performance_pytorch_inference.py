@@ -10,7 +10,7 @@ from src.benchmark_metrics import (
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
-    UL20_CPU_ARM64_US_WEST_2,
+    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
     LOGGER,
@@ -18,7 +18,9 @@ from test.test_utils import (
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
+    get_ec2_instance_type
 )
+
 
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inference_performance.py"
@@ -26,9 +28,15 @@ PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
 PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 500"
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
 
+PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.18xlarge", processor="cpu")
+PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
+PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.4xlarge", processor="gpu", arch_type="arm64"
+)
+PT_EC2_SINGLE_GPU_INSTANCE_TYPES = [ "g4dn.4xlarge", "g5.4xlarge"]
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
@@ -44,7 +52,7 @@ def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", ["c5.18xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
@@ -58,6 +66,43 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
         threshold,
     )
 
+
+@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_GPU_ARM64_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.team("conda")
+def test_performance_ec2_pytorch_inference_arm64_gpu(pytorch_inference_arm64, ec2_connection, region, gpu_only):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
+    if "arm64" not in pytorch_inference_arm64:
+        pytest.skip("skip benchmark tests for non-arm64 images")
+    ec2_performance_pytorch_inference(
+        pytorch_inference_arm64,
+        "gpu",
+        ec2_connection,
+        region,
+        PT_PERFORMANCE_INFERENCE_GPU_CMD,
+        threshold,
+    )
+
+
+@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_CPU_ARM64_INSTANCE_TYPES], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
+@pytest.mark.team("conda")
+def test_performance_ec2_pytorch_inference_arm64_cpu(pytorch_inference_arm64, ec2_connection, region, cpu_only):
+    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
+    if "arm64" not in pytorch_inference_arm64:
+        pytest.skip("skip benchmark tests for non-arm64 images")
+    ec2_performance_pytorch_inference(
+        pytorch_inference_arm64,
+        "cpu",
+        ec2_connection,
+        region,
+        PT_PERFORMANCE_INFERENCE_CPU_CMD,
+        threshold,
+    )
 
 def ec2_performance_pytorch_inference(
     image_uri, processor, ec2_connection, region, test_cmd, threshold
