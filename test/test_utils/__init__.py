@@ -161,10 +161,12 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
 )
-UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????",
-)
+# UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(
+#     region_name="us-west-2",
+#     ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????",
+# )
+UL20_PT_NEURON_US_WEST_2 = "ami-0b2a4dab6b6951b5c"
+
 UL20_TF_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning AMI Neuron TensorFlow 2.10.? (Ubuntu 20.04) ????????",
