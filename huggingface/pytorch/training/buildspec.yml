@@ -16,7 +16,7 @@ repository_info:
 
 context:
   training_context: &TRAINING_CONTEXT
-    cuda-compatibility-libs:
+    cuda-compatibility-lib:
       source: ../../build_artifacts/training/cuda-compatibility-lib.sh
       target: cuda-compatibility-lib.sh
 
