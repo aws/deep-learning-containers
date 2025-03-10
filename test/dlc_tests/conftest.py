@@ -793,7 +793,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     conn = Connection(
         user=user,
         host=ip_address,
-        connect_kwargs={"key_filename": pkey},
+        connect_kwargs={"pkey": pkey},
         connect_timeout=18000,
     )
 
