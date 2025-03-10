@@ -779,29 +779,11 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
-    from paramiko import RSAKey
-
-    # # Load the key explicitly as RSA
-    import paramiko
-
-    print(f"Paramiko version: {paramiko.__version__}")
-    pkey = RSAKey.from_private_key_file(instance_pem_file)
-
-    # conn = Connection(
-    #     user=user,
-    #     host=ip_address,
-    #     connect_kwargs={"key_filename": [instance_pem_file]},
-    #     connect_timeout=18000,
-    # )
 
     conn = Connection(
         user=user,
         host=ip_address,
-        connect_kwargs={
-            "key_filename": instance_pem_file,
-            "allow_agent": False,
-            "look_for_keys": False,
-        },
+        connect_kwargs={"key_filename": [instance_pem_file]},
         connect_timeout=18000,
     )
 
