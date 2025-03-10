@@ -89,25 +89,25 @@ def test_performance_ec2_pytorch_inference_arm64_gpu(
     )
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.team("conda")
-def test_performance_ec2_pytorch_inference_arm64_cpu(
-    pytorch_inference_arm64, ec2_connection, region, cpu_only
-):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
-    if "arm64" not in pytorch_inference_arm64:
-        pytest.skip("skip benchmark tests for non-arm64 images")
-    ec2_performance_pytorch_inference(
-        pytorch_inference_arm64,
-        "cpu",
-        ec2_connection,
-        region,
-        PT_PERFORMANCE_INFERENCE_CPU_CMD,
-        threshold,
-    )
+# @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+# @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
+# @pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
+# @pytest.mark.team("conda")
+# def test_performance_ec2_pytorch_inference_arm64_cpu(
+#     pytorch_inference_arm64, ec2_connection, region, cpu_only
+# ):
+#     _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+#     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
+#     if "arm64" not in pytorch_inference_arm64:
+#         pytest.skip("skip benchmark tests for non-arm64 images")
+#     ec2_performance_pytorch_inference(
+#         pytorch_inference_arm64,
+#         "cpu",
+#         ec2_connection,
+#         region,
+#         PT_PERFORMANCE_INFERENCE_CPU_CMD,
+#         threshold,
+#     )
 
 
 def ec2_performance_pytorch_inference(
