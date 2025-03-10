@@ -42,7 +42,7 @@ build_frameworks = ["huggingface_pytorch"]
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = true
+build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -111,7 +111,7 @@ dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
-dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec.yml"
+dlc-pr-huggingface-pytorch-training = ""
 
 # Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
