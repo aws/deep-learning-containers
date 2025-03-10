@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import time
+from packaging.version import Version
 
 
 def _clean_up_reports():
@@ -75,8 +76,23 @@ def perf_test(exec_cmd):
 perf_test("import torch")
 opt_in_opt_out_test("import torch")
 
-# Disabling os tests until it is added to all new images
-# perf_test("import os")
-# opt_in_opt_out_test("import os")
+try:
+    import torch
+
+    torch_version = torch.__version__
+except ImportError:
+    raise ImportError("PyTorch is not installed or cannot be imported.")
+
+# TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs
+if Version(torch_version) >= Version("2.6"):
+    print("PyTorch version is 2.6 or higher. Running OS tests...")
+    perf_test("import os")
+    opt_in_opt_out_test("import os")
+    print("OS tests completed.")
+else:
+    print(
+        "TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs"
+    )
+    print("PyTorch version is below 2.6. Skipping OS tests.")
 
 print("All DLC telemetry test passed")
