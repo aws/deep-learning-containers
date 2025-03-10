@@ -779,12 +779,23 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
+    # from paramiko import RSAKey
+    # # Load the key explicitly as RSA
+    # pkey = RSAKey.from_private_key_file(instance_pem_file)
+
     conn = Connection(
         user=user,
         host=ip_address,
         connect_kwargs={"key_filename": [instance_pem_file]},
         connect_timeout=18000,
     )
+
+    try:
+        result = conn.run('echo "Connection successful"', hide=True)
+        LOGGER.info(f"Connection test result: {result.stdout.strip()}")
+    except Exception as e:
+        LOGGER.error(f"Connection test failed: {str(e)}")
+        raise
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
