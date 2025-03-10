@@ -787,13 +787,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
         connect_timeout=18000,
     )
 
-    try:
-        result = conn.run('echo "Connection successful"', hide=True)
-        LOGGER.info(f"Connection test result: {result.stdout.strip()}")
-    except Exception as e:
-        LOGGER.error(f"Connection test failed: {str(e)}")
-        raise
-
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
 
