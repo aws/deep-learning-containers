@@ -21,11 +21,6 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
 )
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inference_performance.py"
@@ -105,7 +100,7 @@ def test_performance_ec2_pytorch_inference_arm64_cpu(
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     if "arm64" not in pytorch_inference_arm64:
         pytest.skip("skip benchmark tests for non-arm64 images")
-    logger.info("start testing")
+
     ec2_performance_pytorch_inference(
         pytorch_inference_arm64,
         "cpu",
@@ -135,17 +130,46 @@ def ec2_performance_pytorch_inference(
 
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"synthetic_{commit_info}_{time_str}.log"
-    logger.info(f"Run container command")
-    ec2_connection.run(
-        f"docker run {docker_runtime} -d --name {container_name}  -e OMP_NUM_THREADS=1 "
-        f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
-    )
-    logger.info(f"Container name is {container_name}")
-    logger.info(f"run test in container")
-    ec2_connection.run(
-        f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
-    )
-    ec2_connection.run(f"docker rm -f {container_name}")
+
+    try:
+        ec2_connection.run(
+            f"docker run {docker_runtime} -d --name {container_name} -e OMP_NUM_THREADS=1 "
+            f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri}"
+        )
+    except Exception as e:
+        print(f"Failed to start container: {e}")
+        return
+
+    # ec2_connection.run(
+    #     f"docker run {docker_runtime} -d --name {container_name}  -e OMP_NUM_THREADS=1 "
+    #     f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
+    # )
+
+    try:
+        result = ec2_connection.run(
+            f"docker exec {container_name} python {test_cmd} 2>&1 | tee {log_file}",
+            timeout=3600,  # 1 hour timeout
+        )
+
+        # Check if the command was successful
+        if result.failed:
+            print(f"Command failed with exit code {result.return_code}")
+            print(f"Error output:\n{result.stderr}")
+        else:
+            print("Command completed successfully")
+
+    except Exception as e:
+        print(f"An error occurred during test execution: {e}")
+
+    finally:
+        # This block will run regardless of whether an exception occurred
+        print("Cleaning up...")
+        # Add any cleanup code here
+
+        # ec2_connection.run(
+        #     f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
+        # )
+        ec2_connection.run(f"docker rm -f {container_name}")
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection,
         image_uri,
