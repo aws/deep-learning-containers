@@ -119,12 +119,6 @@ def test_performance_ec2_pytorch_inference_arm64_cpu(
 def ec2_performance_pytorch_inference(
     image_uri, processor, ec2_connection, region, test_cmd, threshold
 ):
-    logger.info(
-        f"Testing with instance: {ec2_connection.instance_id}, "
-        f"Type: {ec2_connection.instance_type}, "
-        f"AMI: {ec2_connection.ami_id}"
-    )
-
     docker_runtime = "--runtime=nvidia --gpus all" if processor == "gpu" else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
