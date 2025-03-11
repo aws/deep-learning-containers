@@ -21,6 +21,11 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
 )
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_inference_performance.py"
@@ -37,7 +42,7 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["g4dn.4xlarge", "g5.4xlarge"]
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_SINGLE_GPU_INSTANCE_TYPES], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
@@ -53,7 +58,7 @@ def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", [PT_EC2_CPU_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
@@ -100,6 +105,7 @@ def test_performance_ec2_pytorch_inference_arm64_cpu(
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     if "arm64" not in pytorch_inference_arm64:
         pytest.skip("skip benchmark tests for non-arm64 images")
+    logger.info("start testing")
     ec2_performance_pytorch_inference(
         pytorch_inference_arm64,
         "cpu",
@@ -113,6 +119,12 @@ def test_performance_ec2_pytorch_inference_arm64_cpu(
 def ec2_performance_pytorch_inference(
     image_uri, processor, ec2_connection, region, test_cmd, threshold
 ):
+    logger.info(
+        f"Testing with instance: {ec2_connection.instance_id}, "
+        f"Type: {ec2_connection.instance_type}, "
+        f"AMI: {ec2_connection.ami_id}"
+    )
+
     docker_runtime = "--runtime=nvidia --gpus all" if processor == "gpu" else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     repo_name, image_tag = image_uri.split("/")[-1].split(":")
@@ -126,12 +138,16 @@ def ec2_performance_pytorch_inference(
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
     # Run performance inference command, display benchmark results to console
+
     container_name = f"{repo_name}-performance-{image_tag}-ec2"
     log_file = f"synthetic_{commit_info}_{time_str}.log"
+    logger.info(f"Run container command")
     ec2_connection.run(
         f"docker run {docker_runtime} -d --name {container_name}  -e OMP_NUM_THREADS=1 "
         f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
     )
+    logger.info(f"Container name is {container_name}")
+    logger.info(f"run test in container")
     ec2_connection.run(
         f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
     )
