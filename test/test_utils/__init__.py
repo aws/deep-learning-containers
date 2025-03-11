@@ -58,6 +58,8 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
         Owners=["amazon"],
         IncludeDeprecated=IncludeDeprecated,
     )
+    if not ami_list["Images"]:
+        raise RuntimeError(f"Unable to find AMI with pattern {ami_name_pattern}")
 
     # NOTE: Hotfix for fetching latest DLAMI before certain creation date.
     # replace `ami_list["Images"]` with `filtered_images` in max() if needed.
@@ -164,10 +166,12 @@ NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
 UL20_PT_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning AMI Neuron PyTorch 1.11.0 (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
 )
 UL20_TF_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning AMI Neuron TensorFlow 2.10.? (Ubuntu 20.04) ????????",
+    IncludeDeprecated=True,
 )
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
