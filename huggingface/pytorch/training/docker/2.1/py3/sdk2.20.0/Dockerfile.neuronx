@@ -27,6 +27,10 @@ RUN pip install --no-cache-dir \
     peft \
 	gevent==${GEVENT_VERSION}
 
+
+RUN pip uninstall -y certifi
+RUN rm -rf /usr/lib/python3/dist-packages/certifi*
+
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
 RUN pip install -U \
@@ -44,6 +48,9 @@ RUN pip install -U \
 	google-auth \
 	"urllib3>=1.26.17,<1.27" \
 	certifi
+
+RUN apt-get remove -y --purge golang-go && \
+apt-get autoremove -y
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
