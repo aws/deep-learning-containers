@@ -29,8 +29,8 @@ PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterati
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.18xlarge", processor="cpu")
-# c6g.4xlarge reaches the 100% cpu usage for the benchmark when run VGG13 model
-PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c6g.8xlarge", "c7g.4xlarge"]
+# c6g.4xlarge c6g.8xlarge reaches the 100% cpu usage for the benchmark when run VGG13 model
+PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c7g.4xlarge"]
 PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="arm64"
 )
