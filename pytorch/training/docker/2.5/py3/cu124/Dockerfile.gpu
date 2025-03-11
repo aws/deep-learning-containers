@@ -392,7 +392,7 @@ ARG TORCHTEXT_URL
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
 
 # SageMaker DataParallel Binary
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.5.1/cu124/02-28-24/smdistributed_dataparallel-2.6.0-cp311-cp311-linux_x86_64.whl
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.5.1/cu124/03-10-25/smdistributed_dataparallel-2.6.0-cp311-cp311-linux_x86_64.whl
 
 WORKDIR /
 
