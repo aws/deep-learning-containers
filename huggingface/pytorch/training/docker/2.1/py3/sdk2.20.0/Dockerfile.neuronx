@@ -49,8 +49,7 @@ RUN pip install -U \
 	"urllib3>=1.26.17,<1.27" \
 	certifi
 
-RUN apt-get remove -y --purge golang-go && \
-apt-get autoremove -y
+RUN rm -rf /usr/lib/go-*
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
