@@ -25,6 +25,21 @@ models = {
 }
 
 
+# Bert, Roberta, distilBert, ResNet50, VisionTransformers, ASR, embedding models like all-mpnet
+# input sequence lengths: 4 tokens to 256 tokens in some increments, may 4, 16, 32, 64. 128 , 256
+
+# models["ResNet50"] = [torchvision.models.resnet50, torch.rand(1, 3, 224, 224)]
+# models["VisionTransformer"] = [
+#     torchvision.models.vision_transformer.vit_b_16,
+#     torch.rand(1, 3, 224, 224),
+# ]
+# models["Bert"] = [torchvision.models.bert.BertModel, torch.rand(1, 4)]
+# models["Roberta"] = [torchvision.models.roberta.RobertaModel, torch.rand(1, 4)]
+# models["DistilBert"] = [torchvision.models.distilbert.DistilBertModel, torch.rand(1, 4)]
+# models["ASR"] = [torchvision.models.asr.Wav2Vec2Model, torch.rand(1, 4)]
+# models["All-MPNet"] = [torchvision.models.all_mpnet.AllMPNet, torch.rand(1, 4)]
+
+
 def get_device(is_gpu):
     if is_gpu:
         print("Using GPU:")

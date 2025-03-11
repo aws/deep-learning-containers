@@ -29,7 +29,8 @@ PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterati
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.18xlarge", processor="cpu")
-PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
+# c6g.4xlarge reaches the 100% cpu usage for the benchmark when run VGG13 model
+PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c6g.8xlarge", "c7g.4xlarge"]
 PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="arm64"
 )
@@ -89,7 +90,7 @@ def test_performance_ec2_pytorch_inference_arm64_gpu(
     )
 
 
-@pytest.mark.model("resnet18, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
