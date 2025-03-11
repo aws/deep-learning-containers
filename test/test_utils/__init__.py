@@ -58,6 +58,8 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
         Owners=["amazon"],
         IncludeDeprecated=IncludeDeprecated,
     )
+    if not ami_list["Images"]:
+        raise RuntimeError(f"Unable to find AMI with pattern {ami_name_pattern}")
 
     # NOTE: Hotfix for fetching latest DLAMI before certain creation date.
     # replace `ami_list["Images"]` with `filtered_images` in max() if needed.
