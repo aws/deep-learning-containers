@@ -116,7 +116,7 @@ def test_pytorch_train_mnist_cpu_deep_canary(pytorch_training, ec2_connection, c
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_BASE_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -126,7 +126,7 @@ def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_BASE_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -136,7 +136,7 @@ def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_BASE_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -146,7 +146,7 @@ def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_BASE_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
