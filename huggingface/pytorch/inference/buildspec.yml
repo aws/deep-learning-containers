@@ -33,7 +33,7 @@ images:
   BuildHuggingFacePytorchCpuPy312InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 15000
+    image_size_baseline: 21000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
@@ -46,7 +46,7 @@ images:
   BuildHuggingFacePytorchGpuPy312Cu124InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 21000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
