@@ -133,7 +133,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310", "311"],
+        choices=["2", "3", "37", "38", "39", "310", "311", "312"],
         default=str(sys.version_info.major),
     )
     parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
@@ -477,7 +477,12 @@ def skip_smdebug_v1_test(
     ecr_image,
 ):
     """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
     ):
@@ -494,7 +499,12 @@ def skip_dgl_test(
     The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
     when the binaries are added in.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_dgl_test", skip_dict
     ):
@@ -524,7 +534,12 @@ def skip_smdmodelparallel_test(
     processor,
     ecr_image,
 ):
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
     ):
@@ -543,7 +558,7 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">2.4": ["cu124"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.5,<2.6": ["cu124"], ">=2.6": ["cu126"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
