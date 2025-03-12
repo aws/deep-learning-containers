@@ -64,8 +64,13 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
- RUN apt-get remove -y --purge emacs emacs-common && \
- apt-get autoremove -y
+RUN apt-get update && \
+	apt-get install -y golang-1.21 && \
+	update-alternatives --install /usr/bin/go go /usr/lib/go-1.21/bin/go 1 && \
+	update-alternatives --install /usr/bin/gofmt gofmt /usr/lib/go-1.21/bin/gofmt 1
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+	apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
