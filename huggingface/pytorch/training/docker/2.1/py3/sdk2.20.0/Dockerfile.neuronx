@@ -14,8 +14,6 @@ ARG DATASETS_VERSION
 ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
-RUN apt-get remove -y --purge emacs && \
-apt-get autoremove -y
 
 RUN pip install --upgrade pip
 
@@ -28,6 +26,10 @@ RUN pip install --no-cache-dir \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
 	gevent==${GEVENT_VERSION}
+
+
+RUN pip uninstall -y certifi
+RUN rm -rf /usr/lib/python3/dist-packages/certifi*
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
@@ -44,7 +46,10 @@ RUN pip install -U \
 	boto3 \
 	botocore \
 	google-auth \
-	"urllib3>=1.26.17,<1.27"
+	"urllib3>=1.26.17,<1.27" \
+	certifi
+
+RUN rm -rf /usr/lib/go-*
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
@@ -55,9 +60,17 @@ RUN apt-get update \
 	libarchive13 \
 	libgstreamer1.0-0 \
 	libgstreamer-plugins-base1.0-0 \
- && apt-get upgrade -y apparmor \
+ && apt-get upgrade -y apparmor golang-go \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update && \
+	apt-get install -y golang-1.21 && \
+	update-alternatives --install /usr/bin/go go /usr/lib/go-1.21/bin/go 1 && \
+	update-alternatives --install /usr/bin/gofmt gofmt /usr/lib/go-1.21/bin/gofmt 1
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+	apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
