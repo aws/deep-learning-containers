@@ -33,11 +33,18 @@ models = {
 #     torchvision.models.vision_transformer.vit_b_16,
 #     torch.rand(1, 3, 224, 224),
 # ]
-# models["Bert"] = [torchvision.models.bert.BertModel, torch.rand(1, 4)]
-# models["Roberta"] = [torchvision.models.roberta.RobertaModel, torch.rand(1, 4)]
-# models["DistilBert"] = [torchvision.models.distilbert.DistilBertModel, torch.rand(1, 4)]
-# models["ASR"] = [torchvision.models.asr.Wav2Vec2Model, torch.rand(1, 4)]
-# models["All-MPNet"] = [torchvision.models.all_mpnet.AllMPNet, torch.rand(1, 4)]
+
+
+from transformers import BertModel, RobertaModel, DistilBertModel, Wav2Vec2Model
+from sentence_transformers import SentenceTransformer
+
+models = {
+    "Bert": [BertModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
+    "Roberta": [RobertaModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
+    "DistilBert": [DistilBertModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
+    "ASR": [Wav2Vec2Model.from_pretrained, lambda b: torch.rand(b, 16000)],  # 1 second of audio at 16kHz
+    "All-MPNet": [lambda: SentenceTransformer('all-mpnet-base-v2'), lambda b: ["This is a test sentence"] * b],
+}
 
 
 def get_device(is_gpu):
@@ -51,7 +58,10 @@ def get_device(is_gpu):
 def run_inference(model_name, iterations, is_gpu):
     model_class, input_tensor = models[model_name]
     device = get_device(is_gpu)
-    model = model_class(pretrained=True)
+    # resnet50(pretrained=True)  # deprecated
+    # model = model_class(pretrained=True)
+    pretrained_weights = f"{model_name}_Weights.DEFAULT"
+    model = model_class(pretrained_weights)
     model.eval()
     model = model.to(device)  # send model to target hardware
     input_tensor = input_tensor.to(device)  # send input tensor to target hardware
