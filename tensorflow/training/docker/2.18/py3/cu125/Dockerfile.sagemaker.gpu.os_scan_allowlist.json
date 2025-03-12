@@ -12,7 +12,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -37,7 +41,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -62,7 +70,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -87,7 +99,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -112,7 +128,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -137,7 +157,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -162,7 +186,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -187,7 +215,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -212,7 +244,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -237,7 +273,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -262,7 +302,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -289,7 +333,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -314,7 +362,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -339,7 +391,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -364,7 +420,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -389,7 +449,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -414,7 +478,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -439,7 +507,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -464,7 +536,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -489,7 +565,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -514,7 +594,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -539,7 +623,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -566,7 +654,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -591,7 +683,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -616,7 +712,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -641,7 +741,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -666,7 +770,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -691,7 +799,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -716,7 +828,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -741,7 +857,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -766,7 +886,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -791,7 +915,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -816,7 +944,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -843,7 +975,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -868,7 +1004,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -893,7 +1033,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -918,7 +1062,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -943,7 +1091,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -968,7 +1120,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -993,7 +1149,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -1018,7 +1178,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1043,7 +1207,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1068,7 +1236,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1093,7 +1265,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1120,7 +1296,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1145,7 +1325,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1170,7 +1354,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1195,7 +1383,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1220,7 +1412,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1245,7 +1441,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1270,7 +1470,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -1295,7 +1499,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1320,7 +1528,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1345,7 +1557,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1370,7 +1586,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1397,7 +1617,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1422,7 +1646,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1447,7 +1675,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1472,7 +1704,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1497,7 +1733,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1522,7 +1762,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1547,7 +1791,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -1572,7 +1820,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1597,7 +1849,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1622,7 +1878,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1647,7 +1907,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1674,7 +1938,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1699,7 +1967,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1724,7 +1996,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1749,7 +2025,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1774,7 +2054,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1799,7 +2083,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1824,7 +2112,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -1849,7 +2141,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1874,7 +2170,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -1899,7 +2199,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1924,7 +2228,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -1951,7 +2259,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -1976,7 +2288,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2001,7 +2317,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2026,7 +2346,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2051,7 +2375,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2076,7 +2404,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2101,7 +2433,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -2126,7 +2462,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2151,7 +2491,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2176,7 +2520,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2201,7 +2549,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2228,7 +2580,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2253,7 +2609,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2278,7 +2638,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2303,7 +2667,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2328,7 +2696,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2353,7 +2725,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2378,7 +2754,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -2403,7 +2783,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2428,7 +2812,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -2453,7 +2841,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -2478,7 +2870,11 @@
         "version": "4.4.2",
         "release": "0ubuntu0.22.04.1"
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -2489,6 +2885,188 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2022-3964 - libavfilter7, libswscale5 and 7 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "body-parser": [
+    {
+      "description": "body-parser is Node.js body parsing middleware. body-parser <1.20.3 is vulnerable to denial of service when url encoding is enabled. A malicious actor using a specially crafted payload could flood the server with a large number of requests, resulting in denial of service. This issue is patched in 1.20.3.",
+      "vulnerability_id": "CVE-2024-45590",
+      "name": "CVE-2024-45590",
+      "package_name": "body-parser",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "body-parser",
+        "package_manager": "NODE",
+        "version": "1.20.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45590",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45590 - body-parser, body-parser",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "body-parser is Node.js body parsing middleware. body-parser <1.20.3 is vulnerable to denial of service when url encoding is enabled. A malicious actor using a specially crafted payload could flood the server with a large number of requests, resulting in denial of service. This issue is patched in 1.20.3.",
+      "vulnerability_id": "CVE-2024-45590",
+      "name": "CVE-2024-45590",
+      "package_name": "body-parser",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "body-parser",
+        "package_manager": "NODE",
+        "version": "1.20.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45590",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45590 - body-parser, body-parser",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "mermaid": [
+    {
+      "description": "The following bundled files within the Mermaid NPM package contain a bundled version of DOMPurify that is vulnerable to https://github.com/cure53/DOMPurify/security/advisories/GHSA-mmhx-hmjr-r674, potentially resulting in an XSS attack.\n\nThis affects the built:\n\n- `dist/mermaid.min.js` - `dist/mermaid.js` - `dist/mermaid.esm.mjs` - `dist/mermaid.esm.min.mjs`\n\nThis will also affect users that use the above files via a CDN link, e.g. `https://cdn.jsdelivr.net/npm/mermaid@10.9.2/dist/mermaid.min.js`\n\n**Users that use the default NPM export of `mermaid`, e.g. `import mermaid from 'mermaid'`, or the `dist/mermaid.core.mjs` file, do not use this bundled version of DOMPurify, and can easily update using their package manager with something like `npm audit fix`.**\n\n### Patches\n\n- `develop` branch: 6c785c93166c151d27d328ddf68a13d9d65adc00 - backport to v10: 92a07ffe40aab2769dd1c3431b4eb5beac282b34",
+      "vulnerability_id": "GHSA-m4gq-x24j-jpmf",
+      "name": "GHSA-m4gq-x24j-jpmf",
+      "package_name": "mermaid",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "mermaid",
+        "package_manager": "NODE",
+        "version": "10.7.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://github.com/advisories/GHSA-m4gq-x24j-jpmf",
+      "source": "GITHUB",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "GHSA-m4gq-x24j-jpmf - mermaid",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "semver": [
+    {
+      "description": "Versions of the package semver before 7.5.2 are vulnerable to Regular Expression Denial of Service (ReDoS) via the function new Range, when untrusted user data is provided as a range.",
+      "vulnerability_id": "CVE-2022-25883",
+      "name": "CVE-2022-25883",
+      "package_name": "semver",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "semver",
+        "package_manager": "NODE",
+        "version": "7.5.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-25883",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-25883 - semver, semver",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Versions of the package semver before 7.5.2 are vulnerable to Regular Expression Denial of Service (ReDoS) via the function new Range, when untrusted user data is provided as a range.",
+      "vulnerability_id": "CVE-2022-25883",
+      "name": "CVE-2022-25883",
+      "package_name": "semver",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "semver",
+        "package_manager": "NODE",
+        "version": "7.5.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-25883",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-25883 - semver, semver",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "tough-cookie": [
+    {
+      "description": "Versions of the package tough-cookie before 4.1.3 are vulnerable to Prototype Pollution due to improper handling of Cookies when using CookieJar in rejectPublicSuffixes=false mode. This issue arises from the manner in which the objects are initialized.",
+      "vulnerability_id": "CVE-2023-26136",
+      "name": "CVE-2023-26136",
+      "package_name": "tough-cookie",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "tough-cookie",
+        "package_manager": "NODE",
+        "version": "2.5.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-26136",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-26136 - tough-cookie",
       "reason_to_ignore": "N/A"
     }
   ]

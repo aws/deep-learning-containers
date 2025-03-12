@@ -97,7 +97,7 @@ if __name__ == "__main__":
         "dlc_release_successful": dlc_release_successful,
     }
 
-    dlc_folder = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
+    dlc_folder = os.getenv("CODEPIPELINE_EXECUTION_ID")
 
     directory = os.path.join(os.sep, os.getcwd(), dlc_folder)
     if directory and not os.path.isdir(directory):
