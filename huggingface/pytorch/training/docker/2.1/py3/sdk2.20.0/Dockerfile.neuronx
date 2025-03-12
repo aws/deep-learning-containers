@@ -64,10 +64,26 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Add repository for newer Go versions
+RUN add-apt-repository ppa:longsleep/golang-backports
+
+# Update package lists and install newer Go version
 RUN apt-get update && \
-	apt-get install -y golang-1.21 && \
-	update-alternatives --install /usr/bin/go go /usr/lib/go-1.21/bin/go 1 && \
-	update-alternatives --install /usr/bin/gofmt gofmt /usr/lib/go-1.21/bin/gofmt 1
+    apt-get install -y golang-1.17 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Update alternatives to use the new Go version
+RUN update-alternatives --install /usr/bin/go go /usr/lib/go-1.17/bin/go 100 && \
+    update-alternatives --install /usr/bin/gofmt gofmt /usr/lib/go-1.17/bin/gofmt 100
+
+# Update git-lfs
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+    apt-get update && \
+    apt-get install -y git-lfs && \
+    git lfs install && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN apt-get remove -y --purge emacs emacs-common && \
 	apt-get autoremove -y
