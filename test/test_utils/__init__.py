@@ -163,6 +163,7 @@ PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
 )
+
 UL22_BASE_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning Base Neuron AMI (Ubuntu 22.04) ????????",
