@@ -117,6 +117,7 @@ RUN apt-get update \
     liblzma-dev \
     tk-dev \
     libffi-dev \
+    ffmpeg \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean

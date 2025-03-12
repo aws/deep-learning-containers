@@ -80,6 +80,7 @@ RUN apt-get update \
     libjpeg-dev \
     libpng-dev \
     libffi-dev \
+    ffmpeg \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
