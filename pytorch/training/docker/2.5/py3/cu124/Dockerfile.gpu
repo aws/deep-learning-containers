@@ -180,6 +180,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
                 --with-libfabric=${EFA_PATH} \
                 --with-cuda=${CUDA_HOME} \
                 --disable-tests \
+                --enable-platform-aws \
  && make \
  && make install \
  && rm -rf /tmp/aws-ofi-nccl \
@@ -260,8 +261,10 @@ RUN pip install --no-cache-dir opencv-python mpi4py
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -379,6 +382,7 @@ LABEL dlc_major_version="1"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
+ARG PYTHON_SHORT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -391,10 +395,16 @@ ARG TORCHTEXT_URL
 # SageMaker Profiler Binary
 ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
 
+# SageMaker DataParallel Binary
+ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.5.1/cu124/03-10-25/smdistributed_dataparallel-2.6.0-cp311-cp311-linux_x86_64.whl
+
 WORKDIR /
 
 # Install SageMaker Profiler Binary
 RUN pip install --no-cache-dir -U ${SMP_URL}
+
+# Install SM Distributed DataParallel binary
+RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -403,7 +413,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     torchtnt \
-    triton \
+    "triton<=3.1.0" \
     s3torchconnector \
     fastai \
     accelerate \
@@ -461,7 +471,14 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     seaborn \
     # pinned for sagemaker==2.233.0
     "cloudpickle==2.2.1" \
+    "numpy<2" \
  && /opt/conda/bin/mamba clean -afy
+
+# Patch pip version post-installation
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Add SageMaker DataParallel to LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

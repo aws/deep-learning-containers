@@ -312,7 +312,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     shap \
     # pinned for sagemaker==2.233.0
     "cloudpickle==2.2.1" \
+    "numpy<2" \
  && /opt/conda/bin/mamba clean -afy
+
+# Patch pip version post-installation
+RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
