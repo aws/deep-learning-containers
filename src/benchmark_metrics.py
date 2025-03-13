@@ -81,20 +81,42 @@ PYTORCH_INFERENCE_CPU_THRESHOLD = {
     ">=1.0": {
         "ResNet18": 0.08,
         "VGG13": 0.45,
-        "MobileNetV2": 0.06,
-        "GoogleNet": 0.12,
+        "MobileNet_V2": 0.06,
+        "GoogLeNet": 0.12,
         "DenseNet121": 0.15,
-        "InceptionV3": 0.25,
+        "Inception_V3": 0.25,
+        "ResNet50": 0.20,
+        "ViT_B_16": 0.25,
+        "Bert_128": 0.15,
+        "Bert_256": 0.15,
+        "Roberta_128": 0.15,
+        "Roberta_256": 0.15,
+        "DistilBert_128": 0.09,
+        "DistilBert_256": 0.09,
+        "ASR": 0.15,
+        "All-MPNet_128": 0.30,
+        "All-MPNet_256": 0.30,
     }
 }
 PYTORCH_INFERENCE_GPU_THRESHOLD = {
     ">=1.0": {
         "ResNet18": 0.0075,
         "VGG13": 0.004,
-        "MobileNetV2": 0.013,
-        "GoogleNet": 0.018,
+        "MobileNet_V2": 0.013,
+        "GoogLeNet": 0.018,
         "DenseNet121": 0.04,
-        "InceptionV3": 0.03,
+        "Inception_V3": 0.03,
+        "ResNet50": 0.01,
+        "ViT_B_16": 0.02,
+        "Bert_128": 0.02,
+        "Bert_256": 0.02,
+        "Roberta_128": 0.02,
+        "Roberta_256": 0.02,
+        "DistilBert_128": 0.01,
+        "DistilBert_256": 0.01,
+        "ASR": 0.02,
+        "All-MPNet_128": 0.02,
+        "All-MPNet_256": 0.03,
     }
 }
 

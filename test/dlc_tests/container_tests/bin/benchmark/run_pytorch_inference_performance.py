@@ -5,45 +5,48 @@ import numpy as np
 import time
 import torch
 import torchvision
+from transformers import BertModel, RobertaModel, DistilBertModel, Wav2Vec2Model, AutoModel
 
-# Dictionary of list with model definition and sample input
-# models = {'ResNet18': [torchvision.models.resnet18, torch.rand(1,3,224,224)],
-#      'VGG13': [torchvision.models.vgg13, torch.rand(1,3,224,224)],
-#      'MobileNetV2': [torchvision.models.mobilenet_v2, torch.rand(1,3,224,224)],
-#      'GoogleNet': [torchvision.models.googlenet, torch.rand(1,3,224,224)],
-#      'DenseNet121': [torchvision.models.densenet121, torch.rand(1,3,224,224)],
-#      'InceptionV3': [torchvision.models.inception_v3, torch.rand(1,3,299,299)],
-#      'DeepLabV3_ResNet50': [torchvision.models.segmentation.deeplabv3_resnet50, torch.rand(10,3,224,224)],
-#      'FCN_ResNet50': [torchvision.models.segmentation.fcn_resnet50, torch.rand(10,3,224,224)]}
+# Dictionary of list with model definition and sample input tensor
+# Simulate input (do not use tokenlizer) and run one forward pass for each iteration
 models = {
     "ResNet18": [torchvision.models.resnet18, torch.rand(1, 3, 224, 224)],
     "VGG13": [torchvision.models.vgg13, torch.rand(1, 3, 224, 224)],
-    "MobileNetV2": [torchvision.models.mobilenet_v2, torch.rand(1, 3, 224, 224)],
-    "GoogleNet": [torchvision.models.googlenet, torch.rand(1, 3, 224, 224)],
+    "MobileNet_V2": [torchvision.models.mobilenet_v2, torch.rand(1, 3, 224, 224)],
+    "GoogLeNet": [torchvision.models.googlenet, torch.rand(1, 3, 224, 224)],
     "DenseNet121": [torchvision.models.densenet121, torch.rand(1, 3, 224, 224)],
-    "InceptionV3": [torchvision.models.inception_v3, torch.rand(1, 3, 299, 299)],
-}
-
-
-# Bert, Roberta, distilBert, ResNet50, VisionTransformers, ASR, embedding models like all-mpnet
-# input sequence lengths: 4 tokens to 256 tokens in some increments, may 4, 16, 32, 64. 128 , 256
-
-# models["ResNet50"] = [torchvision.models.resnet50, torch.rand(1, 3, 224, 224)]
-# models["VisionTransformer"] = [
-#     torchvision.models.vision_transformer.vit_b_16,
-#     torch.rand(1, 3, 224, 224),
-# ]
-
-
-from transformers import BertModel, RobertaModel, DistilBertModel, Wav2Vec2Model
-from sentence_transformers import SentenceTransformer
-
-models = {
-    "Bert": [BertModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
-    "Roberta": [RobertaModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
-    "DistilBert": [DistilBertModel.from_pretrained, lambda b: torch.randint(0, 1000, (b, 4))],
-    "ASR": [Wav2Vec2Model.from_pretrained, lambda b: torch.rand(b, 16000)],  # 1 second of audio at 16kHz
-    "All-MPNet": [lambda: SentenceTransformer('all-mpnet-base-v2'), lambda b: ["This is a test sentence"] * b],
+    "Inception_V3": [torchvision.models.inception_v3, torch.rand(1, 3, 299, 299)],
+    "ResNet50": [torchvision.models.resnet50, torch.rand(1, 3, 224, 224)],
+    "ViT_B_16": [torchvision.models.vision_transformer.vit_b_16, torch.rand(1, 3, 224, 224)],
+    # input (0, vocab_size, (batch_size, seq_length))
+    "Bert_128": [BertModel.from_pretrained("bert-base-uncased"), torch.randint(0, 30522, (1, 128))],
+    "Bert_256": [BertModel.from_pretrained("bert-base-uncased"), torch.randint(0, 30522, (1, 256))],
+    "Roberta_128": [
+        RobertaModel.from_pretrained("roberta-base"),
+        torch.randint(0, 50265, (1, 128)),
+    ],
+    "Roberta_256": [
+        RobertaModel.from_pretrained("roberta-base"),
+        torch.randint(0, 50265, (1, 256)),
+    ],
+    "DistilBert_128": [
+        DistilBertModel.from_pretrained("distilbert-base-uncased"),
+        torch.randint(0, 30522, (1, 128)),
+    ],
+    "DistilBert_256": [
+        DistilBertModel.from_pretrained("distilbert-base-uncased"),
+        torch.randint(0, 30522, (1, 256)),
+    ],
+    "All-MPNet_128": [
+        AutoModel.from_pretrained("sentence-transformers/all-mpnet-base-v2"),
+        torch.randint(0, 30522, (1, 128)),
+    ],
+    "All-MPNet_256": [
+        AutoModel.from_pretrained("sentence-transformers/all-mpnet-base-v2"),
+        torch.randint(0, 30522, (1, 256)),
+    ],
+    #  Shape: (batch_size, num_samples), num_samples = sample_rate(16kHz audio)* duration(1 seconds)
+    "ASR": [Wav2Vec2Model.from_pretrained("facebook/wav2vec2-base-960h"), torch.rand(1, 16000)],
 }
 
 
@@ -56,12 +59,24 @@ def get_device(is_gpu):
 
 
 def run_inference(model_name, iterations, is_gpu):
-    model_class, input_tensor = models[model_name]
     device = get_device(is_gpu)
-    # resnet50(pretrained=True)  # deprecated
-    # model = model_class(pretrained=True)
-    pretrained_weights = f"{model_name}_Weights.DEFAULT"
-    model = model_class(pretrained_weights)
+    if model_name in [
+        "Bert_128",
+        "Roberta_128",
+        "DistilBert_128",
+        "Bert_256",
+        "Roberta_256",
+        "DistilBert_256",
+        "ASR",
+        "All-MPNet_128",
+        "All-MPNet_256",
+    ]:
+        model, input_tensor = models[model_name]
+    else:
+        model_class, input_tensor = models[model_name]
+        pretrained_weights = f"{model_name}_Weights.DEFAULT"
+        model = model_class(weights=pretrained_weights)
+
     model.eval()
     model = model.to(device)  # send model to target hardware
     input_tensor = input_tensor.to(device)  # send input tensor to target hardware
@@ -103,7 +118,7 @@ if __name__ == "__main__":
     if not model_name:
         for model_name in models.keys():
             run_inference(model_name, iterations, is_gpu)
+    else:
+        assert model_name in models
 
-    assert model_name in models
-
-    run_inference(model_name, iterations, is_gpu)
+        run_inference(model_name, iterations, is_gpu)

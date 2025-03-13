@@ -141,15 +141,11 @@ def ec2_performance_pytorch_inference(
         print(f"Failed to start container: {e}")
         return
 
-    # ec2_connection.run(
-    #     f"docker run {docker_runtime} -d --name {container_name}  -e OMP_NUM_THREADS=1 "
-    #     f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri} "
-    # )
-
     try:
         result = ec2_connection.run(
-            f"docker exec {container_name} python {test_cmd} 2>&1 | tee {log_file}",
-            timeout=3600,  # 1 hour timeout
+            f"docker exec {container_name} /bin/bash -c '"
+            f"pip install transformers sentence_transformers && "
+            f"python {test_cmd} 2>&1 | tee {log_file}"
         )
 
         # Check if the command was successful
@@ -171,6 +167,7 @@ def ec2_performance_pytorch_inference(
         #     f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
         # )
         ec2_connection.run(f"docker rm -f {container_name}")
+
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection,
         image_uri,
