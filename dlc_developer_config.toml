@@ -37,12 +37,12 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
-build_frameworks = ["pytorch"]
+build_frameworks = []
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = false
+build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -80,11 +80,11 @@ sagemaker_local_tests = true
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = true
 # run efa sagemaker tests
-sagemaker_efa_tests = true
+sagemaker_efa_tests = false
 # run release_candidate_integration tests
-sagemaker_rc_tests = true
+sagemaker_rc_tests = false
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = true
+sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -105,7 +105,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-5-sm.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
