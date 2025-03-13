@@ -4,7 +4,7 @@
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.18",
+    "version_specifier": "==2.7.19",
     "skip": "True"
   },
   "flash-attn": {
@@ -54,7 +54,7 @@
     "version_specifier": "<2"
   },
   "triton": {
-    "version_specifier": "<=3.1.0",
+    "version_specifier": "<=3.1.0"
   },
   "numpy": {
     "version_specifier": "<2"
