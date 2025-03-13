@@ -1,0 +1,5 @@
+{
+  "72236": "setuptools - optimum neuron uses setuptools == 69.5.1",
+  "73169": "Sentence-transformers affected versions are vulnerable to arbitrary code execution when loading PyTorch model files. The `torch.load()` function, used without the `weights_only=True` parameter, could deserialize malicious Python objects from manipulated model files. This vulnerability potentially allows attackers to execute arbitrary code on the system.",
+  "71064": "Affected versions of Requests, when making requests through a Requests `Session`, if the first request is made with `verify=False` to disable cert verification, all subsequent requests to the same host will continue to ignore cert verification regardless of changes to the value of `verify`. This behavior will continue for the lifecycle of the connection in the connection pool. Requests 2.32.0 fixes the issue, but versions 2.32.0 and 2.32.1 were yanked due to conflicts with CVE-2024-35195 mitigation."
+}
