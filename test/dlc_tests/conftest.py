@@ -779,6 +779,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
+
     conn = Connection(
         user=user,
         host=ip_address,
