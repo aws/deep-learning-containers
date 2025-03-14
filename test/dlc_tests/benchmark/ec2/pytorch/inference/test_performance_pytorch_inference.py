@@ -1,6 +1,8 @@
 import os
 import time
 import pytest
+import logging
+import sys
 
 from src.benchmark_metrics import (
     PYTORCH_INFERENCE_GPU_THRESHOLD,
@@ -20,6 +22,9 @@ from test.test_utils.ec2 import (
     post_process_inference,
     get_ec2_instance_type,
 )
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
@@ -138,7 +143,7 @@ def ec2_performance_pytorch_inference(
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri}"
         )
     except Exception as e:
-        print(f"Failed to start container: {e}")
+        LOGGER.info(f"Failed to start container: {e}")
         return
 
     try:
@@ -151,17 +156,17 @@ def ec2_performance_pytorch_inference(
 
         # Check if the command was successful
         if result.failed:
-            print(f"Command failed with exit code {result.return_code}")
-            print(f"Error output:\n{result.stderr}")
+            LOGGER.info(f"Command failed with exit code {result.return_code}")
+            LOGGER.info(f"Error output:\n{result.stderr}")
         else:
-            print("Command completed successfully")
+            LOGGER.info("Command completed successfully")
 
     except Exception as e:
-        print(f"An error occurred during test execution: {e}")
+        LOGGER.info(f"An error occurred during test execution: {e}")
 
     finally:
         # This block will run regardless of whether an exception occurred
-        print("Cleaning up...")
+        LOGGER("Cleaning up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
 
