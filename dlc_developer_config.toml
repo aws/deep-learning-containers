@@ -57,12 +57,12 @@ notify_test_failures = false
 
 [test]
 ### On by default
-sanity_tests = false
+sanity_tests = true
 security_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
+ecs_tests = true
+eks_tests = true
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
@@ -71,14 +71,14 @@ ec2_benchmark_tests = false
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = true
+ec2_tests_on_heavy_instances = false
 
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = false
+sagemaker_remote_tests = true
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
@@ -105,7 +105,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
