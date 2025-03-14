@@ -24,7 +24,8 @@ from test.test_utils.ec2 import (
 )
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
 PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
@@ -142,6 +143,7 @@ def ec2_performance_pytorch_inference(
             f"docker run {docker_runtime} -d --name {container_name} -e OMP_NUM_THREADS=1 "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri}"
         )
+        
     except Exception as e:
         LOGGER.info(f"Failed to start container: {e}")
         return
@@ -151,8 +153,10 @@ def ec2_performance_pytorch_inference(
             f"docker exec {container_name} /bin/bash -c '"
             f"pip install transformers && "
             f"python {test_cmd} "
-            f"' 2>&1 | tee {log_file}"
+            f"' 2>&1 | tee {log_file}", timeout=7200
         )
+
+        LOGGER.info(f"Run test result: {result}")
 
         # Check if the command was successful
         if result.failed:
