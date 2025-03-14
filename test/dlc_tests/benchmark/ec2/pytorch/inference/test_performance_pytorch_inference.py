@@ -144,8 +144,9 @@ def ec2_performance_pytorch_inference(
     try:
         result = ec2_connection.run(
             f"docker exec {container_name} /bin/bash -c '"
-            f"pip install transformers sentence_transformers && "
-            f"python {test_cmd} 2>&1 | tee {log_file}"
+            f"pip install transformers && "
+            f"python {test_cmd} "
+            f"' 2>&1 | tee {log_file}"
         )
 
         # Check if the command was successful
@@ -161,11 +162,7 @@ def ec2_performance_pytorch_inference(
     finally:
         # This block will run regardless of whether an exception occurred
         print("Cleaning up...")
-        # Add any cleanup code here
 
-        # ec2_connection.run(
-        #     f"docker exec {container_name} " f"python {test_cmd} " f"2>&1 | tee {log_file}"
-        # )
         ec2_connection.run(f"docker rm -f {container_name}")
 
     ec2_performance_upload_result_to_s3_and_validate(
