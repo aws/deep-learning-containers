@@ -23,6 +23,7 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
 )
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
@@ -149,6 +150,7 @@ def ec2_performance_pytorch_inference(
         return
 
     try:
+        LOGGER.info(f"Starting benchmark test on {processor} instance...")
         result = ec2_connection.run(
             f"docker exec {container_name} /bin/bash -c '"
             f"pip install transformers && "
@@ -170,7 +172,7 @@ def ec2_performance_pytorch_inference(
 
     finally:
         # This block will run regardless of whether an exception occurred
-        LOGGER("Cleaning up...")
+        LOGGER.info("Cleaning up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
 
