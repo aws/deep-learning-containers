@@ -1,0 +1,337 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.12.8
+ARG PYTHON_SHORT_VERSION=3.12
+# ARG OPEN_MPI_VERSION=4.1.7
+
+ARG CUDA_VERSION=12.6.3
+ARG CUDNN_VERSION=9.7.0.66
+ARG NCCL_VERSION=2.23.4
+ARG EFA_VERSION=1.38.0
+ARG GDRCOPY_VERSION=2.4.4
+ARG TE_VERSION=2.0
+ARG FLASH_ATTN_VERSION=2.7.3
+
+# PyTorch Binaries
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torch-2.6.0%2Bcu126-cp312-cp312-linux_aarch64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torchvision-0.21.0%2Bcu126-cp312-cp312-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torchaudio-2.6.0%2Bcu126-cp312-cp312-linux_aarch64.whl
+ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torchtext-0.18.0%2Bcu126-cp312-cp312-linux_aarch64.whl
+ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torchdata-0.10.1%2Bcu126-py3-none-any.whl
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+FROM --platform=linux/arm64 nvidia/cuda:12.6.3-base-ubuntu22.04 AS ec2
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON
+ARG PYTHON_VERSION
+ARG PYTHON_SHORT_VERSION
+# ARG OPEN_MPI_VERSION
+
+ARG CUDA_VERSION
+ARG CUDNN_VERSION
+ARG NCCL_VERSION
+ARG EFA_VERSION
+ARG GDRCOPY_VERSION
+ARG TE_VERSION
+ARG FLASH_ATTN_VERSION
+
+ARG TORCH_URL
+ARG TORCHVISION_URL
+ARG TORCHAUDIO_URL
+ARG TORCHTEXT_URL
+ARG TORCHDATA_URL
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ENV CUDA_HOME="/usr/local/cuda"
+ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/lib/aarch64-linux-gnu:${LD_LIBRARY_PATH}"
+ENV PATH="${CUDA_HOME}/bin:${PATH}"
+ENV EFA_PATH="/opt/amazon/efa"
+ENV OPEN_MPI_PATH="/opt/amazon/openmpi"
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+
+# Graviton Optimization
+ENV LRU_CACHE_CAPACITY=1024 \
+    THP_MEM_ALLOC_ENABLE=1 \
+    DNNL_DEFAULT_FPMATH_MODE=BF16
+
+ENV DLC_CONTAINER_TYPE=training
+WORKDIR /
+
+RUN apt-get update \
+&& apt-get upgrade -y \
+&& apt-get autoremove -y \
+&& apt-get clean \
+&& rm -rf /var/lib/apt/lists/*
+
+RUN apt-get install -y --no-install-recommends \
+    automake \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    wget \
+    scons \
+    unzip \
+    emacs \
+    vim \
+    git \
+    jq \
+    cuda-toolkit-12=${CUDA_VERSION}-1 \
+    # cuda-cudart-12-4 \
+    # cuda-cudart-dev-12-4 \
+    # cuda-libraries-12-4 \
+    # cuda-libraries-dev-12-4 \
+    # cuda-command-line-tools-12-4 \
+    # cuda-nvcc-12-4 \
+    # cuda-nvml-dev-12-4 \
+    # libcublas-12-4 \
+    # libcublas-dev-12-4 \
+    libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    openjdk-17-jdk \
+    openssl \
+    libssl-dev \
+    libbz2-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    llvm \
+    libncurses5-dev \
+    libncursesw5-dev \
+    xz-utils \
+    tk-dev \
+    liblzma-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libffi-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install EFA
+RUN mkdir /tmp/efa \
+&& cd /tmp/efa \
+&& curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+&& tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+&& cd aws-efa-installer \
+&& apt-get update \
+&& ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
+&& rm -rf /tmp/efa \
+&& rm -rf /var/lib/apt/lists/* \
+&& apt-get clean
+
+ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib:${EFA_PATH}/lib:${LD_LIBRARY_PATH}"
+
+# Configure Open MPI and configure NCCL parameters
+RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
+ && echo '#!/bin/bash' > ${OPEN_MPI_PATH}/bin/mpirun \
+ && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> ${OPEN_MPI_PATH}/bin/mpirun \
+ && chmod a+x ${OPEN_MPI_PATH}/bin/mpirun \
+ && echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
+ && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends openssh-client openssh-server \
+ && mkdir -p /var/run/sshd \
+ && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
+ && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Configure OpenSSH so that nodes can communicate with each other
+RUN mkdir -p /var/run/sshd \
+ && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
+
+RUN rm -rf /root/.ssh/ \
+ && mkdir -p /root/.ssh/ \
+ && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
+ && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
+ && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
+
+# Install OpenMPI
+# RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
+#  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
+#  && cd openmpi-$OPEN_MPI_VERSION \
+#  && ./configure --prefix=/home/.openmpi --with-cuda \
+#  && make all install \
+#  && cd .. \
+#  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
+#  && rm -rf openmpi-$OPEN_MPI_VERSION
+
+# install python
+RUN cd /tmp/ \
+&& wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+&& tar xzf Python-${PYTHON_VERSION}.tgz \
+&& cd Python-${PYTHON_VERSION} \
+&& ./configure --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi \
+&& make -j "$(nproc)" \
+&& make altinstall \
+&& cd .. \
+&& rm -rf Python-${PYTHON_VERSION} \
+&& rm Python-${PYTHON_VERSION}.tgz \
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
+&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
+# This installation generate a .python_history file in the root directory leads sanity check to fail
+&& rm -f /root/.python_history
+
+# Python Path
+ENV PATH="/usr/local/bin:${PATH}"
+
+# this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
+RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Install pip packages
+RUN pip install --no-cache-dir \
+    cython \
+    boto3 \
+    scipy \
+    opencv-python \
+    nvgpu \
+    numpy \
+    pyopenssl \
+    cryptography \
+    ipython \
+    parso \
+    awscli \
+    urllib3 \
+    idna \
+    tqdm \
+    requests \
+    mpi4py
+
+# Install PyTorch
+RUN pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} \
+    ${TORCHTEXT_URL} \
+    ${TORCHDATA_URL} \
+    torchtnt \
+    s3torchconnector \
+    # fastai hasn't released a version compatible with torch 2.6.0
+    # https://github.com/fastai/fastai/issues/4068
+    # fastai \
+    accelerate
+
+# Install GDRCopy
+RUN cd /tmp \
+&& git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+&& cd gdrcopy \
+&& sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+&& CUDA=${CUDA_HOME} make install \
+&& rm -rf /tmp/gdrcopy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+# preload system nccl for PyTorch to use if it is dynamically linking NCCL
+ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+
+# OSS compliance
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
+
+# add necessary certificate for aws sdk cpp download
+# RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+# add license
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+
+# add telemetry
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+# Cleanup
+RUN pip cache purge \
+ && rm -rf /tmp/tmp* \
+ && rm -iRf /root/.cache
+
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+CMD ["/bin/bash"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#
+#################################################################
+
+# FROM ec2 AS sagemaker
+
+# LABEL maintainer="Amazon AI"
+# LABEL dlc_major_version="1"
+
+# ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+# ARG PYTHON
+
+# # Cleanup
+# RUN pip cache purge
+#  && rm -rf /tmp/tmp* \
+#  && rm -iRf /root/.cache
