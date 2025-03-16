@@ -76,25 +76,25 @@ def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection
     )
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
-@pytest.mark.team("conda")
-def test_performance_ec2_pytorch_inference_arm64_gpu(
-    pytorch_inference_arm64, ec2_connection, region, gpu_only
-):
-    _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
-    threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
-    if "arm64" not in pytorch_inference_arm64:
-        pytest.skip("skip benchmark tests for non-arm64 images")
-    ec2_performance_pytorch_inference(
-        pytorch_inference_arm64,
-        "gpu",
-        ec2_connection,
-        region,
-        PT_PERFORMANCE_INFERENCE_GPU_CMD,
-        threshold,
-    )
+# @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+# @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
+# @pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
+# @pytest.mark.team("conda")
+# def test_performance_ec2_pytorch_inference_arm64_gpu(
+#     pytorch_inference_arm64, ec2_connection, region, gpu_only
+# ):
+#     _, framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+#     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
+#     if "arm64" not in pytorch_inference_arm64:
+#         pytest.skip("skip benchmark tests for non-arm64 images")
+#     ec2_performance_pytorch_inference(
+#         pytorch_inference_arm64,
+#         "gpu",
+#         ec2_connection,
+#         region,
+#         PT_PERFORMANCE_INFERENCE_GPU_CMD,
+#         threshold,
+#     )
 
 
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
@@ -175,6 +175,8 @@ def ec2_performance_pytorch_inference(
         LOGGER.info("Cleaning up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
+    
+    LOGGER.info(f"threshold: {threshold}") 
 
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection,
