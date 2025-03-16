@@ -1554,8 +1554,7 @@ def post_process_inference(connection, log_location, threshold):
     for line in log_content:
         if "p99" in line:
             for key in threshold.keys():
-                LOGGER.info(f"key: {key}")
-                LOGGER.info(f"line: {line}")
+                LOGGER.info(f"key: {key}, line: {line}")
                 if key in line:
                     performance_number[key] = float(
                         re.search(
@@ -1563,6 +1562,7 @@ def post_process_inference(connection, log_location, threshold):
                             line,
                         ).group("result")
                     )
+                    LOGGER.info(f"key: {key}, performance_number: {performance_number[key]}")
                     break
     return performance_number
 

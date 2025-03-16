@@ -155,7 +155,7 @@ def ec2_performance_pytorch_inference(
             f"docker exec {container_name} /bin/bash -c '"
             f"pip install transformers && "
             f"python {test_cmd} "
-            f"' 2>&1 | tee {log_file}", timeout=7200
+            f"' 2>&1 | tee {log_file}", timeout=3600
         )
 
         LOGGER.info(f"Run test result: {result}")
