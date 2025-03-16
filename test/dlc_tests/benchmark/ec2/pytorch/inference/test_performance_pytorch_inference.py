@@ -144,21 +144,29 @@ def ec2_performance_pytorch_inference(
             f"docker run {docker_runtime} -d --name {container_name} -e OMP_NUM_THREADS=1 "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri}"
         )
-        
+
     except Exception as e:
         LOGGER.info(f"Failed to start container: {e}")
+        return
+
+    try:
+        ec2_connection.run(f"docker exec {container_name} pip install transformers", warn=True)
+
+    except Exception as e:
+        LOGGER.info(f"Failed to install transformers: {e}")
         return
 
     try:
         LOGGER.info(f"Starting benchmark test on {processor} instance...")
         result = ec2_connection.run(
             f"docker exec {container_name} /bin/bash -c '"
-            f"pip install transformers && "
-            f"python {test_cmd} "
-            f"' 2>&1 | tee {log_file}", timeout=3600
+            f"strace -f -o /tmp/strace_output.log python {test_cmd} "
+            f"2>&1 | tee {log_file}'",
+            timeout=3600,
+            warn=True,
         )
 
-        LOGGER.info(f"Run test result: {result}")
+        LOGGER.info(f"Run test result: {result.stdout}, {result.stderr}")
 
         # Check if the command was successful
         if result.failed:
@@ -166,17 +174,18 @@ def ec2_performance_pytorch_inference(
             LOGGER.info(f"Error output:\n{result.stderr}")
         else:
             LOGGER.info("Command completed successfully")
+        sys.stdout.flush()
 
     except Exception as e:
         LOGGER.info(f"An error occurred during test execution: {e}")
 
     finally:
         # This block will run regardless of whether an exception occurred
-        LOGGER.info("Cleaning up...")
+        LOGGER.info("Cleaning {processor} up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
-    
-    LOGGER.info(f"threshold: {threshold}") 
+
+    LOGGER.info(f"threshold: {threshold}")
 
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection,
