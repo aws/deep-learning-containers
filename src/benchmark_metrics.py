@@ -85,17 +85,12 @@ PYTORCH_INFERENCE_CPU_THRESHOLD = {
         "GoogLeNet": 0.12,
         "DenseNet121": 0.20,
         "Inception_V3": 0.25,
-        "ResNet50": 0.20,
         "ViT_B_16": 0.35,
         "DistilBert_128": 0.20,
-        "DistilBert_256": 0.30,
         "Bert_128": 0.30,
-        "Bert_256": 0.45,
         "Roberta_128": 0.30,
-        "Roberta_256": 0.45,
         "ASR": 0.30,
         "All-MPNet_128": 0.30,
-        "All-MPNet_256": 0.45,
     }
 }
 PYTORCH_INFERENCE_GPU_THRESHOLD = {

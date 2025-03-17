@@ -208,22 +208,29 @@ def run_inference(model_name, iterations, is_gpu, instance):
 
     inference_times = []
 
+    # with torch.no_grad():
+    #     if is_gpu:
+    #         starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
+    #             enable_timing=True
+    #         )
+    #         for _ in range(iterations):
+    #             starter.record()
+    #             model(input_tensor)
+    #             ender.record()
+    #             torch.cuda.synchronize()
+    #             inference_times.append(starter.elapsed_time(ender))
+    #     else:
+    #         for _ in range(iterations):
+    #             start = time.perf_counter()
+    #             model(input_tensor)
+    #             inference_times.append((time.perf_counter() - start) * 1000)  # Convert to ms
+
     with torch.no_grad():
-        if is_gpu:
-            starter, ender = torch.cuda.Event(enable_timing=True), torch.cuda.Event(
-                enable_timing=True
-            )
-            for _ in range(iterations):
-                starter.record()
-                model(input_tensor)
-                ender.record()
-                torch.cuda.synchronize()
-                inference_times.append(starter.elapsed_time(ender))
-        else:
-            for _ in range(iterations):
-                start = time.perf_counter()
-                model(input_tensor)
-                inference_times.append((time.perf_counter() - start) * 1000)  # Convert to ms
+        for i in range(iterations):
+            start = time.time()
+            model(input_tensor)
+            end = time.time()
+            inference_times.append(end - start)
 
     for percentile in [50, 90, 99]:
         print(

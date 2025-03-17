@@ -165,7 +165,7 @@ def ec2_performance_pytorch_inference(
         return
 
     try:
-        LOGGER.info(f"Starting benchmark test on {processor} instance...")
+        LOGGER.info(f"Starting benchmark test on {processor} {ec2_instance_type} instance...")
         result = ec2_connection.run(
             f"docker exec {container_name} python {test_cmd} --instance {ec2_instance_type} 2>&1 | tee {log_file}",
             timeout=3600,
@@ -187,7 +187,7 @@ def ec2_performance_pytorch_inference(
 
     finally:
         # This block will run regardless of whether an exception occurred
-        LOGGER.info(f"Cleaning {processor} up...")
+        LOGGER.info(f"Cleaning {processor} {ec2_instance_type} up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
 
@@ -199,4 +199,5 @@ def ec2_performance_pytorch_inference(
         threshold,
         post_process_inference,
         log_file,
+        ec2_instance_type,
     )
