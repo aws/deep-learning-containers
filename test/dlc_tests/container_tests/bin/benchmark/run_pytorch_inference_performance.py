@@ -58,7 +58,7 @@ def get_device(is_gpu):
     return torch.device("cpu")
 
 
-def run_inference(model_name, iterations, is_gpu):
+def run_inference(model_name, iterations, is_gpu, instance):
     device = get_device(is_gpu)
     if model_name in [
         "Bert_128",
@@ -93,8 +93,8 @@ def run_inference(model_name, iterations, is_gpu):
 
     for percentile in [50, 90, 99]:
         print(
-            "{}: p{} Latency: {} msec".format(
-                model_name, percentile, np.percentile(inference_times, percentile)
+            "{}: {}: p{} Latency: {} msec".format(
+                instance, model_name, percentile, np.percentile(inference_times, percentile)
             )
         )
 
@@ -109,16 +109,18 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument("--model", "-m", help="Which model to run", type=str, required=False)
+    parser.add_argument("--instance", "-m", help="Which instance to run", type=str, required=True)
     parser.add_argument("--gpu", "-gpu", help="Toggle if running on GPU", action="store_true")
     args = vars(parser.parse_args())
     iterations = args["iterations"]
     model_name = args["model"]
     is_gpu = args["gpu"]
+    instance = args["instance"]
 
     if not model_name:
         for model_name in models.keys():
-            run_inference(model_name, iterations, is_gpu)
+            run_inference(model_name, iterations, is_gpu, instance)
     else:
         assert model_name in models
 
-        run_inference(model_name, iterations, is_gpu)
+        run_inference(model_name, iterations, is_gpu, instance)
