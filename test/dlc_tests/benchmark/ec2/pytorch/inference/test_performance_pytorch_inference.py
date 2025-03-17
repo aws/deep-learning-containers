@@ -144,16 +144,14 @@ def ec2_performance_pytorch_inference(
             f"docker run {docker_runtime} -d --name {container_name} -e OMP_NUM_THREADS=1 "
             f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} {image_uri}"
         )
-        
+
     except Exception as e:
         LOGGER.info(f"Failed to start container: {e}")
         return
-    
+
     try:
-        ec2_connection.run(
-            f"docker exec {container_name} pip install transformers", warn=True
-        )
-        
+        ec2_connection.run(f"docker exec {container_name} pip install transformers", warn=True)
+
     except Exception as e:
         LOGGER.info(f"Failed to install transformers: {e}")
         return
@@ -161,8 +159,9 @@ def ec2_performance_pytorch_inference(
     try:
         LOGGER.info(f"Starting benchmark test on {processor} instance...")
         result = ec2_connection.run(
-            f"docker exec {container_name} strace -f python {test_cmd} "
-            f"' 2>&1 | tee {log_file}", timeout=3600, warn=True
+            f"docker exec {container_name} python {test_cmd} 2>&1 | tee {log_file}",
+            timeout=3600,
+            warn=True,
         )
 
         LOGGER.info(f"Run test result: {result.stdout}, {result.stderr}")
@@ -183,8 +182,8 @@ def ec2_performance_pytorch_inference(
         LOGGER.info("Cleaning {processor} up...")
 
         ec2_connection.run(f"docker rm -f {container_name}")
-    
-    LOGGER.info(f"threshold: {threshold}") 
+
+    LOGGER.info(f"threshold: {threshold}")
 
     ec2_performance_upload_result_to_s3_and_validate(
         ec2_connection,
