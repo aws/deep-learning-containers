@@ -1548,6 +1548,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
         )
 
 
+#! TODO - Add instance type support for Tensorflow (Used by TF and PT)
 def post_process_inference(connection, log_location, threshold):
     log_content = connection.run(f"cat {log_location}").stdout.split("\n")
     performance_number = {}
@@ -1557,7 +1558,7 @@ def post_process_inference(connection, log_location, threshold):
                 if key in line:
                     performance_number[key] = float(
                         re.search(
-                            r"(p99[ ]*(Latency)?[ ]*:[ ]*)(?P<result>[0-9]+\.?[0-9]+)",
+                            r"((?P<instance_type>\S+):[ ]*)?(?P<model>\S+):[ ]*p99[ ]*(Latency)?[ ]*:[ ]*(?P<result>[0-9]+\.?[0-9]+)",
                             line,
                         ).group("result")
                     )
