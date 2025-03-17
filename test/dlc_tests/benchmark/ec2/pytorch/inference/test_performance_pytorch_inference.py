@@ -47,7 +47,9 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["g4dn.4xlarge", "g5.4xlarge"]
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
 @pytest.mark.team("conda")
-def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type):
+def test_performance_ec2_pytorch_inference_gpu(
+    pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_GPU_THRESHOLD)
     ec2_performance_pytorch_inference(
@@ -64,7 +66,9 @@ def test_performance_ec2_pytorch_inference_gpu(pytorch_inference, ec2_connection
 @pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
-def test_performance_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cpu_only, ec2_instance_type):
+def test_performance_ec2_pytorch_inference_cpu(
+    pytorch_inference, ec2_connection, region, cpu_only, ec2_instance_type
+):
     _, framework_version = get_framework_and_version_from_tag(pytorch_inference)
     threshold = get_threshold_for_image(framework_version, PYTORCH_INFERENCE_CPU_THRESHOLD)
     ec2_performance_pytorch_inference(

@@ -109,7 +109,7 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument("--model", "-m", help="Which model to run", type=str, required=False)
-    parser.add_argument("--instance", "-m", help="Which instance to run", type=str, required=True)
+    parser.add_argument("--instance", help="Which instance to run", type=str, required=True)
     parser.add_argument("--gpu", "-gpu", help="Toggle if running on GPU", action="store_true")
     args = vars(parser.parse_args())
     iterations = args["iterations"]
