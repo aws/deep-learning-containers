@@ -58,5 +58,15 @@
          ],
          "advisory": "Being used by DLC team to handle mismatches with upstream versions."
       }
+   ],
+   "libfreetype6": [
+      {
+         "cve": "CVE-2025-27363",
+         "id": "ECR-SCAN_CVE-2025-27363",
+         "specs": [
+            "<=2.13.0"
+         ],
+         "advisory": "An out of bounds write exists in FreeType versions 2.13.0 and below when attempting to parse font subglyph structures related to TrueType GX and variable font files."
+      }
    ]
 }
