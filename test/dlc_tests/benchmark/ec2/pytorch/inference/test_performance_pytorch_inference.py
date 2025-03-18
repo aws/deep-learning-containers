@@ -34,20 +34,20 @@ PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
 )
 PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 500 "
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
-
+# Use the original p3.16xlarge instance, consider if use single gpu instance like g4dn.4xlarge, g5.4xlarge
+PT_EC2_GPU_INSTANCE_TYPE = ["p3.16xlarge"]
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.18xlarge", processor="cpu")
 # c6g.4xlarge c6g.8xlarge reaches the 100% cpu usage for the benchmark when run VGG13 model
 PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c7g.4xlarge", "c8g.4xlarge", "m7g.4xlarge", "r8g.4xlarge"]
 PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="arm64"
 )
-PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["g4dn.4xlarge", "g5.4xlarge"]
 
 
 @pytest.mark.model(
     "VGG13, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, ResNet18, ResNet50, ViT_B_16, Bert_128, Bert_256, Roberta_128, Roberta_256, DistilBert_128, DistilBert_256, All-MPNet_128, All-MPNet_256, ASR"
 )
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_gpu(
     pytorch_inference, ec2_connection, region, gpu_only, ec2_instance_type
