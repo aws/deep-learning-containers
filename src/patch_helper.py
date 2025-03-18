@@ -453,10 +453,11 @@ def verify_artifact_contents_for_patch_builds(
     :param miscellaneous_scripts_path: str, Path of the miscellaneous_scripts folder that is present on Github.
     :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
     """
+    autopatch_size_limit = 1
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.7
+        folder_size_in_megabytes <= autopatch_size_limit
     ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
     assert check_if_folder_contents_are_valid(
@@ -489,7 +490,7 @@ def verify_artifact_contents_for_patch_builds(
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.7
+        folder_size_in_megabytes <= autopatch_size_limit
     ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
 
