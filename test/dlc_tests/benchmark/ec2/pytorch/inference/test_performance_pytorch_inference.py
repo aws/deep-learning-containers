@@ -44,7 +44,9 @@ PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
 PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["g4dn.4xlarge", "g5.4xlarge"]
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.model(
+    "VGG13, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, ResNet18, ResNet50, ViT_B_16, Bert_128, Bert_256, Roberta_128, Roberta_256, DistilBert_128, DistilBert_256, All-MPNet_128, All-MPNet_256, ASR"
+)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPES, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_gpu(
@@ -63,7 +65,9 @@ def test_performance_ec2_pytorch_inference_gpu(
     )
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.model(
+    "ResNet18, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, Bert_128, Roberta_128, DistilBert_128, All-MPNet_128, ASR"
+)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_cpu(
@@ -82,7 +86,9 @@ def test_performance_ec2_pytorch_inference_cpu(
     )
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.model(
+    "VGG13, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, ResNet18, ResNet50, ViT_B_16, Bert_128, Bert_256, Roberta_128, Roberta_256, DistilBert_128, DistilBert_256, All-MPNet_128, All-MPNet_256, ASR"
+)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
@@ -104,7 +110,9 @@ def test_performance_ec2_pytorch_inference_arm64_gpu(
     )
 
 
-@pytest.mark.model("resnet18, VGG13, MobileNetV2, GoogleNet, DenseNet121, InceptionV3")
+@pytest.mark.model(
+    "ResNet18, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, Bert_128, Roberta_128, DistilBert_128, All-MPNet_128, ASR"
+)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
 @pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
@@ -171,8 +179,6 @@ def ec2_performance_pytorch_inference(
             timeout=3600,
             warn=True,
         )
-
-        # LOGGER.info(f"Run test result: {result.stdout}, {result.stderr}")
 
         # Check if the command was successful
         if result.failed:
