@@ -1,0 +1,61 @@
+{
+  "accelerate": {
+    "version_specifier": "==1.4.0",
+    "skip": "True"
+  },
+  "flash-attn": {
+    "version_specifier": "==2.7.3",
+    "skip": "True"
+  },
+  "transformer-engine": {
+    "version_specifier": "==2.0.0+e5cc6c2",
+    "skip": "True"
+  },
+  "s3torchconnector": {
+    "version_specifier": "==1.3.2",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.6.0+cu126",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu126",
+    "skip": "True"
+  },
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
+    "skip": "True"
+  },
+  "torchvision": {
+    "version_specifier": "==0.21.0+cu126",
+    "skip": "True"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.0"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
+  "urllib3": {
+    "version_specifier": "<2"
+  },
+  "awscli": {
+    "version_specifier": "<2"
+  },
+  "sagemaker": {
+    "version_specifier": ">=2,<3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "<1"
+  },
+  "cloudpickle": {
+    "version_specifier": ">=2.2.1"
+  }
+}
