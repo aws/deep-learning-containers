@@ -1,10 +1,10 @@
 {
   "accelerate": {
-    "version_specifier": "==1.1.1",
+    "version_specifier": "==1.5.2",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.18",
+    "version_specifier": "==2.7.19",
     "skip": "True"
   },
   "flash-attn": {
@@ -16,7 +16,7 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.2.6",
+    "version_specifier": "==1.3.2",
     "skip": "True"
   },
   "torchaudio": {
@@ -52,6 +52,9 @@
   },
   "awscli": {
     "version_specifier": "<2"
+  },
+  "triton": {
+    "version_specifier": "<=3.1.0"
   },
   "numpy": {
     "version_specifier": "<2"
