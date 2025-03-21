@@ -79,13 +79,15 @@ ENV LRU_CACHE_CAPACITY=1024 \
 ENV DLC_CONTAINER_TYPE=training
 WORKDIR /
 
-RUN apt-get update \
-&& apt-get upgrade -y \
-&& apt-get autoremove -y \
-&& apt-get clean \
-&& rm -rf /var/lib/apt/lists/*
+# RUN apt-get update \
+# && apt-get upgrade -y \
+# && apt-get autoremove -y \
+# && apt-get clean \
+# && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
     automake \
     build-essential \
     ca-certificates \
