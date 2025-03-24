@@ -204,6 +204,8 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
+            LOGGER.info(line) ###sally
+            # print(line) ###sally
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
