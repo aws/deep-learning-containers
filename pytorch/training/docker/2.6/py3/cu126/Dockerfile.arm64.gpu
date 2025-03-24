@@ -219,7 +219,6 @@ RUN pip install --no-cache-dir \
     boto3 \
     scipy \
     opencv-python \
-    nvgpu \
     numpy \
     pyopenssl \
     cryptography \
