@@ -1,33 +1,4 @@
 {
-    "pyarrow": [{
-        "description": "Deserialization of untrusted data in IPC and Parquet readers in the Apache Arrow R package versions\u00a04.0.0 through 16.1.0 allows arbitrary code execution. An application is vulnerable if it reads Arrow IPC, Feather or Parquet data from untrusted sources (for example, user-supplied input files). This vulnerability only affects the arrow R package, not other Apache Arrow implementations or bindings unless those bindings are specifically used via the R package (for example, an R application that embeds a Python interpreter and uses PyArrow to read files from untrusted sources is still vulnerable if the arrow R package is an affected version). It is recommended that users of the arrow R package upgrade to 17.0.0 or later. Similarly, it is recommended that downstream libraries upgrade their dependency requirements to arrow 17.0.0 or later. If using an affected version of the package, untrusted data can read into a Table and its internal to_data_frame() method can be used as a workaround (e.g., read_parquet(..., as_",
-        "vulnerability_id": "CVE-2024-52338",
-        "name": "CVE-2024-52338",
-        "package_name": "pyarrow",
-        "package_details": {
-            "file_path": "/opt/conda/lib/python3.11/site-packages/pyarrow-15.0.2-py3.11.egg-info/PKG-INFO",
-            "name": "pyarrow",
-            "package_manager": "PYTHON",
-            "version": "15.0.2",
-            "release": null
-        },
-        "remediation": {
-            "recommendation": {
-                "text": "None Provided"
-            }
-        },
-        "cvss_v3_score": 9.8,
-        "cvss_v30_score": 0.0,
-        "cvss_v31_score": 9.8,
-        "cvss_v2_score": 0.0,
-        "cvss_v3_severity": "CRITICAL",
-        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-52338",
-        "source": "NVD",
-        "severity": "CRITICAL",
-        "status": "ACTIVE",
-        "title": "CVE-2024-52338 - pyarrow",
-        "reason_to_ignore": "N/A"
-    }],
     "torch": [{
         "description": "A deserialization vulnerability exists in the Pytorch RPC framework (torch.distributed.rpc) in pytorch/pytorch versions <=2.3.1. The vulnerability arises from the lack of security verification during the deserialization process of PythonUDF objects in pytorch/torch/distributed/rpc/internal.py. This flaw allows an attacker to execute arbitrary code remotely by sending a malicious serialized PythonUDF object, leading to remote code execution (RCE) on the master node.",
         "vulnerability_id": "CVE-2024-7804",
