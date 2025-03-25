@@ -1,4 +1,33 @@
 {
+    "torch": [{
+        "description": "A deserialization vulnerability exists in the Pytorch RPC framework (torch.distributed.rpc) in pytorch/pytorch versions <=2.3.1. The vulnerability arises from the lack of security verification during the deserialization process of PythonUDF objects in pytorch/torch/distributed/rpc/internal.py. This flaw allows an attacker to execute arbitrary code remotely by sending a malicious serialized PythonUDF object, leading to remote code execution (RCE) on the master node.",
+        "vulnerability_id": "CVE-2024-7804",
+        "name": "CVE-2024-7804",
+        "package_name": "torch",
+        "package_details": {
+            "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.3.0-py3.11.egg-info/PKG-INFO",
+            "name": "torch",
+            "package_manager": "PYTHON",
+            "version": "2.3.0",
+            "release": null
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 9.8,
+        "cvss_v30_score": 9.8,
+        "cvss_v31_score": 0.0,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "CRITICAL",
+        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-7804",
+        "source": "NVD",
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-2024-7804 - torch",
+        "reason_to_ignore": "N/A"
+    }],
     "linux": [
         {
             "description": " In the Linux kernel, the following vulnerability has been resolved: netfilter: nf_tables: Fix potential data-race in __nft_expr_type_get() nft_unregister_expr() can concurrent with __nft_expr_type_get(), and there is not any protection when iterate over nf_tables_expressions list in __nft_expr_type_get(). Therefore, there is potential data-race of nf_tables_expressions list entry. Use list_for_each_entry_rcu() to iterate over nf_tables_expressions list in __nft_expr_type_get(), and use rcu_read_lock() in the caller nft_expr_type_get() to protect the entire type query process.",
