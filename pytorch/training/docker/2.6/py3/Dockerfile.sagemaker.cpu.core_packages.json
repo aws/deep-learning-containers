@@ -1,18 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==1.5.1",
-    "skip": "True"
-  },
-  "fastai": {
-    "version_specifier": "==2.7.19",
-    "skip": "True"
-  },
-  "flash-attn": {
-    "version_specifier": "==2.6.3",
-    "skip": "True"
-  },
-  "transformer-engine": {
-    "version_specifier": "==1.11.0+fc03478",
+    "version_specifier": "==1.4.0",
     "skip": "True"
   },
   "s3torchconnector": {
@@ -20,11 +8,15 @@
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.5.1+cu124",
+    "version_specifier": "==2.6.0+cpu",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.18.0+cu124",
+    "version_specifier": "==0.18.0+cpu",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.10.1+cpu",
     "skip": "True"
   },
   "torchtnt": {
@@ -32,7 +24,7 @@
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.20.1+cu124",
+    "version_specifier": "==0.21.0+cpu",
     "skip": "True"
   },
   "idna": {
@@ -53,12 +45,6 @@
   "awscli": {
     "version_specifier": "<2"
   },
-  "triton": {
-    "version_specifier": "<=3.1.0"
-  },
-  "numpy": {
-    "version_specifier": "<2"
-  },
   "sagemaker": {
     "version_specifier": ">=2,<3"
   },
@@ -66,6 +52,6 @@
     "version_specifier": "<1"
   },
   "cloudpickle": {
-    "version_specifier": "==2.2.1"
+    "version_specifier": ">=2.2.1"
   }
 }

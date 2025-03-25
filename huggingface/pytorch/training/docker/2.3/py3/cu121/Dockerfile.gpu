@@ -49,8 +49,8 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev \
- && apt install -y git git-lfs \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev git-lfs \
+ && apt install -y git \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
