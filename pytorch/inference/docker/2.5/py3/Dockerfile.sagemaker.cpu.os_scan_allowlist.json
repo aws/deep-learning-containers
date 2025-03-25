@@ -1,0 +1,33 @@
+{
+  "libfreetype6": [
+    {
+      "description": "An out of bounds write exists in FreeType versions 2.13.0 and below when attempting to parse font subglyph structures related to TrueType GX and variable font files. The vulnerable code assigns a signed short value to an unsigned long and then adds a static value causing it to wrap around and allocate too small of a heap buffer. The code then writes up to 6 signed long integers out of bounds relative to this buffer. This may result in arbitrary code execution. This vulnerability may have been exploited in the wild.",
+      "vulnerability_id": "CVE-2025-27363",
+      "name": "CVE-2025-27363",
+      "package_name": "libfreetype6",
+      "package_details": {
+        "file_path": null,
+        "name": "libfreetype6",
+        "package_manager": "OS",
+        "version": "2.11.1+dfsg",
+        "release": "1ubuntu0.2"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-27363.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-27363 - libfreetype6",
+      "reason_to_ignore": "N/A"
+    }
+  ]
+}
