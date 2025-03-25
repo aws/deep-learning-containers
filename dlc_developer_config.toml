@@ -11,9 +11,9 @@ trcomp_mode = false
 deep_canary_mode = false
 
 [build]
-build_frameworks = [ "_Users_bzhuofu_deep-learning-containers_pytorch",]
-build_training = true
-build_inference = false
+build_frameworks = [ "pytorch",]
+build_training = false
+build_inference = true
 do_build = true
 
 [notify]
@@ -53,7 +53,7 @@ dlc-pr-tensorflow-2-neuron-training = ""
 dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
@@ -69,6 +69,4 @@ dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
-# WARNING: Unrecognized key generated below
-dlc-pr--Users-bzhuofu-deep-learning-containers-pytorch-training = "/Users/bzhuofu/deep-learning-containers/pytorch/training/buildspec-2-3-sm.yml"
 
