@@ -193,6 +193,8 @@ class DockerImage:
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
+        ###sally
+        line_counter = 0
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -204,6 +206,10 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
+            # print the log line during build for every 50 lines
+            line_counter += 1
+            if line_counter % 50 == 0:
+                LOGGER.debug(line["stream"])
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
