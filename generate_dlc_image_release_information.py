@@ -45,6 +45,20 @@ def upload_to_S3(local_file_path, bucket_name, bucket_key):
         raise
 
 
+def check_s3_path_exists(bucket_name, file_path):
+    _s3 = boto3.client("s3")
+    try:
+        # Remove leading slash if present
+        file_path = file_path.lstrip("/")
+        # List objects in the bucket with the specified prefix
+        response = _s3.list_objects_v2(Bucket=bucket_name, Prefix=file_path, MaxKeys=1)
+        # If the path exists, the response will contain at least one object
+        return "Contents" in response
+    except ClientError as e:
+        LOGGER.error(f"Error checking S3 bucket: {e}")
+        return False
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Specify bucket name to upload release information for DLC"
@@ -74,9 +88,11 @@ if __name__ == "__main__":
     dlc_release_successful = github_publishing_metadata.get("release_successful")
     dlc_region = os.getenv("REGION")
 
-    if dlc_release_successful != "1":
-        LOGGER.error(
-            "Skipping generation of release information as the DLC release failed/skipped."
+    dlc_folder = os.getenv("CODEPIPELINE_EXECUTION_ID")
+
+    if check_s3_path_exists(dlc_artifact_bucket, dlc_folder):
+        LOGGER.info(
+            f"Build artifacts path s3://{dlc_artifact_bucket}/{dlc_folder} exists. Skipping generating release information."
         )
         sys.exit(0)
 
@@ -96,8 +112,6 @@ if __name__ == "__main__":
         "image_tags": dlc_release_information.image_tags,
         "dlc_release_successful": dlc_release_successful,
     }
-
-    dlc_folder = os.getenv("CODEPIPELINE_EXECUTION_ID")
 
     directory = os.path.join(os.sep, os.getcwd(), dlc_folder)
     if directory and not os.path.isdir(directory):
