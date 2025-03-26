@@ -12,7 +12,7 @@ deep_canary_mode = false
 
 [build]
 build_frameworks = [ "pytorch",]
-build_training = false
+build_training = true
 build_inference = true
 do_build = true
 
@@ -40,7 +40,7 @@ nightly_pr_test_mode = false
 use_scheduler = false
 
 [buildspec_override]
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-3-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 dlc-pr-huggingface-tensorflow-training = ""
@@ -53,7 +53,7 @@ dlc-pr-tensorflow-2-neuron-training = ""
 dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-ec2.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-ec2.yml",
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
