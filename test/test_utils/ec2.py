@@ -1485,7 +1485,14 @@ def execute_ec2_inference_performance_test(
 
 
 def ec2_performance_upload_result_to_s3_and_validate(
-    connection, ecr_uri, log_location, data_source, threshold, post_process, log_name
+    connection,
+    ecr_uri,
+    log_location,
+    data_source,
+    threshold,
+    post_process,
+    log_name,
+    instance_type=None,
 ):
     framework = (
         "tensorflow" if "tensorflow" in ecr_uri else "mxnet" if "mxnet" in ecr_uri else "pytorch"
@@ -1521,7 +1528,7 @@ def ec2_performance_upload_result_to_s3_and_validate(
     for k, v in performance_number.items():
         performance_statement = (
             f"{framework} {framework_version} ec2 {work_type} {processor} {py_version} "
-            f"{data_source} {k} {description}: {v} {unit}, threshold: {threshold[k]} {unit}"
+            f"{instance_type if instance_type else ''} {data_source} {k} {description}: {v} {unit}, threshold: {threshold[k]} {unit}"
         )
         connection.run(f"echo {performance_statement} | sudo tee -a {log_location}")
         LOGGER.info(f"{performance_statement}")

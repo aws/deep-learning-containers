@@ -1,5 +1,674 @@
 {
+  "go/stdlib": [
+    {
+      "description": "An attacker may cause an HTTP/2 endpoint to read arbitrary amounts of header data by sending an excessive number of CONTINUATION frames. Maintaining HPACK state requires parsing and processing all HEADERS and CONTINUATION frames on a connection. When a request's headers exceed MaxHeaderBytes, no memory is allocated to store the excess headers, but they are still parsed. This permits an attacker to cause an HTTP/2 endpoint to read arbitrary amounts of header data, all associated with a request which is going to be rejected. These headers can include Huffman-encoded data which is significantly more expensive for the receiver to decode than for an attacker to send. The fix sets a limit on the amount of excess header frames we will process before closing a connection.",
+      "vulnerability_id": "CVE-2023-45288",
+      "name": "CVE-2023-45288",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45288",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45288 - go/stdlib, golang.org/x/net",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Calling Decoder.Decode on a message which contains deeply nested structures can cause a panic due to stack exhaustion. This is a follow-up to CVE-2022-30635.",
+      "vulnerability_id": "CVE-2024-34156",
+      "name": "CVE-2024-34156",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-34156",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-34156 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The ParseAddressList function incorrectly handles comments (text within parentheses) within display names. Since this is a misalignment with conforming address parsers, it can result in different trust decisions being made by programs using different parsers.",
+      "vulnerability_id": "CVE-2024-24784",
+      "name": "CVE-2024-24784",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24784",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24784 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The net/http HTTP/1.1 client mishandled the case where a server responds to a request with an \"Expect: 100-continue\" header with a non-informational (200 or higher) status. This mishandling could leave a client connection in an invalid state, where the next request sent on the connection will fail. An attacker sending a request to a net/http/httputil.ReverseProxy proxy can exploit this mishandling to cause a denial of service by sending \"Expect: 100-continue\" requests which elicit a non-informational response from the backend. Each such request leaves the proxy with an invalid connection, and causes one subsequent request using that connection to fail.",
+      "vulnerability_id": "CVE-2024-24791",
+      "name": "CVE-2024-24791",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24791",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24791 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Calling Parse on a \"// +build\" build tag line with deeply nested expressions can cause a panic due to stack exhaustion.",
+      "vulnerability_id": "CVE-2024-34158",
+      "name": "CVE-2024-34158",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-34158",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-34158 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Not all valid JavaScript whitespace characters are considered to be whitespace. Templates containing whitespace characters outside of the character set \"\\t\\n\\f\\r\\u0020\\u2028\\u2029\" in JavaScript contexts that also contain actions may not be properly sanitized during execution.",
+      "vulnerability_id": "CVE-2023-24540",
+      "name": "CVE-2023-24540",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24540",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24540 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Calling any of the Parse functions on Go source code which contains //line directives with very large line numbers can cause an infinite loop due to integer overflow.",
+      "vulnerability_id": "CVE-2023-24537",
+      "name": "CVE-2023-24537",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24537",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24537 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Multipart form parsing can consume large amounts of CPU and memory when processing form inputs containing very large numbers of parts. This stems from several causes: 1. mime/multipart.Reader.ReadForm limits the total memory a parsed multipart form can consume. ReadForm can undercount the amount of memory consumed, leading it to accept larger inputs than intended. 2. Limiting total memory does not account for increased pressure on the garbage collector from large numbers of small allocations in forms with many parts. 3. ReadForm can allocate a large number of short-lived buffers, further increasing pressure on the garbage collector. The combination of these factors can permit an attacker to cause an program that parses multipart forms to consume large amounts of CPU and memory, potentially resulting in a denial of service. This affects programs that use mime/multipart.Reader.ReadForm, as well as form parsing in the net/http package with the Request methods FormFile, FormValue, ParseMultipartForm, and PostForm",
+      "vulnerability_id": "CVE-2023-24536",
+      "name": "CVE-2023-24536",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24536",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24536 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Templates do not properly consider backticks (`) as Javascript string delimiters, and do not escape them as expected. Backticks are used, since ES6, for JS template literals. If a template contains a Go template action within a Javascript template literal, the contents of the action can be used to terminate the literal, injecting arbitrary Javascript code into the Go template. As ES6 template literals are rather complex, and themselves can do string interpolation, the decision was made to simply disallow Go template actions from being used inside of them (e.g. \"var a = {{.}}\"), since there is no obviously safe way to allow this behavior. This takes the same approach as github.com/google/safehtml. With fix, Template.Parse returns an Error when it encounters templates like this, with an ErrorCode of value 12. This ErrorCode is currently unexported, but will be exported in the release of Go 1.21. Users who rely on the previous behavior can re-enable it using the GODEBUG flag jstmpllitinterp=1, with the caveat th",
+      "vulnerability_id": "CVE-2023-24538",
+      "name": "CVE-2023-24538",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24538",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24538 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "On Unix platforms, the Go runtime does not behave differently when a binary is run with the setuid/setgid bits. This can be dangerous in certain cases, such as when dumping memory state, or assuming the status of standard i/o file descriptors. If a setuid/setgid binary is executed with standard I/O file descriptors closed, opening any files can result in unexpected content being read or written with elevated privileges. Similarly, if a setuid/setgid program is terminated, either via panic or signal, it may leak the contents of its registers.",
+      "vulnerability_id": "CVE-2023-29403",
+      "name": "CVE-2023-29403",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-29403",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-29403 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "A denial of service is possible from excessive resource consumption in net/http and mime/multipart. Multipart form parsing with mime/multipart.Reader.ReadForm can consume largely unlimited amounts of memory and disk files. This also affects form parsing in the net/http package with the Request methods FormFile, FormValue, ParseMultipartForm, and PostFormValue. ReadForm takes a maxMemory parameter, and is documented as storing \"up to maxMemory bytes +10MB (reserved for non-file parts) in memory\". File parts which cannot be stored in memory are stored on disk in temporary files. The unconfigurable 10MB reserved for non-file parts is excessively large and can potentially open a denial of service vector on its own. However, ReadForm did not properly account for all memory consumed by a parsed form, such as map entry overhead, part names, and MIME headers, permitting a maliciously crafted form to consume well over 10MB. In addition, ReadForm contained no limit on the number of disk files created, permitting a rela",
+      "vulnerability_id": "CVE-2022-41725",
+      "name": "CVE-2022-41725",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41725",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-41725 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Before Go 1.20, the RSA based TLS key exchanges used the math/big library, which is not constant time. RSA blinding was applied to prevent timing attacks, but analysis shows this may not have been fully effective. In particular it appears as if the removal of PKCS#1 padding may leak timing information, which in turn could be used to recover session key bits. In Go 1.20, the crypto/tls library switched to a fully constant time RSA implementation, which we do not believe exhibits any timing side channels.",
+      "vulnerability_id": "CVE-2023-45287",
+      "name": "CVE-2023-45287",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45287",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45287 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "A path traversal vulnerability exists in filepath.Clean on Windows. On Windows, the filepath.Clean function could transform an invalid path such as \"a/../c:/b\" into the valid path \"c:\\b\". This transformation of a relative (if invalid) path into an absolute path could enable a directory traversal attack. After fix, the filepath.Clean function transforms this path into the relative (but still invalid) path \".\\c:\\b\".",
+      "vulnerability_id": "CVE-2022-41722",
+      "name": "CVE-2022-41722",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41722",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-41722 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "HTTP and MIME header parsing can allocate large amounts of memory, even when parsing small inputs, potentially leading to a denial of service. Certain unusual patterns of input data can cause the common function used to parse HTTP and MIME headers to allocate substantially more memory than required to hold the parsed headers. An attacker can exploit this behavior to cause an HTTP server to allocate large amounts of memory from a small request, potentially leading to memory exhaustion and a denial of service. With fix, header parsing now correctly allocates only the memory required to hold parsed headers.",
+      "vulnerability_id": "CVE-2023-24534",
+      "name": "CVE-2023-24534",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24534",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24534 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Large handshake records may cause panics in crypto/tls. Both clients and servers may send large TLS handshake records which cause servers and clients, respectively, to panic when attempting to construct responses. This affects all TLS 1.3 clients, TLS 1.2 clients which explicitly enable session resumption (by setting Config.ClientSessionCache to a non-nil value), and TLS 1.3 servers which request client certificates (by setting Config.ClientAuth >= RequestClientCert).",
+      "vulnerability_id": "CVE-2022-41724",
+      "name": "CVE-2022-41724",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41724",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-41724 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The filepath package does not recognize paths with a \\??\\ prefix as special. On Windows, a path beginning with \\??\\ is a Root Local Device path equivalent to a path beginning with \\\\?\\. Paths with a \\??\\ prefix may be used to access arbitrary locations on the system. For example, the path \\??\\c:\\x is equivalent to the more common path c:\\x. Before fix, Clean could convert a rooted path such as \\a\\..\\??\\b into the root local device path \\??\\b. Clean will now convert this to .\\??\\b. Similarly, Join(\\, ??, b) could convert a seemingly innocent sequence of path elements into the root local device path \\??\\b. Join will now convert this to \\.\\??\\b. In addition, with fix, IsAbs now correctly reports paths beginning with \\??\\ as absolute, and VolumeName correctly reports the \\??\\ prefix as a volume name. UPDATE: Go 1.20.11 and Go 1.21.4 inadvertently changed the definition of the volume name in Windows paths starting with \\?, resulting in filepath.Clean(\\?\\c:) returning \\?\\c: rather than \\?\\c:\\ (among other effects).",
+      "vulnerability_id": "CVE-2023-45283",
+      "name": "CVE-2023-45283",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45283",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45283 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting, resetting an in-progress request allows the attacker to create a new request while the existing one is still executing. With the fix applied, HTTP/2 servers now bound the number of simultaneously executing handler goroutines to the stream concurrency limit (MaxConcurrentStreams). New requests arriving when at the limit (which can only happen after the client has reset an existing, in-flight request) will be queued until a handler exits. If the request queue grows too large, the server will terminate the connection. This issue is also fixed in golang.org/x/net/http2 for users manually configuring HTTP/2. The default stream concurrency limit is 250 streams (requests) per HTTP/2 connection. This value may be adjusted using the golang.org/x/net/http2 package; see the Server.MaxConcurrent",
+      "vulnerability_id": "CVE-2023-39325",
+      "name": "CVE-2023-39325",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-39325",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-39325 - go/stdlib, golang.org/x/net",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Angle brackets (<>) are not considered dangerous characters when inserted into CSS contexts. Templates containing multiple actions separated by a '/' character can result in unexpectedly closing the CSS context and allowing for injection of unexpected HTML, if executed with untrusted input.",
+      "vulnerability_id": "CVE-2023-24539",
+      "name": "CVE-2023-24539",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24539",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24539 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "A maliciously crafted HTTP/2 stream could cause excessive CPU consumption in the HPACK decoder, sufficient to cause a denial of service from a small number of small requests.",
+      "vulnerability_id": "CVE-2022-41723",
+      "name": "CVE-2022-41723",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41723",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-41723 - go/stdlib, golang.org/x/net",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Templates containing actions in unquoted HTML attributes (e.g. \"attr={{.}}\") executed with empty input can result in output with unexpected results when parsed due to HTML normalization rules. This may allow injection of arbitrary attributes into tags.",
+      "vulnerability_id": "CVE-2023-29400",
+      "name": "CVE-2023-29400",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-29400",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-29400 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    }
+  ],
   "golang.org/x/net": [
+    {
+      "description": "SSH servers which implement file transfer protocols are vulnerable to a denial of service attack from clients which complete the key exchange slowly, or not at all, causing pending content to be read into memory, but never transmitted.",
+      "vulnerability_id": "CVE-2025-22869",
+      "name": "CVE-2025-22869",
+      "package_name": "golang.org/x/crypto",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/crypto",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-22869",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-22869 - golang.org/x/crypto",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Applications and libraries which misuse connection.serverAuthenticate (via callback field ServerConfig.PublicKeyCallback) may be susceptible to an authorization bypass. The documentation for ServerConfig.PublicKeyCallback says that \"A call to this function does not guarantee that the key offered is in fact used to authenticate.\" Specifically, the SSH protocol allows clients to inquire about whether a public key is acceptable before proving control of the corresponding private key. PublicKeyCallback may be called with multiple keys, and the order in which the keys were provided cannot be used to infer which key the client successfully authenticated with, if any. Some applications, which store the key(s) passed to PublicKeyCallback (or derived information) and make security relevant determinations based on it once the connection is established, may make incorrect assumptions. For example, an attacker may send public keys A and B, and then authenticate with A. PublicKeyCallback would be called only twice, first ",
+      "vulnerability_id": "CVE-2024-45337",
+      "name": "CVE-2024-45337",
+      "package_name": "golang.org/x/crypto",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/crypto",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45337",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45337 - golang.org/x/crypto",
+      "reason_to_ignore": "N/A"
+    },
     {
       "description": "A request smuggling attack is possible when using MaxBytesHandler. When using MaxBytesHandler, the body of an HTTP request is not fully consumed. When the server attempts to read HTTP2 frames from the connection, it will instead be reading the body of the HTTP request, which could be attacker-manipulated to represent arbitrary HTTP2 requests.",
       "vulnerability_id": "CVE-2022-41721",
@@ -12,7 +681,11 @@
         "version": "v0.1.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -37,7 +710,11 @@
         "version": "v0.1.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -62,7 +739,11 @@
         "version": "v0.1.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -87,7 +768,11 @@
         "version": "v0.1.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -114,7 +799,11 @@
         "version": "1.9.2",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -125,6 +814,37 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2020-11979 - org.apache.ant:ant",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "golang.org/x/net": [
+    {
+      "description": "An attacker may cause an HTTP/2 endpoint to read arbitrary amounts of header data by sending an excessive number of CONTINUATION frames. Maintaining HPACK state requires parsing and processing all HEADERS and CONTINUATION frames on a connection. When a request's headers exceed MaxHeaderBytes, no memory is allocated to store the excess headers, but they are still parsed. This permits an attacker to cause an HTTP/2 endpoint to read arbitrary amounts of header data, all associated with a request which is going to be rejected. These headers can include Huffman-encoded data which is significantly more expensive for the receiver to decode than for an attacker to send. The fix sets a limit on the amount of excess header frames we will process before closing a connection.",
+      "vulnerability_id": "CVE-2023-45288",
+      "name": "CVE-2023-45288",
+      "package_name": "golang.org/x/net",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/net",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45288",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45288 - go/stdlib, golang.org/x/net",
       "reason_to_ignore": "N/A"
     }
   ]

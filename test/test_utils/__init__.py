@@ -168,6 +168,7 @@ UL22_BASE_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning Base Neuron AMI (Ubuntu 22.04) ????????",
 )
+
 # Since NEURON TRN1 DLAMI is not released yet use a custom AMI
 NEURON_INF1_AMI_US_WEST_2 = "ami-06a5a60d3801a57b7"
 # Habana Base v0.15.4 ami
@@ -202,6 +203,7 @@ UL_AMI_LIST = [
     NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
     UL20_CPU_ARM64_US_WEST_2,
+    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
