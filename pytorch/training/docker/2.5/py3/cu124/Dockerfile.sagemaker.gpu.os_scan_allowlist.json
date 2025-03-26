@@ -1,6 +1,151 @@
 {
   "go/stdlib": [
     {
+      "description": "Calling Decoder.Decode on a message which contains deeply nested structures can cause a panic due to stack exhaustion. This is a follow-up to CVE-2022-30635.",
+      "vulnerability_id": "CVE-2024-34156",
+      "name": "CVE-2024-34156",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-34156",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-34156 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "An attacker may cause an HTTP/2 endpoint to read arbitrary amounts of header data by sending an excessive number of CONTINUATION frames. Maintaining HPACK state requires parsing and processing all HEADERS and CONTINUATION frames on a connection. When a request's headers exceed MaxHeaderBytes, no memory is allocated to store the excess headers, but they are still parsed. This permits an attacker to cause an HTTP/2 endpoint to read arbitrary amounts of header data, all associated with a request which is going to be rejected. These headers can include Huffman-encoded data which is significantly more expensive for the receiver to decode than for an attacker to send. The fix sets a limit on the amount of excess header frames we will process before closing a connection.",
+      "vulnerability_id": "CVE-2023-45288",
+      "name": "CVE-2023-45288",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45288",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45288 - go/stdlib, golang.org/x/net",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The net/http HTTP/1.1 client mishandled the case where a server responds to a request with an \"Expect: 100-continue\" header with a non-informational (200 or higher) status. This mishandling could leave a client connection in an invalid state, where the next request sent on the connection will fail. An attacker sending a request to a net/http/httputil.ReverseProxy proxy can exploit this mishandling to cause a denial of service by sending \"Expect: 100-continue\" requests which elicit a non-informational response from the backend. Each such request leaves the proxy with an invalid connection, and causes one subsequent request using that connection to fail.",
+      "vulnerability_id": "CVE-2024-24791",
+      "name": "CVE-2024-24791",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24791",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24791 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The ParseAddressList function incorrectly handles comments (text within parentheses) within display names. Since this is a misalignment with conforming address parsers, it can result in different trust decisions being made by programs using different parsers.",
+      "vulnerability_id": "CVE-2024-24784",
+      "name": "CVE-2024-24784",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24784",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24784 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Calling Parse on a \"// +build\" build tag line with deeply nested expressions can cause a panic due to stack exhaustion.",
+      "vulnerability_id": "CVE-2024-34158",
+      "name": "CVE-2024-34158",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-34158",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-34158 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
       "description": "Templates containing actions in unquoted HTML attributes (e.g. \"attr={{.}}\") executed with empty input can result in output with unexpected results when parsed due to HTML normalization rules. This may allow injection of arbitrary attributes into tags.",
       "vulnerability_id": "CVE-2023-29400",
       "name": "CVE-2023-29400",
@@ -467,6 +612,35 @@
   ],
   "golang.org/x/net": [
     {
+      "description": "An attacker may cause an HTTP/2 endpoint to read arbitrary amounts of header data by sending an excessive number of CONTINUATION frames. Maintaining HPACK state requires parsing and processing all HEADERS and CONTINUATION frames on a connection. When a request's headers exceed MaxHeaderBytes, no memory is allocated to store the excess headers, but they are still parsed. This permits an attacker to cause an HTTP/2 endpoint to read arbitrary amounts of header data, all associated with a request which is going to be rejected. These headers can include Huffman-encoded data which is significantly more expensive for the receiver to decode than for an attacker to send. The fix sets a limit on the amount of excess header frames we will process before closing a connection.",
+      "vulnerability_id": "CVE-2023-45288",
+      "name": "CVE-2023-45288",
+      "package_name": "golang.org/x/net",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/net",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-45288",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-45288 - go/stdlib, golang.org/x/net",
+      "reason_to_ignore": "N/A"
+    },
+    {
       "description": "The HTTP/2 protocol allows a denial of service (server resource consumption) because request cancellation can reset many streams quickly, as exploited in the wild in August through October 2023.",
       "vulnerability_id": "CVE-2023-44487",
       "name": "CVE-2023-44487",
@@ -903,6 +1077,66 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2024-37059 - mlflow",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "golang.org/x/crypto": [
+    {
+      "description": "SSH servers which implement file transfer protocols are vulnerable to a denial of service attack from clients which complete the key exchange slowly, or not at all, causing pending content to be read into memory, but never transmitted.",
+      "vulnerability_id": "CVE-2025-22869",
+      "name": "CVE-2025-22869",
+      "package_name": "golang.org/x/crypto",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/crypto",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-22869",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-22869 - golang.org/x/crypto",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Applications and libraries which misuse connection.serverAuthenticate (via callback field ServerConfig.PublicKeyCallback) may be susceptible to an authorization bypass. The documentation for ServerConfig.PublicKeyCallback says that \"A call to this function does not guarantee that the key offered is in fact used to authenticate.\" Specifically, the SSH protocol allows clients to inquire about whether a public key is acceptable before proving control of the corresponding private key. PublicKeyCallback may be called with multiple keys, and the order in which the keys were provided cannot be used to infer which key the client successfully authenticated with, if any. Some applications, which store the key(s) passed to PublicKeyCallback (or derived information) and make security relevant determinations based on it once the connection is established, may make incorrect assumptions. For example, an attacker may send public keys A and B, and then authenticate with A. PublicKeyCallback would be called only twice, first ",
+      "vulnerability_id": "CVE-2024-45337",
+      "name": "CVE-2024-45337",
+      "package_name": "golang.org/x/crypto",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "golang.org/x/crypto",
+        "package_manager": "GO",
+        "version": "v0.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45337",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-45337 - golang.org/x/crypto",
       "reason_to_ignore": "N/A"
     }
   ]
