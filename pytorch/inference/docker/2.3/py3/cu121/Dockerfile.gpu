@@ -182,7 +182,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     scipy \
     numpy \
     pandas \
-    "pyarrow>=17.0.0" \
+    pyarrow \
     typing \
     h5py \
     libgcc \

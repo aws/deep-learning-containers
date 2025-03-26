@@ -34,6 +34,12 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
 fi
 
+# For PT 2.3 inference and training, install pyarrow from pip to remedy https://nvd.nist.gov/vuln/detail/CVE-2024-52338
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.3\.[0-9]+-* ]] || \
+   [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.3\.[0-9]+-* ]]; then
+    conda uninstall pyarrow && pip install "pyarrow>=17.0.0" && echo "Installed pyarrow from pip"
+fi
+
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh

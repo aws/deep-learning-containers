@@ -11,7 +11,7 @@ trcomp_mode = false
 deep_canary_mode = false
 
 [build]
-build_frameworks = [ "pytorch",]
+build_frameworks = [ "pytorch"]
 build_training = true
 build_inference = true
 do_build = true
@@ -53,7 +53,7 @@ dlc-pr-tensorflow-2-neuron-training = ""
 dlc-pr-stabilityai-pytorch-training = ""
 dlc-pr-pytorch-habana-training = ""
 dlc-pr-tensorflow-2-habana-training = ""
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-ec2.yml",
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-3-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 dlc-pr-pytorch-neuron-inference = ""
