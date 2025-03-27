@@ -528,6 +528,7 @@ def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
 
     # If IMDSv2 is enforced on EC2 instance with hop limit 1 then IMDSv2 api calls doesn't work
     # If IMDSv2 is enforced on EC2 instance with hop limit > 1 then IMDSv2 api calls work
+    # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html#imds-considerations
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=1)
 
     if expected_tag_key in preexisting_ec2_instance_tags:
