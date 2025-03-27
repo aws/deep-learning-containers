@@ -79,12 +79,6 @@ ENV LRU_CACHE_CAPACITY=1024 \
 ENV DLC_CONTAINER_TYPE=training
 WORKDIR /
 
-# RUN apt-get update \
-# && apt-get upgrade -y \
-# && apt-get autoremove -y \
-# && apt-get clean \
-# && rm -rf /var/lib/apt/lists/*
-
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -101,15 +95,6 @@ RUN apt-get update \
     git \
     jq \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
-    # cuda-cudart-12-4 \
-    # cuda-cudart-dev-12-4 \
-    # cuda-libraries-12-4 \
-    # cuda-libraries-dev-12-4 \
-    # cuda-command-line-tools-12-4 \
-    # cuda-nvcc-12-4 \
-    # cuda-nvml-dev-12-4 \
-    # libcublas-12-4 \
-    # libcublas-dev-12-4 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     libgl1-mesa-glx \
@@ -181,16 +166,6 @@ RUN rm -rf /root/.ssh/ \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-# Install OpenMPI
-# RUN wget https://www.open-mpi.org/software/ompi/v4.1/downloads/openmpi-$OPEN_MPI_VERSION.tar.gz \
-#  && gunzip -c openmpi-$OPEN_MPI_VERSION.tar.gz | tar xf - \
-#  && cd openmpi-$OPEN_MPI_VERSION \
-#  && ./configure --prefix=/home/.openmpi --with-cuda \
-#  && make all install \
-#  && cd .. \
-#  && rm openmpi-$OPEN_MPI_VERSION.tar.gz \
-#  && rm -rf openmpi-$OPEN_MPI_VERSION
-
 # install python
 RUN cd /tmp/ \
 && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
@@ -229,7 +204,9 @@ RUN pip install --no-cache-dir \
     idna \
     tqdm \
     requests \
-    mpi4py
+    mpi4py \
+    packaging \
+    ninja
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
@@ -267,7 +244,7 @@ ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=10 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
