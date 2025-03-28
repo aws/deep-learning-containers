@@ -72,7 +72,6 @@ ec2_benchmark_tests = false
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
 ec2_tests_on_heavy_instances = false
-
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = true
