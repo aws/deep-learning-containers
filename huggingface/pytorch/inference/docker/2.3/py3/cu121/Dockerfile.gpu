@@ -187,6 +187,8 @@ RUN pip install --no-cache-dir -U \
     "prompt-toolkit<3.0.39" \
     "setuptools>=70.0.0"
 
+RUN pip install --no-cache-dir "cmake>=3.24.3,<3.25"
+
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
 # Even the GPU image would not have nvidia or cuda packages in PIP.
