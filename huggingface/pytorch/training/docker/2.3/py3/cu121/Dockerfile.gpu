@@ -38,7 +38,7 @@ RUN pip install --no-cache-dir \
 	Jinja2 \
 	tensorboard \
 	bitsandbytes \
-	evaluate==${EVALUATE_VERSION} --no-deps \
+	evaluate==${EVALUATE_VERSION} \
 	accelerate==${ACCELERATE_VERSION} \
 	ninja==${NINJA_VERSION} \
 	trl==${TRL_VERSION} \
