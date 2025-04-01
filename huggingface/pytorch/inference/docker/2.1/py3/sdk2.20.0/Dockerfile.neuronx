@@ -61,12 +61,12 @@ RUN apt-get update \
     gpg-agent \
     libexpat1 \
     libxml2 \
-    libgstreamer1.0-0 \
+    libgstreamer1.0-0
 #  && rm -rf /var/lib/apt/lists/* \
 #  && rm -rf /tmp/tmp* \
 #  && apt-get clean
 
- RUN apt-get update && \
+RUN apt-get update && \
     apt-get remove -y cmake && \
     apt-get install -y software-properties-common lsb-release && \
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
