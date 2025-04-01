@@ -61,6 +61,7 @@ RUN apt-get update \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
+    cmake \
     libgssapi-krb5-2 \
     libcurl4-openssl-dev \
     cuda-cudart-12-1 \
@@ -150,7 +151,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     typing \
     h5py \
     libgcc \
-    "cmake>=3.24.3,<3.25" \
+    cmake \
     packaging \
     "awscli<2" \
     boto3 \
@@ -185,6 +186,8 @@ RUN pip install --no-cache-dir -U \
     "urllib3>=1.26.18,<2" \
     "prompt-toolkit<3.0.39" \
     "setuptools>=70.0.0"
+
+RUN pip install --no-cache-dir "cmake>=3.24.3,<3.25"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # Any Nvidia installs for the DLC will be below, removing nvidia and cuda packages from pip here
