@@ -34,6 +34,7 @@ RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	diffusers==${DIFFUSERS_VERSION} \
+    cmake==3.25.2 \
 	Jinja2 \
 	tensorboard \
 	bitsandbytes \
