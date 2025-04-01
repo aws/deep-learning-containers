@@ -130,8 +130,9 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3 \
     cryptography \
-    certifi \
-    "cmake>=3.24.3,<3.25"
+    certifi
+
+RUN pip install --upgrade cmake
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
