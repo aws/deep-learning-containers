@@ -1,7 +1,6 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12.8
 ARG PYTHON_SHORT_VERSION=3.12
-# ARG OPEN_MPI_VERSION=4.1.7
 
 ARG CUDA_VERSION=12.6.3
 ARG CUDNN_VERSION=9.7.0.66
@@ -40,7 +39,6 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
-# ARG OPEN_MPI_VERSION
 
 ARG CUDA_VERSION
 ARG CUDNN_VERSION
@@ -244,7 +242,7 @@ ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=10 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=8 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
