@@ -26,11 +26,11 @@ RUN pip install --upgrade pip \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip install --no-cache-dir --upgrade werkzeug==3.0.6
+ && pip install cmake">=3.24.3,<3.25"
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	# hf_transfer will be a built-in feature, remove the extra then
-	kenlm==0.1 \
     huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
 	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
@@ -38,7 +38,7 @@ RUN pip install --no-cache-dir \
 	Jinja2 \
 	tensorboard \
 	bitsandbytes \
-	evaluate==${EVALUATE_VERSION} \
+	evaluate==${EVALUATE_VERSION} --no-deps \
 	accelerate==${ACCELERATE_VERSION} \
 	ninja==${NINJA_VERSION} \
 	trl==${TRL_VERSION} \
