@@ -54,7 +54,6 @@ RUN apt-get update \
     gcc-12 \
     g++-12 \
     make \
-    cmake">=3.24.3,<3.25" \
     curl \
     emacs \
     git \
@@ -118,7 +117,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     libgcc \
-    cmake \
+    "cmake>=3.24.3,<3.25" \
     packaging \
     "awscli<2" \
     boto3 \

@@ -61,7 +61,6 @@ RUN apt-get update \
  && apt-get install -y --allow-downgrades --allow-change-held-packages --no-install-recommends \
     build-essential \
     ca-certificates \
-    cmake">=3.24.3,<3.25" \
     libgssapi-krb5-2 \
     libcurl4-openssl-dev \
     cuda-cudart-12-1 \
@@ -151,7 +150,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     typing \
     h5py \
     libgcc \
-    cmake \
+    "cmake>=3.24.3,<3.25" \
     packaging \
     "awscli<2" \
     boto3 \
