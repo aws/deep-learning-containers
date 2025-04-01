@@ -37,8 +37,8 @@ ENV TEMP=/home/model-server/tmp
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends software-properties-common \
- && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
- && apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main' \
+#  && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
+#  && apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main' \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -127,7 +127,7 @@ RUN pip install --no-cache-dir -U \
     "numpy>=1.22.2, <1.24" \
     "scipy>=1.8.0" \
     six \
-    "pillow>=10.2.0" \
+    "pillow>=10.0.1" \
     "awscli<2" \
     pandas==1.* \
     boto3 \
@@ -184,7 +184,7 @@ RUN pip install --no-cache-dir \
 	"sagemaker-huggingface-inference-toolkit>=2.4.1,<3"
 
 RUN pip install --no-cache-dir -U \
-    "pillow>=10.2.0" \
+    "pillow>=10.0.1" \
     "requests<2.32.0"
 
 RUN HOME_DIR=/root \
