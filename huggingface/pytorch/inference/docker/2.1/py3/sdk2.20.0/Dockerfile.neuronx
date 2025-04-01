@@ -37,8 +37,6 @@ ENV TEMP=/home/model-server/tmp
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends software-properties-common \
-#  && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null \
-#  && apt-add-repository 'deb https://apt.kitware.com/ubuntu/ focal main' \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -132,7 +130,8 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3 \
     cryptography \
-    certifi
+    certifi \
+    cmake">=3.24.3,<3.25"
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
