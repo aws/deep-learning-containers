@@ -215,9 +215,6 @@ RUN pip install --no-cache-dir -U \
     ${TORCHDATA_URL} \
     torchtnt \
     s3torchconnector \
-    # fastai hasn't released a version compatible with torch 2.6.0
-    # https://github.com/fastai/fastai/issues/4068
-    # fastai \
     accelerate
 
 # Install GDRCopy
@@ -242,7 +239,7 @@ ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=8 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation --verbose
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation --verbose
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
