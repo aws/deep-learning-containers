@@ -54,7 +54,7 @@ RUN apt-get update \
     gcc-12 \
     g++-12 \
     make \
-    cmake \
+    cmake">=3.24.3,<3.25" \
     curl \
     emacs \
     git \
