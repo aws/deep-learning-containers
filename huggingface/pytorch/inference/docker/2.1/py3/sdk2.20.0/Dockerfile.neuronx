@@ -122,8 +122,7 @@ RUN conda install -c conda-forge \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
  && pip install packaging \
     enum-compat \
-    ipython \
-    "cmake>=3.5.0"
+    ipython
 
 # RUN pip install --no-cache-dir "cmake>=3.5.0"
 
@@ -141,7 +140,8 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3 \
     cryptography \
-    certifi
+    certifi \
+    "cmake>=3.5.0"
 
 RUN pip install --upgrade cmake
 
