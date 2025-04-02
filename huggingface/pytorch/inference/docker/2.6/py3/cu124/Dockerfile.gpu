@@ -154,7 +154,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-# Install common conda packages
+# Install common conda packages and symlink cmake
 RUN /opt/conda/bin/conda install -y -c conda-forge \
     python=${PYTHON_VERSION} \
     cython \
@@ -168,7 +168,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     typing \
     h5py \
     libgcc \
-    cmake \
+    "cmake=3.24.3" \
     packaging \
     "awscli<2" \
     boto3 \
@@ -180,6 +180,8 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     "idna>=3.7"\
     "tqdm>=4.66.3" \
     "zstandard>=0.22.0" \
+ && ln -sf /opt/conda/bin/cmake /usr/local/bin/cmake \
+ && cmake --version \
  && /opt/conda/bin/conda clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
