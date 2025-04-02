@@ -30,6 +30,11 @@ RUN pip install --upgrade pip \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip install --no-cache-dir -U "werkzeug==3.0.6" 
 
+# Install correct CMake version
+RUN pip install "cmake==3.24.4" \
+ && ln -sf $(which cmake) /usr/local/bin/cmake \
+ && cmake --version
+
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	# hf_transfer will be a built-in feature, remove the extra then
