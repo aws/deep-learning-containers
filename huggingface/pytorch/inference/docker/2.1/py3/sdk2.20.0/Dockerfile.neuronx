@@ -36,16 +36,14 @@ ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends software-properties-common gnupg \
- && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - \
- && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+ && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    cmake \
+    # cmake \
     curl \
     git \
     jq \
@@ -119,6 +117,7 @@ RUN conda install -c conda-forge \
     scikit-learn \
     h5py \
     requests \
+    cmake>=3.5.0 \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
