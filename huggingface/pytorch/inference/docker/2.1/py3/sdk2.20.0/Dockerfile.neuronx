@@ -34,9 +34,6 @@ ENV PATH /opt/conda/bin:/opt/aws/neuron/bin:$PATH
 ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 ENV TEMP=/home/model-server/tmp
 
-# Pre-install kenlm without build isolation so it uses system cmake
-RUN pip install --no-cache-dir --no-build-isolation kenlm
-
 RUN apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y --no-install-recommends software-properties-common \
@@ -46,7 +43,6 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    cmake \
     curl \
     git \
     jq \
@@ -123,6 +119,9 @@ RUN conda install -c conda-forge \
 RUN pip uninstall -y certifi
 
 RUN rm -rf /usr/lib/python3/dist-packages/certifi*
+
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
 
 RUN pip install --upgrade pip \
     && pip install --no-cache-dir -U \
