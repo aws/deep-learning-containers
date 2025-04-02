@@ -168,7 +168,7 @@ RUN /opt/conda/bin/conda install -y -c conda-forge \
     typing \
     h5py \
     libgcc \
-    cmake \
+    "cmake<=3.24.4" \
     packaging \
     "awscli<2" \
     boto3 \
