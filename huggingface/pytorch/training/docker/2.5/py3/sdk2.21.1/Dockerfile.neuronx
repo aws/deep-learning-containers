@@ -19,6 +19,10 @@ apt-get autoremove -y
 
 RUN pip install --upgrade pip
 
+# We need to set this environment variable to avoid the following error when building KenLM:
+# https://github.com/kpu/kenlm/issues/462
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
+
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
@@ -26,7 +30,7 @@ RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-    peft \
+        peft \
 	gevent==${GEVENT_VERSION}
 
 # Pin numpy to version required by neuronx-cc
