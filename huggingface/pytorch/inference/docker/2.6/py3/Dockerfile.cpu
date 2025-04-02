@@ -118,7 +118,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     libgcc \
-    cmake \
+    "cmake<=3.24.4" \
     packaging \
     "awscli<2" \
     boto3 \
@@ -194,6 +194,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 # Hugging Face specific section #
 #################################
+
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
