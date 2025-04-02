@@ -40,6 +40,7 @@ RUN apt-get update \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
+ && apt-get install -y cmake \
     build-essential \
     apt-transport-https \
     ca-certificates \
@@ -120,7 +121,7 @@ RUN conda install -c conda-forge \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
- && pip install --no-cache-dir "cmake>=3.5.0" \
+#  && pip install --no-cache-dir "cmake>=3.5.0" \
  && pip install packaging \
     enum-compat \
     ipython
