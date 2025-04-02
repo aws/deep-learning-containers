@@ -30,22 +30,25 @@ RUN pip install --upgrade pip \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip install --no-cache-dir -U "werkzeug==3.0.6" 
 
-# install Hugging Face libraries and its dependencies
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
+
+# Install Hugging Face libraries and dependencies
 RUN pip install --no-cache-dir \
-	# hf_transfer will be a built-in feature, remove the extra then
     huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
-	transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
-	datasets==${DATASETS_VERSION} \
-	diffusers==${DIFFUSERS_VERSION} \
-	Jinja2 \
-	tensorboard \
-	bitsandbytes \
-	evaluate==${EVALUATE_VERSION} \
-	accelerate==${ACCELERATE_VERSION} \
-	ninja==${NINJA_VERSION} \
-	trl==${TRL_VERSION} \
-	peft==${PEFT_VERSION} \
-	flash-attn==${FLASH_ATTN_VERSION}
+    transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
+    datasets==${DATASETS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    Jinja2 \
+    tensorboard \
+    bitsandbytes \
+    evaluate==${EVALUATE_VERSION} \
+    accelerate==${ACCELERATE_VERSION} \
+    ninja==${NINJA_VERSION} \
+    trl==${TRL_VERSION} \
+    peft==${PEFT_VERSION} \
+    flash-attn==${FLASH_ATTN_VERSION}
+
 
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
