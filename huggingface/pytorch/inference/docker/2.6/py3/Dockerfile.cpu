@@ -107,7 +107,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && chmod +x ~/miniforge3.sh \
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh \
- && /opt/conda/bin/conda install -y -c conda-forge \
+ && /opt/conda/bin/conda install -c conda-forge \
     python=${PYTHON_VERSION} \
     cython \
     "mkl<2024.1.0" \
@@ -118,21 +118,19 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     libgcc \
-    "cmake=3.24.3" \
+    cmake \
     packaging \
     "awscli<2" \
     boto3 \
     pyyaml \
     conda-content-trust \
     charset-normalizer \
+    requests \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "zstandard>=0.22.0" \
- && ln -sf /opt/conda/bin/cmake /usr/local/bin/cmake \
- && cmake --version \
  && /opt/conda/bin/conda clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
-
 
 # symlink pip for OS use
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
@@ -196,6 +194,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 # Hugging Face specific section #
 #################################
+
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
