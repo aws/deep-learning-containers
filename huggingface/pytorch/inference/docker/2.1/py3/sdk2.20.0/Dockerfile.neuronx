@@ -40,6 +40,7 @@ RUN apt-get update \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
+ && apt-get install -y cmake-data=3.16.3-1ubuntu1 \
  && apt-get install -y cmake=3.16.3-1ubuntu1 \
     build-essential \
     apt-transport-https \
