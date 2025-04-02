@@ -74,9 +74,6 @@ RUN apt-get update \
 #     apt-get update && \
 #     apt-get install -y 'cmake>=3.5*'
 
-RUN pip install --no-cache-dir "cmake>=3.5.0"
-
-
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
@@ -126,6 +123,8 @@ RUN conda install -c conda-forge \
  && pip install packaging \
     enum-compat \
     ipython
+
+RUN pip install --no-cache-dir "cmake>=3.5.0"
 
 RUN pip uninstall -y certifi
 
