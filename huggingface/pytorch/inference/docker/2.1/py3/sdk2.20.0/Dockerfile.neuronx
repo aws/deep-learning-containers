@@ -36,7 +36,7 @@ ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends 
+ && apt-get install -y --no-install-recommends \
     software-properties-common \
     gnupg \
     wget \
@@ -50,7 +50,7 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     # ca-certificates \
-    cmake \
+    # cmake \
     # curl \
     git \
     jq \
