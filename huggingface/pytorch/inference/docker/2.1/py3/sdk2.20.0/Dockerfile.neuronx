@@ -133,7 +133,7 @@ RUN RUN pip install --upgrade pip \
     boto3 \
     cryptography \
     certifi \ 
-    torch
+    torch \
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
