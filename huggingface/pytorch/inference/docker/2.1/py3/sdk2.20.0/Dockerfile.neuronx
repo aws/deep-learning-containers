@@ -53,6 +53,7 @@ RUN apt-get update \
     libgssapi-krb5-2 \
     openjdk-11-jdk \
     vim \
+    cmake \
     wget \
     unzip \
     zlib1g-dev \
