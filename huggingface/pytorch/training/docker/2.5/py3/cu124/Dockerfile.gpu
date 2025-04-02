@@ -56,9 +56,15 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
- && apt install -y git git-lfs golang-go \
+ && apt-get install -y git git-lfs wget tar \
+ && wget https://go.dev/dl/go1.22.2.linux-amd64.tar.gz \
+ && rm -rf /usr/local/go \
+ && tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz \
+ && ln -s /usr/local/go/bin/go /usr/bin/go \
+ && rm go1.22.2.linux-amd64.tar.gz \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
 
 COPY cuda-compatibility-lib.sh /usr/local/bin/cuda-compatibility-lib.sh
 RUN chmod +x /usr/local/bin/cuda-compatibility-lib.sh
