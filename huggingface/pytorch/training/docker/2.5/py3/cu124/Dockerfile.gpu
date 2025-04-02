@@ -31,7 +31,7 @@ RUN pip install --upgrade pip \
  && pip install --no-cache-dir -U "werkzeug==3.0.6" 
 
 # Install correct CMake version
-RUN pip install "cmake==3.24.4" \
+RUN pip install "cmake==3.24.3" \
  && ln -sf $(which cmake) /usr/local/bin/cmake \
  && cmake --version
 
