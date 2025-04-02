@@ -204,7 +204,8 @@ RUN pip install --no-cache-dir \
     requests \
     mpi4py \
     packaging \
-    ninja
+    ninja \
+    pybind11
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
