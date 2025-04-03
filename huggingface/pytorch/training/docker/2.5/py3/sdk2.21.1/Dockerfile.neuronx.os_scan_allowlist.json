@@ -1907,5 +1907,81 @@
          "title":"CVE-2024-7348 - postgresql-12",
          "reason_to_ignore":"N/A"
       }
-    ]
+    ],
+    "pytorch-lightning": [
+        {
+          "description": "A remote code execution (RCE) vulnerability exists in the lightning-ai/pytorch-lightning library version 2.2.1 due to improper handling of deserialized user input and mismanagement of dunder attributes by the `deepdiff` library. The library uses `deepdiff.Delta` objects to modify application state based on frontend actions. However, it is possible to bypass the intended restrictions on modifying dunder attributes, allowing an attacker to construct a serialized delta that passes the deserializer whitelist and contains dunder attributes. When processed, this can be exploited to access other modules, classes, and instances, leading to arbitrary attribute write and total RCE on any self-hosted pytorch-lightning application in its default configuration, as the delta endpoint is enabled by default.",
+          "vulnerability_id": "CVE-2024-5452",
+          "name": "CVE-2024-5452",
+          "package_name": "pytorch-lightning",
+          "remediation": {
+              "recommendation": {
+                  "text": "None Provided"
+              }
+          },
+          "package_details": [
+              {
+                  "epoch": 0,
+                  "filePath": "usr/local/lib/python3.10/site-packages/pytorch_lightning-1.8.6.dist-info/METADATA",
+                  "name": "pytorch-lightning",
+                  "packageManager": "PYTHONPKG",
+                  "version": "1.8.6"
+              },
+              {
+                  "epoch": 0,
+                  "filePath": "requirements.txt",
+                  "name": "pytorch-lightning",
+                  "packageManager": "PIP",
+                  "version": "1.8.6"
+              }
+          ]
+          "score": 9.8,
+          "score_details": {
+              "cvss": {
+                  "adjustments": [],
+                  "score": 9.8,
+                  "scoreSource": "NVD",
+                  "scoringVector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+                  "version": "3.1"
+              }
+          },
+          "severity": "CRITICAL",
+          "source": "NVD",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5452",
+          "status": "ACTIVE",
+          "title": "CVE-2024-5452 - pytorch-lightning, pytorch-lightning",
+      },
+        {
+          "description": "A vulnerability in the /v1/runs API endpoint of lightning-ai/pytorch-lightning v2.2.4 allows attackers to exploit path traversal when extracting tar.gz files. When the LightningApp is running with the plugin_server, attackers can deploy malicious tar.gz plugins that embed arbitrary files with path traversal vulnerabilities. This can result in arbitrary files being written to any directory in the victim's local file system, potentially leading to remote code execution.",
+          "remediation": {
+              "recommendation": {
+                  "text": "None Provided"
+              }
+          },
+          "score": 0.0,
+          "score_details": {},
+          "severity": "UNTRIAGED",
+          "source": "NVD",
+          "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-5980",
+          "status": "ACTIVE",
+          "title": "CVE-2024-5980 - pytorch-lightning, pytorch-lightning",
+          "vulnerability_id": "CVE-2024-5980",
+          "vulnerable_packages": [
+              {
+                  "epoch": 0,
+                  "filePath": "usr/local/lib/python3.10/site-packages/pytorch_lightning-1.8.6.dist-info/METADATA",
+                  "name": "pytorch-lightning",
+                  "packageManager": "PYTHONPKG",
+                  "version": "1.8.6"
+              },
+              {
+                  "epoch": 0,
+                  "filePath": "requirements.txt",
+                  "name": "pytorch-lightning",
+                  "packageManager": "PIP",
+                  "version": "1.8.6"
+              }
+          ]
+      },
+    ],
 }
