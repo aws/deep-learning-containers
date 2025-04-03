@@ -43,7 +43,6 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    # cmake \
     curl \
     git \
     jq \
@@ -78,8 +77,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
-
- RUN apt-get update && apt-get install -y cmake
 
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
