@@ -46,8 +46,12 @@ RUN pip install -U \
 	boto3 \
 	botocore \
 	google-auth \
-	"urllib3>=1.26.17,<1.27" \
-&& pip install cmake">3.5"
+	"urllib3>=1.26.17,<1.27" 
+
+RUN apt-get update && \
+	apt-get install -y --no-install-recommends wget && \
+	wget -qO- "https://github.com/Kitware/CMake/releases/download/v3.27.0/cmake-3.27.0-linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C /usr/local && \
+	rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
