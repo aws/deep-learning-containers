@@ -35,7 +35,7 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
     neuron_sdk_version: &NEURON_SDK_VERSION sdk2.21.1
-    os_version: &OS_VERSION ubuntu20.04
+    os_version: &OS_VERSION ubuntu22.04
     transformers_version: &TRANSFORMERS_VERSION 4.48.3
     datasets_version: &DATASETS_VERSION 2.18.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION,"-", *NEURON_SDK_VERSION, '-', *OS_VERSION ]
