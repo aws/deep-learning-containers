@@ -4,6 +4,12 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.5.1-neuronx-py310-sdk2.21.0-ubuntu22.04
 
+# The pytorch-training-neuronx container has the `apex_setup.py` fils in the root directory, which makes the
+# test/dlc_tests/sanity/test_pre_release.py:test_stray_files test fail.
+# We are removing the apex directory as well out of consistency.
+RUN rm -rf /root/apex && \
+    rm  /root/apex_setup.py
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
