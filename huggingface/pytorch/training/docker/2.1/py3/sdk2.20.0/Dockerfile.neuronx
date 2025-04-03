@@ -21,6 +21,8 @@ apt-get autoremove -y
 
 RUN pip install --upgrade pip
 
+RUN pip install --no-cache-dir --no-build-isolation kenlm
+
 RUN apt-get update && apt-get install -y cmake
 
 
@@ -28,7 +30,7 @@ RUN apt-get update && apt-get install -y cmake
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
 	evaluate \
-	transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
