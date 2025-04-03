@@ -61,7 +61,7 @@ RUN apt-get update \
  && rm -rf /usr/local/go \
  && tar -C /usr/local -xzf go1.22.3.linux-amd64.tar.gz \
  && ln -s /usr/local/go/bin/go /usr/bin/go \
- && rm go1.22.2.linux-amd64.tar.gz \
+ && rm go1.22.3.linux-amd64.tar.gz \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
