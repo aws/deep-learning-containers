@@ -36,22 +36,15 @@ ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends \
-    software-properties-common \
-    gnupg \
-    wget \
-    curl \
-    ca-certificates \
- && wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc | apt-key add - \
- && apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" \
+ && apt-get install -y --no-install-recommends software-properties-common \
  && add-apt-repository ppa:openjdk-r/ppa \
  && apt-get update \
  && apt-get install -y --no-install-recommends \
     build-essential \
     apt-transport-https \
-    # ca-certificates \
-    # cmake \
-    # curl \
+    ca-certificates \
+    cmake \
+    curl \
     git \
     jq \
     libgl1-mesa-glx \
@@ -61,7 +54,7 @@ RUN apt-get update \
     libgssapi-krb5-2 \
     openjdk-11-jdk \
     vim \
-    # wget \
+    wget \
     unzip \
     zlib1g-dev \
     libcap-dev \
@@ -72,14 +65,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
-
-# RUN apt-get update && \
-#     apt-get remove -y cmake && \
-#     apt-get install -y software-properties-common lsb-release && \
-#     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /etc/apt/trusted.gpg.d/kitware.gpg >/dev/null && \
-#     apt-add-repository "deb https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" && \
-#     apt-get update && \
-#     apt-get install -y 'cmake>=3.5*'
 
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
@@ -127,7 +112,6 @@ RUN conda install -c conda-forge \
  && conda clean -ya \
  && pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
-#  && pip install --no-cache-dir "cmake>=3.5.0" \
  && pip install packaging \
     enum-compat \
     ipython
