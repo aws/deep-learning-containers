@@ -46,7 +46,8 @@ RUN pip install -U \
 	boto3 \
 	botocore \
 	google-auth \
-	"urllib3>=1.26.17,<1.27"
+	"urllib3>=1.26.17,<1.27" \
+&& pip install cmake">3.5"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
