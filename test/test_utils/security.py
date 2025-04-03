@@ -300,9 +300,9 @@ class ScanVulnerabilityList:
         for key, list_of_complex_types in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(
-                key=lambda dict_element: dict_element["name"]
-                if isinstance(dict_element, dict)
-                else dict_element.name
+                key=lambda dict_element: (
+                    dict_element["name"] if isinstance(dict_element, dict) else dict_element.name
+                )
             )
         return dict(sorted(copy_dict.items()))
 
@@ -677,7 +677,6 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
                 del self.vulnerability_list[package_name]
 
 
-
 def get_ecr_vulnerability_package_version(vulnerability):
     """
     Get Package Version from a vulnerability JSON object
@@ -977,9 +976,9 @@ def conduct_failure_routine(
         )
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
-    return_dict[
-        "s3_filename_for_current_image_ecr_scan_list"
-    ] = s3_filename_for_current_image_ecr_scan_list
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = (
+        s3_filename_for_current_image_ecr_scan_list
+    )
     return return_dict
 
 
@@ -1389,9 +1388,9 @@ def extract_non_patchable_vulnerabilities(
                 docker_exec_command=docker_exec_cmd,
             )
             if allowlistable_python_vulns:
-                non_patchable_vulnerabilities_with_reason.vulnerability_list[
-                    package_name
-                ] = allowlistable_python_vulns
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[package_name] = (
+                    allowlistable_python_vulns
+                )
             else:
                 patchable_packages.append(package_name)
 

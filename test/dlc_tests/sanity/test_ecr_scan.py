@@ -202,7 +202,9 @@ def remove_allowlisted_image_vulnerabilities(
     LOGGER.info(f"ECR Image Vuln List: '{ecr_image_vuln_list.vulnerability_list}'")
     LOGGER.info(f"Vulnerability Allowlist: '{vuln_allowlist.vulnerability_list}'")
     if not is_huggingface_image():
-        LOGGER.info("Non-Hugging Face image detected — using subtract operator to remove allowlisted vulnerabilities.")
+        LOGGER.info(
+            "Non-Hugging Face image detected — using subtract operator to remove allowlisted vulnerabilities."
+        )
         return ecr_image_vuln_list - vuln_allowlist
 
     LOGGER.info("Hugging Face image detected — using relaxed allowlist removal by (package, CVE).")
