@@ -199,8 +199,8 @@ def remove_allowlisted_image_vulnerabilities(
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
     :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
     """
-    LOGGER.info(f"ECR Image Vuln List: '{ecr_image_vuln_list}'")
-    LOGGER.info(f"Vulnerability Allowlist: '{vuln_allowlist}'")
+    LOGGER.info(f"ECR Image Vuln List: '{ecr_image_vuln_list.vulnerability_list}'")
+    LOGGER.info(f"Vulnerability Allowlist: '{vuln_allowlist.vulnerability_list}'")
     if not is_huggingface_image():
         LOGGER.info("Non-Hugging Face image detected — using subtract operator to remove allowlisted vulnerabilities.")
         return ecr_image_vuln_list - vuln_allowlist
