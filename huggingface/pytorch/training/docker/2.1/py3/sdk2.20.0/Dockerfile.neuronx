@@ -21,28 +21,8 @@ apt-get autoremove -y
 
 RUN pip install --upgrade pip
 
-# Install system dependencies required for KenLM
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
-    libboost-system-dev \
-    libboost-thread-dev \
-    libboost-program-options-dev \
-    libboost-test-dev \
-    libeigen3-dev \
-    zlib1g-dev \
-    libbz2-dev \
-    liblzma-dev \
-    git && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y cmake
 
-# Clone and build KenLM from source
-RUN git clone https://github.com/kpu/kenlm.git /kenlm && \
-    mkdir -p /kenlm/build && cd /kenlm/build && \
-    cmake .. && make -j$(nproc)
-
-# Add KenLM binaries to PATH
-ENV PATH="/kenlm/build/bin:$PATH"
 
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
