@@ -79,6 +79,8 @@ RUN apt-get update \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
+ RUN apt-get update && apt-get install -y cmake
+
 # https://github.com/docker-library/openjdk/issues/261 https://github.com/docker-library/openjdk/pull/263/files
 RUN keytool -importkeystore -srckeystore /etc/ssl/certs/java/cacerts -destkeystore /etc/ssl/certs/java/cacerts.jks -deststoretype JKS -srcstorepass changeit -deststorepass changeit -noprompt; \
     mv /etc/ssl/certs/java/cacerts.jks /etc/ssl/certs/java/cacerts; \
@@ -172,7 +174,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sentencepiece,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     huggingface_hub==${HUGGINGFACE_HUB_VERSION} \
     datasets==${DATASETS_VERSION} \
