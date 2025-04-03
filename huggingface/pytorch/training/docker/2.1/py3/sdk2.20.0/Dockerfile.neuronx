@@ -16,8 +16,6 @@ ARG DATASETS_VERSION
 ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
-RUN apt-get remove -y --purge emacs && \
-apt-get autoremove -y
 
 RUN pip install --upgrade pip
 
@@ -66,6 +64,9 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
