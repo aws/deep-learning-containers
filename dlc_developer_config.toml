@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = false
+arm64_mode = true
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -57,15 +57,15 @@ notify_test_failures = false
 
 [test]
 ### On by default
-sanity_tests = false
-security_tests = false
+sanity_tests = true
+security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false
 eks_tests = false
-ec2_tests = false
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
-ec2_benchmark_tests = false
+ec2_benchmark_tests = true
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -104,7 +104,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -125,7 +125,7 @@ dlc-pr-tensorflow-2-neuron-training = ""
 dlc-pr-stabilityai-pytorch-training = ""
 
 # ARM64 Training
-dlc-pr-pytorch-arm64-training = ""
+dlc-pr-pytorch-arm64-training = "pytorch/training/buildspec-arm64-2-6-ec2.yml"
 
 # Habana Training
 dlc-pr-pytorch-habana-training = ""

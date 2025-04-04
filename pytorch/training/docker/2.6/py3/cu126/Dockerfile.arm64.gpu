@@ -223,15 +223,14 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     accelerate
 
-# Install triton
+# Install triton (need to build from source for ARM64)
 RUN cd /tmp \
  && git clone https://github.com/triton-lang/triton.git \
  && cd triton \
  && git checkout ${TRITON_HASH_VERSION} \
- # && pip install -r python/requirements.txt \
- && pip install -e python \
- && cd /
- # && rm -rf /tmp/triton
+ && pip install ./python \
+ && cd / \
+ && rm -rf /tmp/triton
 
 # Install GDRCopy
 RUN cd /tmp \
