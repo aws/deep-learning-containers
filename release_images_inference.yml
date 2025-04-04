@@ -177,7 +177,7 @@ release_images:
     hf_transformers: "4.49.0"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
+      python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
       cuda_version: "cu124"
       example: False
@@ -190,7 +190,7 @@ release_images:
     hf_transformers: "4.49.0"
     inference:
       device_types: [ "cpu" ]
-      python_versions: [ "py312" ]
+      python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
       example: False
       disable_sm_tag: False
