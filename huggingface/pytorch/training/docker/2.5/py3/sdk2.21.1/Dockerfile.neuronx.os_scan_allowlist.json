@@ -1935,7 +1935,7 @@
         "source": "NVD",
         "severity": "CRITICAL",
         "status": "ACTIVE",
-        "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 2 more",
+        "title": "CVE-2024-24790 - go/stdlib",
         "reason_to_ignore": "N/A"
       },
   ],
