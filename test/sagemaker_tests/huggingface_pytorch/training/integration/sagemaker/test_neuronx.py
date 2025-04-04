@@ -124,8 +124,8 @@ def _test_neuronx_text_classification_function(
     num_neuron_cores=2,
 ):
     pytorch_version = get_pytorch_version(ecr_image)
-    if pytorch_version in SpecifierSet("==2.1.*"):
-        optimum_neuron_version = "0.0.24"
+    if pytorch_version in SpecifierSet("==2.5.*"):
+        optimum_neuron_version = "0.1.0"
     else:
         raise ValueError(
             f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."
