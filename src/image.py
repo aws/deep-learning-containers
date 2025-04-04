@@ -22,7 +22,7 @@ import logging
 import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.DEBUG)  ### change to INFO before merging
 
 
 class DockerImage:
@@ -195,6 +195,7 @@ class DockerImage:
 
         ###sally
         line_counter = 0
+        line_interval = 50
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -206,10 +207,11 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
-            # print the log line during build for every 50 lines
-            line_counter += 1
-            if line_counter % 50 == 0:
+            # print the log line during build for every line_interval lines for debugging
+            if line_counter % line_interval == 0:
                 LOGGER.debug(line)
+            line_counter += 1
+
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
