@@ -53,6 +53,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__6",
     "pytorch_training___2__5",
     "pytorch_training___2__4",
     "pytorch_training___2__3",
@@ -778,6 +779,7 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
+
     conn = Connection(
         user=user,
         host=ip_address,
@@ -905,12 +907,13 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4,<2.6": ["cpu", "cu124"]}
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
             f"For more information, see https://github.com/pytorch/data/issues/1196."
             f"Skipping test"
+            f"Start from PyTorch 2.6, Torchdata is added back to the container."
         )
 
 
@@ -924,7 +927,12 @@ def skip_smdebug_v1_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
 
@@ -942,7 +950,12 @@ def skip_dgl_test(request):
     else:
         return
 
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.1,<2.4": ["cpu", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
 
@@ -1005,6 +1018,7 @@ def skip_serialized_release_pt_test(request):
         "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
+        ">=2.6": ["cpu", "cu126"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
@@ -1209,7 +1223,17 @@ def below_tf216_only():
 
 
 @pytest.fixture(scope="session")
+def below_tf218_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def skip_tf216():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_tf218():
     pass
 
 
@@ -1350,9 +1374,17 @@ def framework_version_within_limit(metafunc_obj, image):
             "below_tf216_only" in metafunc_obj.fixturenames
             and not is_below_framework_version("2.16", image, image_framework_name)
         )
+        tf218_requrement_failed = (
+            "below_tf218_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.18", image, image_framework_name)
+        )
         not_tf216_requirement_failed = (
             "skip_tf216" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.16.*", image, image_framework_name)
+        )
+        not_tf218_requirement_failed = (
+            "skip_tf218" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.18.*", image, image_framework_name)
         )
         if (
             tf2_requirement_failed
@@ -1362,7 +1394,9 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf23_requirement_failed
             or tf213_requirement_failed
             or tf216_requirement_failed
+            or tf218_requrement_failed
             or not_tf216_requirement_failed
+            or not_tf218_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":

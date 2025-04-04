@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 2.3.0
-short_version: &SHORT_VERSION "2.3"
+version: &VERSION 2.6.0
+short_version: &SHORT_VERSION "2.6"
 contributor: huggingface
 arch_type: x86
 
@@ -25,31 +25,34 @@ context:
     deep_learning_container:
       source: ../../../src/deep_learning_container.py
       target: deep_learning_container.py
+    cuda-compatibility-lib:
+      source: ../../build_artifacts/inference/cuda-compatibility-lib.sh
+      target: cuda-compatibility-lib.sh
 
 images:
-  BuildHuggingFacePytorchCpuPy311InferenceDockerImage:
+  BuildHuggingFacePytorchCpuPy312InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_CPU_INFERENCE_PY3 false
-    image_size_baseline: 15000
+    image_size_baseline: 21000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py311
+    tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
-    transformers_version: &TRANSFORMERS_VERSION 4.46.1
+    transformers_version: &TRANSFORMERS_VERSION 4.49.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
       <<: *INFERENCE_CONTEXT
-  BuildHuggingFacePytorchGpuPy311Cu121InferenceDockerImage:
+  BuildHuggingFacePytorchGpuPy312Cu124InferenceDockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_INFERENCE_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 15000
+    image_size_baseline: &IMAGE_SIZE_BASELINE 21000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py311
-    cuda_version: &CUDA_VERSION cu121
-    os_version: &OS_VERSION ubuntu20.04
-    transformers_version: &TRANSFORMERS_VERSION 4.46.1
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    cuda_version: &CUDA_VERSION cu124
+    os_version: &OS_VERSION ubuntu22.04
+    transformers_version: &TRANSFORMERS_VERSION 4.49.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,

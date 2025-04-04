@@ -43,7 +43,7 @@ release_images:
     framework: "huggingface_pytorch"
     version: "2.1.2"
     arch_type: "x86"
-    hf_transformers: "4.43.2"
+    hf_transformers: "4.48.1"
     training:
       device_types: [ "neuronx" ]
       python_versions: [ "py310" ]
@@ -55,7 +55,7 @@ release_images:
   5:
     framework: "huggingface_pytorch"
     version: "2.3.0"
-    hf_transformers: "4.46.1"
+    hf_transformers: "4.48.0"
     arch_type: "x86"
     training:
       device_types: ["gpu"]

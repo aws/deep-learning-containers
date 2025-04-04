@@ -29,5 +29,183 @@
             "title": "CVE-2018-20225 - pip",
             "reason_to_ignore": "This is a disputed CVE and impacts all pip versions."
         }
+    ],
+    "golang.org/x/crypto": [
+        {
+            "description": "SSH servers which implement file transfer protocols are vulnerable to a denial of service attack from clients which complete the key exchange slowly, or not at all, causing pending content to be read into memory, but never transmitted.",
+            "vulnerability_id": "CVE-2025-22869",
+            "name": "CVE-2025-22869",
+            "package_name": "golang.org/x/crypto",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/crypto",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-22869",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2025-22869 - golang.org/x/crypto",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "Applications and libraries which misuse connection.serverAuthenticate (via callback field ServerConfig.PublicKeyCallback) may be susceptible to an authorization bypass. The documentation for ServerConfig.PublicKeyCallback says that \"A call to this function does not guarantee that the key offered is in fact used to authenticate.\" Specifically, the SSH protocol allows clients to inquire about whether a public key is acceptable before proving control of the corresponding private key. PublicKeyCallback may be called with multiple keys, and the order in which the keys were provided cannot be used to infer which key the client successfully authenticated with, if any. Some applications, which store the key(s) passed to PublicKeyCallback (or derived information) and make security relevant determinations based on it once the connection is established, may make incorrect assumptions. For example, an attacker may send public keys A and B, and then authenticate with A. PublicKeyCallback would be called only twice, first ",
+            "vulnerability_id": "CVE-2024-45337",
+            "name": "CVE-2024-45337",
+            "package_name": "golang.org/x/crypto",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/crypto",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 9.1,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.1,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-45337",
+            "source": "NVD",
+            "severity": "CRITICAL",
+            "status": "ACTIVE",
+            "title": "CVE-2024-45337 - golang.org/x/crypto",
+            "reason_to_ignore": "N/A"
+        }
+    ],
+    "golang.org/x/net": [
+        {
+            "description": "A maliciously crafted HTTP/2 stream could cause excessive CPU consumption in the HPACK decoder, sufficient to cause a denial of service from a small number of small requests.",
+            "vulnerability_id": "CVE-2022-41723",
+            "name": "CVE-2022-41723",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/net",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41723",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41723 - go/stdlib, golang.org/x/net",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "A request smuggling attack is possible when using MaxBytesHandler. When using MaxBytesHandler, the body of an HTTP request is not fully consumed. When the server attempts to read HTTP2 frames from the connection, it will instead be reading the body of the HTTP request, which could be attacker-manipulated to represent arbitrary HTTP2 requests.",
+            "vulnerability_id": "CVE-2022-41721",
+            "name": "CVE-2022-41721",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/net",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2022-41721",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2022-41721 - golang.org/x/net",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "The HTTP/2 protocol allows a denial of service (server resource consumption) because request cancellation can reset many streams quickly, as exploited in the wild in August through October 2023.",
+            "vulnerability_id": "CVE-2023-44487",
+            "name": "CVE-2023-44487",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/net",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-44487",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-44487 - golang.org/x/net",
+            "reason_to_ignore": "N/A"
+        },
+        {
+            "description": "A malicious HTTP/2 client which rapidly creates requests and immediately resets them can cause excessive server resource consumption. While the total number of requests is bounded by the http2.Server.MaxConcurrentStreams setting, resetting an in-progress request allows the attacker to create a new request while the existing one is still executing. With the fix applied, HTTP/2 servers now bound the number of simultaneously executing handler goroutines to the stream concurrency limit (MaxConcurrentStreams). New requests arriving when at the limit (which can only happen after the client has reset an existing, in-flight request) will be queued until a handler exits. If the request queue grows too large, the server will terminate the connection. This issue is also fixed in golang.org/x/net/http2 for users manually configuring HTTP/2. The default stream concurrency limit is 250 streams (requests) per HTTP/2 connection. This value may be adjusted using the golang.org/x/net/http2 package; see the Server.MaxConcurrent",
+            "vulnerability_id": "CVE-2023-39325",
+            "name": "CVE-2023-39325",
+            "package_name": "golang.org/x/net",
+            "package_details": {
+                "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+                "name": "golang.org/x/net",
+                "package_manager": "GO",
+                "version": "v0.1.0",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 7.5,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 7.5,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-39325",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2023-39325 - go/stdlib, golang.org/x/net",
+            "reason_to_ignore": "N/A"
+        }
     ]
 }

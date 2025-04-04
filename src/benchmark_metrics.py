@@ -79,22 +79,37 @@ PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD = {">=1.0": 660}
 # p99 latency, unit: millisecond
 PYTORCH_INFERENCE_CPU_THRESHOLD = {
     ">=1.0": {
-        "ResNet18": 0.08,
-        "VGG13": 0.45,
-        "MobileNetV2": 0.06,
-        "GoogleNet": 0.12,
-        "DenseNet121": 0.15,
-        "InceptionV3": 0.25,
+        "ResNet18": 80.0,
+        "MobileNet_V2": 60.0,
+        "GoogLeNet": 120.0,
+        "DenseNet121": 200.0,
+        "Inception_V3": 250.0,
+        "DistilBert_128": 200.0,
+        "Bert_128": 300.0,
+        "Roberta_128": 300.0,
+        "ASR": 300.0,
+        "All-MPNet_128": 300.0,
     }
 }
 PYTORCH_INFERENCE_GPU_THRESHOLD = {
     ">=1.0": {
-        "ResNet18": 0.0075,
-        "VGG13": 0.004,
-        "MobileNetV2": 0.013,
-        "GoogleNet": 0.018,
-        "DenseNet121": 0.04,
-        "InceptionV3": 0.03,
+        "ResNet18": 7.5,
+        "VGG13": 4.0,
+        "MobileNet_V2": 13.0,
+        "GoogLeNet": 18.0,
+        "DenseNet121": 40.0,
+        "Inception_V3": 30.0,
+        "ResNet50": 15.0,
+        "ViT_B_16": 20.0,
+        "DistilBert_128": 10.0,
+        "DistilBert_256": 11.0,
+        "Bert_128": 20.0,
+        "Bert_256": 20.0,
+        "Roberta_128": 20.0,
+        "Roberta_256": 20.0,
+        "ASR": 20.0,
+        "All-MPNet_128": 20.0,
+        "All-MPNet_256": 30.0,
     }
 }
 

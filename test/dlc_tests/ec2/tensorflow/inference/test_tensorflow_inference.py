@@ -105,7 +105,7 @@ def test_ec2_tensorflow_inference_arm64_cpu_deep_canary(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_NEURON_ACCELERATOR_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_TF_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.team("neuron")
 def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuron, ec2_connection, "8500", region)
@@ -118,7 +118,7 @@ def test_ec2_tensorflow_inference_neuron(tensorflow_inference_neuron, ec2_connec
     indirect=True,
 )
 @pytest.mark.team("neuron")
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_neuronx(tensorflow_inference_neuronx, ec2_connection, region):
     run_ec2_tensorflow_inference(tensorflow_inference_neuronx, ec2_connection, "8500", region)
 
@@ -137,12 +137,13 @@ def test_ec2_tensorflow_inference_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region)
 
 
+# Start from Tf2.18, cuda build doesn't support tensorRT anymore
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GPU_INSTANCE_TYPE, indirect=True)
 def test_ec2_tensorflow_inference_gpu_tensorrt(
-    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type, below_tf218_only
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
         pytest.skip(

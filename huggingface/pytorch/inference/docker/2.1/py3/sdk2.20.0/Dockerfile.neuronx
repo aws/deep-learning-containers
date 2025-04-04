@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 LABEL maintainer="Amazon AI"
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 
@@ -45,7 +45,6 @@ RUN apt-get update \
     ca-certificates \
     cmake \
     curl \
-    emacs \
     git \
     jq \
     libgl1-mesa-glx \
@@ -62,6 +61,7 @@ RUN apt-get update \
     gpg-agent \
     libexpat1 \
     libxml2 \
+    libgstreamer1.0-0 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -116,6 +116,10 @@ RUN conda install -c conda-forge \
     enum-compat \
     ipython
 
+RUN pip uninstall -y certifi
+
+RUN rm -rf /usr/lib/python3/dist-packages/certifi*
+
 RUN pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
     "numpy>=1.22.2, <1.24" \
@@ -125,7 +129,8 @@ RUN pip install --no-cache-dir -U \
     "awscli<2" \
     pandas==1.* \
     boto3 \
-    cryptography
+    cryptography \
+    certifi
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
@@ -160,6 +165,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 #################################
 # Hugging Face specific section #
 #################################
+
+RUN apt-get autoremove -y
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /license.txt
 

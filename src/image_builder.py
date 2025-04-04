@@ -240,6 +240,39 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 }
             }
         )
+        # job_type will be either inference or training, based on the repo URI
+        if "training" in image_repo_uri:
+            label_job_type = "training"
+        elif "inference" in image_repo_uri:
+            label_job_type = "inference"
+        else:
+            raise RuntimeError(
+                f"Cannot find inference or training job type in {image_repo_uri}. "
+                f"This is required to set job_type label."
+            )
+
+        template_file = os.path.join(
+            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
+        )
+
+        template_fw_version = (
+            str(image_config["framework_version"])
+            if image_config.get("framework_version")
+            else str(BUILDSPEC["version"])
+        )
+        template_fw = str(BUILDSPEC["framework"])
+        post_template_file = utils.generate_dlc_cmd(
+            template_path=template_file,
+            output_path=os.path.join(image_config["root"], "out.py"),
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
+
+        ARTIFACTS.update(
+            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
+        )
+
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         if "labels" in image_config:
@@ -264,17 +297,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_os_version = str(image_config.get("os_version")).replace(".", "-")
         label_contributor = str(BUILDSPEC.get("contributor"))
         label_transformers_version = str(transformers_version).replace(".", "-")
-
-        # job_type will be either inference or training, based on the repo URI
-        if "training" in image_repo_uri:
-            label_job_type = "training"
-        elif "inference" in image_repo_uri:
-            label_job_type = "inference"
-        else:
-            raise RuntimeError(
-                f"Cannot find inference or training job type in {image_repo_uri}. "
-                f"This is required to set job_type label."
-            )
 
         if cx_type == "sagemaker":
             # Adding standard labels to all images
@@ -632,7 +654,7 @@ def tag_image_with_initiator(image_tag):
     """
     # Shorten huggingface name to avoid breaching 128 char tag limit
     initiator = os.getenv("CODEBUILD_INITIATOR", "").split("/")[-1].replace("huggingface", "hf")
-    return f"{image_tag}-{initiator}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', '')[:7]}"
+    return f"{image_tag}-{initiator}-{os.getenv('CODEPIPELINE_EXECUTION_ID', '')[:7]}"
 
 
 def append_tag(image_tag, append_str):

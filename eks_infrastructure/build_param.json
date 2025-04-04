@@ -1,5 +1,5 @@
 {
-    "operation": "new_operation",
+    "operation": "create",
     "contexts": [
         "MAINLINE"
     ],
@@ -7,6 +7,6 @@
         "dlc-pytorch",
         "dlc-tensorflow"
     ],
-    "eks_version": "1.25",
-    "cluster_autoscalar_image_version": "v1.25.0"
+    "eks_version": "1.32",
+    "cluster_autoscalar_image_version": "v1.32.0"
 }

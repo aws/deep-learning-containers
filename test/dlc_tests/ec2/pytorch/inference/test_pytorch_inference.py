@@ -173,7 +173,7 @@ def test_ec2_pytorch_inference_neuron(pytorch_inference_neuron, ec2_connection, 
 
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("resnet")
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.team("neuron")
 @pytest.mark.parametrize(
     "ec2_instance_type",

@@ -186,24 +186,6 @@ def test_boto3(mxnet_inference):
     test_utils.run_cmd_on_container(container_name, ctx, "import boto3", executable="python")
 
 
-@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
-@pytest.mark.model("N/A")
-@pytest.mark.integration("emacs")
-def test_emacs(image):
-    """
-    Ensure that emacs is installed on every image
-
-    :param image: ECR image URI
-    """
-    ctx = Context()
-    container_name = test_utils.get_container_name("emacs", image)
-    test_utils.start_container(container_name, image, ctx)
-
-    # Make sure the following emacs sanity tests exit with code 0
-    test_utils.run_cmd_on_container(container_name, ctx, "which emacs")
-    test_utils.run_cmd_on_container(container_name, ctx, "emacs -version")
-
-
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("sagemaker_studio_analytics_extension")

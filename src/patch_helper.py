@@ -2,6 +2,7 @@ import os
 import boto3
 import concurrent.futures
 import json
+from datetime import datetime
 
 import constants
 
@@ -237,14 +238,42 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, get_cloned_folder_path(), "miscellaneous_scripts"
     )
 
-    torchserve_entrypoint_path = os.path.join(
+    pytorch_inference_artifacts_path = os.path.join(
         os.sep,
         get_cloned_folder_path(),
         "pytorch",
         "inference",
         "docker",
         "build_artifacts",
+    )
+
+    pytorch_training_artifacts_path = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "pytorch",
+        "training",
+        "docker",
+        "build_artifacts",
+    )
+
+    torchserve_entrypoint_path = os.path.join(
+        pytorch_inference_artifacts_path,
         "torchserve-entrypoint.py",
+    )
+
+    start_with_right_hostname_path = os.path.join(
+        pytorch_training_artifacts_path,
+        "start_with_right_hostname.sh",
+    )
+
+    pytorch_inference_start_cuda_compat_path = os.path.join(
+        pytorch_inference_artifacts_path,
+        "start_cuda_compat.sh",
+    )
+
+    pytorch_training_start_cuda_compat_path = os.path.join(
+        pytorch_training_artifacts_path,
+        "start_cuda_compat.sh",
     )
 
     verify_artifact_contents_for_patch_builds(
@@ -275,6 +304,18 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": torchserve_entrypoint_path,
             "target": "new-torchserve-entrypoint",
         },
+        "new_start_with_right_hostname": {
+            "source": start_with_right_hostname_path,
+            "target": "new_start_with_right_hostname",
+        },
+        "new_pytorch_inference_start_cuda_compat": {
+            "source": pytorch_inference_start_cuda_compat_path,
+            "target": "new_pytorch_inference_start_cuda_compat",
+        },
+        "new_pytorch_training_start_cuda_compat": {
+            "source": pytorch_training_start_cuda_compat_path,
+            "target": "new_pytorch_training_start_cuda_compat",
+        },
     }
     context = Context(
         autopatch_artifacts,
@@ -283,6 +324,12 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     )
     pre_push_image_object.info = info
     pre_push_image_object.context = context
+
+    # add latest released image SHA as an additional tag
+    datetime_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    sha_after_colon = latest_released_image_sha.split(":")[1]
+    pre_push_image_object.additional_tags.insert(0, f"lastsha-{datetime_str}-{sha_after_colon}")
+
     return constants.SUCCESS
 
 
@@ -296,8 +343,9 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
     """
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
-        hide=True,
+        hide=False,
     )
+
     folder_path_outside_clone = os.path.join(os.sep, *get_cloned_folder_path().split(os.sep)[:-1])
     download_path = os.path.join(os.sep, folder_path_outside_clone, "patch-dlc")
     if not os.path.exists(download_path):
@@ -405,10 +453,11 @@ def verify_artifact_contents_for_patch_builds(
     :param miscellaneous_scripts_path: str, Path of the miscellaneous_scripts folder that is present on Github.
     :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
     """
+    autopatch_size_limit = 1
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.7
+        folder_size_in_megabytes <= autopatch_size_limit
     ), f"Folder size for {patching_info_folder_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
     assert check_if_folder_contents_are_valid(
@@ -441,7 +490,7 @@ def verify_artifact_contents_for_patch_builds(
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
-        folder_size_in_megabytes <= 0.7
+        folder_size_in_megabytes <= autopatch_size_limit
     ), f"Folder size for {miscellaneous_scripts_path} is {folder_size_in_megabytes} MB which is more than 0.7 MB."
 
 
