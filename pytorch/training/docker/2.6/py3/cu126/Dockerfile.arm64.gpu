@@ -223,7 +223,7 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     accelerate
 
-# Install triton (need to build from source for ARM64)
+# Install triton
 RUN cd /tmp \
  && git clone https://github.com/triton-lang/triton.git \
  && cd triton \
