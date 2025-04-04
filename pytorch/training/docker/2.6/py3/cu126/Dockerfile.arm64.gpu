@@ -228,9 +228,9 @@ RUN cd /tmp \
  && git clone https://github.com/triton-lang/triton.git \
  && cd triton \
  && git checkout ${TRITON_HASH_VERSION} \
- && pip install ./python \
- && cd / \
- && rm -rf /tmp/triton
+ && pip install -e ./python \
+ && cd /
+#  && rm -rf /tmp/triton
 
 # Install GDRCopy
 RUN cd /tmp \
