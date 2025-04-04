@@ -43,7 +43,6 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    cmake \
     curl \
     git \
     jq \
@@ -172,7 +171,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/pytorch-1.13/license.txt -o /
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
-	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sentencepiece,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     huggingface_hub==${HUGGINGFACE_HUB_VERSION} \
     datasets==${DATASETS_VERSION} \
