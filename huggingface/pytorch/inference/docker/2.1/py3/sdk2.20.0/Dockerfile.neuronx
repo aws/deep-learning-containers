@@ -43,7 +43,6 @@ RUN apt-get update \
     build-essential \
     apt-transport-https \
     ca-certificates \
-    cmake \
     curl \
     git \
     jq \
@@ -54,6 +53,7 @@ RUN apt-get update \
     libgssapi-krb5-2 \
     openjdk-11-jdk \
     vim \
+    cmake \
     wget \
     unzip \
     zlib1g-dev \
@@ -62,6 +62,7 @@ RUN apt-get update \
     libexpat1 \
     libxml2 \
     libgstreamer1.0-0 \
+    linux-libc-dev \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -120,7 +121,11 @@ RUN pip uninstall -y certifi
 
 RUN rm -rf /usr/lib/python3/dist-packages/certifi*
 
-RUN pip install --no-cache-dir -U \
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
+
+RUN pip install --upgrade pip \
+    && pip install --no-cache-dir -U \
     opencv-python>=4.8.1.78 \
     "numpy>=1.22.2, <1.24" \
     "scipy>=1.8.0" \
@@ -130,7 +135,8 @@ RUN pip install --no-cache-dir -U \
     pandas==1.* \
     boto3 \
     cryptography \
-    certifi
+    certifi \ 
+    torch
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
@@ -184,6 +190,7 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -U \
     "pillow>=10.0.1" \
     "requests<2.32.0"
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
