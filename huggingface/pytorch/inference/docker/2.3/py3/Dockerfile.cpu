@@ -136,6 +136,8 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
 RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
+RUN pip install --no-cache-dir "cmake>=3.24.3,<3.25"
+
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     opencv-python \
