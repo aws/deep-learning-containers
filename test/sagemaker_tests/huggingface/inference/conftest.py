@@ -117,7 +117,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310", "311"],
+        choices=["2", "3", "37", "38", "39", "310", "311", "312"],
         default=str(sys.version_info.major),
     )
     # Processor is still "cpu" for EIA tests
