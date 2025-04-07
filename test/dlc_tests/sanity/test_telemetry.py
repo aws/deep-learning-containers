@@ -34,7 +34,9 @@ def _test_pytorch_job_type_env_var(image, job_type):
     if Version(image_framework_version) < Version("1.10"):
         pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
     env_vars = {"DLC_CONTAINER_TYPE": job_type}
-    container_name_prefix = "pt_train_job_type_env_var" if job_type == "training" else "pt_inference_job_type_env_var"
+    container_name_prefix = (
+        "pt_train_job_type_env_var" if job_type == "training" else "pt_inference_job_type_env_var"
+    )
     execute_env_variables_test(
         image_uri=image,
         env_vars_to_test=env_vars,

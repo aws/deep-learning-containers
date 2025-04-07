@@ -10,10 +10,6 @@ ARG GDRCOPY_VERSION=2.4.4
 ARG TE_VERSION=2.0
 ARG FLASH_ATTN_VERSION=2.7.3
 
-# from https://github.com/pytorch/pytorch/blob/v2.6.0/.ci/docker/ci_commit_pins/triton.txt
-# equivalent to v3.2.0
-ARG TRITON_HASH_VERSION=35c6c7c6284582b3f41c71c150e11b517acf074a
-
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torch-2.6.0%2Bcu126-cp312-cp312-linux_aarch64.whl
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/arm64/cu126/torchvision-0.21.0%2Bcu126-cp312-cp312-linux_aarch64.whl
@@ -51,7 +47,6 @@ ARG EFA_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
-ARG TRITON_HASH_VERSION
 
 ARG TORCH_URL
 ARG TORCHVISION_URL
@@ -222,15 +217,6 @@ RUN pip install --no-cache-dir -U \
     torchtnt \
     s3torchconnector \
     accelerate
-
-# Install triton
-RUN cd /tmp \
- && git clone https://github.com/triton-lang/triton.git \
- && cd triton \
- && git checkout ${TRITON_HASH_VERSION} \
- && pip install -e ./python \
- && cd /
-#  && rm -rf /tmp/triton
 
 # Install GDRCopy
 RUN cd /tmp \
