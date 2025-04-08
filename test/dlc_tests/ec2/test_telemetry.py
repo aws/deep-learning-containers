@@ -43,7 +43,7 @@ def test_telemetry_instance_tag_failure_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -61,7 +61,7 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -79,7 +79,7 @@ def test_telemetry_instance_tag_failure_arm64_gpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -97,7 +97,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -174,7 +174,7 @@ def test_telemetry_instance_tag_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -189,7 +189,7 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -204,7 +204,7 @@ def test_telemetry_instance_tag_success_arm64_gpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -219,7 +219,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -290,7 +290,7 @@ def test_telemetry_s3_query_bucket_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -304,7 +304,7 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -318,7 +318,7 @@ def test_telemetry_s3_query_bucket_success_arm64_gpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -332,7 +332,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
