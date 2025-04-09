@@ -1451,7 +1451,9 @@
                 "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
                 "71671": "Pytorch version upgrade needs to be handled in a separate image",
                 "71672": "Pytorch version upgrade needs to be handled in a separate image",
-                "74882": "Ignoring due to Safety picking this up. This is already covered in our own scan config"
+                "74882": "Ignoring due to Safety picking this up. This is already covered in our own scan config",
+                "76226": "Upgrading pytorch would change the image beyond its intended specifications",
+                "76262": "Upgrading transformers would change the image beyond its intended specifications."
             }
         },
         "training-neuronx": {
