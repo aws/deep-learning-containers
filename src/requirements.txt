@@ -2,7 +2,7 @@ awscli==1.38.9
 boto3==1.37.9
 fabric
 invoke
-wheel==0.44.0
+wheel==0.46.1
 docker==4.2.0
 pyfiglet==0.8.post1
 reprint==0.5.2
