@@ -35,10 +35,11 @@ hyperparameters = {
     "bf16": True,
     "max_seq_length": 128,
     "max_train_samples": 10,
-    "per_device_train_batch_size": 4,
+    "per_device_train_batch_size": 1,
     "num_train_epochs": 1,
     "logging_steps": 1,
     "output_dir": "/opt/ml/model",
+    "report_to": "none",
 }
 
 
@@ -124,8 +125,8 @@ def _test_neuronx_text_classification_function(
     num_neuron_cores=2,
 ):
     pytorch_version = get_pytorch_version(ecr_image)
-    if pytorch_version in SpecifierSet("==2.1.*"):
-        optimum_neuron_version = "0.0.24"
+    if pytorch_version in SpecifierSet("==2.5.*"):
+        optimum_neuron_version = "0.1.0"
     else:
         raise ValueError(
             f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."
@@ -150,7 +151,7 @@ def _test_neuronx_text_classification_function(
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             py_version=py_version,
-            # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
+            distribution=distribution,
             hyperparameters=hyperparameters,
         )
         estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-glue-neuronx"))
