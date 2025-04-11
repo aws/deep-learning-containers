@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = false
+arm64_mode = true
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -46,7 +46,7 @@ build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
