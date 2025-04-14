@@ -149,11 +149,17 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         additional_image_tags.append(image_tag)
 
+        FORMATTER.print("IMAGE CONFIG - REPO", image_config["repository"])
+        FORMATTER.print("BUILD CONTEXT", build_context)
+
         image_repo_uri = (
             image_config["repository"]
             if build_context == "PR"
             else modify_repository_name_for_context(str(image_config["repository"]), build_context)
         )
+
+        FORMATTER.print("IMAGE REPO URI", image_repo_uri)
+
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(
@@ -222,15 +228,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else:
                 repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    # source_uri = (
-                    #     f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
-                    # )
                     source_uri = (
-                    f"{image_repo_uri}"
-                    .replace('669063966089', '763104351884')
-                    .replace('pr-pytorch-inference', 'pytorch-inference') + 
-                    f":{t_override}" )
-
+                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
+                    )
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
                     )
