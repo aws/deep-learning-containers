@@ -1908,35 +1908,4 @@
          "reason_to_ignore":"N/A"
       }
     ],
-    "go/stdlib":[
-      {
-        "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
-        "vulnerability_id": "CVE-2024-24790",
-        "name": "CVE-2024-24790",
-        "package_name": "go/stdlib",
-        "package_details": {
-          "file_path": null,
-          "name": "go/stdlib",
-          "package_manager": "GENERIC",
-          "version": "1.22.3",
-          "release": null
-        },
-        "remediation": {
-          "recommendation": {
-            "text": "None Provided"
-          }
-        },
-        "cvss_v3_score": 9.8,
-        "cvss_v30_score": 0.0,
-        "cvss_v31_score": 9.8,
-        "cvss_v2_score": 0.0,
-        "cvss_v3_severity": "CRITICAL",
-        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
-        "source": "NVD",
-        "severity": "CRITICAL",
-        "status": "ACTIVE",
-        "title": "CVE-2024-24790 - go/stdlib",
-        "reason_to_ignore": "N/A"
-      },
-  ],
 }
