@@ -149,7 +149,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         additional_image_tags.append(image_tag)
 
-        FORMATTER.print(f"IMAGE CONFIG - REPO {image_config["repository"]}")
+        repo = image_config["repository"]
+        FORMATTER.print(f"IMAGE CONFIG - REPO {repo}")
         FORMATTER.print(f"BUILD CONTEXT {build_context}")
 
         image_repo_uri = (
