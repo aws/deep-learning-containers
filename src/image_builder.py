@@ -149,8 +149,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         additional_image_tags.append(image_tag)
 
-        FORMATTER.print("IMAGE CONFIG - REPO", image_config["repository"])
-        FORMATTER.print("BUILD CONTEXT", build_context)
+        FORMATTER.print(f"IMAGE CONFIG - REPO {image_config["repository"]}")
+        FORMATTER.print(f"BUILD CONTEXT {build_context}")
 
         image_repo_uri = (
             image_config["repository"]
@@ -158,7 +158,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else modify_repository_name_for_context(str(image_config["repository"]), build_context)
         )
 
-        FORMATTER.print("IMAGE REPO URI", image_repo_uri)
+        FORMATTER.print(f"IMAGE REPO URI {image_repo_uri}")
 
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
