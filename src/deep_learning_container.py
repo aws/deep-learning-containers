@@ -283,11 +283,13 @@ def query_bucket(instance_id, region):
         args.framework_version,
         args.container_type,
     )
+    
     py_version = sys.version.split(" ")[0]
    
     if instance_id is not None and region is not None:
         hashed_region = _region_hash(region)
         logging.debug("hashed_region: {}".format(hashed_region))
+        #-beta-878799496459.s3
         url = (
             "https://aws-deep-learning-containers-{0}-beta-878799496459.s3.{1}.amazonaws.com"
             "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}&x-container_type={6}".format(
@@ -380,3 +382,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
