@@ -51,7 +51,7 @@ RUN pip install -U \
 	botocore \
 	google-auth \
 	"urllib3>=1.26.17,<1.27" \
-	certifi
+	"certifi==2023.7.22"
 
 
 RUN apt-get update \
