@@ -17,7 +17,6 @@ ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
 RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
-RUN apt-get purge -y --auto-remove certifi && apt-get clean && rm -rf /usr/share/certifi /etc/emacs /var/lib/certifi
 
 RUN pip install --upgrade pip
 
@@ -52,7 +51,7 @@ RUN pip install -U \
 	botocore \
 	google-auth \
 	"urllib3>=1.26.17,<1.27" \
-	"certifi==2023.7.22"
+	#"certifi==2023.7.22"
 
 
 RUN apt-get update \
