@@ -24,16 +24,20 @@ RUN pip install --no-cache-dir --no-build-isolation kenlm
 
 RUN apt-get update && apt-get install -y cmake
 
+RUN pip uninstall -y certifi
+RUN rm -rf /usr/lib/python3/dist-packages/certifi*
+
 
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
 	evaluate \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
-	gevent==${GEVENT_VERSION}
+	gevent==${GEVENT_VERSION} \
+	certifi
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
@@ -51,7 +55,6 @@ RUN pip install -U \
 	botocore \
 	google-auth \
 	"urllib3>=1.26.17,<1.27" 
-	#"certifi==2023.7.22"
 
 
 RUN apt-get update \
@@ -66,6 +69,8 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ RUN apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
