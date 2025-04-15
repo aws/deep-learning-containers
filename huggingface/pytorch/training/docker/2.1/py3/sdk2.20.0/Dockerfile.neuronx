@@ -14,10 +14,11 @@ ARG DATASETS_VERSION
 ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
-RUN apt-get remove -y --purge emacs && \
-apt-get autoremove -y
+RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
 
 RUN pip install --upgrade pip
+
+RUN pip install --no-cache-dir --no-build-isolation kenlm
 
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
@@ -58,6 +59,8 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
