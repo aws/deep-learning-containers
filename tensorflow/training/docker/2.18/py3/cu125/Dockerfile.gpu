@@ -300,7 +300,7 @@ RUN HOME_DIR=/root \
 # remove tmp files
 RUN rm -rf /tmp/*
 
-ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+# ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 #################################################################
@@ -407,5 +407,5 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+# ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
