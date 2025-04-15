@@ -18,6 +18,7 @@ import os
 import re
 import signal
 import sys
+import hashlib
 
 import botocore.session
 import requests
@@ -209,6 +210,18 @@ def _retrieve_os():
     return name + version
 
 
+def _region_hash(region):
+    '''
+    Hash the region to get a unique identifier for it.
+    :param region: str, AWS region
+    :return: str, hashed region
+    '''
+    # Using SHA256 to hash the region
+    # and taking the first 8 characters for uniqueness
+    return hashlib.sha256(region.encode()).hexdigest()[:8]
+
+
+
 def parse_args():
     """
     Parsing function to parse input arguments.
@@ -261,6 +274,8 @@ def query_bucket(instance_id, region):
     """
     GET request on an empty object from an Amazon S3 bucket
     """
+    logging.basicConfig(level=logging.DEBUG)
+   
     response = None
     args = parse_args()
     framework, framework_version, container_type = (
@@ -269,12 +284,14 @@ def query_bucket(instance_id, region):
         args.container_type,
     )
     py_version = sys.version.split(" ")[0]
-
+   
     if instance_id is not None and region is not None:
+        hashed_region = _region_hash(region)
+        logging.debug("hashed_region: {}".format(hashed_region))
         url = (
-            "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
-            "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}&x-container_type={5}".format(
-                region, instance_id, framework, framework_version, py_version, container_type
+            "https://aws-deep-learning-containers-{0}-beta-878799496459.s3.{1}.amazonaws.com"
+            "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}&x-container_type={6}".format(
+                hashed_region, region, instance_id, framework, framework_version, py_version, container_type
             )
         )
         response = requests_helper(url, timeout=0.2)
@@ -329,9 +346,10 @@ def main():
     Invoke bucket query
     """
     # Logs are not necessary for normal run. Remove this line while debugging.
-    logging.getLogger().disabled = True
+    # logging.getLogger().disabled = True
 
-    logging.basicConfig(level=logging.ERROR)
+    logging.basicConfig(level=logging.DEBUG)
+
     token = None
     instance_id = None
     region = None
