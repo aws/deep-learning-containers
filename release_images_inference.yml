@@ -119,7 +119,7 @@ release_images:
       neuron_sdk_version: "sdk2.20.0"
       example: False
       disable_sm_tag: True
-      force_release: False
+      force_release: True
   10:
     framework: "djl"
     version: "0.32.0"
