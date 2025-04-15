@@ -255,7 +255,7 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY dockerd_entrypoint.py /usr/local/bin/dockerd_entrypoint.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
