@@ -238,6 +238,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     dockerfile = temp_file_handle.name
                     target = None
                 FORMATTER.print(f"USING TAG OVERRIDE {source_uri}")
+                FORMATTER.print(f"dockerfile {dockerfile}")
+
 
         ARTIFACTS.update(
             {
