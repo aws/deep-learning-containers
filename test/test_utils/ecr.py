@@ -112,7 +112,10 @@ def get_ecr_image_enhanced_scan_status(ecr_client, image_uri):
     """
     repository, tag = get_repository_and_tag_from_image_uri(image_uri)
     scan_info = ecr_client.describe_image_scan_findings(
-        repositoryName=repository, imageId={"imageTag": tag}, maxResults=1
+        registryId=get_account_id_from_image_uri(image_uri),
+        repositoryName=repository,
+        imageId={"imageTag": tag},
+        maxResults=1,
     )
     return scan_info["imageScanStatus"]["status"], scan_info["imageScanStatus"]["description"]
 
