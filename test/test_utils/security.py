@@ -16,6 +16,7 @@ from test.test_utils import (
     ecr as ecr_utils,
     get_installed_python_packages_with_version,
     is_huggingface_image,
+    is_pr_context,
 )
 import dataclasses
 from dataclasses import dataclass
@@ -721,6 +722,8 @@ def get_target_image_uri_using_current_uri_and_target_repo(
     """
     sts_client = boto3.client("sts", region_name=target_repository_region)
     account_id = sts_client.get_caller_identity().get("Account")
+    if is_pr_context():
+        account_id = ecr_utils.get_account_id_from_image_uri(image)
     registry = ecr_utils.get_ecr_registry(account_id, target_repository_region)
     (
         original_image_repository,
@@ -976,9 +979,9 @@ def conduct_failure_routine(
         )
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
-    return_dict[
-        "s3_filename_for_current_image_ecr_scan_list"
-    ] = s3_filename_for_current_image_ecr_scan_list
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = (
+        s3_filename_for_current_image_ecr_scan_list
+    )
     return return_dict
 
 
@@ -1388,9 +1391,9 @@ def extract_non_patchable_vulnerabilities(
                 docker_exec_command=docker_exec_cmd,
             )
             if allowlistable_python_vulns:
-                non_patchable_vulnerabilities_with_reason.vulnerability_list[
-                    package_name
-                ] = allowlistable_python_vulns
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[package_name] = (
+                    allowlistable_python_vulns
+                )
             else:
                 patchable_packages.append(package_name)
 
