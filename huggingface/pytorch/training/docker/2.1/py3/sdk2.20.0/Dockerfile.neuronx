@@ -21,6 +21,7 @@ ARG PYTHON=python3
 
 RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
 
+RUN pip install -U accelerate==0.32.0
 
 RUN pip install --upgrade pip
 
