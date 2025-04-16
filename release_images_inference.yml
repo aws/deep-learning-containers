@@ -214,7 +214,7 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py310" ]
+      python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
       lmi_version: "13.0.0"
       cuda_version: "cu124"
