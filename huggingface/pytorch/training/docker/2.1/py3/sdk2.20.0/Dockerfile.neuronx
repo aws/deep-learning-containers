@@ -21,10 +21,6 @@ ARG PYTHON=python3
 
 RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
 
-RUN pip uninstall accelerate -y
-
-RUN pip install --upgrade accelerate
-
 
 RUN pip install --upgrade pip
 
@@ -39,6 +35,8 @@ RUN pip install --no-cache-dir \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
 	gevent==${GEVENT_VERSION}
+
+RUN pip install --no-cache-dir accelerate
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
