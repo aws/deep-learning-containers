@@ -381,8 +381,5 @@ def main():
 
 
 if __name__ == "__main__":
-    # main()
-    query_bucket(
-        instance_id="i-1234567890abcdef0",
-        region="us-east-1",
-    )
+    main()
+    
