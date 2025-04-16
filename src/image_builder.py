@@ -387,7 +387,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     parent_images = [image for image in PRE_PUSH_STAGE_IMAGES if not image.is_child_image]
     child_images = [image for image in PRE_PUSH_STAGE_IMAGES if image.is_child_image]
     ALL_IMAGES = PRE_PUSH_STAGE_IMAGES + COMMON_STAGE_IMAGES
+    FORMATTER.print(f"ALL_IMAGES {ALL_IMAGES}")
+
     IMAGES_TO_PUSH = [image for image in ALL_IMAGES if image.to_push and image.to_build]
+
+    FORMATTER.print(f"IMAGES_TO_PUSH {IMAGES_TO_PUSH}")
 
     pushed_images = []
     pushed_images += process_images(parent_images, "Parent/Independent", buildspec_path=buildspec)
