@@ -274,7 +274,6 @@ def query_bucket(instance_id, region):
     """
     GET request on an empty object from an Amazon S3 bucket
     """
-    logging.basicConfig(level=logging.DEBUG)
    
     response = None
     args = parse_args()
@@ -287,9 +286,10 @@ def query_bucket(instance_id, region):
     py_version = sys.version.split(" ")[0]
    
     if instance_id is not None and region is not None:
+        # hardcode the region to run test
+        region = "us-east-1"
         hashed_region = _region_hash(region)
         logging.debug("hashed_region: {}".format(hashed_region))
-        #-beta-878799496459.s3
         url = (
             "https://aws-deep-learning-containers-{0}-beta-878799496459.s3.{1}.amazonaws.com"
             "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}&x-container_type={6}".format(
@@ -381,5 +381,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-    
+    # main()
+    query_bucket(
+        instance_id="i-1234567890abcdef0",
+        region="us-east-1",
+    )
