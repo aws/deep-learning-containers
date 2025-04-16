@@ -119,7 +119,7 @@ release_images:
       neuron_sdk_version: "sdk2.20.0"
       example: False
       disable_sm_tag: True
-      force_release: False
+      force_release: True
   10:
     framework: "djl"
     version: "0.32.0"
@@ -194,4 +194,30 @@ release_images:
       os_version: "ubuntu22.04"
       example: False
       disable_sm_tag: False
+      force_release: False
+  16:
+    framework: "djl"
+    version: "0.33.0"
+    arch_type: "x86"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      lmi_version: "15.0.0"
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: True
+      force_release: False
+  17:
+    framework: "djl"
+    version: "0.31.0"
+    arch_type: "x86"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu22.04"
+      lmi_version: "13.0.0"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: True
       force_release: False
