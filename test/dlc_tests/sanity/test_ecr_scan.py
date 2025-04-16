@@ -23,7 +23,6 @@ from test.test_utils import (
     get_repository_local_path,
     ECR_SCAN_HELPER_BUCKET,
     is_canary_context,
-    is_pr_context,
     get_all_the_tags_of_an_image_from_ecr,
     is_huggingface_image,
     is_image_available_locally,
@@ -174,7 +173,7 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
         image_uri_with_new_tag = image.replace(original_image_tag, additional_tag)
         run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)
 
-    if image_account_id != test_account_id and not is_pr_context():
+    if image_account_id != test_account_id:
         original_image = image
         target_image_repo_name = f"beta-{image_repo_name}"
         for additional_tag in additional_image_tags:
@@ -184,6 +183,7 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
             )
             if image_uri_with_new_tag == original_image:
                 image = new_image_uri
+
     return image
 
 
@@ -428,11 +428,10 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(
         image, ecr_client, sts_client, region
     )
-
-    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
 
     (
         remaining_vulnerabilities,

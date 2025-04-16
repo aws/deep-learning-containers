@@ -125,12 +125,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-        # image_tag = (
-        #     tag_image_with_pr_number(image_config["tag"])
-        #     if build_context == "PR"
-        #     else image_config["tag"]
-        # )
-        image_tag = image_config["tag"]
+        image_tag = (
+            tag_image_with_pr_number(image_config["tag"])
+            if build_context == "PR"
+            else image_config["tag"]
+        )
 
         if is_autopatch_build_enabled(buildspec_path=buildspec):
             image_tag = append_tag(image_tag, "autopatch")
@@ -151,11 +150,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         additional_image_tags.append(image_tag)
 
         image_repo_uri = (
-            image_config["release_repository"]
+            image_config["repository"]
             if build_context == "PR"
             else modify_repository_name_for_context(str(image_config["repository"]), build_context)
         )
-
         base_image_uri = None
         if image_config.get("base_image_name") is not None:
             base_image_object = _find_image_object(
@@ -224,7 +222,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else:
                 repo_override, t_override = tag_override.split(":")
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = f"{image_repo_uri}:{t_override}"
+                    source_uri = (
+                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
+                    )
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
                     )

@@ -16,7 +16,6 @@ from test.test_utils import (
     ecr as ecr_utils,
     get_installed_python_packages_with_version,
     is_huggingface_image,
-    is_pr_context,
 )
 import dataclasses
 from dataclasses import dataclass
@@ -722,8 +721,6 @@ def get_target_image_uri_using_current_uri_and_target_repo(
     """
     sts_client = boto3.client("sts", region_name=target_repository_region)
     account_id = sts_client.get_caller_identity().get("Account")
-    if is_pr_context():
-        account_id = ecr_utils.get_account_id_from_image_uri(image)
     registry = ecr_utils.get_ecr_registry(account_id, target_repository_region)
     (
         original_image_repository,
