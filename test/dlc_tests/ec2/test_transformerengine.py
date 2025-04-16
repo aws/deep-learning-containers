@@ -12,6 +12,7 @@ from test.test_utils import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     are_heavy_instance_ec2_tests_enabled,
+    UL22_BASE_ARM64_DLAMI_US_WEST_2,
 )
 from test.test_utils.ec2 import get_efa_ec2_instance_type, filter_efa_instance_type
 
@@ -27,7 +28,6 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 
 
 @pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.skip_transformer_engine_test
 @pytest.mark.processor("gpu")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("transformerengine")
@@ -49,3 +49,29 @@ def test_pytorch_transformerengine(
         pytest.skip("Test requires CUDA12 and PT 2.0 or greater")
 
     ec2_utils.execute_ec2_training_test(ec2_connection, pytorch_training, PT_TE_TESTS_CMD)
+
+
+# @pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("transformerengine")
+@pytest.mark.usefixtures("sagemaker")
+# @pytest.mark.allow_p4de_use
+# @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
+# @pytest.mark.skipif(
+#     is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+#     reason="Skip heavy instance test in PR context unless explicitly enabled",
+# )
+@pytest.mark.team("conda")
+def test_pytorch_transformerengine_arm64(
+    pytorch_training_arm64, ec2_connection, region, ec2_instance_type, gpu_only, py3_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training_arm64)
+    image_framework_version = Version(image_framework_version)
+    image_cuda_version = get_cuda_version_from_tag(pytorch_training_arm64)
+    if not (image_framework_version in SpecifierSet(">=2.0") and image_cuda_version >= "cu121"):
+        pytest.skip("Test requires CUDA12 and PT 2.0 or greater")
+
+    ec2_utils.execute_ec2_training_test(ec2_connection, pytorch_training_arm64, PT_TE_TESTS_CMD)
