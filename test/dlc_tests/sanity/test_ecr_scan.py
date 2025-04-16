@@ -433,6 +433,8 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
         image, ecr_client, sts_client, region
     )
 
+    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+
     (
         remaining_vulnerabilities,
         _,

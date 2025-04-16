@@ -2324,13 +2324,13 @@ def get_labels_from_ecr_image(image_uri, region):
     @return: list of labels attached to ECR image URI
     """
     ecr_client = boto3.client("ecr", region_name=region)
-
+    account_id = get_account_id_from_image_uri(image_uri)
     image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
     # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
     # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
     # on the manifest. The default format does not return the image LABELs.
     response = ecr_client.batch_get_image(
-        registryId=get_account_id_from_image_uri(image_uri),
+        registryId=account_id,
         repositoryName=image_repository,
         imageIds=[{"imageTag": image_tag}],
         acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
