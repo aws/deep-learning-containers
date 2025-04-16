@@ -36,7 +36,7 @@ RUN pip install --no-cache-dir \
     peft \
 	gevent==${GEVENT_VERSION}
 
-RUN pip install --no-cache-dir accelerate
+RUN pip install accelerate==0.23.0
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow and urllib version to fix high and critical vulnerabilities
