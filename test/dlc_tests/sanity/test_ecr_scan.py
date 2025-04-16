@@ -23,6 +23,7 @@ from test.test_utils import (
     get_repository_local_path,
     ECR_SCAN_HELPER_BUCKET,
     is_canary_context,
+    is_pr_context,
     get_all_the_tags_of_an_image_from_ecr,
     is_huggingface_image,
     is_image_available_locally,
@@ -161,7 +162,6 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
     image_region = get_region_from_image_uri(image)
     image_repo_name, original_image_tag = get_repository_and_tag_from_image_uri(image)
     additional_image_tags = get_all_the_tags_of_an_image_from_ecr(ecr_client, image)
-    LOGGER.info(f"additional_image_tags {additional_image_tags}")
 
     if not is_image_available_locally(image):
         LOGGER.info(f"Image {image} not available locally!! Pulling the image...")
@@ -172,13 +172,9 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
 
     for additional_tag in additional_image_tags:
         image_uri_with_new_tag = image.replace(original_image_tag, additional_tag)
-        LOGGER.info(f"image_uri_with_new_tag {image_uri_with_new_tag}")
         run(f"docker tag {image} {image_uri_with_new_tag}", hide=True)
 
-    if image_account_id != test_account_id:
-        LOGGER.info(
-            f"the image account {image_account_id} is not equal to test account {test_account_id}"
-        )
+    if image_account_id != test_account_id and not is_pr_context():
         original_image = image
         target_image_repo_name = f"beta-{image_repo_name}"
         for additional_tag in additional_image_tags:
@@ -188,7 +184,6 @@ def conduct_preprocessing_of_images_before_running_ecr_scans(image, ecr_client, 
             )
             if image_uri_with_new_tag == original_image:
                 image = new_image_uri
-        LOGGER.info(f"the final image {image}")
     return image
 
 
