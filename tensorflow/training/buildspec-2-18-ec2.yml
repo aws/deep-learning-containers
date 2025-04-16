@@ -5,7 +5,7 @@ framework: &FRAMEWORK tensorflow
 version: &VERSION 2.18.0
 short_version: &SHORT_VERSION "2.18"
 arch_type: x86
-# autopatch_build: "True"
+autopatch_build: "True"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -19,12 +19,9 @@ repository_info:
 
 context:
   training_context: &TRAINING_CONTEXT
-    start_cuda_compat:
-      source: docker/build_artifacts/start_cuda_compat.sh
-      target: start_cuda_compat.sh
-    dockerd_entrypoint:
-      source: docker/build_artifacts/dockerd_entrypoint.sh
-      target: dockerd_entrypoint.sh
+    dockerd-entrypoint:
+      source: docker/build_artifacts/dockerd-entrypoint.py
+      target: dockerd-entrypoint.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
