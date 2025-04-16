@@ -23,7 +23,7 @@ RUN pip install --upgrade pip
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
 	evaluate \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
     peft \
