@@ -428,7 +428,7 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
-    LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
+    LOGGER.info(f"parameter for test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(
         image, ecr_client, sts_client, region
     )
