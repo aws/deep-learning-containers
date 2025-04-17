@@ -88,6 +88,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
         or is_autopatch_build_enabled(buildspec_path=buildspec)
+        or build_context == "PR"
     ):
         os.system("echo login into public ECR")
         os.system(
