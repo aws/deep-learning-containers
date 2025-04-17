@@ -21,73 +21,7 @@ import pytest
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-
-# these regions have some p2 and p3 instances, but not enough for automated testing
-NO_P2_REGIONS = [
-    "ap-northeast-3",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P4_REGIONS = [
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
-# TODO: Expand this list
-G5_AVAILABLE_REGIONS = [
-    "ca-central-1",
-    "us-west-2",
-    "us-east-1",
-    "us-east-2",
-    "eu-west-1",
-]
+from ...... import NO_P4_REGIONS, NO_G5_REGIONS
 
 
 def pytest_addoption(parser):
@@ -211,11 +145,8 @@ def model_name():
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (
-        (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
-        or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
-        or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
-        or (region not in G5_AVAILABLE_REGIONS and instance_type.startswith("ml.g5"))
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip(
             "Skipping GPU test in region {} with instance type {}".format(region, instance_type)
