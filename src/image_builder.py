@@ -66,6 +66,13 @@ def _find_image_object(images_list, image_name):
     return ret_image_object
 
 
+def _login_to_prod_ecr_registry():
+    FORMATTER.print("Logging into public ECR")
+    os.system(
+        "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
+    )
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec, image_types=[], device_types=[]):
     """
@@ -88,12 +95,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "stabilityai" in str(BUILDSPEC["framework"])
         or "trcomp" in str(BUILDSPEC["framework"])
         or is_autopatch_build_enabled(buildspec_path=buildspec)
-        or build_context == "PR"
     ):
-        os.system("echo login into public ECR")
-        os.system(
-            "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
-        )
+        _login_to_prod_ecr_registry()
 
     for image_name, image_config in BUILDSPEC["images"].items():
         # filter by image type if type is specified
@@ -222,7 +225,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                     f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
                 )
             else:
-                repo_override, t_override = tag_override.split(":")
+                _login_to_prod_ecr_registry()
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
                     source_uri = f"{prod_repo_uri}"
                     temp_file_handle.write(
