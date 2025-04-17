@@ -37,15 +37,15 @@ from test.test_utils import (
     login_to_ecr_registry,
     get_account_id_from_image_uri,
 )
-from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 # List of instance types for which, if instance spin-up fails, the test is skipped instead of failing.
-ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
+ICE_SKIP_INSTANCE_LIST = []
 
 # List of instance types which are too powerful for minor tests
-HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+HEAVY_INSTANCE_LIST = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -133,8 +133,6 @@ def get_cicd_instance_reserved_region(instance_type):
     return (
         P4DE_REGION
         if instance_type in ["p4de.24xlarge"]
-        else P3DN_REGION
-        if instance_type in ["p3dn.24xlarge"]
         else DEFAULT_REGION
     )
 

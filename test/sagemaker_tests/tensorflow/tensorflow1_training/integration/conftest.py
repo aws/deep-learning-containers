@@ -123,7 +123,7 @@ def fixture_sagemaker_regions(request):
 
 @pytest.fixture
 def efa_instance_type():
-    default_instance_type = "ml.p3dn.24xlarge"
+    default_instance_type = "ml.p4d.24xlarge"
     return default_instance_type
 
 

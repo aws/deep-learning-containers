@@ -36,8 +36,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent region where p3dn tests can be run
-P3DN_REGION = "us-east-1"
 # Constant to represent region where p4de tests can be run
 P4DE_REGION = "us-east-1"
 

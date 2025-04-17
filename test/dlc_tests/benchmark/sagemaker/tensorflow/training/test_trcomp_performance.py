@@ -118,7 +118,7 @@ def pytest_generate_tests(metafunc):
             [
                 pytest.param("ml.g5.8xlarge", 1, marks=[pytest.mark.p3, pytest.mark.single_gpu]),
                 # pytest.param('ml.g5.48xlarge', 1, marks=[pytest.mark.p3, pytest.mark.single_node_multi_gpu]),
-                # pytest.param('ml.p3dn.24xlarge', 2, marks=[pytest.mark.p3, pytest.mark.multi_node_multi_gpu]),
+                # pytest.param('ml.p4d.24xlarge', 2, marks=[pytest.mark.p3, pytest.mark.multi_node_multi_gpu]),
             ],
         )
 
