@@ -46,6 +46,8 @@ RUN pip install -U \
 	google-auth \
 	"urllib3>=1.26.17,<1.27"
 
+RUN pip install --upgrade accelerate 
+
 RUN apt-get update \
  && apt install -y --no-install-recommends \
     git-lfs \
