@@ -112,10 +112,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         extra_build_args = {}
         labels = {}
 
-        tag_override = image_config.get("build_tag_override")
+        tag_override = image_config.get("build_tag_override", "False").lower() == "true"
 
         prod_repo_uri = ""
-        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override is not None:
+        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
                 image_config=image_config,
                 framework=BUILDSPEC["framework"],
@@ -216,14 +216,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         dockerfile = image_config["docker_file"]
         target = image_config.get("target")
-        tag_override_regex = r"^(beta|pr):\S+$"
         if tag_override and build_context == "PR":
             if is_autopatch_build_enabled(buildspec_path=buildspec):
                 FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
-            elif not re.match(tag_override_regex, tag_override):
-                FORMATTER.print(
-                    f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
-                )
             else:
                 _login_to_prod_ecr_registry()
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
