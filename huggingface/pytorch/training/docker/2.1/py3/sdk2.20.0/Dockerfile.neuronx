@@ -38,6 +38,7 @@ RUN pip install -U \
 	"numba==0.58.1" \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
+	"accelerate==0.32.0"
 	Jinja2 \
 	mlflow \
 	tornado \
