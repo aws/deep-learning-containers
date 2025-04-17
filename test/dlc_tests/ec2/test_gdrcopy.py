@@ -39,3 +39,35 @@ def test_gdrcopy(
     execute_ec2_training_test(
         ec2_connection, pytorch_training, GDRCOPY_SANITY_TEST_CMD, enable_gdrcopy=True
     )
+
+
+# @pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.team("conda")
+@pytest.mark.integration("gdrcopy")
+# @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.16xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True
+)
+# @pytest.mark.skipif(
+#     is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+#     reason="Skip GDRCopy test in PR context unless explicitly enabled",
+# )
+def test_gdrcopy_arm64(
+    pytorch_training_arm64,
+    ec2_connection,
+    ec2_instance_type,
+    region,
+    gpu_only,
+    pt113_and_above_only,
+):
+    # if test_utils.is_image_incompatible_with_instance_type(pytorch_training_arm64, ec2_instance_type):
+    #     pytest.skip(
+    #         f"Image {pytorch_training_arm64} is incompatible with instance type {ec2_instance_type}"
+    #     )
+
+    execute_ec2_training_test(
+        ec2_connection, pytorch_training_arm64, GDRCOPY_SANITY_TEST_CMD, enable_gdrcopy=True
+    )
