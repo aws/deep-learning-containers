@@ -15,7 +15,7 @@ ARG GEVENT_VERSION=24.10.3
 ARG PYTHON=python3
 
 RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
-RUN pip uninstall accelerate
+
 
 RUN pip install --upgrade pip
 
@@ -26,7 +26,7 @@ RUN pip install --no-cache-dir \
 	transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-    "peft==0.14.0" \
+    peft \
 	gevent==${GEVENT_VERSION}
 
 # Pin numpy to version required by neuronx-cc
@@ -46,6 +46,7 @@ RUN pip install -U \
 	google-auth \
 	"urllib3>=1.26.17,<1.27"
 
+RUN pip install "peft==0.14.0"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
