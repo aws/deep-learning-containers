@@ -1412,7 +1412,9 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
+        else "arm64_" + framework
+        if os.getenv("ARCH_TYPE") == "arm64"
+        else framework
     )
 
     version_regex = {
@@ -1844,39 +1846,25 @@ def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
-        else (
-            "huggingface_tensorflow"
-            if "huggingface-tensorflow" in image_uri
-            else (
-                "huggingface_pytorch_trcomp"
-                if "huggingface-pytorch-trcomp" in image_uri
-                else (
-                    "pytorch_trcomp"
-                    if "pytorch-trcomp" in image_uri
-                    else (
-                        "huggingface_pytorch"
-                        if "huggingface-pytorch" in image_uri
-                        else (
-                            "stabilityai_pytorch"
-                            if "stabilityai-pytorch" in image_uri
-                            else (
-                                "mxnet"
-                                if "mxnet" in image_uri
-                                else (
-                                    "pytorch"
-                                    if "pytorch" in image_uri
-                                    else (
-                                        "tensorflow"
-                                        if "tensorflow" in image_uri
-                                        else "autogluon" if "autogluon" in image_uri else None
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
+        else "huggingface_tensorflow"
+        if "huggingface-tensorflow" in image_uri
+        else "huggingface_pytorch_trcomp"
+        if "huggingface-pytorch-trcomp" in image_uri
+        else "pytorch_trcomp"
+        if "pytorch-trcomp" in image_uri
+        else "huggingface_pytorch"
+        if "huggingface-pytorch" in image_uri
+        else "stabilityai_pytorch"
+        if "stabilityai-pytorch" in image_uri
+        else "mxnet"
+        if "mxnet" in image_uri
+        else "pytorch"
+        if "pytorch" in image_uri
+        else "tensorflow"
+        if "tensorflow" in image_uri
+        else "autogluon"
+        if "autogluon" in image_uri
+        else None
     )
 
 
@@ -2324,13 +2312,12 @@ def get_labels_from_ecr_image(image_uri, region):
     @return: list of labels attached to ECR image URI
     """
     ecr_client = boto3.client("ecr", region_name=region)
-    account_id = get_account_id_from_image_uri(image_uri)
+
     image_repository, image_tag = get_repository_and_tag_from_image_uri(image_uri)
     # Using "acceptedMediaTypes" on the batch_get_image request allows the returned image information to
     # provide the ECR Image Manifest in the specific format that we need, so that the image LABELS can be found
     # on the manifest. The default format does not return the image LABELs.
     response = ecr_client.batch_get_image(
-        registryId=account_id,
         repositoryName=image_repository,
         imageIds=[{"imageTag": image_tag}],
         acceptedMediaTypes=["application/vnd.docker.distribution.manifest.v1+json"],
