@@ -58,6 +58,11 @@ NO_G5_REGIONS = [
     "me-south-1",
 ]
 
+P5_AVAIL_REGIONS = [
+    "us-east-1",
+    "us-west-2",
+]
+
 
 class SMInstanceCapacityError(Exception):
     pass
