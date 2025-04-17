@@ -664,5 +664,3 @@ def generate_dlc_cmd(template_path, output_path, framework, framework_version, c
 
     # Return base path and set as artifact
     return os.path.basename(output_path)
-
-

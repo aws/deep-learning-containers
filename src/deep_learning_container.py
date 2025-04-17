@@ -286,12 +286,10 @@ def query_bucket(instance_id, region):
     py_version = sys.version.split(" ")[0]
    
     if instance_id is not None and region is not None:
-        # hardcode the region to run test
-        region = "us-east-1"
         hashed_region = _region_hash(region)
-        logging.debug("hashed_region: {}".format(hashed_region))
+        
         url = (
-            "https://aws-deep-learning-containers-{1}-beta-878799496459.s3.{1}.amazonaws.com"
+            "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
             "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}&x-container_type={6}".format(
                 hashed_region, region, instance_id, framework, framework_version, py_version, container_type
             )
@@ -348,9 +346,9 @@ def main():
     Invoke bucket query
     """
     # Logs are not necessary for normal run. Remove this line while debugging.
-    # logging.getLogger().disabled = True
+    logging.getLogger().disabled = True
 
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
 
     token = None
     instance_id = None
