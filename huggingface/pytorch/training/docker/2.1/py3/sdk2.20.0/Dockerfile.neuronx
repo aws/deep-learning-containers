@@ -18,16 +18,14 @@ RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/e
 
 RUN pip install --upgrade pip
 
-RUN pip install --no-cache-dir --no-build-isolation kenlm
-
  # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
 	"sagemaker==2.232.2" \
 	evaluate \
-	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	transformers[sklearn,sentencepiece,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
 	optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-    peft \
+    "peft==0.14.0" \
 	gevent==${GEVENT_VERSION}
 
 # Pin numpy to version required by neuronx-cc
@@ -38,7 +36,6 @@ RUN pip install -U \
 	"numba==0.58.1" \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
-	"accelerate==0.32.0"
 	Jinja2 \
 	mlflow \
 	tornado \
@@ -60,8 +57,6 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
