@@ -30,7 +30,7 @@ from ..integration import (
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
 )
-from .... import NO_P4_REGIONS, NO_G5_REGIONS
+from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 
 logger = logging.getLogger(__name__)

@@ -23,7 +23,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 from ..integration import get_ecr_registry
-from .... import NO_P4_REGIONS, NO_G5_REGIONS
+from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)

@@ -35,7 +35,7 @@ from .integration import (
     get_cuda_version_from_tag,
 )
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
-from ... import NO_P4_REGIONS, NO_G5_REGIONS, P5_AVAIL_REGIONS
+from .. import NO_P4_REGIONS, NO_G5_REGIONS, P5_AVAIL_REGIONS
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
