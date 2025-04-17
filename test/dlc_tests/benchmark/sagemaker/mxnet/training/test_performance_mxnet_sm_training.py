@@ -46,7 +46,7 @@ def test_mxnet_sagemaker_training_performance(
     _, framework_version = get_framework_and_version_from_tag(mxnet_training)
     device_cuda_str = f"gpu-{get_cuda_version_from_tag(mxnet_training)}"
     py_version = "py37" if "py37" in mxnet_training else "py2" if "py2" in mxnet_training else "py3"
-    ec2_instance_type = "g5.48xlarge"
+    ec2_instance_type = "g5.12xlarge"
 
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S")
     commit_info = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", "manual")

@@ -67,7 +67,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
         f"{processor}-{get_cuda_version_from_tag(image_uri)}" if processor == "gpu" else processor
     )
 
-    ec2_instance_type = "g5.48xlarge" if processor == "gpu" else "c5.18xlarge"
+    ec2_instance_type = "g5.12xlarge" if processor == "gpu" else "c5.18xlarge"
 
     py_version = "py2" if "py2" in image_uri else "py37" if "py37" in image_uri else "py3"
 

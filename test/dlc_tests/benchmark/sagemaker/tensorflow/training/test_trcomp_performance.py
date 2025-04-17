@@ -37,8 +37,11 @@ def num_gpus(instance_type):
     ]:
         return 1
     elif instance_type in [
-        "ml.g5.48xlarge",
-        "ml.p3dn.24xlarge",
+        "ml.g5.12xlarge",
+        "ml.g5.24xlarge",
+    ]:
+        return 4
+    elif instance_type in [
         "ml.g5.48xlarge",
     ]:
         return 8

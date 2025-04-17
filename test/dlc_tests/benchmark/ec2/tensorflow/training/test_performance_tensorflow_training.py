@@ -41,7 +41,7 @@ TF_PERFORMANCE_TRAINING_GPU_IMAGENET_CMD = os.path.join(
     "run_tensorflow_training_performance_gpu_imagenet",
 )
 
-TF_EC2_GPU_INSTANCE_TYPE = "g5.48xlarge"
+TF_EC2_GPU_INSTANCE_TYPE = "g5.12xlarge"
 TF_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 TF_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
 

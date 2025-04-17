@@ -48,7 +48,7 @@ def pytest_addoption(parser):
     parser.addoption("--processor", default="gpu", choices=["cpu", "gpu", "cpu,gpu"])
     parser.addoption("--py-version", default="37", choices=["2", "3", "2,3", "37"])
     parser.addoption("--aws-id", default="142577830533")
-    parser.addoption("--instance-type", default="ml.g5.48xlarge")
+    parser.addoption("--instance-type", default="ml.g5.12xlarge")
     parser.addoption(
         "--generate-coverage-doc",
         default=False,
@@ -141,7 +141,7 @@ def aws_id(request):
 @pytest.fixture
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.g5.48xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.g5.12xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 

@@ -212,7 +212,7 @@ class TestDistributedTraining:
         estimator = TensorFlow(
             entry_point=script,
             role="SageMakerRole",
-            instance_type="ml.g5.48xlarge",
+            instance_type="ml.g5.12xlarge",
             instance_count=instance_count,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,

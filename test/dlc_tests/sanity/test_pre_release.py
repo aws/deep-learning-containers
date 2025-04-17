@@ -512,7 +512,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["g5.12xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 

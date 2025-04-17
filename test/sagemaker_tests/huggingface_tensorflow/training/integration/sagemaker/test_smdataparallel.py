@@ -67,7 +67,6 @@ def test_hf_smdp(ecr_image, sagemaker_regions, instance_type, framework_version,
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.team("sagemaker-1p-algorithms")
-# Skipping `ml.p3dn.24xlarge` instance type due to capacity issue in us-west-2
 # TODO: Enable sagemaker debugger, resolve github issue after enabling.
 #  https://github.com/aws/deep-learning-containers/issues/1053
 def test_hf_smdp_multi(ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version):
@@ -98,7 +97,7 @@ def _test_hf_smdp_function(
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
 
-    instance_type = "ml.p4d.24xlarge"
+    instance_type = "ml.g5.12xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
 
     estimator = HuggingFace(

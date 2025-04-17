@@ -399,7 +399,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.g5.48xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -458,7 +458,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.g5.48xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     instance_count = 2
     training_group = InstanceGroup("train_group", instance_type, instance_count)
