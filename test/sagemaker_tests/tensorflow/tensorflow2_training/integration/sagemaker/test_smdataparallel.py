@@ -90,7 +90,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
     Tests SMDataParallel single-node command via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g5.48xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(
         entry_point="smdataparallel_mnist_script_mode.sh",
@@ -117,7 +117,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.team("smdataparallel")
-@pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
+@pytest.mark.parametrize("instance_types", ["ml.g5.48xlarge", "ml.p4d.24xlarge"])
 def test_smdataparallel_mnist(
     ecr_image, sagemaker_regions, instance_types, py_version, tmpdir, sm_below_tf213_only
 ):
@@ -156,7 +156,7 @@ def _test_smdataparallel_mnist_function(ecr_image, sagemaker_session, instance_t
 @pytest.mark.skip_py2_containers
 @pytest.mark.efa()
 @pytest.mark.team("smdataparallel")
-@pytest.mark.parametrize("instance_types", ["ml.p3.16xlarge", "ml.p4d.24xlarge"])
+@pytest.mark.parametrize("instance_types", ["ml.g5.48xlarge", "ml.p4d.24xlarge"])
 def test_hc_smdataparallel_mnist(
     ecr_image, sagemaker_regions, instance_types, py_version, tmpdir, sm_below_tf213_only
 ):

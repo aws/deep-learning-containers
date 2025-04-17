@@ -93,7 +93,7 @@ def smtrcomp_only(framework_version, ecr_image, request):
 class TestDistributedTraining:
     @pytest.fixture()
     def instance_type(self):
-        return "ml.p3.8xlarge"
+        return "ml.g5.12xlarge"
 
     @pytest.fixture()
     def instance_count(self):
@@ -212,7 +212,7 @@ class TestDistributedTraining:
         estimator = TensorFlow(
             entry_point=script,
             role="SageMakerRole",
-            instance_type="ml.p3.16xlarge",
+            instance_type="ml.g5.48xlarge",
             instance_count=instance_count,
             sagemaker_session=sagemaker_session,
             image_uri=ecr_image,
@@ -317,7 +317,7 @@ class TestDistributedTraining:
 class TestMLWorkFlow:
     @pytest.fixture()
     def instance_type(self):
-        return "ml.p3.2xlarge"
+        return "ml.g5.8xlarge"
 
     @pytest.fixture()
     def instance_count(self):
@@ -586,7 +586,7 @@ class TestMLWorkFlow:
 class TestUserExperience:
     @pytest.fixture()
     def instance_type(self):
-        return "ml.p3.2xlarge"
+        return "ml.g5.8xlarge"
 
     @pytest.fixture()
     def instance_count(self):

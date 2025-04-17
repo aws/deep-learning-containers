@@ -81,7 +81,7 @@ def _test_distributed_training_horovod_function(
 def test_hc_distributed_training_horovod(
     ecr_image, sagemaker_regions, instance_type, tmpdir, framework_version, sm_below_tf213_only
 ):
-    instance_type = instance_type or "ml.p3.16xlarge"
+    instance_type = instance_type or "ml.p4d.24xlarge"
     training_group = InstanceGroup("train_group_1", instance_type, 2)
     invoke_sm_helper_function(
         ecr_image,

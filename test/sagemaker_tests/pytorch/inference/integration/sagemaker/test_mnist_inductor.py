@@ -38,7 +38,7 @@ LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-SM_SINGLE_GPU_INSTANCE_TYPES = ["ml.p3.2xlarge", "ml.g4dn.4xlarge", "ml.g5.4xlarge"]
+SM_SINGLE_GPU_INSTANCE_TYPES = ["ml.g4dn.4xlarge", "ml.g5.4xlarge"]
 SM_ARM64_INSTANCE_TYPES = ["ml.c7g.4xlarge"]
 
 

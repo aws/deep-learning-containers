@@ -24,7 +24,7 @@ MX_PERFORMANCE_INFERENCE_CPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_inference_performance_cpu"
 )
 
-MX_EC2_GPU_INSTANCE_TYPE = "p3.16xlarge"
+MX_EC2_GPU_INSTANCE_TYPE = "g5.48xlarge"
 MX_EC2_CPU_INSTANCE_TYPE = "c5.18xlarge"
 MX_EC2_GRAVITON_INSTANCE_TYPE = "c6g.4xlarge"
 
