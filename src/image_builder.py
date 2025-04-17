@@ -146,7 +146,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             additional_image_tags.append(no_datetime)
             if build_context == "MAINLINE":
                 additional_image_tags.append(tag_image_with_initiator(no_datetime))
-            image_tag = tag_image_with_datetime(image_tag)
+            if build_context != "PR":
+                image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
 
