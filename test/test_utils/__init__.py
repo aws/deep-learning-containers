@@ -2552,11 +2552,11 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
 
 
 def get_hashed_region(region):
-    '''
+    """
     Hash the region to get a unique identifier for it.
     :param region: str, AWS region
     :return: str, hashed region
-    '''
+    """
     # Using SHA256 to hash the region
     # and taking the first 8 characters for uniqueness
     return hashlib.sha256(region.encode()).hexdigest()[:8]
