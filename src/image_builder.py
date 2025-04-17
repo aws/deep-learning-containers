@@ -109,8 +109,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         extra_build_args = {}
         labels = {}
 
+        tag_override = image_config.get("build_tag_override")
+
         prod_repo_uri = ""
-        if is_autopatch_build_enabled(buildspec_path=buildspec) or build_context == "PR":
+        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override is not None:
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
                 image_config=image_config,
                 framework=BUILDSPEC["framework"],
@@ -146,8 +148,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             additional_image_tags.append(no_datetime)
             if build_context == "MAINLINE":
                 additional_image_tags.append(tag_image_with_initiator(no_datetime))
-            if build_context != "PR":
-                image_tag = tag_image_with_datetime(image_tag)
+            image_tag = tag_image_with_datetime(image_tag)
 
         additional_image_tags.append(image_tag)
 
@@ -210,7 +211,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
-        tag_override = image_config.get("build_tag_override")
         dockerfile = image_config["docker_file"]
         target = image_config.get("target")
         tag_override_regex = r"^(beta|pr):\S+$"
