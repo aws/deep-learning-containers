@@ -33,7 +33,7 @@ TF_IO_S3_PLUGIN_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflowI
 TF_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaTFSuite")
 
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
+    default="g5.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
 TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 # Timeouts in t3.2xlarge

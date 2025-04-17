@@ -341,7 +341,7 @@ def ec2_instance_type(request):
 
 @pytest.fixture(scope="function")
 def instance_type(request):
-    return request.param if hasattr(request, "param") else "ml.p3.2xlarge"
+    return request.param if hasattr(request, "param") else "ml.g5.8xlarge"
 
 
 @pytest.fixture(scope="function")

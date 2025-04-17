@@ -333,7 +333,7 @@ def get_available_reservations(ec2_client, instance_type, min_availability=1):
 
     Args:
         ec2_client (boto3.client): EC2 Boto3 client
-        instance_type (string): instance type, i.e. p3.2xlarge
+        instance_type (string): instance type, i.e. g5.8xlarge
         min_availability (int, optional): Minimum number of instances to launch. Defaults to 1.
 
     Returns:
