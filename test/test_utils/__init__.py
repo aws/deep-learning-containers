@@ -276,6 +276,26 @@ ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
 
+# region mapping for telemetry tests, need to be updated when new regions are added
+TELEMETRY_REGION_MAPPING = {
+        "ap-northeast-1": "ddce303c",
+        "ap-northeast-2": "528c8d92",
+        "ap-southeast-1": "c35f9f00",
+        "ap-southeast-2": "d2add9c0",
+        "ap-south-1": "9deb4123",
+        "ca-central-1": "b95e2bf4",
+        "eu-central-1": "bfec3957",
+        "eu-north-1": "b453c092",
+        "eu-west-1": "d763c260",
+        "eu-west-2": "ea20d193",
+        "eu-west-3": "1894043c",
+        "sa-east-1": "030b4357",
+        "us-east-1": "487d6534",
+        "us-east-2": "72252b46",
+        "us-west-1": "d02c1125",
+        "us-west-2": "d8c0d063",
+}
+
 
 class NightlyFeatureLabel(Enum):
     AWS_FRAMEWORK_INSTALLED = "aws_framework_installed"
@@ -2549,14 +2569,3 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
     )
 
     return instance_ami
-
-
-def get_hashed_region(region):
-    """
-    Hash the region to get a unique identifier for it.
-    :param region: str, AWS region
-    :return: str, hashed region
-    """
-    # Using SHA256 to hash the region
-    # and taking the first 8 characters for uniqueness
-    return hashlib.sha256(region.encode()).hexdigest()[:8]

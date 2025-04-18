@@ -7,6 +7,7 @@ from test.test_utils import ec2 as ec2_utils
 from test.test_utils import LOGGER
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from test.test_utils import TELEMETRY_REGION_MAPPING
 
 
 @pytest.mark.flaky(reruns=2)
@@ -374,11 +375,9 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
         .split(" ")[1]
     )
 
-    hashed_region = test_utils.get_hashed_region(image_region)
-
     # The S3 URL is different for PyTorch and TensorFlow versions <= 2.6 and <= 2.18 respectively
-    # cause we add hashed region to the URL for new versions
-    if (framework == "pytorch" and Version(framework_version) <= Version("2.6")) or (
+    # cause we change the URL for new versions
+    if (framework == "pytorch" and Version(framework_version) < Version("2.6")) or (
         framework == "tensorflow" and Version(framework_version) <= Version("2.18")
     ):
         expected_s3_url = (
@@ -391,7 +390,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
         expected_s3_url = (
             "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
             "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}".format(
-                hashed_region,
+                TELEMETRY_REGION_MAPPING[image_region],
                 image_region,
                 ec2_instance_id,
                 framework,
