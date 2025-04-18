@@ -31,6 +31,7 @@ from .integration import (
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
 )
+from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -42,45 +43,6 @@ logging.getLogger("connectionpool.py").setLevel(logging.INFO)
 
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
-
-NO_P2_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-2",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "us-west-1",
-    "sa-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
 
 
 def pytest_addoption(parser):
@@ -288,8 +250,8 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith("ml.p2")) or (
-        region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 

@@ -80,7 +80,7 @@ def test_ecs_mxnet_inference_neuron(mxnet_inference_neuron, ecs_container_instan
 
 @pytest.mark.model("squeezenet")
 @pytest.mark.team("frameworks")
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance

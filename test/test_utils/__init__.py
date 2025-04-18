@@ -36,8 +36,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent region where p3dn tests can be run
-P3DN_REGION = "us-east-1"
 # Constant to represent region where p4de tests can be run
 P4DE_REGION = "us-east-1"
 
@@ -618,7 +616,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
-        2. p3.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
+        2. g5.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -638,7 +636,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "mxnet"
         and get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
-        and ec2_instance_type in ["p3.8xlarge"]
+        and ec2_instance_type in ["g5.12xlarge"]
     )
     incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
@@ -646,7 +644,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "pytorch"
         and Version(framework_version) in SpecifierSet("==1.11.*")
         and get_processor_from_image_uri(image_uri) == "gpu"
-        and ec2_instance_type in ["p3.8xlarge"]
+        and ec2_instance_type in ["g5.12xlarge"]
     )
     incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
 
@@ -2491,11 +2489,7 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
                                                      "p4de.24xlarge",
                                                      "p5.48xlarge",]
 
-    Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
-                                                             "p3.8xlarge",
-                                                             "p3.16xlarge",
-                                                             "p3dn.24xlarge",
-                                                             "g3s.xlarge",
+    Proprietary Nvidia Driver DLAMI supports the following: ["g3s.xlarge",
                                                              "g3.4xlarge",
                                                              "g3.8xlarge",]
 
@@ -2503,10 +2497,6 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
     """
 
     base_proprietary_dlami_instances = [
-        "p3.2xlarge",
-        "p3.8xlarge",
-        "p3.16xlarge",
-        "p3dn.24xlarge",
         "g3s.xlarge",
         "g3.4xlarge",
         "g3.8xlarge",

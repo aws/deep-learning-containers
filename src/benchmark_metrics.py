@@ -120,26 +120,26 @@ TRCOMP_THRESHOLD = {
     "tensorflow": {  # framework
         "2.9": {  # framework version
             "resnet101": {  # model name
-                "ml.p3.2xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
             },
             "GPT-2": {  # model name
-                "ml.p3.2xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
             },
         },
         "2.10": {  # framework version
             "resnet101": {  # model name
-                "ml.p3.2xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
             },
             "GPT-2": {  # model name
-                "ml.p3.2xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
             },
         },
         "2.11": {  # framework version
             "resnet101": {  # model name
-                "ml.p3.2xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {224: 2500}}  # instance  # Num nodes  # batch size : threshold
             },
             "GPT-2": {  # model name
-                "ml.p3.2xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
+                "ml.g5.8xlarge": {1: {75: 2000}}  # instance  # Num nodes  # batch size : threshold
             },
         },
     }

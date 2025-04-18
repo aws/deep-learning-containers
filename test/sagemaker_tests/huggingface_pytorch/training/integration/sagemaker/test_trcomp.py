@@ -61,7 +61,7 @@ metric_definitions = [
 
 @pytest.fixture
 def instance_type():
-    return "ml.p3.2xlarge"
+    return "ml.g5.8xlarge"
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def instance_count():
 
 @pytest.fixture
 def num_gpus_per_instance(instance_type):
-    if instance_type in ["ml.p3.16xlarge", "ml.p4d.24xlarge"]:
+    if instance_type in ["ml.g5.48xlarge", "ml.p4d.24xlarge"]:
         return 8
     elif instance_type in ["ml.g4dn.12xlarge", "ml.g5.12xlarge"]:
         return 4
@@ -283,7 +283,7 @@ class TestSingleNodeMultiGPU:
     @pytest.mark.parametrize(
         "instance_type, instance_count",
         [
-            ("ml.p3.16xlarge", 1),
+            ("ml.g5.48xlarge", 1),
             ("ml.g4dn.12xlarge", 1),
             ("ml.g5.12xlarge", 1),
         ],
@@ -369,7 +369,7 @@ class TestMultiNodeMultiGPU:
     @pytest.mark.parametrize(
         "instance_type, instance_count",
         [
-            ("ml.p3.16xlarge", 2),
+            ("ml.g5.48xlarge", 2),
             ("ml.p4d.24xlarge", 2),
             ("ml.g4dn.12xlarge", 2),
             ("ml.g5.12xlarge", 2),

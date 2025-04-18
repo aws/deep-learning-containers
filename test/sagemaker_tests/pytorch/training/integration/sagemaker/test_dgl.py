@@ -73,7 +73,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     function_args = {
         "instance_type": instance_type,
     }

@@ -49,7 +49,7 @@ def test_ecs_tensorflow_training_mnist_gpu(
 ):
     """
     GPU mnist test for TF Training
-    Instance Type - p3.2xlarge
+    Instance Type - g4dn.8xlarge
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
     """

@@ -22,7 +22,7 @@ SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")
 
 
-SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.8xlarge", processor="gpu")
+SMDEBUG_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g5.12xlarge", processor="gpu")
 SMDEBUG_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 
 
@@ -167,7 +167,7 @@ def run_smdebug_test(
     test_script=SMDEBUG_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
+    large_shm_instance_types = ("g5.12xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")
@@ -207,7 +207,7 @@ def run_smprofiler_test(
     test_script=SMPROFILER_SCRIPT,
     timeout=2400,
 ):
-    large_shm_instance_types = ("p3.8xlarge", "m5.16xlarge")
+    large_shm_instance_types = ("g5.12xlarge", "m5.16xlarge")
     shm_setting = " --shm-size=1g " if ec2_instance_type in large_shm_instance_types else " "
     framework = get_framework_from_image_uri(image_uri)
     container_test_local_dir = os.path.join("$HOME", "container_tests")

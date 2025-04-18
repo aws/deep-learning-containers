@@ -50,7 +50,7 @@ def update_pool(status, instance_type, num_of_instances, job_type, report_path=N
     :param job_type: <string> training/inference
     :param report_path: <string> path to find the xml reports. Only set if status == completed/runtimeError
     :param status: status of the test job, options: preparing/running/completed/runtimeError
-    :param instance_type: ml.p3.8xlarge/ml.c5.4xlarge/ml.c5.9xlarge
+    :param instance_type: ml.g5.12xlarge/ml.c5.4xlarge/ml.c5.9xlarge
     :param num_of_instances: number of instances required
     """
     s3_client = boto3.client("s3")

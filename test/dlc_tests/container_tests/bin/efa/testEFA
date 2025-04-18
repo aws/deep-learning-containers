@@ -22,9 +22,6 @@ PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
 TRAINING_LOG="/test/logs/testEFA.log"
 
 USE_DEVICE_RDMA_ARG="-x FI_EFA_USE_DEVICE_RDMA=1"
-if [[ ${INSTANCE_TYPE} == p3dn.24xlarge ]]; then
-  USE_DEVICE_RDMA_ARG=""
-fi
 
 validate_all_reduce_performance_logs(){
     grep "aws-ofi-nccl" ${TRAINING_LOG} || { echo "aws-ofi-nccl is not working, please check if it is installed correctly"; exit 1; }
@@ -46,7 +43,7 @@ check_efa_nccl_all_reduce_performance(){
         exit 1
     fi
 
-    # The standard throughput should be at least 41 for 2 p4d with 4 EFA devices and 7 for 2 p3dn with 1 EFA device.
+    # The standard throughput should be at least 41 for 2 p4d with 4 EFA devices
     # However, if the 2 instances are not in the same A-Z in the same region, performance can decrease.
     # To account for this we need to modify thresholds dynamically based on where instances are.
     # Temporarily setting these to be < 50% of optimal until AWS OFI NCCL team has concrete numbers for this.

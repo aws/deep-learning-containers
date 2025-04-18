@@ -24,7 +24,7 @@ from test.test_utils.ec2 import (
 
 
 @pytest.mark.model("inception, RCNN-Resnet101-kitti, resnet50_v2, mnist, SSDResnet50Coco")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.team("frameworks")
 def test_performance_ec2_tensorflow_inference_gpu(
     tensorflow_inference, ec2_connection, ec2_instance_ami, region, gpu_only

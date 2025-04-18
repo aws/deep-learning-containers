@@ -10,7 +10,7 @@ from test.dlc_tests.ec2 import smclarify_cases
 
 SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py")
 
-SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g5.8xlarge", processor="gpu")
 SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.2xlarge", processor="cpu")
 
 

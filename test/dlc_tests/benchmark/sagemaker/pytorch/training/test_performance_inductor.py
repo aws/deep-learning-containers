@@ -27,7 +27,7 @@ from test.dlc_tests.benchmark.sagemaker import inductor_path
 from test.sagemaker_tests.pytorch import invoke_pytorch_helper_function
 from test.test_utils import get_framework_and_version_from_tag
 
-instance_types = ["ml.p3.2xlarge", "ml.g5.4xlarge", "ml.g4dn.4xlarge"]
+instance_types = ["ml.g5.4xlarge", "ml.g4dn.4xlarge"]
 
 
 @pytest.fixture

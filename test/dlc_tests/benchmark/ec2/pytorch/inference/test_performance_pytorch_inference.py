@@ -34,8 +34,7 @@ PT_PERFORMANCE_INFERENCE_SCRIPT = os.path.join(
 )
 PT_PERFORMANCE_INFERENCE_CPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 500 "
 PT_PERFORMANCE_INFERENCE_GPU_CMD = f"{PT_PERFORMANCE_INFERENCE_SCRIPT} --iterations 1000 --gpu"
-# Use the original p3.16xlarge instance, consider if use single gpu instance like g4dn.4xlarge, g5.4xlarge
-PT_EC2_GPU_INSTANCE_TYPE = ["p3.16xlarge"]
+PT_EC2_GPU_INSTANCE_TYPE = ["g5.12xlarge"]
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.18xlarge", processor="cpu")
 # c6g.4xlarge c6g.8xlarge reaches the 100% cpu usage for the benchmark when run VGG13 model
 PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c7g.4xlarge", "c8g.4xlarge", "m7g.4xlarge", "r8g.4xlarge"]

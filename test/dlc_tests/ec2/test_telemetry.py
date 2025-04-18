@@ -14,7 +14,7 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only
@@ -121,7 +121,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_gpu(
     gpu,
@@ -240,7 +240,7 @@ def test_telemetry_instance_tag_success_neuron(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_gpu(
     gpu,

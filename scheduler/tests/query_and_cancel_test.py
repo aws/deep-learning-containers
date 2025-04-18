@@ -15,8 +15,8 @@ How tests are executed:
 - Put tickets on the request queue, in-progress pool and dead letter queue; create Message objects (request identifiers)
 that correspond to these tickets.
 - Create a JobRequester object and call query_status on the identifiers, check that the statuses returned are corrected.
-- Call cancel_request on tickets on the request queue, check that the request tickets are removed. 
-- Clean up the artifacts. 
+- Call cancel_request on tickets on the request queue, check that the request tickets are removed.
+- Clean up the artifacts.
 """
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 # test parameters
 TEST_ECR_URI = "763104351884.dkr.ecr.us-west-2.amazonaws.com/tensorflow-training:2.2.0-gpu-py37-cu101-ubuntu18.04"
-INSTANCE_TYPE = "ml.p3.8xlarge"
+INSTANCE_TYPE = "ml.g5.12xlarge"
 JOB_TYPE = "training"
 SQS_RETURN_QUEUE_URL = "dummy_sqs_url"
 REQUEST_TICKET_TIME = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")

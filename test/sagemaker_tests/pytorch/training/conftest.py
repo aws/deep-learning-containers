@@ -35,6 +35,7 @@ from .integration import (
     get_cuda_version_from_tag,
 )
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
+from .. import NO_P4_REGIONS, NO_G5_REGIONS, P5_AVAIL_REGIONS
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -55,72 +56,6 @@ NEURON_TRN1_REGIONS = [
 ]
 
 NEURON_TRN1_INSTANCES = ["ml.trn1.2xlarge", "ml.trn1.32xlarge"]
-
-NO_P2_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-2",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "us-west-1",
-    "sa-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "us-east-2",
-    "il-central-1",
-]
-
-NO_P4_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
-P5_AVAIL_REGIONS = [
-    "us-east-1",
-    "us-west-2",
-]
 
 
 def pytest_addoption(parser):
@@ -417,10 +352,8 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (
-        (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
-        or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
-        or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 

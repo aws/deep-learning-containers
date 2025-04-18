@@ -32,9 +32,9 @@ entrypoint_script = (
 )
 
 processes_per_host = defaultdict(lambda: 1)
-processes_per_host["ml.p3.16xlarge"] = 8
-processes_per_host["ml.p3.8xlarge"] = 4
-processes_per_host["ml.p3.2xlarge"] = 1
+processes_per_host["ml.g5.48xlarge"] = 8
+processes_per_host["ml.g5.12xlarge"] = 4
+processes_per_host["ml.g5.8xlarge"] = 1
 
 kwargs = {"train_volume_size": 200} if processor == "gpu" else {}
 

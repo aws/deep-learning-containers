@@ -23,7 +23,8 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 
-from ..integration import NO_P2_REGIONS, NO_P3_REGIONS, get_ecr_registry
+from ..integration import get_ecr_registry
+from .... import NO_P4_REGIONS, NO_G5_REGIONS
 from . import (
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
@@ -48,7 +49,7 @@ def pytest_addoption(parser):
     parser.addoption("--processor", default="gpu", choices=["cpu", "gpu", "cpu,gpu"])
     parser.addoption("--py-version", default="37", choices=["2", "3", "2,3", "37"])
     parser.addoption("--aws-id", default="142577830533")
-    parser.addoption("--instance-type", default="ml.p3.16xlarge")
+    parser.addoption("--instance-type", default="ml.g5.12xlarge")
     parser.addoption(
         "--generate-coverage-doc",
         default=False,
@@ -141,7 +142,7 @@ def aws_id(request):
 @pytest.fixture
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.16xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.g5.12xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
@@ -166,8 +167,8 @@ def skip_by_device_type(request, processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith("ml.p2")) or (
-        region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 
