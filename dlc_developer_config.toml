@@ -46,7 +46,7 @@ build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -74,16 +74,16 @@ ec2_benchmark_tests = true
 ec2_tests_on_heavy_instances = true
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
-sagemaker_efa_tests = true
+sagemaker_efa_tests = false
 # run release_candidate_integration tests
-sagemaker_rc_tests = true
+sagemaker_rc_tests = false
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = true
+sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -104,8 +104,8 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-sm.yml"
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-sm.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
+dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-ec2.yml"
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
@@ -131,8 +131,8 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-sm.yml"
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-sm.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-ec2.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-ec2.yml"
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
