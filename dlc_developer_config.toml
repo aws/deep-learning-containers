@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = false
+arm64_mode = true
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -74,16 +74,16 @@ ec2_benchmark_tests = true
 ec2_tests_on_heavy_instances = true
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
-sagemaker_efa_tests = true
+sagemaker_efa_tests = false
 # run release_candidate_integration tests
-sagemaker_rc_tests = true
+sagemaker_rc_tests = false
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = true
+sagemaker_benchmark_tests = false
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -104,8 +104,8 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-ec2.yml"
+dlc-pr-pytorch-training = ""
+dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # HuggingFace Training
@@ -131,8 +131,8 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-ec2.yml"
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-ec2.yml"
+dlc-pr-pytorch-inference = ""
+dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Neuron Inference
@@ -153,8 +153,8 @@ dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
-dlc-pr-pytorch-arm64-inference = ""
-dlc-pr-tensorflow-2-arm64-inference = ""
+dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-6-ec2.yml"
+dlc-pr-tensorflow-2-arm64-inference = "tensorflow/inference/buildspec-arm64-2-18-ec2.yml"
 
 # EIA Inference
 dlc-pr-pytorch-eia-inference = ""
