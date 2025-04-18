@@ -66,6 +66,13 @@ def _find_image_object(images_list, image_name):
     return ret_image_object
 
 
+def _login_to_prod_ecr_registry():
+    FORMATTER.print("Logging into public ECR")
+    os.system(
+        "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
+    )
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec, image_types=[], device_types=[]):
     """
@@ -89,10 +96,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "trcomp" in str(BUILDSPEC["framework"])
         or is_autopatch_build_enabled(buildspec_path=buildspec)
     ):
-        os.system("echo login into public ECR")
-        os.system(
-            "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
-        )
+        _login_to_prod_ecr_registry()
 
     for image_name, image_config in BUILDSPEC["images"].items():
         # filter by image type if type is specified
@@ -108,8 +112,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         extra_build_args = {}
         labels = {}
 
+        tag_override = image_config.get("build_tag_override", "False").lower() == "true"
+
         prod_repo_uri = ""
-        if is_autopatch_build_enabled(buildspec_path=buildspec):
+        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
                 image_config=image_config,
                 framework=BUILDSPEC["framework"],
@@ -208,23 +214,15 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
-        tag_override = image_config.get("build_tag_override")
         dockerfile = image_config["docker_file"]
         target = image_config.get("target")
-        tag_override_regex = r"^(beta|pr):\S+$"
         if tag_override and build_context == "PR":
             if is_autopatch_build_enabled(buildspec_path=buildspec):
                 FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
-            elif not re.match(tag_override_regex, tag_override):
-                FORMATTER.print(
-                    f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
-                )
             else:
-                repo_override, t_override = tag_override.split(":")
+                _login_to_prod_ecr_registry()
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = (
-                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
-                    )
+                    source_uri = f"{prod_repo_uri}"
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
                     )
