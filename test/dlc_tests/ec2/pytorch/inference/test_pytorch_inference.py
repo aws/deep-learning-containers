@@ -27,10 +27,10 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.setLevel(logging.INFO)
 
 
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.8xlarge", processor="gpu")
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_GPU_EIA_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g3.8xlarge",
+    default="g4dn.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_not_heavy_instance_types,
 )
