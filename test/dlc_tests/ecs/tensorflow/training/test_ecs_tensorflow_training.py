@@ -73,7 +73,7 @@ def test_ecs_tensorflow_training_mnist_gpu(
 @pytest.mark.model("FasterRCNN")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [TF_FasterRCNN_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["g4dn.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g4dn.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_tensorflow_training_fasterrcnn_gpu(
     gpu_only, ecs_container_instance, tensorflow_training, training_cmd, ecs_cluster_name
@@ -81,7 +81,7 @@ def test_ecs_tensorflow_training_fasterrcnn_gpu(
     """
     GPU Faster RCNN test for TF Training
 
-    Instance Type - g4dn.8xlarge
+    Instance Type - g4dn.12xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
