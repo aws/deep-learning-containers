@@ -18,10 +18,9 @@ import os
 import re
 import signal
 import sys
-import hashlib
 
 import botocore.session
-import request
+import requests
 
 TIMEOUT_SECS = 5
 REGION_MAPPING = {
