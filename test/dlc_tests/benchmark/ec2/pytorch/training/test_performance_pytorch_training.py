@@ -47,7 +47,7 @@ PT_PERFORMANCE_TRAINING_GPU_INDUCTOR_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_pytorch_training_performance_gpu_inductor"
 )
 
-PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "g5.48xlarge"
+PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p4d.24xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "g5.48xlarge"
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p4d.24xlarge", "g5.48xlarge")
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
