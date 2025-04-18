@@ -130,11 +130,7 @@ def filter_non_g3_instance_type(instance_type_list):
 
 
 def get_cicd_instance_reserved_region(instance_type):
-    return (
-        P4DE_REGION
-        if instance_type in ["p4de.24xlarge"]
-        else DEFAULT_REGION
-    )
+    return P4DE_REGION if instance_type in ["p4de.24xlarge"] else DEFAULT_REGION
 
 
 def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type=""):
