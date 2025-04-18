@@ -377,7 +377,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
 
     # The S3 URL is different for PyTorch and TensorFlow versions <= 2.6 and <= 2.18 respectively
     # cause we change the URL for new versions
-    if (framework == "pytorch" and Version(framework_version) <= Version("2.6")) or (
+    if (framework == "pytorch" and Version(framework_version) < Version("2.6")) or (
         framework == "tensorflow" and Version(framework_version) <= Version("2.18")
     ):
         expected_s3_url = (
