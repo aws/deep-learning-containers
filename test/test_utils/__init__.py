@@ -277,22 +277,22 @@ ECR_ENHANCED_REPO_REGION = "us-west-1"
 
 # region mapping for telemetry tests, need to be updated when new regions are added
 TELEMETRY_REGION_MAPPING = {
-        "ap-northeast-1": "ddce303c",
-        "ap-northeast-2": "528c8d92",
-        "ap-southeast-1": "c35f9f00",
-        "ap-southeast-2": "d2add9c0",
-        "ap-south-1": "9deb4123",
-        "ca-central-1": "b95e2bf4",
-        "eu-central-1": "bfec3957",
-        "eu-north-1": "b453c092",
-        "eu-west-1": "d763c260",
-        "eu-west-2": "ea20d193",
-        "eu-west-3": "1894043c",
-        "sa-east-1": "030b4357",
-        "us-east-1": "487d6534",
-        "us-east-2": "72252b46",
-        "us-west-1": "d02c1125",
-        "us-west-2": "d8c0d063",
+    "ap-northeast-1": "ddce303c",
+    "ap-northeast-2": "528c8d92",
+    "ap-southeast-1": "c35f9f00",
+    "ap-southeast-2": "d2add9c0",
+    "ap-south-1": "9deb4123",
+    "ca-central-1": "b95e2bf4",
+    "eu-central-1": "bfec3957",
+    "eu-north-1": "b453c092",
+    "eu-west-1": "d763c260",
+    "eu-west-2": "ea20d193",
+    "eu-west-3": "1894043c",
+    "sa-east-1": "030b4357",
+    "us-east-1": "487d6534",
+    "us-east-2": "72252b46",
+    "us-west-1": "d02c1125",
+    "us-west-2": "d8c0d063",
 }
 
 
