@@ -90,7 +90,7 @@ def _test_distributed_training_smdataparallel_script_mode_function(
     Tests SMDataParallel single-node command via script mode
     """
     validate_or_skip_smdataparallel(ecr_image)
-    instance_type = "ml.g5.12xlarge"
+    instance_type = "ml.p4d.24xlarge"
     distribution = {"smdistributed": {"dataparallel": {"enabled": True}}}
     estimator = TensorFlow(
         entry_point="smdataparallel_mnist_script_mode.sh",

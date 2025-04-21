@@ -228,7 +228,7 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smdataparallel_smmodelparallel")
 @pytest.mark.model("mnist")
-@pytest.mark.parametrize("instance_types", ["ml.g5.12xlarge"])
+@pytest.mark.parametrize("instance_types", ["ml.p4d.24xlarge"])
 @pytest.mark.team("smdataparallel")
 def test_smmodelparallel_smdataparallel_mnist(
     instance_types, ecr_image, sagemaker_regions, py_version, tmpdir

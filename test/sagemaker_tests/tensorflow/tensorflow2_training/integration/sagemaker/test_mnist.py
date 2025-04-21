@@ -487,7 +487,7 @@ def test_smdataparallel_smmodelparallel_mnist(
 def _test_smdataparallel_smmodelparallel_mnist_function(
     ecr_image, sagemaker_session, instance_type, tmpdir, framework_version
 ):
-    instance_type = "ml.g5.12xlarge"
+    instance_type = "ml.p4d.24xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":
