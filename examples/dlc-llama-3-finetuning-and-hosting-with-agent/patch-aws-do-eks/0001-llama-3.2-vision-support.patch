@@ -1,0 +1,159 @@
+From 8aaf626fc05c73a86df3f9265eded6b49c465a02 Mon Sep 17 00:00:00 2001
+From: Lai Wei <royweilai@gmail.com>
+Date: Wed, 9 Oct 2024 11:34:25 -0700
+Subject: [PATCH 1/5] llama 3.2 vision support
+
+---
+ .../pytorch/pytorchjob/fsdp/.env              | 29 +++++++++----------
+ .../fsdp/Dockerfile.llama3-vision-efa-dlc     | 25 ++++++++++++++++
+ .../pytorch/pytorchjob/fsdp/build.sh          |  2 +-
+ .../pytorchjob/fsdp/fsdp.yaml-template        |  4 +--
+ .../pytorch/pytorchjob/fsdp/login-dlc.sh      |  5 ++--
+ .../pytorch/pytorchjob/fsdp/logs.sh           |  2 +-
+ 6 files changed, 45 insertions(+), 22 deletions(-)
+ create mode 100644 Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/Dockerfile.llama3-vision-efa-dlc
+
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/.env b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/.env
+index 60dfbe6..e1c6f2b 100644
+--- a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/.env
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/.env
+@@ -10,7 +10,7 @@ export ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+ export REGISTRY=${ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/
+ export IMAGE=fsdp
+ ## DOCKERFILE_EXT=nanogpt-sockets|nanogpt-efa|llama2-sockets|llama2-efa|llama2-efa-dlc
+-export DOCKERFILE_EXT=llama2-efa
++export DOCKERFILE_EXT=llama3-vision-efa-dlc
+ export TAG=":${DOCKERFILE_EXT}"
+ 
+ ## FSDP Job
+@@ -18,7 +18,7 @@ export JOB_NAME=fsdp
+ export RDZV_HOST=etcd
+ export RDZV_PORT=2379
+ ## NUM_WORKERS - Default 2, set to number of worker nodes
+-export NUM_WORKERS=8
++export NUM_WORKERS=2
+ ## EFA_PER_WORKER - Default 0, number of EFA adapters per node. For G4dn.metal this is 1, for P4 use 4, for P5 use 32
+ export EFA_PER_WORKER=32
+ ## GPU_PER_WORKER - number of GPUs per worker, the number of GPUs for the selected instance type.
+@@ -31,19 +31,18 @@ export FI_PROVIDER=efa
+ ## Model
+ ## Support is available for NanoGPT and Llama2. Only one of the sections below should be uncommented and should match the DOCKERFILE_EXT section above
+ 
+-## NanoGPT
+-## NanoGPT train command
+-#export CMD="python -m torch.distributed.run --nproc-per-node=$NPROC_PER_WORKER fsdp_train.py"
+-## MODEL_NAME=10.5M (default) | 124M | 201M | 1B | 1.5B | 20B
+-#export MODEL_NAME="10.5M"
+-
+ ## Llama2
+ ## Register at Huggingface and get a token by visiting: https://huggingface.co/docs/hub/security-tokens, then insert your token here
+ export HF_TOKEN="<insert_your_huggingface_token_here>"
+-## Llama2 MODEL_NAME=meta-llama/Llama-2-7b-hf | meta-llama/Llama-2-13b-hf | meta-llama/Llama-2-70b-hf
+-export MODEL_NAME=meta-llama/Llama-2-7b-hf
+-## Llama2 train command
+-### samsum dataset
+-export CMD="huggingface-cli login --token ${HF_TOKEN} && torchrun --nproc_per_node=${GPU_PER_WORKER} --nnodes=${NUM_WORKERS} recipes/finetuning/finetuning.py --num_epochs=3 --batch_size_training=3 --enable_fsdp --model_name $MODEL_NAME --output_dir ."
+-### arrow dataset 
+-#export CMD="huggingface-cli login --token ${HF_TOKEN} && torchrun --nproc_per_node=${GPU_PER_WORKER} --nnodes=${NUM_WORKERS} recipes/finetuning/finetuning.py --num_epochs=3 --batch_size_training=16 --enable_fsdp --low_cpu_fsdp --batching_strategy padding --model_name $MODEL_NAME --dataset 'custom_dataset' --custom_dataset.file 'examples/custom_dataset.py' --output_dir ."
++## Llama3.2 MODEL_NAME=meta-llama/Llama-3.2-11B-Vision-Instruct
++export MODEL_NAME=meta-llama/Llama-3.2-11B-Vision-Instruct
++## Llama3.2 train command
++export CMD="huggingface-cli login --token ${HF_TOKEN} && \
++torchrun --nnodes ${NUM_WORKERS} --nproc_per_node ${GPU_PER_WORKER}  \
++recipes/quickstart/finetuning/finetuning.py --enable_fsdp --lr 1e-5  --num_epochs 5 --batch_size_training 2 \
++--model_name ${MODEL_NAME} \
++--dist_checkpoint_root_folder ./finetuned_model_mind2web \
++--dist_checkpoint_folder fine-tuned  --use_fast_kernels \
++--dataset custom_dataset --custom_dataset.test_split test \
++ --custom_dataset.file /workspace/llama-recipes/recipes/quickstart/finetuning/datasets/multimodal_mind2web_dataset.py \  
++ --run_validation True --batching_strategy padding "
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/Dockerfile.llama3-vision-efa-dlc b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/Dockerfile.llama3-vision-efa-dlc
+new file mode 100644
+index 0000000..eed6ebb
+--- /dev/null
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/Dockerfile.llama3-vision-efa-dlc
+@@ -0,0 +1,25 @@
++FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.4.0-gpu-py311-cu124-ubuntu22.04-ec2
++
++RUN mkdir -p /workspace/
++
++WORKDIR /workspace
++
++RUN echo "Using branch llama-vision ..."
++RUN git clone -b llama-vision https://github.com/roywei/llama-recipes.git 
++
++WORKDIR /workspace/llama-recipes
++
++RUN pip3 install -U pip setuptools
++
++RUN pip3 install huggingface_hub[cli]
++RUN pip3 install -r requirements.txt
++
++RUN pip3 install -e .
++
++RUN pip3 install tabulate
++
++RUN pip3 install protobuf
++
++RUN pip3 install python-etcd
++
++ENV PYTHONPATH="${PYTHONPATH}:/workspace/llama-recipes/src"
+\ No newline at end of file
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/build.sh b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/build.sh
+index 0969344..8a0802a 100755
+--- a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/build.sh
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/build.sh
+@@ -9,5 +9,5 @@ fi
+ 
+ export DOCKER_BUILDKIT=1
+ #docker build --no-cache --progress=plain --build-arg="MODEL_NAME=$MODEL_NAME" -t ${REGISTRY}${IMAGE}${TAG} -f Dockerfile.$DOCKERFILE_EXT .
+-docker build --progress=plain --build-arg="MODEL_NAME=$MODEL_NAME" -t ${REGISTRY}${IMAGE}${TAG} -f Dockerfile.$DOCKERFILE_EXT .
++docker build --no-cache --progress=plain --build-arg="MODEL_NAME=$MODEL_NAME" -t ${REGISTRY}${IMAGE}${TAG} -f Dockerfile.$DOCKERFILE_EXT .
+ 
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/fsdp.yaml-template b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/fsdp.yaml-template
+index 87a41ba..a1c0a8d 100644
+--- a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/fsdp.yaml-template
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/fsdp.yaml-template
+@@ -84,8 +84,8 @@ spec:
+               #  value: "1"
+               #- name: NCCL_IGNORE_DISABLED_P2P
+               #  value: "1"
+-              #- name: NCCL_NVLS_ENABLE
+-              #  value: "0"
++              - name: NCCL_NVLS_ENABLE
++                value: "0"
+               command:
+                 - bash
+                 - -c
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/login-dlc.sh b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/login-dlc.sh
+index d20b40f..3c19417 100755
+--- a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/login-dlc.sh
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/login-dlc.sh
+@@ -1,11 +1,10 @@
+ #!/bin/bash
+ 
+ . .env
+-
+-REGISTRY=763104351884.dkr.ecr.us-east-1.amazonaws.com
++REGISTRY=763104351884.dkr.ecr.${AWS_REGION}.amazonaws.com
+ 
+ # Login to DLC registry
+ echo ""
+ echo "Logging in to DLC registry: $REGISTRY ..."
+-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REGISTRY
++aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin $REGISTRY
+ 
+diff --git a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/logs.sh b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/logs.sh
+index 6b000cb..aac1090 100755
+--- a/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/logs.sh
++++ b/Container-Root/eks/deployment/distributed-training/pytorch/pytorchjob/fsdp/logs.sh
+@@ -2,5 +2,5 @@
+ 
+ . .env
+ 
+-kubetail $JOB_NAME -s 60s
++kubectl logs -f $JOB_NAME 
+ 
+-- 
+2.39.5 (Apple Git-154)
+
