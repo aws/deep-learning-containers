@@ -25,14 +25,12 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 from ..integration import (
-    NO_P2_REGIONS,
-    NO_P3_REGIONS,
-    NO_P4_REGIONS,
     get_ecr_registry,
     get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
 )
+from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 
 logger = logging.getLogger(__name__)
@@ -156,7 +154,7 @@ def sagemaker_regions(request):
 
 @pytest.fixture
 def efa_instance_type():
-    default_instance_type = "ml.p3dn.24xlarge"
+    default_instance_type = "ml.p4d.24xlarge"
     return default_instance_type
 
 
@@ -173,7 +171,7 @@ def account_id(request):
 @pytest.fixture
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.g5.4xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
@@ -198,10 +196,8 @@ def skip_by_device_type(request, processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (
-        (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
-        or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
-        or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 

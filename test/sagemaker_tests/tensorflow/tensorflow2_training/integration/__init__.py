@@ -30,65 +30,6 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "resources")
 DEFAULT_TIMEOUT = 120
 
-# these regions have some p2 and p3 instances, but not enough for automated testing
-NO_P2_REGIONS = [
-    "ap-northeast-3",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P4_REGIONS = [
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
 
 def _botocore_resolver():
     """

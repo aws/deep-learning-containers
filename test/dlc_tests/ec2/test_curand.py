@@ -10,7 +10,7 @@ from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
 CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testCurand")
 CURAND_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge",
+    default="g5.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_single_gpu,
 )

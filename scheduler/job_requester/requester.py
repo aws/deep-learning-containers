@@ -114,7 +114,7 @@ class JobRequester:
         :return: <string> type of instance used by the image
         """
         return (
-            "ml.p3.8xlarge"
+            "ml.g5.12xlarge"
             if "gpu" in image
             else "ml.c5.4xlarge"
             if "tensorflow" in image
