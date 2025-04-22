@@ -18,7 +18,7 @@ EFA_LOCAL_TEST_CMD = os.path.join(
 )
 NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
-    default="g3.8xlarge",
+    default="g4dn.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_multi_gpu,
 )
@@ -30,7 +30,7 @@ PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.usefixtures("pt201_and_above_only")
 @pytest.mark.processor("gpu")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.model("N/A")
 @pytest.mark.timeout(1200)
 @pytest.mark.integration("health_check")

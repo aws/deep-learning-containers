@@ -30,7 +30,6 @@ from test.test_utils import (
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
-    P3DN_REGION,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
@@ -62,6 +61,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___2__0",
     "pytorch_training___1__13",
     "pytorch_training_habana",
+    "pytorch_training_arm64",
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
@@ -284,9 +284,6 @@ def availability_zone_options(ec2_client, ec2_instance_type, region):
     if ec2_instance_type in ["p4d.24xlarge"]:
         if region == "us-west-2":
             allowed_availability_zones = ["us-west-2b", "us-west-2c"]
-    if ec2_instance_type in ["p3dn.24xlarge"]:
-        if region == "us-east-1":
-            allowed_availability_zones = ["us-east-1a", "us-east-1b"]
     if not allowed_availability_zones:
         allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
     return allowed_availability_zones
@@ -341,7 +338,7 @@ def ec2_instance_type(request):
 
 @pytest.fixture(scope="function")
 def instance_type(request):
-    return request.param if hasattr(request, "param") else "ml.p3.2xlarge"
+    return request.param if hasattr(request, "param") else "ml.g5.8xlarge"
 
 
 @pytest.fixture(scope="function")
@@ -564,28 +561,6 @@ def ec2_instance(
     ei_accelerator_type,
 ):
     _validate_p4de_usage(request, ec2_instance_type)
-    if ec2_instance_type == "p3dn.24xlarge":
-        # Keep track of initial region to get information about previous AMI
-        initial_region = region
-        region = P3DN_REGION
-        ec2_client = boto3.client(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
-        ec2_resource = boto3.resource(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
-        if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            # Assign as AML2 if initial AMI is AML2, else use default
-            ec2_instance_ami = (
-                test_utils.get_instance_type_base_dlami(
-                    ec2_instance_type, region, linux_dist="AML2"
-                )
-                if ec2_instance_ami
-                == test_utils.get_instance_type_base_dlami(
-                    ec2_instance_type, initial_region, linux_dist="AML2"
-                )
-                else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
-            )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
@@ -773,7 +748,6 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
