@@ -24,7 +24,8 @@ from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
 from packaging.version import Version, parse
 
-from .integration import NO_P2_REGIONS, NO_P3_REGIONS, NO_P4_REGIONS, get_ecr_registry
+from .integration import get_ecr_registry
+from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -136,7 +137,7 @@ def tag(request, framework_version, processor, py_version):
 @pytest.fixture(scope="session")
 def instance_type(request, processor):
     provided_instance_type = request.config.getoption("--instance-type")
-    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.p3.xlarge"
+    default_instance_type = "ml.c5.xlarge" if processor == "cpu" else "ml.g5.4xlarge"
     return provided_instance_type if provided_instance_type is not None else default_instance_type
 
 
@@ -179,10 +180,9 @@ def local_instance_type(processor):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    no_p2 = region in NO_P2_REGIONS and instance_type.startswith("ml.p2")
-    no_p3 = region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
-    no_p4 = region in NO_P4_REGIONS and instance_type.startswith("ml.p4")
-    if no_p2 or no_p3 or no_p4:
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
+    ):
         pytest.skip("Skipping GPU test in region {} to avoid insufficient capacity".format(region))
 
 
