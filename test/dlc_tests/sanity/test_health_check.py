@@ -18,7 +18,7 @@ EFA_LOCAL_TEST_CMD = os.path.join(
 )
 NCCL_LOCAL_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "healthcheck_tests", "nccl_test.sh")
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = ec2_utils.get_ec2_instance_type(
-    default="g3.8xlarge",
+    default="g4dn.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_multi_gpu,
 )

@@ -122,13 +122,6 @@ def filter_efa_only_p4_instance_type(instance_type_list):
     return filtered_list
 
 
-def filter_non_g3_instance_type(instance_type_list):
-    filtered_list = [
-        instance_type for instance_type in instance_type_list if not instance_type.startswith("g3.")
-    ]
-    return filtered_list
-
-
 def get_cicd_instance_reserved_region(instance_type):
     return P4DE_REGION if instance_type in ["p4de.24xlarge"] else DEFAULT_REGION
 

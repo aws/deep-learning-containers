@@ -51,7 +51,7 @@ PT_EC2_GPU_SYNTHETIC_INSTANCE_TYPE = "p4d.24xlarge"
 PT_EC2_GPU_IMAGENET_INSTANCE_TYPE = "g5.48xlarge"
 PT_EC2_GPU_INDUCTOR_INSTANCE_TYPES = ("p4d.24xlarge", "g5.48xlarge")
 PT_EC2_HPU_INSTANCE_TYPE = "dl1.24xlarge"
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.8xlarge", processor="gpu")
 
 
 @pytest.mark.model("resnet50")
@@ -60,8 +60,6 @@ PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor
 def test_performance_pytorch_gpu_synthetic(
     pytorch_training, ec2_connection, gpu_only, py3_only, ec2_instance_type
 ):
-    if ec2_instance_type == PT_EC2_GPU_INSTANCE_TYPE:
-        pytest.skip("skipping inductor related test on g3 instance")
     _, framework_version = get_framework_and_version_from_tag(pytorch_training)
     threshold = get_threshold_for_image(framework_version, PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD)
     execute_ec2_training_performance_test(

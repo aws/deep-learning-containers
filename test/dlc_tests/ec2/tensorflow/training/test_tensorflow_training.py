@@ -35,8 +35,7 @@ TF_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaTFSui
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5.8xlarge", processor="gpu", filter_function=ec2_utils.filter_only_single_gpu
 )
-TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
-# Timeouts in t3.2xlarge
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(
     default="c5.9xlarge", processor="cpu", filter_function=ec2_utils.filter_no_t32x
 )
@@ -143,7 +142,7 @@ def test_tensorflow_with_horovod_gpu(
         connection=ec2_connection,
         ecr_uri=tensorflow_training,
         test_cmd=f"{test_script} {ec2_instance_type}",
-        large_shm=bool(re.match(r"(p2\.8xlarge)|(g3\.16xlarge)", ec2_instance_type)),
+        large_shm=bool(re.match(r"(g4dn\.12xlarge)", ec2_instance_type)),
     )
 
 
