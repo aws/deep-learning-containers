@@ -61,6 +61,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___2__0",
     "pytorch_training___1__13",
     "pytorch_training_habana",
+    "pytorch_training_arm64",
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",

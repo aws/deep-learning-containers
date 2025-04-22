@@ -22,7 +22,7 @@ import logging
 import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DockerImage:
@@ -193,6 +193,8 @@ class DockerImage:
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
+        line_counter = 0
+        line_interval = 50
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -204,6 +206,11 @@ class DockerImage:
             labels=self.labels,
             target=self.target,
         ):
+            # print the log line during build for every line_interval lines for debugging
+            if line_counter % line_interval == 0:
+                LOGGER.debug(line)
+            line_counter += 1
+
             if line.get("error") is not None:
                 response.append(line["error"])
                 self.log.append(response)
