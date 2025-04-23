@@ -40,7 +40,7 @@ DEFAULT_EFA_TIMEOUT = 300
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     # default="p4d.24xlarge",
-    default="g5d.24xlarge",
+    default="g5.24xlarge",
     filter_function=filter_efa_instance_type,
 )
 
