@@ -44,7 +44,8 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
 )
 
 EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="p4d.24xlarge",
+    # default="p4d.24xlarge",
+    default="g5.24xlarge",
     filter_function=filter_efa_only_p4_instance_type,
 )
 
