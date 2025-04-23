@@ -69,7 +69,7 @@ def assign_sagemaker_remote_job_instance_type(image):
     ):
         return "ml.g5.8xlarge"
     elif "gpu" in image:
-        return "ml.p3.8xlarge"
+        return "ml.g5.12xlarge"
     elif "tensorflow" in image:
         return "ml.c5.4xlarge"
     else:
@@ -82,9 +82,9 @@ def assign_sagemaker_local_job_instance_type(image):
     elif "tensorflow" in image and "inference" in image and "gpu" in image:
         return "g4dn.xlarge"
     elif "autogluon" in image and "gpu" in image:
-        return "p3.2xlarge"
+        return "g5.8xlarge"
     elif "trcomp" in image:
-        return "p3.2xlarge"
+        return "g5.8xlarge"
     elif all(word in image for word in ["huggingface-pytorch", "training", "gpu"]):
         return "g5.8xlarge"
     return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"

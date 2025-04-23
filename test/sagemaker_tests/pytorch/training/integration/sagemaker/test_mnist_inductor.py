@@ -20,7 +20,7 @@ from sagemaker.pytorch import PyTorch
 from . import _test_mnist_distributed
 from .... import invoke_pytorch_helper_function
 
-inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
+inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
 
 @pytest.mark.processor("cpu")
@@ -59,7 +59,7 @@ def test_mnist_distributed_cpu(
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g5.8xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -109,7 +109,7 @@ def test_hc_mnist_distributed_cpu(
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
-    instance_type = instance_type or "ml.p3.8xlarge"
+    instance_type = instance_type or "ml.g5.12xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
     function_args = {
         "framework_version": framework_version,

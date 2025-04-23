@@ -54,7 +54,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the default configuration of SM trcomp
         """
-        instance_type = "ml.p3.2xlarge"
+        instance_type = "ml.g5.8xlarge"
         instance_count = 1
 
         estimator = HuggingFace(
@@ -83,7 +83,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the explicit enabled configuration of SM trcomp
         """
-        instance_type = "ml.p3.2xlarge"
+        instance_type = "ml.g5.8xlarge"
         instance_count = 1
 
         estimator = HuggingFace(
@@ -112,7 +112,7 @@ class TestSingleNodeSingleGPU:
         """
         Tests the debug mode configuration of SM trcomp
         """
-        instance_type = "ml.p3.2xlarge"
+        instance_type = "ml.g5.8xlarge"
         instance_count = 1
 
         estimator = HuggingFace(

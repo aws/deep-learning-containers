@@ -194,7 +194,7 @@ def test_hc_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, fr
 
     validate_or_skip_test(ecr_image=ecr_image)
     print("ecr image used for training", ecr_image)
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
     invoke_sm_helper_function(
         ecr_image,
@@ -487,7 +487,7 @@ def test_smdataparallel_smmodelparallel_mnist(
 def _test_smdataparallel_smmodelparallel_mnist_function(
     ecr_image, sagemaker_session, instance_type, tmpdir, framework_version
 ):
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.p4d.24xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":

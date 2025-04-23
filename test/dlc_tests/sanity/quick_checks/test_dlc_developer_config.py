@@ -100,6 +100,11 @@ def test_build_version_override_configuration():
     )
 
     assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-training")
+        == ""
+    )
+
+    assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-huggingface-tensorflow-training"
         )
@@ -170,6 +175,30 @@ def test_build_version_override_configuration():
     )
 
     assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-pytorch-graviton-inference"
+        )
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-graviton-inference"
+        )
+        == ""
+    )
+
+    assert (
+        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-inference")
+        == ""
+    )
+    assert (
+        config.parse_dlc_developer_configs(
+            "buildspec_override", "dlc-pr-tensorflow-2-arm64-inference"
+        )
+        == ""
+    )
+
+    assert (
         config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-neuron-inference")
         == ""
     )
@@ -207,30 +236,6 @@ def test_build_version_override_configuration():
     assert (
         config.parse_dlc_developer_configs(
             "buildspec_override", "dlc-pr-stabilityai-pytorch-inference"
-        )
-        == ""
-    )
-
-    assert (
-        config.parse_dlc_developer_configs(
-            "buildspec_override", "dlc-pr-pytorch-graviton-inference"
-        )
-        == ""
-    )
-    assert (
-        config.parse_dlc_developer_configs(
-            "buildspec_override", "dlc-pr-tensorflow-2-graviton-inference"
-        )
-        == ""
-    )
-
-    assert (
-        config.parse_dlc_developer_configs("buildspec_override", "dlc-pr-pytorch-arm64-inference")
-        == ""
-    )
-    assert (
-        config.parse_dlc_developer_configs(
-            "buildspec_override", "dlc-pr-tensorflow-2-arm64-inference"
         )
         == ""
     )

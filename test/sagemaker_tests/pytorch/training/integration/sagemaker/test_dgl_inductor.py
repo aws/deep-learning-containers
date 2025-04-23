@@ -30,7 +30,7 @@ from .... import invoke_pytorch_helper_function
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
 DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
-inductor_instance_types = ["ml.p3.8xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
+inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
 
 @pytest.mark.skip_dgl_test
@@ -59,7 +59,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.team("dgl")
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g5.8xlarge"
     function_args = {
         "instance_type": instance_type,
     }
