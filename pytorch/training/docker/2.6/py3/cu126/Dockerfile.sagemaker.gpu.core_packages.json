@@ -16,8 +16,7 @@
     "skip": "True"
   },
   "torch": {
-    "version_specifier": "==2.6.0+cu126",
-    "skip": "True"
+    "version_specifier": "==2.6.0+cu126"
   },
   "torchaudio": {
     "version_specifier": "==2.6.0+cu126",

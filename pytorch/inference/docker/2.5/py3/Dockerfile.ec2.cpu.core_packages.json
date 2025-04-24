@@ -4,8 +4,7 @@
     "skip": "True"
   },
   "torch": {
-    "version_specifier": "==2.5.1+cpu",
-    "skip": "True"
+    "version_specifier": "==2.5.1+cpu"
   },
   "torchaudio": {
     "version_specifier": "==2.5.1+cpu",
