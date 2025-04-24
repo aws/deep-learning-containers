@@ -24,11 +24,12 @@ ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu124/torchdata-0.10.1%2Bcu124-py3-none-any.whl
 
 # HF ARGS
-ARG TRANSFORMERS_VERSION=4.49.0
-ARG HUGGINGFACE_HUB_VERSION=0.29.1
-ARG DIFFUSERS_VERSION=0.32.2
+ARG TRANSFORMERS_VERSION=4.51.3
+ARG HUGGINGFACE_HUB_VERSION=0.30.0
+ARG DIFFUSERS_VERSION=0.33.1
 ARG PEFT_VERSION=0.14.0
-ARG ACCELERATE_VERSION=1.4.0
+ARG ACCELERATE_VERSION=1.6.0
+ARG SAGEMAKER_HF_INFERENCE_VERSION=2.6.0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -264,10 +265,11 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
-	"sagemaker-huggingface-inference-toolkit<3"
+	sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION}
 
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
+ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:inference:regular"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
