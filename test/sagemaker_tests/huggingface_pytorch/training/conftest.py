@@ -36,7 +36,7 @@ from .integration import (
     get_processor_from_image_uri,
     get_transformers_version_from_image_uri,
 )
-from test.sagemaker_tests import NO_P4_REGIONS, NO_G5_REGIONS
+from ....sagemaker_tests import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
