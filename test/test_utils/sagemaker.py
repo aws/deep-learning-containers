@@ -90,7 +90,7 @@ def assign_sagemaker_local_job_instance_type(image):
     return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"
 
 
-def assign_sagemaker_local_test_ami(image, region, instance_type):
+def assign_sagemaker_local_test_ami(image, region):
     """
     Helper function to get the needed AMI for launching the image.
     Needed to support Graviton/ARM64 images
@@ -101,7 +101,7 @@ def assign_sagemaker_local_test_ami(image, region, instance_type):
         else:
             return UL20_CPU_ARM64_US_WEST_2
     else:
-        return get_instance_type_base_dlami(instance_type, region)
+        return get_instance_type_base_dlami(region)
 
 
 def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
@@ -114,7 +114,7 @@ def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
     :return: str, str
     """
     instance_type = assign_sagemaker_local_job_instance_type(image)
-    ami_id = assign_sagemaker_local_test_ami(image, region, instance_type)
+    ami_id = assign_sagemaker_local_test_ami(image, region)
     instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,

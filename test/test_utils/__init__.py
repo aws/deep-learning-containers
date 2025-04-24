@@ -75,6 +75,8 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
 def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
+    
+    Special handling for NVIDIA driver paths which directly return the AMI ID.
     """
     # Use max_attempts=10 because this function is used in global context, and all test jobs
     # get AMI IDs for tests regardless of whether they are used in that job.
@@ -84,7 +86,13 @@ def get_ami_id_ssm(region_name, parameter_path):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami = ssm_client.get_parameter(Name=parameter_path)
-    ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+    
+    # Special case for NVIDIA driver AMI paths
+    if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
+        ami_id = ami["Parameter"]["Value"]
+    else:
+        ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+        
     return ami_id
 
 
@@ -105,21 +113,13 @@ UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
     ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
-AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-)
-AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-)
-AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
@@ -2480,70 +2480,22 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+def get_instance_type_base_dlami(region):
     """
-    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
-    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
-    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
-                                                     "g4dn.2xlarge",
-                                                     "g4dn.4xlarge",
-                                                     "g4dn.8xlarge",
-                                                     "g4dn.16xlarge",
-                                                     "g4dn.12xlarge",
-                                                     "g4dn.metal",
-                                                     "g4dn.xlarge",
-                                                     "g5.xlarge",
-                                                     "g5.2xlarge",
-                                                     "g5.4xlarge",
-                                                     "g5.8xlarge",
-                                                     "g5.16xlarge",
-                                                     "g5.12xlarge",
-                                                     "g5.24xlarge",
-                                                     "g5.48xlarge",
-                                                     "p4d.24xlarge",
-                                                     "p4de.24xlarge",
-                                                     "p5.48xlarge",]
-
-    Proprietary Nvidia Driver DLAMI supports the following: []
-
-    Other instances will default to Proprietary Nvidia Driver DLAMI
+    Returns the appropriate base DLAMI based on region.
+    Args:
+        instance_type: The EC2 instance type (not used in current implementation)
+        region: AWS region (us-west-2 or us-east-1)
+    
+    Returns:
+        The appropriate base DLAMI constant for the specified region
+    
+    Raises:
+        ValueError: If region is not supported
     """
-
-    base_proprietary_dlami_instances = []
-
-    ami_patterns = {
-        "AML2": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-        "UBUNTU_20": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-    }
-
-    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
-    instance_ami = ami_patterns[linux_dist][ami_type].get(
-        region,
-        get_ami_id_boto3(
-            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
-        ),
-    )
-
-    return instance_ami
+    if region == "us-west-2":
+        return AL2023_BASE_DLAMI_US_WEST_2
+    elif region == "us-east-1":
+        return AL2023_BASE_DLAMI_US_EAST_1
+    else:
+        raise ValueError(f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported.")
