@@ -1650,7 +1650,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
+            ctx.run(f"sed -i {sed_input_arg}'s/\\[2, 1, 0\]/\\[2, 1, 1\\]/g' {estimator_location}")
     return venv_dir
 
 
@@ -2494,8 +2494,12 @@ def get_instance_type_base_dlami(region):
         ValueError: If region is not supported
     """
     if region == "us-west-2":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_WEST_2 - : {AL2023_BASE_DLAMI_US_WEST_2}"
+        )
         return AL2023_BASE_DLAMI_US_WEST_2
     elif region == "us-east-1":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_EAST_1 - : {AL2023_BASE_DLAMI_US_EAST_1}"
+        )
         return AL2023_BASE_DLAMI_US_EAST_1
     else:
         raise ValueError(f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported.")
