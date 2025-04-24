@@ -1,5 +1,5 @@
 awscli==1.38.9
-boto3==1.37.9
+boto3==1.38.1
 fabric
 invoke
 wheel==0.44.0
