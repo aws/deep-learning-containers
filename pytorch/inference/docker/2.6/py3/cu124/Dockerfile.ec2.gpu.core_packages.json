@@ -7,8 +7,6 @@
     "version_specifier": "==2.6.0+cu124",
     "skip": "True"
   },
-    "skip": "True"
-  },
   "torchaudio": {
     "version_specifier": "==2.6.0+cu124",
     "skip": "True"
