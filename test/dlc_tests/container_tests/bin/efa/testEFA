@@ -25,7 +25,7 @@ USE_DEVICE_RDMA_ARG=""
 
 # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html
 # g5.24xlarge we use in RC is not RDMA read supported
-if [[ ${INSTANCE_TYPE} == p4d.24xlarge || ${INSTANCE_TYPE} == p4de.24xlarge ]]; then
+if [[ ${INSTANCE_TYPE} == p4d.24xlarge || ${INSTANCE_TYPE} == p4de.24xlarge  || ${INSTANCE_TYPE} == p5.48xlarge ]]; then
   USE_DEVICE_RDMA_ARG="-x FI_EFA_USE_DEVICE_RDMA=1"
 fi
 

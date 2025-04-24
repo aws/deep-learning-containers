@@ -121,6 +121,15 @@ def filter_efa_only_p4_instance_type(instance_type_list):
     ]
     return filtered_list
 
+def filter_efa_not_g5_instance_type(instance_type_list):
+    filtered_list = [
+        instance_type
+        for instance_type in instance_type_list
+        if get_num_efa_interfaces_for_instance_type(instance_type)
+        and not instance_type.startswith("g5")
+    ]
+    return filtered_list
+
 
 def get_cicd_instance_reserved_region(instance_type):
     return P4DE_REGION if instance_type in ["p4de.24xlarge"] else DEFAULT_REGION
