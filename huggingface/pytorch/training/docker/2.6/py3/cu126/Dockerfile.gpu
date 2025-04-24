@@ -1,0 +1,80 @@
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+# refer to the above page to pull latest Pytorch image
+
+# docker image region us-west-2
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker
+
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="2"
+
+# version args
+ARG TRANSFORMERS_VERSION=4.51.3
+ARG DATASETS_VERSION=3.5.0
+ARG HUGGINGFACE_HUB_VERSION=0.30.0
+ARG DIFFUSERS_VERSION=0.33.1
+ARG EVALUATE_VERSION=0.4.3
+ARG ACCELERATE_VERSION=1.6.0
+ARG TRL_VERSION=0.16.1
+ARG PEFT_VERSION=0.14.0
+ARG FLASH_ATTN_VERSION=2.7.4.post1
+ARG NINJA_VERSION=1.11.1.3
+ARG PYTHON=python3
+
+# TODO: Remove when the base image is updated
+RUN pip install --upgrade pip \
+ && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
+ && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
+ && pip --no-cache-dir install --upgrade wheel setuptools \
+ && pip install --no-cache-dir -U "werkzeug==3.0.6" 
+
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
+
+# Install Hugging Face libraries and dependencies
+RUN pip install --no-cache-dir \
+    huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
+    transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
+    datasets==${DATASETS_VERSION} \
+    diffusers==${DIFFUSERS_VERSION} \
+    Jinja2 \
+    tensorboard \
+    bitsandbytes \
+    evaluate==${EVALUATE_VERSION} \
+    accelerate==${ACCELERATE_VERSION} \
+    ninja==${NINJA_VERSION} \
+    trl==${TRL_VERSION} \
+    peft==${PEFT_VERSION} \
+    flash-attn==${FLASH_ATTN_VERSION}
+
+
+# hf_transfer will be a built-in feature, remove the env variable then
+ENV HF_HUB_ENABLE_HF_TRANSFER="1"
+ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training"
+
+RUN apt-get update \
+ # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev git-lfs \
+ && apt install -y git \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+apt-get autoremove -y
+
+
+COPY cuda-compatibility-lib.sh /usr/local/bin/cuda-compatibility-lib.sh
+RUN chmod +x /usr/local/bin/cuda-compatibility-lib.sh
+
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip -o ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance*
