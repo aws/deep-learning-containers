@@ -3,6 +3,10 @@
     "version_specifier": "==0.6.0",
     "skip": "True"
   },
+  "torch": {
+    "version_specifier": "==2.6.0+cpu",
+    "skip": "True"
+  },
   "torchaudio": {
     "version_specifier": "==2.6.0+cpu",
     "skip": "True"
