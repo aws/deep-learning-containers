@@ -19,7 +19,7 @@
     "version_specifier": "==1.2.6",
     "skip": "True"
   },
-  torch: {
+  "torch": {
     "version_specifier": "==2.5.1+cu124",
     "skip": "True"
   },
