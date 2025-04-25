@@ -35,8 +35,12 @@ def _test_pytorch_job_type_env_var(image, job_type):
     _, image_framework_version = get_framework_and_version_from_tag(image)
     if Version(image_framework_version) < Version("1.10"):
         pytest.skip("This env variable was added after PT 1.10 release. Skipping test.")
-    if Version(image_framework_version) < Version("2.7") and ("graviton" in image or "arm64" in image):
-        pytest.skip("This env variable was added for arm64 or graviton image after PT 2.7 release. Skipping test.")
+    if Version(image_framework_version) < Version("2.7") and (
+        "graviton" in image or "arm64" in image
+    ):
+        pytest.skip(
+            "This env variable was added for arm64 or graviton image after PT 2.7 release. Skipping test."
+        )
     env_vars = {"DLC_CONTAINER_TYPE": job_type}
     container_name_prefix = (
         "pt_train_job_type_env_var" if job_type == "training" else "pt_inference_job_type_env_var"
