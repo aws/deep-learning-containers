@@ -26,8 +26,6 @@ def test_pytorch_inference_job_type_env_var(pytorch_inference):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_inference_job_type_env_var_arm64(pytorch_inference_arm64):
-    if Version(pytorch_inference_arm64) < Version("2.7"):
-        pytest.skip("This env variable was added after PT 2.7 release. Skipping test.")
     _test_pytorch_job_type_env_var(pytorch_inference_arm64, "inference")
 
 
