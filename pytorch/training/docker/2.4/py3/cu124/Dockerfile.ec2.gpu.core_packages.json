@@ -19,6 +19,9 @@
     "version_specifier": "==2.4.0+cu124",
     "skip": "True"
   },
+  "torch": {
+    "version_specifier": "==2.4.0+cu124"
+  },
   "torchtext": {
     "version_specifier": "==0.18.0+cu124",
     "skip": "True"
