@@ -88,7 +88,7 @@ def get_ami_id_ssm(region_name, parameter_path):
     ami = ssm_client.get_parameter(Name=parameter_path)
     
     # Special case for NVIDIA driver AMI paths
-    if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
+    if "deeplearning" in parameter_path:
         ami_id = ami["Parameter"]["Value"]
     else:
         ami_id = eval(ami["Parameter"]["Value"])["image_id"]
@@ -115,11 +115,11 @@ UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
 )
 AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-ubuntu-22.04/latest/ami-id",
 )
 AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-ubuntu-22.04/latest/ami-id",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
