@@ -23,6 +23,24 @@ import botocore.session
 import requests
 
 TIMEOUT_SECS = 5
+REGION_MAPPING = {
+    "ap-northeast-1": "ddce303c",
+    "ap-northeast-2": "528c8d92",
+    "ap-southeast-1": "c35f9f00",
+    "ap-southeast-2": "d2add9c0",
+    "ap-south-1": "9deb4123",
+    "ca-central-1": "b95e2bf4",
+    "eu-central-1": "bfec3957",
+    "eu-north-1": "b453c092",
+    "eu-west-1": "d763c260",
+    "eu-west-2": "ea20d193",
+    "eu-west-3": "1894043c",
+    "sa-east-1": "030b4357",
+    "us-east-1": "487d6534",
+    "us-east-2": "72252b46",
+    "us-west-1": "d02c1125",
+    "us-west-2": "d8c0d063",
+}
 
 
 def requests_helper(url, headers=None, timeout=0.1):
@@ -139,24 +157,6 @@ def _retrieve_instance_region(token=None):
     """
     region = None
     response_json = None
-    valid_regions = [
-        "ap-northeast-1",
-        "ap-northeast-2",
-        "ap-southeast-1",
-        "ap-southeast-2",
-        "ap-south-1",
-        "ca-central-1",
-        "eu-central-1",
-        "eu-north-1",
-        "eu-west-1",
-        "eu-west-2",
-        "eu-west-3",
-        "sa-east-1",
-        "us-east-1",
-        "us-east-2",
-        "us-west-1",
-        "us-west-2",
-    ]
 
     region_url = "http://169.254.169.254/latest/dynamic/instance-identity/document"
 
@@ -168,7 +168,7 @@ def _retrieve_instance_region(token=None):
     if response_text:
         response_json = json.loads(response_text)
 
-        if response_json["region"] in valid_regions:
+        if response_json["region"] in REGION_MAPPING:
             region = response_json["region"]
 
     return region
@@ -261,6 +261,7 @@ def query_bucket(instance_id, region):
     """
     GET request on an empty object from an Amazon S3 bucket
     """
+
     response = None
     args = parse_args()
     framework, framework_version, container_type = (
@@ -268,13 +269,20 @@ def query_bucket(instance_id, region):
         args.framework_version,
         args.container_type,
     )
+
     py_version = sys.version.split(" ")[0]
 
     if instance_id is not None and region is not None:
         url = (
-            "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
-            "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}&x-container_type={5}".format(
-                region, instance_id, framework, framework_version, py_version, container_type
+            "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
+            "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}&x-container_type={6}".format(
+                REGION_MAPPING[region],
+                region,
+                instance_id,
+                framework,
+                framework_version,
+                py_version,
+                container_type,
             )
         )
         response = requests_helper(url, timeout=0.2)
@@ -332,6 +340,7 @@ def main():
     logging.getLogger().disabled = True
 
     logging.basicConfig(level=logging.ERROR)
+
     token = None
     instance_id = None
     region = None
