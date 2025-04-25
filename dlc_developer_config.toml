@@ -58,7 +58,7 @@ notify_test_failures = false
 [test]
 ### On by default
 sanity_tests = true
-security_tests = false
+security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = true
