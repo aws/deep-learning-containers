@@ -37,9 +37,11 @@ from .integration import (
     get_transformers_version_from_image_uri,
 )
 
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../"))
-sys.path.append(project_root)
-from test.sagemaker_tests import NO_P4_REGIONS, NO_G5_REGIONS
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sagemaker_tests_dir = os.path.abspath(os.path.join(current_dir, "../../../"))
+sys.path.append(sagemaker_tests_dir)
+
+from sagemaker_tests import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
