@@ -102,6 +102,7 @@ def filter_not_heavy_instance_types(instance_type_list):
     ]
     return filtered_list
 
+
 # https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html
 # g5.24xlarge we use in RC is not RDMA read supported
 # performance test will fail if we use g5.24xlarge
@@ -109,7 +110,8 @@ def filter_efa_instance_type(instance_type_list):
     filtered_list = [
         instance_type
         for instance_type in instance_type_list
-        if get_num_efa_interfaces_for_instance_type(instance_type) and not instance_type.startswith("g5")
+        if get_num_efa_interfaces_for_instance_type(instance_type)
+        and not instance_type.startswith("g5")
     ]
     return filtered_list
 
@@ -122,6 +124,7 @@ def filter_efa_only_p4_instance_type(instance_type_list):
         and instance_type.startswith("p4")
     ]
     return filtered_list
+
 
 def get_cicd_instance_reserved_region(instance_type):
     return P4DE_REGION if instance_type in ["p4de.24xlarge"] else DEFAULT_REGION
