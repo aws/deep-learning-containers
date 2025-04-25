@@ -21,7 +21,13 @@ NODES=$(($GPU_COUNT * $NUM_HOSTS))
 PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
 TRAINING_LOG="/test/logs/testEFA.log"
 
-USE_DEVICE_RDMA_ARG="-x FI_EFA_USE_DEVICE_RDMA=1"
+USE_DEVICE_RDMA_ARG=""
+
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html
+# g5.24xlarge we use in RC is not RDMA read supported
+if [[ ${INSTANCE_TYPE} == p4d.24xlarge || ${INSTANCE_TYPE} == p4de.24xlarge  || ${INSTANCE_TYPE} == p5.48xlarge ]]; then
+  USE_DEVICE_RDMA_ARG="-x FI_EFA_USE_DEVICE_RDMA=1"
+fi
 
 validate_all_reduce_performance_logs(){
     grep "aws-ofi-nccl" ${TRAINING_LOG} || { echo "aws-ofi-nccl is not working, please check if it is installed correctly"; exit 1; }
