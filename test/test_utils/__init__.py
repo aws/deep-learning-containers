@@ -1650,7 +1650,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(f"sed -i {sed_input_arg}'s/\\[2, 1, 0\]/\\[2, 1, 1\\]/g' {estimator_location}")
+            ctx.run(rf"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
 
 
