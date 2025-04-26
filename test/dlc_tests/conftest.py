@@ -598,7 +598,7 @@ def ec2_instance(
         or "hpu" in request.fixturenames
     ):
         user_data = """#!/bin/bash
-        sudo apt-get update && sudo apt-get install -y awscli"""
+        sudo dnf update && sudo dnf install -y awscli"""
         params["UserData"] = user_data
         params["BlockDeviceMappings"] = [
             {

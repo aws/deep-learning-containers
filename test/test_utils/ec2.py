@@ -1659,11 +1659,11 @@ def install_python_in_instance(context, python_version="3.9"):
         context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
-    kill_background_processes_and_run_apt_get_update(context)
-    context.run("sudo apt-get update", hide=True)
+    # kill_background_processes_and_run_apt_get_update(context)
+    context.run("sudo dnf update", hide=True)
     context.run(
         (
-            "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
+            "sudo dnf install -y make build-essential libssl-dev zlib1g-dev "
             "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
             "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev --fix-missing"
         ),
