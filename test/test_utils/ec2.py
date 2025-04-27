@@ -1663,9 +1663,9 @@ def install_python_in_instance(context, python_version="3.9"):
     context.run("sudo dnf update -y", hide=True)
     context.run(
         (
-            "sudo dnf install -y make build-essential libssl-dev zlib1g-dev "
-            "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
-            "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev --fix-missing"
+            "dnf install -y make gcc gcc-c++ openssl-devel zlib-devel "
+            "bzip2-devel readline-devel sqlite-devel wget curl llvm "
+            "ncurses-devel xz tk-devel libxml2-devel xmlsec1-devel libffi-devel xz-devel"
         ),
         hide=True,
     )
