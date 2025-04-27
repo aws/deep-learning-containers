@@ -1664,7 +1664,7 @@ def install_python_in_instance(context, python_version="3.9"):
     context.run(
         (
             "sudo dnf install -y make gcc gcc-c++ openssl-devel zlib-devel "
-            "bzip2-devel readline-devel sqlite-devel wget curl llvm "
+            "bzip2-devel readline-devel sqlite-devel llvm "
             "ncurses-devel xz tk-devel libxml2-devel xmlsec1-devel libffi-devel xz-devel --skip-broken"
         ),
         hide=True,
