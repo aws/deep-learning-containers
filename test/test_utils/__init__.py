@@ -86,13 +86,13 @@ def get_ami_id_ssm(region_name, parameter_path):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami = ssm_client.get_parameter(Name=parameter_path)
-    
+
     # Special case for NVIDIA driver AMI paths
     if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
         ami_id = ami["Parameter"]["Value"]
     else:
         ami_id = eval(ami["Parameter"]["Value"])["image_id"]
-        
+
     return ami_id
 
 
@@ -2486,20 +2486,20 @@ def get_instance_type_base_dlami(region):
     Args:
         instance_type: The EC2 instance type (not used in current implementation)
         region: AWS region (us-west-2 or us-east-1)
-    
+
     Returns:
         The appropriate base DLAMI constant for the specified region
-    
+
     Raises:
         ValueError: If region is not supported
     """
     if region == "us-west-2":
-        LOGGER.info(f"using AL2023_BASE_DLAMI_US_WEST_2 - : {AL2023_BASE_DLAMI_US_WEST_2}"
-        )
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_WEST_2 - : {AL2023_BASE_DLAMI_US_WEST_2}")
         return AL2023_BASE_DLAMI_US_WEST_2
     elif region == "us-east-1":
-        LOGGER.info(f"using AL2023_BASE_DLAMI_US_EAST_1 - : {AL2023_BASE_DLAMI_US_EAST_1}"
-        )
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_EAST_1 - : {AL2023_BASE_DLAMI_US_EAST_1}")
         return AL2023_BASE_DLAMI_US_EAST_1
     else:
-        raise ValueError(f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported.")
+        raise ValueError(
+            f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported."
+        )

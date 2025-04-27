@@ -1660,7 +1660,7 @@ def install_python_in_instance(context, python_version="3.9"):
         context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
 
     # kill_background_processes_and_run_apt_get_update(context)
-    context.run("sudo dnf update", hide=True)
+    context.run("sudo dnf update -y", hide=True)
     context.run(
         (
             "sudo dnf install -y make build-essential libssl-dev zlib1g-dev "

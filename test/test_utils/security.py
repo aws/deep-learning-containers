@@ -746,7 +746,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
-    apt_command = "dnf update && dnf upgrade"
+    dnf_command = "dnf update -y"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
@@ -756,7 +756,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     # That is why we need multiple tries to ensure that it succeeds in one of the tries.
     # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
-        run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
+        run_output = ctx.run(f"{docker_exec_cmd} {dnf_command}", hide=True, warn=True)
         attempt_count += 1
         if not run_output.ok:
             test_utils.LOGGER.info(
@@ -1334,7 +1334,7 @@ def extract_non_patchable_vulnerabilities(
     docker_run_cmd = f"docker run -v {test_utils.get_repository_local_path()}:/deep-learning-containers  -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    container_setup_cmd = "dnf update"
+    container_setup_cmd = "dnf update -y"
     run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
 
     # Using the latest impact packages, we re-run miscellaneous_scripts/extract_apt_patch_data.py to see if there is any latest package that
