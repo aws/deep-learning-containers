@@ -75,8 +75,6 @@ def get_ami_id_boto3(region_name, ami_name_pattern, IncludeDeprecated=False):
 def get_ami_id_ssm(region_name, parameter_path):
     """
     For a given region and parameter path, return the latest ami-id
-    
-    Special handling for NVIDIA driver paths which directly return the AMI ID.
     """
     # Use max_attempts=10 because this function is used in global context, and all test jobs
     # get AMI IDs for tests regardless of whether they are used in that job.
@@ -153,7 +151,8 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     IncludeDeprecated=True,
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
@@ -922,7 +921,9 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"):
+def request_mxnet_inference(
+    ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"
+):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
@@ -1304,7 +1305,11 @@ def get_dlc_images():
 
 
 def get_deep_canary_images(
-    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+    canary_framework,
+    canary_image_type,
+    canary_arch_type,
+    canary_region,
+    canary_region_prod_account,
 ):
     """
     For an input combination of canary job specs, find a matching list of image uris to be tested
@@ -1425,9 +1430,7 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework
-        if os.getenv("ARCH_TYPE") == "arm64"
-        else framework
+        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
     )
 
     version_regex = {
@@ -1460,7 +1463,9 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
             ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
             ## huggingface_pytorch and huggingface_tensorflow images.
             if (
-                "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type
+                "trcomp" in tag_str
+                and "trcomp" not in canary_type
+                and "huggingface" in canary_type
             ) or "tgi" in tag_str:
                 continue
             version = match.group(2)
@@ -1635,7 +1640,9 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
                 os.path.join(resources_location, resource_dir, "deep-learning-models")
             ):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
-                ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
+                ctx.run(
+                    f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git"
+                )
 
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
     if not os.path.isdir(venv_dir):
@@ -1701,7 +1708,9 @@ def get_region_from_image_uri(image_uri):
     :param image_uri: <str> ECR image URI
     :return: <str> AWS Region Name
     """
-    region_pattern = r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
+    region_pattern = (
+        r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
+    )
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
@@ -1859,25 +1868,39 @@ def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
-        else "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "pytorch_trcomp"
-        if "pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "stabilityai_pytorch"
-        if "stabilityai-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
-        else "autogluon"
-        if "autogluon" in image_uri
-        else None
+        else (
+            "huggingface_tensorflow"
+            if "huggingface-tensorflow" in image_uri
+            else (
+                "huggingface_pytorch_trcomp"
+                if "huggingface-pytorch-trcomp" in image_uri
+                else (
+                    "pytorch_trcomp"
+                    if "pytorch-trcomp" in image_uri
+                    else (
+                        "huggingface_pytorch"
+                        if "huggingface-pytorch" in image_uri
+                        else (
+                            "stabilityai_pytorch"
+                            if "stabilityai-pytorch" in image_uri
+                            else (
+                                "mxnet"
+                                if "mxnet" in image_uri
+                                else (
+                                    "pytorch"
+                                    if "pytorch" in image_uri
+                                    else (
+                                        "tensorflow"
+                                        if "tensorflow" in image_uri
+                                        else "autogluon" if "autogluon" in image_uri else None
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
     )
 
 
@@ -2175,7 +2198,8 @@ def uniquify_list_of_dict(list_of_dict):
 
 def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
     assert all(
-        type(element) == type(list_of_complex_datatypes[0]) for element in list_of_complex_datatypes
+        type(element) == type(list_of_complex_datatypes[0])
+        for element in list_of_complex_datatypes
     ), f"{list_of_complex_datatypes} has multiple types"
     if list_of_complex_datatypes:
         if isinstance(list_of_complex_datatypes[0], dict):
