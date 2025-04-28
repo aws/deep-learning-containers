@@ -236,7 +236,7 @@
             "severity": "CRITICAL",
             "status": "ACTIVE",
             "title": "CVE-2025-32434 - torch",
-            "reason_to_ignore": "N/A"
+            "reason_to_ignore": "this container is specifically pytorch 2.5.x so we can’t upgrade to 2.6"
         }
     ]
 }
