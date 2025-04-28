@@ -746,7 +746,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
-    dnf_command = "dnf update -y"
+    dnf_command = "apt-get update && apt-get upgrade"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
