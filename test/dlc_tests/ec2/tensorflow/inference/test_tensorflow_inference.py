@@ -81,7 +81,7 @@ def test_ec2_tensorflow_inference_cpu_deep_canary(
 @pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu_deep_canary(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -96,7 +96,7 @@ def test_ec2_tensorflow_inference_graviton_cpu_deep_canary(
 @pytest.mark.deep_canary("Reason: This test is a simple tf mnist test")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_arm64_cpu_deep_canary(
     tensorflow_inference_arm64, ec2_connection, region, cpu_only
 ):
@@ -262,7 +262,7 @@ def test_ec2_tensorflow_inference_cpu_telemetry(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -271,7 +271,7 @@ def test_ec2_tensorflow_inference_graviton_cpu(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_arm64_cpu(
     tensorflow_inference_arm64, ec2_connection, region, cpu_only
 ):
@@ -280,7 +280,7 @@ def test_ec2_tensorflow_inference_arm64_cpu(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -291,7 +291,7 @@ def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
 
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_tensorflow_inference_arm64_cpu_telemetry(
     tensorflow_inference_arm64, ec2_connection, region, cpu_only
 ):

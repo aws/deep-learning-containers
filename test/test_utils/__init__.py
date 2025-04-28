@@ -120,15 +120,13 @@ AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
-UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
 UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -193,8 +191,6 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
-    UL20_CPU_ARM64_US_EAST_1,
-    UL20_CPU_ARM64_US_WEST_2,
     UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
@@ -1653,7 +1649,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(rf"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
 
 

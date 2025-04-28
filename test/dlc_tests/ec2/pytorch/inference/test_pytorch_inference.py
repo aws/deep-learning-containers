@@ -110,7 +110,7 @@ def test_ec2_pytorch_inference_cpu_deep_canary(pytorch_inference, ec2_connection
 @pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_graviton_gpu_deep_canary(
     pytorch_inference_graviton, ec2_connection, region, gpu_only
 ):
@@ -125,7 +125,7 @@ def test_ec2_pytorch_inference_graviton_gpu_deep_canary(
 @pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_arm64_gpu_deep_canary(
     pytorch_inference_arm64, ec2_connection, region, gpu_only
 ):
@@ -140,7 +140,7 @@ def test_ec2_pytorch_inference_arm64_gpu_deep_canary(
 @pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_graviton_cpu_deep_canary(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -155,7 +155,7 @@ def test_ec2_pytorch_inference_graviton_cpu_deep_canary(
 @pytest.mark.deep_canary("Reason: This test is a simple pytorch inference test")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_arm64_cpu_deep_canary(
     pytorch_inference_arm64, ec2_connection, region, cpu_only
 ):
@@ -208,7 +208,7 @@ def test_ec2_pytorch_inference_cpu(pytorch_inference, ec2_connection, region, cp
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -218,7 +218,7 @@ def test_ec2_pytorch_inference_graviton_cpu(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_arm64_cpu(pytorch_inference_arm64, ec2_connection, region, cpu_only):
     ec2_pytorch_inference(pytorch_inference_arm64, "cpu", ec2_connection, region)
 
@@ -226,7 +226,7 @@ def test_ec2_pytorch_inference_arm64_cpu(pytorch_inference_arm64, ec2_connection
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_graviton_gpu(
     pytorch_inference_graviton, ec2_connection, region, gpu_only
 ):
@@ -236,7 +236,7 @@ def test_ec2_pytorch_inference_graviton_gpu(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_ec2_pytorch_inference_arm64_gpu(pytorch_inference_arm64, ec2_connection, region, gpu_only):
     ec2_pytorch_inference(pytorch_inference_arm64, "gpu", ec2_connection, region)
 
@@ -412,7 +412,7 @@ def test_pytorch_inference_telemetry_cpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_pytorch_inference_telemetry_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, cpu_only
 ):
@@ -423,7 +423,7 @@ def test_pytorch_inference_telemetry_graviton_cpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_pytorch_inference_telemetry_arm64_cpu(pytorch_inference_arm64, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference_arm64, PT_TELEMETRY_CMD)
 
@@ -432,7 +432,7 @@ def test_pytorch_inference_telemetry_arm64_cpu(pytorch_inference_arm64, ec2_conn
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_pytorch_inference_telemetry_graviton_gpu(
     pytorch_inference_graviton, ec2_connection, gpu_only
 ):
@@ -443,6 +443,6 @@ def test_pytorch_inference_telemetry_graviton_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_pytorch_inference_telemetry_arm64_gpu(pytorch_inference_arm64, ec2_connection, gpu_only):
     execute_ec2_inference_test(ec2_connection, pytorch_inference_arm64, PT_TELEMETRY_CMD)
