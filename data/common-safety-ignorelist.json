@@ -1,4 +1,5 @@
 {
     "51358": "Safety is not packaged with container, it is the result of security scanning process",
-    "76769" : "A vulnerability, which was classified as problematic, was found in PyTorch 2.6.0. Which was built with container and cannot be patched."
+    "76769" : "A vulnerability, which was classified as problematic, was found in PyTorch 2.6.0. Which was built with container and cannot be patched.",
+    "76771" : "A vulnerability, which was classified as problematic, was found in version 2.5.1 and prior. Which was built with container and cannot be patched."
 }
