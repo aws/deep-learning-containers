@@ -47,9 +47,8 @@ def test_telemetry_instance_tag_failure_cpu(
 def test_telemetry_instance_tag_failure_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -64,9 +63,8 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 def test_telemetry_instance_tag_failure_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -81,9 +79,8 @@ def test_telemetry_instance_tag_failure_arm64_gpu(
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -98,9 +95,8 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 def test_telemetry_instance_tag_failure_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -441,9 +437,9 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    # ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
+    ec2_connection.run(f"sudo dnf install -y apt-transport-https")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)

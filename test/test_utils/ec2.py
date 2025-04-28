@@ -1585,7 +1585,7 @@ def kill_background_processes_and_run_apt_get_update(ec2_conn):
     """
     The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
     minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
-    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
+    therefore be killed. This function kills the services, and then forces "dnf update" to run in the foreground.
 
     :param ec2_conn: Fabric SSH connection
     :return:

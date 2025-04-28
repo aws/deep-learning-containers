@@ -752,7 +752,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     apt_ran_successfully_flag = False
     # When a command or application is updating the system or installing a new software, it locks the dpkg file (Debian package manager).
     # Since we have multiple processes running for the tests, there are cases when one of the process locks the dpkg file
-    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running apt-get update
+    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running dnf update
     # That is why we need multiple tries to ensure that it succeeds in one of the tries.
     # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
@@ -872,7 +872,7 @@ def get_vulnerabilites_fixable_by_upgrade(
     image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
 ):
     """
-    Finds out the vulnerabilities that are fixable by apt-get update and apt-get upgrade.
+    Finds out the vulnerabilities that are fixable by dnf update and dnf upgrade.
 
     :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
