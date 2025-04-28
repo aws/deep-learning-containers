@@ -1334,7 +1334,7 @@ def extract_non_patchable_vulnerabilities(
     docker_run_cmd = f"docker run -v {test_utils.get_repository_local_path()}:/deep-learning-containers  -id --entrypoint='/bin/bash' {image_uri} "
     container_id = run(f"{docker_run_cmd}").stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    container_setup_cmd = "dnf update -y"
+    container_setup_cmd = "apt-get update"
     run(f"{docker_exec_cmd} {container_setup_cmd}", hide=True)
 
     # Using the latest impact packages, we re-run miscellaneous_scripts/extract_apt_patch_data.py to see if there is any latest package that
