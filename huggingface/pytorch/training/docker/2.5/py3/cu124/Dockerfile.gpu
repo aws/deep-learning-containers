@@ -47,7 +47,10 @@ RUN pip install --no-cache-dir \
     ninja==${NINJA_VERSION} \
     trl==${TRL_VERSION} \
     peft==${PEFT_VERSION} \
-    flash-attn==${FLASH_ATTN_VERSION}
+    flash-attn==${FLASH_ATTN_VERSION} \
+    h11>=0.16.0 \
+    gevent>=25.4.2
+
 
 # Override conflicting versions to satisfy datasets
 RUN pip install --no-cache-dir dill==0.3.8 multiprocess==0.70.16 \

@@ -1390,7 +1390,9 @@
 		            "71601": "Transformers version upgrade needs to be handled in a separate image",
 		            "71670": "Pytorch version upgrade needs to be handled in a separate image",
 		            "71671": "Pytorch version upgrade needs to be handled in a separate image",
-		            "71672": "Pytorch version upgrade needs to be handled in a separate image"
+		            "71672": "Pytorch version upgrade needs to be handled in a separate image",
+                    "76771": "Pytorch version upgrade needs to be handled in a separate image",
+                    "76769": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference": {
