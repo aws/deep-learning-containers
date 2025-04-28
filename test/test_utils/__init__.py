@@ -921,9 +921,7 @@ def retry_if_result_is_false(result):
     wait_fixed=10000,
     retry_on_result=retry_if_result_is_false,
 )
-def request_mxnet_inference(
-    ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"
-):
+def request_mxnet_inference(ip_address="127.0.0.1", port="80", connection=None, model="squeezenet"):
     """
     Send request to container to test inference on kitten.jpg
     :param ip_address:
@@ -1465,9 +1463,7 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
             ## durign HF PT canary runs. The `if` condition below will prevent any trcomp images to be picked during canary runs of
             ## huggingface_pytorch and huggingface_tensorflow images.
             if (
-                "trcomp" in tag_str
-                and "trcomp" not in canary_type
-                and "huggingface" in canary_type
+                "trcomp" in tag_str and "trcomp" not in canary_type and "huggingface" in canary_type
             ) or "tgi" in tag_str:
                 continue
             version = match.group(2)
@@ -1642,9 +1638,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
                 os.path.join(resources_location, resource_dir, "deep-learning-models")
             ):
                 # We clone branch tf2 for both 1.x and 2.x tests because tf2 branch contains all necessary files
-                ctx.run(
-                    f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git"
-                )
+                ctx.run(f"git clone -b tf2 https://github.com/aws-samples/deep-learning-models.git")
 
     venv_dir = os.path.join(resources_location, "sm_benchmark_venv")
     if not os.path.isdir(venv_dir):
@@ -1710,9 +1704,7 @@ def get_region_from_image_uri(image_uri):
     :param image_uri: <str> ECR image URI
     :return: <str> AWS Region Name
     """
-    region_pattern = (
-        r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
-    )
+    region_pattern = r"(us(-gov)?|af|ap|ca|cn|eu|il|me|sa)-(central|(north|south)?(east|west)?)-\d+"
     region_search = re.search(region_pattern, image_uri)
     assert region_search, f"{image_uri} must have region that matches {region_pattern}"
     return region_search.group()
@@ -2202,8 +2194,7 @@ def uniquify_list_of_dict(list_of_dict):
 
 def uniquify_list_of_complex_datatypes(list_of_complex_datatypes):
     assert all(
-        type(element) == type(list_of_complex_datatypes[0])
-        for element in list_of_complex_datatypes
+        type(element) == type(list_of_complex_datatypes[0]) for element in list_of_complex_datatypes
     ), f"{list_of_complex_datatypes} has multiple types"
     if list_of_complex_datatypes:
         if isinstance(list_of_complex_datatypes[0], dict):
