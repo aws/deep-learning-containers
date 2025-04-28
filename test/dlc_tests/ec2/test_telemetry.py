@@ -438,7 +438,6 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
 
     # Disable access to EC2 instance metadata
     # ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
-    ec2_connection.run(f"sudo dnf install -y apt-transport-https")
     ec2_connection.run(f"sudo dnf install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
