@@ -37,12 +37,12 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
-build_frameworks = ["pytorch"]
+build_frameworks = []
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
 build_training = true
-build_inference = false
+build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -61,9 +61,9 @@ sanity_tests = true
 security_tests = true
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = false
-eks_tests = false
-ec2_tests = false
+ecs_tests = true
+eks_tests = true
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -104,7 +104,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-4-ec2.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
