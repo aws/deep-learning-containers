@@ -234,6 +234,8 @@ BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 # Ubuntu ami home dir
 UBUNTU_HOME_DIR = "/home/ubuntu"
 
+AL2023_HOM_DIR = "/home/ec2-user"
+
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
 

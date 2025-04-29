@@ -29,7 +29,7 @@ from test_utils import (
     AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
-    UBUNTU_HOME_DIR,
+    AL2023_HOM_DIR,
     DEFAULT_REGION,
     is_nightly_context,
     get_instance_type_base_dlami,
@@ -217,7 +217,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
-    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    local_test_report = os.path.join(AL2023_HOM_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
     # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests,
     # the env variable "EFA_DEDICATED=True" must be configured so that those Actions only run
@@ -290,7 +290,9 @@ def execute_local_tests(image, pytest_cache_params):
     :return: True if test execution was successful, else False
     """
     test_success = False
+    print("find break point")
     account_id = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity()["Account"])
+    print(account_id)
     pytest_cache_util = PytestCache(boto3.client("s3"), account_id)
     ec2_client = boto3.client(
         "ec2", config=Config(retries={"max_attempts": 10}), region_name=DEFAULT_REGION
@@ -302,11 +304,15 @@ def execute_local_tests(image, pytest_cache_params):
     print(pytest_command)
     framework, _ = get_framework_and_version_from_tag(image)
     framework = framework.replace("_trcomp", "")
+    print(f"frame work is {framework}")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    print(sm_tests_tar_name)
+    ec2_test_report_path = os.path.join(AL2023_HOM_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    print(ec2_test_report_path)
+
     instance_id = ""
     ec2_conn = None
     try:
@@ -317,8 +323,11 @@ def execute_local_tests(image, pytest_cache_params):
             ec2_key_name,
             region,
         )
+        print("instance launched")
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-        ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
+        print("get fabric conn")
+        ec2_conn.put(sm_tests_tar_name, f"{AL2023_HOM_DIR}")
+        print("get fabric conn")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         login_to_ecr_registry(ec2_conn, account_id, region)
         try:
