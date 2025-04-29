@@ -591,7 +591,7 @@ def build_images(images, make_dummy_boto_client=False):
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
-    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=min(20, len(images))) as executor:
         #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         if make_dummy_boto_client:
             get_dummy_boto_client()
