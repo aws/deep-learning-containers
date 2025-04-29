@@ -84,9 +84,20 @@ def get_ami_id_ssm(region_name, parameter_path):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami = ssm_client.get_parameter(Name=parameter_path)
-    ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+
+    # Special case for NVIDIA driver AMI paths
+    if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
+        ami_id = ami["Parameter"]["Value"]
+    else:
+        ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+    
     return ami_id
 
+### temp
+AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
+    region_name="us-west-2",
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
+)
 
 # DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
 UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(

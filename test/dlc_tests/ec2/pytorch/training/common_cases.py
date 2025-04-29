@@ -57,6 +57,10 @@ PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     filter_function=ec2_utils.filter_efa_instance_type,
 )
 
+PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.16xlarge", processor="gpu", arch_type="arm64"
+)
+
 
 def pytorch_standalone(pytorch_training, ec2_connection):
     """
