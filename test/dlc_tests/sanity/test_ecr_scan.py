@@ -288,15 +288,22 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     )
     scan_results = json.loads(json.dumps(scan_results, cls=EnhancedJSONEncoder))
 
+    LOGGER.info(f"******Full scan results for {image}:\n{scan_results}******")
+
     minimum_sev_threshold = minimum_sev_threshold or get_minimum_sev_threshold_level(image)
     ecr_image_vulnerability_list = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
+    LOGGER.info(
+        f"******[ECR Scan] ECR Enhanced Scan results {ecr_image_vulnerability_list}*******")
+    )
+
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
+
     common_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
     )
@@ -341,6 +348,9 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             vuln_allowlist=image_scan_allowlist,
         )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
+    LOGGER.info(
+        f"******[ECR Scan] ECR Enhanced Scan results after removing allowlisted vulns {remaining_vulnerabilities}*******"
+    )
     allowlist_for_daily_scans = image_scan_allowlist
 
     if remove_non_patchable_vulns:
