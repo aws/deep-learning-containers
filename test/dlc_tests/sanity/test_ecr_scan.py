@@ -297,7 +297,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     ecr_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(scan_results)
 
     LOGGER.info(
-        f"******[ECR Scan] ECR Enhanced Scan results {ecr_image_vulnerability_list}*******")
+        f"******[ECR Scan] ECR Enhanced Scan results {ecr_image_vulnerability_list.vulnerability_list}*******")
 
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
@@ -348,7 +348,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
     LOGGER.info(
-        f"******[ECR Scan] ECR Enhanced Scan results after removing allowlisted vulns {remaining_vulnerabilities}*******"
+        f"******[ECR Scan] ECR Enhanced Scan results after removing allowlisted vulns {remaining_vulnerabilities.vulnerability_list}*******"
     )
     allowlist_for_daily_scans = image_scan_allowlist
 
