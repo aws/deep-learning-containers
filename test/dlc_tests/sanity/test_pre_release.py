@@ -42,7 +42,6 @@ from test.test_utils import (
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     get_installed_python_packages_with_version,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
