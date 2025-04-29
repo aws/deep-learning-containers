@@ -298,7 +298,6 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
 
     LOGGER.info(
         f"******[ECR Scan] ECR Enhanced Scan results {ecr_image_vulnerability_list}*******")
-    )
 
     image_scan_allowlist = ECREnhancedScanVulnerabilityList(
         minimum_severity=CVESeverity[minimum_sev_threshold]
