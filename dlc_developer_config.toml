@@ -12,7 +12,7 @@ neuron_mode = false
 neuronx_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
-graviton_mode = true
+graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
 arm64_mode = false
@@ -134,12 +134,12 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-sm.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Graviton Inference
-dlc-pr-pytorch-graviton-inference = "pytorch/inference/buildspec-graviton-2-4-sm.yml"
+dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
