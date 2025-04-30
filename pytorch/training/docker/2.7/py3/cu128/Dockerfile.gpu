@@ -2,6 +2,7 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12.10
 ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.7.0
+ARG TORCHTNT_VERSION=0.2.4
 
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.7.0.66
@@ -261,6 +262,7 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
+ARG TORCHTNT_VERSION
 ARG PYTORCH_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
@@ -271,11 +273,10 @@ WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION}
-    torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \
-    torchtnt \
+    torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
@@ -360,6 +361,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
 ARG PYTORCH_VERSION
+ARG TORCHTNT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -375,11 +377,10 @@ RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION}
-    torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \
-    torchtnt \
+    torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0

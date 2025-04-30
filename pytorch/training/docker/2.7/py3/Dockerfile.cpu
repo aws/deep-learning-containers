@@ -5,10 +5,7 @@ ARG PYTORCH_VERSION=2.7.0
 
 ARG OPEN_MPI_VERSION=4.1.7
 
-ARG TORCHVISION_VERSION=0.22.0
-ARG TORCHAUDIO_VERSION=2.7.0
-ARG TORCHTEXT_VERSION=0.18.0
-ARG TORCHDATA_VERSION=0.11.0
+ARG TORCHTNT_VERSION=0.2.4
 
 FROM ubuntu:22.04 AS base_image
 
@@ -218,16 +215,16 @@ FROM common AS ec2
 
 ARG PYTHON
 ARG PYTORCH_VERSION
+ARG TORCHTNT_VERSION
 
 WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION}
-    torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
-    torchtnt \
+    torchtnt==${TORCHTNT_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
@@ -279,7 +276,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
-ARG PYTORCH_VERSION
+ARG TORCHTNT_VERSION
 
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
@@ -288,11 +285,10 @@ WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION} 
-    torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
-    torchtnt \
+    torchtnt==${TORCHTNT_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
