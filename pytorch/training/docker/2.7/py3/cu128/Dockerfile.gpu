@@ -269,7 +269,7 @@ ARG FLASH_ATTN_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip3 install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \
@@ -372,7 +372,7 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
-RUN pip3 install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \

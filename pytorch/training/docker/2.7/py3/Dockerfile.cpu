@@ -221,7 +221,7 @@ ARG PYTHON
 WORKDIR /
 
 # Install PyTorch
-RUN pip3 install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
@@ -284,7 +284,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install PyTorch
-RUN pip3 install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
     torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
