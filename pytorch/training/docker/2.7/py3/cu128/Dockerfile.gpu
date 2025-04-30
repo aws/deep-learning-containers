@@ -272,10 +272,8 @@ ARG FLASH_ATTN_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
-    torchtext \
-    torchdata \
+RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir -U torchtext torchdata \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
@@ -376,10 +374,8 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
-    torchtext \
-    torchdata \
+RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir -U torchtext torchdata \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
