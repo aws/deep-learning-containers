@@ -2,18 +2,14 @@ ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12.10
 ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.7.0
-ARG TORCHVISION_VERSION=0.22.0
-ARG TORCHAUDIO_VERSION=2.7.0
-ARG TORCHTEXT_VERSION=0.18.0
-ARG TORCHDATA_VERSION=0.11.0
 
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.26.2
-ARG EFA_VERSION=1.38.0
-ARG GDRCOPY_VERSION=2.4.4
-ARG TE_VERSION=2.0
-ARG FLASH_ATTN_VERSION=2.7.3
+ARG EFA_VERSION=1.39.0
+ARG GDRCOPY_VERSION=2.5
+ARG TE_VERSION=2.2
+ARG FLASH_ATTN_VERSION=2.7.4
 
 FROM nvidia/cuda:12.8.0-base-ubuntu22.04 AS base_image
 
@@ -265,11 +261,6 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
-ARG PYTORCH_VERSION
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHTEXT_VERSION
-ARG TORCHDATA_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -278,12 +269,10 @@ ARG FLASH_ATTN_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    torchtext==${TORCHTEXT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
+RUN pip3 install --no-cache-dir -U \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torchtext \
+    torchdata \
     torchtnt \
     triton \
     s3torchconnector \
@@ -297,7 +286,8 @@ RUN pip install --no-cache-dir -U \
     thinc \
     blis \
     numpy \
- && pip uninstall dataclasses
+ && pip uninstall -y dataclasses
+
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -368,10 +358,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
 ARG PYTORCH_VERSION
-ARG TORCHVISION_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHTEXT_VERSION
-ARG TORCHDATA_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -386,12 +372,10 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
-    torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    torchtext==${TORCHTEXT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
+RUN pip3 install --no-cache-dir -U \
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torchtext \
+    torchdata \
     torchtnt \
     triton \
     s3torchconnector \
