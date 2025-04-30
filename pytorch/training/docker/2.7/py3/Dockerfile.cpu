@@ -217,12 +217,14 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
+ARG PYTORCH_VERSION
 
 WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    torch==${PYTORCH_VERSION}
+    torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
     torchtnt \
@@ -277,6 +279,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
+ARG PYTORCH_VERSION
 
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
@@ -285,7 +288,8 @@ WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
+    torch==${PYTORCH_VERSION} 
+    torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
     torchtext \
     torchdata \
     torchtnt \

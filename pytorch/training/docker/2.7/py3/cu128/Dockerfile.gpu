@@ -229,7 +229,7 @@ RUN pip install --no-cache-dir \
     opencv-python \
     mpi4py
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -261,6 +261,7 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
+ARG PYTORCH_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -270,7 +271,8 @@ WORKDIR /
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torch==${PYTORCH_VERSION}
+    torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \
     torchtnt \
@@ -373,7 +375,8 @@ RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
+    torch==${PYTORCH_VERSION}
+    torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
     torchtext \
     torchdata \
     torchtnt \
