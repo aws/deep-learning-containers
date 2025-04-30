@@ -11,6 +11,7 @@ mock==2.0.0
 pytest<8.1
 pytest-cov
 pytest-rerunfailures
+docker-compose
 pytest-xdist
 PyYAML
 requests
