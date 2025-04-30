@@ -90,8 +90,9 @@ def get_ami_id_ssm(region_name, parameter_path):
         ami_id = ami["Parameter"]["Value"]
     else:
         ami_id = eval(ami["Parameter"]["Value"])["image_id"]
-    
+
     return ami_id
+
 
 ### temp
 AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
@@ -1661,7 +1662,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
+            ctx.run(rf"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
 
 

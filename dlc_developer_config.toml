@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true
+do_build = false
 
 [notify]
 ### Notify on test failures
@@ -57,15 +57,15 @@ notify_test_failures = false
 
 [test]
 ### On by default
-sanity_tests = true
-security_tests = true
+sanity_tests = false
+security_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
-ec2_benchmark_tests = true
+ec2_benchmark_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.

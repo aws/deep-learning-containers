@@ -62,6 +62,7 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___1__13",
     "pytorch_training_habana",
     "pytorch_training_arm64",
+    "pytorch_training_arm64___2__7",
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
@@ -1494,6 +1495,9 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
     config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
+    config.addinivalue_line(
+        "markers", "skip_serialized_release_pt_test(): mark to skip test included in serial testing"
+    )
 
 
 def pytest_runtest_setup(item):
