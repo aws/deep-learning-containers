@@ -47,9 +47,7 @@ RUN pip install --no-cache-dir \
     ninja==${NINJA_VERSION} \
     trl==${TRL_VERSION} \
     peft==${PEFT_VERSION} \
-    flash-attn==${FLASH_ATTN_VERSION} \
-    h11>=0.16.0 \
-    gevent>=25.4.2
+    flash-attn==${FLASH_ATTN_VERSION}
 
 
 # Override conflicting versions to satisfy datasets
