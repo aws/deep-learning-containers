@@ -1387,12 +1387,12 @@
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
                 "67895": "CVE-2024-3651 impacts the idna.encode() function",
-		            "71601": "Transformers version upgrade needs to be handled in a separate image",
-		            "71670": "Pytorch version upgrade needs to be handled in a separate image",
-		            "71671": "Pytorch version upgrade needs to be handled in a separate image",
-		            "71672": "Pytorch version upgrade needs to be handled in a separate image",
-                    "76771": "Pytorch version upgrade needs to be handled in a separate image",
-                    "76769": "Pytorch version upgrade needs to be handled in a separate image"
+                "71601": "Transformers version upgrade needs to be handled in a separate image",
+                "71670": "Pytorch version upgrade needs to be handled in a separate image",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image",
+                "76771": "Pytorch version upgrade needs to be handled in a separate image",
+                "76769": "Pytorch version upgrade needs to be handled in a separate image"
             }
         },
         "inference": {
