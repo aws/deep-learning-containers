@@ -183,6 +183,7 @@ RUN pip install --no-cache-dir \
     "urllib3<2" \
     "awscli<2" \
     opencv-python \
+    Jinja2 \
     mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
@@ -192,6 +193,8 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -220,8 +223,7 @@ ARG TORCHTNT_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir -U torchtext torchdata \
+RUN pip install --no-cache-dir -U torch torchvision torchaudio torchtext torchdata --index-url https://download.pytorch.org/whl/cpu \
     torchtnt==${TORCHTNT_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
@@ -282,8 +284,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir -U torchtext torchdata \
+RUN pip install --no-cache-dir -U torch torchvision torchaudio torchtext torchdata --index-url https://download.pytorch.org/whl/cpu \
     torchtnt==${TORCHTNT_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
