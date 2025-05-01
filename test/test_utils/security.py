@@ -300,9 +300,9 @@ class ScanVulnerabilityList:
         for key, list_of_complex_types in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(
-                key=lambda dict_element: dict_element["name"]
-                if isinstance(dict_element, dict)
-                else dict_element.name
+                key=lambda dict_element: (
+                    dict_element["name"] if isinstance(dict_element, dict) else dict_element.name
+                )
             )
         return dict(sorted(copy_dict.items()))
 
@@ -662,13 +662,19 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     def remove_vulnerabilities_for_package(
         self, package_name: str, vulnerability_id_list: Set[str]
     ):
-        """Removes any vulnerabilities for the package_name whose id is in the cve_id_list."""
+        """Removes any vulnerabilities for the package_name whose id is in the vulnerability_id_list.
+        Removes the package key entirely if the resulting list is empty.
+        """
         if package_name in self.vulnerability_list:
-            self.vulnerability_list[package_name] = [
+            filtered_vulns = [
                 vulnerability
                 for vulnerability in self.vulnerability_list[package_name]
                 if vulnerability.vulnerability_id not in vulnerability_id_list
             ]
+            if filtered_vulns:
+                self.vulnerability_list[package_name] = filtered_vulns
+            else:
+                del self.vulnerability_list[package_name]
 
 
 def get_ecr_vulnerability_package_version(vulnerability):

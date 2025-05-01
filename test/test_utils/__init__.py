@@ -36,8 +36,6 @@ LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent region where p3dn tests can be run
-P3DN_REGION = "us-east-1"
 # Constant to represent region where p4de tests can be run
 P4DE_REGION = "us-east-1"
 
@@ -159,10 +157,6 @@ AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
-# Since latest driver is not in public DLAMI yet, using a custom one
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
 
 UL22_BASE_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -198,7 +192,6 @@ UL_AMI_LIST = [
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
     UL20_CPU_ARM64_US_EAST_1,
@@ -274,6 +267,26 @@ ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 ## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
+
+# region mapping for telemetry tests, need to be updated when new regions are added
+TELEMETRY_REGION_MAPPING = {
+    "ap-northeast-1": "ddce303c",
+    "ap-northeast-2": "528c8d92",
+    "ap-southeast-1": "c35f9f00",
+    "ap-southeast-2": "d2add9c0",
+    "ap-south-1": "9deb4123",
+    "ca-central-1": "b95e2bf4",
+    "eu-central-1": "bfec3957",
+    "eu-north-1": "b453c092",
+    "eu-west-1": "d763c260",
+    "eu-west-2": "ea20d193",
+    "eu-west-3": "1894043c",
+    "sa-east-1": "030b4357",
+    "us-east-1": "487d6534",
+    "us-east-2": "72252b46",
+    "us-west-1": "d02c1125",
+    "us-west-2": "d8c0d063",
+}
 
 
 class NightlyFeatureLabel(Enum):
@@ -618,7 +631,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
     Currently configured to fail on the following checks:
         1. p4d.24xlarge instance type is used with a cuda<11.0 image
-        2. p3.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
+        2. g5.8xlarge instance type is used with a cuda=11.0 image for MXNET framework
 
     :param image_uri: ECR Image URI in valid DLC-format
     :param ec2_instance_type: EC2 Instance Type
@@ -638,7 +651,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "mxnet"
         and get_processor_from_image_uri(image_uri) == "gpu"
         and get_cuda_version_from_tag(image_uri).startswith("cu11")
-        and ec2_instance_type in ["p3.8xlarge"]
+        and ec2_instance_type in ["g5.12xlarge"]
     )
     incompatible_conditions.append(image_is_cuda11_on_incompatible_p2_instance_mxnet)
 
@@ -646,7 +659,7 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         framework == "pytorch"
         and Version(framework_version) in SpecifierSet("==1.11.*")
         and get_processor_from_image_uri(image_uri) == "gpu"
-        and ec2_instance_type in ["p3.8xlarge"]
+        and ec2_instance_type in ["g5.12xlarge"]
     )
     incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
 
@@ -2491,26 +2504,12 @@ def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
                                                      "p4de.24xlarge",
                                                      "p5.48xlarge",]
 
-    Proprietary Nvidia Driver DLAMI supports the following: ["p3.2xlarge",
-                                                             "p3.8xlarge",
-                                                             "p3.16xlarge",
-                                                             "p3dn.24xlarge",
-                                                             "g3s.xlarge",
-                                                             "g3.4xlarge",
-                                                             "g3.8xlarge",]
+    Proprietary Nvidia Driver DLAMI supports the following: []
 
     Other instances will default to Proprietary Nvidia Driver DLAMI
     """
 
-    base_proprietary_dlami_instances = [
-        "p3.2xlarge",
-        "p3.8xlarge",
-        "p3.16xlarge",
-        "p3dn.24xlarge",
-        "g3s.xlarge",
-        "g3.4xlarge",
-        "g3.8xlarge",
-    ]
+    base_proprietary_dlami_instances = []
 
     ami_patterns = {
         "AML2": {

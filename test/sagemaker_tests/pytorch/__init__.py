@@ -21,6 +21,51 @@ import sagemaker.exceptions
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 
+NO_P4_REGIONS = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "eu-south-1",
+    "me-south-1",
+    "sa-east-1",
+    "us-west-1",
+    "cn-northwest-1",
+    "il-central-1",
+]
+
+NO_G5_REGIONS = [
+    "us-west-1",
+    "ca-west-1",
+    "mx-cental-1",
+    "af-south-1",
+    "ap-east-1",
+    "ap-south-2",
+    "ap-southeast-5",
+    "ap-southeast-4",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-7",
+    "eu-south-1",
+    "eu-west-3",
+    "eu-south-2",
+    "eu-central-2",
+    "me-south-1",
+]
+
+P5_AVAIL_REGIONS = [
+    "us-east-1",
+    "us-west-2",
+]
+
+
 class SMInstanceCapacityError(Exception):
     pass
 

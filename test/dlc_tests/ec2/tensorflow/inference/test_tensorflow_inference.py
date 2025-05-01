@@ -16,7 +16,7 @@ TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."
 
 
-TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
+TF_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.8xlarge", processor="gpu")
 TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor="cpu")
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
@@ -25,7 +25,7 @@ TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE = get_ec2_instance_type(
     default="inf2.xlarge", processor="neuronx"
 )
 TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge",
+    default="g5.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_single_gpu,
 )

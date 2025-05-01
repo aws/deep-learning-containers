@@ -19,11 +19,12 @@ ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cpu/torchdata-0.10.1%2Bcpu-py3-none-any.whl
 
 # HF ARGS
-ARG TRANSFORMERS_VERSION=4.49.0
-ARG HUGGINGFACE_HUB_VERSION=0.29.1
-ARG DIFFUSERS_VERSION=0.32.2
+ARG TRANSFORMERS_VERSION=4.51.3
+ARG HUGGINGFACE_HUB_VERSION=0.30.0
+ARG DIFFUSERS_VERSION=0.33.1
 ARG PEFT_VERSION=0.14.0
-ARG ACCELERATE_VERSION=1.4.0
+ARG ACCELERATE_VERSION=1.6.0
+ARG SAGEMAKER_HF_INFERENCE_VERSION=2.6.0
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -118,7 +119,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
     h5py \
     requests \
     libgcc \
-    cmake \
+    "cmake<=3.24.4" \
     packaging \
     "awscli<2" \
     boto3 \
@@ -195,6 +196,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
+# Pre-install kenlm without build isolation so it uses system cmake
+RUN pip install --no-cache-dir --no-build-isolation kenlm
+
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
     # hf_transfer will be a built-in feature, remove the extra then
@@ -204,10 +208,11 @@ RUN pip install --no-cache-dir \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
     "protobuf>=3.19.5,<=3.20.2" \
-    "sagemaker-huggingface-inference-toolkit==2.4.1"
+    sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION}
 
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
+ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:cpu:inference:regular"
 
 #####################
 # IPEX installation #

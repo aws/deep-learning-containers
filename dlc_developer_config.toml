@@ -108,6 +108,9 @@ dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
+# ARM64 Training
+dlc-pr-pytorch-arm64-training = ""
+
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
 dlc-pr-huggingface-pytorch-training = ""
@@ -135,6 +138,14 @@ dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
+# Graviton Inference
+dlc-pr-pytorch-graviton-inference = ""
+dlc-pr-tensorflow-2-graviton-inference = ""
+
+# ARM64 Inference
+dlc-pr-pytorch-arm64-inference = ""
+dlc-pr-tensorflow-2-arm64-inference = ""
+
 # Neuron Inference
 dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
@@ -147,14 +158,6 @@ dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
 dlc-pr-stabilityai-pytorch-inference = ""
-
-# Graviton Inference
-dlc-pr-pytorch-graviton-inference = ""
-dlc-pr-tensorflow-2-graviton-inference = ""
-
-# ARM64 Inference
-dlc-pr-pytorch-arm64-inference = ""
-dlc-pr-tensorflow-2-arm64-inference = ""
 
 # EIA Inference
 dlc-pr-pytorch-eia-inference = ""

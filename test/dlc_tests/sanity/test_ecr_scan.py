@@ -199,20 +199,31 @@ def remove_allowlisted_image_vulnerabilities(
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
     :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
     """
+    LOGGER.info(f"ECR Image Vuln List: '{ecr_image_vuln_list.vulnerability_list}'")
+    LOGGER.info(f"Vulnerability Allowlist: '{vuln_allowlist.vulnerability_list}'")
     if not is_huggingface_image():
+        LOGGER.info(
+            "Non-Hugging Face image detected — using subtract operator to remove allowlisted vulnerabilities."
+        )
         return ecr_image_vuln_list - vuln_allowlist
 
-    # Relax constraints for HF images
+    LOGGER.info("Hugging Face image detected — using relaxed allowlist removal by (package, CVE).")
     new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
+
     for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
         if pkg_name not in new_image_vuln_list.vulnerability_list:
+            LOGGER.info(f"Skipping package '{pkg_name}' — not present in image vulnerability list.")
             continue
-        pkg_cves_in_allowlist = set(list([vuln.name for vuln in allowed_pkg_vuln_list]))
+
+        pkg_cves_in_allowlist = set([vuln.name for vuln in allowed_pkg_vuln_list])
+        LOGGER.info(f"Removing allowlisted CVEs for package '{pkg_name}': {pkg_cves_in_allowlist}")
+
         new_image_vuln_list.remove_vulnerabilities_for_package(
             package_name=pkg_name,
             vulnerability_id_list=pkg_cves_in_allowlist,
         )
 
+    LOGGER.info("Completed allowlist removal. Returning filtered vulnerability list.")
     return new_image_vuln_list
 
 

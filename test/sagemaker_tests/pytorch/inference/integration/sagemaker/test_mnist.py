@@ -65,7 +65,7 @@ def test_mnist_distributed_cpu(framework_version, ecr_image, instance_type, sage
 @pytest.mark.gpu_test
 @pytest.mark.team("conda")
 def test_mnist_distributed_gpu(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     model_dir = os.path.join(model_cpu_dir, "model_mnist.tar.gz")
     function_args = {
         "framework_version": framework_version,

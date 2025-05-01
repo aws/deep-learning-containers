@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 2.5.1
-short_version: &SHORT_VERSION "2.5"
+version: &VERSION 2.6.0
+short_version: &SHORT_VERSION "2.6"
 contributor: huggingface
 arch_type: x86
 
@@ -21,17 +21,17 @@ context:
       target: cuda-compatibility-lib.sh
 
 images:
-  BuildHuggingFacePytorchGpuPy311Cu124TrainingDockerImage:
+  BuildHuggingFacePytorchGpuPy312Cu126TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: &IMAGE_SIZE_BASELINE 21500
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py311
-    cuda_version: &CUDA_VERSION cu124
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    cuda_version: &CUDA_VERSION cu126
     os_version: &OS_VERSION ubuntu22.04
-    transformers_version: &TRANSFORMERS_VERSION 4.49.0
-    datasets_version: &DATASETS_VERSION 3.3.2
+    transformers_version: &TRANSFORMERS_VERSION 4.51.3
+    datasets_version: &DATASETS_VERSION 3.5.0
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-',
                  *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /,

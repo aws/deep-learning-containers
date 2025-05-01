@@ -37,15 +37,15 @@ from test.test_utils import (
     login_to_ecr_registry,
     get_account_id_from_image_uri,
 )
-from . import DEFAULT_REGION, P3DN_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from . import DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 # List of instance types for which, if instance spin-up fails, the test is skipped instead of failing.
-ICE_SKIP_INSTANCE_LIST = ["p3dn.24xlarge"]
+ICE_SKIP_INSTANCE_LIST = []
 
 # List of instance types which are too powerful for minor tests
-HEAVY_INSTANCE_LIST = ["p3dn.24xlarge", "p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+HEAVY_INSTANCE_LIST = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -103,11 +103,16 @@ def filter_not_heavy_instance_types(instance_type_list):
     return filtered_list
 
 
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html
+# both g4dn and g5.24xlarge we use in RC is not RDMA read supported
+# performance test will fail if we use g5.24xlarge
 def filter_efa_instance_type(instance_type_list):
     filtered_list = [
         instance_type
         for instance_type in instance_type_list
         if get_num_efa_interfaces_for_instance_type(instance_type)
+        and not instance_type.startswith("g4")
+        and not instance_type.startswith("g5")
     ]
     return filtered_list
 
@@ -122,21 +127,8 @@ def filter_efa_only_p4_instance_type(instance_type_list):
     return filtered_list
 
 
-def filter_non_g3_instance_type(instance_type_list):
-    filtered_list = [
-        instance_type for instance_type in instance_type_list if not instance_type.startswith("g3.")
-    ]
-    return filtered_list
-
-
 def get_cicd_instance_reserved_region(instance_type):
-    return (
-        P4DE_REGION
-        if instance_type in ["p4de.24xlarge"]
-        else P3DN_REGION
-        if instance_type in ["p3dn.24xlarge"]
-        else DEFAULT_REGION
-    )
+    return P4DE_REGION if instance_type in ["p4de.24xlarge"] else DEFAULT_REGION
 
 
 def get_efa_ec2_instance_type(default, filter_function=lambda x: x, job_type=""):
@@ -333,7 +325,7 @@ def get_available_reservations(ec2_client, instance_type, min_availability=1):
 
     Args:
         ec2_client (boto3.client): EC2 Boto3 client
-        instance_type (string): instance type, i.e. p3.2xlarge
+        instance_type (string): instance type, i.e. g5.8xlarge
         min_availability (int, optional): Minimum number of instances to launch. Defaults to 1.
 
     Returns:

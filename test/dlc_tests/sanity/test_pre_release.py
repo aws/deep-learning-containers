@@ -42,7 +42,6 @@ from test.test_utils import (
     execute_env_variables_test,
     UL20_CPU_ARM64_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     get_installed_python_packages_with_version,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
@@ -512,7 +511,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
