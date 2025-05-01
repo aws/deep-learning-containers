@@ -25,11 +25,11 @@ from test_utils import (
     SAGEMAKER_EXECUTION_REGIONS,
     SAGEMAKER_NEURON_EXECUTION_REGIONS,
     SAGEMAKER_NEURONX_EXECUTION_REGIONS,
-    UL20_CPU_ARM64_US_EAST_1,
-    UL20_CPU_ARM64_US_WEST_2,
+    AL2023_BASE_DLAMI_ARM64_US_EAST_1,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     SAGEMAKER_LOCAL_TEST_TYPE,
     SAGEMAKER_REMOTE_TEST_TYPE,
-    UBUNTU_HOME_DIR,
+    AL2023_HOME_DIR,
     DEFAULT_REGION,
     is_nightly_context,
     get_instance_type_base_dlami,
@@ -90,18 +90,18 @@ def assign_sagemaker_local_job_instance_type(image):
     return "g5.12xlarge" if "gpu" in image else "c5.18xlarge"
 
 
-def assign_sagemaker_local_test_ami(image, region, instance_type):
+def assign_sagemaker_local_test_ami(image, region):
     """
     Helper function to get the needed AMI for launching the image.
     Needed to support Graviton/ARM64 images
     """
     if "graviton" in image or "arm64" in image:
         if region == "us-east-1":
-            return UL20_CPU_ARM64_US_EAST_1
+            return AL2023_BASE_DLAMI_ARM64_US_EAST_1
         else:
-            return UL20_CPU_ARM64_US_WEST_2
+            return AL2023_BASE_DLAMI_ARM64_US_WEST_2
     else:
-        return get_instance_type_base_dlami(instance_type, region)
+        return get_instance_type_base_dlami(region)
 
 
 def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
@@ -114,7 +114,7 @@ def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
     :return: str, str
     """
     instance_type = assign_sagemaker_local_job_instance_type(image)
-    ami_id = assign_sagemaker_local_test_ami(image, region, instance_type)
+    ami_id = assign_sagemaker_local_test_ami(image, region)
     instance_name = image.split("/")[-1]
     instance = ec2_utils.launch_instance(
         ami_id,
@@ -217,7 +217,7 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         aws_id_arg = "--account-id"
 
     test_report = os.path.join(os.getcwd(), "test", f"{job_type}_{tag}.xml")
-    local_test_report = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    local_test_report = os.path.join(AL2023_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
 
     # In both CI Sagemaker Test CB jobs and DLC Build Pipeline Actions that run SM EFA tests,
     # the env variable "EFA_DEDICATED=True" must be configured so that those Actions only run
@@ -306,7 +306,8 @@ def execute_local_tests(image, pytest_cache_params):
     ec2_key_name = f"{job_type}_{tag}_sagemaker_{random.randint(1, 1000)}"
     region = os.getenv("AWS_REGION", DEFAULT_REGION)
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
-    ec2_test_report_path = os.path.join(UBUNTU_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+    ec2_test_report_path = os.path.join(AL2023_HOME_DIR, "test", f"{job_type}_{tag}_sm_local.xml")
+
     instance_id = ""
     ec2_conn = None
     try:
@@ -318,7 +319,7 @@ def execute_local_tests(image, pytest_cache_params):
             region,
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
-        ec2_conn.put(sm_tests_tar_name, f"{UBUNTU_HOME_DIR}")
+        ec2_conn.put(sm_tests_tar_name, f"{AL2023_HOME_DIR}")
         ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         login_to_ecr_registry(ec2_conn, account_id, region)
         try:
@@ -332,6 +333,10 @@ def execute_local_tests(image, pytest_cache_params):
                     f"Image pull for {image} failed.\ndocker images output = {output}"
                 ) from e
         ec2_conn.run(f"tar -xzf {sm_tests_tar_name}")
+        ec2_conn.run(
+            "sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose"
+        )
+        ec2_conn.run("sudo chmod +x /usr/local/bin/docker-compose")
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(

@@ -40,8 +40,7 @@ from test.test_utils import (
     get_all_the_tags_of_an_image_from_ecr,
     is_nightly_context,
     execute_env_variables_test,
-    UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     get_installed_python_packages_with_version,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
@@ -519,7 +518,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
@@ -527,7 +526,7 @@ def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_c
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 

@@ -84,7 +84,13 @@ def get_ami_id_ssm(region_name, parameter_path):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami = ssm_client.get_parameter(Name=parameter_path)
-    ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+
+    # Special case for NVIDIA driver AMI paths
+    if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
+        ami_id = ami["Parameter"]["Value"]
+    else:
+        ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+
     return ami_id
 
 
@@ -105,32 +111,22 @@ UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
     ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
-AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-)
-AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-)
-AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
 # We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
-UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
 UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -153,7 +149,8 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     IncludeDeprecated=True,
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
@@ -194,8 +191,6 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
-    UL20_CPU_ARM64_US_EAST_1,
-    UL20_CPU_ARM64_US_WEST_2,
     UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
@@ -236,8 +231,7 @@ TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
-# Ubuntu ami home dir
-UBUNTU_HOME_DIR = "/home/ubuntu"
+AL2023_HOME_DIR = "/home/ec2-user"
 
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
@@ -1304,7 +1298,11 @@ def get_dlc_images():
 
 
 def get_deep_canary_images(
-    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+    canary_framework,
+    canary_image_type,
+    canary_arch_type,
+    canary_region,
+    canary_region_prod_account,
 ):
     """
     For an input combination of canary job specs, find a matching list of image uris to be tested
@@ -1859,25 +1857,41 @@ def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
-        else "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "pytorch_trcomp"
-        if "pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "stabilityai_pytorch"
-        if "stabilityai-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
-        else "autogluon"
-        if "autogluon" in image_uri
-        else None
+        else (
+            "huggingface_tensorflow"
+            if "huggingface-tensorflow" in image_uri
+            else (
+                "huggingface_pytorch_trcomp"
+                if "huggingface-pytorch-trcomp" in image_uri
+                else (
+                    "pytorch_trcomp"
+                    if "pytorch-trcomp" in image_uri
+                    else (
+                        "huggingface_pytorch"
+                        if "huggingface-pytorch" in image_uri
+                        else (
+                            "stabilityai_pytorch"
+                            if "stabilityai-pytorch" in image_uri
+                            else (
+                                "mxnet"
+                                if "mxnet" in image_uri
+                                else (
+                                    "pytorch"
+                                    if "pytorch" in image_uri
+                                    else (
+                                        "tensorflow"
+                                        if "tensorflow" in image_uri
+                                        else "autogluon"
+                                        if "autogluon" in image_uri
+                                        else None
+                                    )
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        )
     )
 
 
@@ -2480,70 +2494,26 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+def get_instance_type_base_dlami(region):
     """
-    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
-    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
-    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
-                                                     "g4dn.2xlarge",
-                                                     "g4dn.4xlarge",
-                                                     "g4dn.8xlarge",
-                                                     "g4dn.16xlarge",
-                                                     "g4dn.12xlarge",
-                                                     "g4dn.metal",
-                                                     "g4dn.xlarge",
-                                                     "g5.xlarge",
-                                                     "g5.2xlarge",
-                                                     "g5.4xlarge",
-                                                     "g5.8xlarge",
-                                                     "g5.16xlarge",
-                                                     "g5.12xlarge",
-                                                     "g5.24xlarge",
-                                                     "g5.48xlarge",
-                                                     "p4d.24xlarge",
-                                                     "p4de.24xlarge",
-                                                     "p5.48xlarge",]
+    Returns the appropriate base DLAMI based on region.
+    Args:
+        instance_type: The EC2 instance type (not used in current implementation)
+        region: AWS region (us-west-2 or us-east-1)
 
-    Proprietary Nvidia Driver DLAMI supports the following: []
+    Returns:
+        The appropriate base DLAMI constant for the specified region
 
-    Other instances will default to Proprietary Nvidia Driver DLAMI
+    Raises:
+        ValueError: If region is not supported
     """
-
-    base_proprietary_dlami_instances = []
-
-    ami_patterns = {
-        "AML2": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-        "UBUNTU_20": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-    }
-
-    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
-    instance_ami = ami_patterns[linux_dist][ami_type].get(
-        region,
-        get_ami_id_boto3(
-            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
-        ),
-    )
-
-    return instance_ami
+    if region == "us-west-2":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_WEST_2 - : {AL2023_BASE_DLAMI_US_WEST_2}")
+        return AL2023_BASE_DLAMI_US_WEST_2
+    elif region == "us-east-1":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_EAST_1 - : {AL2023_BASE_DLAMI_US_EAST_1}")
+        return AL2023_BASE_DLAMI_US_EAST_1
+    else:
+        raise ValueError(
+            f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported."
+        )
