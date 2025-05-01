@@ -35,7 +35,7 @@ from test.test_utils import (
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
     get_ecr_repo_name,
-    UBUNTU_HOME_DIR,
+    AL2023_HOME_DIR,
     NightlyFeatureLabel,
     is_mainline_context,
     is_pr_context,
@@ -801,7 +801,7 @@ def upload_habana_test_artifact(request, ec2_connection):
     :return: None
     """
     habana_test_repo = "gaudi-test-suite.tar.gz"
-    ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
+    ec2_connection.put(habana_test_repo, f"{AL2023_HOME_DIR}")
     ec2_connection.run(f"tar -xvf {habana_test_repo}")
 
 

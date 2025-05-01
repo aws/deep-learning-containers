@@ -746,7 +746,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image}"
     container_id = ctx.run(f"{docker_run_cmd}", hide=True).stdout.strip()
-    dnf_command = "apt-get update && apt-get upgrade"
+    apt_command = "apt-get update && apt-get upgrade"
     docker_exec_cmd = f"docker exec -i {container_id}"
     attempt_count = 0
     apt_ran_successfully_flag = False
@@ -756,7 +756,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     # That is why we need multiple tries to ensure that it succeeds in one of the tries.
     # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
-        run_output = ctx.run(f"{docker_exec_cmd} {dnf_command}", hide=True, warn=True)
+        run_output = ctx.run(f"{docker_exec_cmd} {apt_command}", hide=True, warn=True)
         attempt_count += 1
         if not run_output.ok:
             test_utils.LOGGER.info(
