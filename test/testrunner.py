@@ -57,7 +57,7 @@ def run_sagemaker_local_tests(images, pytest_cache_params):
     sm_tests_path = (
         os.path.join("test", "sagemaker_tests", framework)
         if "huggingface" not in framework
-        else os.path.join("test", "sagemaker_tests", "huggingface*")
+        else os.path.join("test", "sagemaker_tests*")
     )
     sm_tests_tar_name = "sagemaker_tests.tar.gz"
     run(
