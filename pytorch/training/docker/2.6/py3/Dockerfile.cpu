@@ -252,6 +252,7 @@ RUN pip install --no-cache-dir -U \
     thinc \
     blis \
     numpy \
+    --index-url https://download.pytorch.org/whl/cpu \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
