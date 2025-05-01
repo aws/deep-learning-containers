@@ -25,5 +25,5 @@ def test_curand_gpu(training, ec2_connection, gpu_only, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(training, ec2_instance_type):
         pytest.skip(f"Image {training} is incompatible with instance type {ec2_instance_type}")
     if is_tf_version("1", training) or "mxnet" in training or "arm64" in training:
-        pytest.skip("Test is not configured for TF1 and MXNet")
+        pytest.skip("Test is not configured for TF1 and MXNet and ARM64")
     execute_ec2_training_test(ec2_connection, training, CURAND_CMD)

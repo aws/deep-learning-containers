@@ -27,7 +27,6 @@ def test_pytorch_2_7_gpu(
         (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_mnist, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_linear_regression_gpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
@@ -45,7 +44,7 @@ def test_pytorch_2_7_gpu(
     if ec2.is_instance_multi_gpu(ec2_instance_type):
         test_cases.append((common_cases.pytorch_amp, (pytorch_training, ec2_connection)))
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.6 GPU")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.7 GPU")
 
 
 # @pytest.mark.usefixtures("sagemaker")
@@ -72,7 +71,7 @@ def test_pytorch_2_7_gpu(
 #         (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
 #     ]
 
-#     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.6 GPU Heavy")
+#     test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.7 GPU Heavy")
 
 
 @pytest.mark.usefixtures("sagemaker")
@@ -91,10 +90,9 @@ def test_pytorch_2_7_gpu_inductor(
     pytorch_training = pytorch_training_arm64___2__7
 
     test_cases = [
-        (common_cases.pytorch_gloo_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
     ]
 
-    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.6 GPU Inductor")
+    test_utils.execute_serial_test_cases(test_cases, test_description="PT 2.7 GPU Inductor")

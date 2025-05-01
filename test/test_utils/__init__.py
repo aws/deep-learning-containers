@@ -94,12 +94,6 @@ def get_ami_id_ssm(region_name, parameter_path):
     return ami_id
 
 
-### temp
-AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
-    region_name="us-west-2",
-    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
-)
-
 # DLAMI Base is split between OSS Nvidia Driver and Propietary Nvidia Driver. see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
 UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -125,7 +119,6 @@ AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
-# We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
 AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
@@ -2500,7 +2493,7 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(region):
+def get_dlami_id(region):
     """
     Returns the appropriate base DLAMI based on region.
     Args:
