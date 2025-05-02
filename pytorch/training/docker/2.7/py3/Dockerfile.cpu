@@ -8,6 +8,7 @@ ARG OPEN_MPI_VERSION=4.1.7
 ARG TORCHTNT_VERSION=0.2.4
 ARG TORCHTEXT_VERSION=0.18.0
 ARG TORCHDATA_VERSION=0.11.0
+ARG JINJA2_VERSION=3.1.6
 
 FROM ubuntu:22.04 AS base_image
 
@@ -192,11 +193,11 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/l
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+RUN chmod +x /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -223,6 +224,7 @@ ARG PYTORCH_VERSION
 ARG TORCHTNT_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
+ARG JINJA2_VERSION
 
 WORKDIR /
 
@@ -231,6 +233,7 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
+    Jinja2==${JINJA2_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
@@ -285,6 +288,7 @@ ARG PYTHON
 ARG TORCHTNT_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
+ARG JINJA2_VERSION
 
 
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
@@ -296,6 +300,7 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
+    Jinja2==${JINJA2_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
