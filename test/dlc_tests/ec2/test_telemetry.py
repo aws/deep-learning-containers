@@ -396,7 +396,9 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     # actual_output = invoke_telemetry_call(
     #     image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
     # )
-    actual_output = invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type, test_mode=1)
+    actual_output = invoke_telemetry_call_for_type(
+        image_uri, container_name, ec2_connection, call_type, test_mode=1
+    )
 
     py_version = (
         ec2_connection.run(
@@ -442,7 +444,9 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     assert expected_s3_url == actual_output, f"S3 telemetry is not working"
 
 
-def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
+def _run_tag_failure_IMDSv1_disabled(
+    image_uri, ec2_client, ec2_instance, ec2_connection, call_type
+):
     """
     Disable IMDSv1 on EC2 instance and try to add a tag in it, it should not get added
     """
@@ -534,7 +538,9 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection,
 
 
 # If hop limit on EC2 instance is 2, then IMDSv2 works as to get token IMDSv2 needs more than 1 hop
-def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
+def _run_tag_success_IMDSv2_hop_limit_2(
+    image_uri, ec2_client, ec2_instance, ec2_connection, call_type
+):
     """
     Try to add a tag on EC2 instance, it should get added as IMDSv2 is enabled due to hop limit 2
     """
@@ -574,35 +580,26 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     ), f"{expected_tag_key} was not applied as an instance tag"
 
 
-def invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type, test_mode=None):
+def invoke_telemetry_call_for_type(
+    image_uri, container_name, ec2_connection, call_type, test_mode=None
+):
     """
     Run import framework command inside docker container
     """
     output = None
-    docker_exec_command = get_telemetry_call_command(image_uri, container_name, call_type, test_mode=test_mode)
+    docker_exec_command = get_telemetry_call_command(
+        image_uri, container_name, call_type, test_mode=test_mode
+    )
+    ec2_connection.run(docker_exec_command)
+    time.sleep(30)
     if test_mode:
         try:
-        # Run container in detached mode (-d) along with -it
-            ec2_connection.run(
-                docker_exec_command
-            )
-        # Wait for some time (e.g., 30 seconds)
-            time.sleep(30)
-            
             output = ec2_connection.run(
-                    f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
-                ).stdout.strip("\n")
-        
-        # Remove the container
-            ec2_connection.run(f"docker rm -f {container_name}")
-
+                f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+            ).stdout.strip("\n")
         except Exception as e:
             LOGGER.info(f"Error: {e}")
         # Cleanup in case of failure
-        try:
-            ec2_connection.run(f"docker rm -f {container_name}")
-        except:
-            pass
     return output
 
 
@@ -616,12 +613,12 @@ def get_telemetry_call_command(image_uri, container_name, call_type, test_mode=N
     if call_type == "bash":
         return f"docker run -itd {docker_runtime} --name {container_name} {test_mode_arg} {image_uri} bash"
     elif call_type == "entrypoint":
-        return f"docker run -id {container_name} --name {container_name} {test_mode_arg} {image_uri} bash"
+        return f"docker run -id {docker_runtime} --name {container_name} {test_mode_arg} {image_uri} bash"
     elif call_type == "sitecustomize":
         return f"docker run -id {docker_runtime} --name {container_name} {test_mode_arg} {image_uri} python -c 'import os;'"
     else:
         raise ValueError("Invalid call type")
-    
+
 
 def invoke_telemetry_call(
     image_uri, container_name, framework, job_type, ec2_connection, test_mode=None
