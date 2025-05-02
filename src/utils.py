@@ -657,7 +657,8 @@ def generate_dlc_cmd(template_path, output_path, framework, framework_version, c
     }
 
     for anchor, value in replacements.items():
-        content = content.replace(f"{{{anchor}}}", value)
+        content = content.replace(f"${{{anchor}}}", value) # replace ${VARIABLE} with value
+        content = content.replace(f"{{{anchor}}}", value) # replace {VARIABLE} with value
 
     with open(output_path, "w") as out_f:
         out_f.write(content)

@@ -286,10 +286,8 @@ ARG TORCHDATA_URL
 WORKDIR /
 
 # Install PyTorch
+RUN pip install --no-cache-dir -U torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu126
 RUN pip install --no-cache-dir -U \
-    torch \
-    ${TORCHVISION_URL} \
-    ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \

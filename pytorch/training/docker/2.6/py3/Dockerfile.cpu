@@ -202,6 +202,8 @@ COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 
 RUN chmod +x /usr/local/bin/bash_telemetry.sh
 
+RUN chmod +x /usr/local/bin/bash_telemetry.sh && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -233,7 +235,7 @@ ARG TORCHDATA_URL
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir -U torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
     
 RUN pip install --no-cache-dir -U ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
