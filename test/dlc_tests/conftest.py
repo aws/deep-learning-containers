@@ -349,11 +349,7 @@ def ec2_instance_role_name(request):
 
 @pytest.fixture(scope="function")
 def ec2_instance_ami(request, region):
-    return (
-        request.param
-        if hasattr(request, "param")
-        else test_utils.get_dlami_id(region)
-    )
+    return request.param if hasattr(request, "param") else test_utils.get_dlami_id(region)
 
 
 @pytest.fixture(scope="function")
