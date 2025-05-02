@@ -17,10 +17,11 @@ from test.test_utils import TELEMETRY_REGION_MAPPING
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_instance_tag_failure_gpu(
-    gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only
+    gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only, call_type
 ):
-    _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -30,10 +31,11 @@ def test_telemetry_instance_tag_failure_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_instance_tag_failure_cpu(
-    cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only
+    cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only, call_type
 ):
-    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -128,18 +130,20 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_instance_tag_success_gpu(
     gpu,
     ec2_client,
     ec2_instance,
     ec2_connection,
+    call_type,
     non_huggingface_only,
     non_autogluon_only,
     non_pytorch_trcomp_only,
     x86_compatible_only,
 ):
-    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection, call_type)
+    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -150,18 +154,20 @@ def test_telemetry_instance_tag_success_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.timeout(2400)
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_instance_tag_success_cpu(
     cpu,
     ec2_client,
     ec2_instance,
     ec2_connection,
+    call_type,
     cpu_only,
     non_huggingface_only,
     non_autogluon_only,
     x86_compatible_only,
 ):
-    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection, call_type)
+    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -255,16 +261,18 @@ def test_telemetry_instance_tag_success_neuron(
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_s3_query_bucket_success_gpu(
     gpu,
     ec2_client,
     ec2_instance,
     ec2_connection,
+    call_type,
     non_huggingface_only,
     non_autogluon_only,
     x86_compatible_only,
 ):
-    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -275,17 +283,19 @@ def test_telemetry_s3_query_bucket_success_gpu(
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.parametrize("call_type", ["entrypoint", "bash", "sitecustomize"])
 def test_telemetry_s3_query_bucket_success_cpu(
     cpu,
     ec2_client,
     ec2_instance,
     ec2_connection,
+    call_type,
     cpu_only,
     non_huggingface_only,
     non_autogluon_only,
     x86_compatible_only,
 ):
-    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection, call_type)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -366,7 +376,7 @@ def test_telemetry_s3_query_bucket_success_neuron(
     _run_s3_query_bucket_success(neuron, ec2_client, ec2_instance, ec2_connection)
 
 
-def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connection):
+def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
     ec2_instance_id, _ = ec2_instance
     account_id = test_utils.get_account_id_from_image_uri(image_uri)
     image_region = test_utils.get_region_from_image_uri(image_uri)
@@ -376,16 +386,17 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     framework = framework.replace("_trcomp", "")
     job_type = test_utils.get_job_type_from_image(image_uri)
     container_type = test_utils.get_job_type_from_image(image_uri)
-    container_name = f"{repo_name}-telemetry_s3_query_success-ec2"
+    container_name = f"{repo_name}-telemetry_s3_query_success-ec2_{call_type}"
 
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
     ## For big images like trcomp, the ec2_connection.run command stops listening and the code hangs here.
     ## Hence, avoiding the use of -q to let the connection remain active.
     ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
-    actual_output = invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
-    )
+    # actual_output = invoke_telemetry_call(
+    #     image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
+    # )
+    actual_output = invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type, test_mode=1)
 
     py_version = (
         ec2_connection.run(
@@ -397,7 +408,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
 
     # The S3 URL is different for PyTorch and TensorFlow versions <= 2.6 and <= 2.18 respectively
     # cause we change the URL for new versions
-    if (framework == "pytorch" and Version(framework_version) <= Version("2.6")) or (
+    if (framework == "pytorch" and Version(framework_version) < Version("2.6")) or (
         framework == "tensorflow" and Version(framework_version) <= Version("2.18")
     ):
         expected_s3_url = (
@@ -431,7 +442,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     assert expected_s3_url == actual_output, f"S3 telemetry is not working"
 
 
-def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection):
+def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
     """
     Disable IMDSv1 on EC2 instance and try to add a tag in it, it should not get added
     """
@@ -445,7 +456,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
 
-    container_name = f"{repo_name}-telemetry_instance_tag_failure-ec2"
+    container_name = f"{repo_name}-telemetry_instance_tag_failure-ec2_{call_type}"
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
@@ -464,7 +475,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     ec2_connection.run(f"sudo dnf install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
-    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type)
 
     LOGGER.info(f"_run_tag_failure_IMDSv1_disabled, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -476,7 +487,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
     ec2_connection.run(f"sudo route del -host 169.254.169.254 reject")
 
 
-def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection):
+def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
     """
     Try to add a tag on EC2 instance, it should get added as IMDSv1 is enabled by default
     """
@@ -490,7 +501,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
 
-    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv1"
+    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv1_{call_type}"
 
     LOGGER.info(f"_run_tag_success_IMDSv1 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
@@ -508,7 +519,8 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
     ec2_utils.enforce_IMDSv1(ec2_instance_id)
 
-    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    # invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type)
 
     LOGGER.info(f"_run_tag_success_IMDSv1, {image_uri} starting get_ec2_instance_tags")
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
@@ -522,7 +534,7 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
 
 
 # If hop limit on EC2 instance is 2, then IMDSv2 works as to get token IMDSv2 needs more than 1 hop
-def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection):
+def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2_connection, call_type):
     """
     Try to add a tag on EC2 instance, it should get added as IMDSv2 is enabled due to hop limit 2
     """
@@ -536,7 +548,7 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
     job_type = test_utils.get_job_type_from_image(image_uri)
 
-    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv2"
+    container_name = f"{repo_name}-telemetry_tag_instance_success-ec2-IMDSv2_{call_type}"
 
     LOGGER.info(f"_run_tag_success_IMDSv2_hop_limit_2 pulling: {image_uri}")
     test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
@@ -552,7 +564,8 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
     if expected_tag_key in preexisting_ec2_instance_tags:
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
-    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    # invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
+    invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type)
 
     ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
     LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
@@ -560,6 +573,55 @@ def _run_tag_success_IMDSv2_hop_limit_2(image_uri, ec2_client, ec2_instance, ec2
         expected_tag_key in ec2_instance_tags
     ), f"{expected_tag_key} was not applied as an instance tag"
 
+
+def invoke_telemetry_call_for_type(image_uri, container_name, ec2_connection, call_type, test_mode=None):
+    """
+    Run import framework command inside docker container
+    """
+    output = None
+    docker_exec_command = get_telemetry_call_command(image_uri, container_name, call_type, test_mode=test_mode)
+    if test_mode:
+        try:
+        # Run container in detached mode (-d) along with -it
+            ec2_connection.run(
+                docker_exec_command
+            )
+        # Wait for some time (e.g., 30 seconds)
+            time.sleep(30)
+            
+            output = ec2_connection.run(
+                    f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
+                ).stdout.strip("\n")
+        
+        # Remove the container
+            ec2_connection.run(f"docker rm -f {container_name}")
+
+        except Exception as e:
+            LOGGER.info(f"Error: {e}")
+        # Cleanup in case of failure
+        try:
+            ec2_connection.run(f"docker rm -f {container_name}")
+        except:
+            pass
+    return output
+
+
+def get_telemetry_call_command(image_uri, container_name, call_type, test_mode=None):
+    """
+    Get the command to run inside the container based on the call type
+    """
+    processor = test_utils.get_processor_from_image_uri(image_uri)
+    docker_runtime = "--runtime=nvidia --gpus all" if processor == "gpu" else ""
+    test_mode_arg = f"-e TEST_MODE={test_mode}" if test_mode else ""
+    if call_type == "bash":
+        return f"docker run -itd {docker_runtime} --name {container_name} {test_mode_arg} {image_uri} bash"
+    elif call_type == "entrypoint":
+        return f"docker run -id {container_name} --name {container_name} {test_mode_arg} {image_uri} bash"
+    elif call_type == "sitecustomize":
+        return f"docker run -id {docker_runtime} --name {container_name} {test_mode_arg} {image_uri} python -c 'import os;'"
+    else:
+        raise ValueError("Invalid call type")
+    
 
 def invoke_telemetry_call(
     image_uri, container_name, framework, job_type, ec2_connection, test_mode=None
