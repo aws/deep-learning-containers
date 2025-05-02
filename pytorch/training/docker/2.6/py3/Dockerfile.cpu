@@ -233,9 +233,9 @@ ARG TORCHDATA_URL
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
-    torch \
-    ${TORCHVISION_URL} \
+RUN pip install --no-cache-dir -U torch --index-url https://download.pytorch.org/whl/cpu
+    
+RUN pip install --no-cache-dir -U ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
@@ -252,7 +252,6 @@ RUN pip install --no-cache-dir -U \
     thinc \
     blis \
     numpy \
-    --index-url https://download.pytorch.org/whl/cpu \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
