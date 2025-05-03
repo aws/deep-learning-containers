@@ -149,7 +149,7 @@ def pytorch_training_dgl(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
+def pytorch_telemetry(pytorch_training, ec2_connection):
     """
     Test Telemetry
     """
