@@ -5,7 +5,6 @@ ARG PYTORCH_VERSION=2.7.0
 ARG TORCHTNT_VERSION=0.2.4
 ARG TORCHTEXT_VERSION=0.18.0
 ARG TORCHDATA_VERSION=0.11.0
-ARG JINJA2_VERSION=3.1.6
 
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.7.0.66
@@ -230,6 +229,7 @@ RUN pip install --no-cache-dir \
     "urllib3<2" \
     "awscli<2" \
     ninja \
+    Jinja2 \
     opencv-python \
     mpi4py
 
@@ -271,7 +271,6 @@ ARG TORCHTNT_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
-ARG JINJA2_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -284,7 +283,7 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2==${JINJA2_VERSION} \
+    Jinja2 \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
@@ -371,7 +370,6 @@ ARG PYTHON
 ARG PYTORCH_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
-ARG JINJA2_VERSION
 ARG TORCHTNT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
@@ -391,7 +389,7 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2==${JINJA2_VERSION} \
+    Jinja2 \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
