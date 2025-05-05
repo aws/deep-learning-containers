@@ -229,7 +229,6 @@ RUN pip install --no-cache-dir \
     "urllib3<2" \
     "awscli<2" \
     ninja \
-    Jinja2 \
     opencv-python \
     mpi4py
 
@@ -283,7 +282,6 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2 \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
@@ -389,7 +387,6 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2 \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0

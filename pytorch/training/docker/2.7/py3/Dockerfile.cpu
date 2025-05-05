@@ -185,7 +185,6 @@ RUN pip install --no-cache-dir \
     "urllib3<2" \
     "awscli<2" \
     opencv-python \
-    Jinja2 \
     mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
@@ -231,7 +230,6 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2 \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
@@ -297,7 +295,6 @@ RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https
     && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
-    Jinja2 \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
