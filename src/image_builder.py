@@ -273,6 +273,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
+        FORMATTER.print(f"Context {context}")
+
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
             for label, value in labels.items():

@@ -166,8 +166,12 @@ class DockerImage:
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
+        LOGGER.debug("Updating pre build configurations")
+
         # Conduct some preprocessing before building the image
         self.update_pre_build_configuration()
+
+        LOGGER.debug("Updated pre build configurations successfully")
 
         # Start building the image
         with open(self.context.context_path, "rb") as context_file:
