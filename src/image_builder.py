@@ -273,8 +273,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
-        FORMATTER.print(f"Context {context}")
-
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
             for label, value in labels.items():
@@ -590,28 +588,17 @@ def build_images(images, make_dummy_boto_client=False):
 
     TODO: The parameter make_dummy_boto_client should be removed when get_dummy_boto_client method is removed.
     """
-    # THREADS = {}
-    # # In the context of the ThreadPoolExecutor each instance of image.build submitted
-    # # to it is executed concurrently in a separate thread.
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-    #     #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
-    #     if make_dummy_boto_client:
-    #         get_dummy_boto_client()
-    #     for image in images:
-    #         THREADS[image.name] = executor.submit(image.build)
-    # # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
-    # FORMATTER.progress(THREADS)
-
-    PROCESSES = {}
-    workers = min(len(images), os.cpu_count() or 1)
-
-    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+    THREADS = {}
+    # In the context of the ThreadPoolExecutor each instance of image.build submitted
+    # to it is executed concurrently in a separate thread.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+        #### TODO: Remove this entire if block when get_dummy_boto_client is removed ####
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for image in images:
-            PROCESSES[image.name] = executor.submit(image.build)
-
-    FORMATTER.progress(PROCESSES)
+            THREADS[image.name] = executor.submit(image.build)
+    # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+    FORMATTER.progress(THREADS)
 
 
 def push_images(images):

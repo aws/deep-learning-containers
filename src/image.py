@@ -204,7 +204,7 @@ class DockerImage:
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
         line_counter = 0
-        line_interval = 20
+        line_interval = 1
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
