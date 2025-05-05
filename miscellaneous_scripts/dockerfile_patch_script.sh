@@ -34,6 +34,11 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
 fi
 
+# For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working 
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-cpu ]]; then
+    apt update && apt install -y openssh-client && echo "Installed openssh-client"
+fi
+
 # For PT 2.3 inference and training, install pyarrow from pip to remedy https://nvd.nist.gov/vuln/detail/CVE-2024-52338
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.3\.[0-9]+-* ]] || \
    [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.3\.[0-9]+-* ]]; then
@@ -43,18 +48,6 @@ fi
 # Install packages and derive history and package diff data
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
-
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
-fi
-
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
-fi
 
 # Upgrade sagemaker-training package to latest
 if pip show sagemaker-training; then

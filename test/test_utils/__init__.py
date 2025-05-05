@@ -128,10 +128,6 @@ AL2023_BASE_DLAMI_ARM64_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
-UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
-)
 UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
     ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
@@ -191,7 +187,6 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
-    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
