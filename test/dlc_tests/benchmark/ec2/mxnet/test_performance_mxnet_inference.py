@@ -5,7 +5,7 @@ import pytest
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
-    UL20_CPU_ARM64_US_WEST_2,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
 )
 from test.test_utils.ec2 import (
     execute_ec2_inference_performance_test,
@@ -68,7 +68,7 @@ def test_performance_ec2_mxnet_inference_cpu(mxnet_inference, ec2_connection, cp
 @pytest.mark.integration("imagenet dataset")
 @pytest.mark.model("resnet50_v2")
 @pytest.mark.parametrize("ec2_instance_type", [MX_EC2_GRAVITON_INSTANCE_TYPE], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_performance_ec2_mxnet_inference_graviton_cpu(
     mxnet_inference_graviton, ec2_connection, cpu_only
 ):

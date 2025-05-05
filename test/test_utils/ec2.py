@@ -1581,48 +1581,6 @@ def post_process_mxnet_ec2_performance(connection, log_location):
         raise ValueError("total: {}; n: {} -- something went wrong".format(total, n))
 
 
-def kill_background_processes_and_run_apt_get_update(ec2_conn):
-    """
-    The apt-daily services on the DLAMI cause a conflict upon running any "apt install" commands within the first few
-    minutes of starting an EC2 instance. These services are not necessary for the purpose of the DLC tests, and can
-    therefore be killed. This function kills the services, and then forces "apt-get update" to run in the foreground.
-
-    :param ec2_conn: Fabric SSH connection
-    :return:
-    """
-    apt_daily_services_list = [
-        "apt-daily.service",
-        "apt-daily-upgrade.service",
-        "unattended-upgrades.service",
-    ]
-    apt_daily_services = " ".join(apt_daily_services_list)
-    ec2_conn.run(f"sudo systemctl stop {apt_daily_services}")
-    ec2_conn.run(f"sudo systemctl kill --kill-who=all {apt_daily_services}")
-    num_stopped_services = 0
-    # The `systemctl kill` command is expected to take about 1 second. The 60 second loop here exists to force
-    # the execution to wait (if needed) for a longer amount of time than it would normally take to kill the services.
-    for _ in range(60):
-        time.sleep(1)
-        # List the apt-daily services, get the number of dead services
-        num_stopped_services = int(
-            ec2_conn.run(
-                f"systemctl list-units --all {apt_daily_services} | egrep '(dead|failed)' | wc -l"
-            ).stdout.strip()
-        )
-        # Exit condition for the loop is when all apt daily services are dead.
-        if num_stopped_services == len(apt_daily_services_list):
-            break
-    if num_stopped_services != len(apt_daily_services_list):
-        raise RuntimeError(
-            "Failed to kill background services to allow apt installs on SM Local EC2 instance. "
-            f"{len(apt_daily_services) - num_stopped_services} still remaining."
-        )
-    ec2_conn.run("sudo rm -rf /var/lib/dpkg/lock*;")
-    ec2_conn.run("sudo dpkg --configure -a;")
-    ec2_conn.run("sudo apt-get update")
-    return
-
-
 def install_python_in_instance(context, python_version="3.9"):
     """
     Install python on DLAMI EC2 instances to create a consistent test environment that is agnostic to AMI used for test.
@@ -1658,14 +1616,12 @@ def install_python_in_instance(context, python_version="3.9"):
         )
         context.run("""echo 'eval "$(pyenv init -)"' >> /etc/profile.d/dlami.sh""", hide=True)
         context.run("sudo chmod 644 /etc/profile.d/dlami.sh", hide=True)
-
-    kill_background_processes_and_run_apt_get_update(context)
-    context.run("sudo apt-get update", hide=True)
+    context.run("sudo dnf update -y", hide=True)
     context.run(
         (
-            "sudo apt install -y make build-essential libssl-dev zlib1g-dev "
-            "libbz2-dev libreadline-dev libsqlite3-dev wget curl llvm "
-            "libncursesw5-dev xz-utils tk-dev libxml2-dev libxmlsec1-dev libffi-dev liblzma-dev --fix-missing"
+            "sudo dnf install -y make gcc gcc-c++ openssl-devel zlib-devel "
+            "bzip2-devel readline-devel sqlite-devel llvm "
+            "ncurses-devel xz tk-devel libxml2-devel xmlsec1-devel libffi-devel xz-devel --skip-broken"
         ),
         hide=True,
     )

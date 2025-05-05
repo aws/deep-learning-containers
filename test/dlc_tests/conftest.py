@@ -35,7 +35,7 @@ from test.test_utils import (
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
     get_ecr_repo_name,
-    UBUNTU_HOME_DIR,
+    AL2023_HOME_DIR,
     NightlyFeatureLabel,
     is_mainline_context,
     is_pr_context,
@@ -348,11 +348,11 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region, ec2_instance_type):
+def ec2_instance_ami(request, region):
     return (
         request.param
         if hasattr(request, "param")
-        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
+        else test_utils.get_instance_type_base_dlami(region)
     )
 
 
@@ -599,7 +599,7 @@ def ec2_instance(
         or "hpu" in request.fixturenames
     ):
         user_data = """#!/bin/bash
-        sudo apt-get update && sudo apt-get install -y awscli"""
+        sudo dnf update -y && sudo dnf install -y awscli"""
         params["UserData"] = user_data
         params["BlockDeviceMappings"] = [
             {
@@ -802,7 +802,7 @@ def upload_habana_test_artifact(request, ec2_connection):
     :return: None
     """
     habana_test_repo = "gaudi-test-suite.tar.gz"
-    ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
+    ec2_connection.put(habana_test_repo, f"{AL2023_HOME_DIR}")
     ec2_connection.run(f"tar -xvf {habana_test_repo}")
 
 

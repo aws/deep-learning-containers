@@ -125,7 +125,7 @@ def _test_smdp_question_answering_function(
     validate_or_skip_smdataparallel(ecr_image)
 
     instance_count = instances_quantity
-    instance_type = "ml.g5.12xlarge"
+    instance_type = "ml.g4dn.2xlarge"
 
     source_dir = (
         "./examples/question-answering"
