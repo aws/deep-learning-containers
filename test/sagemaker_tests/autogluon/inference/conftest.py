@@ -26,8 +26,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 
 from .utils import image_utils, get_ecr_registry
-from ... import NO_P4_REGIONS, NO_G5_REGIONS
-
+from test.sagemaker_tests import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
