@@ -152,21 +152,81 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
                 f"import {package}; print({package}.__version__)",
                 executable="python",
             )
-            # Test mpi4py installation further to check against regression for the issue below:
-            # https://github.com/aws/deep-learning-containers/issues/4090
-            if package == "mpi4py":
-                test_utils.run_cmd_on_container(
-                    container_name,
-                    ctx,
-                    f"from {package} import MPI",
-                    executable="python",
-                )
         except Exception as e:
             import_failed = True
             list_of_packages.append(package)
 
     if import_failed:
         raise ImportError(f"Import failed for packages: {list_of_packages}")
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-pt-inference")
+def test_mpi4py_for_pytorch_inference(pytorch_inference):
+    """
+    Ensure mpi4py works on pytorch_inference
+
+    :param mxnet_inference: ECR image URI
+    """
+    container_name = test_utils.get_container_name(
+        "common_pytorch_utility_packages_using_import", pytorch_inference
+    )
+    ctx = Context()
+    test_utils.start_container(container_name, pytorch_inference, ctx)
+
+    test_utils.run_cmd_on_container(
+        container_name,
+        ctx,
+        "from mpi4py import MPI",
+        executable="python",
+    )
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-pt-training")
+def test_mpi4py_for_pytorch_inference(pytorch_training):
+    """
+    Ensure mpi4py works on pytorch_inference
+
+    :param mxnet_inference: ECR image URI
+    """
+    container_name = test_utils.get_container_name(
+        "common_pytorch_utility_packages_using_import", pytorch_training
+    )
+    ctx = Context()
+    test_utils.start_container(container_name, pytorch_training, ctx)
+
+    test_utils.run_cmd_on_container(
+        container_name,
+        ctx,
+        "from mpi4py import MPI",
+        executable="python",
+    )
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-tf-training")
+def test_mpi4py_for_tensorflow_training(tensorflow_training):
+    """
+    Ensure mpi4py works on pytorch_inference
+
+    :param mxnet_inference: ECR image URI
+    """
+    container_name = test_utils.get_container_name(
+        "common_pytorch_utility_packages_using_import", tensorflow_training
+    )
+    ctx = Context()
+    test_utils.start_container(container_name, tensorflow_training, ctx)
+
+    test_utils.run_cmd_on_container(
+        container_name,
+        ctx,
+        "from mpi4py import MPI",
+        executable="python",
+    )
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
