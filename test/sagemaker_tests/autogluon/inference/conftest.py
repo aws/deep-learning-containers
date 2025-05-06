@@ -26,6 +26,7 @@ from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 
 from .utils import image_utils, get_ecr_registry
+
 NO_P4_REGIONS = [
     "af-south-1",
     "ap-east-1",
