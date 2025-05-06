@@ -23,7 +23,7 @@ import logging
 import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DockerImage:
@@ -166,12 +166,8 @@ class DockerImage:
             self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
             return self.build_status
 
-        LOGGER.debug("Updating pre build configurations")
-
         # Conduct some preprocessing before building the image
         self.update_pre_build_configuration()
-
-        LOGGER.debug("Updated pre build configurations successfully")
 
         # Start building the image
         with open(self.context.context_path, "rb") as context_file:
@@ -204,7 +200,7 @@ class DockerImage:
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
         line_counter = 0
-        line_interval = 1
+        line_interval = 50
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
