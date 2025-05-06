@@ -241,8 +241,6 @@ COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-RUN chmod +x /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
-
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
