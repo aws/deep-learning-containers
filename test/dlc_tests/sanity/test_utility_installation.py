@@ -170,7 +170,7 @@ def test_mpi4py_for_pytorch_inference(pytorch_inference):
     :param mxnet_inference: ECR image URI
     """
     container_name = test_utils.get_container_name(
-        "common_pytorch_utility_packages_using_import", pytorch_inference
+        "test_mpi4py_for_pytorch_inference", pytorch_inference
     )
     ctx = Context()
     test_utils.start_container(container_name, pytorch_inference, ctx)
@@ -186,14 +186,14 @@ def test_mpi4py_for_pytorch_inference(pytorch_inference):
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.integration("mpi4py-pt-training")
-def test_mpi4py_for_pytorch_inference(pytorch_training):
+def test_mpi4py_for_pytorch_training(pytorch_training):
     """
-    Ensure mpi4py works on pytorch_inference
+    Ensure mpi4py works on pytorch_training
 
     :param mxnet_inference: ECR image URI
     """
     container_name = test_utils.get_container_name(
-        "common_pytorch_utility_packages_using_import", pytorch_training
+        "test_mpi4py_for_pytorch_training", pytorch_training
     )
     ctx = Context()
     test_utils.start_container(container_name, pytorch_training, ctx)
@@ -211,12 +211,12 @@ def test_mpi4py_for_pytorch_inference(pytorch_training):
 @pytest.mark.integration("mpi4py-tf-training")
 def test_mpi4py_for_tensorflow_training(tensorflow_training):
     """
-    Ensure mpi4py works on pytorch_inference
+    Ensure mpi4py works on test_mpi4py_for_pytorch_inference
 
     :param mxnet_inference: ECR image URI
     """
     container_name = test_utils.get_container_name(
-        "common_pytorch_utility_packages_using_import", tensorflow_training
+        "test_mpi4py_for_tensorflow_training", tensorflow_training
     )
     ctx = Context()
     test_utils.start_container(container_name, tensorflow_training, ctx)
