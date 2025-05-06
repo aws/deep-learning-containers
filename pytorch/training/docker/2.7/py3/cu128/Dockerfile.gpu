@@ -341,6 +341,7 @@ COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
+
 #################################################################
 #  ____                   __  __       _
 # / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
@@ -464,6 +465,8 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
