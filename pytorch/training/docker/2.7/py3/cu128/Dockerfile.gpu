@@ -237,8 +237,6 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/l
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
@@ -337,6 +335,8 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
