@@ -27,22 +27,9 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
-
-# For PT 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
-# Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+-cpu ]]; then
-    conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
-fi
-
 # For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working 
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-cpu ]]; then
-    apt update && apt install -y openssh-client && echo "Installed openssh-client"
-fi
-
-# For PT 2.3 inference and training, install pyarrow from pip to remedy https://nvd.nist.gov/vuln/detail/CVE-2024-52338
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.3\.[0-9]+-* ]] || \
-   [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.3\.[0-9]+-* ]]; then
-    pip uninstall -y pyarrow && pip install "pyarrow>=17.0.0" && echo "Installed pyarrow from pip"
+    apt update && apt install -y --no-install-recommends openssh-client openssh-server && echo "Installed openssh-client openssh-server"
 fi
 
 # Install packages and derive history and package diff data
