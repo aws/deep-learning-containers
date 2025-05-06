@@ -26,15 +26,8 @@ ARG AUTOGLUON_VERSION=1.3.0
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
-#  && pip install --no-cache-dir -U numpy numba \
  # Install AutoGluon, ensuring no vulnerable dependencies are left behind
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- # Capping setuptools to 69.5.1 to fix AutoMM tests
-#  && pip install --no-cache-dir setuptools==69.5.1 \  
- # Update urllib3 to fix vulnerability id 71608
-#  && pip install --no-cache-dir -U urllib3 \
- # Cap pillow & ninja to fix sanity test
-#  && pip install --no-cache-dir "pillow<11.0.0" \
  && pip install --no-cache-dir "ninja<1.11.1.1"
 
 

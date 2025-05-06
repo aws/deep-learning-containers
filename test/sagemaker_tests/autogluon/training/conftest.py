@@ -31,6 +31,7 @@ from .integration import (
     get_cuda_version_from_tag,
     get_processor_from_image_uri,
 )
+
 NO_P4_REGIONS = [
     "af-south-1",
     "ap-east-1",
