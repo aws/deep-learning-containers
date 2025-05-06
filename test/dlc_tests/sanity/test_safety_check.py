@@ -1091,7 +1091,10 @@ def test_safety(image):
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
         LOGGER.info(f"Safety test result for {image}: {json_str_safety_result}")
-        safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
+        json_content = extract_json_from_safety_output(json_str_safety_result)
+        if json_content:
+            LOGGER.info(f"Json content is {json_content}")
+        safety_result = json.loads(json_content)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["vulnerable_spec"]
@@ -1112,3 +1115,11 @@ def test_safety(image):
         ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
+
+
+def extract_json_from_safety_output(output_str):
+    # Find the first occurrence of '{'
+    json_start = output_str.find("{")
+    if json_start != -1:
+        return output_str[json_start:]
+    return None
