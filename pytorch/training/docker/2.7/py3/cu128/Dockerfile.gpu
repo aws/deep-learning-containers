@@ -4,6 +4,8 @@ ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.7.0
 ARG TORCHTNT_VERSION=0.2.4
 ARG TORCHTEXT_VERSION=0.18.0
+ARG TORCHAUDIO_VERSION=2.7.0
+ARG TORCHVISION_VERSION=0.22.0
 ARG TORCHDATA_VERSION=0.11.0
 
 ARG CUDA_VERSION=12.8.0
@@ -268,6 +270,8 @@ ARG TORCHTNT_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
+ARG TORCHAUDIO_VERSION
+ARG TORCHVISION_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
@@ -276,8 +280,10 @@ ARG FLASH_ATTN_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
+RUN pip install --no-cache-dir -U \
+    torch==${PYTORCH_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
@@ -370,6 +376,8 @@ ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHTEXT_VERSION
 ARG TORCHDATA_VERSION
+ARG TORCHAUDIO_VERSION
+ARG TORCHVISION_VERSION
 ARG TORCHTNT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
@@ -385,8 +393,10 @@ WORKDIR /
 RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtext==${TORCHTEXT_VERSION} \
+RUN pip install --no-cache-dir -U \
+    torch==${PYTORCH_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
