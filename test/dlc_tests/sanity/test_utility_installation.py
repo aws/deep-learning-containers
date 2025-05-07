@@ -22,7 +22,7 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "torch",
     "torchvision",
-    "torchtext",
+    "torchdata",
     "torchaudio",
     "PIL",
     "boto3",
@@ -146,23 +146,16 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
-            print(f"Package name {package}")
-            test_utils.run_cmd_on_container(
-                container_name,
-                ctx,
-                f"import {package}; print({package}.__version__)",
-                executable="python",
-            )
-            # Test mpi4py installation further to check against regression for the issue below:
-            # https://github.com/aws/deep-learning-containers/issues/4090
-            if package == "mpi4py":
-                test_utils.run_cmd_on_container(
-                    container_name,
-                    ctx,
-                    f"from {package} import MPI",
-                    executable="python",
-                )
-        except Exception as e:
+            base_command = f"import {package}; print({package}.__version__)"
+            if package == "torchdata" and Version(framework_version) == Version("2.7"):
+                command = base_command
+            elif package == "mpi4py":
+                command = f"{base_command}; from {package} import MPI"
+            else:
+                command = base_command
+
+            test_utils.run_cmd_on_container(container_name, ctx, command, executable="python")
+        except Exception:
             import_failed = True
             list_of_packages.append(package)
 
