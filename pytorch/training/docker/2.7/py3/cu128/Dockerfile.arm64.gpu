@@ -5,7 +5,7 @@ ARG PYTHON_SHORT_VERSION=3.12
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.8.0.87
 ARG NCCL_VERSION=2.26.2
-ARG EFA_VERSION=1.38.0
+ARG EFA_VERSION=1.40.0
 ARG GDRCOPY_VERSION=2.4.4
 ARG TE_VERSION=2.0
 ARG FLASH_ATTN_VERSION=2.7.3
@@ -141,8 +141,7 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && chmod a+x ${OPEN_MPI_PATH}/bin/mpirun \
  && echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+ && echo NCCL_DEBUG=INFO >> /etc/nccl.conf
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -260,8 +259,8 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/l
 
 # add telemetry
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
