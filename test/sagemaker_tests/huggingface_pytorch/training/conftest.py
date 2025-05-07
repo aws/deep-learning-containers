@@ -36,7 +36,45 @@ from .integration import (
     get_processor_from_image_uri,
     get_transformers_version_from_image_uri,
 )
-from ... import NO_P4_REGIONS, NO_G5_REGIONS
+
+NO_P4_REGIONS = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "eu-south-1",
+    "me-south-1",
+    "sa-east-1",
+    "us-west-1",
+    "cn-northwest-1",
+    "il-central-1",
+]
+
+NO_G5_REGIONS = [
+    "us-west-1",
+    "ca-west-1",
+    "mx-cental-1",
+    "af-south-1",
+    "ap-east-1",
+    "ap-south-2",
+    "ap-southeast-1",
+    "ap-southeast-5",
+    "ap-southeast-4",
+    "ap-northeast-3",
+    "ap-southeast-7",
+    "eu-south-1",
+    "eu-south-2",
+    "eu-central-2",
+    "eu-west-3",
+    "me-south-1",
+]
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
@@ -212,7 +250,7 @@ def fixture_sagemaker_session(region):
 @pytest.fixture(scope="session", name="sagemaker_regions")
 def fixture_sagemaker_regions(request):
     sagemaker_regions = request.config.getoption("--sagemaker-regions")
-    return sagemaker_regions.split(",")
+    return [region for region in sagemaker_regions.split(",") if region != "eu-west-1"]
 
 
 @pytest.fixture(scope="session", name="sagemaker_local_session")

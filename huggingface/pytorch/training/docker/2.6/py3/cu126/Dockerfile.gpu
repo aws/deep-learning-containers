@@ -2,7 +2,7 @@
 # refer to the above page to pull latest Pytorch image
 
 # docker image region us-west-2
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker
 
 RUN apt-get remove -y --purge emacs && \
 apt-get autoremove -y
@@ -11,15 +11,15 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
 
 # version args
-ARG TRANSFORMERS_VERSION=4.49.0
-ARG DATASETS_VERSION=3.3.2
-ARG HUGGINGFACE_HUB_VERSION=0.29.1
-ARG DIFFUSERS_VERSION=0.32.2
+ARG TRANSFORMERS_VERSION=4.51.3
+ARG DATASETS_VERSION=3.5.0
+ARG HUGGINGFACE_HUB_VERSION=0.30.0
+ARG DIFFUSERS_VERSION=0.33.1
 ARG EVALUATE_VERSION=0.4.3
-ARG ACCELERATE_VERSION=1.4.0
-ARG TRL_VERSION=0.15.2
+ARG ACCELERATE_VERSION=1.6.0
+ARG TRL_VERSION=0.16.1
 ARG PEFT_VERSION=0.14.0
-ARG FLASH_ATTN_VERSION=2.7.3
+ARG FLASH_ATTN_VERSION=2.7.4.post1
 ARG NINJA_VERSION=1.11.1.3
 ARG PYTHON=python3
 
@@ -50,31 +50,25 @@ RUN pip install --no-cache-dir \
     flash-attn==${FLASH_ATTN_VERSION}
 
 
-# Override conflicting versions to satisfy datasets
-RUN pip install --no-cache-dir dill==0.3.8 multiprocess==0.70.16 \
- && pip install --no-cache-dir pathos==0.3.3 --no-deps \
- && PATHOS_META=$(find /opt/conda/lib -type f -path "*pathos-0.3.3.dist-info/METADATA") \
- && sed -i 's/dill.*/dill/' $PATHOS_META \
- && sed -i 's/multiprocess.*/multiprocess/' $PATHOS_META
-
-
 # hf_transfer will be a built-in feature, remove the env variable then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
+ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:gpu-cuda:training"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
- && apt-get install -y git git-lfs wget tar \
- && wget https://go.dev/dl/go1.24.2.linux-amd64.tar.gz \
- && rm -rf /usr/local/go \
- && tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz \
- && ln -s /usr/local/go/bin/go /usr/bin/go \
- && rm go1.24.2.linux-amd64.tar.gz \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev git-lfs \
+ && apt install -y git \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+apt-get autoremove -y
+
+
 COPY cuda-compatibility-lib.sh /usr/local/bin/cuda-compatibility-lib.sh
 RUN chmod +x /usr/local/bin/cuda-compatibility-lib.sh
+
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
