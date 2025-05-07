@@ -167,20 +167,9 @@ def test_mpi4py_for_pytorch_inference(pytorch_inference):
     """
     Ensure mpi4py works on pytorch_inference
 
-    :param mxnet_inference: ECR image URI
+    :param pytorch_inference: ECR image URI
     """
-    container_name = test_utils.get_container_name(
-        "test_mpi4py_for_pytorch_inference", pytorch_inference
-    )
-    ctx = Context()
-    test_utils.start_container(container_name, pytorch_inference, ctx)
-
-    test_utils.run_cmd_on_container(
-        container_name,
-        ctx,
-        "from mpi4py import MPI",
-        executable="python",
-    )
+    _test_mpi4py_import(pytorch_inference, "pytorch_inference")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -190,20 +179,9 @@ def test_mpi4py_for_pytorch_training(pytorch_training):
     """
     Ensure mpi4py works on pytorch_training
 
-    :param mxnet_inference: ECR image URI
+    :param pytorch_training: ECR image URI
     """
-    container_name = test_utils.get_container_name(
-        "test_mpi4py_for_pytorch_training", pytorch_training
-    )
-    ctx = Context()
-    test_utils.start_container(container_name, pytorch_training, ctx)
-
-    test_utils.run_cmd_on_container(
-        container_name,
-        ctx,
-        "from mpi4py import MPI",
-        executable="python",
-    )
+    _test_mpi4py_import(pytorch_training, "pytorch_training")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -213,13 +191,23 @@ def test_mpi4py_for_tensorflow_training(tensorflow_training):
     """
     Ensure mpi4py works on test_mpi4py_for_pytorch_inference
 
-    :param mxnet_inference: ECR image URI
+    :param tensorflow_training: ECR image URI
+    """
+    _test_mpi4py_import(tensorflow_training, "tensorflow_training")
+
+
+def _test_mpi4py_import(container, container_name_suffix):
+    """
+    Helper function to test mpi4py import on a container
+
+    :param container: The container fixture (pytorch_inference, etc.)
+    :param container_name_suffix: Suffix for container name
     """
     container_name = test_utils.get_container_name(
-        "test_mpi4py_for_tensorflow_training", tensorflow_training
+        f"test_mpi4py_for_{container_name_suffix}", container
     )
     ctx = Context()
-    test_utils.start_container(container_name, tensorflow_training, ctx)
+    test_utils.start_container(container_name, container, ctx)
 
     test_utils.run_cmd_on_container(
         container_name,
