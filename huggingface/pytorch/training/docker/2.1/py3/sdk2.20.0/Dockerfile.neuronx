@@ -11,7 +11,7 @@ LABEL dlc_major_version="2"
 ARG OPTIMUM_NEURON_VERSION=0.0.28
 ARG TRANSFORMERS_VERSION
 ARG DATASETS_VERSION
-ARG GEVENT_VERSION=24.10.3
+ARG GEVENT_VERSION=25.4.2
 ARG PYTHON=python3
 
 RUN apt-get purge -y --auto-remove emacs && apt-get clean && rm -rf /usr/share/emacs /etc/emacs /var/lib/emacs
