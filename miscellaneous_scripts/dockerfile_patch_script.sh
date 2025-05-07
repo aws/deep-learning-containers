@@ -28,7 +28,7 @@ fi
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
 # For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working 
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-(cpu|gpu) ]]; then
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu ]]; then
     apt update && apt install -y --no-install-recommends openssh-client openssh-server && echo "Installed openssh-client openssh-server"
 fi
 
