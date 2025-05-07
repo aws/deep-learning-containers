@@ -1098,11 +1098,9 @@ def test_safety(image):
     try:
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
-        LOGGER.info(f"Safety test result for {image}: {json_str_safety_result}")
-        json_content = extract_json_from_safety_output(json_str_safety_result)
-        if json_content:
-            LOGGER.info(f"Json content is {json_content}")
-        safety_result = json.loads(json_content)["vulnerabilities"]
+        # LOGGER.info(f"Safety test result for {image}: {json_str_safety_result}")
+        # json_content = extract_json_from_safety_output(json_str_safety_result)
+        safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["vulnerable_spec"]
