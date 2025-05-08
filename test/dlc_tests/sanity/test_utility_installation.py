@@ -204,7 +204,7 @@ def _test_mpi4py_import(image, image_name_suffix):
     :param image: The image fixture (pytorch_inference, etc.)
     :param image_name_suffix: Suffix for image name
     """
-    container_name = test_utils.get_container_name(f"test_mpi4py_for_{image}", image_name_suffix)
+    container_name = test_utils.get_container_name(f"test_mpi4py_for_{image_name_suffix}", image)
     ctx = Context()
     test_utils.start_container(container_name, image, ctx)
 
