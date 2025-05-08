@@ -276,6 +276,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "start_cuda_compat.sh",
     )
 
+    telemetry_file_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "src", "deep_learning_container.py"
+    )
+
     verify_artifact_contents_for_patch_builds(
         patching_info_folder_path=complete_patching_info_dump_location,
         miscellaneous_scripts_path=miscellaneous_scripts_path,
@@ -315,6 +319,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "new_pytorch_training_start_cuda_compat": {
             "source": pytorch_training_start_cuda_compat_path,
             "target": "new_pytorch_training_start_cuda_compat",
+        },
+        "deep-learning-containers": {
+            "source": telemetry_file_path,
+            "target": "deep-learning-containers.py",
         },
     }
     context = Context(
