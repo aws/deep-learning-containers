@@ -286,6 +286,7 @@ RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/c
     torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
+    && pip install --no-cache-dir -U \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
@@ -399,6 +400,7 @@ RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/c
     torchvision==${TORCHVISION_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
+    && pip install --no-cache-dir -U \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
