@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 from datetime import datetime
 
 from docker import APIClient
@@ -51,7 +52,6 @@ class DockerImage:
         self.build_args = {}
         self.labels = {}
         self.stage = stage
-
         self.dockerfile = dockerfile
         self.context = context
         self.to_push = to_push
@@ -63,7 +63,10 @@ class DockerImage:
         self.ecr_url = f"{self.repository}:{self.tag}"
 
         if not isinstance(to_build, bool):
-            to_build = True if to_build == "true" else False
+            if isinstance(to_build, int):
+                to_build = True if to_build == 1 else False
+            else:
+                to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
         self.build_status = None
@@ -92,6 +95,13 @@ class DockerImage:
         Retrieve the corresponding common stage image for a given image.
         """
         return self._corresponding_common_stage_image
+
+    @property
+    def test_configs(self):
+        """
+        Retrieve the test configurations for a given image.
+        """
+        return self.info.get("test_configs", None)
 
     @corresponding_common_stage_image.setter
     def corresponding_common_stage_image(self, docker_image_object):
@@ -192,6 +202,7 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
+        LOGGER.info(f"Starting the Build Process for {self.repository}:{self.tag}")
 
         line_counter = 0
         line_interval = 50

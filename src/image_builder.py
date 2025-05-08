@@ -86,6 +86,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     """
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
+    print(f"BUILDSPEC: {BUILDSPEC}")
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
@@ -131,11 +132,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-        image_tag = (
-            tag_image_with_pr_number(image_config["tag"])
-            if build_context == "PR"
-            else image_config["tag"]
-        )
+
+        if build_context == "PR":
+            image_tag = tag_image_with_pr_number(image_config["tag"])
+        else:
+            image_tag = image_config["tag"]
 
         if is_autopatch_build_enabled(buildspec_path=buildspec):
             image_tag = append_tag(image_tag, "autopatch")
@@ -238,19 +239,25 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 }
             }
         )
-        # job_type will be either inference or training, based on the repo URI
+        # Determine job_type (inference, training, or base) based on the image repository URI.
+        # This is used to set the job_type label on the container image.
         if "training" in image_repo_uri:
             label_job_type = "training"
         elif "inference" in image_repo_uri:
             label_job_type = "inference"
+        elif "base" in image_repo_uri or "vllm" in image_repo_uri:
+            label_job_type = "general"
         else:
             raise RuntimeError(
-                f"Cannot find inference or training job type in {image_repo_uri}. "
+                f"Cannot find inference, training or base job type in {image_repo_uri}. "
                 f"This is required to set job_type label."
             )
 
-        template_file = os.path.join(
+        sitecustomize_template_file = os.path.join(
             os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
+        )
+        bash_template_file = os.path.join(
+            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "bash_telemetry.sh"
         )
 
         template_fw_version = (
@@ -259,16 +266,29 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else str(BUILDSPEC["version"])
         )
         template_fw = str(BUILDSPEC["framework"])
-        post_template_file = utils.generate_dlc_cmd(
-            template_path=template_file,
+        sitecustomize_post_template_file = utils.generate_dlc_cmd(
+            template_path=sitecustomize_template_file,
             output_path=os.path.join(image_config["root"], "out.py"),
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
+        bash_post_template_file = utils.generate_dlc_cmd(
+            template_path=bash_template_file,
+            output_path=os.path.join(image_config["root"], "telemetry.sh"),
             framework=template_fw,
             framework_version=template_fw_version,
             container_type=label_job_type,
         )
 
         ARTIFACTS.update(
-            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
+            {
+                "customize": {
+                    "source": sitecustomize_post_template_file,
+                    "target": "sitecustomize.py",
+                },
+                "bash": {"source": bash_post_template_file, "target": "bash_telemetry.sh"},
+            }
         )
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
@@ -339,6 +359,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
+            "test_configs": image_config.get("test_configs", None),
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
@@ -363,10 +384,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = generate_common_stage_image_object(
-            pre_push_stage_image_object, image_tag
-        )
-        COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        if image_config.get("enable_common_stage_build", True):
+            common_stage_image_object = generate_common_stage_image_object(
+                pre_push_stage_image_object, image_tag
+            )
+            COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
