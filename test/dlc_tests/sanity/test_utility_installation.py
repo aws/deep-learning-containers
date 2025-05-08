@@ -170,7 +170,7 @@ def test_mpi4py_for_pytorch_inference(pytorch_inference):
     :param pytorch_inference: ECR image URI
     """
     if "gpu" in pytorch_inference:
-        _test_mpi4py_import(pytorch_inference)
+        _test_mpi4py_import(pytorch_inference, "pytorch_training")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -182,7 +182,7 @@ def test_mpi4py_for_pytorch_training(pytorch_training):
 
     :param pytorch_training: ECR image URI
     """
-    _test_mpi4py_import(pytorch_training)
+    _test_mpi4py_import(pytorch_training, "pytorch_training")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -194,17 +194,17 @@ def test_mpi4py_for_tensorflow_training(tensorflow_training):
 
     :param tensorflow_training: ECR image URI
     """
-    _test_mpi4py_import(tensorflow_training)
+    _test_mpi4py_import(tensorflow_training, "tensorflow_training")
 
 
-def _test_mpi4py_import(image):
+def _test_mpi4py_import(image, image_name_suffix):
     """
     Helper function to test mpi4py import on a container
 
-    :param container: The container fixture (pytorch_inference, etc.)
-    :param container_name_suffix: Suffix for container name
+    :param image: The image fixture (pytorch_inference, etc.)
+    :param image_name_suffix: Suffix for image name
     """
-    container_name = test_utils.get_container_name(f"test_mpi4py_for_{image}", image)
+    container_name = test_utils.get_container_name(f"test_mpi4py_for_{image}", image_name_suffix)
     ctx = Context()
     test_utils.start_container(container_name, image, ctx)
 
