@@ -322,7 +322,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         },
         "deep-learning-containers": {
             "source": telemetry_file_path,
-            "target": "deep-learning-containers.py",
+            "target": "deep-learning-container.py",
         },
     }
     context = Context(
