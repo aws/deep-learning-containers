@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = true
+arm64_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -37,11 +37,11 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
-build_frameworks = ["pytorch"]
+build_frameworks = []
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = false
+build_training = true
 build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
@@ -135,7 +135,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-ec2.yml"
+dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
 # Graviton Inference
@@ -143,7 +143,7 @@ dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-6-ec2.yml"
+dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 
 # Neuron Inference
