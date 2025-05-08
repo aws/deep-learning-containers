@@ -376,6 +376,7 @@ def efa_ec2_instances(
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+    print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
 
     def delete_ssh_keypair():
         if test_utils.is_pr_context():
@@ -574,6 +575,7 @@ def ec2_instance(
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
+    print(f"EC2 instance AMI-ID: {ec2_instance_ami}")
 
     params = {
         "KeyName": ec2_key_name,
