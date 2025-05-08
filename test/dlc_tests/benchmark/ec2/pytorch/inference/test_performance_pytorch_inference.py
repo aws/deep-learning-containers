@@ -12,7 +12,7 @@ from src.benchmark_metrics import (
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     get_framework_and_version_from_tag,
-    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
+    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
     LOGGER,
@@ -89,7 +89,7 @@ def test_performance_ec2_pytorch_inference_cpu(
     "VGG13, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, ResNet18, ResNet50, ViT_B_16, Bert_128, Bert_256, Roberta_128, Roberta_256, DistilBert_128, DistilBert_256, All-MPNet_128, All-MPNet_256, ASR"
 )
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_arm64_gpu(
     pytorch_inference_arm64, ec2_connection, region, gpu_only, ec2_instance_type
@@ -113,7 +113,7 @@ def test_performance_ec2_pytorch_inference_arm64_gpu(
     "ResNet18, MobileNet_V2, GoogLeNet, DenseNet121, Inception_V3, Bert_128, Roberta_128, DistilBert_128, All-MPNet_128, ASR"
 )
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [UL22_BASE_ARM64_DLAMI_US_WEST_2], indirect=True)
 @pytest.mark.team("conda")
 def test_performance_ec2_pytorch_inference_arm64_cpu(
     pytorch_inference_arm64, ec2_connection, region, cpu_only, ec2_instance_type
