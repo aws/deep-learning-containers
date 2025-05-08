@@ -43,9 +43,9 @@ ARG PYTHON_VERSION=3.12.10
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-ARG EFA_VERSION=1.37.0
+ARG EFA_VERSION=1.40.0
 ARG OMPI_VERSION=4.1.7
-ARG BRANCH_OFI=1.13.2-aws
+
 
 
 ARG CUDA=12.5
@@ -224,28 +224,6 @@ RUN ${PIP} install --no-cache-dir -U \
    urllib3 \
    "protobuf<4"
 
-# Install AWS OFI NCCL plug-in
-RUN apt-get update && apt-get install -y \
-    autoconf \
-    libhwloc-dev \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-RUN mkdir /tmp/efa-ofi-nccl \
- && cd /tmp/efa-ofi-nccl \
- && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
- && cd aws-ofi-nccl \
- && ./autogen.sh \
- && ./configure --with-libfabric=/opt/amazon/efa \
-    --with-mpi=/opt/amazon/openmpi \
-    --with-cuda=/usr/local/cuda \
-    --with-nccl=/usr/local \
-    --prefix=/usr/local \
-    --disable-tests \
- && make -j $(nproc) \
- && make install \
- && rm -rf /tmp/efa-ofi-nccl
-
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
    && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
@@ -345,8 +323,8 @@ RUN pip install wheel \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.19.0 \
-    tensorflow-text==2.19.1 \
+    tf-models-official==2.19.1 \
+    tensorflow-text==2.19.0 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
