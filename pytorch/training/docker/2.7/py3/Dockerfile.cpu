@@ -228,7 +228,7 @@ ARG TORCHVISION_VERSION
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/cpu \
     torch==${PYTORCH_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
@@ -299,7 +299,7 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/cpu \
     torch==${PYTORCH_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
