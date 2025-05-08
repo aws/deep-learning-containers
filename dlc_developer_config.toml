@@ -41,12 +41,12 @@ build_frameworks = []
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
-build_inference = true
+build_training = false
+build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true
+do_build = false
 
 [notify]
 ### Notify on test failures
@@ -57,12 +57,12 @@ notify_test_failures = false
 
 [test]
 ### On by default
-sanity_tests = true
-security_tests = true
+sanity_tests = false
+security_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
+ecs_tests = false
+eks_tests = false
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
@@ -71,13 +71,13 @@ ec2_benchmark_tests = false
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = false
+ec2_tests_on_heavy_instances = true
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
@@ -90,7 +90,7 @@ sagemaker_remote_efa_instance_type = ""
 
 # Run CI tests for nightly images
 # false by default
-nightly_pr_test_mode = false
+nightly_pr_test_mode = true
 
 use_scheduler = false
 

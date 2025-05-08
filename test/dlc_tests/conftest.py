@@ -523,6 +523,9 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     artifact_folder = f"{ec2_key_name}-{unique_id}-folder"
     s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+    master_connection.run(
+        f"aws s3 ls --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder}"
+    )
 
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
