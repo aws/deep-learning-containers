@@ -396,6 +396,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     )
 
 <<<<<<< HEAD
+<<<<<<< HEAD
     # The S3 URL is different for PyTorch and TensorFlow versions <= 2.6 and <= 2.18 respectively
     # cause we change the URL for new versions
     if (framework == "pytorch" and Version(framework_version) <= Version("2.7")) or (
@@ -419,6 +420,8 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
                 py_version,
             )
 =======
+=======
+>>>>>>> 7871247c (Add new regions to telemetry and update with autopatch (#4792))
     expected_s3_url = (
         "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
         "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}".format(
@@ -428,6 +431,9 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
             framework,
             framework_version,
             py_version,
+<<<<<<< HEAD
+>>>>>>> 7871247c (Add new regions to telemetry and update with autopatch (#4792))
+=======
 >>>>>>> 7871247c (Add new regions to telemetry and update with autopatch (#4792))
         )
     )
