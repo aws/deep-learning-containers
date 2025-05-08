@@ -1092,9 +1092,7 @@ def test_safety(image):
         json_str_safety_result = extract_json_from_safety_output(
             safety_check.run_safety_check_on_container(docker_exec_cmd)
         )
-        LOGGER.info(f"Safety check output: {json_str_safety_result}")
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
-        LOGGER.info(f"Safety result: {safety_result}")
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["vulnerable_spec"]
@@ -1110,7 +1108,6 @@ def test_safety(image):
                 # gives an object that can be easily compared against a Version object.
                 # https://packaging.pypa.io/en/latest/specifiers/
                 ignore_str += f" -i {vulnerability_id}"
-        LOGGER.info(f"ignore_str: {ignore_str}")
         assert (
             safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"

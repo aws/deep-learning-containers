@@ -37,7 +37,7 @@ deep_canary_mode = false
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
 # available frameworks - ["autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
-build_frameworks = ["pytorch"]
+build_frameworks = []
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
@@ -59,13 +59,13 @@ notify_test_failures = false
 ### On by default
 sanity_tests = true
 security_tests = true
-  safety_check_test = true
-  ecr_scan_allowlist_feature = true
+  safety_check_test = false
+  ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
-ec2_benchmark_tests = true
+ec2_benchmark_tests = false
 
 ### Set ec2_tests_on_heavy_instances = true to be able to run any EC2 tests that use large/expensive instance types by
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
@@ -104,7 +104,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -134,7 +134,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-ec2.yml"
+dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
