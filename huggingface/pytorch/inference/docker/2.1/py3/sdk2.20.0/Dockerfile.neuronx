@@ -61,6 +61,7 @@ RUN apt-get update \
     libexpat1 \
     libxml2 \
     libgstreamer1.0-0 \
+    libsoup2.4-1 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
