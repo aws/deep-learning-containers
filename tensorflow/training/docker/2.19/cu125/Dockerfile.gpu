@@ -1,4 +1,4 @@
-ARG TF_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow/r2.18_aws/gpu/2025-01-09-09-51/tensorflow_gpu-2.18.0-cp310-cp310-linux_x86_64.whl
+ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow-2.19.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 FROM nvidia/cuda:12.5.1-base-ubuntu22.04 AS base_image
 
@@ -17,7 +17,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 # TensorFlow major.minor version
-ENV TF_VERSION=2.18
+ENV TF_VERSION=2.19
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -37,15 +37,15 @@ ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PYTHON=python3.10
+ARG PYTHON=python3.12
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.14
+ARG PYTHON_VERSION=3.12.14
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
-ARG EFA_VERSION=1.37.0
-ARG OMPI_VERSION=4.1.7
-ARG BRANCH_OFI=1.13.2-aws
+ARG EFA_VERSION=2.23.4
+ARG OMPI_VERSION=5.0.7
+ARG BRANCH_OFI=1.14.2-aws
 
 
 ARG CUDA=12.5
@@ -345,7 +345,7 @@ RUN pip install wheel \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
-    tf-models-official==2.18.0 \
+    tf-models-official==2.19.0 \
     tensorflow-text==2.19.1 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
