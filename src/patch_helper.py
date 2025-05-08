@@ -320,9 +320,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": pytorch_training_start_cuda_compat_path,
             "target": "new_pytorch_training_start_cuda_compat",
         },
-        "deep-learning-containers": {
+        "deep_learning_container": {
             "source": telemetry_file_path,
-            "target": "deep-learning-container.py",
+            "target": "deep_learning_container.py",
         },
     }
     context = Context(
