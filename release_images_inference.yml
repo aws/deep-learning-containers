@@ -134,18 +134,6 @@ release_images:
       disable_sm_tag: True
       force_release: False
   11:
-    framework: "autogluon"
-    version: "1.2.0"
-    arch_type: "x86"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py311"]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  12:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -158,7 +146,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  13:
+  12:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -170,7 +158,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  13:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -183,7 +171,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  14:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -195,7 +183,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  15:
     framework: "djl"
     version: "0.33.0"
     arch_type: "x86"
@@ -208,7 +196,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  17:
+  16:
     framework: "djl"
     version: "0.31.0"
     arch_type: "x86"
@@ -221,7 +209,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  18:
+  17:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -229,6 +217,18 @@ release_images:
     inference:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  18:
+    framework: "autogluon"
+    version: "1.3.0"
+    arch_type: "x86"
+    inference:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py311"]
       os_version: "ubuntu22.04"
       cuda_version: "cu124"
       example: False
