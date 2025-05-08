@@ -395,7 +395,6 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
         .split(" ")[1]
     )
 
-   
     expected_s3_url = (
         "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
         "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}".format(
