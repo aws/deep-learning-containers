@@ -1089,7 +1089,9 @@ def test_safety(image):
     )
     try:
         run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
-        json_str_safety_result = safety_check.run_safety_check_on_container(docker_exec_cmd)
+        json_str_safety_result = extract_json_from_safety_output(
+            safety_check.run_safety_check_on_container(docker_exec_cmd)
+        )
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
@@ -1111,3 +1113,40 @@ def test_safety(image):
         ), f"Safety test failed for {image}"
     finally:
         run(f"docker rm -f {container_name}", hide=True)
+
+def extract_json_from_safety_output(output_str):
+    """Extract valid JSON from safety output that may contain additional text."""
+    # Find the first occurrence of '{'
+    json_start = output_str.find("{")
+    if json_start == -1:
+        return None
+
+    # Track opening and closing braces to find the matching end of the JSON
+    brace_count = 0
+    in_string = False
+    escape_next = False
+
+    for i in range(json_start, len(output_str)):
+        char = output_str[i]
+
+        # Handle string literals to avoid counting braces inside strings
+        if char == '"' and not escape_next:
+            in_string = not in_string
+        elif char == "\\" and not escape_next:
+            escape_next = True
+            continue
+
+        # Count braces only when not in a string
+        if not in_string:
+            if char == "{":
+                brace_count += 1
+            elif char == "}":
+                brace_count -= 1
+                # When brace_count reaches 0, we've found the end of the JSON
+                if brace_count == 0:
+                    return output_str[json_start : i + 1]
+
+        escape_next = False
+
+    # If we get here, no valid JSON end was found
+    return None
