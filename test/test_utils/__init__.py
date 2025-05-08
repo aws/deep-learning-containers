@@ -128,14 +128,6 @@ AL2023_BASE_DLAMI_ARM64_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
-UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
-)
-UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
-)
 AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
     ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
@@ -191,7 +183,6 @@ UL_AMI_LIST = [
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
-    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
@@ -280,6 +271,24 @@ TELEMETRY_REGION_MAPPING = {
     "us-east-2": "72252b46",
     "us-west-1": "d02c1125",
     "us-west-2": "d8c0d063",
+    "af-south-1": "08ea8dc5",
+    "eu-south-1": "29566eac",
+    "me-south-1": "7ea07793",
+    "ap-southeast-7": "1699f14f",
+    "ap-southeast-3": "be0a3174",
+    "me-central-1": "6e06aaeb",
+    "ap-east-1": "5e1fbf92",
+    "ap-south-2": "50209442",
+    "ap-northeast-3": "fa298003",
+    "ap-southeast-5": "5852cd87",
+    "us-northeast-1": "bbf9e961",
+    "ap-southeast-4": "dc6f76ce",
+    "mx-central-1": "ed0da79c",
+    "il-central-1": "2fb2448e",
+    "ap-east-2": "8947749e",
+    "ca-west-1": "ea83ea06",
+    "eu-south-2": "df2c9d70",
+    "eu-central-2": "aa7aabcc",
 }
 
 

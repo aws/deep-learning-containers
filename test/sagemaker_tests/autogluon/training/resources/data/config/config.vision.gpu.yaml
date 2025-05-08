@@ -8,7 +8,7 @@ ag_predictor_args:
 ag_fit_args:
   time_limit: 30
   hyperparameters:
-    optimization.max_epochs: 2
+    optim.max_epochs: 2
     model.timm_image.checkpoint_name: "mobilenetv3_large_100"
     env.per_gpu_batch_size: 1
 
