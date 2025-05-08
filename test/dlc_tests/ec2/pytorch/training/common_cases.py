@@ -14,6 +14,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_test,
+    execute_ec2_telemetry_test,
     get_ec2_instance_type,
     get_efa_ec2_instance_type,
 )
@@ -145,16 +146,39 @@ def pytorch_training_dgl(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
+def pytorch_telemetry_entrypoint_cpu(pytorch_training, ec2_connection):
     """
     Test Telemetry
     """
-    execute_ec2_training_test(
-        ec2_connection,
-        pytorch_training,
-        PT_TELEMETRY_CMD,
-        timeout=900,
-        container_name="pytorch_telemetry",
+    execute_ec2_telemetry_test(
+        ec2_connection, pytorch_training, "entrypoint", "pytorch_tr_telemetry", timeout=900
+    )
+
+
+def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
+    """
+    Test Telemetry
+    """
+    execute_ec2_telemetry_test(
+        ec2_connection, pytorch_training, "bashrc", "pytorch_tr_telemetry", timeout=900
+    )
+
+
+def pytorch_telemetry_framework_cpu(pytorch_training, ec2_connection):
+    """
+    Test Telemetry
+    """
+    execute_ec2_telemetry_test(
+        ec2_connection, pytorch_training, PT_TELEMETRY_CMD, "framework", "pytorch_tr_telemetry", timeout=900
+    )
+
+
+def pytorch_telemetry_sitecustomize_cpu(pytorch_training, ec2_connection):
+    """
+    Test Telemetry
+    """
+    execute_ec2_telemetry_test(
+        ec2_connection, pytorch_training, PT_TELEMETRY_CMD, "sitecustomize", "pytorch_tr_telemetry", timeout=900
     )
 
 

@@ -201,9 +201,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 
 RUN chmod +x /usr/local/bin/bash_telemetry.sh
-
-RUN chmod +x /usr/local/bin/bash_telemetry.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+# run in non-interactive mode
+ENV BASH_ENV=/usr/local/bin/bash_telemetry.sh
+# run in interactive mode
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true

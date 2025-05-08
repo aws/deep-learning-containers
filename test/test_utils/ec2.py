@@ -1296,6 +1296,60 @@ def execute_ec2_training_test(
     return ec2_res
 
 
+def execute_ec2_telemetry_test(
+    connection,
+    ecr_uri,
+    test_cmd,
+    call_type,
+    container_name,
+    region=DEFAULT_REGION,
+    timeout=18000,
+    bin_bash_entrypoint=True,
+    interactive_mode=True
+):
+    if call_type not in ("bashrc", "entrypoint", "sitecustomize", "framework"):
+        raise RuntimeError(
+            f"This function only supports executing bashrc, entrypoint, sitecustomize or framework telemerty call on containers"
+        )
+    
+    executable = os.path.join(os.sep, "bin", "bash")
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    # Make sure we are logged into ECR so we can pull the image
+    account_id = get_account_id_from_image_uri(ecr_uri)
+    login_to_ecr_registry(connection, account_id, region)
+    container_name = f"{container_name}_{call_type}"
+
+   
+    if call_type == "sitecustomize":
+        test_cmd = f"{test_cmd} 'import os;'"
+    elif call_type == "framework":
+        test_cmd = f"{test_cmd} 'import torch;'"
+    
+
+    # Run training command
+    ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
+    bin_bash_cmd = "--entrypoint /bin/bash " if bin_bash_entrypoint else ""
+
+    LOGGER.info(f"execute_ec2_telemetry_test pulling {ecr_uri}, with cmd {test_cmd}")
+    connection.run(f"docker pull {ecr_uri}", hide="out")
+
+    connection.run(
+        f"docker run {docker_runtime} --name {container_name} "
+        f"{ipc} -v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+        f"-itd {bin_bash_cmd}{ecr_uri}",
+        hide=True,
+    )
+    LOGGER.info(f"execute_ec2_telemetry_test running {ecr_uri}, with cmd {test_cmd}")
+    ec2_res = connection.run(
+        f"docker exec --user root {container_name} {executable} -c '{test_cmd}'",
+        hide=True,
+        timeout=timeout,
+    )
+    LOGGER.info(f"execute_ec2_telemetry_test completed {ecr_uri}, with cmd {test_cmd}")
+    return ec2_res
+
+
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
