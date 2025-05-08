@@ -346,7 +346,7 @@ RUN pip install wheel \
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install --no-cache-dir -U \
     tf-models-official==2.18.0 \
-    tensorflow-text==2.19.1 \
+    tensorflow-text==2.18.1 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
