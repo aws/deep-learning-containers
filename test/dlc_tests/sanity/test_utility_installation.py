@@ -170,7 +170,7 @@ def test_mpi4py_for_pytorch_inference(pytorch_inference):
     :param pytorch_inference: ECR image URI
     """
     if "gpu" in pytorch_inference:
-        _test_mpi4py_import(pytorch_inference, "pytorch_training")
+        _test_mpi4py_import(pytorch_inference, "pytorch_inference")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
