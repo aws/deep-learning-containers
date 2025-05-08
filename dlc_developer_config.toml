@@ -32,7 +32,7 @@ trcomp_mode = false
 # regardless of whether they are enabled or disabled below.
 # Set graviton_mode/arm64_mode to true to run Deep Canaries on Graviton/ARM64 images.
 # Do remember to revert it back to false before merging any PR.
-deep_canary_mode = false
+deep_canary_mode = true
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true
+do_build = false
 
 [notify]
 ### Notify on test failures
