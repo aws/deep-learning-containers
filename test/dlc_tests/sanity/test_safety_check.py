@@ -1114,6 +1114,7 @@ def test_safety(image):
     finally:
         run(f"docker rm -f {container_name}", hide=True)
 
+
 def extract_json_from_safety_output(output_str):
     """Extract valid JSON from safety output that may contain additional text."""
     # Find the first occurrence of '{'
