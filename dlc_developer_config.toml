@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -90,7 +90,7 @@ sagemaker_remote_efa_instance_type = ""
 
 # Run CI tests for nightly images
 # false by default
-nightly_pr_test_mode = true
+nightly_pr_test_mode = false
 
 use_scheduler = false
 
