@@ -1092,7 +1092,9 @@ def test_safety(image):
         json_str_safety_result = extract_json_from_safety_output(
             safety_check.run_safety_check_on_container(docker_exec_cmd)
         )
+        LOGGER.info(f"Safety check output: {json_str_safety_result}")
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
+        LOGGER.info(f"Safety result: {safety_result}")
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
             affected_versions = vulnerability["vulnerable_spec"]
