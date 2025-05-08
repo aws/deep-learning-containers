@@ -12,7 +12,9 @@ COPY new-torchserve-entrypoint /tmp/new-torchserve-entrypoint
 COPY new_start_with_right_hostname /tmp/new_start_with_right_hostname
 COPY new_pytorch_inference_start_cuda_compat /tmp/new_pytorch_inference_start_cuda_compat
 COPY new_pytorch_training_start_cuda_compat /tmp/new_pytorch_training_start_cuda_compat
+
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh && \
     /opt/aws/dlc/miscellaneous_scripts/dockerfile_patch_script.sh $LATEST_RELEASED_IMAGE_SHA $LATEST_RELEASED_IMAGE_URI
