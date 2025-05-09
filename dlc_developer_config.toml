@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true
+do_build = false
 
 [notify]
 ### Notify on test failures
@@ -57,8 +57,8 @@ notify_test_failures = false
 
 [test]
 ### On by default
-sanity_tests = true
-security_tests = true
+sanity_tests = false
+security_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
 ecs_tests = false

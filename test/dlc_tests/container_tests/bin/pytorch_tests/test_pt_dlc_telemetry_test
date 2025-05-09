@@ -5,27 +5,94 @@ LOG_DIR=${HOME_DIR}/logs
 TRAINING_LOG=${LOG_DIR}/pytorch_telemetry_test.log
 set -e
 
-# Default test command if not provided
-TEST_CMD=${1:-"import torch"}
 
-echo "Verify pytorch telemetry test with command: $TEST_CMD. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+verify_test_results() {
+    local log_file=$1
 
-python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py --test-cmd "$TEST_CMD" 2>&1 | tee $TRAINING_LOG
+    if grep "DLC Telemetry performance test Passed" "$log_file"; then
+        echo "Successfully verified Telemetry performance test."
+    else
+        echo "Telemetry performance test failed."
+        cat "$log_file"
+        return 1
+    fi
 
-if grep "DLC Telemetry performance test Passed" $TRAINING_LOG; then
-  echo "Successfully verified Telemetry performance test."
-else
-  echo "Telemetry performance test failed."
-  cat ${TRAINING_LOG}
-  exit 1
+    if grep "Opt-In/Opt-Out Test passed" "$log_file"; then
+        echo "Successfully verified Opt-In/Opt-Out Test "
+    else
+        echo "Opt-In/Opt-Out Test failed."
+        cat "$log_file"
+        return 1
+    fi
+
+    return 0
+}
+
+check_opt_in_results() {
+    echo "Testing opt-in telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30 && { [ -f /tmp/test_request.txt ]; }
+}
+
+check_opt_out_results() {
+    echo "Testing opt-out telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30 && { [ ! -f /tmp/test_request.txt ]; }
+}
+
+# Check if parameter is provided
+if [ $# -lt 1 ]; then
+    echo "Error: No parameter provided"
+    echo "Usage: $0 <call_type> [opt_in|opt_out]"
+    echo "Note: bashrc and entrypoint require opt_in or opt_out parameter"
+    echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+    echo "Optional test_type: opt_in, opt_out"
+    exit 1
 fi
 
-if grep "Opt-In/Opt-Out Test passed" $TRAINING_LOG; then
-  echo "Successfully verified Opt-In/Opt-Out Test "
-else
-  echo "Opt-In/Opt-Out Test failed."
-  cat ${TRAINING_LOG}
-  exit 1
-fi
+CALL_TYPE=$1
+
+echo "Verify pytorch telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+case $CALL_TYPE in
+    bashrc | entrypoint)
+        # Check if opt_in or opt_out parameter is provided
+        if [ $# -lt 2 ]; then
+            echo "Error: $CALL_TYPE requires opt_in or opt_out parameter"
+            echo "Usage: $0 $CALL_TYPE <opt_in|opt_out>"
+            exit 1
+        fi
+
+        TEST_TYPE=$2
+
+        case "$TEST_TYPE" in
+            "opt_in")
+                echo "Test ${CALL_TYPE} telemetry opt_in" | tee -a $TRAINING_LOG
+                check_opt_in_results || exit 1
+                ;;
+            "opt_out")
+                echo "Test ${CALL_TYPE} telemetry opt_out" | tee -a $TRAINING_LOG
+                check_opt_out_results || exit 1
+                ;;
+            *)
+                echo "Error: Invalid test type. Must be 'opt_in' or 'opt_out'"
+                exit 1
+                ;;
+        esac
+        ;;
+    sitecustomize)
+        python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py --test-cmd "import os" 2>&1 | tee $TRAINING_LOG
+        verify_test_results "$TRAINING_LOG" || exit 1
+        ;;
+    framework)
+        python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py --test-cmd "import torch" 2>&1 | tee $TRAINING_LOG
+        verify_test_results "$TRAINING_LOG" || exit 1
+        ;;
+    *)
+        echo "Error: Invalid parameter provided"
+        echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+        exit 1
+        ;;
+esac
+
+
 
 exit 0

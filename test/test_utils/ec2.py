@@ -1301,71 +1301,95 @@ def execute_ec2_telemetry_test(
     ecr_uri,
     call_type,
     container_name,
-    test_cmd="",
+    test_cmd,
+    opt_in=False,
     region=DEFAULT_REGION,
     timeout=900,
 ):
-    if call_type not in ("bashrc", "entrypoint", "sitecustomize", "framework"):
-        raise RuntimeError(
-            f"This function only supports executing bashrc, entrypoint, sitecustomize or framework telemerty call on containers"
-        )
-    config = get_telemetry_config(call_type, test_cmd)
-    test_cmd = config["test_cmd"]
-    mount_cmd = config["mount_cmd"]
+    """
+    Execute telemetry tests on EC2 instances using Docker containers.
+
+    Args:
+        connection: EC2 connection object
+        ecr_uri (str): ECR image URI
+        call_type (str): Type of test to run ('bashrc', 'entrypoint', 'sitecustomize', 'framework')
+        container_name (str): Base name for the container
+        test_cmd (str): Test command to execute
+        opt_in (bool): Whether to run in opt-in mode (default: False)
+        region (str): AWS region
+        timeout (int): Timeout in seconds (default: 900)
+
+    Returns:
+        Result object from the connection.run command
+
+    Raises:
+        RuntimeError: If invalid call_type is provided
+    """
+    # Validate call type
+    VALID_CALL_TYPES = {"bashrc", "entrypoint", "sitecustomize", "framework"}
+    if call_type not in VALID_CALL_TYPES:
+        raise RuntimeError(f"Invalid call_type. Must be one of: {', '.join(VALID_CALL_TYPES)}")
+
+    # Set up Docker runtime configuration
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
-    # Make sure we are logged into ECR so we can pull the image
-    account_id = get_account_id_from_image_uri(ecr_uri)
-    login_to_ecr_registry(connection, account_id, region)
-    container_name = f"{container_name}_{call_type}"
-
-    # bashrc needs an interactive session to test it works
-    # for entrypoint tests, we need to run non-interactive session to avoid bashrc being sourced
-    # also we have CMD /bin/bash inside container, we need not be affected by it
-    # but for framework and sitecustomize it doesn't matter because we gonna clean up first
-    # Run training command
     ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
-    bin_bash_cmd = "--entrypoint /bin/bash " if config["bin_bash_entrypoint"] else ""
+    opt_out_env = "" if opt_in else "-e OPT_OUT_TRACKING='true'"
 
-    LOGGER.info(
-        f"execute_ec2_telemetry_test for {call_type} by pulling {ecr_uri}, with cmd {test_cmd}"
+    # Set up container and mount configuration
+    test_suffix = "opt_in" if opt_in else "opt_out"
+    container_name = (
+        f"{container_name}_{call_type}_{test_suffix}"
+        if call_type in {"bashrc", "entrypoint"}
+        else f"{container_name}_{call_type}"
     )
-    connection.run(f"docker pull {ecr_uri}", hide="out")
 
-    LOGGER.info(
-        f"execute_ec2_telemetry_test for {call_type} by running {ecr_uri}, with cmd {test_cmd}"
-    )
-    if call_type == "entrypoint":
-        opt_in_ec2_res = connection.run(
-            f"docker run {docker_runtime} --name {container_name} "
-            f"-it -e TEST_MODE='1' {ecr_uri} bash -c '{test_cmd}'",
-            hide=True,
-            timeout=timeout,
-        )
-        opt_out_ec2_res = connection.run(
-            f"docker run {docker_runtime} --name {container_name} "
-            f"-it -e TEST_MODE='1' -e OPT_OUT_TRACKING='true' {ecr_uri} bash -c '{test_cmd}'",
-            hide=True,
-            timeout=timeout,
-        )
-        LOGGER.info(opt_in_ec2_res.stdout)
-        LOGGER.info(opt_out_ec2_res.stdout)
-        ec2_res = opt_out_ec2_res
-    else:
-        connection.run(
-            f"docker run {docker_runtime} --name {container_name} "
-            f"{ipc} {mount_cmd} "
-            f"-itd -e TEST_MODE='1' {bin_bash_cmd} {ecr_uri}",
-            hide=True,
-        )
-        ec2_res = connection.run(
-            f"docker exec --user root {container_name} bash -c '{test_cmd}'",
-            hide=True,
-            timeout=timeout,
-        )
-    LOGGER.info(
-        f"execute_ec2_telemetry_test for {call_type} completed {ecr_uri}, with cmd {test_cmd}"
-    )
-    return ec2_res
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    mount_path = f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+
+    try:
+        # Login to ECR and pull image
+        account_id = get_account_id_from_image_uri(ecr_uri)
+        login_to_ecr_registry(connection, account_id, region)
+
+        LOGGER.info(f"Pulling image: {ecr_uri}")
+        connection.run(f"docker pull {ecr_uri}", hide="out")
+
+        # Prepare test command
+        test_cmd = f"{test_cmd} {call_type} {test_suffix}"
+        LOGGER.info(f"Executing test: {test_cmd}")
+
+        # Execute test based on call type
+        # entrypoint can only be run directly in non-interactive mode to avoid affection of bashrc
+        if call_type == "entrypoint":
+            ec2_res = connection.run(
+                f"docker run {docker_runtime} --name {container_name} "
+                f"-it -e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
+                f"bash -c '{test_cmd}'",
+                hide=True,
+                timeout=timeout,
+            )
+        else:
+            # Start container
+            connection.run(
+                f"docker run {docker_runtime} --name {container_name} "
+                f"{ipc} {mount_path} "
+                f"-itd -e TEST_MODE='1' {opt_out_env} --entrypoint /bin/bash {ecr_uri}",
+                hide=True,
+            )
+
+            # Execute test command
+            ec2_res = connection.run(
+                f"docker exec --user root {container_name} bash -c '{test_cmd}'",
+                hide=True,
+                timeout=timeout,
+            )
+
+        LOGGER.info(f"Test completed for {call_type} on {ecr_uri}")
+        return ec2_res
+
+    except Exception as e:
+        LOGGER.error(f"Test failed: {str(e)}")
+        raise
 
 
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
@@ -1884,28 +1908,3 @@ def get_efa_devices_on_instance(connection):
     response = connection.run("ls /dev/infiniband/uverbs*")
     devices = response.stdout.split()
     return devices
-
-
-def get_telemetry_config(call_type, test_cmd=""):
-    """
-    Returns configuration for different telemetry test types
-    """
-    container_test_local_dir = os.path.join("$HOME", "container_tests")
-    mount_path = f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
-    default_test_cmd = r"sleep 30 && { [ -f /tmp/test_request.txt ]; echo \$?; }"
-
-    configs = {
-        "sitecustomize": {
-            "test_cmd": f"{test_cmd} 'import os;'",
-            "mount_cmd": mount_path,
-            "bin_bash_entrypoint": False,
-        },
-        "framework": {
-            "test_cmd": f"{test_cmd} 'import torch;'",
-            "mount_cmd": mount_path,
-            "bin_bash_entrypoint": False,
-        },
-        "entrypoint": {"test_cmd": default_test_cmd, "mount_cmd": "", "bin_bash_entrypoint": False},
-        "bashrc": {"test_cmd": default_test_cmd, "mount_cmd": "", "bin_bash_entrypoint": True},
-    }
-    return configs.get(call_type, {})

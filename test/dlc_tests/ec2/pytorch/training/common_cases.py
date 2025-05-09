@@ -151,7 +151,20 @@ def pytorch_telemetry_entrypoint_cpu(pytorch_training, ec2_connection):
     Test Telemetry
     """
     execute_ec2_telemetry_test(
-        ec2_connection, pytorch_training, "entrypoint", "pytorch_tr_telemetry"
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
     )
 
 
@@ -160,7 +173,20 @@ def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
     Test Telemetry
     """
     execute_ec2_telemetry_test(
-        ec2_connection, pytorch_training, "bashrc", "pytorch_tr_telemetry"
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
     )
 
 
@@ -173,7 +199,7 @@ def pytorch_telemetry_framework_cpu(pytorch_training, ec2_connection):
         pytorch_training,
         "framework",
         "pytorch_tr_telemetry",
-        test_cmd=PT_TELEMETRY_CMD
+        test_cmd=PT_TELEMETRY_CMD,
     )
 
 
@@ -186,7 +212,7 @@ def pytorch_telemetry_sitecustomize_cpu(pytorch_training, ec2_connection):
         pytorch_training,
         "sitecustomize",
         "pytorch_tr_telemetry",
-        test_cmd=PT_TELEMETRY_CMD
+        test_cmd=PT_TELEMETRY_CMD,
     )
 
 
