@@ -1364,7 +1364,7 @@ def execute_ec2_telemetry_test(
         if call_type == "entrypoint":
             ec2_res = connection.run(
                 f"docker run {docker_runtime} --name {container_name} "
-                f"-it -e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
+                f"-e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
                 f"bash -c '{test_cmd}'",
                 hide=True,
                 timeout=timeout,
