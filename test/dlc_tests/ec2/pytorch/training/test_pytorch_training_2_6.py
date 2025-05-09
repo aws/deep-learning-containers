@@ -126,7 +126,7 @@ def test_pytorch_2_6_cpu(pytorch_training___2__6, ec2_connection, cpu_only):
         (common_cases.pytorch_telemetry_bashrc_cpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_sitecustomize_cpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_telemetry_framework_cpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry_entrypoint_cpu, (pytorch_training, ec2_connection))
+        (common_cases.pytorch_telemetry_entrypoint_cpu, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:

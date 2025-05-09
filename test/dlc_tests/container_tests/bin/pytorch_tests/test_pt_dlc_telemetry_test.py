@@ -4,6 +4,7 @@ import time
 from packaging.version import Version
 import argparse
 
+
 def _clean_up_reports():
     if os.path.exists("/tmp/test_request.txt"):
         os.system("rm /tmp/test_request.txt")
@@ -81,9 +82,13 @@ def run_tests(test_cmd):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Run DLC telemetry tests')
-    parser.add_argument('--test-cmd', type=str, default='import torch',
-                      help='The Python command to test (default: "import torch")')
+    parser = argparse.ArgumentParser(description="Run DLC telemetry tests")
+    parser.add_argument(
+        "--test-cmd",
+        type=str,
+        default="import torch",
+        help='The Python command to test (default: "import torch")',
+    )
     args = parser.parse_args()
 
     run_tests(args.test_cmd)
