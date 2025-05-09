@@ -90,7 +90,6 @@ def test_pytorch_2_7_gpu_inductor(
     pytorch_training = pytorch_training_arm64___2__7
 
     test_cases = [
-        # (common_cases.pytorch_mpi_inductor_gpu, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_nccl_inductor, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_amp_inductor, (pytorch_training, ec2_connection)),
     ]
