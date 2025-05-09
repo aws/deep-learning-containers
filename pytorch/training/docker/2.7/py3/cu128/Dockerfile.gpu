@@ -282,9 +282,9 @@ WORKDIR /
 # Install PyTorch
 RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/cu128 \
     torch==${PYTORCH_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
+    && pip install --no-cache-dir -U torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    && pip install --no-cache-dir -U torchdata==${TORCHDATA_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
@@ -395,9 +395,9 @@ RUN pip install --no-cache-dir -U ${SMP_URL}
 # Install PyTorch
 RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/cu128 \
     torch==${PYTORCH_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
+    && pip install --no-cache-dir -U torchaudio==${TORCHAUDIO_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    && pip install --no-cache-dir -U torchdata==${TORCHDATA_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     torchtnt==${TORCHTNT_VERSION} \
     triton \
     s3torchconnector \
