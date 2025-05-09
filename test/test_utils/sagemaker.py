@@ -32,7 +32,7 @@ from test_utils import (
     AL2023_HOME_DIR,
     DEFAULT_REGION,
     is_nightly_context,
-    get_instance_type_base_dlami,
+    get_dlami_id,
     login_to_ecr_registry,
 )
 from test_utils.pytest_cache import PytestCache
@@ -101,7 +101,7 @@ def assign_sagemaker_local_test_ami(image, region):
         else:
             return AL2023_BASE_DLAMI_ARM64_US_WEST_2
     else:
-        return get_instance_type_base_dlami(region)
+        return get_dlami_id(region)
 
 
 def launch_sagemaker_local_ec2_instance(image, ec2_key_name, region):
