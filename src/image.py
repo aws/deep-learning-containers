@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 from datetime import datetime
 
 from docker import APIClient
@@ -22,7 +23,7 @@ import logging
 import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class DockerImage:
@@ -115,11 +116,16 @@ class DockerImage:
             "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'",
             "apt list --installed",
         ]
+
         for command in commands:
-            command_responses.append(f"\n{command}")
-            command_responses.append(
-                bytes.decode(docker_client.containers.run(self.ecr_url, command))
-            )
+            try:
+                command_responses.append(f"\n{command}")
+                command_responses.append(
+                    bytes.decode(docker_client.containers.run(self.ecr_url, command))
+                )
+            except Exception as e:
+                command_responses.append(f"\n{command}", f"Failed to execute: {str(e)}")
+
         docker_client.containers.prune()
         return command_responses
 
@@ -194,7 +200,7 @@ class DockerImage:
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
         line_counter = 0
-        line_interval = 50
+        line_interval = 30
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
