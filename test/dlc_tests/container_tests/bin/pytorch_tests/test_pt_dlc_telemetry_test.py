@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import time
-from packaging.version import Version
+import argparse
 
 
 def _clean_up_reports():
@@ -73,26 +73,25 @@ def perf_test(exec_cmd):
         print("DLC Telemetry performance test Passed")
 
 
-perf_test("import torch")
-opt_in_opt_out_test("import torch")
+def run_tests(test_cmd):
+    print(f"Running tests with command: {test_cmd}")
+    perf_test(test_cmd)
+    opt_in_opt_out_test(test_cmd)
+    print("All DLC telemetry test passed")
 
-try:
-    import torch
 
-    torch_version = torch.__version__
-except ImportError:
-    raise ImportError("PyTorch is not installed or cannot be imported.")
-
-# TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs
-if Version(torch_version) >= Version("2.6"):
-    print("PyTorch version is 2.6 or higher. Running OS tests...")
-    perf_test("import os")
-    opt_in_opt_out_test("import os")
-    print("OS tests completed.")
-else:
-    print(
-        "TEMP: sitecustomize.py current exists in PyTorch 2.6 DLCs. Skip logic should be reverted once sitecustomize.py has been added to all DLCs"
+def main():
+    parser = argparse.ArgumentParser(description="Run DLC telemetry tests")
+    parser.add_argument(
+        "--test-cmd",
+        type=str,
+        default="import torch",
+        help='The Python command to test (default: "import torch")',
     )
-    print("PyTorch version is below 2.6. Skipping OS tests.")
+    args = parser.parse_args()
 
-print("All DLC telemetry test passed")
+    run_tests(args.test_cmd)
+
+
+if __name__ == "__main__":
+    main()

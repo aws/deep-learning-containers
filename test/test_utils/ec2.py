@@ -1297,6 +1297,102 @@ def execute_ec2_training_test(
     return ec2_res
 
 
+def execute_ec2_telemetry_test(
+    connection,
+    ecr_uri,
+    call_type,
+    container_name,
+    test_cmd,
+    opt_in=False,
+    region=DEFAULT_REGION,
+    timeout=900,
+):
+    """
+    Execute telemetry tests on EC2 instances using Docker containers.
+
+    Args:
+        connection: EC2 connection object
+        ecr_uri (str): ECR image URI
+        call_type (str): Type of test to run ('bashrc', 'entrypoint', 'sitecustomize', 'framework')
+        container_name (str): Base name for the container
+        test_cmd (str): Test command to execute
+        opt_in (bool): Whether to run in opt-in mode (default: False)
+        region (str): AWS region
+        timeout (int): Timeout in seconds (default: 900)
+
+    Returns:
+        Result object from the connection.run command
+
+    Raises:
+        RuntimeError: If invalid call_type is provided
+    """
+    # Validate call type
+    VALID_CALL_TYPES = {"bashrc", "entrypoint", "sitecustomize", "framework"}
+    if call_type not in VALID_CALL_TYPES:
+        raise RuntimeError(f"Invalid call_type. Must be one of: {', '.join(VALID_CALL_TYPES)}")
+
+    # Set up Docker runtime configuration
+    docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
+    ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
+    opt_out_env = "" if opt_in else "-e OPT_OUT_TRACKING='true'"
+
+    # Set up container and mount configuration
+    test_suffix = "opt_in" if opt_in else "opt_out"
+    container_name = (
+        f"{container_name}_{call_type}_{test_suffix}"
+        if call_type in {"bashrc", "entrypoint"}
+        else f"{container_name}_{call_type}"
+    )
+
+    container_test_local_dir = os.path.join("$HOME", "container_tests")
+    mount_path = f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
+
+    try:
+        # Login to ECR and pull image
+        account_id = get_account_id_from_image_uri(ecr_uri)
+        login_to_ecr_registry(connection, account_id, region)
+
+        LOGGER.info(f"Pulling image: {ecr_uri}")
+        connection.run(f"docker pull {ecr_uri}", hide="out")
+
+        # Prepare test command
+        test_cmd = f"{test_cmd} {call_type} {test_suffix}"
+        LOGGER.info(f"Executing test: {test_cmd}")
+
+        # Execute test based on call type
+        # entrypoint can only be run directly in non-interactive mode to avoid affection of bashrc
+        if call_type == "entrypoint":
+            ec2_res = connection.run(
+                f"docker run {docker_runtime} --name {container_name} "
+                f"-e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
+                f"bash -c '{test_cmd}'",
+                hide=True,
+                timeout=timeout,
+            )
+        else:
+            # Start container
+            connection.run(
+                f"docker run {docker_runtime} --name {container_name} "
+                f"{ipc} {mount_path} "
+                f"-itd -e TEST_MODE='1' {opt_out_env} --entrypoint /bin/bash {ecr_uri}",
+                hide=True,
+            )
+
+            # Execute test command
+            ec2_res = connection.run(
+                f"docker exec --user root {container_name} bash -c '{test_cmd}'",
+                hide=True,
+                timeout=timeout,
+            )
+
+        LOGGER.info(f"Test completed for {call_type} on {ecr_uri}")
+        return ec2_res
+
+    except Exception as e:
+        LOGGER.error(f"Test failed: {str(e)}")
+        raise
+
+
 def execute_ec2_inference_test(connection, ecr_uri, test_cmd, region=DEFAULT_REGION):
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     container_test_local_dir = os.path.join("$HOME", "container_tests")
