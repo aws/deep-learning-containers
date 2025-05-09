@@ -120,7 +120,7 @@ def test_pytorch_1_13_cpu(pytorch_training___1__13, ec2_connection, cpu_only):
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_dgl, (pytorch_training, ec2_connection)),
     ]
