@@ -675,11 +675,11 @@ def is_image_incompatible_with_AL2023_for_gdrcopy(image_uri):
     incompatible_conditions = []
     framework, framework_version = get_framework_and_version_from_tag(image_uri)
 
-    image_is_pytorch_lower_than_2_6 = framework == "pytorch" and Version(
+    image_is_pytorch_lower_than_or_equal_to_2_6 = framework == "pytorch" and Version(
         framework_version
     ) in SpecifierSet("<=2.6.*")
 
-    incompatible_conditions.append(image_is_pytorch_lower_than_2_6)
+    incompatible_conditions.append(image_is_pytorch_lower_than_or_equal_to_2_6)
 
     return any(incompatible_conditions)
 
