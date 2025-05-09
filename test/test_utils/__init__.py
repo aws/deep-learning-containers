@@ -1321,7 +1321,6 @@ def get_deep_canary_images(
     :param canary_region_prod_account: str DLC Production Account ID in this region
     :return: list<str> List of image uris regionalized for canary_region
     """
-    return ["669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-pytorch-training-arm64:2.7.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-4757-2025-05-07-19-09-14"] ### temp override
     assert (
         canary_framework
         and canary_image_type
@@ -1657,7 +1656,7 @@ def setup_sm_benchmark_tf_train_env(resources_location, setup_tf1_env, setup_tf2
             ).stdout.strip("\n")
             system = ctx.run("uname -s").stdout.strip("\n")
             sed_input_arg = "'' " if system == "Darwin" else ""
-            ctx.run(rf"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
+            ctx.run(f"sed -i {sed_input_arg}'s/\[2, 1, 0\]/\[2, 1, 1\]/g' {estimator_location}")
     return venv_dir
 
 
