@@ -668,6 +668,22 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     return any(incompatible_conditions)
 
 
+def is_image_incompatible_with_AL2023_for_gdrcopy(image_uri):
+    """
+    Images may contain gdrcopy versions that are older than the drivers running on the base AL2023 DLAMI, which could result in compatibility issues.
+    """
+    incompatible_conditions = []
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+
+    image_is_pytorch_lower_than_2_6 = framework == "pytorch" and Version(
+        framework_version
+    ) in SpecifierSet("<2.6.*")
+
+    incompatible_conditions.append(image_is_pytorch_lower_than_2_6)
+
+    return any(incompatible_conditions)
+
+
 def get_repository_local_path():
     git_repo_path = os.getcwd().split("/test/")[0]
     return git_repo_path
