@@ -530,6 +530,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
     master_connection.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
     )
+    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
     master_connection.run(
         f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
     )
@@ -538,6 +539,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         worker_connection.run(
             f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
         )
+        print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
         worker_connection.run(
             f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
         )
