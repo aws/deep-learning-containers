@@ -391,7 +391,7 @@ def efa_ec2_instances(
                 "DeviceName": "/dev/sda1",
                 "Ebs": {
                     "DeleteOnTermination": True,
-                    "VolumeSize": 150,
+                    "VolumeSize": 300,
                     "VolumeType": "gp3",
                     "Iops": 3000,
                     "Throughput": 125,
@@ -654,7 +654,7 @@ def ec2_instance(
             {
                 "DeviceName": volume_name,
                 "Ebs": {
-                    "VolumeSize": 150,
+                    "VolumeSize": 300,
                 },
             }
         ]

@@ -267,7 +267,7 @@ def launch_instance(
             {
                 "DeviceName": "/dev/sda1",
                 "Ebs": {
-                    "VolumeSize": 150,
+                    "VolumeSize": 300,
                 },
             }
         ],
