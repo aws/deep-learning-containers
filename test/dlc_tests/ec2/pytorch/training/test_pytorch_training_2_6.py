@@ -72,7 +72,8 @@ def test_pytorch_2_6_gpu_heavy(
         )
 
     test_cases = [
-        (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
+        # Skip gdrcopy test due to incompatible version with drivers on AL2023
+        # (common_cases.pytorch_gdrcopy, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_transformer_engine, (pytorch_training, ec2_connection)),
     ]
 
