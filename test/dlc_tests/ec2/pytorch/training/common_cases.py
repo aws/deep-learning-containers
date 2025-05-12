@@ -325,13 +325,18 @@ def pytorch_gdrcopy(pytorch_training, ec2_connection):
     """
     Test GDRCopy
     """
-    execute_ec2_training_test(
-        ec2_connection,
-        pytorch_training,
-        PT_GDRCOPY_CMD,
-        container_name="pytorch_gdrcopy",
-        enable_gdrcopy=True,
-    )
+    if (
+        "2.4" not in pytorch_training
+        and "2.5" not in pytorch_training
+        and "2.6" not in pytorch_training
+    ):
+        execute_ec2_training_test(
+            ec2_connection,
+            pytorch_training,
+            PT_GDRCOPY_CMD,
+            container_name="pytorch_gdrcopy",
+            enable_gdrcopy=True,
+        )
 
 
 def pytorch_transformer_engine(pytorch_training, ec2_connection):
