@@ -220,6 +220,55 @@ def pytorch_telemetry_sitecustomize_cpu(pytorch_training, ec2_connection):
     )
 
 
+def pytorch_telemetry_gpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "framework",
+        "pytorch_tr_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "sitecustomize",
+        "pytorch_tr_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
+
+
 def pytorch_gloo(pytorch_training, ec2_connection):
     """
     Test GLOO Backend

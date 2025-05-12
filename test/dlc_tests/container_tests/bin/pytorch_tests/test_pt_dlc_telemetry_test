@@ -5,6 +5,7 @@ LOG_DIR=${HOME_DIR}/logs
 TRAINING_LOG=${LOG_DIR}/pytorch_telemetry_test.log
 set -e
 
+mkdir -p ${LOG_DIR}
 
 verify_test_results() {
     local log_file=$1
@@ -29,13 +30,29 @@ verify_test_results() {
 }
 
 check_opt_in_results() {
-    echo "Testing opt-in telemetry..." | tee -a "$TRAINING_LOG"
-    sleep 30 && { [ -f /tmp/test_request.txt ]; }
+    echo "Checking opt-in telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30 
+    if [ -f /tmp/test_request.txt ]; then
+        echo "Found test_request.txt file - opt-in working correctly" | tee -a "$TRAINING_LOG"
+        echo "Content of test_request.txt:" | tee -a "$TRAINING_LOG"
+        cat /tmp/test_request.txt | tee -a "$TRAINING_LOG"
+        return 0
+    else
+        echo "Error: test_request.txt file not found - opt-in failed" | tee -a "$TRAINING_LOG"
+        return 1
+    fi
 }
 
 check_opt_out_results() {
-    echo "Testing opt-out telemetry..." | tee -a "$TRAINING_LOG"
-    sleep 30 && { [ ! -f /tmp/test_request.txt ]; }
+    echo "Checking opt-out telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30
+    if [ ! -f /tmp/test_request.txt ]; then
+        echo "No test_request.txt file found - opt-out working correctly" | tee -a "$TRAINING_LOG"
+        return 0
+    else
+        echo "Error: test_request.txt file found - opt-out failed" | tee -a "$TRAINING_LOG"
+        return 1
+    fi
 }
 
 # Check if parameter is provided
@@ -49,6 +66,7 @@ if [ $# -lt 1 ]; then
 fi
 
 CALL_TYPE=$1
+echo "Call type: $CALL_TYPE" | tee -a $TRAINING_LOG
 
 echo "Verify pytorch telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
 
@@ -62,6 +80,8 @@ case $CALL_TYPE in
         fi
 
         TEST_TYPE=$2
+
+        echo "Test type: $TEST_TYPE" | tee -a $TRAINING_LOG
 
         case "$TEST_TYPE" in
             "opt_in")
@@ -93,6 +113,6 @@ case $CALL_TYPE in
         ;;
 esac
 
-
+cat $TRAINING_LOG
 
 exit 0

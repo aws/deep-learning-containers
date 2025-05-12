@@ -19,6 +19,7 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
     execute_ec2_inference_test,
     get_ec2_accelerator_type,
+    execute_ec2_telemetry_test,
 )
 from test.dlc_tests.conftest import LOGGER
 
@@ -421,7 +422,52 @@ def test_pytorch_inference_telemetry_gpu(
 def test_pytorch_inference_telemetry_cpu(
     pytorch_inference, ec2_connection, cpu_only, pt15_and_above_only
 ):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference, PT_TELEMETRY_CMD)
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "framework",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "sitecustomize",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
 
 
 @pytest.mark.usefixtures("sagemaker")
