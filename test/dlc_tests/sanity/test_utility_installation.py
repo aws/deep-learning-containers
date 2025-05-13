@@ -146,6 +146,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
+            print(f"Running command for package {package}")
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
