@@ -100,8 +100,6 @@ def is_eks_training_complete(pod_name):
     run_out = run("kubectl get pod {} -o json".format(pod_name))
     pod_info = json.loads(run_out.stdout)
 
-    print("pod_info", pod_info)
-
     if "containerStatuses" in pod_info["status"]:
         container_status = pod_info["status"]["containerStatuses"][0]
         LOGGER.info("Container Status: %s", container_status)

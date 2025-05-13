@@ -20,10 +20,6 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 ]
 
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
-    "torch",
-    "torchvision",
-    "torchdata",
-    "torchaudio",
     "PIL",
     "boto3",
     "awscli",
@@ -37,6 +33,13 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "click",
     "psutil",
     "cv2",
+]
+
+PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
+    "torch",
+    "torchvision",
+    "torchdata",
+    "torchaudio",
 ]
 
 
@@ -146,7 +149,6 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
-            print(f"Running command for package {package}")
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
@@ -159,6 +161,40 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
 
     if import_failed:
         raise ImportError(f"Import failed for packages: {list_of_packages}")
+
+
+@pytest.mark.model("N/A")
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.integration("pytorch training packages")
+def test_pytorch_utility_packages_using_import(pytorch_training):
+    """
+    Verify that pytorch packages are installed in the Training DLC image
+    :param pytorch_training: training ECR image URI
+    """
+
+    ctx = Context()
+    container_name = test_utils.get_container_name(
+        "pytorch_utility_packages_using_import", pytorch_training
+    )
+    test_utils.start_container(container_name, pytorch_training, ctx)
+    packages_to_import = PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT.copy()
+
+    import_failed = False
+    list_of_packages = []
+    for package in packages_to_import:
+        try:
+            test_utils.run_cmd_on_container(
+                container_name,
+                ctx,
+                f"import {package}",
+                executable="python",
+            )
+        except Exception as e:
+            import_failed = True
+            list_of_packages.append(package)
+
+    if import_failed:
+        raise ImportError(f"Import failed for PyTorch packages: {list_of_packages}")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
