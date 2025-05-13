@@ -198,7 +198,6 @@ def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
         "pytorch_tr_telemetry",
         PT_TELEMETRY_CMD,
     )
-    
 
 
 def pytorch_telemetry_gpu(pytorch_training, ec2_connection):
