@@ -282,10 +282,10 @@ WORKDIR /
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
@@ -389,10 +389,10 @@ WORKDIR /
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0

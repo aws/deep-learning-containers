@@ -230,10 +230,10 @@ WORKDIR /
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
@@ -301,10 +301,10 @@ WORKDIR /
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
     # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
     # it will install an very old version 2.1.10
