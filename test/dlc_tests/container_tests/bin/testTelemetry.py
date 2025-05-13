@@ -70,7 +70,7 @@ def perf_test(exec_cmd):
             total_time_in / NUM_ITERATIONS, total_time_out / NUM_ITERATIONS, rtol=0.2, atol=0.5
         )
 
-        print("DLC Telemetry performance test Passed")
+    print("DLC Telemetry performance test Passed")
 
 
 def run_tests(test_cmd):

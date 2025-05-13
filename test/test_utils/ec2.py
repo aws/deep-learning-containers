@@ -1340,7 +1340,6 @@ def execute_ec2_telemetry_test(
         framework_env = f"-e FRAMEWORK='tensorflow'"
     else:
         framework_env = ""
-    framework = "pytorch" if "pytorch" in ecr_uri else "tensorflow"
     opt_out_env = "" if opt_in else "-e OPT_OUT_TRACKING='true'"
 
     # Set up container and mount configuration
