@@ -105,7 +105,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = "tensorflow/buildspec-2-18-sm.yml"
+dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-sm.yml"
 dlc-pr-autogluon-training = ""
 
 # ARM64 Training
