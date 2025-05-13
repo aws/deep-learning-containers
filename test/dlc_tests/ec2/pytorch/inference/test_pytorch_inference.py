@@ -64,7 +64,7 @@ PT_EC2_NEURON_INF2_INSTANCE_TYPE = get_ec2_instance_type(
 )
 
 PT_TELEMETRY_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
+    CONTAINER_TESTS_PREFIX, "testTelemetry")
 )
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")

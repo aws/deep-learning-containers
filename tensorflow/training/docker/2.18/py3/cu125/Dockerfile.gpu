@@ -258,6 +258,14 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
+
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+
+# run in interactive mode
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
 ########################################################
@@ -296,6 +304,7 @@ RUN HOME_DIR=/root \
 # remove tmp files
 RUN rm -rf /tmp/*
 
+ENTRYPOINT [ "bash", "-c", "/usr/local/bin/bash_telemetry.sh; exec \"$@\"", "--"]
 CMD ["/bin/bash"]
 
 #################################################################

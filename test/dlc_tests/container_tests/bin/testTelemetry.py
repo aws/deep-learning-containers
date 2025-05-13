@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import time
+import argparse
 
 
 def _clean_up_reports():
@@ -43,7 +44,7 @@ def opt_in_opt_out_test(exec_cmd):
     print("Opt-In/Opt-Out Test passed")
 
 
-def performance_test(exec_cmd):
+def perf_test(exec_cmd):
     os.environ["TEST_MODE"] = "0"
     os.environ["OPT_OUT_TRACKING"] = "False"
     NUM_ITERATIONS = 5
@@ -72,12 +73,25 @@ def performance_test(exec_cmd):
         print("DLC Telemetry performance test Passed")
 
 
-# test framework functionality
-performance_test("import tensorflow")
-opt_in_opt_out_test("import tensorflow")
+def run_tests(test_cmd):
+    print(f"Running tests with command: {test_cmd}")
+    perf_test(test_cmd)
+    opt_in_opt_out_test(test_cmd)
+    print("All DLC telemetry test passed")
 
-# Disabling os tests until it is added to all new images
-# performance_test("import os")
-# opt_in_opt_out_test("import os")
 
-print("All DLC telemetry test passed")
+def main():
+    parser = argparse.ArgumentParser(description="Run DLC telemetry tests")
+    parser.add_argument(
+        "--test-cmd",
+        type=str,
+        default="import torch",
+        help='The Python command to test (default: "import torch")',
+    )
+    args = parser.parse_args()
+
+    run_tests(args.test_cmd)
+
+
+if __name__ == "__main__":
+    main()

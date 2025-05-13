@@ -1334,6 +1334,13 @@ def execute_ec2_telemetry_test(
     # Set up Docker runtime configuration
     docker_runtime = "--runtime=nvidia --gpus all" if "gpu" in ecr_uri else ""
     ipc = "--ipc=host" if "pytorch" in ecr_uri else ""
+    if "pytorch" in ecr_uri:
+        framework_env = f"-e FRAMEWORK='torch'"
+    elif "tensorflow" in ecr_uri:
+        framework_env = f"-e FRAMEWORK='tensorflow'"
+    else:
+        framework_env = ""
+    framework = "pytorch" if "pytorch" in ecr_uri else "tensorflow"
     opt_out_env = "" if opt_in else "-e OPT_OUT_TRACKING='true'"
 
     # Set up container and mount configuration
@@ -1374,7 +1381,7 @@ def execute_ec2_telemetry_test(
             connection.run(
                 f"docker run {docker_runtime} --name {container_name} "
                 f"{ipc} {mount_path} "
-                f"-itd -e TEST_MODE='1' {opt_out_env} --entrypoint /bin/bash {ecr_uri}",
+                f"-itd -e TEST_MODE='1' {framework_env} {opt_out_env} --entrypoint /bin/bash {ecr_uri}",
                 hide=True,
             )
 

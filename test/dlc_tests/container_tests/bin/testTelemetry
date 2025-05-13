@@ -1,0 +1,119 @@
+#!/bin/bash
+HOME_DIR=/test
+BIN_DIR=${HOME_DIR}/bin
+LOG_DIR=${HOME_DIR}/logs
+TRAINING_LOG=${LOG_DIR}/tensorflow_telemetry_test.log
+set -e
+
+mkdir -p ${LOG_DIR}
+
+verify_test_results() {
+    local log_file=$1
+
+    if grep "DLC Telemetry performance test Passed" "$log_file"; then
+        echo "Successfully verified Telemetry performance test."
+    else
+        echo "Telemetry performance test failed."
+        cat "$log_file"
+        return 1
+    fi
+
+    if grep "Opt-In/Opt-Out Test passed" "$log_file"; then
+        echo "Successfully verified Opt-In/Opt-Out Test "
+    else
+        echo "Opt-In/Opt-Out Test failed."
+        cat "$log_file"
+        return 1
+    fi
+
+    return 0
+}
+
+check_opt_in_results() {
+    echo "Checking opt-in telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30 
+    if [ -f /tmp/test_request.txt ]; then
+        echo "Found test_request.txt file - opt-in working correctly" | tee -a "$TRAINING_LOG"
+        echo "Content of test_request.txt:" | tee -a "$TRAINING_LOG"
+        cat /tmp/test_request.txt | tee -a "$TRAINING_LOG"
+        return 0
+    else
+        echo "Error: test_request.txt file not found - opt-in failed" | tee -a "$TRAINING_LOG"
+        return 1
+    fi
+}
+
+check_opt_out_results() {
+    echo "Checking opt-out telemetry..." | tee -a "$TRAINING_LOG"
+    sleep 30
+    if [ ! -f /tmp/test_request.txt ]; then
+        echo "No test_request.txt file found - opt-out working correctly" | tee -a "$TRAINING_LOG"
+        return 0
+    else
+        echo "Error: test_request.txt file found - opt-out failed" | tee -a "$TRAINING_LOG"
+        return 1
+    fi
+}
+
+# Check if parameter is provided
+if [ $# -lt 1 ]; then
+    echo "Error: No parameter provided"
+    echo "Usage: $0 <call_type> [opt_in|opt_out]"
+    echo "Note: bashrc and entrypoint require opt_in or opt_out parameter"
+    echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+    echo "Optional test_type: opt_in, opt_out"
+    exit 1
+fi
+
+CALL_TYPE=$1
+echo "Call type: $CALL_TYPE" | tee -a $TRAINING_LOG
+
+echo "Verify tensorflow telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+
+case $CALL_TYPE in
+    bashrc | entrypoint)
+        # Check if opt_in or opt_out parameter is provided
+        if [ $# -lt 2 ]; then
+            echo "Error: $CALL_TYPE requires opt_in or opt_out parameter"
+            echo "Usage: $0 $CALL_TYPE <opt_in|opt_out>"
+            exit 1
+        fi
+
+        TEST_TYPE=$2
+
+        echo "Test type: $TEST_TYPE" | tee -a $TRAINING_LOG
+
+        case "$TEST_TYPE" in
+            "opt_in")
+                echo "Test ${CALL_TYPE} telemetry opt_in" | tee -a $TRAINING_LOG
+                check_opt_in_results || exit 1
+                ;;
+            "opt_out")
+                echo "Test ${CALL_TYPE} telemetry opt_out" | tee -a $TRAINING_LOG
+                check_opt_out_results || exit 1
+                ;;
+            *)
+                echo "Error: Invalid test type. Must be 'opt_in' or 'opt_out'"
+                exit 1
+                ;;
+        esac
+        ;;
+    sitecustomize)
+        python ${BIN_DIR}/testTelemetry.py --test-cmd "import os" 2>&1 | tee $TRAINING_LOG
+        verify_test_results "$TRAINING_LOG" || exit 1
+        ;;
+    framework)
+        python ${BIN_DIR}/testTelemetry.py --test-cmd "import ${FRAMEWORK}" 2>&1 | tee $TRAINING_LOG
+        verify_test_results "$TRAINING_LOG" || exit 1
+        ;;
+    *)
+        echo "Error: Invalid parameter provided"
+        echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+        exit 1
+        ;;
+esac
+
+cat $TRAINING_LOG
+
+exit 0
+

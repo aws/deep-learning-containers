@@ -18,6 +18,16 @@ import subprocess
 import sys
 import tensorflow as tf
 
+try:
+    subprocess.call(
+        ["/bin/bash", "/usr/local/bin/bash_telemetry.sh"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+except:
+    pass
+
+
 if tf.test.is_built_with_cuda():
     # run compat mounting by default
     try:
