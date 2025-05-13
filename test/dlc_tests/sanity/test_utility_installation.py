@@ -3,6 +3,7 @@ from packaging.specifiers import SpecifierSet
 
 import pytest
 import re
+import time
 
 from invoke.context import Context
 
@@ -146,6 +147,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
+            time.sleep(10)
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
