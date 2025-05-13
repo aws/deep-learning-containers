@@ -133,6 +133,7 @@ instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functi
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                             |
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------------------|
+| PyTorch 2.7.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-arm64:2.7.0-gpu-py312-cu128-ubuntu22.04-ec2		     |
 | PyTorch 2.6.0     |inference	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-cpu-py312-ubuntu22.04-ec2		     |
 | PyTorch 2.6.0     |inference	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-gpu-py312-cu124-ubuntu22.04-ec2		     |
 | TensorFlow 2.18.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-arm64:2.18.0-cpu-py310-ubuntu20.04-ec2		 |
