@@ -687,10 +687,12 @@ def test_pip_check(image):
                 r"openxlab \d+\.\d+\.\d+ has requirement setuptools~=\d+\.\d+\.\d+, but you have setuptools .*",
             ]
         )
+    print(allowed_exceptions)
 
     # Add null entrypoint to ensure command exits immediately
     ctx = Context()
     output = ctx.run(f"docker run --entrypoint='' {image} pip check", hide=True, warn=True)
+    print(output)
     if output.return_code != 0:
         if not (
             any(
