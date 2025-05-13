@@ -179,22 +179,16 @@ def test_pytorch_utility_packages_using_import(pytorch_training):
     test_utils.start_container(container_name, pytorch_training, ctx)
     packages_to_import = PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT.copy()
 
-    import_failed = False
-    list_of_packages = []
-    for package in packages_to_import:
-        try:
-            test_utils.run_cmd_on_container(
-                container_name,
-                ctx,
-                f"import {package}",
-                executable="python",
-            )
-        except Exception as e:
-            import_failed = True
-            list_of_packages.append(package)
+    pip_list_output = test_utils.run_cmd_on_container(container_name, ctx, f"pip list").stdout
 
-    if import_failed:
-        raise ImportError(f"Import failed for PyTorch packages: {list_of_packages}")
+    missing_packages = []
+    for package in packages_to_import:
+        package_pattern = re.compile(rf"{package}\s+\S+", re.IGNORECASE)
+        if not package_pattern.search(pip_list_output):
+            missing_packages.append(package)
+
+    if missing_packages:
+        raise ImportError(f"The following packages are missing from pip list: {missing_packages}")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
