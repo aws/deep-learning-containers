@@ -1239,6 +1239,14 @@ def execute_ec2_training_test(
 
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
+
+    print(
+        f"docker run {docker_runtime} --name {container_name} "
+        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
+        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
+        f"{habana_container_test_repo} {shm_setting} {neuron_device} {gdr_device} -itd {bin_bash_cmd}{ecr_uri}"
+    )
+
     connection.run(
         f"docker run {docker_runtime} --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
@@ -1511,11 +1519,15 @@ def ec2_performance_upload_result_to_s3_and_validate(
     unit = (
         "s"
         if work_type == "inference" and framework == "tensorflow"
-        else "ms"
-        if work_type == "inference" and framework == "pytorch"
-        else "s/epoch"
-        if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
-        else "images/sec"
+        else (
+            "ms"
+            if work_type == "inference" and framework == "pytorch"
+            else (
+                "s/epoch"
+                if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
+                else "images/sec"
+            )
+        )
     )
     description = "p99 latency " if unit == "s" or unit == "ms" else ""
     for k, v in performance_number.items():

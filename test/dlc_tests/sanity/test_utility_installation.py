@@ -20,6 +20,10 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 ]
 
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
+    "torch",
+    "torchvision",
+    "torchdata",
+    "torchaudio",
     "PIL",
     "boto3",
     "awscli",
@@ -33,13 +37,6 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "click",
     "psutil",
     "cv2",
-]
-
-PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
-    "torch",
-    "torchvision",
-    "torchdata",
-    "torchaudio",
 ]
 
 
@@ -161,34 +158,6 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
 
     if import_failed:
         raise ImportError(f"Import failed for packages: {list_of_packages}")
-
-
-@pytest.mark.model("N/A")
-@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
-@pytest.mark.integration("pytorch training packages")
-def test_pytorch_utility_packages_using_import(pytorch_training):
-    """
-    Verify that pytorch packages are installed in the Training DLC image
-    :param pytorch_training: training ECR image URI
-    """
-
-    ctx = Context()
-    container_name = test_utils.get_container_name(
-        "pytorch_utility_packages_using_import", pytorch_training
-    )
-    test_utils.start_container(container_name, pytorch_training, ctx)
-    packages_to_import = PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT.copy()
-
-    pip_list_output = test_utils.run_cmd_on_container(container_name, ctx, f"pip list").stdout
-
-    missing_packages = []
-    for package in packages_to_import:
-        package_pattern = re.compile(rf"{package}\s+\S+", re.IGNORECASE)
-        if not package_pattern.search(pip_list_output):
-            missing_packages.append(package)
-
-    if missing_packages:
-        raise ImportError(f"The following packages are missing from pip list: {missing_packages}")
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
