@@ -11,7 +11,11 @@ from test.test_utils import (
     LOGGER,
     is_tf_version,
 )
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type, execute_ec2_telemetry_test
+from test.test_utils.ec2 import (
+    execute_ec2_training_test,
+    get_ec2_instance_type,
+    execute_ec2_telemetry_test,
+)
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")

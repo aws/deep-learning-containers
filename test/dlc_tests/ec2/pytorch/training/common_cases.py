@@ -30,8 +30,7 @@ PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testT
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
-PT_TELEMETRY_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "testTelemetry")
+PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTelemetry")
 PT_COMMON_GLOO_MPI_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi")
 PT_COMMON_NCCL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -149,7 +148,7 @@ def pytorch_training_dgl(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_telemetry_entrypoint_cpu(pytorch_training, ec2_connection):
+def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
     """
     Test Telemetry
     """
@@ -169,12 +168,6 @@ def pytorch_telemetry_entrypoint_cpu(pytorch_training, ec2_connection):
         PT_TELEMETRY_CMD,
         opt_in=False,
     )
-
-
-def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
-    """
-    Test Telemetry
-    """
     execute_ec2_telemetry_test(
         ec2_connection,
         pytorch_training,
@@ -191,32 +184,21 @@ def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
         PT_TELEMETRY_CMD,
         opt_in=False,
     )
-
-
-def pytorch_telemetry_framework_cpu(pytorch_training, ec2_connection):
-    """
-    Test Telemetry
-    """
-    execute_ec2_telemetry_test(
-        ec2_connection,
-        pytorch_training,
-        "framework",
-        "pytorch_tr_telemetry",
-        test_cmd=PT_TELEMETRY_CMD,
-    )
-
-
-def pytorch_telemetry_sitecustomize_cpu(pytorch_training, ec2_connection):
-    """
-    Test Telemetry
-    """
     execute_ec2_telemetry_test(
         ec2_connection,
         pytorch_training,
         "sitecustomize",
         "pytorch_tr_telemetry",
-        test_cmd=PT_TELEMETRY_CMD,
+        PT_TELEMETRY_CMD,
     )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "framework",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+    )
+    
 
 
 def pytorch_telemetry_gpu(pytorch_training, ec2_connection):
