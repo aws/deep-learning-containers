@@ -86,6 +86,10 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     try:
         run("kubectl create -f {}".format(yaml_path))
 
+        output = run("kubectl logs {}".format(pod_name)).stdout
+
+        print("KUBECTL LOGS", output)
+
         if eks_utils.is_eks_training_complete(pod_name):
             pytorch_out = run("kubectl logs {}".format(pod_name)).stdout
             if "Accuracy" in pytorch_out:

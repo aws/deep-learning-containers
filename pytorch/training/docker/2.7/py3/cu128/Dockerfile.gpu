@@ -384,13 +384,7 @@ ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 
-# # SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu126/smprof-0.3.341-cp312-cp312-linux_x86_64.whl
-
 WORKDIR /
-
-# # Install SageMaker Profiler Binary
-RUN pip install --no-cache-dir -U ${SMP_URL}
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U --index-url https://download.pytorch.org/whl/cu128 \
