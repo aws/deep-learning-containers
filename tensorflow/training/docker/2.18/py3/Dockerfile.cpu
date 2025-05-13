@@ -166,7 +166,7 @@ ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/de
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
-COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
+# COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
 
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 RUN chmod +x /usr/local/bin/bash_telemetry.sh

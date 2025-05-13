@@ -251,13 +251,13 @@ def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only,
         "tensorflow_tr_telemetry",
         TF_TELEMETRY_CMD,
     )
-    execute_ec2_telemetry_test(
-        ec2_connection,
-        tensorflow_training,
-        "sitecustomize",
-        "tensorflow_tr_telemetry",
-        TF_TELEMETRY_CMD,
-    )
+    # execute_ec2_telemetry_test(
+    #     ec2_connection,
+    #     tensorflow_training,
+    #     "sitecustomize",
+    #     "tensorflow_tr_telemetry",
+    #     TF_TELEMETRY_CMD,
+    # )
 
 
 # Testing Telemetry Script on only one CPU instance
@@ -307,13 +307,13 @@ def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only)
         "tensorflow_tr_telemetry",
         TF_TELEMETRY_CMD,
     )
-    execute_ec2_telemetry_test(
-        ec2_connection,
-        tensorflow_training,
-        "sitecustomize",
-        "tensorflow_tr_telemetry",
-        TF_TELEMETRY_CMD,
-    )
+    # execute_ec2_telemetry_test(
+    #     ec2_connection,
+    #     tensorflow_training,
+    #     "sitecustomize",
+    #     "tensorflow_tr_telemetry",
+    #     TF_TELEMETRY_CMD,
+    # )
 
 
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
