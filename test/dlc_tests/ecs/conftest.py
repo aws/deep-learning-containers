@@ -160,7 +160,7 @@ def ecs_container_instance(
     }
     if use_large_storage:
         params["BlockDeviceMappings"] = [
-            {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 300, "VolumeType": "gp2"}}
+            {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 150, "VolumeType": "gp2"}}
         ]
 
     reservations = ec2_utils.get_available_reservations(
