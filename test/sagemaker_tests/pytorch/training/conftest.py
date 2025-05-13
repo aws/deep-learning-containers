@@ -415,6 +415,7 @@ def skip_smdebug_v1_test(
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6": ["cpu", "cu126"],
+        ">=2.7": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
