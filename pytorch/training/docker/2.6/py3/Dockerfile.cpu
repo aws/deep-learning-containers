@@ -268,7 +268,7 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-ENTRYPOINT [ "bash", "-c", "/usr/local/bin/bash_telemetry.sh; exec \"$@\""]
+ENTRYPOINT [ "bash", "-c", "/usr/local/bin/bash_telemetry.sh; exec \"$@\"", "--"]
 # Starts framework
 CMD ["/bin/bash"]
 
