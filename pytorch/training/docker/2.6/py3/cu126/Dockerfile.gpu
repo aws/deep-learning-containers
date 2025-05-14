@@ -294,7 +294,8 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    triton \
+    # https://github.com/unslothai/unsloth/issues/2403
+    "triton==3.2.0" \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
@@ -402,7 +403,8 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    triton \
+    # https://github.com/unslothai/unsloth/issues/2403
+    "triton==3.2.0" \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
