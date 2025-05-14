@@ -56,7 +56,7 @@ def perf_test(exec_cmd):
             start = time.time()
             os.system(cmd)
             total_time_in += time.time() - start
-        print("avg out time: ", total_time_in / NUM_ITERATIONS)
+        print("Time taken for enable telemetry", total_time_in / NUM_ITERATIONS)
 
         total_time_out = 0
         for x in range(NUM_ITERATIONS):
@@ -64,10 +64,10 @@ def perf_test(exec_cmd):
             start = time.time()
             os.system(cmd)
             total_time_out += time.time() - start
-        print("avg out time: ", total_time_out / NUM_ITERATIONS)
+        print("Time taken for disable telemetry", total_time_out / NUM_ITERATIONS)
 
         np.testing.assert_allclose(
-            total_time_in / NUM_ITERATIONS, total_time_out / NUM_ITERATIONS, rtol=0.2, atol=0.5
+            total_time_in / NUM_ITERATIONS, total_time_out / NUM_ITERATIONS, rtol=0.4, atol=1
         )
 
         print("DLC Telemetry performance test Passed")

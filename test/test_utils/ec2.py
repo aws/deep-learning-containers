@@ -1239,14 +1239,6 @@ def execute_ec2_training_test(
 
     LOGGER.info(f"execute_ec2_training_test pulling {ecr_uri}, with cmd {test_cmd}")
     connection.run(f"docker pull {ecr_uri}", hide="out")
-
-    print(
-        f"docker run {docker_runtime} --name {container_name} "
-        f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
-        f"{ipc} {network}-v {container_test_local_dir}:{os.path.join(os.sep, 'test')} "
-        f"{habana_container_test_repo} {shm_setting} {neuron_device} {gdr_device} -itd {bin_bash_cmd}{ecr_uri}"
-    )
-
     connection.run(
         f"docker run {docker_runtime} --name {container_name} "
         f"{container_runtime} {ompi_mca_btl} {cap_add} {hpu_env_vars} "
