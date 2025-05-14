@@ -1,14 +1,29 @@
 import os
+import sys
+import subprocess
+from pathlib import Path
+
+TRACKING_SCRIPT = "/usr/local/bin/deep_learning_container.py"
 
 try:
-    if os.path.exists("/usr/local/bin/deep_learning_container.py") and (
-        os.getenv("OPT_OUT_TRACKING") is None or os.getenv("OPT_OUT_TRACKING", "").lower() != "true"
-    ):
-        import threading
-
-        cmd = "python /usr/local/bin/deep_learning_container.py --framework {FRAMEWORK} --framework-version {FRAMEWORK_VERSION} --container-type {CONTAINER_TYPE} &>/dev/null"
-        x = threading.Thread(target=lambda: os.system(cmd))
-        x.setDaemon(True)
-        x.start()
-except Exception:
+    if (Path(TRACKING_SCRIPT).is_file() and 
+        not os.getenv("OPT_OUT_TRACKING", "").lower() == "true"):
+        
+        subprocess.Popen(
+            [
+                sys.executable,
+                TRACKING_SCRIPT,
+                "--framework",
+                "{FRAMEWORK}",
+                "--framework-version",
+                "{FRAMEWORK_VERSION}",
+                "--container-type",
+                "{CONTAINER_TYPE}",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,  # Detaches process completely
+            env=os.environ.copy()    # Ensures environment variables are passed
+        )
+except:
     pass

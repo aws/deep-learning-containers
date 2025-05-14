@@ -57,6 +57,8 @@ ARG NCCL_VERSION=2.23.4-1+cuda12.5
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
+
 ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
@@ -374,6 +376,7 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # remove tmp files
 RUN rm -rf /tmp/*
 
+COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh

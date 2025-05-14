@@ -50,6 +50,8 @@ ARG OMPI_VERSION=4.1.7
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
+
 ENV PIP=${PIP}
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -290,6 +292,8 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # remove tmp files
 RUN rm -rf /tmp/*
+
+COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
