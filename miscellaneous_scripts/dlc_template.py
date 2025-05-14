@@ -7,7 +7,6 @@ TRACKING_SCRIPT = "/usr/local/bin/deep_learning_container.py"
 
 try:
     if Path(TRACKING_SCRIPT).is_file() and not os.getenv("OPT_OUT_TRACKING", "").lower() == "true":
-
         subprocess.Popen(
             [
                 sys.executable,

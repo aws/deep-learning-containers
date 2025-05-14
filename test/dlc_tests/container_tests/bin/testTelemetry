@@ -2,7 +2,7 @@
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-TRAINING_LOG=${LOG_DIR}/tensorflow_telemetry_test.log
+TRAINING_LOG=${LOG_DIR}/telemetry_test.log
 set -e
 
 mkdir -p ${LOG_DIR}
