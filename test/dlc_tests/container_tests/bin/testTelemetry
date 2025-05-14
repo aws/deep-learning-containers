@@ -113,7 +113,6 @@ case $CALL_TYPE in
         ;;
 esac
 
-cat $TRAINING_LOG
 
 exit 0
 

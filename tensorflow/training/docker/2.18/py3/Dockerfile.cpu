@@ -212,7 +212,7 @@ RUN HOME_DIR=/root \
 # remove tmp files
 RUN rm -rf /tmp/*
 
-ENTRYPOINT [ "bash", "-c", "/usr/local/bin/bash_telemetry.sh; exec \"$@\"", "--"]
+ENTRYPOINT [ "bash", "-m", "/usr/local/bin/bash_telemetry.sh" ]
 CMD ["/bin/bash"]
 
 #################################################################
@@ -307,5 +307,5 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-ENTRYPOINT [ "bash", "-c", "/usr/local/bin/bash_telemetry.sh; exec \"$@\"", "--"]
+ENTRYPOINT [ "bash", "-m", "/usr/local/bin/bash_telemetry.sh" ]
 CMD ["/bin/bash"]
