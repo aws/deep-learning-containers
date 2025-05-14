@@ -35,7 +35,9 @@ def test_pytorch_2_6_gpu(
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_entrypoint_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_bashrc_gpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_framework_gpu, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
@@ -125,7 +127,9 @@ def test_pytorch_2_6_cpu(pytorch_training___2__6, ec2_connection, cpu_only):
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_entrypoint_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_bashrc_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_framework_cpu, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
