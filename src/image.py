@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 from datetime import datetime
 
 from docker import APIClient
@@ -115,11 +116,16 @@ class DockerImage:
             "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'",
             "apt list --installed",
         ]
+
         for command in commands:
-            command_responses.append(f"\n{command}")
-            command_responses.append(
-                bytes.decode(docker_client.containers.run(self.ecr_url, command))
-            )
+            try:
+                command_responses.append(f"\n{command}")
+                command_responses.append(
+                    bytes.decode(docker_client.containers.run(self.ecr_url, command))
+                )
+            except Exception as e:
+                command_responses.append(f"\n{command}", f"Failed to execute: {str(e)}")
+
         docker_client.containers.prune()
         return command_responses
 
