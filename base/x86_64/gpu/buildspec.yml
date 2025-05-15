@@ -34,15 +34,15 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
     install_python:
-      source: /build_scripts/install_python.sh
+      source: build_scripts/install_python.sh
       target: install_python.sh
     install_cuda:
-      source: /build_scripts/install_cuda.sh
+      source: build_scripts/install_cuda.sh
       target: install_cuda.sh
     install_efa:
-      source: /build_scripts/install_efa.sh
+      source: build_scripts/install_efa.sh
       target: install_efa.sh
-      
+
 images:
   base_x86_64_gpu_cuda128:
     <<: *BASE_REPOSITORY
