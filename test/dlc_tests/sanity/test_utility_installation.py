@@ -160,6 +160,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
             duration = (end_time - start_time).total_seconds()
             test_utils.LOGGER.info(f"Package {package} import time: {duration:.2f} seconds")
         except Exception as e:
+            test_utils.LOGGER.info(f"Exception {e}")
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
             test_utils.LOGGER.info(
