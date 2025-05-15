@@ -218,9 +218,6 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
-# S3 Transfer bucket region
-TEST_TRANSFER_S3_BUCKET_REGION = "us-west-2"
-
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
@@ -2164,7 +2161,7 @@ def run_cmd_on_container(
     executable="bash",
     warn=False,
     hide=True,
-    timeout=60,
+    timeout=100,
     asynchronous=False,
 ):
     """
@@ -2187,7 +2184,7 @@ def run_cmd_on_container(
         )
     return context.run(
         f"docker exec --user root {container_name} {executable} -c '{cmd}'",
-        hide=False,
+        hide=hide,
         warn=warn,
         timeout=timeout,
         asynchronous=asynchronous,
