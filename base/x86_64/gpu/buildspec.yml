@@ -50,6 +50,7 @@ images:
     image_size_baseline: 9000
     device_type: &DEVICE_TYPE gpu
     cuda_version: &CUDA_VERSION cu128
+    python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu24.04
     tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
