@@ -4,6 +4,7 @@ from packaging.specifiers import SpecifierSet
 import pytest
 import re
 import time
+import os
 
 from invoke.context import Context
 
@@ -122,6 +123,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     Verify that common utility packages are installed in the Training DLC image
     :param pytorch_training: training ECR image URI
     """
+    os.environ["OPT_OUT_TRACKING"] = "true"
 
     ctx = Context()
     container_name = test_utils.get_container_name(
