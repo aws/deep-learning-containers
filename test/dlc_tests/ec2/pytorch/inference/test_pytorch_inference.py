@@ -478,27 +478,6 @@ def test_pytorch_inference_telemetry_framework_gpu(
     )
 
 
-# @pytest.mark.usefixtures("sagemaker", "stabilityai")
-# @pytest.mark.integration("telemetry")
-# @pytest.mark.model("N/A")
-# @pytest.mark.parametrize("ec2_instance_type", PT_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-# @pytest.mark.team("conda")
-# def test_pytorch_inference_telemetry_sitecustomize_gpu(
-#     pytorch_inference, ec2_connection, gpu_only, ec2_instance_type, pt15_and_above_only
-# ):
-#     if test_utils.is_image_incompatible_with_instance_type(pytorch_inference, ec2_instance_type):
-#         pytest.skip(
-#             f"Image {pytorch_inference} is incompatible with instance type {ec2_instance_type}"
-#         )
-#     execute_ec2_telemetry_test(
-#         ec2_connection,
-#         pytorch_inference,
-#         "sitecustomize",
-#         "pytorch_inf_telemetry",
-#         test_cmd=PT_TELEMETRY_CMD,
-#     )
-
-
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -549,23 +528,6 @@ def test_pytorch_inference_telemetry_bashrc_cpu(
         test_cmd=PT_TELEMETRY_CMD,
         opt_in=True,
     )
-
-
-# @pytest.mark.usefixtures("sagemaker")
-# @pytest.mark.integration("telemetry")
-# @pytest.mark.model("N/A")
-# @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-# @pytest.mark.team("conda")
-# def test_pytorch_inference_telemetry_sitecustomize_cpu(
-#     pytorch_inference, ec2_connection, cpu_only, pt15_and_above_only
-# ):
-#     execute_ec2_telemetry_test(
-#         ec2_connection,
-#         pytorch_inference,
-#         "sitecustomize",
-#         "pytorch_inf_telemetry",
-#         test_cmd=PT_TELEMETRY_CMD,
-#     )
 
 
 @pytest.mark.usefixtures("sagemaker")

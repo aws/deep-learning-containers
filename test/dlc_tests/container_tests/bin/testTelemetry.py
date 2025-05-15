@@ -86,7 +86,7 @@ def main():
         "--test-cmd",
         type=str,
         required=True,
-        help='The Python command to test',
+        help="The Python command to test",
     )
     args = parser.parse_args()
 

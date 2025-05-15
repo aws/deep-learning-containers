@@ -1018,15 +1018,11 @@ def skip_telemery_entrypoint_test(request):
     else:
         return
     image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
-    skip_dict = {
-        "pytorch": ["2.4.0", "2.5.1"],
-        "tensorflow": []
-    }
+    skip_dict = {"pytorch": ["2.4.0", "2.5.1"], "tensorflow": []}
     if image_framework in skip_dict and image_framework_version in skip_dict[image_framework]:
-            pytest.skip(
-                f"Telemetry entrypoint test is not supported for {image_framework} version {image_framework_version}"
-            )
-    
+        pytest.skip(
+            f"Telemetry entrypoint test is not supported for {image_framework} version {image_framework_version}"
+        )
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
