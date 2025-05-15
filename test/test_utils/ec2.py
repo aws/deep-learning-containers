@@ -1371,7 +1371,7 @@ def execute_ec2_telemetry_test(
                 f"docker run {docker_runtime} --name {container_name} "
                 f"-e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
                 # add exit $? for inference container will not exit
-                f"'{test_cmd}; exit $?'",
+                f"'{test_cmd}'",
                 hide=True,
                 timeout=timeout,
             )
