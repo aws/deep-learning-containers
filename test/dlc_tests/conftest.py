@@ -1001,6 +1001,11 @@ def skip_serialized_release_pt_test(request):
         )
 
 
+@pytest.fixture(autouse=True)
+def skip_telemery_entrypoint_test(request):
+    pass
+
+
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
     """
     Expected format of skip_dic:
