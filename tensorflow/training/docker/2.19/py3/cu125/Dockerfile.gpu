@@ -1,4 +1,4 @@
-ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow-2.19.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow-2.19.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 FROM nvidia/cuda:12.5.1-base-ubuntu22.04 AS base_image
 
@@ -37,9 +37,9 @@ ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PYTHON=python3.12
+ARG PYTHON=python3.10
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.12.10
+ARG PYTHON_VERSION=3.10.14
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
@@ -57,7 +57,6 @@ ARG NCCL_VERSION=2.23.4-1+cuda12.5
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
-ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
 
 ENV PIP=${PIP}
 

@@ -1,4 +1,4 @@
-ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow_cpu-2.19.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow_cpu-2.19.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 FROM ubuntu:22.04 AS base_image
 
@@ -40,8 +40,8 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-ARG PYTHON=python3.12
-ARG PYTHON_VERSION=3.12.10
+ARG PYTHON=python3.10
+ARG PYTHON_VERSION=3.10.14
 
 ARG PIP=pip3
 
@@ -50,7 +50,6 @@ ARG OMPI_VERSION=4.1.7
 # To be passed to ec2 and sagemaker stages
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=${PYTHON_VERSION}
-ENV PYTHON_SHORT_VERSION=${PYTHON_SHORT_VERSION}
 
 ENV PIP=${PIP}
 
