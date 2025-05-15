@@ -43,6 +43,8 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "cv2",
 ]
 
+TIMEOUT_IMPORT_TEST = 500
+
 
 # TODO: Need to be added to all DLC images in furture.
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -155,6 +157,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
                 ctx,
                 f"import {package}; print({package}.__version__)",
                 executable="python",
+                timeout=TIMEOUT_IMPORT_TEST,
             )
             end_time = datetime.now()
             duration = (end_time - start_time).total_seconds()
