@@ -7,6 +7,7 @@ import time
 import os
 
 from invoke.context import Context
+from invoke import run
 
 from test import test_utils
 
@@ -123,9 +124,6 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     Verify that common utility packages are installed in the Training DLC image
     :param pytorch_training: training ECR image URI
     """
-    os.environ["OPT_OUT_TRACKING"] = "true"
-
-    ctx = Context()
     container_name = test_utils.get_container_name(
         "common_pytorch_utility_packages_using_import", pytorch_training
     )
@@ -149,13 +147,16 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
-            time.sleep(10)
-            test_utils.run_cmd_on_container(
-                container_name,
-                ctx,
-                f"import {package}; print({package}.__version__)",
-                executable="python",
+            run_output = run(
+                f"docker exec --user root 'import {package}; print({package}.__version__)'",
+                hide=True,
             )
+            if not run_output.ok:
+                test_utils.LOGGER.info(
+                    f"Stdout is {run_output.stdout} \n"
+                    f"Stderr is {run_output.stderr} \n"
+                    f"Failed status is {run_output.exited}"
+                )
         except Exception as e:
             import_failed = True
             list_of_packages.append(package)
