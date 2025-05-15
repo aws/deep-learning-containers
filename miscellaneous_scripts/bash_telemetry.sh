@@ -10,4 +10,4 @@ if [ -f /usr/local/bin/deep_learning_container.py ] && [ -z "${OPT_OUT_TRACKING}
     )
 fi
 
-eval "$@"
+eval '"$@"'
