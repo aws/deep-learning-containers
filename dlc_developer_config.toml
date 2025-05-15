@@ -41,8 +41,8 @@ build_frameworks = ["tensorflow"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
-build_inference = false
+build_training = false
+build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -105,7 +105,7 @@ use_scheduler = false
 
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
-dlc-pr-tensorflow-2-training = "tensorflow/training/buildspec-2-18-sm.yml"
+dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # ARM64 Training
@@ -135,7 +135,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = ""
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-sm.yml"
 dlc-pr-autogluon-inference = ""
 
 # Graviton Inference
