@@ -36,6 +36,7 @@ from test.test_utils import (
     are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
+    UL_AMI_LIST,
 )
 from . import DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 
@@ -244,6 +245,7 @@ def launch_instance(
         raise Exception("Ec2 Key name must be provided")
     client = boto3.Session(region_name=region).client("ec2")
     LOGGER.info(f"Using AMI ID: {ami_id}")
+    volume_name = "/dev/sda1" if ami_id in UL_AMI_LIST else "/dev/nvme0n1"
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
@@ -265,7 +267,7 @@ def launch_instance(
         },
         "BlockDeviceMappings": [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "VolumeSize": 150,
                 },
