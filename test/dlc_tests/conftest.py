@@ -383,7 +383,7 @@ def efa_ec2_instances(
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
-    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/nvme0n1p1"
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     instance_name_prefix = f"CI-CD {ec2_key_name}"
     ec2_run_instances_definition = {
@@ -592,7 +592,7 @@ def ec2_instance(
         "MinCount": 1,
     }
 
-    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/nvme0n1p1"
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     if (
         "pytorch_training_habana" in request.fixturenames
