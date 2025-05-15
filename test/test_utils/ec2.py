@@ -245,7 +245,7 @@ def launch_instance(
         raise Exception("Ec2 Key name must be provided")
     client = boto3.Session(region_name=region).client("ec2")
     LOGGER.info(f"Using AMI ID: {ami_id}")
-    volume_name = "/dev/sda1" if ami_id in UL_AMI_LIST else "/dev/nvme0n1"
+    volume_name = "/dev/sda1" if ami_id in UL_AMI_LIST else "/dev/nvme0n1p1"
 
     # Construct the dictionary with the arguments for API call
     arguments_dict = {
