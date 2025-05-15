@@ -1,0 +1,107 @@
+ARG BASE_IMAGE="nvidia/cuda:12.8.1-base-ubuntu24.04"
+ARG PYTHON_VERSION="3.12.10"
+ARG PYTHON_SHORT_VERSION="3.12"
+ARG CUDA_MAJOR="12"
+ARG CUDA_MINOR="8"
+ARG EFA_VERSION="1.40.0"
+
+FROM ${BASE_IMAGE} AS base-builder
+
+RUN apt-get update \
+    && apt-get -y upgrade --only-upgrade systemd \
+    && apt-get install -y --allow-change-held-packages --no-install-recommends \
+        automake \
+        build-essential \
+        ca-certificates \
+        cmake \
+        curl \
+        emacs \
+        git \
+        jq \
+        libcurl4-openssl-dev \
+        libglib2.0-0 \
+        libgl1-mesa-glx \
+        libsm6 \
+        libssl-dev \
+        libxext6 \
+        libxrender-dev \
+        zlib1g-dev \
+        unzip \
+        vim \
+        wget \
+        libhwloc-dev \
+        libgomp1 \
+        libibverbs-dev \
+        libnuma1 \
+        libnuma-dev \
+        libtool \
+        openssl \
+        python3-dev \
+        autoconf \
+        pkg-config \
+        check \
+        libsubunit0 \
+        libsubunit-dev \
+        libffi-dev \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+##############################################################################
+FROM base-builder AS python-builder
+ARG PYTHON_VERSION
+COPY install_python.sh install_python.sh
+RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
+
+##############################################################################
+FROM base-builder AS cuda-builder
+ARG CUDA_MAJOR
+ARG CUDA_MINOR
+COPY install_cuda.sh install_cuda.sh
+RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" && rm install_cuda.sh
+
+##############################################################################
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE} AS final 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+ARG PYTHON_SHORT_VERSION
+ARG CUDA_MAJOR
+ARG CUDA_MINOR
+ARG EFA_VERSION
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DLC_CONTAINER_TYPE=base \
+    # Python won’t try to write .pyc or .pyo files on the import of source modules
+    # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    CUDA_HOME="/usr/local/cuda" \
+    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
+    LD_LIBRARY_PATH="/usr/local/lib:/usr/local/cuda/lib64:/opt/amazon/ofi-nccl/lib:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:${LD_LIBRARY_PATH}"
+
+WORKDIR /
+
+# + python and pip packages (awscli, boto3, requests)
+COPY --from=python-builder /usr/local/lib/python${PYTHON_SHORT_VERSION} /usr/local/lib/python${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/include/python${PYTHON_SHORT_VERSION} /usr/local/include/python${PYTHON_SHORT_VERSION}
+COPY --from=python-builder /usr/local/bin /usr/local/bin
+# + cuda-toolkit, cudnn, nccl
+COPY --from=cuda-builder /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR} /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR}
+COPY install_efa.sh install_efa.sh 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh && \
+    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
+    chmod +x /usr/local/bin/deep_learning_container.py && \
+    bash install_efa.sh ${EFA_VERSION} && \
+    rm install_efa.sh && \
+    rm -rf /root/.cache | true
+
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+CMD ["/bin/bash"]

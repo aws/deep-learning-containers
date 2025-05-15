@@ -86,6 +86,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     """
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
+    print(f"BUILDSPEC: {BUILDSPEC}")
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
@@ -238,14 +239,17 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 }
             }
         )
-        # job_type will be either inference or training, based on the repo URI
+        # Determine job_type (inference, training, or base) based on the image repository URI.
+        # This is used to set the job_type label on the container image.
         if "training" in image_repo_uri:
             label_job_type = "training"
         elif "inference" in image_repo_uri:
             label_job_type = "inference"
+        elif "base" in image_repo_uri:
+            label_job_type = "base"
         else:
             raise RuntimeError(
-                f"Cannot find inference or training job type in {image_repo_uri}. "
+                f"Cannot find inference, training or base job type in {image_repo_uri}. "
                 f"This is required to set job_type label."
             )
 

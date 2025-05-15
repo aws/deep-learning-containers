@@ -1,0 +1,60 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK base
+version: &VERSION 12.8.1
+short_version: &SHORT_VERSION "12.8"
+arch_type: &ARCH_TYPE x86_64
+autopatch_build: "False"
+
+repository_info:
+  base_repository: &BASE_REPOSITORY
+    image_type: &IMAGE_TYPE gpu
+    root: !join [ *FRAMEWORK, "/", *ARCH_TYPE ]
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  base_context: &BASE_CONTEXT
+    changehostname:
+      source: build_artifacts/changehostname.c
+      target: changehostname.c
+    start_with_right_hostname:
+      source: build_artifacts/start_with_right_hostname.sh
+      target: start_with_right_hostname.sh
+    dockerd_entrypoint:
+      source: build_artifacts/dockerd_entrypoint.sh
+      target: dockerd_entrypoint.sh
+    start_cuda_compat:
+      source: build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+    install_python:
+      source: /build_scripts/install_python.sh
+      target: install_python.sh
+    install_cuda:
+      source: /build_scripts/install_cuda.sh
+      target: install_cuda.sh
+    install_efa:
+      source: /build_scripts/install_efa.sh
+      target: install_efa.sh
+      
+images:
+  base_x86_64_gpu_cuda128:
+    <<: *BASE_REPOSITORY
+    build: true
+    image_size_baseline: 9000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu128
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu24.04
+    tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
+    latest_release_tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
+    docker_file: !join [ *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
+    target: final
+    context:
+      <<: *BASE_CONTEXT
