@@ -50,7 +50,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption("--processor", default="cpu", choices=["cpu", "gpu", "cpu,gpu"])
     parser.addoption(
-        "--py-version", default="3", choices=["2", "3", "2,3", "37", "38", "39", "310", "312"]
+        "--py-version", default="3", choices=["2", "3", "2,3", "37", "38", "39", "310"]
     )
     parser.addoption("--account-id", default="142577830533")
     parser.addoption("--instance-type", default=None)
