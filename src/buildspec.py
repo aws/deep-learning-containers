@@ -146,7 +146,7 @@ class Buildspec:
 
         """
         return self._buildspec[name]
-    
+
     def __repr__(self):
         """
         Returns string representation of the Buildspec object.
@@ -155,4 +155,5 @@ class Buildspec:
         """
         # Use pprint for better readability in logs
         from pprint import pformat
+
         return f"Buildspec({pformat(self._buildspec, compact=True)})"

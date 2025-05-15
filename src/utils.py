@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 import os
 import re
 import json
@@ -281,20 +282,18 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia"
             if "eia" in image_uri
-            else "inference-neuronx"
-            if "neuronx" in image_uri
-            else "inference-neuron"
-            if "neuron" in image_uri
-            else "inference"
+            else (
+                "inference-neuronx"
+                if "neuronx" in image_uri
+                else "inference-neuron" if "neuron" in image_uri else "inference"
+            )
         )
 
     if job_type == "training":
         job_type = (
             "training-neuronx"
             if "neuronx" in image_uri
-            else "training-neuron"
-            if "neuron" in image_uri
-            else "training"
+            else "training-neuron" if "neuron" in image_uri else "training"
         )
 
     if "habana" in image_uri:

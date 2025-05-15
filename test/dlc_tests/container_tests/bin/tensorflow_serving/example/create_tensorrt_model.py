@@ -45,9 +45,11 @@ def run_training(model_save_folder_path=os.path.join("script_folder", "models"))
     ## Please refer to the following link for more details: https://keras.io/guides/migrating_to_keras_3/
     ## https://keras.io/api/models/model_saving_apis/model_saving_and_loading/#save-method
     try:
-        model.export(SAVED_MODEL_DIR) if Version(keras.version()) in SpecifierSet(
-            ">=3"
-        ) else model.save(SAVED_MODEL_DIR)
+        (
+            model.export(SAVED_MODEL_DIR)
+            if Version(keras.version()) in SpecifierSet(">=3")
+            else model.save(SAVED_MODEL_DIR)
+        )
     except AttributeError as e:
         if "module 'keras.api._v2.keras' has no attribute 'version'" == f"{e}":
             model.save(SAVED_MODEL_DIR)

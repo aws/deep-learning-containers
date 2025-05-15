@@ -526,13 +526,15 @@ def _fp32_trainvar_getter(
         shape,
         dtype=storage_dtype,
         trainable=trainable,
-        regularizer=regularizer
-        if trainable
-        and "BatchNorm" not in name
-        and "batchnorm" not in name
-        and "batch_norm" not in name
-        and "Batch_Norm" not in name
-        else None,
+        regularizer=(
+            regularizer
+            if trainable
+            and "BatchNorm" not in name
+            and "batchnorm" not in name
+            and "batch_norm" not in name
+            and "Batch_Norm" not in name
+            else None
+        ),
         *args,
         **kwargs
     )
