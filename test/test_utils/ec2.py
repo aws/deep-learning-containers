@@ -1513,11 +1513,15 @@ def ec2_performance_upload_result_to_s3_and_validate(
     unit = (
         "s"
         if work_type == "inference" and framework == "tensorflow"
-        else "ms"
-        if work_type == "inference" and framework == "pytorch"
-        else "s/epoch"
-        if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
-        else "images/sec"
+        else (
+            "ms"
+            if work_type == "inference" and framework == "pytorch"
+            else (
+                "s/epoch"
+                if work_type == "training" and framework == "pytorch" and data_source == "imagenet"
+                else "images/sec"
+            )
+        )
     )
     description = "p99 latency " if unit == "s" or unit == "ms" else ""
     for k, v in performance_number.items():
