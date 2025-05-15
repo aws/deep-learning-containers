@@ -4,7 +4,6 @@ ARG PYTHON_SHORT_VERSION="3.12"
 ARG CUDA_MAJOR="12"
 ARG CUDA_MINOR="8"
 ARG EFA_VERSION="1.40.0"
-
 FROM ${BASE_IMAGE} AS base-builder
 
 RUN apt-get update \
@@ -20,7 +19,8 @@ RUN apt-get update \
         jq \
         libcurl4-openssl-dev \
         libglib2.0-0 \
-        libgl1-mesa-glx \
+        libegl1 \
+        libgl1 \
         libsm6 \
         libssl-dev \
         libxext6 \
@@ -48,27 +48,30 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ##############################################################################
-FROM base-builder AS python-builder
 ARG PYTHON_VERSION
+FROM base-builder AS python-builder
+
 COPY install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 ##############################################################################
-FROM base-builder AS cuda-builder
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
+FROM base-builder AS cuda-builder
+
 COPY install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" && rm install_cuda.sh
 
 ##############################################################################
 ARG BASE_IMAGE
-FROM ${BASE_IMAGE} AS final 
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
 ARG EFA_VERSION
+FROM ${BASE_IMAGE} AS final 
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
