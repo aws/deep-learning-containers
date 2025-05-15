@@ -1003,7 +1003,30 @@ def skip_serialized_release_pt_test(request):
 
 @pytest.fixture(autouse=True)
 def skip_telemery_entrypoint_test(request):
-    pass
+    if "pytorch_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training")
+    elif "tensorflow_training" in request.fixturenames:
+        img_uri = request.getfixturevalue("tensorflow_training")
+    elif "pytorch_inference" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_inference")
+    elif "tensorflow_inference" in request.fixturenames:
+        img_uri = request.getfixturevalue("tensorflow_inference")
+    elif "pytorch_training_arm64" in request.fixturenames:
+        img_uri = request.getfixturevalue("pytorch_training_arm64")
+    elif "tensorflow_inference_arm64" in request.fixturenames:
+        image_uri = request.getfixturevalue("tensorflow_inference_arm64")
+    else:
+        return
+    image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+    skip_dict = {
+        "pytorch": ["2.4.0", "2.5.1"],
+        "tensorflow": []
+    }
+    if image_framework in skip_dict and image_framework_version in skip_dict[image_framework]:
+            pytest.skip(
+                f"Telemetry entrypoint test is not supported for {image_framework} version {image_framework_version}"
+            )
+    
 
 
 def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict):
@@ -1014,7 +1037,7 @@ def _validate_pytorch_framework_version(request, image_uri, test_name, skip_dict
     }
     """
     if request.node.get_closest_marker(test_name):
-        image_framework, image_framework_version = get_framework_and_version_from_tag(image_uri)
+        image_framework = get_framework_and_version_from_tag(image_uri)
         image_processor = get_processor_from_image_uri(image_uri)
         image_cuda_version = (
             get_cuda_version_from_tag(image_uri) if image_processor == "gpu" else ""

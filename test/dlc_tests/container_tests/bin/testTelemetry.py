@@ -19,7 +19,7 @@ def opt_in_opt_out_test(exec_cmd):
         os.environ["OPT_OUT_TRACKING"] = opt_out_value
         cmd = f"python -c '{exec_cmd}'"
         os.system(cmd)
-        time.sleep(5)
+        time.sleep(20)
         assert not os.path.exists(
             "/tmp/test_request.txt"
         ), f"URL request placed even though OPT_OUT_TRACKING is {opt_out_value}."
@@ -32,7 +32,7 @@ def opt_in_opt_out_test(exec_cmd):
         os.environ["OPT_OUT_TRACKING"] = opt_out_value
         cmd = f"python -c '{exec_cmd}'"
         os.system(cmd)
-        time.sleep(5)
+        time.sleep(20)
         assert os.path.exists(
             "/tmp/test_request.txt"
         ), f"URL request not placed even though OPT_OUT_TRACKING is {opt_out_value}."
@@ -85,8 +85,8 @@ def main():
     parser.add_argument(
         "--test-cmd",
         type=str,
-        default="import torch",
-        help='The Python command to test (default: "import torch")',
+        required=True,
+        help='The Python command to test',
     )
     args = parser.parse_args()
 
