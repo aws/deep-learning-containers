@@ -174,6 +174,8 @@ RUN chmod +x /usr/local/bin/bash_telemetry.sh
 # run in interactive mode
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
+COPY dockerd_ec2_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
 
@@ -212,7 +214,8 @@ RUN HOME_DIR=/root \
 # remove tmp files
 RUN rm -rf /tmp/*
 
-ENTRYPOINT [ "bash", "-m", "/usr/local/bin/bash_telemetry.sh" ]
+
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 #################################################################
@@ -307,5 +310,5 @@ RUN HOME_DIR=/root \
    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
-ENTRYPOINT [ "bash", "-m", "/usr/local/bin/bash_telemetry.sh" ]
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]

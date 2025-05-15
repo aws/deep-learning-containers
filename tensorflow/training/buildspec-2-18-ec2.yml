@@ -22,6 +22,9 @@ context:
     dockerd-entrypoint:
       source: docker/build_artifacts/dockerd-entrypoint.py
       target: dockerd-entrypoint.py
+    dockerd_ec2_entrypoint:
+      source: docker/build_artifacts/dockerd_ec2_entrypoint.py
+      target: dockerd_ec2_entrypoint.py
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
