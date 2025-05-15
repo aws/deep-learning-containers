@@ -1370,7 +1370,8 @@ def execute_ec2_telemetry_test(
             ec2_res = connection.run(
                 f"docker run {docker_runtime} --name {container_name} "
                 f"-e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
-                f"'{test_cmd}'",
+                # add exit $? for inference container will not exit
+                f"'{test_cmd}; exit $?'",
                 hide=True,
                 timeout=timeout,
             )

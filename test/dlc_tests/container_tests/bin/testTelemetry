@@ -68,7 +68,7 @@ fi
 CALL_TYPE=$1
 echo "Call type: $CALL_TYPE" | tee -a $TRAINING_LOG
 
-echo "Verify tensorflow telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+echo "Verify telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
 
 case $CALL_TYPE in
     bashrc | entrypoint)
