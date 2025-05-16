@@ -35,6 +35,7 @@ images:
   base_x86_64_gpu_cuda128:
     <<: *BASE_REPOSITORY
     build: true
+    enable_common_stage_build: false
     image_size_baseline: 11000
     device_type: &DEVICE_TYPE gpu
     cuda_version: &CUDA_VERSION cu128
