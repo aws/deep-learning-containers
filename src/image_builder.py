@@ -343,6 +343,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
+            "test_configs": image_config.get("test_configs", None),
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,

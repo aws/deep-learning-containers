@@ -34,8 +34,8 @@ context:
 images:
   base_x86_64_gpu_cuda128:
     <<: *BASE_REPOSITORY
-    build: true
-    enable_common_stage_build: false
+    context:
+      <<: *BASE_CONTEXT
     image_size_baseline: 11000
     device_type: &DEVICE_TYPE gpu
     cuda_version: &CUDA_VERSION cu128
@@ -46,5 +46,9 @@ images:
     latest_release_tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
     target: final
-    context:
-      <<: *BASE_CONTEXT
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security

@@ -100,6 +100,13 @@ class DockerImage:
         """
         return self._corresponding_common_stage_image
 
+    @property
+    def test_configs(self):
+        """
+        Retrieve the test configurations for a given image.
+        """
+        return self.info.get("test_configs", None)
+
     @corresponding_common_stage_image.setter
     def corresponding_common_stage_image(self, docker_image_object):
         """
