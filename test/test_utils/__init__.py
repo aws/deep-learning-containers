@@ -1883,7 +1883,7 @@ def get_os_version_from_image_uri(image_uri):
 def get_framework_from_image_uri(image_uri):
     framework_map = {
         "huggingface-tensorflow-trcomp": "huggingface_tensorflow_trcomp",
-        "huggingface-tensorflow": "huggingface_tensorflow", 
+        "huggingface-tensorflow": "huggingface_tensorflow",
         "huggingface-pytorch-trcomp": "huggingface_pytorch_trcomp",
         "pytorch-trcomp": "pytorch_trcomp",
         "huggingface-pytorch": "huggingface_pytorch",
@@ -1898,8 +1898,9 @@ def get_framework_from_image_uri(image_uri):
     for image_pattern, framework in framework_map.items():
         if image_pattern in image_uri:
             return framework
-            
+
     return None
+
 
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
