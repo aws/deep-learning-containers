@@ -1720,11 +1720,10 @@ def get_vpc_id_by_name(ec2_client, vpc_name):
     elif len(response) > 1:
         raise Exception(f"Multiple VPCs found with Name tag: {vpc_name}")
 
-    vpc_id = response["Vpcs"][0]["VpcId"]
+    vpc_id = response[0]["VpcId"]
     LOGGER.info("Looking up IPv6 VPC")
-    if response["Vpcs"][0]["VpcId"]:
-        LOGGER.info("IPv6 VPC ID response received")
-        LOGGER.info(f"IPv6 VPC ID found: {vpc_id[-4:]}")
+    LOGGER.info("IPv6 VPC ID response received")
+    LOGGER.info(f"IPv6 VPC ID found: {vpc_id[-4:]}")
     return vpc_id
 
 def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
@@ -1735,9 +1734,8 @@ def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
     )
     security_group_id = response["SecurityGroups"][0]["GroupId"]
     LOGGER.info("Looking up IPv6 default sg ID")
-    if response["SecurityGroups"][0]["GroupId"]:
-        LOGGER.info("IPv6 default sg ID response received")
-        LOGGER.info(f"IPv6 default sg ID found: {security_group_id[-4:]}")
+    LOGGER.info("IPv6 default sg ID response received")
+    LOGGER.info(f"IPv6 default sg ID found: {security_group_id[-4:]}")
     return security_group_id
 
 def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
@@ -1748,9 +1746,8 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
     )
     efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
     LOGGER.info("Looking up IPv6 EFA-enabled sg ID")
-    if response["SecurityGroups"][0]["GroupId"]:
-        LOGGER.info("IPv6 EFA-enabled sg ID response received")
-        LOGGER.info(f"IPv6 EFA-enabled sg ID found: {efa_security_group_id[-4:]}")
+    LOGGER.info("IPv6 EFA-enabled sg ID response received")
+    LOGGER.info(f"IPv6 EFA-enabled sg ID found: {efa_security_group_id[-4:]}")
     return efa_security_group_id
 
 def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
@@ -1767,12 +1764,12 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
     ]
 
     LOGGER.info(f"Looking up IPv6 enabled subnet for az {availability_zone}")
-    if ipv6_subnets:
-        LOGGER.info(f"IPv6 enabled subnet found in az {availability_zone}")
-        LOGGER.info(f"IPv6 enabled subnet ID: {ipv6_subnets[0]["SubnetId"][-4:]}")
     
     if not ipv6_subnets:
         raise Exception(f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}")
+    
+    LOGGER.info(f"IPv6 enabled subnet found in az {availability_zone}")
+    LOGGER.info(f"IPv6 enabled subnet ID: {ipv6_subnets[0]['SubnetId'][-4:]}")
     
     return ipv6_subnets[0]["SubnetId"]
 
@@ -1816,7 +1813,7 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             }
             for i in range(num_efa_interfaces)
         ]
-        LOGGER.info("Processing IPv6 configs procceed")
+        LOGGER.info("Processing IPv6 configs completed")
 
         return network_interfaces
 
