@@ -1,10 +1,9 @@
-ARG BASE_IMAGE="nvidia/cuda:12.8.1-base-ubuntu24.04"
 ARG PYTHON_VERSION="3.12.10"
 ARG PYTHON_SHORT_VERSION="3.12"
 ARG CUDA_MAJOR="12"
 ARG CUDA_MINOR="8"
 ARG EFA_VERSION="1.40.0"
-FROM ${BASE_IMAGE} AS base-builder
+FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS base-builder
 
 RUN apt-get update \
     && apt-get -y upgrade --only-upgrade systemd \
@@ -48,28 +47,24 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 ##############################################################################
-ARG PYTHON_VERSION
 FROM base-builder AS python-builder
-
+ARG PYTHON_VERSION
 COPY install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 ##############################################################################
+FROM base-builder AS cuda-builder
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
-FROM base-builder AS cuda-builder
-
 COPY install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" && rm install_cuda.sh
 
 ##############################################################################
-ARG BASE_IMAGE
+FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS final 
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
 ARG EFA_VERSION
-FROM ${BASE_IMAGE} AS final 
-
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
