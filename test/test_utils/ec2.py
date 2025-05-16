@@ -1741,8 +1741,10 @@ def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
         
         # try to get default
         response = ec2_client.describe_security_groups(
-            GroupNames=["default"],
-            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}],
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "group-name", "Values": ["default"]}
+            ],
         )
         LOGGER.info(f"Response for IPv6 VPC default security group: {response}")
         
@@ -1768,8 +1770,10 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
         
         # get the EFA-enabled SG
         response = ec2_client.describe_security_groups(
-            GroupNames=["EFA-enabled-ipv6"],
-            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}],
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]}
+            ],
         )
         LOGGER.info(f"Response for IPv6 EFA-enabled security group: {response}")
         
