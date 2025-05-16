@@ -46,7 +46,7 @@ images:
     latest_release_tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
     target: final
-    build: true
+    build: false
     enable_common_stage_build: false
     test_configs:
       test_platforms:
