@@ -108,13 +108,12 @@ def main():
 
     buildspec_file = config.get_buildspec_override() or args.buildspec
 
-    # Ensure that buildspec_file starts with buildspec or imagespec and ends with yml
+    # Ensure that buildspec_file starts with buildspec and ends with yml
     buildspec_pattern = re.compile(r"buildspec\S*\.yml")
-    imagespec_pattern = re.compile(r"imagespec\S*\.yml")
-    assert (buildspec_pattern.match(os.path.basename(buildspec_file)) or 
-            imagespec_pattern.match(os.path.basename(buildspec_file))), \
-            f"{buildspec_file} must match {buildspec_pattern.pattern} or {imagespec_pattern.pattern}. Please rename file."
-    
+    assert buildspec_pattern.match(
+        os.path.basename(buildspec_file)
+    ), f"{buildspec_file} must match {buildspec_pattern.pattern}. Please rename file."
+
     # A builder will always work if it is in non-PR context
     if (
         general_builder_enabled

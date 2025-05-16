@@ -73,6 +73,7 @@ def _login_to_prod_ecr_registry():
     )
 
 
+# TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec, image_types=[], device_types=[]):
     """
     Builds images using build specification with specified image and device types
@@ -83,11 +84,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     :param image_types: <list> list of image types
     :param device_types: <list> list of image device type
     """
-    PRE_PUSH_STAGE_IMAGES = []
-    COMMON_STAGE_IMAGES = []
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
     print(f"BUILDSPEC: {BUILDSPEC}")
+    PRE_PUSH_STAGE_IMAGES = []
+    COMMON_STAGE_IMAGES = []
 
     if (
         "huggingface" in str(BUILDSPEC["framework"])
@@ -102,42 +103,35 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # filter by image type if type is specified
         if image_types and not image_config["image_type"] in image_types:
             continue
+
         # filter by device type if type is specified
         if device_types and not image_config["device_type"] in device_types:
             continue
+
+        ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
+
+        extra_build_args = {}
+        labels = {}
+
+        tag_override = image_config.get("build_tag_override", "False").lower() == "true"
+
+        prod_repo_uri = ""
+        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
+            prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
+                image_config=image_config,
+                framework=BUILDSPEC["framework"],
+                new_account_id=constants.PUBLIC_DLC_REGISTRY,
+            )
+            FORMATTER.print(
+                f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}"""
+            )
+
         if image_config.get("version") is not None:
             if BUILDSPEC["version"] != image_config.get("version"):
                 continue
-        
-        ##################################################################################
-        # process image_repo_uri
-        image_repo_uri = (
-            image_config["repository"]
-            if build_context == "PR"
-            else modify_repository_name_for_context(str(image_config["repository"]), build_context)
-        )
-        base_image_uri = None
-        if image_config.get("base_image_name") is not None:
-            base_image_object = _find_image_object(
-                PRE_PUSH_STAGE_IMAGES, image_config["base_image_name"]
-            )
-            base_image_uri = base_image_object.ecr_url
-        # Determine job_type (inference, training, or base) based on the image repository URI.
-        # This is used to set the job_type label on the container image.
-        if "training" in image_repo_uri:
-            label_job_type = "training"
-        elif "inference" in image_repo_uri:
-            label_job_type = "inference"
-        elif "base" in image_repo_uri:
-            label_job_type = "base"
-        else:
-            raise RuntimeError(
-                f"Cannot find inference, training or base job type in {image_repo_uri}. "
-                f"This is required to set job_type label."
-            )
-        
-        ##################################################################################
-        # process image_tag
+
+        if image_config.get("context") is not None:
+            ARTIFACTS.update(image_config["context"])
         image_tag = (
             tag_image_with_pr_number(image_config["tag"])
             if build_context == "PR"
@@ -159,18 +153,138 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             if build_context == "MAINLINE":
                 additional_image_tags.append(tag_image_with_initiator(no_datetime))
             image_tag = tag_image_with_datetime(image_tag)
+
         additional_image_tags.append(image_tag)
-        
-        ##################################################################################
-        # Process extra_build_args Start
-        labels = {}
+
+        image_repo_uri = (
+            image_config["repository"]
+            if build_context == "PR"
+            else modify_repository_name_for_context(str(image_config["repository"]), build_context)
+        )
+        base_image_uri = None
+        if image_config.get("base_image_name") is not None:
+            base_image_object = _find_image_object(
+                PRE_PUSH_STAGE_IMAGES, image_config["base_image_name"]
+            )
+            base_image_uri = base_image_object.ecr_url
+
+        if image_config.get("download_artifacts") is not None:
+            for artifact_name, artifact in image_config.get("download_artifacts").items():
+                type = artifact["type"]
+                uri = artifact["URI"]
+                var = artifact["VAR_IN_DOCKERFILE"]
+
+                try:
+                    file_name = utils.download_file(uri, type).strip()
+                except ValueError:
+                    FORMATTER.print(f"Artifact download failed: {uri} of type {type}.")
+
+                ARTIFACTS.update(
+                    {
+                        f"{artifact_name}": {
+                            "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
+                            "target": file_name,
+                        }
+                    }
+                )
+
+                extra_build_args[var] = file_name
+                labels[var] = file_name
+                labels[f"{var}_URI"] = uri
+
         transformers_version = image_config.get("transformers_version")
+
+        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+            if transformers_version:
+                extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
+            else:
+                raise KeyError(
+                    f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
+                )
+            if "datasets_version" in image_config:
+                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
+            elif str(image_config["image_type"]) == "training":
+                raise KeyError(
+                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
+                )
+
+        torchserve_version = image_config.get("torch_serve_version")
+        inference_toolkit_version = image_config.get("tool_kit_version")
+        if torchserve_version:
+            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
+        if inference_toolkit_version:
+            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
+
+        dockerfile = image_config["docker_file"]
+        target = image_config.get("target")
+        if tag_override and build_context == "PR":
+            if is_autopatch_build_enabled(buildspec_path=buildspec):
+                FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
+            else:
+                _login_to_prod_ecr_registry()
+                with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
+                    source_uri = f"{prod_repo_uri}"
+                    temp_file_handle.write(
+                        f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
+                    )
+                    dockerfile = temp_file_handle.name
+                    target = None
+                FORMATTER.print(f"USING TAG OVERRIDE {source_uri}")
+
+        ARTIFACTS.update(
+            {
+                "dockerfile": {
+                    "source": dockerfile,
+                    "target": "Dockerfile",
+                }
+            }
+        )
+        # Determine job_type (inference, training, or base) based on the image repository URI.
+        # This is used to set the job_type label on the container image.
+        if "training" in image_repo_uri:
+            label_job_type = "training"
+        elif "inference" in image_repo_uri:
+            label_job_type = "inference"
+        elif "base" in image_repo_uri:
+            label_job_type = "base"
+        else:
+            raise RuntimeError(
+                f"Cannot find inference, training or base job type in {image_repo_uri}. "
+                f"This is required to set job_type label."
+            )
+
+        template_file = os.path.join(
+            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
+        )
+
+        template_fw_version = (
+            str(image_config["framework_version"])
+            if image_config.get("framework_version")
+            else str(BUILDSPEC["version"])
+        )
+        template_fw = str(BUILDSPEC["framework"])
+        post_template_file = utils.generate_dlc_cmd(
+            template_path=template_file,
+            output_path=os.path.join(image_config["root"], "out.py"),
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
+
+        ARTIFACTS.update(
+            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
+        )
+
+        context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
+
         if "labels" in image_config:
             labels.update(image_config.get("labels"))
             for label, value in labels.items():
                 if isinstance(value, bool):
                     labels[label] = str(value)
-        
+
+        cx_type = utils.get_label_prefix_customer_type(image_tag)
+
         # Define label variables
         label_framework = str(BUILDSPEC["framework"]).replace("_", "-")
         if image_config.get("framework_version"):
@@ -186,8 +300,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_contributor = str(BUILDSPEC.get("contributor"))
         label_transformers_version = str(transformers_version).replace(".", "-")
 
-        cx_type = utils.get_label_prefix_customer_type(image_tag)
-        
         if cx_type == "sagemaker":
             # Adding standard labels to all images
             labels[
@@ -213,121 +325,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[
                     f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{inference_toolkit_version}.torchserve.{torchserve_version}"
                 ] = "true"
-
-        ##################################################################################
-        # Process extra_build_args Start
-        extra_build_args = {}
-
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
-            if transformers_version:
-                extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
-            else:
-                raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
-                )
-            if "datasets_version" in image_config:
-                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
-            elif str(image_config["image_type"]) == "training":
-                raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
-                )
-
-        torchserve_version = image_config.get("torch_serve_version")
-        inference_toolkit_version = image_config.get("tool_kit_version")
-        if torchserve_version:
-            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
-        if inference_toolkit_version:
-            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
-
-        ##################################################################################
-        # Process ARTIFACTS Start
-        ARTIFACTS = deepcopy(BUILDSPEC["context"]) if BUILDSPEC.get("context") else {}
-        if image_config.get("context") is not None:
-            ARTIFACTS.update(image_config["context"])
-        if image_config.get("download_artifacts") is not None:
-            for artifact_name, artifact in image_config.get("download_artifacts").items():
-                type = artifact["type"]
-                uri = artifact["URI"]
-                var = artifact["VAR_IN_DOCKERFILE"]
-
-                try:
-                    file_name = utils.download_file(uri, type).strip()
-                except ValueError:
-                    FORMATTER.print(f"Artifact download failed: {uri} of type {type}.")
-
-                ARTIFACTS.update(
-                    {
-                        f"{artifact_name}": {
-                            "source": f"{os.path.join(os.sep, os.path.abspath(os.getcwd()), file_name)}",
-                            "target": file_name,
-                        }
-                    }
-                )
-
-                extra_build_args[var] = file_name
-                labels[var] = file_name
-                labels[f"{var}_URI"] = uri
-        
-        dockerfile = image_config["docker_file"]
-        target = image_config.get("target")
-
-        tag_override = image_config.get("build_tag_override", "False").lower() == "true"
-        prod_repo_uri = ""
-        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
-            prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
-                image_config=image_config,
-                framework=BUILDSPEC["framework"],
-                new_account_id=constants.PUBLIC_DLC_REGISTRY,
-            )
-            FORMATTER.print(
-                f"""[PROD_URI for {image_config["repository"]}:{image_config["tag"]}] {prod_repo_uri}"""
-            )
-        if tag_override and build_context == "PR":
-            if is_autopatch_build_enabled(buildspec_path=buildspec):
-                FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
-            else:
-                _login_to_prod_ecr_registry()
-                with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = f"{prod_repo_uri}"
-                    temp_file_handle.write(
-                        f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
-                    )
-                    dockerfile = temp_file_handle.name
-                    target = None
-                FORMATTER.print(f"USING TAG OVERRIDE {source_uri}")
-
-        ARTIFACTS.update(
-            {
-                "dockerfile": {
-                    "source": dockerfile,
-                    "target": "Dockerfile",
-                }
-            }
-        )
-
-        # process sitecustomize.py
-        template_file = os.path.join(
-            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
-        )
-
-        template_fw_version = (
-            str(image_config["framework_version"])
-            if image_config.get("framework_version")
-            else str(BUILDSPEC["version"])
-        )
-        template_fw = str(BUILDSPEC["framework"])
-        post_template_file = utils.generate_dlc_cmd(
-            template_path=template_file,
-            output_path=os.path.join(image_config["root"], "out.py"),
-            framework=template_fw,
-            framework_version=template_fw_version,
-            container_type=label_job_type,
-        )
-
-        ARTIFACTS.update(
-            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
-        )
-        context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         """
         Override parameters from parent in child.
