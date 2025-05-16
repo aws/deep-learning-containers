@@ -18,18 +18,6 @@ repository_info:
 
 context:
   base_context: &BASE_CONTEXT
-    changehostname:
-      source: build_artifacts/changehostname.c
-      target: changehostname.c
-    start_with_right_hostname:
-      source: build_artifacts/start_with_right_hostname.sh
-      target: start_with_right_hostname.sh
-    dockerd_entrypoint:
-      source: build_artifacts/dockerd_entrypoint.sh
-      target: dockerd_entrypoint.sh
-    start_cuda_compat:
-      source: build_artifacts/start_cuda_compat.sh
-      target: start_cuda_compat.sh
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py

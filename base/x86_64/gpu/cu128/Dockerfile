@@ -89,17 +89,12 @@ COPY --from=python-builder /usr/local/bin /usr/local/bin
 # + cuda-toolkit, cudnn, nccl
 COPY --from=cuda-builder /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR} /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR}
 COPY install_efa.sh install_efa.sh 
-COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh && \
-    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
-    chmod +x /usr/local/bin/deep_learning_container.py && \
+RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
     rm -rf /root/.cache | true
 
-ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
