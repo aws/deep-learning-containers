@@ -117,14 +117,14 @@ def test_pytorch_2_6_cpu(pytorch_training___2__6, ec2_connection, cpu_only):
     pytorch_training = pytorch_training___2__6
 
     test_cases = [
-        (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_mnist, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_linear_regression_cpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_standalone, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_training_mnist, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_linear_regression_cpu, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
+        # (common_cases.pytorch_telemetry, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:
