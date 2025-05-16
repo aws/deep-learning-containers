@@ -160,34 +160,9 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 additional_image_tags.append(tag_image_with_initiator(no_datetime))
             image_tag = tag_image_with_datetime(image_tag)
         additional_image_tags.append(image_tag)
-
-        ##################################################################################
-        # Process extra_build_args Start
-        extra_build_args = {}
-
-        if str(BUILDSPEC["framework"]).startswith("huggingface"):
-            if transformers_version:
-                extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
-            else:
-                raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
-                )
-            if "datasets_version" in image_config:
-                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
-            elif str(image_config["image_type"]) == "training":
-                raise KeyError(
-                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
-                )
-
-        torchserve_version = image_config.get("torch_serve_version")
-        inference_toolkit_version = image_config.get("tool_kit_version")
-        if torchserve_version:
-            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
-        if inference_toolkit_version:
-            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
         
         ##################################################################################
-        # labels Start
+        # Process extra_build_args Start
         labels = {}
         transformers_version = image_config.get("transformers_version")
         if "labels" in image_config:
@@ -238,6 +213,31 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 labels[
                     f"com.amazonaws.ml.engines.{cx_type}.dlc.inference-toolkit.{inference_toolkit_version}.torchserve.{torchserve_version}"
                 ] = "true"
+
+        ##################################################################################
+        # Process extra_build_args Start
+        extra_build_args = {}
+
+        if str(BUILDSPEC["framework"]).startswith("huggingface"):
+            if transformers_version:
+                extra_build_args["TRANSFORMERS_VERSION"] = transformers_version
+            else:
+                raise KeyError(
+                    f"HuggingFace buildspec.yml must contain 'transformers_version' field for each image"
+                )
+            if "datasets_version" in image_config:
+                extra_build_args["DATASETS_VERSION"] = image_config.get("datasets_version")
+            elif str(image_config["image_type"]) == "training":
+                raise KeyError(
+                    f"HuggingFace buildspec.yml must contain 'datasets_version' field for each image"
+                )
+
+        torchserve_version = image_config.get("torch_serve_version")
+        inference_toolkit_version = image_config.get("tool_kit_version")
+        if torchserve_version:
+            extra_build_args["TORCHSERVE_VERSION"] = torchserve_version
+        if inference_toolkit_version:
+            extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
         ##################################################################################
         # Process ARTIFACTS Start
