@@ -1202,6 +1202,9 @@ def below_tf216_only():
 def below_tf218_only():
     pass
 
+@pytest.fixture(scope="session")
+def below_tf219_only():
+    pass
 
 @pytest.fixture(scope="session")
 def skip_tf216():
@@ -1212,6 +1215,9 @@ def skip_tf216():
 def skip_tf218():
     pass
 
+@pytest.fixture(scope="session")
+def skip_tf219():
+    pass
 
 @pytest.fixture(scope="session")
 def mx18_and_above_only():
@@ -1354,6 +1360,10 @@ def framework_version_within_limit(metafunc_obj, image):
             "below_tf218_only" in metafunc_obj.fixturenames
             and not is_below_framework_version("2.18", image, image_framework_name)
         )
+        tf219_requrement_failed = (
+            "below_tf219_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.19", image, image_framework_name)
+        )
         not_tf216_requirement_failed = (
             "skip_tf216" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.16.*", image, image_framework_name)
@@ -1361,6 +1371,10 @@ def framework_version_within_limit(metafunc_obj, image):
         not_tf218_requirement_failed = (
             "skip_tf218" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.18.*", image, image_framework_name)
+        )
+        not_tf219_requirement_failed = (
+            "skip_tf219" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.19.*", image, image_framework_name)
         )
         if (
             tf2_requirement_failed
@@ -1371,8 +1385,10 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf213_requirement_failed
             or tf216_requirement_failed
             or tf218_requrement_failed
+            or tf219_requrement_failed
             or not_tf216_requirement_failed
             or not_tf218_requirement_failed
+            or not_tf219_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
