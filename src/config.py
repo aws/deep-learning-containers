@@ -75,6 +75,10 @@ def are_heavy_instance_ec2_tests_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances")
 
 
+def is_ipv6_test_enabled():
+    return parse_dlc_developer_configs("test", "enable_ipv6")
+
+
 def is_ecs_test_enabled():
     return parse_dlc_developer_configs("test", "ecs_tests")
 

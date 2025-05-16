@@ -47,6 +47,9 @@ ICE_SKIP_INSTANCE_LIST = []
 # List of instance types which are too powerful for minor tests
 HEAVY_INSTANCE_LIST = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
 
+# Flag to enable IPv6 testing
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
@@ -1708,6 +1711,53 @@ def get_default_subnet_for_az(ec2_client, availability_zone):
     az_subnet_id = response["Subnets"][0]["SubnetId"]
     return az_subnet_id
 
+# TODO: add docstrings for those methods
+def get_vpc_id_by_name(ec2_client, vpc_name):
+    response = ec2_client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}]).get("Vpcs", [])
+
+    if not response:
+        raise Exception(f"No VPC found with Name tag: {vpc_name}")
+    elif len(response) > 1:
+        raise Exception(f"Multiple VPCs found with Name tag: {vpc_name}")
+
+    vpc_id = response["Vpcs"][0]["VpcId"]
+    return vpc_id
+
+def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
+    vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+    response = ec2_client.describe_security_groups(
+        GroupNames=["default"],
+        Filters=[{"Name": "vpc-id", "Values": [vpc_id]}],
+    )
+    security_group_id = response["SecurityGroups"][0]["GroupId"]
+    return security_group_id
+
+def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
+    vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+    response = ec2_client.describe_security_groups(
+        GroupNames=["EFA-enabled-ipv6"],
+        Filters=[{"Name": "vpc-id", "Values": [vpc_id]}],
+    )
+    efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
+    return efa_security_group_id
+
+def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
+    vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+    response = ec2_client.describe_subnets(
+        Filters=[
+            {"Name": "vpc-id", "Values": [vpc_id]},
+            {"Name": "availability-zone", "Values": [availability_zone]}
+        ]
+    )
+    
+    ipv6_subnets = [
+        subnet for subnet in response["Subnets"] if subnet.get("Ipv6CidrBlockAssociationSet")
+    ]
+    
+    if not ipv6_subnets:
+        raise Exception(f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}")
+    
+    return ipv6_subnets[0]["SubnetId"]
 
 def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone):
     """
@@ -1721,6 +1771,33 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     num_efa_interfaces = get_num_efa_interfaces_for_instance_type(ec2_instance_type)
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
+    
+    enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    LOGGER.info(f"IPv6 testing enabled: {enable_ipv6}")
+
+    # TODO: remove hardcoded vpc name for testing
+    ipv6_vpc_name = "dlc-ipv6-test-vpc"
+
+    if enable_ipv6:
+        LOGGER.info(f"Using IPv6 VPC: {ipv6_vpc_name}")
+        ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
+        ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
+        ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(ec2_client, ipv6_vpc_name, availability_zone)
+
+        LOGGER.info(f"IPv6 config - using Default SG: {ipv6_default_sg[-4:]}, EFA SG: {ipv6_efa_sg[-4:]}, subnet: {ipv6_subnet_id[-4:]}")
+
+        network_interfaces = [
+            {
+                "DeviceIndex": 0 if i == 0 else 1,
+                "NetworkCardIndex": i,
+                "DeleteOnTermination": True,
+                "InterfaceType": "efa",
+                "Groups": [ipv6_default_sg, ipv6_efa_sg],
+                "SubnetId": ipv6_subnet_id,
+            }
+            for i in range(num_efa_interfaces)
+        ]
+        return network_interfaces
 
     default_sg = get_default_security_group_id(ec2_client)
     efa_sg = get_efa_enabled_security_group_id(ec2_client)

@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true
+do_build = false
 
 [notify]
 ### Notify on test failures
@@ -72,14 +72,17 @@ ec2_benchmark_tests = false
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
 ec2_tests_on_heavy_instances = true
+### Set enable_ipv6 = true to run tests with IPv6-enabled resources
+### Off by default (set to false)
+enable_ipv6 = true
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
-sagemaker_efa_tests = true
+sagemaker_efa_tests = false
 # run release_candidate_integration tests
 sagemaker_rc_tests = false
 # run sagemaker benchmark tests

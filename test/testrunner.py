@@ -290,6 +290,13 @@ def main():
     efa_dedicated = is_efa_dedicated()
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+
+    # Enable IPv6 testing from environment variable
+    if not executor_mode:
+        ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+        LOGGER.info(f"IPv6 Testing enabled: {ipv6_enabled}")
+        os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
+
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
