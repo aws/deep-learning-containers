@@ -2,7 +2,7 @@
 HOME_DIR=/test
 BIN_DIR=${HOME_DIR}/bin
 LOG_DIR=${HOME_DIR}/logs
-TRAINING_LOG=${LOG_DIR}/pytorch_telemetry_test.log
+TRAINING_LOG=${LOG_DIR}/telemetry_test.log
 set -e
 
 mkdir -p ${LOG_DIR}
@@ -14,7 +14,7 @@ verify_test_results() {
         echo "Successfully verified Telemetry performance test."
     else
         echo "Telemetry performance test failed."
-        cat "$log_file"
+        # cat "$log_file"
         return 1
     fi
 
@@ -22,7 +22,7 @@ verify_test_results() {
         echo "Successfully verified Opt-In/Opt-Out Test "
     else
         echo "Opt-In/Opt-Out Test failed."
-        cat "$log_file"
+        # cat "$log_file"
         return 1
     fi
 
@@ -68,7 +68,7 @@ fi
 CALL_TYPE=$1
 echo "Call type: $CALL_TYPE" | tee -a $TRAINING_LOG
 
-echo "Verify pytorch telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
+echo "Verify telemetry test for $CALL_TYPE. You can follow progress on the log file : $TRAINING_LOG" | tee -a $TRAINING_LOG
 
 case $CALL_TYPE in
     bashrc | entrypoint)
@@ -99,11 +99,11 @@ case $CALL_TYPE in
         esac
         ;;
     sitecustomize)
-        python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py --test-cmd "import os" 2>&1 | tee $TRAINING_LOG
+        python ${BIN_DIR}/testTelemetry.py --test-cmd "import os" 2>&1 | tee $TRAINING_LOG
         verify_test_results "$TRAINING_LOG" || exit 1
         ;;
     framework)
-        python ${BIN_DIR}/pytorch_tests/test_pt_dlc_telemetry_test.py --test-cmd "import torch" 2>&1 | tee $TRAINING_LOG
+        python ${BIN_DIR}/testTelemetry.py --test-cmd "import ${FRAMEWORK}" 2>&1 | tee $TRAINING_LOG
         verify_test_results "$TRAINING_LOG" || exit 1
         ;;
     *)
@@ -113,6 +113,7 @@ case $CALL_TYPE in
         ;;
 esac
 
-cat $TRAINING_LOG
+pkill tail
 
 exit 0
+
