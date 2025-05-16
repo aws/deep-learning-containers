@@ -216,13 +216,13 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             s3_downloaded_path=download_path,
             python_version=info.get("python_version"),
         )
-        THREADS[f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"] = (
-            executor.submit(
-                trigger_enhanced_scan_patching,
-                image_uri=base_image_uri_for_patch_builds,
-                patch_details_path=current_patch_details_path,
-                python_version=info.get("python_version"),
-            )
+        THREADS[
+            f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"
+        ] = executor.submit(
+            trigger_enhanced_scan_patching,
+            image_uri=base_image_uri_for_patch_builds,
+            patch_details_path=current_patch_details_path,
+            python_version=info.get("python_version"),
         )
     FORMATTER.progress(THREADS)
 

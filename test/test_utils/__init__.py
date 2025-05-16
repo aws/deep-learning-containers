@@ -1450,7 +1450,9 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
+        else "arm64_" + framework
+        if os.getenv("ARCH_TYPE") == "arm64"
+        else framework
     )
 
     version_regex = {
@@ -1906,7 +1908,9 @@ def get_framework_from_image_uri(image_uri):
                                     else (
                                         "tensorflow"
                                         if "tensorflow" in image_uri
-                                        else "autogluon" if "autogluon" in image_uri else None
+                                        else "autogluon"
+                                        if "autogluon" in image_uri
+                                        else None
                                     )
                                 )
                             )

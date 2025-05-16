@@ -50,7 +50,9 @@ def test_dlc_standard_labels(image, region):
     arch_type = (
         "graviton"
         if test_utils.is_graviton_architecture()
-        else "arm64" if test_utils.is_arm64_architecture() else "x86"
+        else "arm64"
+        if test_utils.is_arm64_architecture()
+        else "x86"
     )
 
     contributor = test_utils.get_contributor_from_image_uri(image)
