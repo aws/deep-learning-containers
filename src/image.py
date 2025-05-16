@@ -219,6 +219,8 @@ class DockerImage:
             buildargs=self.build_args,
             labels=self.labels,
             target=self.target,
+            cache_from=[f"{self.ecr_url}:cache"],  # Add cache source
+            cache_to=[f"{self.ecr_url}:cache"]     # Add cache destination
         ):
             # print the log line during build for every line_interval lines for debugging
             if line_counter % line_interval == 0:
