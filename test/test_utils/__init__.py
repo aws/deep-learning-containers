@@ -1774,9 +1774,9 @@ def get_framework_and_version_from_tag(image_uri):
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
-        "mxnet",
         "pytorch",
         "autogluon",
+        "base",
     )
 
     if not tested_framework:
@@ -1881,46 +1881,25 @@ def get_os_version_from_image_uri(image_uri):
 
 
 def get_framework_from_image_uri(image_uri):
-    return (
-        "huggingface_tensorflow_trcomp"
-        if "huggingface-tensorflow-trcomp" in image_uri
-        else (
-            "huggingface_tensorflow"
-            if "huggingface-tensorflow" in image_uri
-            else (
-                "huggingface_pytorch_trcomp"
-                if "huggingface-pytorch-trcomp" in image_uri
-                else (
-                    "pytorch_trcomp"
-                    if "pytorch-trcomp" in image_uri
-                    else (
-                        "huggingface_pytorch"
-                        if "huggingface-pytorch" in image_uri
-                        else (
-                            "stabilityai_pytorch"
-                            if "stabilityai-pytorch" in image_uri
-                            else (
-                                "mxnet"
-                                if "mxnet" in image_uri
-                                else (
-                                    "pytorch"
-                                    if "pytorch" in image_uri
-                                    else (
-                                        "tensorflow"
-                                        if "tensorflow" in image_uri
-                                        else "autogluon"
-                                        if "autogluon" in image_uri
-                                        else None
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+    framework_map = {
+        "huggingface-tensorflow-trcomp": "huggingface_tensorflow_trcomp",
+        "huggingface-tensorflow": "huggingface_tensorflow", 
+        "huggingface-pytorch-trcomp": "huggingface_pytorch_trcomp",
+        "pytorch-trcomp": "pytorch_trcomp",
+        "huggingface-pytorch": "huggingface_pytorch",
+        "stabilityai-pytorch": "stabilityai_pytorch",
+        "mxnet": "mxnet",
+        "pytorch": "pytorch",
+        "tensorflow": "tensorflow",
+        "autogluon": "autogluon",
+        "base": "base",
+    }
 
+    for image_pattern, framework in framework_map.items():
+        if image_pattern in image_uri:
+            return framework
+            
+    return None
 
 def is_trcomp_image(image_uri):
     framework = get_framework_from_image_uri(image_uri)
