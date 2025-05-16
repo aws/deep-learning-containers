@@ -265,9 +265,7 @@ RUN ${PIP} install \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    #tensorflow-metadata 1.17.1 has requirement protobuf<6.0.0,>=4.25.2, but sagemaker-training need protobuf 3.20.3
-    "tensorflow-metadata==1.16.1" \
-    "tensorflow-datasets==4.9.7" 
+    tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \

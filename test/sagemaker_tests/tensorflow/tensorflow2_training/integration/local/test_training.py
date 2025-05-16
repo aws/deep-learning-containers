@@ -46,6 +46,7 @@ def py_full_version(py_version):  # noqa: F811
 def test_py_versions(
     sagemaker_local_session, docker_image, py_full_version, framework_version, tmpdir
 ):
+    print("python version==========", py_full_version)
     output_path = "file://{}".format(tmpdir)
     run_tf_training(
         script=os.path.join(RESOURCE_PATH, "test_py_version", "entry.py"),
