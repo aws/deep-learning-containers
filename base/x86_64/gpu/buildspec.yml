@@ -10,7 +10,7 @@ autopatch_build: "False"
 repository_info:
   base_repository: &BASE_REPOSITORY
     image_type: &IMAGE_TYPE gpu
-    root: !join [ *FRAMEWORK ]
+    root: .
     repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
     release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK ]
@@ -19,16 +19,16 @@ repository_info:
 context:
   base_context: &BASE_CONTEXT
     deep_learning_container:
-      source: ../src/deep_learning_container.py
+      source: src/deep_learning_container.py
       target: deep_learning_container.py
     install_python:
-      source: !join [ ../scripts/, *ARCH_TYPE, /install_python.sh ]
+      source: scripts/install_python.sh
       target: install_python.sh
     install_cuda:
-      source: !join [ ../scripts/, *ARCH_TYPE, /install_cuda.sh ]
+      source: scripts/install_cuda.sh
       target: install_cuda.sh
     install_efa:
-      source: !join [ ../scripts/, *ARCH_TYPE, /install_efa.sh ]
+      source: scripts/install_efa.sh
       target: install_efa.sh
 
 images:
@@ -44,7 +44,7 @@ images:
     os_version: &OS_VERSION ubuntu24.04
     tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
     latest_release_tag: !join [ *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE ]
-    docker_file: !join [ *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
     target: final
     context:
       <<: *BASE_CONTEXT
