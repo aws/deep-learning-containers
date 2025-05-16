@@ -98,6 +98,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm install_efa.sh && \
     # OSS compliance
     HOME_DIR=/root && \
+    PYTHON=/usr/local/bin/python3 && \
+    apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR} && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
