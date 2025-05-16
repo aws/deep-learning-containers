@@ -1012,7 +1012,7 @@ def skip_serialized_release_pt_test(request):
 def skip_telemetry_tests(request):
     """Skip specific telemetry tests based on test name and image version"""
     test_name = request.node.name.lower()
-    
+
     if "telemetry_entrypoint" in test_name:
         _check_telemetry_skip(request, "entrypoint")
     elif "telemetry_bashrc" in test_name:
@@ -1021,7 +1021,7 @@ def skip_telemetry_tests(request):
         _check_telemetry_skip(request, "framework")
 
 
-def _get_telemtery_image_info(request):
+def _get_telemetry_image_info(request):
     """Helper function to get image URI and framework info from fixtures."""
     telemetry_framework_fixtures = ["pytorch_training", "tensorflow_training", "pytorch_inference"]
 
