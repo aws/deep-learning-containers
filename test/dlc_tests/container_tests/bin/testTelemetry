@@ -14,7 +14,7 @@ verify_test_results() {
         echo "Successfully verified Telemetry performance test."
     else
         echo "Telemetry performance test failed."
-        cat "$log_file"
+        # cat "$log_file"
         return 1
     fi
 
@@ -22,7 +22,7 @@ verify_test_results() {
         echo "Successfully verified Opt-In/Opt-Out Test "
     else
         echo "Opt-In/Opt-Out Test failed."
-        cat "$log_file"
+        # cat "$log_file"
         return 1
     fi
 
@@ -113,6 +113,7 @@ case $CALL_TYPE in
         ;;
 esac
 
+pkill tail
 
 exit 0
 

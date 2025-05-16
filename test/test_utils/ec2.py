@@ -1352,6 +1352,16 @@ def execute_ec2_telemetry_test(
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     mount_path = f"-v {container_test_local_dir}:{os.path.join(os.sep, 'test')}"
 
+    # Prepare test command
+    test_cmd = f"{test_cmd} {call_type} {test_suffix}"
+    LOGGER.info(f"Executing test: {test_cmd}")
+
+    # for entrypoint test, we aviod invoking bashrc telemetry
+    nobashrc_cmd = f"bash --norc" if call_type == "entrypoint" else ""
+
+    # for other tests, we need to aviod using entrypoint telemetry
+    entrypoint_override = f"--entrypoint /bin/bash" if call_type != "entrypoint" else ""
+
     try:
         # Login to ECR and pull image
         account_id = get_account_id_from_image_uri(ecr_uri)
@@ -1360,36 +1370,21 @@ def execute_ec2_telemetry_test(
         LOGGER.info(f"Pulling image: {ecr_uri}")
         connection.run(f"docker pull {ecr_uri}", hide="out")
 
-        # Prepare test command
-        test_cmd = f"{test_cmd} {call_type} {test_suffix}"
-        LOGGER.info(f"Executing test: {test_cmd}")
-
         # Execute test based on call type
-        # entrypoint can only be run directly in non-interactive mode to avoid affection of bashrc
-        if call_type == "entrypoint":
-            ec2_res = connection.run(
-                f"docker run {docker_runtime} --name {container_name} "
-                f"-e TEST_MODE='1' {opt_out_env} {mount_path} {ecr_uri} "
-                # add exit $? for inference container will not exit
-                f"'{test_cmd}'",
-                hide=True,
-                timeout=timeout,
-            )
-        else:
-            # Start container
-            connection.run(
-                f"docker run {docker_runtime} --name {container_name} "
-                f" {mount_path} "
-                f"-itd -e TEST_MODE='1' {framework_env} {opt_out_env} --entrypoint /bin/bash {ecr_uri}",
-                hide=True,
-            )
+        # Start container
+        connection.run(
+            f"docker run {docker_runtime} --name {container_name} "
+            f" {mount_path} "
+            f"-itd -e TEST_MODE='1' {framework_env} {opt_out_env} {entrypoint_override} {ecr_uri} {nobashrc_cmd}",
+            hide=True,
+        )
 
-            # Execute test command
-            ec2_res = connection.run(
-                f"docker exec --user root {container_name} bash -c '{test_cmd}'",
-                hide=True,
-                timeout=timeout,
-            )
+        # Execute test command
+        ec2_res = connection.run(
+            f"docker exec --user root {container_name} bash -c '{test_cmd}'",
+            hide=True,
+            timeout=timeout,
+        )
 
         LOGGER.info(f"Test completed for {call_type} on {ecr_uri}")
         return ec2_res
