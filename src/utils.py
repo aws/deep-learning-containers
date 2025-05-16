@@ -152,32 +152,33 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
         # Skip if test promotion is not enabled for this image
         if not docker_image.is_test_promotion_enabled:
             continue
-        
+
         # Determine if we should test this image based on build status
-        should_test_image = (
-            docker_image.build_status == constants.SUCCESS or
-            (not build_enabled and docker_image.build_status == constants.NOT_BUILT)
+        should_test_image = docker_image.build_status == constants.SUCCESS or (
+            not build_enabled and docker_image.build_status == constants.NOT_BUILT
         )
-        
+
         if should_test_image:
             # Get ECR URL to test - use latest tag if specified and available
             ecr_url_to_test = docker_image.ecr_url
             if use_latest_additional_tag and docker_image.additional_tags:
                 ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
-            
+
             # If test configs exist and are valid dict
-            if docker_image.test_configs is not None and isinstance(docker_image.test_configs, dict):
+            if docker_image.test_configs is not None and isinstance(
+                docker_image.test_configs, dict
+            ):
                 LOGGER.info(f"Test Configs: {docker_image.test_configs}")
-                
+
                 # If specific test platforms are configured
                 if "test_platforms" in docker_image.test_configs:
                     test_platforms = docker_image.test_configs["test_platforms"]
-                    
+
                     # Validate test_platforms is a list
-                    assert isinstance(test_platforms, list), (
-                        f"Test platforms should be a list, but got {type(test_platforms)}"
-                    )
-                    
+                    assert isinstance(
+                        test_platforms, list
+                    ), f"Test platforms should be a list, but got {type(test_platforms)}"
+
                     # Add image to each specified test platform
                     for test_platform in test_platforms:
                         assert test_platform in DLC_IMAGES, (
@@ -195,6 +196,7 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
         if test_images:
             DLC_IMAGES[test_type] = list(set(test_images))
     return DLC_IMAGES
+
 
 def write_to_json_file(file_name, content):
     with open(file_name, "w") as fp:

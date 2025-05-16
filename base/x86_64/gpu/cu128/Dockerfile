@@ -93,8 +93,20 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
+    # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
+    # OSS compliance
+    HOME_DIR=/root && \
+    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
+    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR} && \
+    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
+    chmod +x /usr/local/bin/testOSSCompliance && \
+    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
+    cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} && \
+    rm -rf ${HOME_DIR}/oss_compliance* && \
+    # Clean up
     rm -rf /root/.cache | true
 
 CMD ["/bin/bash"]

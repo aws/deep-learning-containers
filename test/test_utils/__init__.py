@@ -2020,7 +2020,7 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference")
+    allowed_job_types = ("training", "inference", "base")
     for job_type in allowed_job_types:
         if job_type in image_uri:
             tested_job_type = job_type
@@ -2059,10 +2059,10 @@ def get_processor_from_image_uri(image_uri):
     :param image_uri: ECR image URI
     :return: cpu, gpu, eia, neuron or hpu
     """
-    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
+    allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu", "cu"]
 
     for processor in allowed_processors:
-        match = re.search(rf"-({processor})", image_uri)
+        match = re.search(rf"({processor})", image_uri)
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
