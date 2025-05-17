@@ -53,7 +53,7 @@ class DockerImage:
         self.build_args = {}
         self.labels = {}
         self.stage = stage
-        self.cache_from_tag = caceh_from_tag
+        self.cache_from_tag = cache_from_tag
         self.dockerfile = dockerfile
         self.context = context
         self.to_push = to_push
