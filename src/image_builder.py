@@ -132,12 +132,14 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-        image_tag = (
-            tag_image_with_pr_number(image_config["tag"])
-            if build_context == "PR"
-            else image_config["tag"]
-        )
 
+        if build_context == "PR":
+            cache_from_tag = tag_image_with_pr_number(image_config["tag"])
+            image_tag = tag_image_with_pr_number(image_config["tag"])
+        else:
+            cache_from_tag = image_config["tag"]
+            image_tag = image_config["tag"]
+            
         if is_autopatch_build_enabled(buildspec_path=buildspec):
             image_tag = append_tag(image_tag, "autopatch")
 
@@ -362,6 +364,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             context=context,
             additional_tags=additional_image_tags,
             target=target,
+            cache_from_tag=cache_from_tag,
         )
 
         ##### Create Common stage docker object #####

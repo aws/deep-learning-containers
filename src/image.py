@@ -43,6 +43,7 @@ class DockerImage:
         to_push=True,
         additional_tags=[],
         target=None,
+        caceh_from_tag=None,
     ):
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes
@@ -52,7 +53,7 @@ class DockerImage:
         self.build_args = {}
         self.labels = {}
         self.stage = stage
-
+        self.cache_from_tag = caceh_from_tag
         self.dockerfile = dockerfile
         self.context = context
         self.to_push = to_push
@@ -207,6 +208,7 @@ class DockerImage:
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
         LOGGER.info(f"Starting the Build Process for {self.repository}:{self.tag}")
+        LOGGER.info(f"Using cache_from {self.repository}:{self.cache_from_tag}")
 
         line_counter = 0
         line_interval = 50
@@ -221,7 +223,7 @@ class DockerImage:
             buildargs=self.build_args,
             labels=self.labels,
             target=self.target,
-            cache_from=[f"{self.repository}:{self.tag}"],  # Add cache source
+            cache_from=[f"{self.repository}:{self.cache_from_tag}"],  # Add cache source
         ):
             # print the log line during build for every line_interval lines for debugging
             if line_counter % line_interval == 0:
