@@ -206,6 +206,7 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
+        LOGGER.info(f"Starting the Build Process for {self.repository}:{self.tag}")
 
         line_counter = 0
         line_interval = 50
