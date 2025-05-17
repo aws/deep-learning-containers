@@ -1,3 +1,4 @@
+ARG PYTHON="python3"
 ARG PYTHON_VERSION="3.12.10"
 ARG PYTHON_SHORT_VERSION="3.12"
 ARG CUDA_MAJOR="12"
@@ -61,6 +62,7 @@ RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" && rm install_cuda.sh
 
 ##############################################################################
 FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS final 
+ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
@@ -97,18 +99,16 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
     # OSS compliance
-    HOME_DIR=/root && \
-    PYTHON=/usr/local/bin/python3 && \
     apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
+    HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR} && \
+    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
-    cp ${HOME_DIR}/oss_compliance/build_from_source_packages/BUILD_FROM_SOURCE_PACKAGES_LICENCES_AARCH64_IMAGES ${HOME_DIR} && \
     rm -rf ${HOME_DIR}/oss_compliance* && \
-    # Clean up
+    rm -rf /tmp/tmp* && \
     rm -rf /root/.cache | true
-
+    
 CMD ["/bin/bash"]
