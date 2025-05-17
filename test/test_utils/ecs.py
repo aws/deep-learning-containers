@@ -1,6 +1,7 @@
 """
 Helper functions for ECS Integration Tests
 """
+
 import datetime
 import os
 

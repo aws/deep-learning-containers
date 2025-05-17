@@ -196,11 +196,15 @@ def _retrieve_device():
     return (
         "gpu"
         if os.path.isdir("/usr/local/cuda")
-        else "eia"
-        if os.path.isdir("/opt/ei_tools")
-        else "neuron"
-        if os.path.exists("/usr/local/bin/tensorflow_model_server_neuron")
-        else "cpu"
+        else (
+            "eia"
+            if os.path.isdir("/opt/ei_tools")
+            else (
+                "neuron"
+                if os.path.exists("/usr/local/bin/tensorflow_model_server_neuron")
+                else "cpu"
+            )
+        )
     )
 
 
@@ -235,7 +239,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--framework",
-        choices=["tensorflow", "mxnet", "pytorch"],
+        choices=["tensorflow", "mxnet", "pytorch", "base"],
         help="framework of container image.",
         required=True,
     )

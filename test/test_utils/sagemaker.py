@@ -168,31 +168,39 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     processor = (
         "neuronx"
         if "neuronx" in image
-        else "neuron"
-        if "neuron" in image
-        else "gpu"
-        if "gpu" in image
-        else "eia"
-        if "eia" in image
-        else "cpu"
+        else (
+            "neuron"
+            if "neuron" in image
+            else "gpu"
+            if "gpu" in image
+            else "eia"
+            if "eia" in image
+            else "cpu"
+        )
     )
     py_version = re.search(r"py\d+", tag).group()
     sm_local_py_version = (
         "37"
         if py_version == "py37"
-        else "38"
-        if py_version == "py38"
-        else "39"
-        if py_version == "py39"
-        else "310"
-        if py_version == "py310"
-        else "311"
-        if py_version == "py311"
-        else "312"
-        if py_version == "py312"
-        else "2"
-        if py_version == "py27"
-        else "3"
+        else (
+            "38"
+            if py_version == "py38"
+            else (
+                "39"
+                if py_version == "py39"
+                else (
+                    "310"
+                    if py_version == "py310"
+                    else (
+                        "311"
+                        if py_version == "py311"
+                        else (
+                            "312" if py_version == "py312" else "2" if py_version == "py27" else "3"
+                        )
+                    )
+                )
+            )
+        )
     )
     if framework == "tensorflow" and job_type == "inference":
         # Tf Inference tests have an additional sub directory with test
@@ -273,9 +281,11 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
         )
 
     return (
-        remote_pytest_cmd
-        if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE
-        else local_pytest_cmd,
+        (
+            remote_pytest_cmd
+            if sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE
+            else local_pytest_cmd
+        ),
         path,
         tag,
         job_type,

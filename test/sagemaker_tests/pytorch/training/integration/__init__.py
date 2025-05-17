@@ -51,19 +51,29 @@ def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
-        else "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
-        else None
+        else (
+            "huggingface_tensorflow"
+            if "huggingface-tensorflow" in image_uri
+            else (
+                "huggingface_pytorch_trcomp"
+                if "huggingface-pytorch-trcomp" in image_uri
+                else (
+                    "huggingface_pytorch"
+                    if "huggingface-pytorch" in image_uri
+                    else (
+                        "mxnet"
+                        if "mxnet" in image_uri
+                        else (
+                            "pytorch"
+                            if "pytorch" in image_uri
+                            else "tensorflow"
+                            if "tensorflow" in image_uri
+                            else None
+                        )
+                    )
+                )
+            )
+        )
     )
 
 

@@ -1,0 +1,54 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK base
+version: &VERSION 12.8.1
+short_version: &SHORT_VERSION "12.8"
+arch_type: &ARCH_TYPE x86_64
+autopatch_build: "False"
+
+repository_info:
+  base_repository: &BASE_REPOSITORY
+    image_type: &IMAGE_TYPE gpu
+    root: .
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  base_context: &BASE_CONTEXT
+    deep_learning_container:
+      source: src/deep_learning_container.py
+      target: deep_learning_container.py
+    install_python:
+      source: scripts/install_python.sh
+      target: install_python.sh
+    install_cuda:
+      source: scripts/install_cuda.sh
+      target: install_cuda.sh
+    install_efa:
+      source: scripts/install_efa.sh
+      target: install_efa.sh
+
+images:
+  base_x86_64_gpu_cuda128:
+    <<: *BASE_REPOSITORY
+    context:
+      <<: *BASE_CONTEXT
+    image_size_baseline: 11000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu128
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu24.04
+    tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE, "-ec2" ]
+    latest_release_tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE, "-ec2" ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
+    target: final
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security

@@ -1015,17 +1015,25 @@ def _get_safety_ignore_list(image_uri):
     job_type = (
         "training-neuronx"
         if "training-neuronx" in image_uri
-        else "training-neuron"
-        if "training-neuron" in image_uri
-        else "training"
-        if "training" in image_uri
-        else "inference-eia"
-        if "eia" in image_uri
-        else "inference-neuronx"
-        if "inference-neuronx" in image_uri
-        else "inference-neuron"
-        if "inference-neuron" in image_uri
-        else "inference"
+        else (
+            "training-neuron"
+            if "training-neuron" in image_uri
+            else (
+                "training"
+                if "training" in image_uri
+                else (
+                    "inference-eia"
+                    if "eia" in image_uri
+                    else (
+                        "inference-neuronx"
+                        if "inference-neuronx" in image_uri
+                        else "inference-neuron"
+                        if "inference-neuron" in image_uri
+                        else "inference"
+                    )
+                )
+            )
+        )
     )
     python_version = "py2" if "py2" in image_uri else "py3"
 
