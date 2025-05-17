@@ -39,11 +39,11 @@ class DockerImage:
         tag,
         to_build,
         stage,
+        cache_from_tag,
         context=None,
         to_push=True,
         additional_tags=[],
         target=None,
-        caceh_from_tag=None,
     ):
         # Meta-data about the image should go to info.
         # All keys in info are accessible as attributes

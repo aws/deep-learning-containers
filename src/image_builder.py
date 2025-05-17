@@ -361,10 +361,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             tag=append_tag(image_tag, "pre-push"),
             to_build=image_config["build"],
             stage=constants.PRE_PUSH_STAGE,
+            cache_from_tag=cache_from_tag,
             context=context,
             additional_tags=additional_image_tags,
             target=target,
-            cache_from_tag=cache_from_tag,
         )
 
         ##### Create Common stage docker object #####
