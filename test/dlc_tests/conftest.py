@@ -1026,7 +1026,13 @@ def skip_telemetry_tests(request):
 
 def _get_telemetry_image_info(request):
     """Helper function to get image URI and framework info from fixtures."""
-    telemetry_framework_fixtures = ["pytorch_training", "tensorflow_training", "pytorch_inference"]
+    telemetry_framework_fixtures = [
+        "pytorch_training",
+        "tensorflow_training",
+        "pytorch_inference",
+        "pytorch_inference_arm64",
+        "pytorch_training_arm64",
+    ]
 
     for fixture_name in telemetry_framework_fixtures:
         if fixture_name in request.fixturenames:
