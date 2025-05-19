@@ -3,7 +3,7 @@ coverage
 # Docker v7.0.0 breaks compatibility with Docker Compose v1 (SageMaker Local)
 docker<=6.1.3
 docker-compose
-Flask==1.1.1
+Flask==2.2.5
 fabric
 flake8==3.7.7
 gitpython
@@ -17,7 +17,7 @@ pytest<8.1
 pytest-cov
 pytest-rerunfailures
 pytest-xdist
-requests<2.32.0
+requests<2.33.0
 requests_mock
 retrying==1.3.3
 sagemaker>=2,<3
@@ -25,5 +25,5 @@ sagemaker-inference
 six
 tenacity
 toml
-torch<2.5.0
+torch<2.8.0
 torchvision
