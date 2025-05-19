@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = true
+arm64_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
@@ -41,12 +41,12 @@ build_frameworks = ["pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = false
-build_inference = true
+build_training = true
+build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -104,7 +104,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -143,7 +143,7 @@ dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-6-ec2.yml"
+dlc-pr-pytorch-arm64-inference = ""
 dlc-pr-tensorflow-2-arm64-inference = ""
 
 # Neuron Inference
