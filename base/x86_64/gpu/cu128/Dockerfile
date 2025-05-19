@@ -92,7 +92,7 @@ COPY --from=python-builder /usr/local/bin /usr/local/bin
 COPY --from=cuda-builder /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR} /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR}
 COPY install_efa.sh install_efa.sh 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # Install EFA
