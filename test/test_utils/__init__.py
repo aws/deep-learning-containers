@@ -2161,7 +2161,7 @@ def run_cmd_on_container(
     executable="bash",
     warn=False,
     hide=True,
-    timeout=100,
+    timeout=60,
     asynchronous=False,
 ):
     """
