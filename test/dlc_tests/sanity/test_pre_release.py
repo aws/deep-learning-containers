@@ -322,8 +322,10 @@ def test_framework_version_cpu(image):
     Check that the framework version in the image tag is the same as the one on a running container.
     This function tests CPU, EIA images.
 
-    :param image: ECR image URI
+    :param image: ECR image URI e.g "669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:cu128-py312-ubuntu24.04-x86_64-pr-4822"
     """
+    if "base" in image:
+        pytest.skip("Base images do not contain a framework version in the tag. Skipping test.")
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu"
@@ -713,6 +715,10 @@ def test_cuda_paths(gpu):
     :param gpu: gpu image uris
     """
     image = gpu
+    if "base" in image:
+        pytest.skip(
+            "Base DLC doesn't have the same directory structure and buildspec as other images"
+        )
     if "example" in image:
         pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
@@ -851,6 +857,8 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
+    if "base" in image:
+        pytest.skip("Base DLC has no framework version in the tag. Skipping test.")
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
@@ -1102,6 +1110,8 @@ def test_core_package_version(image):
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
     satisfy the version constraints specified in the core_packages.json file.
     """
+    if "base" in image:
+        pytest.skip("Base images do not have core packages. Skipping test.")
     core_packages_path = src_utils.get_core_packages_path(image)
     if not os.path.exists(core_packages_path):
         pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
@@ -1150,6 +1160,10 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
+    if "base" in image:
+        pytest.skip(
+            "Base images don't have python packages that needs to be checked. Skipping test."
+        )
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
         image_uri=image, dlc_folder_path=dlc_path

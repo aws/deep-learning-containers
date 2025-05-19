@@ -411,7 +411,7 @@ def mnist_input_fn():
     np.random.seed(0)
     input_data = np.random.rand(1, 784)
     input_shapes = [[1, 784]]
-    input_types = [(tf.float32)]
+    input_types = [tf.float32]
     return input_names, input_data, input_shapes, input_types
 
 
@@ -420,7 +420,7 @@ def saved_model_half_plus_two_input_fn():
     np.random.seed(0)
     input_data = np.random.rand(1, 1)
     input_shapes = [[1, 1]]
-    input_types = [(tf.float32)]
+    input_types = [tf.float32]
     return input_names, input_data, input_shapes, input_types
 
 
