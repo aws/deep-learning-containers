@@ -389,7 +389,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
         if image_config.get("enable_common_stage_build", True):
             common_stage_image_object = generate_common_stage_image_object(
-                pre_push_stage_image_object, image_tag
+                pre_push_stage_image_object, image_tag, cache_from_tag
             )
             COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
@@ -493,7 +493,7 @@ def process_images(pre_push_image_list, pre_push_image_type="Pre-push", buildspe
     return images_to_push
 
 
-def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
+def generate_common_stage_image_object(pre_push_stage_image_object, image_tag, cache_from_tag):
     """
     Creates a common stage image object for a pre_push stage image. If for a pre_push stage image we create a common
     stage image, then we do not push the pre_push stage image to the repository. Instead, we just push its common stage
@@ -515,6 +515,7 @@ def generate_common_stage_image_object(pre_push_stage_image_object, image_tag):
         tag=append_tag(image_tag, "multistage-common"),
         to_build=pre_push_stage_image_object.to_build,
         stage=constants.COMMON_STAGE,
+        cache_from_tag=cache_from_tag,
         additional_tags=pre_push_stage_image_object.additional_tags,
     )
     pre_push_stage_image_object.to_push = False
