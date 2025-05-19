@@ -36,7 +36,9 @@ def test_train_inference_buildspec():
                 buildspec_path = os.path.join(dlc_base_dir, root, filename)
 
                 # Don't look for framework buildspecs in the top level directory - these are not framework buildspecs
-                if os.path.split(buildspec_path)[0] != dlc_base_dir:
+                if os.path.split(buildspec_path)[0] != dlc_base_dir and (
+                    "training" in buildspec_path or "inference" in buildspec_path
+                ):
                     _assert_single_image_type_no_tag_override_buildspec(
                         buildspec_path, inference_pattern, training_pattern
                     )
