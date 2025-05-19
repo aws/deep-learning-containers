@@ -246,7 +246,6 @@ def test_ec2_tensorflow_inference_eia_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference_eia, ec2_connection, "8500", region)
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
@@ -261,7 +260,6 @@ def test_ec2_tensorflow_inference_telemetry_framework_gpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
@@ -291,7 +289,6 @@ def test_ec2_tensorflow_inference_telemetry_bashrc_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
@@ -302,7 +299,6 @@ def test_ec2_tensorflow_inference_telemetry_framework_cpu(
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
@@ -374,7 +370,6 @@ def test_ec2_tensorflow_inference_arm64_telemetry_framework_cpu(
     run_ec2_tensorflow_inference(tensorflow_inference_arm64, ec2_connection, "8500", region, True)
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
 @pytest.mark.parametrize(

@@ -397,7 +397,6 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -428,7 +427,6 @@ def test_pytorch_inference_telemetry_entrypoint_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -459,7 +457,6 @@ def test_pytorch_inference_telemetry_bashrc_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -481,7 +478,6 @@ def test_pytorch_inference_telemetry_framework_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -508,7 +504,6 @@ def test_pytorch_inference_telemetry_entrypoint_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -535,7 +530,6 @@ def test_pytorch_inference_telemetry_bashrc_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -553,7 +547,6 @@ def test_pytorch_inference_telemetry_framework_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -573,7 +566,6 @@ def test_pytorch_inference_telemetry_framework_graviton_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -593,7 +585,6 @@ def test_pytorch_inference_telemetry_framework_arm64_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -622,7 +613,6 @@ def test_pytorch_inference_telemetry_entrypoint_arm64_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -651,7 +641,6 @@ def test_pytorch_inference_telemetry_bashrc_arm64_cpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -671,7 +660,6 @@ def test_pytorch_inference_telemetry_framework_graviton_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -691,7 +679,6 @@ def test_pytorch_inference_telemetry_framework_arm64_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -720,7 +707,6 @@ def test_pytorch_inference_telemetry_entrypoint_arm64_gpu(
     )
 
 
-@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
