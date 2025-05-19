@@ -397,6 +397,7 @@ def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):
         ec2_connection.run(f"docker rm -f {container_name}", warn=True, hide=True)
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -427,6 +428,7 @@ def test_pytorch_inference_telemetry_entrypoint_gpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -457,6 +459,7 @@ def test_pytorch_inference_telemetry_bashrc_gpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker", "stabilityai")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -478,6 +481,7 @@ def test_pytorch_inference_telemetry_framework_gpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -504,6 +508,7 @@ def test_pytorch_inference_telemetry_entrypoint_cpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -530,6 +535,7 @@ def test_pytorch_inference_telemetry_bashrc_cpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -547,6 +553,7 @@ def test_pytorch_inference_telemetry_framework_cpu(
     )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -554,12 +561,19 @@ def test_pytorch_inference_telemetry_framework_cpu(
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_pytorch_inference_telemetry_graviton_cpu(
+def test_pytorch_inference_telemetry_framework_graviton_cpu(
     pytorch_inference_graviton, ec2_connection, cpu_only
 ):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference_graviton, PT_TELEMETRY_CMD)
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_graviton,
+        "framework",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -567,10 +581,77 @@ def test_pytorch_inference_telemetry_graviton_cpu(
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_pytorch_inference_telemetry_arm64_cpu(pytorch_inference_arm64, ec2_connection, cpu_only):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference_arm64, PT_TELEMETRY_CMD)
+def test_pytorch_inference_telemetry_framework_arm64_cpu(
+    pytorch_inference_arm64, ec2_connection, cpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "framework",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
 
 
+@pytest.mark.skip_telemetry_tests
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+def test_pytorch_inference_telemetry_entrypoint_arm64_cpu(
+    pytorch_inference_arm64, ec2_connection, cpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+
+
+@pytest.mark.skip_telemetry_tests
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+def test_pytorch_inference_telemetry_bashrc_arm64_cpu(
+    pytorch_inference_arm64, ec2_connection, cpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+
+
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -578,12 +659,19 @@ def test_pytorch_inference_telemetry_arm64_cpu(pytorch_inference_arm64, ec2_conn
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_pytorch_inference_telemetry_graviton_gpu(
+def test_pytorch_inference_telemetry_framework_graviton_gpu(
     pytorch_inference_graviton, ec2_connection, gpu_only
 ):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference_graviton, PT_TELEMETRY_CMD)
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_graviton,
+        "framework",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
 
 
+@pytest.mark.skip_telemetry_tests
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
@@ -591,5 +679,71 @@ def test_pytorch_inference_telemetry_graviton_gpu(
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_pytorch_inference_telemetry_arm64_gpu(pytorch_inference_arm64, ec2_connection, gpu_only):
-    execute_ec2_inference_test(ec2_connection, pytorch_inference_arm64, PT_TELEMETRY_CMD)
+def test_pytorch_inference_telemetry_framework_arm64_gpu(
+    pytorch_inference_arm64, ec2_connection, gpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "framework",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+    )
+
+
+@pytest.mark.skip_telemetry_tests
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+def test_pytorch_inference_telemetry_entrypoint_arm64_gpu(
+    pytorch_inference_arm64, ec2_connection, gpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "entrypoint",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+
+
+@pytest.mark.skip_telemetry_tests
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+def test_pytorch_inference_telemetry_bashrc_arm64_gpu(
+    pytorch_inference_arm64, ec2_connection, gpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_inference_arm64,
+        "bashrc",
+        "pytorch_inf_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
