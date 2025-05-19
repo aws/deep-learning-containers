@@ -113,7 +113,5 @@ case $CALL_TYPE in
         ;;
 esac
 
-pkill tail
-
 exit 0
 
