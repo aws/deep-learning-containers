@@ -240,18 +240,12 @@ RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/l
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
-# COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
+COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
-
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-
-# run in interactive mode
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -294,13 +288,12 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    # https://github.com/unslothai/unsloth/issues/2403
-    "triton==3.2.0" \
-    "s3torchconnector==1.3.2" \
+    triton \
+    s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
     # fastai \
-    "accelerate==1.4.0" \
+    accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
@@ -403,13 +396,12 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    # https://github.com/unslothai/unsloth/issues/2403
-    "triton==3.2.0" \
-    "s3torchconnector==1.3.2" \
+    triton \
+    s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
     # fastai \
-    "accelerate==1.4.0" \
+    accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
