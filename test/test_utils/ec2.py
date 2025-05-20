@@ -1725,7 +1725,9 @@ def get_vpc_id_by_name(ec2_client, vpc_name):
     :param vpc_name: Name tag value of the VPC
     :return: str VPC ID of the VPC name
     """
-    response = ec2_client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}]).get("Vpcs", [])
+    response = ec2_client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}]).get(
+        "Vpcs", []
+    )
 
     if not response:
         raise Exception(f"No VPC found with Name tag: {vpc_name}")
@@ -1734,6 +1736,7 @@ def get_vpc_id_by_name(ec2_client, vpc_name):
 
     vpc_id = response[0]["VpcId"]
     return vpc_id
+
 
 def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
     """
@@ -1744,19 +1747,20 @@ def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
     """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        
+
         response = ec2_client.describe_security_groups(
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
-                {"Name": "group-name", "Values": ["default"]}
+                {"Name": "group-name", "Values": ["default"]},
             ],
         )
-        
+
         security_group_id = response["SecurityGroups"][0]["GroupId"]
         return security_group_id
     except Exception as e:
         LOGGER.error(f"Error in get_default_security_group_id_by_vpc_id: {str(e)}")
         raise
+
 
 def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
     """
@@ -1767,20 +1771,21 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
     """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        
+
         # get the EFA-enabled SG
         response = ec2_client.describe_security_groups(
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
-                {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]}
+                {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]},
             ],
         )
-        
+
         efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
         return efa_security_group_id
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
         raise
+
 
 def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
     """
@@ -1792,25 +1797,28 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
     """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        
+
         response = ec2_client.describe_subnets(
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
-                {"Name": "availability-zone", "Values": [availability_zone]}
+                {"Name": "availability-zone", "Values": [availability_zone]},
             ]
         )
-        
+
         ipv6_subnets = [
             subnet for subnet in response["Subnets"] if subnet.get("Ipv6CidrBlockAssociationSet")
         ]
-        
+
         if not ipv6_subnets:
-            raise Exception(f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}")
-                
+            raise Exception(
+                f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}"
+            )
+
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
         raise
+
 
 def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone):
     """
@@ -1824,7 +1832,7 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     num_efa_interfaces = get_num_efa_interfaces_for_instance_type(ec2_instance_type)
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
-    
+
     enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
     # TODO: remove hardcoded vpc name for testing
@@ -1833,7 +1841,9 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     if enable_ipv6:
         ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
         ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
-        ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(ec2_client, ipv6_vpc_name, availability_zone)
+        ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
+            ec2_client, ipv6_vpc_name, availability_zone
+        )
 
         network_interfaces = [
             {
@@ -1912,12 +1922,14 @@ def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
     For non-default VPC (IPv6): need to disassociate before release
     """
     for allocation_id in elastic_ip_allocation_ids:
-        try: 
+        try:
             enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
             if enable_ipv6:
-                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])['Addresses'][0]
-                if 'AssociationId' in address:
-                    ec2_client.disassociate_address(AssociationId=address['AssociationId'])
+                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][
+                    0
+                ]
+                if "AssociationId" in address:
+                    ec2_client.disassociate_address(AssociationId=address["AssociationId"])
                     time.sleep(10)
             ec2_client.release_address(AllocationId=allocation_id)
         except Exception as e:

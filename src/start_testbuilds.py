@@ -52,9 +52,7 @@ def run_test_job(commit, codebuild_project, images_str=""):
     )
 
     # For EC2 tests, enable IPv6 testing when config is enabled
-    is_ipv6_test_enabled = (
-        config.is_ipv6_test_enabled() and "ec2" in codebuild_project
-    )
+    is_ipv6_test_enabled = config.is_ipv6_test_enabled() and "ec2" in codebuild_project
 
     if config.is_deep_canary_mode_enabled():
         env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
