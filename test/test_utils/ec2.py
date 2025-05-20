@@ -1711,8 +1711,14 @@ def get_default_subnet_for_az(ec2_client, availability_zone):
     az_subnet_id = response["Subnets"][0]["SubnetId"]
     return az_subnet_id
 
-# TODO: add docstrings for those methods
+
 def get_vpc_id_by_name(ec2_client, vpc_name):
+    """
+    Get VPC ID by VPC name tag
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str VPC ID of the VPC name
+    """
     response = ec2_client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}]).get("Vpcs", [])
 
     if not response:
@@ -1721,13 +1727,17 @@ def get_vpc_id_by_name(ec2_client, vpc_name):
         raise Exception(f"Multiple VPCs found with Name tag: {vpc_name}")
 
     vpc_id = response[0]["VpcId"]
-    LOGGER.info(f"IPv6 VPC ID found: {vpc_id[-4:]}")
     return vpc_id
 
 def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
+    """
+    Get default SG ID for a non-default VPC
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str SG ID of the default SG
+    """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        LOGGER.info(f"About to describe security groups for IPv6 VPC {vpc_id}")
         
         response = ec2_client.describe_security_groups(
             Filters=[
@@ -1737,16 +1747,20 @@ def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
         )
         
         security_group_id = response["SecurityGroups"][0]["GroupId"]
-        LOGGER.info(f"IPv6 default sg ID found: {security_group_id[-4:]}")
         return security_group_id
     except Exception as e:
-        LOGGER.error(f"IPv6 - Error in get_default_security_group_id_by_vpc_id: {str(e)}")
+        LOGGER.error(f"Error in get_default_security_group_id_by_vpc_id: {str(e)}")
         raise
 
 def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
+    """
+    Get EFA-enabled SG ID for IPv6 VPC
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str SG ID of the EFA-enabled SG
+    """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        LOGGER.info(f"About to describe EFA-enabled security groups for IPv6 VPC {vpc_id}")
         
         # get the EFA-enabled SG
         response = ec2_client.describe_security_groups(
@@ -1757,16 +1771,21 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
         )
         
         efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
-        LOGGER.info(f"IPv6 EFA-enabled sg ID found: {efa_security_group_id[-4:]}")
         return efa_security_group_id
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
         raise
 
 def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
+    """
+    Get IPv6-enabled subnet ID in the a particular availability zone
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :param availability_zone: str AZ name
+    :return: str Subnet ID of an IPv6-enabled subnet
+    """
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-        LOGGER.info(f"About to describe subnets for IPv6 VPC {vpc_id} in AZ {availability_zone}")
         
         response = ec2_client.describe_subnets(
             Filters=[
@@ -1781,9 +1800,7 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
         
         if not ipv6_subnets:
             raise Exception(f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}")
-        
-        LOGGER.info(f"IPv6 enabled subnet ID: {ipv6_subnets[0]['SubnetId'][-4:]}")
-        
+                
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
@@ -1799,23 +1816,18 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     :return: list of dicts mapping each network-interface available
     """
     num_efa_interfaces = get_num_efa_interfaces_for_instance_type(ec2_instance_type)
-    LOGGER.info(f"Number of EFA interfaces for {ec2_instance_type}: {num_efa_interfaces}")
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
     
     enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
-    LOGGER.info(f"IPv6 testing enabled: {enable_ipv6}")
 
     # TODO: remove hardcoded vpc name for testing
     ipv6_vpc_name = "dlc-ipv6-test-vpc"
 
     if enable_ipv6:
-        LOGGER.info(f"Using IPv6 VPC: {ipv6_vpc_name}")
         ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
         ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
         ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(ec2_client, ipv6_vpc_name, availability_zone)
-
-        LOGGER.info(f"IPv6 config - using Default SG: {ipv6_default_sg[-4:]}, EFA SG: {ipv6_efa_sg[-4:]}, subnet: {ipv6_subnet_id[-4:]}")
 
         network_interfaces = [
             {
@@ -1895,12 +1907,10 @@ def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
     """
     for allocation_id in elastic_ip_allocation_ids:
         try: 
-            LOGGER.info(f"Deleting elastic ip {allocation_id}")
             enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
             if enable_ipv6:
                 address = ec2_client.describe_addresses(AllocationIds=[allocation_id])['Addresses'][0]
                 if 'AssociationId' in address:
-                    LOGGER.info(f"Disassociating elastic ip {allocation_id}")
                     ec2_client.disassociate_address(AssociationId=address['AssociationId'])
                     time.sleep(10)
             ec2_client.release_address(AllocationId=allocation_id)
@@ -1935,3 +1945,4 @@ def get_efa_devices_on_instance(connection):
     response = connection.run("ls /dev/infiniband/uverbs*")
     devices = response.stdout.split()
     return devices
+g
