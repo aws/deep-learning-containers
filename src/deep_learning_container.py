@@ -239,7 +239,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--framework",
-        choices=["tensorflow", "mxnet", "pytorch"],
+        choices=["tensorflow", "mxnet", "pytorch", "base"],
         help="framework of container image.",
         required=True,
     )

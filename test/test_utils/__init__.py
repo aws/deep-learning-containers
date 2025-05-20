@@ -1769,7 +1769,6 @@ def get_framework_and_version_from_tag(image_uri):
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
-        "mxnet",
         "pytorch",
         "autogluon",
     )
@@ -1876,43 +1875,25 @@ def get_os_version_from_image_uri(image_uri):
 
 
 def get_framework_from_image_uri(image_uri):
-    return (
-        "huggingface_tensorflow_trcomp"
-        if "huggingface-tensorflow-trcomp" in image_uri
-        else (
-            "huggingface_tensorflow"
-            if "huggingface-tensorflow" in image_uri
-            else (
-                "huggingface_pytorch_trcomp"
-                if "huggingface-pytorch-trcomp" in image_uri
-                else (
-                    "pytorch_trcomp"
-                    if "pytorch-trcomp" in image_uri
-                    else (
-                        "huggingface_pytorch"
-                        if "huggingface-pytorch" in image_uri
-                        else (
-                            "stabilityai_pytorch"
-                            if "stabilityai-pytorch" in image_uri
-                            else (
-                                "mxnet"
-                                if "mxnet" in image_uri
-                                else (
-                                    "pytorch"
-                                    if "pytorch" in image_uri
-                                    else (
-                                        "tensorflow"
-                                        if "tensorflow" in image_uri
-                                        else "autogluon" if "autogluon" in image_uri else None
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+    framework_map = {
+        "huggingface-tensorflow-trcomp": "huggingface_tensorflow_trcomp",
+        "huggingface-tensorflow": "huggingface_tensorflow",
+        "huggingface-pytorch-trcomp": "huggingface_pytorch_trcomp",
+        "pytorch-trcomp": "pytorch_trcomp",
+        "huggingface-pytorch": "huggingface_pytorch",
+        "stabilityai-pytorch": "stabilityai_pytorch",
+        "mxnet": "mxnet",
+        "pytorch": "pytorch",
+        "tensorflow": "tensorflow",
+        "autogluon": "autogluon",
+        "base": "base",
+    }
+
+    for image_pattern, framework in framework_map.items():
+        if image_pattern in image_uri:
+            return framework
+
+    return None
 
 
 def is_trcomp_image(image_uri):
@@ -2033,7 +2014,7 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference")
+    allowed_job_types = ("training", "inference", "base")
     for job_type in allowed_job_types:
         if job_type in image_uri:
             tested_job_type = job_type
@@ -2075,7 +2056,7 @@ def get_processor_from_image_uri(image_uri):
     allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
-        match = re.search(rf"-({processor})", image_uri)
+        match = re.search(rf"({processor})", image_uri)
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
