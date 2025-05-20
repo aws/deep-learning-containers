@@ -1945,4 +1945,3 @@ def get_efa_devices_on_instance(connection):
     response = connection.run("ls /dev/infiniband/uverbs*")
     devices = response.stdout.split()
     return devices
-g
