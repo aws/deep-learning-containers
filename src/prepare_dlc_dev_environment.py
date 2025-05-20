@@ -610,7 +610,7 @@ def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
     if to_commit:
         commit_and_push_changes(changes, remote_push=to_push, restore=True)
 
-
+# this is the main function that will be called when the script is run
 def main():
     args = get_args()
     toml_path = args.partner_toml
