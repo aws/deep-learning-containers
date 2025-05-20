@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 from datetime import datetime
 
 from docker import APIClient
@@ -38,6 +39,7 @@ class DockerImage:
         tag,
         to_build,
         stage,
+        cache_from_tag,
         context=None,
         to_push=True,
         additional_tags=[],
@@ -51,7 +53,7 @@ class DockerImage:
         self.build_args = {}
         self.labels = {}
         self.stage = stage
-
+        self.cache_from_tag = cache_from_tag
         self.dockerfile = dockerfile
         self.context = context
         self.to_push = to_push
@@ -63,7 +65,10 @@ class DockerImage:
         self.ecr_url = f"{self.repository}:{self.tag}"
 
         if not isinstance(to_build, bool):
-            to_build = True if to_build == "true" else False
+            if isinstance(to_build, int):
+                to_build = True if to_build == 1 else False
+            else:
+                to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
         self.build_status = None
@@ -92,6 +97,13 @@ class DockerImage:
         Retrieve the corresponding common stage image for a given image.
         """
         return self._corresponding_common_stage_image
+
+    @property
+    def test_configs(self):
+        """
+        Retrieve the test configurations for a given image.
+        """
+        return self.info.get("test_configs", None)
 
     @corresponding_common_stage_image.setter
     def corresponding_common_stage_image(self, docker_image_object):
@@ -192,9 +204,12 @@ class DockerImage:
         :return: int, Build Status
         """
         response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
+        LOGGER.info(f"Starting the Build Process for {self.repository}:{self.tag}")
+        LOGGER.info(f"Using cache_from {self.repository}:{self.cache_from_tag}")
 
         line_counter = 0
         line_interval = 50
+        self.client.headers["X-Docker-BuildKit"] = "1"
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
@@ -205,6 +220,7 @@ class DockerImage:
             buildargs=self.build_args,
             labels=self.labels,
             target=self.target,
+            cache_from=[f"{self.repository}:{self.cache_from_tag}"],  # Add cache source
         ):
             # print the log line during build for every line_interval lines for debugging
             if line_counter % line_interval == 0:
