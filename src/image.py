@@ -65,13 +65,10 @@ class DockerImage:
         self.ecr_url = f"{self.repository}:{self.tag}"
 
         if not isinstance(to_build, bool):
-            to_build = (
-                True
-                if to_build == "true" or to_build == "1"
-                else False
-                if to_build == "false" or to_build == "0"
-                else True
-            )
+            if isinstance(to_build, int):
+                to_build = True if to_build == 1 else False
+            else:
+                to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
         self.build_status = None
