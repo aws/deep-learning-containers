@@ -46,7 +46,7 @@ build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -77,7 +77,7 @@ ec2_tests_on_heavy_instances = true
 enable_ipv6 = true
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = true
+sagemaker_local_tests = false
 
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = false
