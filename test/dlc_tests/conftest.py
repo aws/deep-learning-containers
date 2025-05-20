@@ -1029,6 +1029,7 @@ def _get_telemetry_image_info(request):
     telemetry_framework_fixtures = [
         "pytorch_training",
         "tensorflow_training",
+        "tensorflow_inference",
         "pytorch_inference",
         "pytorch_inference_arm64",
         "pytorch_training_arm64",
