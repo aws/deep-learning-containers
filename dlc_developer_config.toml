@@ -77,7 +77,7 @@ ec2_tests_on_heavy_instances = true
 enable_ipv6 = true
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = false
@@ -107,7 +107,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-sm.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -137,7 +137,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-sm.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
