@@ -107,7 +107,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-4-sm.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-4-ec2.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -137,7 +137,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-4-sm.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-4-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
