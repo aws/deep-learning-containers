@@ -71,7 +71,6 @@ class DockerImage:
                 to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
-        LOGGER.info("To build value", to_build)
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
         self.log = []
