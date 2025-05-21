@@ -1,6 +1,6 @@
+FROM docker.io/vllm/vllm-openai:v0.8.5 as final
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.40.0"
-FROM docker.io/vllm/vllm-openai:v0.8.5 as final
 
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
