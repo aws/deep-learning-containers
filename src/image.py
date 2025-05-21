@@ -71,6 +71,7 @@ class DockerImage:
                 to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
+        LOGGER.info("To build value", to_build)
         self.build_status = None
         self.client = APIClient(base_url=constants.DOCKER_URL, timeout=constants.API_CLIENT_TIMEOUT)
         self.log = []
@@ -213,7 +214,7 @@ class DockerImage:
         LOGGER.info(f"Using cache_from {self.repository}:{self.cache_from_tag}")
 
         line_counter = 0
-        line_interval = 50
+        line_interval = 20
         self.client.headers["X-Docker-BuildKit"] = "1"
         for line in self.client.build(
             fileobj=fileobj,
