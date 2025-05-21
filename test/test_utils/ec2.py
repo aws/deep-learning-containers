@@ -1315,7 +1315,7 @@ def execute_ec2_telemetry_test(
     Args:
         connection: EC2 connection object
         ecr_uri (str): ECR image URI
-        call_type (str): Type of test to run ('bashrc', 'entrypoint', 'sitecustomize', 'framework')
+        call_type (str): Type of test to run ('bashrc', 'entrypoint', 'framework')
         container_name (str): Base name for the container
         test_cmd (str): Test command to execute
         opt_in (bool): Whether to run in opt-in mode (default: False)
@@ -1329,7 +1329,7 @@ def execute_ec2_telemetry_test(
         RuntimeError: If invalid call_type is provided
     """
     # Validate call type
-    VALID_CALL_TYPES = {"bashrc", "entrypoint", "sitecustomize", "framework"}
+    VALID_CALL_TYPES = {"bashrc", "entrypoint", "framework"}
     if call_type not in VALID_CALL_TYPES:
         raise RuntimeError(f"Invalid call_type. Must be one of: {', '.join(VALID_CALL_TYPES)}")
 

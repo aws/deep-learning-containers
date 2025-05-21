@@ -60,7 +60,7 @@ if [ $# -lt 1 ]; then
     echo "Error: No parameter provided"
     echo "Usage: $0 <call_type> [opt_in|opt_out]"
     echo "Note: bashrc and entrypoint require opt_in or opt_out parameter"
-    echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+    echo "Available call types: bashrc, entrypoint, framework"
     echo "Optional test_type: opt_in, opt_out"
     exit 1
 fi
@@ -98,17 +98,13 @@ case $CALL_TYPE in
                 ;;
         esac
         ;;
-    sitecustomize)
-        python ${BIN_DIR}/testTelemetry.py --test-cmd "import os" 2>&1 | tee $TRAINING_LOG
-        verify_test_results "$TRAINING_LOG" || exit 1
-        ;;
     framework)
         python ${BIN_DIR}/testTelemetry.py --test-cmd "import ${FRAMEWORK}" 2>&1 | tee $TRAINING_LOG
         verify_test_results "$TRAINING_LOG" || exit 1
         ;;
     *)
         echo "Error: Invalid parameter provided"
-        echo "Available call types: bashrc, entrypoint, sitecustomize, framework"
+        echo "Available call types: bashrc, entrypoint, framework"
         exit 1
         ;;
 esac

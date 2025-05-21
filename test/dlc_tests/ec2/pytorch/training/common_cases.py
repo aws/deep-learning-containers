@@ -189,16 +189,6 @@ def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_telemetry_sitecustomize_cpu(pytorch_training, ec2_connection):
-    execute_ec2_telemetry_test(
-        ec2_connection,
-        pytorch_training,
-        "sitecustomize",
-        "pytorch_tr_telemetry",
-        PT_TELEMETRY_CMD,
-    )
-
-
 def pytorch_telemetry_framework_cpu(pytorch_training, ec2_connection):
     execute_ec2_telemetry_test(
         ec2_connection,
@@ -252,16 +242,6 @@ def pytorch_telemetry_framework_gpu(pytorch_training, ec2_connection):
         ec2_connection,
         pytorch_training,
         "framework",
-        "pytorch_tr_telemetry",
-        test_cmd=PT_TELEMETRY_CMD,
-    )
-
-
-def pytorch_telemetry_sitecustomize_gpu(pytorch_training, ec2_connection):
-    execute_ec2_telemetry_test(
-        ec2_connection,
-        pytorch_training,
-        "sitecustomize",
         "pytorch_tr_telemetry",
         test_cmd=PT_TELEMETRY_CMD,
     )
