@@ -17,15 +17,19 @@ def list_of_strings(arg):
     return arg.split(",") if arg else []
 
 
-def get_package_list_using_command(run_command="apt list --installed"):
+def get_package_list(run_cmd=None):
     """
     Uses the input command to retrieve the list of installed/upgradable apt packages.
-    :param run_command: str, the input apt command
-    :return: list, the list of packages
+    :param run_cmd: list of str, the command tokens to execute -
+    (defaults to ["apt", "list", "--installed"])
+    :return: list of str, names of the packages parsed from the command output
+    :raises ValueError: if run_cmd is not a list of strings
     """
-    run_output = subprocess.run(run_command, shell=True, capture_output=True, text=True, check=True)
-    result = run_output.stdout.strip().split("\n")
-    return [output_line.split("/")[0] for output_line in result if "/" in output_line]
+    args = run_cmd if run_cmd is not None else ["apt", "list",  "--installed"]
+    if not isinstance(args, list) or not all(isinstance(tok, str) for tok in args):
+        raise ValueError("run_cmd must be a list of strings")
+    run_output = subprocess.run(args, capture_output=True, text=True, check=True)
+    return [l.split("/")[0] for l in run_output.stdout.splitlines() if "/" in l]
 
 
 def get_installed_version_for_packages(package_list=[]):
