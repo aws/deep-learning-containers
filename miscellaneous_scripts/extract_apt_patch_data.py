@@ -1,6 +1,7 @@
 import subprocess
 import argparse
 import json
+import apt
 
 from enum import Enum
 
@@ -119,18 +120,18 @@ def update_patch_package_list_and_upgradable_packages_data(
     :return patch_package_list: list, the same input parameter that is modified by this function
     :return upgradable_packages_data_for_impacted_packages: dict[list], the same input parameter that is modified by this function
     """
+    cache = apt.Cache()
     for package in installed_packages:
         source_package = ""
-        # dpkg -s <package> gives the output in the following format:
-        #     Package: xxd
-        #     Status: install ok installed
-        #     Source: vim
-        # We extract the source package from the command output
-        source_extraction_cmd_output = subprocess.run(
-            f"dpkg -s {package} | grep ^Source", shell=True, capture_output=True, text=True
-        )
-        if source_extraction_cmd_output.returncode in RETURN_CODE_OK:
-            source_package = source_extraction_cmd_output.stdout.strip().split()[1]
+        # Retrieve source-package via python-apt cache lookup instead of shelling out
+        try:
+            pkg = cache[package]
+            inst = pkg.installed
+            if inst and inst.origin:
+                source_package = inst.origin[0].source_name
+        except KeyError:
+            # Package not found in cache
+            source_package = ""
 
         if is_package_or_its_source_is_impacted_and_the_package_is_upgradable(
             package=package,
