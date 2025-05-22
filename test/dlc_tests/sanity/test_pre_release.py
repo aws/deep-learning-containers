@@ -859,8 +859,8 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    if "base" in image:
-        pytest.skip("Base DLC has no framework version in the tag. Skipping test.")
+    if "base" in image or "vllm" in image:
+        pytest.skip("Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test.")
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
