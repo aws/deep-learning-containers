@@ -614,6 +614,14 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
             for vulnerable_package in ecr_format_vulnerability["packageVulnerabilityDetails"][
                 "vulnerablePackages"
             ]:
+                if "fixedInVersion" in vulnerable_package:
+                    fixed_version = vulnerable_package["fixedInVersion"].lower()
+                    if "esm" in fixed_version and "ubuntu" in fixed_version:
+                        LOGGER.info(
+                            f"Skipping ESM version {fixed_version} for package {vulnerable_package['name']}"
+                        )
+                        continue
+
                 allowlist_format_vulnerability_object = AllowListFormatVulnerabilityForEnhancedScan(
                     **ecr_format_vulnerability
                 )
