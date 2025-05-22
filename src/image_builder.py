@@ -247,14 +247,19 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             label_job_type = "inference"
         elif "base" in image_repo_uri:
             label_job_type = "base"
+        elif "vllm" in image_repo_uri:
+            label_job_type = "vllm"
         else:
             raise RuntimeError(
                 f"Cannot find inference, training or base job type in {image_repo_uri}. "
                 f"This is required to set job_type label."
             )
 
-        template_file = os.path.join(
+        sitecustomize_template_file = os.path.join(
             os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "dlc_template.py"
+        )
+        bash_template_file = os.path.join(
+            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "bash_telemetry.sh"
         )
 
         template_fw_version = (
@@ -263,16 +268,29 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             else str(BUILDSPEC["version"])
         )
         template_fw = str(BUILDSPEC["framework"])
-        post_template_file = utils.generate_dlc_cmd(
-            template_path=template_file,
+        sitecustomize_post_template_file = utils.generate_dlc_cmd(
+            template_path=sitecustomize_template_file,
             output_path=os.path.join(image_config["root"], "out.py"),
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
+        bash_post_template_file = utils.generate_dlc_cmd(
+            template_path=bash_template_file,
+            output_path=os.path.join(image_config["root"], "telemetry.sh"),
             framework=template_fw,
             framework_version=template_fw_version,
             container_type=label_job_type,
         )
 
         ARTIFACTS.update(
-            {"customize": {"source": post_template_file, "target": "sitecustomize.py"}}
+            {
+                "customize": {
+                    "source": sitecustomize_post_template_file,
+                    "target": "sitecustomize.py",
+                },
+                "bash": {"source": bash_post_template_file, "target": "bash_telemetry.sh"},
+            }
         )
 
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])

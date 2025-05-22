@@ -30,7 +30,7 @@ function install_efa {
     echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf
     echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf
     echo NCCL_DEBUG=INFO >> /etc/nccl.conf
-    echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+    echo NCCL_SOCKET_IFNAME=^docker0,lo >> /etc/nccl.conf
     
     # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
     apt-get install -y --no-install-recommends \
