@@ -1892,6 +1892,7 @@ def get_framework_from_image_uri(image_uri):
         "tensorflow": "tensorflow",
         "autogluon": "autogluon",
         "base": "base",
+        "vllm": "vllm",
     }
 
     for image_pattern, framework in framework_map.items():

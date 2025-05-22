@@ -1,6 +1,21 @@
 FROM docker.io/vllm/vllm-openai:v0.8.5 as final
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.40.0"
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DLC_CONTAINER_TYPE=base \
+    # Python won’t try to write .pyc or .pyo files on the import of source modules
+    # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
 
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -21,6 +36,3 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
     rm -rf /root/.cache | true
-
-ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
