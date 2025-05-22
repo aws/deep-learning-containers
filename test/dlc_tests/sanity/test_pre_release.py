@@ -574,7 +574,9 @@ def test_pip_check(image):
     :param image: ECR image URI
     """
     if "vllm" in image:
-        pytest.skip("vLLM images do not require pip check as they are managed by vLLM devs. Skipping test.")
+        pytest.skip(
+            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+        )
 
     allowed_exceptions = []
 
@@ -860,7 +862,9 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     """
     image = gpu
     if "base" in image or "vllm" in image:
-        pytest.skip("Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test.")
+        pytest.skip(
+            "Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test."
+        )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
