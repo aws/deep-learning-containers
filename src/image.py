@@ -206,7 +206,6 @@ class DockerImage:
 
         line_counter = 0
         line_interval = 50
-        self.client.headers["X-Docker-BuildKit"] = "1"
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
