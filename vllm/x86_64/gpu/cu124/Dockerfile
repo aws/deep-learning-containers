@@ -23,9 +23,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
-    # OSS compliance
+    # OSS compliance and software update
     apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends security-updates && \
     apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
+    apt-get clean && \
     HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
@@ -35,4 +38,5 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
+    rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true

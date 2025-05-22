@@ -2020,7 +2020,7 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference", "base")
+    allowed_job_types = ("training", "inference", "base", "vllm")
     for job_type in allowed_job_types:
         if job_type in image_uri:
             tested_job_type = job_type
