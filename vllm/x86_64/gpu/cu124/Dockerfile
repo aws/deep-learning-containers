@@ -26,7 +26,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # OSS compliance and software update
     apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y --no-install-recommends security-updates && \
     apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
     apt-get clean && \
     HOME_DIR=/root && \
