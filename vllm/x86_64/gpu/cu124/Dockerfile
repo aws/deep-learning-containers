@@ -35,7 +35,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
+    # create symlink for python
+    ln -s /usr/bin/python3 /usr/bin/python && \
+    # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
+    rm -rf /tmp/uv* && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
