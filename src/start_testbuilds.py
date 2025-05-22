@@ -89,6 +89,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "type": "PLAINTEXT",
             },
             {
+                "name": "IPV6_VPC_NAME",
+                "value": config.get_ipv6_vpc_name(),
+                "type": "PLAINTEXT",
+            },
+            {
                 "name": "HEAVY_INSTANCE_EC2_TESTS_ENABLED",
                 "value": str(are_heavy_instance_ec2_tests_enabled),
                 "type": "PLAINTEXT",

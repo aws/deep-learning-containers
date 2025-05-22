@@ -1835,11 +1835,14 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
 
     enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
-    # TODO: remove hardcoded vpc name for testing
-    ipv6_vpc_name = "dlc-ipv6-test-vpc"
+    ipv6_vpc_name = os.getenv("IPV6_VPC_NAME")
 
     if enable_ipv6:
-        LOGGER.info(f"IPv6 testing enabled - using IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}")
+        if not ipv6_vpc_name:
+            raise ValueError("")
+        LOGGER.info(
+            f"IPv6 testing enabled - using IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}"
+        )
         ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
         ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
         ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(

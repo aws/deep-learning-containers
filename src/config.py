@@ -162,6 +162,13 @@ def get_notification_severity():
     return AllowedNotificationSeverity.MEDIUM.value
 
 
+def get_ipv6_vpc_name():
+    """
+    Get the config value for ipv6_vpc_name
+    """
+    return parse_dlc_developer_configs("test", "ipv6_vpc_name")
+
+
 def get_sagemaker_remote_efa_instance_type():
     """
     Get the config value for sagemaker_remote_efa_instance_type
