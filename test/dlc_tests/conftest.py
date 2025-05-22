@@ -144,6 +144,13 @@ NIGHTLY_FIXTURES = {
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
 }
 
+# Skip telemetry tests for specific versions
+TELEMETRY_SKIP_VERSIONS = {
+    "entrypoint": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "bashrc": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "framework": {"pytorch": [""], "tensorflow": [""]},
+}
+
 
 # Nightly fixtures
 @pytest.fixture(scope="session")
@@ -1001,6 +1008,56 @@ def skip_serialized_release_pt_test(request):
     ):
         pytest.skip(
             f"Skip test for {image_uri} given that the image is being tested in serial execution."
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_telemetry_tests(request):
+    """Skip specific telemetry tests based on test name and image version"""
+    test_name = request.node.name.lower()
+
+    if "telemetry_entrypoint" in test_name:
+        _check_telemetry_skip(request, "entrypoint")
+    elif "telemetry_bashrc" in test_name:
+        _check_telemetry_skip(request, "bashrc")
+    elif "telemetry_framework" in test_name:
+        _check_telemetry_skip(request, "framework")
+
+
+def _get_telemetry_image_info(request):
+    """Helper function to get image URI and framework info from fixtures."""
+    telemetry_framework_fixtures = [
+        "pytorch_training",
+        "tensorflow_training",
+        "tensorflow_inference",
+        "pytorch_inference",
+        "pytorch_inference_arm64",
+        "pytorch_training_arm64",
+        "tensorflow_inference_arm64",
+    ]
+
+    for fixture_name in telemetry_framework_fixtures:
+        if fixture_name in request.fixturenames:
+            img_uri = request.getfixturevalue(fixture_name)
+            image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+            return image_framework, image_framework_version
+    return None, None
+
+
+def _check_telemetry_skip(request, test_type):
+    """Common logic for skipping telemetry tests."""
+    if test_type not in TELEMETRY_SKIP_VERSIONS:
+        return
+    image_framework, image_framework_version = _get_telemetry_image_info(request)
+    if not image_framework:
+        return
+    if image_framework not in TELEMETRY_SKIP_VERSIONS[test_type]:
+        return
+
+    if image_framework_version in TELEMETRY_SKIP_VERSIONS[test_type][image_framework]:
+        pytest.skip(
+            f"Telemetry {test_type} test is not supported for "
+            f"{image_framework} version {image_framework_version}"
         )
 
 

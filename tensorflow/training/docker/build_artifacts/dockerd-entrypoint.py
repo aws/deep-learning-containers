@@ -18,14 +18,21 @@ import subprocess
 import sys
 import tensorflow as tf
 
+try:
+    subprocess.call(
+        ["/bin/bash", "/usr/local/bin/bash_telemetry.sh"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+except:
+    pass
+
+
 if tf.test.is_built_with_cuda():
     # run compat mounting by default
     try:
         subprocess.run(["bash", "-m", "/usr/local/bin/start_cuda_compat.sh"])
     except Exception as e:
         print(f"Error running script: {e}")
-
-if not os.path.exists("/opt/ml/input/config"):
-    subprocess.call(["python", "/usr/local/bin/deep_learning_container.py", "&>/dev/null", "&"])
 
 subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
