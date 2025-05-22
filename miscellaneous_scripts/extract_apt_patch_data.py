@@ -26,7 +26,7 @@ def get_package_list(run_cmd=None):
     :return: list of str, names of the packages parsed from the command output
     :raises ValueError: if run_cmd is not a list of strings
     """
-    args = run_cmd if run_cmd is not None else ["apt", "list",  "--installed"]
+    args = run_cmd if run_cmd is not None else ["apt", "list", "--installed"]
     if not isinstance(args, list) or not all(isinstance(tok, str) for tok in args):
         raise ValueError("run_cmd must be a list of strings")
     run_output = subprocess.run(args, capture_output=True, text=True, check=True)
