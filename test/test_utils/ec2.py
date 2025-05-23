@@ -1936,10 +1936,12 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
 
     if enable_ipv6:
         if not ipv6_vpc_name:
-            raise ValueError("")
+            raise ValueError("IPv6 testing is enabled but IPv6 VPC name is not set")
+        
         LOGGER.info(
             f"IPv6 testing enabled - using IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}"
         )
+        
         ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
         ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
         ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
