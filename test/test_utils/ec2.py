@@ -51,6 +51,8 @@ HEAVY_INSTANCE_LIST = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
 # Flag to enable IPv6 testing
 ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
+IPV6_VPC_NAME = os.getenv("IPV6_VPC_NAME")
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
@@ -322,6 +324,14 @@ def launch_instance(
                          Did not return any response"
         )
 
+    # quick VPC verification
+    if ENABLE_IPV6_TESTING:
+        instance = response["Instances"][0]
+        actual_vpc_id = instance["VpcId"]
+        expected_vpc_name = os.getenv("IPV6_VPC_NAME")
+        expected_vpc_id = get_vpc_id_by_name(client, expected_vpc_name)
+        LOGGER.info(f"[launch_instance] Standard instance {instance['InstanceId']} VPC check - Expected: {expected_vpc_id} ({expected_vpc_name}), Got: {actual_vpc_id}")
+
     return response["Instances"][0]
 
 
@@ -373,6 +383,8 @@ def launch_instances_with_retry(
     :param fn_name: string - function name for ease of logging
     :return: list of EC2 Instance Resource objects for instances launched
     """
+
+    LOGGER.info("[launch_instances_with_retry] was called")
 
     instances = None
     reservations = get_available_reservations(
@@ -436,6 +448,14 @@ def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, avai
         }
     )
     response = ec2_client.run_instances(**ec2_efa_run_instances_definition) or {}
+    
+    LOGGER.info(f"[launch_efa] Launching EFA instance in AZ: {availability_zone}")
+
+    if response.get("Instances"):
+        instance_id = response["Instances"][0]["InstanceId"]
+        vpc_id = response["Instances"][0]["VpcId"]
+        LOGGER.info(f"[launch_efa] Launched EFA instance {instance_id} in VPC: {vpc_id}")
+
     return response.get("Instances")
 
 
@@ -1930,18 +1950,16 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
 
-    enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    ipv6_vpc_name = IPV6_VPC_NAME
 
-    ipv6_vpc_name = os.getenv("IPV6_VPC_NAME")
-
-    if enable_ipv6:
+    if ENABLE_IPV6_TESTING:
         if not ipv6_vpc_name:
             raise ValueError("IPv6 testing is enabled but IPv6 VPC name is not set")
         
         LOGGER.info(
-            f"IPv6 testing enabled - using IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}"
+            LOGGER.info(f"[generate_network_interfaces] Configuring EFA interfaces for IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}")
         )
-        
+
         ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
         ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
         ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
@@ -1976,6 +1994,9 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
         }
         for i in range(num_efa_interfaces)
     ]
+
+    LOGGER.info(f"[generate_network_interfaces] Configuring EFA interfaces for default VPC in AZ: {availability_zone}")
+
     return network_interfaces
 
 
@@ -2026,8 +2047,7 @@ def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
     """
     for allocation_id in elastic_ip_allocation_ids:
         try:
-            enable_ipv6 = os.environ.get("ENABLE_IPV6_TESTING", "false").lower() == "true"
-            if enable_ipv6:
+            if ENABLE_IPV6_TESTING:
                 address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][
                     0
                 ]

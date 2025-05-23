@@ -294,7 +294,6 @@ def main():
     # Enable IPv6 testing from environment variable
     if not executor_mode:
         ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
-        LOGGER.info(f"IPv6 Testing enabled: {ipv6_enabled}")
         os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
 
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:

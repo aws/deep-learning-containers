@@ -78,7 +78,7 @@ ec2_tests_on_heavy_instances = true
 enable_ipv6 = true
 ### Set the VPC name to be used for IPv6 testing
 ### Empty by default
-ipv6_vpc_name = "dlc-ipv4-test-vpc"
+ipv6_vpc_name = "dlc-ipv6-test-vpc"
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = false
