@@ -384,7 +384,7 @@ def launch_instances_with_retry(
     :return: list of EC2 Instance Resource objects for instances launched
     """
 
-    LOGGER.info("[launch_instances_with_retry] was called")
+    LOGGER.info(f"[launch_instances_with_retry] IPv6 enabled: {ENABLE_IPV6_TESTING}, VPC name: {IPV6_VPC_NAME}")
 
     instances = None
     reservations = get_available_reservations(
@@ -407,6 +407,17 @@ def launch_instances_with_retry(
             )
             if is_mainline_context():
                 LOGGER.info(f"Launched instance for {fn_name} via {reservation}")
+            
+            if instances:
+                instance_ids = [instance.id for instance in instances]
+                instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+                for reservation in instance_details['Reservations']:
+                    for instance in reservation['Instances']:
+                        LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                        if ENABLE_IPV6_TESTING:
+                            expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                            LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+
             return instances
         except ClientError as e:
             LOGGER.error(f"Failed to launch via reservation for {fn_name} - {e}")
@@ -425,6 +436,16 @@ def launch_instances_with_retry(
             try:
                 instances = ec2_resource.create_instances(**ec2_create_instances_definition)
                 if instances:
+
+                    instance_ids = [instance.id for instance in instances]
+                    instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+                    for reservation in instance_details['Reservations']:
+                        for instance in reservation['Instances']:
+                            LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                            if ENABLE_IPV6_TESTING:
+                                expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                                LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+                                
                     break
             except ClientError as e:
                 LOGGER.error(f"Failed to launch in {a_zone} due to {e} for {fn_name}")
@@ -434,6 +455,17 @@ def launch_instances_with_retry(
             raise error
     else:
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+
+        if instances:
+            instance_ids = [instance.id for instance in instances]
+            instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+            for reservation in instance_details['Reservations']:
+                for instance in reservation['Instances']:
+                    LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                    if ENABLE_IPV6_TESTING:
+                        expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                        LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+
     return instances
 
 
@@ -462,6 +494,10 @@ def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, avai
 def launch_efa_with_reservations(
     ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
 ):
+    
+    LOGGER.info("[launch_efa_with_reservations] was called")
+
+    
     ec2_run_instances_reserved_definition = copy.deepcopy(ec2_run_instances_definition)
     while reservations:
         reservation = reservations.pop(0)
@@ -543,6 +579,9 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     Returns:
         list: launched instances
     """
+
+    LOGGER.info("[launch_efa_with_heterogenous_reservations] was called")
+
     ec2_heterogenous_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
     ec2_instance_type = ec2_heterogenous_run_instances_definition["InstanceType"]
     minimum_number_of_instances = ec2_heterogenous_run_instances_definition["MinCount"]
@@ -680,6 +719,9 @@ def launch_efa_instances_with_retry(
     :return: dict response from ec2_client.run_instances
     """
     region = ec2_client.meta.region_name
+
+    LOGGER.info("[launch_efa_instances_with_retry] was called")
+
     LOGGER.info(f"Trying to launch {ec2_instance_type} for {fn_name} via capacity reservation...")
 
     heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
@@ -1785,6 +1827,9 @@ def get_default_vpc_id(ec2_client):
     """
     response = ec2_client.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])
     default_vpc_id = response["Vpcs"][0]["VpcId"]
+
+    LOGGER.info(f"[get_default_vpc_id] got default VPC ID: {default_vpc_id}")
+
     return default_vpc_id
 
 
@@ -1852,6 +1897,9 @@ def get_vpc_id_by_name(ec2_client, vpc_name):
         raise Exception(f"Multiple VPCs found with Name tag: {vpc_name}")
 
     vpc_id = response[0]["VpcId"]
+
+    LOGGER.info(f"[get_vpc_id_by_name] got VPC ID: {vpc_id} for VPC name: {vpc_name}")
+
     return vpc_id
 
 
