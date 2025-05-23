@@ -17,7 +17,6 @@ gitpython
 pytz
 toml
 lxml==5.3.1
-scrapy
 crochet
 tenacity
 requests

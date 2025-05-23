@@ -296,21 +296,3 @@ def reupload_image_to_test_ecr(
     delete_file(ECR_PASSWORD_FILE_PATH)
 
     return target_image_uri
-
-
-def process_scraped_data(scraped_data):
-    processed_data = {}
-    for scraped_webpage in scraped_data:
-        cve_id = scraped_webpage["URL"].split("/")[-1]
-        if cve_id not in processed_data:
-            processed_data[cve_id] = {}
-        for status_table in scraped_webpage["status_tables"]:
-            for package in status_table["packages"]:
-                if package not in processed_data[cve_id]:
-                    processed_data[cve_id][package] = []
-                processed_data[cve_id][package].append(
-                    {"status_table": status_table, "notes": scraped_webpage["notes"]}
-                )
-
-    return processed_data
-
