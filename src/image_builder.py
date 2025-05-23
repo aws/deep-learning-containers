@@ -245,10 +245,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             label_job_type = "training"
         elif "inference" in image_repo_uri:
             label_job_type = "inference"
-        elif "base" in image_repo_uri:
-            label_job_type = "base"
-        elif "vllm" in image_repo_uri:
-            label_job_type = "vllm"
+        elif "base" in image_repo_uri or "vllm" in image_repo_uri:
+            label_job_type = "general"
         else:
             raise RuntimeError(
                 f"Cannot find inference, training or base job type in {image_repo_uri}. "
