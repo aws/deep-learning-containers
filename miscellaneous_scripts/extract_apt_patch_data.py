@@ -125,7 +125,7 @@ def update_patch_package_list_and_upgradable_packages_data(
             ["dpkg-query", "-W", "-f=${Source}", package],
             capture_output=True,
             text=True,
-            check=False
+            check=False,
         )
         # dpkg-query prints "(none)" if there's no Source
         sp = result.stdout.strip()
