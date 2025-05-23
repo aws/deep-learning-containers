@@ -395,8 +395,11 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         LOGGER.info(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
+    
+    def skip_upload(image):
+        return "base" in image or "vllm" in image
 
-    if is_mainline_context() and is_test_phase() and not is_generic_image():
+    if is_mainline_context() and is_test_phase() and not is_generic_image() and not skip_upload(image):
         upload_data = (
             allowlist_for_daily_scans.vulnerability_list if allowlist_for_daily_scans else []
         )
