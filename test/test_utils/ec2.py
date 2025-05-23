@@ -290,6 +290,14 @@ def launch_instance(
 
     while reservations:
         reservation = reservations.pop(0)
+        if ENABLE_IPV6_TESTING:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(client, reservation["AvailabilityZone"])
+            if not ipv6_network_interfaces:
+                LOGGER.info(f"Skipping reservation in AZ {reservation['AvailabilityZone']} - no IPv6 subnet available")
+                continue
+            else:
+                arguments_dict["NetworkInterfaces"] = ipv6_network_interfaces
+
         arguments_dict["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
@@ -316,6 +324,17 @@ def launch_instance(
     # Clean up cap reservation if we don't find one
     arguments_dict.pop("CapacityReservationSpecification", None)
     LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")
+
+    if ENABLE_IPV6_TESTING:
+        all_azs = get_availability_zone_ids(client)
+        for az in all_azs:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(client, az)
+            if ipv6_network_interfaces:
+                arguments_dict["NetworkInterfaces"] = ipv6_network_interfaces
+                break
+        else:
+            raise Exception("No AZs available with IPv6 subnets")
+
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
@@ -364,6 +383,49 @@ def get_available_reservations(ec2_client, instance_type, min_availability=1):
     return sorted(open_tables, key=lambda res: res["AvailableInstanceCount"])
 
 
+def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
+    """
+    Generate network interface configuration for IPv6-enabled instances.
+    :param ec2_client: boto3 EC2 Client
+    :param availability_zone: str AZ in which the instance must be created
+    :return: list containing a single network interface configuration for IPv6
+    """
+    if not IPV6_VPC_NAME:
+        raise ValueError("IPv6 VPC name is not set")
+    
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] configuring interface for IPv6 VPC: {IPV6_VPC_NAME} in AZ: {availability_zone}")
+
+    ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, IPV6_VPC_NAME)
+    ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
+        ec2_client, IPV6_VPC_NAME, availability_zone
+    )
+
+    return [{
+        "DeviceIndex": 0,
+        "DeleteOnTermination": True,
+        "Groups": [ipv6_default_sg],
+        "SubnetId": ipv6_subnet_id,
+        "AssociatePublicIpAddress": True
+    }]
+
+
+def try_get_ipv6_network_interface(ec2_client, az):
+        """
+        Try to get network interface configuration for IPv6 in specified AZ
+        :param ec2_client: boto3 EC2 Client object
+        :param az: string - AZ to check for IPv6 subnet
+        :return: list containing network interface configuration if IPv6 subnet found in AZ,
+                None if no IPv6 subnet available
+        """
+        try:
+            network_interfaces = generate_standard_ipv6_network_interface(ec2_client, az)
+            LOGGER.info(f"[try_get_ipv6_network_interface] Found IPv6-enabled subnet in AZ {az}")
+            return network_interfaces
+        except Exception as e:
+            LOGGER.info(f"[try_get_ipv6_network_interface] No IPv6-enabled subnet available in AZ {az}: {str(e)}")
+            return None
+
+
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
@@ -384,8 +446,6 @@ def launch_instances_with_retry(
     :return: list of EC2 Instance Resource objects for instances launched
     """
 
-    LOGGER.info(f"[launch_instances_with_retry] IPv6 enabled: {ENABLE_IPV6_TESTING}, VPC name: {IPV6_VPC_NAME}")
-
     instances = None
     reservations = get_available_reservations(
         ec2_client=ec2_client,
@@ -395,11 +455,21 @@ def launch_instances_with_retry(
     # Look at available CRs first
     while reservations:
         reservation = reservations.pop(0)
+
+        if ENABLE_IPV6_TESTING:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, reservation["AvailabilityZone"])
+            if not ipv6_network_interfaces:
+                LOGGER.info(f"Skipping reservation in AZ {reservation['AvailabilityZone']} - no IPv6 subnet available")
+                continue
+            else:
+                ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+
         ec2_create_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
             }
         }
+
         try:
             instances = ec2_resource.create_instances(**ec2_create_instances_definition)
             LOGGER.info(
@@ -432,7 +502,16 @@ def launch_instances_with_retry(
     if availability_zone_options:
         error = None
         for a_zone in availability_zone_options:
+            if ENABLE_IPV6_TESTING:
+                ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, a_zone)
+                if not ipv6_network_interfaces:
+                    LOGGER.info(f"Skipping AZ {a_zone} - no IPv6 subnet available")
+                    continue
+                else:
+                    ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
+            
             try:
                 instances = ec2_resource.create_instances(**ec2_create_instances_definition)
                 if instances:
@@ -454,6 +533,19 @@ def launch_instances_with_retry(
         if not instances:
             raise error
     else:
+        if ENABLE_IPV6_TESTING:
+            all_azs = get_availability_zone_ids(ec2_client)
+            found_ipv6_az = False
+            for az in all_azs:
+                ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, az)
+                if ipv6_network_interfaces:
+                    ec2_create_instances_definition["Placement"] = {"AvailabilityZone": az}
+                    ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+                    found_ipv6_az = True
+                    break
+            if not found_ipv6_az:
+                raise Exception("No AZs available with IPv6 subnets")
+
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
 
         if instances:
