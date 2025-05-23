@@ -45,7 +45,6 @@ from test.test_utils.security import (
     conduct_failure_routine,
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
-    fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
