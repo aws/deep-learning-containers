@@ -405,7 +405,8 @@ def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
         "DeleteOnTermination": True,
         "Groups": [ipv6_default_sg],
         "SubnetId": ipv6_subnet_id,
-        "AssociatePublicIpAddress": True
+        "Ipv6Addresses": [{"Ipv6Address": "::"}],
+        "AssociatePublicIpAddress": False
     }]
 
 
@@ -896,6 +897,14 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     :return: <str> IP Address of instance with matching instance ID
     """
     instance = get_instance_from_id(instance_id, region)
+
+    if ENABLE_IPV6_TESTING:
+        if not instance.get("NetworkInterfaces") or not instance["NetworkInterfaces"][0].get("Ipv6Addresses"):
+            raise Exception("IPv6 address not yet available")
+        ipv6_addr = instance["NetworkInterfaces"][0]["Ipv6Addresses"][0]["Ipv6Address"]
+        LOGGER.info(f"[get_public_ip] Got IPv6 address: {ipv6_addr}")
+        return ipv6_addr
+    
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
     return instance["PublicIpAddress"]
@@ -1160,6 +1169,11 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     :return: Fabric connection object
     """
     user = get_instance_user(instance_id, region=region)
+
+    if ENABLE_IPV6_TESTING:
+        ip_address = f"[{ip_address}]"
+        LOGGER.info(f"[get_ec2_fabric_connection] Connecting via IPv6: {ip_address}")
+        
     conn = Connection(
         user=user,
         host=get_public_ip(instance_id, region),
@@ -2114,6 +2128,8 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
                 "InterfaceType": "efa",
                 "Groups": [ipv6_default_sg, ipv6_efa_sg],
                 "SubnetId": ipv6_subnet_id,
+                "Ipv6Addresses": [{"Ipv6Address": "::"}],
+                "AssociatePublicIpAddress": False
             }
             for i in range(num_efa_interfaces)
         ]
