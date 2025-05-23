@@ -391,16 +391,20 @@ def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
     :return: list containing a single network interface configuration for IPv6
     """
     if not IPV6_VPC_NAME:
+        LOGGER.error("[generate_standard_ipv6_network_interface] IPv6 VPC name is not set")
         raise ValueError("IPv6 VPC name is not set")
     
     LOGGER.info(f"[generate_standard_ipv6_network_interface] configuring interface for IPv6 VPC: {IPV6_VPC_NAME} in AZ: {availability_zone}")
 
     ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, IPV6_VPC_NAME)
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] got IPv6 default security group: {ipv6_default_sg}")
+
     ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
         ec2_client, IPV6_VPC_NAME, availability_zone
     )
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] got IPv6 subnet ID: {ipv6_subnet_id}")
 
-    return [{
+    network_interfaces = [{
         "DeviceIndex": 0,
         "DeleteOnTermination": True,
         "Groups": [ipv6_default_sg],
@@ -408,6 +412,9 @@ def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
         "Ipv6Addresses": [{"Ipv6Address": "::"}],
         "AssociatePublicIpAddress": False
     }]
+
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] generated network interface config: {network_interfaces}")
+    return network_interfaces
 
 
 def try_get_ipv6_network_interface(ec2_client, az):
@@ -419,8 +426,12 @@ def try_get_ipv6_network_interface(ec2_client, az):
                 None if no IPv6 subnet available
         """
         try:
-            network_interfaces = generate_standard_ipv6_network_interface(ec2_client, az)
             LOGGER.info(f"[try_get_ipv6_network_interface] Found IPv6-enabled subnet in AZ {az}")
+            network_interfaces = generate_standard_ipv6_network_interface(ec2_client, az)
+            if network_interfaces:
+                LOGGER.info(f"[try_get_ipv6_network_interface] Successfully generated IPv6 network interfaces for AZ {az}: {network_interfaces}")
+            else:
+                LOGGER.info(f"[try_get_ipv6_network_interface]No IPv6 network interfaces generated for AZ {az}")
             return network_interfaces
         except Exception as e:
             LOGGER.info(f"[try_get_ipv6_network_interface] No IPv6-enabled subnet available in AZ {az}: {str(e)}")
