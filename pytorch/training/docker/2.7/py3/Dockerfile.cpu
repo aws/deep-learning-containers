@@ -189,7 +189,7 @@ RUN pip install --no-cache-dir \
     opencv-python \
     mpi4py \
     jinja2==3.1.6 \
-    tornado==6.5
+    tornado==6.5.0
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
