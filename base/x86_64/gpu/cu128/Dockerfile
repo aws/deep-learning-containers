@@ -92,15 +92,18 @@ COPY --from=python-builder /usr/local/bin /usr/local/bin
 COPY --from=cuda-builder /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR} /usr/local/cuda-${CUDA_MAJOR}.${CUDA_MINOR}
 COPY install_efa.sh install_efa.sh 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
-
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
+    chmod +x /usr/local/bin/bash_telemetry.sh && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
     # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
     # OSS compliance
     apt-get update && \
+    apt-get upgrade -y && \
     apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
+    apt-get clean && \
     HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
@@ -110,6 +113,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
+    rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
     
 CMD ["/bin/bash"]

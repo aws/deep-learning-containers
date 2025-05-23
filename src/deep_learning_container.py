@@ -239,7 +239,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--framework",
-        choices=["tensorflow", "mxnet", "pytorch", "base"],
+        choices=["tensorflow", "mxnet", "pytorch", "base", "vllm"],
         help="framework of container image.",
         required=True,
     )
@@ -248,7 +248,7 @@ def parse_args():
     )
     parser.add_argument(
         "--container-type",
-        choices=["training", "inference"],
+        choices=["training", "inference", "general"],
         help="What kind of jobs you want to run on container. Either training or inference.",
         required=True,
     )
