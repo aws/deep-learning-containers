@@ -218,9 +218,6 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
-# S3 Transfer bucket region
-TEST_TRANSFER_S3_BUCKET_REGION = "us-west-2"
-
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
@@ -1450,9 +1447,7 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework
-        if os.getenv("ARCH_TYPE") == "arm64"
-        else framework
+        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
     )
 
     version_regex = {

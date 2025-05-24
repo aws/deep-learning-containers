@@ -125,11 +125,16 @@ class DockerImage:
             "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'",
             "apt list --installed",
         ]
+
         for command in commands:
-            command_responses.append(f"\n{command}")
-            command_responses.append(
-                bytes.decode(docker_client.containers.run(self.ecr_url, command))
-            )
+            try:
+                command_responses.append(f"\n{command}")
+                command_responses.append(
+                    bytes.decode(docker_client.containers.run(self.ecr_url, command))
+                )
+            except Exception as e:
+                command_responses.append(f"\n{command}", f"Failed to execute: {str(e)}")
+
         docker_client.containers.prune()
         return command_responses
 
