@@ -158,8 +158,8 @@ def execute_generative_mode_type(args):
     In the ends, it dumps the data at save_result_path location.
     """
     impacted_packages = args.impacted_packages
-    installed_packages = get_package_list_using_command(run_command="apt list --installed")
-    upgradable_packages = get_package_list_using_command(run_command="apt list --upgradable")
+    installed_packages = get_package_list(["apt", "list", "--installed"])
+    upgradable_packages = get_package_list(["apt", "list", "--upgradable"])
 
     upgradable_packages_data_for_impacted_packages = {}
     patch_package_list = []
