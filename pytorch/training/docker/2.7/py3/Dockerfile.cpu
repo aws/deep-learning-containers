@@ -262,6 +262,14 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+
 # Starts framework
 CMD ["/bin/bash"]
 
@@ -359,7 +367,9 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-COPY sitecustomize.py /usr/local/lib/python${PYTHON_SHORT_VERSION}/sitecustomize.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
