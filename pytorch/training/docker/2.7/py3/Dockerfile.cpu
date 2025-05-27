@@ -197,6 +197,10 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
@@ -261,10 +265,6 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
-
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -366,10 +366,6 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
-
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
