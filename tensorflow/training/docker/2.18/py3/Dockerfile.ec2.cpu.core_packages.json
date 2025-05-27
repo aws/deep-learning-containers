@@ -32,4 +32,7 @@
   "urllib3": {
     "version_specifier": ">=2.2.2"
   }
+  "tornado" {
+    "version_specifier": ">=6.5.1"
+  }
 }
