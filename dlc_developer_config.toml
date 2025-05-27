@@ -106,7 +106,7 @@ use_scheduler = false
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
-dlc-pr-autogluon-training = ""
+dlc-pr-autogluon-training = "autogluon/training/buildspec.yml"
 
 # ARM64 Training
 dlc-pr-pytorch-arm64-training = ""
@@ -136,7 +136,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 # Standard Framework Inference
 dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
-dlc-pr-autogluon-inference = ""
+dlc-pr-autogluon-inference = "autogluon/inference/buildspec.yml"
 
 # Graviton Inference
 dlc-pr-pytorch-graviton-inference = ""
