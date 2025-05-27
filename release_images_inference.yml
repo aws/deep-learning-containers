@@ -17,13 +17,13 @@ release_images:
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "triton"
-    version: "24.09"
+    version: "25.04"
     arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      cuda_version: "cu129"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.

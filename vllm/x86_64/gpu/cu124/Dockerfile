@@ -19,7 +19,10 @@ WORKDIR /
 
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
+    chmod +x /usr/local/bin/bash_telemetry.sh && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
     # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
