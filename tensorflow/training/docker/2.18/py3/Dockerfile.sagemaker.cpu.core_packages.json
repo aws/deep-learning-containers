@@ -78,7 +78,7 @@
   "httpx": {
     "version_specifier": ">=0.28.0"
   },
-  "tornado" {
+  "tornado": {
     "version_specifier": ">=6.5.1"
   }
 }
