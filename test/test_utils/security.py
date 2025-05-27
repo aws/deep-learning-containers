@@ -652,7 +652,7 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
         :param vulnerability_2: dict, JSON object consisting of information about the vulnerability in the Allowlist Format
         :return: bool True if the two input objects are equivalent, False otherwise
         """
-        return vulnerability_1 == vulnerability_2
+        return vulnerability_1.vulnerability_id == vulnerability_2.vulnerability_id
 
     def get_summarized_info(self):
         """
