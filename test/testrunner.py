@@ -310,6 +310,17 @@ def main():
     )
     build_context = get_build_context()
 
+    # Skip non-sanity/security test suites for base or vllm images in MAINLINE context
+    if (
+        build_context == "MAINLINE"
+        and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
+        and test_type not in {"functionality_sanity", "security_sanity"}
+    ):
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
+        )
+        return
+
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
