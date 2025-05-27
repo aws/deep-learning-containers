@@ -409,7 +409,7 @@ def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
         "DeleteOnTermination": True,
         "Groups": [ipv6_default_sg],
         "SubnetId": ipv6_subnet_id,
-        "Ipv6Addresses": [{"Ipv6Address": "::"}],
+        "Ipv6AddressCount": 1,
         "AssociatePublicIpAddress": False
     }]
 
@@ -1180,11 +1180,6 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     :return: Fabric connection object
     """
     user = get_instance_user(instance_id, region=region)
-
-    if ENABLE_IPV6_TESTING:
-        ip_address = f"[{ip_address}]"
-        LOGGER.info(f"[get_ec2_fabric_connection] Connecting via IPv6: {ip_address}")
-        
     conn = Connection(
         user=user,
         host=get_public_ip(instance_id, region),
@@ -2117,52 +2112,40 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
 
     ipv6_vpc_name = IPV6_VPC_NAME
 
-    if ENABLE_IPV6_TESTING:
-        if not ipv6_vpc_name:
-            raise ValueError("IPv6 testing is enabled but IPv6 VPC name is not set")
-        
-        LOGGER.info(
-            LOGGER.info(f"[generate_network_interfaces] Configuring EFA interfaces for IPv6 VPC: {ipv6_vpc_name} in AZ: {availability_zone}")
-        )
-
-        ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
-        ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
-        ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
-            ec2_client, ipv6_vpc_name, availability_zone
-        )
-
-        network_interfaces = [
-            {
-                "DeviceIndex": 0 if i == 0 else 1,
-                "NetworkCardIndex": i,
-                "DeleteOnTermination": True,
-                "InterfaceType": "efa",
-                "Groups": [ipv6_default_sg, ipv6_efa_sg],
-                "SubnetId": ipv6_subnet_id,
-                "Ipv6Addresses": [{"Ipv6Address": "::"}],
-                "AssociatePublicIpAddress": False
-            }
-            for i in range(num_efa_interfaces)
-        ]
-        return network_interfaces
-
     default_sg = get_default_security_group_id(ec2_client)
     efa_sg = get_efa_enabled_security_group_id(ec2_client)
+    default_sg_ids = [default_sg, efa_sg]
     default_subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
 
-    network_interfaces = [
-        {
+    ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
+    ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
+    ipv6_sg_ids = [ipv6_default_sg, ipv6_efa_sg]
+    ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
+        ec2_client, ipv6_vpc_name, availability_zone
+    )
+
+    subnet_id = ipv6_subnet_id if ENABLE_IPV6_TESTING else default_subnet_id
+    sg_ids = ipv6_sg_ids if ENABLE_IPV6_TESTING else default_sg_ids
+
+    network_interfaces = []
+
+    for i in range(num_efa_interfaces):
+        interface = {
             "DeviceIndex": 0 if i == 0 else 1,
             "NetworkCardIndex": i,
             "DeleteOnTermination": True,
             "InterfaceType": "efa",
-            "Groups": [default_sg, efa_sg],
-            "SubnetId": default_subnet_id,
+            "Groups": [sg_ids],
+            "SubnetId": subnet_id
         }
-        for i in range(num_efa_interfaces)
-    ]
 
-    LOGGER.info(f"[generate_network_interfaces] Configuring EFA interfaces for default VPC in AZ: {availability_zone}")
+        if ENABLE_IPV6_TESTING and i == 0:
+            interface["Ipv6AddressCount"] = 1
+            interface["AssociatePublicIpAddress"] = False
+        
+        network_interfaces.append(interface)
+
+    LOGGER.info(f"[generate_network_interfaces] Created {len(network_interfaces)} for {ec2_instance_type} subnet: {subnet_id}")
 
     return network_interfaces
 
