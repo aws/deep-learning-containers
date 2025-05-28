@@ -1189,8 +1189,8 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     )
     return conn
 
-# TODO: change to 18000 after testing
-def create_ec2_connection(instance_id, instance_pem_file, region, timeout=300):
+
+def create_ec2_connection(instance_id, instance_pem_file, region, timeout=18000):
     """
     establish connection with IPv4/IPv6 support based on ENABLE_IPV6_TESTING flag
     :param instance_id: ec2_instance id
