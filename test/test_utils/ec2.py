@@ -2146,21 +2146,27 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
 
     ipv6_vpc_name = IPV6_VPC_NAME
+    LOGGER.info(f"Generating network interfaces for {ec2_instance_type} in {availability_zone}")
 
     default_sg = get_default_security_group_id(ec2_client)
     efa_sg = get_efa_enabled_security_group_id(ec2_client)
     default_sg_ids = [default_sg, efa_sg]
     default_subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
+    LOGGER.info(f"Default SG IDs: {default_sg_ids}")
 
     ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
     ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
     ipv6_sg_ids = [ipv6_default_sg, ipv6_efa_sg]
+    LOGGER.info(f"IPv6 SG IDs: {ipv6_sg_ids}") 
+
     ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
         ec2_client, ipv6_vpc_name, availability_zone
     )
+    LOGGER.info(f"Default subnet: {default_subnet_id}, IPv6 subnet: {ipv6_subnet_id}")
 
     subnet_id = ipv6_subnet_id if ENABLE_IPV6_TESTING else default_subnet_id
     sg_ids = ipv6_sg_ids if ENABLE_IPV6_TESTING else default_sg_ids
+    LOGGER.info(f"Using subnet: {subnet_id}, Using SGs: {sg_ids}")
 
     network_interfaces = []
 
@@ -2170,7 +2176,7 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             "NetworkCardIndex": i,
             "DeleteOnTermination": True,
             "InterfaceType": "efa",
-            "Groups": [sg_ids],
+            "Groups": sg_ids,
             "SubnetId": subnet_id
         }
 
@@ -2179,6 +2185,7 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             interface["AssociatePublicIpAddress"] = False
         
         network_interfaces.append(interface)
+        LOGGER.info(f"Created interface {i}: {interface}")
 
     LOGGER.info(f"[generate_network_interfaces] Created {len(network_interfaces)} for {ec2_instance_type} subnet: {subnet_id}")
 
