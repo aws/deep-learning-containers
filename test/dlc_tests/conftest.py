@@ -499,27 +499,42 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         for worker_instance_id, worker_instance_pem_file in efa_ec2_instances[1:]
     ]
 
-    user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
-    master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
-    LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
-    master_connection = Connection(
-        user=user_name,
-        host=master_public_ip,
-        connect_kwargs={"key_filename": [master_instance_pem_file]},
-        connect_timeout=18000,
+    # user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
+    # master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
+    # LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
+    # master_connection = Connection(
+    #     user=user_name,
+    #     host=master_public_ip,
+    #     connect_kwargs={"key_filename": [master_instance_pem_file]},
+    #     connect_timeout=18000,
+    # )
+
+    master_connection = ec2_utils.create_ec2_connection(
+        master_instance_id,
+        master_instance_pem_file,
+        region
     )
+
+    # worker_instance_connections = []
+    # for instance in worker_instances:
+    #     worker_instance_id = instance["worker_instance_id"]
+    #     worker_instance_pem_file = instance["worker_instance_pem_file"]
+    #     worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
+    #     LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
+    #     worker_connection = Connection(
+    #         user=user_name,
+    #         host=worker_public_ip,
+    #         connect_kwargs={"key_filename": [worker_instance_pem_file]},
+    #         connect_timeout=18000,
+    #     )
+    #     worker_instance_connections.append(worker_connection)
 
     worker_instance_connections = []
     for instance in worker_instances:
-        worker_instance_id = instance["worker_instance_id"]
-        worker_instance_pem_file = instance["worker_instance_pem_file"]
-        worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
-        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
-        worker_connection = Connection(
-            user=user_name,
-            host=worker_public_ip,
-            connect_kwargs={"key_filename": [worker_instance_pem_file]},
-            connect_timeout=18000,
+        worker_connection = ec2_utils.create_ec2_connection(
+            instance["worker_instance_id"],
+            instance["worker_instance_pem_file"],
+            region
         )
         worker_instance_connections.append(worker_connection)
 
@@ -756,19 +771,22 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     :param region: Region where ec2 instance is launched
     :return: Fabric connection object
     """
+    # instance_id, instance_pem_file = ec2_instance
+    # ip_address = ec2_utils.get_public_ip(instance_id, region=region)
+    # LOGGER.info(f"Instance ip_address: {ip_address}")
+    # user = ec2_utils.get_instance_user(instance_id, region=region)
+
+    # LOGGER.info(f"Connecting to {user}@{ip_address}")
+
+    # conn = Connection(
+    #     user=user,
+    #     host=ip_address,
+    #     connect_kwargs={"key_filename": [instance_pem_file]},
+    #     connect_timeout=18000,
+    # )
+
     instance_id, instance_pem_file = ec2_instance
-    ip_address = ec2_utils.get_public_ip(instance_id, region=region)
-    LOGGER.info(f"Instance ip_address: {ip_address}")
-    user = ec2_utils.get_instance_user(instance_id, region=region)
-
-    LOGGER.info(f"Connecting to {user}@{ip_address}")
-
-    conn = Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs={"key_filename": [instance_pem_file]},
-        connect_timeout=18000,
-    )
+    conn = ec2_utils.create_ec2_connection(instance_id, instance_pem_file, region)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
     unique_id = random.randint(1, 100000)
