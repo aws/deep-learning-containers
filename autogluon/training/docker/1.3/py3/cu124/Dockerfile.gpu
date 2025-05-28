@@ -15,11 +15,15 @@ RUN apt-get update \
  # Install rsync to support ray distributed training
  && apt-get install rsync -y \
  && apt-get clean \
+ build-essential \
+ python3-dev \
+ python3-setuptools \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/*
 
 ARG AUTOGLUON_VERSION=1.3.1
 
+RUN pip install --no-cache-dir -U pip setuptools wheel build
 
 # Upgrading pip and installing/updating Python dependencies
 # Comments are added to explain the reason behind each update
