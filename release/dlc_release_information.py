@@ -115,7 +115,9 @@ class DLCReleaseInformation:
             return self.get_container_command_output("python3 -m pipdeptree")
         elif "triton" in self.dlc_repository:
             self.get_container_command_output("apt remove -y python3-pip")
-            self.get_container_command_output("curl -s https://bootstrap.pypa.io/get-pip.py | python3")
+            self.get_container_command_output(
+                "curl -s https://bootstrap.pypa.io/get-pip.py | python3"
+            )
             self.get_container_command_output("python3 -m pip install pipdeptree")
             return self.get_container_command_output("python3 -m pipdeptree")
         else:
