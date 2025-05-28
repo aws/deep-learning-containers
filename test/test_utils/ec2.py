@@ -1190,40 +1190,6 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     return conn
 
 
-def create_ec2_connection(instance_id, instance_pem_file, region, timeout=18000):
-    """
-    establish connection with IPv4/IPv6 support based on ENABLE_IPV6_TESTING flag
-    :param instance_id: ec2_instance id
-    :param instance_pem_file: instance key name
-    :param region: Region where ec2 instance is launched
-    :param timeout: Connection timeout in seconds (default value: 18000)
-    :return: Fabric Connection object
-    """
-    user = get_instance_user(instance_id, region)
-    ip_address = get_public_ip(instance_id, region)
-    LOGGER.info(f"Trying to connect to {user}@{ip_address}") 
-
-    connect_kwargs = {
-        "key_filename": [instance_pem_file],
-    }
-
-    if ENABLE_IPV6_TESTING and ':' in ip_address:
-        try:
-            sock = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-            sock.settimeout(timeout)
-            sock.bind(('::', 0))
-            connect_kwargs["sock"] = sock
-            LOGGER.info(f"Created IPv6 socket for {ip_address}")
-        except socket.error as e:
-            LOGGER.warning(f"Failed to create IPv6 socket: {e}")
-
-    return Connection(
-        user=user,
-        host=ip_address,
-        connect_kwargs=connect_kwargs,
-        connect_timeout=timeout,
-    )
-
 def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
     response = ec2_client.describe_tags(Filters=[{"Name": "resource-id", "Values": [instance_id]}])
