@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.6.0
 short_version: &SHORT_VERSION "2.6"
 arch_type: x86
-autopatch_build: "True"
+autopatch_build: "False"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -38,14 +38,14 @@ context:
       target: deep_learning_container.py
 
 images:
-  BuildEC2GPUPTTrainPy3cu126DockerImage:
+  BuildEC2GPUPTTrainPy3cu128DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 19700
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
-    cuda_version: &CUDA_VERSION cu126
+    cuda_version: &CUDA_VERSION cu128
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
