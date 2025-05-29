@@ -3,7 +3,7 @@ ARG PYTHON_VERSION=3.12.8
 ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.6.0
 
-ARG CUDA_VERSION=12.6.3
+ARG CUDA_VERSION=12.8.1
 ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.26.5
 ARG EFA_VERSION=1.41.0
@@ -18,7 +18,7 @@ ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch
 ARG TORCHTEXT_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchtext-0.18.0%2Bcu126-cp312-cp312-linux_x86_64.whl
 ARG TORCHDATA_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.6.0/x86/cu126/torchdata-0.10.1%2Bcu126-py3-none-any.whl
 
-FROM nvidia/cuda:12.6.3-base-ubuntu22.04 AS base_image
+FROM nvidia/cuda:12.8.1-base-ubuntu22.04 AS base_image
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
