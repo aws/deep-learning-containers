@@ -13,7 +13,7 @@ ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.26.2
 ARG EFA_VERSION=1.39.0
 ARG GDRCOPY_VERSION=2.5
-ARG TE_VERSION=2.2
+ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
 
 FROM nvidia/cuda:12.8.0-base-ubuntu22.04 AS base_image
@@ -328,7 +328,7 @@ RUN cd /tmp \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=8 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
@@ -427,12 +427,14 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
+RUN pip uninstall -y ninja && pip install ninja
+
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=8 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
@@ -457,11 +459,6 @@ RUN pip install --no-cache-dir -U \
     # pinned for sagemaker==2.233.0
     cloudpickle 
 
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
-
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -474,6 +471,11 @@ RUN HOME_DIR=/root \
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
