@@ -7,6 +7,12 @@ function install_efa {
     OPEN_MPI_PATH="/opt/amazon/openmpi"
     
     # Install build time tools
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update
     apt-get install -y --allow-change-held-packages --no-install-recommends \
         curl \
