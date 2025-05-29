@@ -43,6 +43,7 @@ RUN apt-get update \
         libsubunit0 \
         libsubunit-dev \
         libffi-dev \
+        libbz2-dev \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -102,7 +103,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # OSS compliance
     apt-get update && \
     apt-get upgrade -y && \
-    apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
+    apt-get install -y --allow-change-held-packages --no-install-recommends \
+    unzip \
+    wget && \
     apt-get clean && \
     HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
