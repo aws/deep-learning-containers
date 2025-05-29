@@ -6,8 +6,12 @@ ARG CUDA_MINOR="8"
 ARG EFA_VERSION="1.40.0"
 FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS base-builder
 
-RUN sed -i 's/archive.ubuntu.com/mirror.arizona.edu\/ubuntu/g' /etc/apt/sources.list && \
-    sed -i 's/security.ubuntu.com/mirror.arizona.edu\/ubuntu/g' /etc/apt/sources.list && \
+RUN echo "deb https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update \
     && apt-get -y upgrade --only-upgrade systemd \
     && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -103,8 +107,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
     # OSS compliance
-    sed -i 's/archive.ubuntu.com/mirror.arizona.edu\/ubuntu/g' /etc/apt/sources.list && \
-    sed -i 's/security.ubuntu.com/mirror.arizona.edu\/ubuntu/g' /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" > /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --allow-change-held-packages --no-install-recommends \
