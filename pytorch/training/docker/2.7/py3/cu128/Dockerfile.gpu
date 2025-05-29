@@ -10,7 +10,7 @@ ARG TORCHDATA_VERSION=0.11.0
 
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.7.0.66
-ARG NCCL_VERSION=2.26.2
+ARG NCCL_VERSION=2.26.5
 ARG EFA_VERSION=1.39.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
@@ -50,6 +50,12 @@ LABEL dlc_major_version="1"
 ARG PYTHON
 ARG PYTHON_VERSION
 ARG PYTHON_SHORT_VERSION
+ARG PYTORCH_VERSION
+ARG TORCHTEXT_VERSION
+ARG TORCHDATA_VERSION
+ARG TORCHAUDIO_VERSION
+ARG TORCHVISION_VERSION
+ARG TORCHTNT_VERSION
 
 ARG CUDA_VERSION
 ARG CUDNN_VERSION
@@ -236,6 +242,27 @@ RUN pip install --no-cache-dir \
     jinja2==3.1.6 \
     tornado==6.5.1
 
+# Install PyTorch
+RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
+    triton \
+    s3torchconnector \
+    # fastai hasn't released a version compatible with torch 2.6.0
+    # https://github.com/fastai/fastai/issues/4068
+    # fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc \
+    blis \
+    numpy \
+ && pip uninstall -y dataclasses
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -271,39 +298,12 @@ FROM common AS ec2
 
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
-ARG TORCHTNT_VERSION
-ARG PYTORCH_VERSION
-ARG TORCHTEXT_VERSION
-ARG TORCHDATA_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHVISION_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
-# Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    triton \
-    s3torchconnector \
-    # fastai hasn't released a version compatible with torch 2.6.0
-    # https://github.com/fastai/fastai/issues/4068
-    # fastai \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
 
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
@@ -376,39 +376,12 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
-ARG PYTORCH_VERSION
-ARG TORCHTEXT_VERSION
-ARG TORCHDATA_VERSION
-ARG TORCHAUDIO_VERSION
-ARG TORCHVISION_VERSION
-ARG TORCHTNT_VERSION
 ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
-# Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    triton \
-    s3torchconnector \
-    # fastai hasn't released a version compatible with torch 2.6.0
-    # https://github.com/fastai/fastai/issues/4068
-    # fastai \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -434,7 +407,7 @@ RUN pip uninstall -y ninja && pip install ninja
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=8 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
