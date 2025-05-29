@@ -44,6 +44,7 @@ RUN apt-get update \
         libsubunit-dev \
         libffi-dev \
         libbz2-dev \
+        liblzma-dev \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
