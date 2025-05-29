@@ -52,6 +52,7 @@ RUN echo "deb https://mirror.pilotfiber.com/ubuntu/ noble main restricted univer
         libsubunit-dev \
         libffi-dev \
         libbz2-dev \
+        liblzma-dev \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
