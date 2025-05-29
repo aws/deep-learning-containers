@@ -12,6 +12,8 @@ RUN echo "deb https://mirror.pilotfiber.com/ubuntu/ noble main restricted univer
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" > /etc/apt/sources.list.d/security.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list.d/security.list && \
     apt-get update \
     && apt-get -y upgrade --only-upgrade systemd \
     && apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -113,6 +115,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" > /etc/apt/sources.list.d/security.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list.d/security.list && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get install -y --allow-change-held-packages --no-install-recommends \

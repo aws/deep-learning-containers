@@ -13,6 +13,8 @@ function install_efa {
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-updates main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
     echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list && \
+    echo "deb https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" > /etc/apt/sources.list.d/security.list && \
+    echo "deb-src https://mirror.pilotfiber.com/ubuntu/ noble-security main restricted universe multiverse" >> /etc/apt/sources.list.d/security.list && \
     apt-get update
     apt-get install -y --allow-change-held-packages --no-install-recommends \
         curl \
