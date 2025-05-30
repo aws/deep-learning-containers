@@ -1,33 +1,35 @@
 import subprocess as sp
-import argparse, os
-from time import tzset
-from os.path import join, dirname
+import argparse
+import os
+import time
+import glob
+from os.path import dirname, join
+
+# set the timezone once in-process
+os.environ["TZ"] = "America/New_York"
+time.tzset()
+
+
+def run(cmd, cwd=None, **kwargs):
+    """simple wrapper around subprocess.run with common defaults"""
+    return sp.run(cmd, cwd=cwd, text=True, capture_output=True, check=True, **kwargs)
 
 
 def git_checkout(paths, date):
-    """check out the git modules located in paths one by one in a subprocess with a commmit before a certain date
+    """checkout each repo in paths to the last commit before date
 
     Keyword arguments:
     paths -- a list of absolute paths to the git repos
     date -- a date (%Y-%M-%D) of which the immediately prior commit will be checked out
     """
-    tz_cmds = 'echo "America/New_York" > /etc/timezone && ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime && '
-    checkout_cmds = []
     for p in paths:
-        checkout_cmds.append(f'cd {p} && git checkout -f $(git rev-list -1 --before="{date}" HEAD)')
-
-    if len(checkout_cmds) == 1:
-        cmd = checkout_cmds[0]
-    else:
-        cmd = " && ".join(checkout_cmds)
-    cmd = tz_cmds + cmd
-    # git checkout all the modules in one process
-    sp.run(cmd, shell=True, check=True)
+        rev = run(["git", "rev-list", "-1", f"--before={date}", "HEAD"], cwd=p).stdout.strip()
+        run(["git", "checkout", "-f", rev], cwd=p)
 
 
 def init_submodules(path):
     """initialize a repo's submodules recursively"""
-    sp.run(f"cd {path} && git submodule update --init --recursive", shell=True, check=True)
+    run(["git", "submodule", "update", "--init", "--recursive"], cwd=path)
 
 
 def find_submodules(path):
@@ -36,21 +38,17 @@ def find_submodules(path):
     Keyword arguments:
     path -- the aboslute path of git repo used as a root of finding its submodules
     """
-    res = sp.run(f"find {path} -name .gitmodules", shell=True, check=True, capture_output=True)
-    if res.stdout == "":
+    module_files = glob.glob(f"{path}/**/.gitmodules", recursive=True)
+    if not module_files:
         return False
 
-    submodules = []
-    module_files = res.stdout.decode("utf-8").split("\n")
+    subs = []
     for m in module_files:
-        if m:
-            with open(m) as f:
-                submodule_root = dirname(m)
-                module_paths = f.read().split("path = ")[1:]
-                for p in module_paths:
-                    submodule_path = join(submodule_root, p.split("\n")[0])
-                    submodules.append(submodule_path)
-    return submodules
+        root = dirname(m)
+        for line in open(m):
+            if line.startswith("path = "):
+                subs.append(join(root, line.split("=", 1)[1].strip()))
+    return subs
 
 
 if __name__ == "__main__":
