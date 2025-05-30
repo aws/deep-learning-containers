@@ -3,6 +3,7 @@ import time
 import re
 import logging
 import sys
+import socket
 import uuid
 import copy
 
@@ -47,6 +48,11 @@ ICE_SKIP_INSTANCE_LIST = []
 
 # List of instance types which are too powerful for minor tests
 HEAVY_INSTANCE_LIST = ["p4d.24xlarge", "p4de.24xlarge", "p5.48xlarge"]
+
+# Flag to enable IPv6 testing
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
+IPV6_VPC_NAME = os.getenv("IPV6_VPC_NAME")
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
@@ -285,6 +291,14 @@ def launch_instance(
 
     while reservations:
         reservation = reservations.pop(0)
+        if ENABLE_IPV6_TESTING:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(client, reservation["AvailabilityZone"])
+            if not ipv6_network_interfaces:
+                LOGGER.info(f"Skipping reservation in AZ {reservation['AvailabilityZone']} - no IPv6 subnet available")
+                continue
+            else:
+                arguments_dict["NetworkInterfaces"] = ipv6_network_interfaces
+
         arguments_dict["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
@@ -311,6 +325,17 @@ def launch_instance(
     # Clean up cap reservation if we don't find one
     arguments_dict.pop("CapacityReservationSpecification", None)
     LOGGER.info(f"No capacity reservation available for {instance_type}, trying elsewhere...")
+
+    if ENABLE_IPV6_TESTING:
+        all_azs = get_availability_zone_ids(client)
+        for az in all_azs:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(client, az)
+            if ipv6_network_interfaces:
+                arguments_dict["NetworkInterfaces"] = ipv6_network_interfaces
+                break
+        else:
+            raise Exception("No AZs available with IPv6 subnets")
+
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
@@ -318,6 +343,14 @@ def launch_instance(
             "Unable to launch the instance. \
                          Did not return any response"
         )
+
+    # quick VPC verification
+    if ENABLE_IPV6_TESTING:
+        instance = response["Instances"][0]
+        actual_vpc_id = instance["VpcId"]
+        expected_vpc_name = os.getenv("IPV6_VPC_NAME")
+        expected_vpc_id = get_vpc_id_by_name(client, expected_vpc_name)
+        LOGGER.info(f"[launch_instance] Standard instance {instance['InstanceId']} VPC check - Expected: {expected_vpc_id} ({expected_vpc_name}), Got: {actual_vpc_id}")
 
     return response["Instances"][0]
 
@@ -351,6 +384,61 @@ def get_available_reservations(ec2_client, instance_type, min_availability=1):
     return sorted(open_tables, key=lambda res: res["AvailableInstanceCount"])
 
 
+def generate_standard_ipv6_network_interface(ec2_client, availability_zone):
+    """
+    Generate network interface configuration for IPv6-enabled instances.
+    :param ec2_client: boto3 EC2 Client
+    :param availability_zone: str AZ in which the instance must be created
+    :return: list containing a single network interface configuration for IPv6
+    """
+    if not IPV6_VPC_NAME:
+        LOGGER.error("[generate_standard_ipv6_network_interface] IPv6 VPC name is not set")
+        raise ValueError("IPv6 VPC name is not set")
+    
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] configuring interface for IPv6 VPC: {IPV6_VPC_NAME} in AZ: {availability_zone}")
+
+    ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, IPV6_VPC_NAME)
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] got IPv6 default security group: {ipv6_default_sg}")
+
+    ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
+        ec2_client, IPV6_VPC_NAME, availability_zone
+    )
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] got IPv6 subnet ID: {ipv6_subnet_id}")
+
+    network_interfaces = [{
+        "DeviceIndex": 0,
+        "DeleteOnTermination": True,
+        "Groups": [ipv6_default_sg],
+        "SubnetId": ipv6_subnet_id,
+        "Ipv6AddressCount": 1,
+        "AssociatePublicIpAddress": False
+    }]
+
+    LOGGER.info(f"[generate_standard_ipv6_network_interface] generated network interface config: {network_interfaces}")
+    return network_interfaces
+
+
+def try_get_ipv6_network_interface(ec2_client, az):
+        """
+        Try to get network interface configuration for IPv6 in specified AZ
+        :param ec2_client: boto3 EC2 Client object
+        :param az: string - AZ to check for IPv6 subnet
+        :return: list containing network interface configuration if IPv6 subnet found in AZ,
+                None if no IPv6 subnet available
+        """
+        try:
+            LOGGER.info(f"[try_get_ipv6_network_interface] Found IPv6-enabled subnet in AZ {az}")
+            network_interfaces = generate_standard_ipv6_network_interface(ec2_client, az)
+            if network_interfaces:
+                LOGGER.info(f"[try_get_ipv6_network_interface] Successfully generated IPv6 network interfaces for AZ {az}: {network_interfaces}")
+            else:
+                LOGGER.info(f"[try_get_ipv6_network_interface]No IPv6 network interfaces generated for AZ {az}")
+            return network_interfaces
+        except Exception as e:
+            LOGGER.info(f"[try_get_ipv6_network_interface] No IPv6-enabled subnet available in AZ {az}: {str(e)}")
+            return None
+
+
 @retry(
     reraise=True,
     stop=stop_after_delay(30 * 60),  # Keep retrying for 30 minutes
@@ -380,11 +468,21 @@ def launch_instances_with_retry(
     # Look at available CRs first
     while reservations:
         reservation = reservations.pop(0)
+
+        if ENABLE_IPV6_TESTING:
+            ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, reservation["AvailabilityZone"])
+            if not ipv6_network_interfaces:
+                LOGGER.info(f"Skipping reservation in AZ {reservation['AvailabilityZone']} - no IPv6 subnet available")
+                continue
+            else:
+                ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+
         ec2_create_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
             }
         }
+
         try:
             instances = ec2_resource.create_instances(**ec2_create_instances_definition)
             LOGGER.info(
@@ -392,6 +490,17 @@ def launch_instances_with_retry(
             )
             if is_mainline_context():
                 LOGGER.info(f"Launched instance for {fn_name} via {reservation}")
+            
+            if instances:
+                instance_ids = [instance.id for instance in instances]
+                instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+                for reservation in instance_details['Reservations']:
+                    for instance in reservation['Instances']:
+                        LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                        if ENABLE_IPV6_TESTING:
+                            expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                            LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+
             return instances
         except ClientError as e:
             LOGGER.error(f"Failed to launch via reservation for {fn_name} - {e}")
@@ -406,10 +515,29 @@ def launch_instances_with_retry(
     if availability_zone_options:
         error = None
         for a_zone in availability_zone_options:
+            if ENABLE_IPV6_TESTING:
+                ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, a_zone)
+                if not ipv6_network_interfaces:
+                    LOGGER.info(f"Skipping AZ {a_zone} - no IPv6 subnet available")
+                    continue
+                else:
+                    ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
+            
             try:
                 instances = ec2_resource.create_instances(**ec2_create_instances_definition)
                 if instances:
+
+                    instance_ids = [instance.id for instance in instances]
+                    instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+                    for reservation in instance_details['Reservations']:
+                        for instance in reservation['Instances']:
+                            LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                            if ENABLE_IPV6_TESTING:
+                                expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                                LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+                                
                     break
             except ClientError as e:
                 LOGGER.error(f"Failed to launch in {a_zone} due to {e} for {fn_name}")
@@ -418,7 +546,31 @@ def launch_instances_with_retry(
         if not instances:
             raise error
     else:
+        if ENABLE_IPV6_TESTING:
+            all_azs = get_availability_zone_ids(ec2_client)
+            found_ipv6_az = False
+            for az in all_azs:
+                ipv6_network_interfaces = try_get_ipv6_network_interface(ec2_client, az)
+                if ipv6_network_interfaces:
+                    ec2_create_instances_definition["Placement"] = {"AvailabilityZone": az}
+                    ec2_create_instances_definition["NetworkInterfaces"] = ipv6_network_interfaces
+                    found_ipv6_az = True
+                    break
+            if not found_ipv6_az:
+                raise Exception("No AZs available with IPv6 subnets")
+
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
+
+        if instances:
+            instance_ids = [instance.id for instance in instances]
+            instance_details = ec2_client.describe_instances(InstanceIds=instance_ids)
+            for reservation in instance_details['Reservations']:
+                for instance in reservation['Instances']:
+                    LOGGER.info(f"[launch_instances_with_retry] Launched instance {instance['InstanceId']} in VPC {instance['VpcId']}")
+                    if ENABLE_IPV6_TESTING:
+                        expected_vpc_id = get_vpc_id_by_name(ec2_client, IPV6_VPC_NAME)
+                        LOGGER.info(f"[launch_instances_with_retry] VPC check - expected: {expected_vpc_id} ({IPV6_VPC_NAME}), got: {instance['VpcId']}")
+
     return instances
 
 
@@ -433,12 +585,24 @@ def launch_efa(ec2_client, ec2_instance_type, ec2_run_instances_definition, avai
         }
     )
     response = ec2_client.run_instances(**ec2_efa_run_instances_definition) or {}
+    
+    LOGGER.info(f"[launch_efa] Launching EFA instance in AZ: {availability_zone}")
+
+    if response.get("Instances"):
+        instance_id = response["Instances"][0]["InstanceId"]
+        vpc_id = response["Instances"][0]["VpcId"]
+        LOGGER.info(f"[launch_efa] Launched EFA instance {instance_id} in VPC: {vpc_id}")
+
     return response.get("Instances")
 
 
 def launch_efa_with_reservations(
     ec2_client, ec2_instance_type, reservations, ec2_run_instances_definition, fn_name=""
 ):
+    
+    LOGGER.info("[launch_efa_with_reservations] was called")
+
+    
     ec2_run_instances_reserved_definition = copy.deepcopy(ec2_run_instances_definition)
     while reservations:
         reservation = reservations.pop(0)
@@ -520,6 +684,9 @@ def launch_efa_with_heterogenous_reservations(ec2_client, ec2_run_instances_defi
     Returns:
         list: launched instances
     """
+
+    LOGGER.info("[launch_efa_with_heterogenous_reservations] was called")
+
     ec2_heterogenous_run_instances_definition = copy.deepcopy(ec2_run_instances_definition)
     ec2_instance_type = ec2_heterogenous_run_instances_definition["InstanceType"]
     minimum_number_of_instances = ec2_heterogenous_run_instances_definition["MinCount"]
@@ -657,6 +824,9 @@ def launch_efa_instances_with_retry(
     :return: dict response from ec2_client.run_instances
     """
     region = ec2_client.meta.region_name
+
+    LOGGER.info("[launch_efa_instances_with_retry] was called")
+
     LOGGER.info(f"Trying to launch {ec2_instance_type} for {fn_name} via capacity reservation...")
 
     heterogenous_reservation_launch = launch_efa_with_heterogenous_reservations(
@@ -693,8 +863,12 @@ def launch_efa_instances_with_retry(
     return instances
 
 
-def get_ec2_client(region):
-    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+def get_ec2_client(region=DEFAULT_REGION):
+    config = Config(retries={"max_attempts": 10})
+    if ENABLE_IPV6_TESTING:
+        endpoint_url = f"https://ec2.{region}.api.aws"
+        return boto3.client("ec2", region_name=region, endpoint_url=endpoint_url, config=config)
+    return boto3.client("ec2", region_name=region, config=config)
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
@@ -739,6 +913,13 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
     :return: <str> IP Address of instance with matching instance ID
     """
     instance = get_instance_from_id(instance_id, region)
+
+    if ENABLE_IPV6_TESTING:
+        if not instance.get("NetworkInterfaces") or not instance["NetworkInterfaces"][0].get("Ipv6Addresses"):
+            raise Exception("IPv6 address not yet available")
+        ipv6_addr = instance["NetworkInterfaces"][0]["Ipv6Addresses"][0]["Ipv6Address"]
+        return ipv6_addr
+    
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
     return instance["PublicIpAddress"]
@@ -1010,7 +1191,6 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
         connect_timeout=18000,
     )
     return conn
-
 
 def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
@@ -1762,6 +1942,9 @@ def get_default_vpc_id(ec2_client):
     """
     response = ec2_client.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])
     default_vpc_id = response["Vpcs"][0]["VpcId"]
+
+    LOGGER.info(f"[get_default_vpc_id] got default VPC ID: {default_vpc_id}")
+
     return default_vpc_id
 
 
@@ -1812,6 +1995,111 @@ def get_default_subnet_for_az(ec2_client, availability_zone):
     return az_subnet_id
 
 
+def get_vpc_id_by_name(ec2_client, vpc_name):
+    """
+    Get VPC ID by VPC name tag
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str VPC ID of the VPC name
+    """
+    response = ec2_client.describe_vpcs(Filters=[{"Name": "tag:Name", "Values": [vpc_name]}]).get(
+        "Vpcs", []
+    )
+
+    if not response:
+        raise Exception(f"No VPC found with Name tag: {vpc_name}")
+    elif len(response) > 1:
+        raise Exception(f"Multiple VPCs found with Name tag: {vpc_name}")
+
+    vpc_id = response[0]["VpcId"]
+
+    LOGGER.info(f"[get_vpc_id_by_name] got VPC ID: {vpc_id} for VPC name: {vpc_name}")
+
+    return vpc_id
+
+
+def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
+    """
+    Get default SG ID for a non-default VPC
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str SG ID of the default SG
+    """
+    try:
+        vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+
+        response = ec2_client.describe_security_groups(
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "group-name", "Values": ["default"]},
+            ],
+        )
+
+        security_group_id = response["SecurityGroups"][0]["GroupId"]
+        return security_group_id
+    except Exception as e:
+        LOGGER.error(f"Error in get_default_security_group_id_by_vpc_id: {str(e)}")
+        raise
+
+
+def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
+    """
+    Get EFA-enabled SG ID for IPv6 VPC
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :return: str SG ID of the EFA-enabled SG
+    """
+    try:
+        vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+
+        # get the EFA-enabled SG
+        response = ec2_client.describe_security_groups(
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]},
+            ],
+        )
+
+        efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
+        return efa_security_group_id
+    except Exception as e:
+        LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
+        raise
+
+
+def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
+    """
+    Get IPv6-enabled subnet ID in the a particular availability zone
+    :param ec2_client: boto3 EC2 Client object
+    :param vpc_name: Name tag value of the VPC
+    :param availability_zone: str AZ name
+    :return: str Subnet ID of an IPv6-enabled subnet
+    """
+    try:
+        vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+
+        response = ec2_client.describe_subnets(
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "availability-zone", "Values": [availability_zone]},
+            ]
+        )
+
+        ipv6_subnets = [
+            subnet for subnet in response["Subnets"] if subnet.get("Ipv6CidrBlockAssociationSet")
+        ]
+
+        if not ipv6_subnets:
+            raise Exception(
+                f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}"
+            )
+
+        return ipv6_subnets[0]["SubnetId"]
+    except Exception as e:
+        LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
+        raise
+
+
 def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone):
     """
     Generate list of EFA-network-interfaces based on the number of network-interfaces available
@@ -1825,21 +2113,39 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
 
-    default_sg = get_default_security_group_id(ec2_client)
-    efa_sg = get_efa_enabled_security_group_id(ec2_client)
-    default_subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
+    LOGGER.info(f"Generating network interfaces for {ec2_instance_type} in {availability_zone}")
 
-    network_interfaces = [
-        {
+    if ENABLE_IPV6_TESTING:
+        vpc_name = IPV6_VPC_NAME
+        efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name)
+        sg_ids = [efa_sg]
+        subnet_id = get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone)
+    else:
+        default_sg = get_default_security_group_id(ec2_client)
+        efa_sg = get_efa_enabled_security_group_id(ec2_client)
+        sg_ids = [default_sg, efa_sg]
+        subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
+
+    network_interfaces = []
+    for i in range(num_efa_interfaces):
+        interface = {
             "DeviceIndex": 0 if i == 0 else 1,
             "NetworkCardIndex": i,
             "DeleteOnTermination": True,
             "InterfaceType": "efa",
-            "Groups": [default_sg, efa_sg],
-            "SubnetId": default_subnet_id,
+            "Groups": sg_ids,
+            "SubnetId": subnet_id
         }
-        for i in range(num_efa_interfaces)
-    ]
+
+        if ENABLE_IPV6_TESTING:
+            interface["Ipv6AddressCount"] = 1
+            interface["AssociatePublicIpAddress"] = False
+        
+        network_interfaces.append(interface)
+        LOGGER.info(f"Created interface {i}: {interface}")
+
+    LOGGER.info(f"[generate_network_interfaces] Created {len(network_interfaces)} interfaces for {ec2_instance_type} in subnet: {subnet_id}")
+
     return network_interfaces
 
 
@@ -1883,10 +2189,23 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
 
 
 def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
-    """Deletes elastic ips created for efa p4d testing"""
+    """
+    Deletes elastic ips created for efa p4d testing.
+    For default VPC (IPv4): can release directly
+    For non-default VPC (IPv6): need to disassociate before release
+    """
     for allocation_id in elastic_ip_allocation_ids:
-        LOGGER.info(f"Deleting elastic ip {allocation_id}")
-        ec2_client.release_address(AllocationId=allocation_id)
+        try:
+            if ENABLE_IPV6_TESTING:
+                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][
+                    0
+                ]
+                if "AssociationId" in address:
+                    ec2_client.disassociate_address(AssociationId=address["AssociationId"])
+                    time.sleep(10)
+            ec2_client.release_address(AllocationId=allocation_id)
+        except Exception as e:
+            LOGGER.error(f"Failed to delete elastic ip {allocation_id}: {str(e)}")
 
 
 def create_name_tags_for_instance(instance_id, name_tag, region):
