@@ -506,22 +506,10 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
     user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
     master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
     LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
-
-    connect_kwargs = {
-        "key_filename": [master_instance_pem_file],
-    }
-
-    if ENABLE_IPV6_TESTING:
-        connect_kwargs["sock"] = socket.create_connection(
-            (master_public_ip.strip('[]'), 22),
-            timeout=18000,
-            source_address=("::", 0)
-        )
-    
     master_connection = Connection(
         user=user_name,
         host=master_public_ip,
-        connect_kwargs=connect_kwargs,
+        connect_kwargs={"key_filename": [master_instance_pem_file]},
         connect_timeout=18000,
     )
 
@@ -531,22 +519,10 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
         LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
-
-        connect_kwargs = {
-            "key_filename": [worker_instance_pem_file],
-        }
-
-        if ENABLE_IPV6_TESTING:
-            connect_kwargs["sock"] = socket.create_connection(
-                (worker_public_ip.strip('[]'), 22),
-                timeout=18000,
-                source_address=("::", 0)
-            )
-
         worker_connection = Connection(
             user=user_name,
             host=worker_public_ip,
-            connect_kwargs=connect_kwargs,
+            connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
         worker_instance_connections.append(worker_connection)
@@ -581,6 +557,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         )
 
     return [master_connection, *worker_instance_connections]
+
 
 @pytest.mark.timeout(300)
 @pytest.fixture(scope="function")
@@ -790,21 +767,10 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
 
-    connect_kwargs = {
-        "key_filename": [instance_pem_file],
-    }
-
-    if ENABLE_IPV6_TESTING:
-        connect_kwargs["sock"] = socket.create_connection(
-            (ip_address.strip('[]'), 22),
-            timeout=18000,
-            source_address=("::", 0)
-        )
-
     conn = Connection(
         user=user,
         host=ip_address,
-        connect_kwargs=connect_kwargs,
+        connect_kwargs={"key_filename": [instance_pem_file]},
         connect_timeout=18000,
     )
 

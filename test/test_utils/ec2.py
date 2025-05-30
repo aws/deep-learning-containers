@@ -1186,31 +1186,13 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     :return: Fabric connection object
     """
     user = get_instance_user(instance_id, region=region)
-    ip_address = get_public_ip(instance_id, region)
-    LOGGER.info(f"Instance ip_address: {ip_address}")
-
-    connect_kwargs = {
-        "key_filename": [instance_pem_file],
-    }
-
-    if ENABLE_IPV6_TESTING:
-        LOGGER.info(f"Setting up IPv6 socket for connection to {ip_address}")
-        connect_kwargs["sock"] = socket.create_connection(
-            (ip_address.strip('[]'), 22),
-            timeout=18000,
-            source_address=("::", 0)
-        )
-        LOGGER.info(f"Successfully created IPv6 socket for {ip_address}") 
-
     conn = Connection(
-        user=user, 
-        host=ip_address, 
-        connect_kwargs=connect_kwargs, 
+        user=user,
+        host=get_public_ip(instance_id, region),
+        connect_kwargs={"key_filename": [instance_pem_file]},
         connect_timeout=18000,
     )
-    LOGGER.info(f"Successfully established SSH connection to {ip_address} using {'IPv6' if ENABLE_IPV6_TESTING else 'IPv4'}")
     return conn
-
 
 def get_ec2_instance_tags(instance_id, region=DEFAULT_REGION, ec2_client=None):
     ec2_client = ec2_client or get_ec2_client(region)
