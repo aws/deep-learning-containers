@@ -863,8 +863,12 @@ def launch_efa_instances_with_retry(
     return instances
 
 
-def get_ec2_client(region):
-    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+def get_ec2_client(region=DEFAULT_REGION):
+    config = Config(retries={"max_attempts": 10})
+    if ENABLE_IPV6_TESTING:
+        endpoint_url = f"https://ec2.{region}.api.aws"
+        return boto3.client("ec2", region_name=region, endpoint_url=endpoint_url, config=config)
+    return boto3.client("ec2", region_name=region, config=config)
 
 
 def get_instance_from_id(instance_id, region=DEFAULT_REGION):
@@ -914,8 +918,9 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
         if not instance.get("NetworkInterfaces") or not instance["NetworkInterfaces"][0].get("Ipv6Addresses"):
             raise Exception("IPv6 address not yet available")
         ipv6_addr = instance["NetworkInterfaces"][0]["Ipv6Addresses"][0]["Ipv6Address"]
-        LOGGER.info(f"[get_public_ip] Got IPv6 address: {ipv6_addr}")
-        return ipv6_addr
+        formatted_addr = f"[{ipv6_addr}]"
+        LOGGER.info(f"[get_public_ip] Got IPv6 address: {formatted_addr}")
+        return formatted_addr
     
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
@@ -1181,12 +1186,29 @@ def get_ec2_fabric_connection(instance_id, instance_pem_file, region):
     :return: Fabric connection object
     """
     user = get_instance_user(instance_id, region=region)
+    ip_address = get_public_ip(instance_id, region)
+    LOGGER.info(f"Instance ip_address: {ip_address}")
+
+    connect_kwargs = {
+        "key_filename": [instance_pem_file],
+    }
+
+    if ENABLE_IPV6_TESTING:
+        LOGGER.info(f"Setting up IPv6 socket for connection to {ip_address}")
+        connect_kwargs["sock"] = socket.create_connection(
+            (ip_address.strip('[]'), 22),
+            timeout=18000,
+            source_address=("::", 0)
+        )
+        LOGGER.info(f"Successfully created IPv6 socket for {ip_address}") 
+
     conn = Connection(
-        user=user,
-        host=get_public_ip(instance_id, region),
-        connect_kwargs={"key_filename": [instance_pem_file]},
+        user=user, 
+        host=ip_address, 
+        connect_kwargs=connect_kwargs, 
         connect_timeout=18000,
     )
+    LOGGER.info(f"Successfully established SSH connection to {ip_address} using {'IPv6' if ENABLE_IPV6_TESTING else 'IPv4'}")
     return conn
 
 
@@ -2111,31 +2133,20 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
     if not num_efa_interfaces:
         raise AttributeError(f"Unable to get number of EFA Interfaces for {ec2_instance_type}")
 
-    ipv6_vpc_name = IPV6_VPC_NAME
     LOGGER.info(f"Generating network interfaces for {ec2_instance_type} in {availability_zone}")
 
-    default_sg = get_default_security_group_id(ec2_client)
-    efa_sg = get_efa_enabled_security_group_id(ec2_client)
-    default_sg_ids = [default_sg, efa_sg]
-    default_subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
-    LOGGER.info(f"Default SG IDs: {default_sg_ids}")
-
-    ipv6_default_sg = get_default_security_group_id_by_vpc_id(ec2_client, ipv6_vpc_name)
-    ipv6_efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, ipv6_vpc_name)
-    ipv6_sg_ids = [ipv6_default_sg, ipv6_efa_sg]
-    LOGGER.info(f"IPv6 SG IDs: {ipv6_sg_ids}") 
-
-    ipv6_subnet_id = get_ipv6_enabled_subnet_for_az(
-        ec2_client, ipv6_vpc_name, availability_zone
-    )
-    LOGGER.info(f"Default subnet: {default_subnet_id}, IPv6 subnet: {ipv6_subnet_id}")
-
-    subnet_id = ipv6_subnet_id if ENABLE_IPV6_TESTING else default_subnet_id
-    sg_ids = ipv6_sg_ids if ENABLE_IPV6_TESTING else default_sg_ids
-    LOGGER.info(f"Using subnet: {subnet_id}, Using SGs: {sg_ids}")
+    if ENABLE_IPV6_TESTING:
+        vpc_name = IPV6_VPC_NAME
+        efa_sg = get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name)
+        sg_ids = [efa_sg]
+        subnet_id = get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone)
+    else:
+        default_sg = get_default_security_group_id(ec2_client)
+        efa_sg = get_efa_enabled_security_group_id(ec2_client)
+        sg_ids = [default_sg, efa_sg]
+        subnet_id = get_default_subnet_for_az(ec2_client, availability_zone)
 
     network_interfaces = []
-
     for i in range(num_efa_interfaces):
         interface = {
             "DeviceIndex": 0 if i == 0 else 1,
@@ -2146,14 +2157,14 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             "SubnetId": subnet_id
         }
 
-        if ENABLE_IPV6_TESTING and i == 0:
+        if ENABLE_IPV6_TESTING:
             interface["Ipv6AddressCount"] = 1
             interface["AssociatePublicIpAddress"] = False
         
         network_interfaces.append(interface)
         LOGGER.info(f"Created interface {i}: {interface}")
 
-    LOGGER.info(f"[generate_network_interfaces] Created {len(network_interfaces)} for {ec2_instance_type} subnet: {subnet_id}")
+    LOGGER.info(f"[generate_network_interfaces] Created {len(network_interfaces)} interfaces for {ec2_instance_type} in subnet: {subnet_id}")
 
     return network_interfaces
 
