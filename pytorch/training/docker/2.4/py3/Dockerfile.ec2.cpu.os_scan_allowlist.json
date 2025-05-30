@@ -28,6 +28,35 @@
       "status": "ACTIVE",
       "title": "CVE-2025-32434 - torch",
       "reason_to_ignore": "this container is specifically pytorch 2.5.x so we can’t upgrade to 2.6"
+    },
+    {
+      "description": "PyTorch is a Python package that provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system. In version 2.5.1 and prior, a Remote Command Execution (RCE) vulnerability exists in PyTorch when loading a model using torch.load with weights_only=True. This issue has been patched in version 2.6.0.",
+      "vulnerability_id": "CVE-2025-32434",
+      "name": "CVE-2025-32434",
+      "package_name": "torch",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.4.0+cpu.dist-info/METADATA",
+        "name": "torch",
+        "package_manager": "PYTHON",
+        "version": "2.4.0+cpu",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-32434",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2025-32434 - torch",
+      "reason_to_ignore": "N/A"
     }
   ]
 }
