@@ -309,8 +309,7 @@ def sts_client(region):
 
 @pytest.fixture(scope="function")
 def ec2_client(region):
-    return ec2_utils.get_ec2_client(region=region)
-    # return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="function")
