@@ -8,7 +8,6 @@ import time
 import uuid
 import boto3
 import pytest
-import socket
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -47,9 +46,6 @@ from test.test_utils.test_reporting import TestReportGenerator
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
-
-# Flag to enable IPv6 testing
-ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
@@ -313,7 +309,8 @@ def sts_client(region):
 
 @pytest.fixture(scope="function")
 def ec2_client(region):
-    return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
+    return ec2_utils.get_ec2_client(region=region)
+    # return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
 @pytest.fixture(scope="function")
