@@ -918,9 +918,7 @@ def get_public_ip(instance_id, region=DEFAULT_REGION):
         if not instance.get("NetworkInterfaces") or not instance["NetworkInterfaces"][0].get("Ipv6Addresses"):
             raise Exception("IPv6 address not yet available")
         ipv6_addr = instance["NetworkInterfaces"][0]["Ipv6Addresses"][0]["Ipv6Address"]
-        formatted_addr = f"[{ipv6_addr}]"
-        LOGGER.info(f"[get_public_ip] Got IPv6 address: {formatted_addr}")
-        return formatted_addr
+        return ipv6_addr
     
     if not instance["PublicIpAddress"]:
         raise Exception("IP address not yet available")
