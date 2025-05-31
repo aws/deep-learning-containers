@@ -1939,6 +1939,7 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
                 {"Name": "availability-zone", "Values": [availability_zone]},
+                {"Name": "tag:Name", "Values": ["*public*"]}
             ]
         )
 
