@@ -2070,10 +2070,21 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
 
 
 def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
-    """Deletes elastic ips created for efa p4d testing"""
+    """
+    Deletes elastic ips created for efa p4d testing.
+    For default VPC (IPv4): can release directly
+    For non-default VPC (IPv6): need to disassociate before release
+    """
     for allocation_id in elastic_ip_allocation_ids:
-        LOGGER.info(f"Deleting elastic ip {allocation_id}")
-        ec2_client.release_address(AllocationId=allocation_id)
+        try:
+            if ENABLE_IPV6_TESTING:
+                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][0]
+                if "AssociationId" in address:
+                    ec2_client.disassociate_address(AssociationId=address["AssociationId"])
+                    time.sleep(10)
+            ec2_client.release_address(AllocationId=allocation_id)
+        except Exception as e:
+            LOGGER.error(f"Failed to delete elastic ip {allocation_id}: {str(e)}")
 
 
 def create_name_tags_for_instance(instance_id, name_tag, region):
