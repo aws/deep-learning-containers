@@ -443,6 +443,21 @@ def launch_instances_with_retry(
         if not instances:
             raise error
     else:
+        if ENABLE_IPV6_TESTING:
+            all_azs = get_availability_zone_ids(ec2_client)
+            found_ipv6_az = False
+            for az in all_azs:
+                network_interfaces = generate_standard_dual_stack_network_interface(
+                    ec2_client, az
+                )
+                if network_interfaces:
+                    found_ipv6_az = True
+                    ec2_create_instances_definition["Placement"] = {"AvailabilityZone": az}
+                    ec2_create_instances_definition["NetworkInterfaces"] = network_interfaces
+                    break
+            if not found_ipv6_az:
+                raise Exception("No AZs available with IPv6 subnets")
+            
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
     return instances
 
