@@ -447,9 +447,7 @@ def launch_instances_with_retry(
             all_azs = get_availability_zone_ids(ec2_client)
             found_ipv6_az = False
             for az in all_azs:
-                network_interfaces = generate_standard_dual_stack_network_interface(
-                    ec2_client, az
-                )
+                network_interfaces = generate_standard_dual_stack_network_interface(ec2_client, az)
                 if network_interfaces:
                     found_ipv6_az = True
                     ec2_create_instances_definition["Placement"] = {"AvailabilityZone": az}
@@ -457,7 +455,7 @@ def launch_instances_with_retry(
                     break
             if not found_ipv6_az:
                 raise Exception("No AZs available with IPv6 subnets")
-            
+
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
     return instances
 
@@ -1935,16 +1933,22 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
 
+        route_tables = ec2_client.describe_route_tables(
+            Filters=[{"Name": "vpc-id", "Values": [vpc_id]}]
+        )["RouteTables"]
+
         response = ec2_client.describe_subnets(
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
                 {"Name": "availability-zone", "Values": [availability_zone]},
-                {"Name": "tag:Name", "Values": ["*public*"]}
             ]
         )
 
         ipv6_subnets = [
-            subnet for subnet in response["Subnets"] if subnet.get("Ipv6CidrBlockAssociationSet")
+            subnet
+            for subnet in response["Subnets"]
+            if subnet.get("Ipv6CidrBlockAssociationSet")
+            and is_public_subnet(subnet["SubnetId"], route_tables)
         ]
 
         if not ipv6_subnets:
@@ -1952,10 +1956,41 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
                 f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}"
             )
 
+        # TODO: remove logging
+        LOGGER.info(f"[get_ipv6_enabled_subnet_for_az]: {ipv6_subnets[0]['SubnetId']}")
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
         raise
+
+
+def is_public_subnet(subnet_id, route_tables):
+    """
+    Check if a subnet is public by verifying if it has a route table with an Internet Gateway
+    that routes all IPv4 or IPv6 traffic
+    :param subnet_id: str the subnet ID to check
+    :param route_tables: list route tables from the VPC
+    :return: True if subnet is public, False otherwise
+    """
+    for route_table in route_tables:
+        has_igw = False
+        for route in route_table.get("Routes", []):
+            if route.get("GatewayId", "").startswith("igw-"):
+                if (
+                    route.get("DestinationCidrBlock") == "0.0.0.0/0"
+                    or route.get("DestinationIpv6CidrBlock") == "::/0"
+                ):
+                    has_igw = True
+                    break
+        if not has_igw:
+            continue
+
+        # check if subnet is associated with route table
+        for association in route_table.get("Associations", []):
+            if association.get("SubnetId") == subnet_id:
+                return True
+
+    return False
 
 
 def generate_standard_dual_stack_network_interface(ec2_client, availability_zone):
@@ -2094,7 +2129,9 @@ def delete_elastic_ips(elastic_ip_allocation_ids, ec2_client):
     for allocation_id in elastic_ip_allocation_ids:
         try:
             if ENABLE_IPV6_TESTING:
-                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][0]
+                address = ec2_client.describe_addresses(AllocationIds=[allocation_id])["Addresses"][
+                    0
+                ]
                 if "AssociationId" in address:
                     ec2_client.disassociate_address(AssociationId=address["AssociationId"])
                     time.sleep(10)
