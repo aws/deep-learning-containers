@@ -29,12 +29,11 @@ subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180
 
 def _skip_if_image_is_not_compatible_with_smppy(image_uri):
     _, framework_version = get_framework_and_version_from_tag(image_uri)
-    compatible_versions = SpecifierSet(">=2.0")
+    compatible_versions = SpecifierSet(">=2.0,<2.7")
     if Version(framework_version) not in compatible_versions:
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
-@pytest.mark.skip_smppy_test
 @pytest.mark.usefixtures("feature_smppy_present")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("smppy")
