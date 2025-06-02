@@ -25,7 +25,7 @@ context:
       source: scripts/install_efa.sh
       target: install_efa.sh
     dockerd_entrypoint:
-      source: x86_64/build_artifacts/dockerd_entrypoint.sh
+      source: vllm/x86_64/build_artifacts/dockerd_entrypoint.sh
       target: dockerd_entrypoint.sh
 
 images:
