@@ -30,6 +30,8 @@ EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh"
 )
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
 MASTER_CONTAINER_NAME = "master_container"
@@ -86,10 +88,13 @@ def test_pytorch_efa(
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
 
+    # pass IPv6 flag if enabled
+    ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
@@ -130,10 +135,14 @@ def test_efa_tensorflow(
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+
+    # pass IPv6 flag if enabled
+    ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
@@ -232,7 +241,7 @@ def _setup_multinode_efa_instances(
     _setup_master_efa_ssh_config(master_connection)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
-    _create_master_mpi_hosts_file(master_connection, worker_instance_ids, ec2_instance_type, region)
+    _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, ec2_instance_type, region)
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
@@ -322,25 +331,60 @@ def _setup_master_efa_ssh_config(connection):
     run_cmd_on_container(MASTER_CONTAINER_NAME, connection, "chmod -R 600 $HOME/.ssh/*")
 
 
-def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type, region):
+def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, instance_type, region):
     """
     Create MPI Hosts file that contains private IP addresses of all hosts used in training job.
-    :param connection: Fabric Connection object
+    :param efa_ec2_connections: List of Fabric Connection objects [master_connection, *worker_connections]
     :param worker_instance_ids: list of str worker instance IDs
     :param instance_type: str EC2 Instance Type being used
     :param region: str region name in which test is run
     """
+    master_connection = efa_ec2_connections[0]
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-    # Configure MPI hosts file with IP addresses and slots for worker nodes
-    hosts_string = f"localhost slots={slots} "
-    for worker_ip in worker_instance_private_ips:
-        hosts_string += f"\n{worker_ip} slots={slots} "
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME, connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
-    )
+    # TODO: remove logging
+    LOGGER.info(f"worker private addresses: {worker_instance_private_ips}")
+
+    if ENABLE_IPV6_TESTING:
+        master_ip = master_connection.ipv6_address
+        if not master_ip:
+            raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
+        
+        worker_ips = [conn.ipv6_address for conn in efa_ec2_connections[1:]]
+        if not all(worker_ips):
+            raise RuntimeError("IPv6 testing enabled but not all workers have IPv6 addresses")
+        
+        hosts_string = f"compute1 slots={slots} "
+        etc_string = f"{master_ip} compute1"
+        compute_counter = 2
+        
+        for worker_ip in worker_ips:
+            compute_name = f"compute{compute_counter}"
+            hosts_string += f"\n{compute_name} slots={slots} "
+            etc_string += f"\n{worker_ip} {compute_name}"
+            compute_counter += 1
+        
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f"echo '{etc_string}' > /etc/hosts",
+            with_sudo=True
+        )
+
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+        )
+    else:
+        # Configure MPI hosts file with IP addresses and slots for worker nodes
+        hosts_string = f"localhost slots={slots} "
+        for worker_ip in worker_instance_private_ips:
+            hosts_string += f"\n{worker_ip} slots={slots} "
+
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+        )
 
 
 def _setup_worker_efa_ssh_config(connection, master_pub_key):
