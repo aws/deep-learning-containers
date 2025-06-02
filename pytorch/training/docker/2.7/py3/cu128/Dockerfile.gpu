@@ -221,7 +221,7 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    numpy \
+    numpy==2.2.0 \
     scipy \
     click \
     psutil \
@@ -253,14 +253,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
-    # fastai \
+    fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
     thinc \
     blis \
-    numpy \
+    numpy==2.2.0 \
  && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt

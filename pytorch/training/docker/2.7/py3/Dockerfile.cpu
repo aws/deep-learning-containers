@@ -171,7 +171,7 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    numpy \
+    numpy==2.2.0 \
     scipy \
     click \
     psutil \
@@ -240,17 +240,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
-    # it will install an very old version 2.1.10
-    # if try to install lastest 2.7.18 requires PyTorch <2.6
-    # fastai \
+    fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
     thinc \
     blis \
-    numpy \
+    numpy==2.2.0 \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
@@ -314,17 +311,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    # https://github.com/fastai/fastai/issues/4068 Fastai doesn't support PyTorch 2.6 yet
-    # it will install an very old version 2.1.10
-    # if try to install lastest 2.7.18 requires PyTorch <2.6
-    # fastai \
+    fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
     thinc \
     blis \
-    numpy \
+    numpy==2.2.0 \
  && pip uninstall -y dataclasses
 
 # Install SM packages
