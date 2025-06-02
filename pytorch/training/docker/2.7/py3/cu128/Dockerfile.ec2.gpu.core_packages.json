@@ -1,0 +1,41 @@
+{
+  "torch": {
+    "version_specifier": "==2.7.0+cu128"
+  },
+  "torchvision": {
+    "version_specifier": "==0.22.0+cu128",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.6.0+cu128",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu128",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.11.0+cu128",
+    "skip": "True"
+  },
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
+    "skip": "True"
+  },
+  "s3torchconnector": {
+    "version_specifier": "==1.4.0",
+    "skip": "True"
+  },
+  "accelerate": {
+    "version_specifier": "==1.6.0",
+    "skip": "True"
+  },
+  "flash-attn": {
+    "version_specifier": "==2.7.3",
+    "skip": "True"
+  },
+  "transformer-engine": {
+    "version_specifier": "==2.0.0+e5cc6c2",
+    "skip": "True"
+  }
+}
