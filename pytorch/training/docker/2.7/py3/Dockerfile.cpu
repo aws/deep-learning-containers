@@ -171,7 +171,7 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    numpy==2.2.0 \
+    numpy \
     scipy \
     click \
     psutil \
@@ -245,9 +245,10 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    thinc \
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4  \
     blis \
-    numpy==2.2.0 \
+    numpy \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
@@ -316,9 +317,9 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    thinc \
+    thinc==8.3.4  \
     blis \
-    numpy==2.2.0 \
+    numpy \
  && pip uninstall -y dataclasses
 
 # Install SM packages
