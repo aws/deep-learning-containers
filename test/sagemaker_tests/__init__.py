@@ -184,10 +184,10 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         )
         # Modify instance_type if region is ap-northeast-2
         # Assuming instance_type is the first argument in test_function_args
-        if region == 'ap-northeast-2' and len(test_function_args) > 0:
+        if region == "ap-northeast-2" and len(test_function_args) > 0:
             # Create a new list of arguments with modified instance_type
             modified_args = list(test_function_args)
-            modified_args[0] = 'ml.g5.8xlarge'  # Replace first arg (instance_type)
+            modified_args[0] = "ml.g5.8xlarge"  # Replace first arg (instance_type)
             current_args = tuple(modified_args)
         else:
             current_args = test_function_args
