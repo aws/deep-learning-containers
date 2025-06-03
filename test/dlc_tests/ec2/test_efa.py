@@ -373,12 +373,14 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         )
 
         # TODO: remove cat command after making sure it works
-        run_cmd_on_container(
+        etc_hosts_content = run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
             "cat /etc/hosts",
             hide=False
         )
+        LOGGER.info("cat /etc/hosts")
+        LOGGER.info(f"{etc_hosts_content}")
 
         run_cmd_on_container(
             MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
