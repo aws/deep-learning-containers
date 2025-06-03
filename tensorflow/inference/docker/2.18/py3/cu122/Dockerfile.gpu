@@ -79,8 +79,8 @@ RUN apt-get update \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
     libcublas-${CUDA_DASH} \
     libcublas-dev-${CUDA_DASH} \
-    libcudnn8=${CUDNN_VERSION} \
-    libcudnn8-dev=${CUDNN_VERSION} \
+    #libcudnn8=${CUDNN_VERSION} \
+    #libcudnn8-dev=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
     libnccl-dev=${NCCL_VERSION}  \
     libgomp1 \
