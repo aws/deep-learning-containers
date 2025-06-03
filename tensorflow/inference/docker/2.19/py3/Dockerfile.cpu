@@ -36,7 +36,7 @@ ARG PYTHON_VERSION=3.12.10
 #ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.18_aws/cpu/2025-01-15-19-48/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
 
-ARG TF_SERVING_VERSION=latest
+ARG TF_SERVING_VERSION=2.19.0
 ARG TF_SERVING_BUILD_IMAGE=tensorflow/serving:${TF_SERVING_VERSION}-devel
 FROM ${TF_SERVING_BUILD_IMAGE} as build_image
 
