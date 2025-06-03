@@ -67,7 +67,7 @@ check_efa_nccl_all_reduce_performance(){
 check_efa_nccl_all_reduce(){
     echo "Running all_reduce_perf test"
 
-    if [[ ${IS_IPV6} == "true" ]]; then
+    if [[ ${IS_IPV6} == "True" ]]; then
         echo "Running all_reduce_perf test with IPv6: using IPv6 mode with NCCL_SOCKET_FAMILY=AF_INET6"
         mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
             -x NCCL_DEBUG=INFO ${USE_DEVICE_RDMA_ARG} -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
@@ -89,7 +89,7 @@ check_efa_nccl_all_reduce(){
     
     RETURN_VAL=${PIPESTATUS[0]}
     # In case, if you would like see logs, uncomment below line
-    # RESULT=$(cat ${TRAINING_LOG})
+    RESULT=$(cat ${TRAINING_LOG})
 
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"
