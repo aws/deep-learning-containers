@@ -43,7 +43,7 @@ FROM tensorflow/serving:2.19.0-devel as build_image
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
-ENV PYTHON_VERSION=${PYTHON_VERSION}
+ENV PYTHON_VERSION=3.12.10
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
