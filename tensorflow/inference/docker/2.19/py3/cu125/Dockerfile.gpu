@@ -37,9 +37,9 @@ ARG PYTHON_VERSION=3.12.10
 ARG TFS_SHORT_VERSION=2.19
 ARG CUDA_DASH=12-5
 
-ARG TF_SERVING_VERSION=2.19.0
-ARG TF_SERVING_BUILD_IMAGE=tensorflow/serving:${TF_SERVING_VERSION}-devel-gpu
-FROM ${TF_SERVING_BUILD_IMAGE} as build_image
+#ARG TF_SERVING_VERSION=2.19.0
+#ARG TF_SERVING_BUILD_IMAGE=tensorflow/serving:${TF_SERVING_VERSION}-devel-gpu
+FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 
 # ENV variable to be pased to SageMaker stage
 ENV PIP=${PIP}
