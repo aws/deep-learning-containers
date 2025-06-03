@@ -89,15 +89,6 @@ def test_pytorch_efa(
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
 
-    # TODO: remove logging and cat command after
-    LOGGER.info("Checking testEFA.log before main test:")
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
-        master_connection,
-        "cat /test/logs/testEFA.log",
-        hide=False
-    )
-    # pass IPv6 flag if enabled
     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
 
     run_cmd_on_container(
