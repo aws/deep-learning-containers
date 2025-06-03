@@ -23,7 +23,7 @@ import logging
 import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DockerImage:
@@ -210,7 +210,7 @@ class DockerImage:
         LOGGER.info(f"Starting the Build Process for {self.repository}:{self.tag}")
 
         line_counter = 0
-        line_interval = 20
+        line_interval = 50
         for line in self.client.build(
             fileobj=fileobj,
             path=self.dockerfile,
