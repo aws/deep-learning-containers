@@ -121,11 +121,11 @@ RUN apt-get update \
 
 
 # Install python
-RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
- && tar -xvf Python-$PYTHON_VERSION.tgz \
- && cd Python-$PYTHON_VERSION \
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+ && tar -xvf Python-${PYTHON_VERSION}.tgz \
+ && cd Python-${PYTHON_VERSION} \
  && ./configure && make && make install -j \
- && rm -rf ../Python-$PYTHON_VERSION*
+ && rm -rf ../Python-${PYTHON_VERSION}*
 
 
 RUN ${PIP} --no-cache-dir install --upgrade \
