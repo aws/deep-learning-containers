@@ -42,8 +42,8 @@ ARG CUDA_DASH=12-2
 FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 
 # ENV variable to be pased to SageMaker stage
-ENV PIP=${PIP}
-ENV PYTHON=${PYTHON}
+ENV PIP=pip3
+ENV PYTHON=python3.12
 ENV PYTHON_VERSION=3.12.10
 
 ENV CUDA_DASH=12-2
