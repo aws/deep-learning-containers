@@ -357,7 +357,9 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             raise RuntimeError("IPv6 testing enabled but not all workers have IPv6 addresses")
         
         hosts_string = f"compute1 slots={slots} "
+        LOGGER.info(f"hosts_string: {hosts_string}")
         etc_string = f'{master_ip} compute1'
+        LOGGER.info(f"etc_string: {etc_string}")
         compute_counter = 2
         
         for worker_ip in worker_ips:

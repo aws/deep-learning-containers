@@ -518,8 +518,9 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         master_ipv6_address = master_primary_interface.ipv6_addresses[0]['Ipv6Address'] if master_primary_interface.ipv6_addresses else None
 
         if master_ipv6_address:
-            LOGGER.info(f"Master node IPv6 address for inter-node communication: {master_ipv6_address}")
             master_connection.ipv6_address = master_ipv6_address
+            LOGGER.info(f"Master node IPv6 address for inter-node communication: {master_connection.ipv6_address}")
+
 
     worker_instance_connections = []
     for instance in worker_instances:
@@ -541,8 +542,8 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
             worker_ipv6_address = worker_primary_interface.ipv6_addresses[0]['Ipv6Address'] if worker_primary_interface.ipv6_addresses else None
             if worker_ipv6_address:
                 # TODO: remove logging
-                LOGGER.info(f"Worker node IPv6 address for inter-node communication: {worker_ipv6_address}")
                 worker_connection.ipv6_address = worker_ipv6_address
+                LOGGER.info(f"Worker node IPv6 address for inter-node communication: {worker_connection.ipv6_address}")
 
         worker_instance_connections.append(worker_connection)
 
