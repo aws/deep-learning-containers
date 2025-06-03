@@ -182,8 +182,17 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
+        # Modify instance_type if region is ap-northeast-2
+        # Assuming instance_type is the first argument in test_function_args
+        if region == 'ap-northeast-2' and len(test_function_args) > 0:
+            # Create a new list of arguments with modified instance_type
+            modified_args = list(test_function_args)
+            modified_args[0] = 'ml.g5.8xlarge'  # Replace first arg (instance_type)
+            current_args = tuple(modified_args)
+        else:
+            current_args = test_function_args
         try:
-            test_function(tested_ecr_image, sagemaker_session, *test_function_args)
+            test_function(tested_ecr_image, sagemaker_session, *current_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):
