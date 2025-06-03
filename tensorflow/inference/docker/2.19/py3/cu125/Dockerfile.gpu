@@ -44,6 +44,7 @@ FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 # ENV variable to be pased to SageMaker stage
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
 
 ENV NCCL_VERSION=2.23.4-1+cuda12.5
 ENV CUDNN_VERSION=9.3.0.75-1+cuda12.5
