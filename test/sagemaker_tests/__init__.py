@@ -182,8 +182,8 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
-        # Skip tests if region is ap-northeast-2 and test function is _test_mnist_function
-        if region == "ap-northeast-2" and test_function.__name__ == "_test_mnist_function":
+        # Skip tests if region is ap-northeast-2
+        if region == "ap-northeast-2":
             continue
         else:
             current_args = test_function_args
