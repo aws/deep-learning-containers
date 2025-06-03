@@ -24,6 +24,9 @@ context:
     install_efa:
       source: scripts/install_efa.sh
       target: install_efa.sh
+    dockerd_entrypoint:
+      source: vllm/x86_64/build_artifacts/dockerd_entrypoint.sh
+      target: dockerd_entrypoint.sh
 
 images:
   vllm_x86_64:
@@ -36,8 +39,8 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
-    tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE, "-ec2" ]
-    latest_release_tag: !join [ *DEVICE_TYPE, "-", *CUDA_VERSION, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-", *ARCH_TYPE, "-ec2" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
     target: final
     build: true
