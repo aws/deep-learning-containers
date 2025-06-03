@@ -20,8 +20,10 @@ WORKDIR /
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
+    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
     echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
     # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
@@ -46,3 +48,5 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm -rf /tmp/uv* && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
