@@ -26,7 +26,6 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "torch",
     "torchvision",
-    "torchdata",
     "torchaudio",
     "PIL",
     "boto3",

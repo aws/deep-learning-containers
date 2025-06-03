@@ -9,9 +9,9 @@ ARG TORCHVISION_VERSION=0.22.0
 ARG TORCHDATA_VERSION=0.11.0
 
 ARG CUDA_VERSION=12.8.0
-ARG CUDNN_VERSION=9.7.0.66
+ARG CUDNN_VERSION=9.7.1.26
 ARG NCCL_VERSION=2.26.2
-ARG EFA_VERSION=1.39.0
+ARG EFA_VERSION=1.40.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
@@ -239,8 +239,8 @@ RUN pip install --no-cache-dir \
     ninja \
     opencv-python \
     mpi4py \
-    jinja2==3.1.6 \
-    tornado==6.5.1
+    jinja2>=3.1.6 \
+    tornado>=6.5.1
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
@@ -251,14 +251,12 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
-    # fastai hasn't released a version compatible with torch 2.6.0
-    # https://github.com/fastai/fastai/issues/4068
     fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    #thinc 8.3.6 is not compatible with numpy 1.26.4
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4 \
     blis \
     numpy \
