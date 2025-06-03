@@ -112,7 +112,7 @@ EC2 vLLM Containers (EC2, ECS, and EKS support only)
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
 |-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| vLLM 0.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.8-gpu-py312-ec2, 0.8.5-gpu-py312-cu124-ubuntu22.04-ec2        |
+| vLLM 0.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.8-gpu-py312-ec2        |
 
 
 EC2 Framework Containers (EC2, ECS, and EKS support only)
