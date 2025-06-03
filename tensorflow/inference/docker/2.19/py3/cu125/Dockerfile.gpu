@@ -13,7 +13,7 @@
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:12.5.1-base-ubuntu22.04 AS base_image
+FROM nvidia/cuda:12.2.0-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -35,7 +35,7 @@ ARG PIP=pip3
 ARG PYTHON_VERSION=3.12.10
 #ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.18_aws/gpu/2025-01-17-21-54/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
-ARG CUDA_DASH=12-5
+ARG CUDA_DASH=12-2
 
 #ARG TF_SERVING_VERSION=2.19.0
 #ARG TF_SERVING_BUILD_IMAGE=tensorflow/serving:${TF_SERVING_VERSION}-devel-gpu
@@ -46,9 +46,9 @@ ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
 ENV PYTHON_VERSION=3.12.10
 
-ENV CUDA_DASH=12-5
-ENV NCCL_VERSION=2.21.5-1+cuda12.5
-ENV CUDNN_VERSION=9.3.0.75-1+cuda12.5
+ENV CUDA_DASH=12-2
+ENV NCCL_VERSION=2.21.5-1+cuda12.2
+ENV CUDNN_VERSION=8.9.4.25-1+cuda12.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
