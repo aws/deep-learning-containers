@@ -38,7 +38,8 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
-DEFAULT_EFA_TIMEOUT = 300
+# TODO: increase to 600 for debugging, change back to 300 after
+DEFAULT_EFA_TIMEOUT = 600
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
@@ -88,6 +89,14 @@ def test_pytorch_efa(
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
 
+    # TODO: remove logging and cat command after
+    LOGGER.info("Checking testEFA.log before main test:")
+    run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
+        "cat /test/logs/testEFA.log",
+        hide=False
+    )
     # pass IPv6 flag if enabled
     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
 
@@ -376,11 +385,20 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
-            "cat /etc/hosts"
+            "cat /etc/hosts",
+            hide=False
         )
 
         run_cmd_on_container(
             MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+        )
+
+        # TODO: remove after confirming it works
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f"cat {HOSTS_FILE_LOCATION}",
+            hide=False
         )
     else:
         # Configure MPI hosts file with IP addresses and slots for worker nodes
