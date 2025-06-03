@@ -185,10 +185,8 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         # Skip tests if region is ap-northeast-2
         if region == "ap-northeast-2" and "tensorflow" in ecr_image:
             continue
-        else:
-            current_args = test_function_args
         try:
-            test_function(tested_ecr_image, sagemaker_session, *current_args)
+            test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
         except sagemaker.exceptions.UnexpectedStatusException as e:
             if "CapacityError" in str(e):
