@@ -369,8 +369,7 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
-            f"echo '{etc_string}' > /etc/hosts",
-            with_sudo=True
+            f"echo '{etc_string}' > /etc/hosts"
         )
 
         run_cmd_on_container(
