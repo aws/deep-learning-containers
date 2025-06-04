@@ -414,8 +414,8 @@ def skip_smdebug_v1_test(
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7": ["cpu", "cu126"],
-        ">=2.7": ["cpu", "cu128"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
@@ -437,8 +437,8 @@ def skip_dgl_test(
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7": ["cpu", "cu126"],
-        ">=2.7": ["cpu", "cu128"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_dgl_test", skip_dict
@@ -476,8 +476,8 @@ def skip_smdmodelparallel_test(
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7": ["cpu", "cu126"],
-        ">=2.7": ["cpu", "cu128"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
@@ -497,7 +497,7 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.6,<2.7": ["cu126"], ">=2.7": ["cu128"]}
+    skip_dict = {"==2.0.*": ["cu121"], ">=2.6,<2.7.1": ["cu126"], ">=2.7.1": ["cu128"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
@@ -513,7 +513,7 @@ def skip_smppy_test(
     """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
     However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {">=2.7": ["cpu", "cu128"]}
+    skip_dict = {">=2.7.1": ["cpu", "cu128"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smppy_test", skip_dict
     ):
