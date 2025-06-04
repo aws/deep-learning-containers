@@ -55,6 +55,12 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    wget \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install python3.12
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
  && tar -xvf Python-${PYTHON_VERSION}.tgz \
@@ -62,7 +68,7 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && ./configure && make && make install \
  && rm -rf ../Python-${PYTHON_VERSION}*
 
- 
+
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
     curl \
@@ -71,7 +77,7 @@ RUN apt-get update \
     emacs \
     git \
     unzip \
-    wget \
+    #wget \
     vim \
     libbz2-dev \
     liblzma-dev \

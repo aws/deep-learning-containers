@@ -67,6 +67,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN curl -sSL --retry 5 https://raw.githubusercontent.com/tensorflow/serving/${TF_SERVING_VERSION_GIT_COMMIT}/tensorflow_serving/tools/docker/setup.sources.sh | sh
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    wget \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 # Install python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
  && tar -xvf Python-${PYTHON_VERSION}.tgz \
@@ -74,7 +80,7 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && ./configure && make && make install -j \
  && rm -rf ../Python-${PYTHON_VERSION}*
 
- 
+
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
@@ -108,7 +114,7 @@ RUN apt-get update \
     curl \
     emacs \
     git \
-    wget \
+    #wget \
     unzip \
     vim \
     build-essential \
