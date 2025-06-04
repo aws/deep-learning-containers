@@ -470,10 +470,10 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
-        def elastic_ips_finalizer():
-            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+        # def elastic_ips_finalizer():
+        #     ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
 
-        request.addfinalizer(elastic_ips_finalizer)
+        # request.addfinalizer(elastic_ips_finalizer)
 
     return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
     LOGGER.info(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
