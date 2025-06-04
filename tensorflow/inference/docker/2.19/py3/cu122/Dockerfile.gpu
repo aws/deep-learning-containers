@@ -69,7 +69,10 @@ RUN curl -sSL --retry 5 https://raw.githubusercontent.com/tensorflow/serving/${T
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
+    curl \
     wget \
+    gnupg2 \
+    ca-certificates \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -114,7 +117,7 @@ RUN apt-get update \
     curl \
     emacs \
     git \
-    #wget \
+    wget \
     unzip \
     vim \
     build-essential \
