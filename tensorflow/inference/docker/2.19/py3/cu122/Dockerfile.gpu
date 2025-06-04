@@ -39,6 +39,8 @@ ARG PYTHON_VERSION=3.12.10
 ARG TFS_SHORT_VERSION=2.19
 ARG CUDA_DASH=12-2
 
+ARG TF_SERVING_VERSION_GIT_COMMIT=HEAD
+
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
@@ -59,6 +61,11 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 # Fix for the interactive mode during an install in step 21
 ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl
+
+RUN curl -sSL --retry 5 https://raw.githubusercontent.com/tensorflow/serving/${TF_SERVING_VERSION_GIT_COMMIT}/tensorflow_serving/tools/docker/setup.sources.sh | sh
 
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
