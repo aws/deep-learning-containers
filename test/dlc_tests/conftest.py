@@ -470,6 +470,7 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
+        # TODO: uncomment delete_elastic_ips lines after debugging
         # def elastic_ips_finalizer():
         #     ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
 
