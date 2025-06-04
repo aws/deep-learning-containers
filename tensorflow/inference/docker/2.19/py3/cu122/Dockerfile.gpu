@@ -13,6 +13,8 @@
 #                  |_|
 ########################################################
 
+FROM tensorflow/serving:2.19.0-devel-gpu as build_image
+
 FROM nvidia/cuda:12.2.0-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -37,14 +39,10 @@ ARG PYTHON_VERSION=3.12.10
 ARG TFS_SHORT_VERSION=2.19
 ARG CUDA_DASH=12-2
 
-#ARG TF_SERVING_VERSION=2.19.0
-#ARG TF_SERVING_BUILD_IMAGE=tensorflow/serving:${TF_SERVING_VERSION}-devel-gpu
-FROM tensorflow/serving:2.19.0-devel-gpu as build_image
-
 # ENV variable to be passed to SageMaker stage
-ENV PIP=pip3
-ENV PYTHON=python3.12
-ENV PYTHON_VERSION=3.12.10
+ENV PIP=${PIP}
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
 
 
 ENV CUDA_DASH=12-2
