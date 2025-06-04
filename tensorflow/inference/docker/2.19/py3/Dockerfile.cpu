@@ -55,12 +55,26 @@ ENV MODEL_BASE_PATH=/models
 ENV MODEL_NAME=model
 ENV DEBIAN_FRONTEND=noninteractive
 
+# First install basic tools needed for Python compilation
 RUN apt-get update \
- && apt-get install -y --no-install-recommends \
+ && apt-get -y install --no-install-recommends \
+    ca-certificates \
     curl \
     wget \
     gnupg2 \
-    ca-certificates \
+    build-essential \
+    zlib1g-dev \
+    libssl-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libffi-dev \
+    libreadline-dev \
+    libncursesw5-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    tk-dev \
+    libc6-dev \
+    openssl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
@@ -71,34 +85,15 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && ./configure && make && make install \
  && rm -rf ../Python-${PYTHON_VERSION}*
 
-
+# Install remaining packages
 RUN apt-get update \
  && apt-get -y install --no-install-recommends \
-    curl \
-    gnupg2 \
-    ca-certificates \
     emacs \
     git \
     unzip \
-    wget \
     vim \
-    libbz2-dev \
-    liblzma-dev \
-    libffi-dev \
-    build-essential \
-    zlib1g-dev \
-    openssl \
-    #libssl1.1 \
-    libreadline-dev \
-    libncursesw5-dev \
-    libssl-dev \
-    libsqlite3-dev \
-    tk-dev \
-    libgdbm-dev \
-    libc6-dev \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
