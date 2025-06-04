@@ -96,6 +96,11 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && cd Python-${PYTHON_VERSION} \
  && ./configure && make && make install -j \
  && rm -rf ../Python-${PYTHON_VERSION}*
+ 
+# Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+ && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
+ && rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb
 
 # Now install CUDA and other packages that might depend on Python
 RUN apt-get update \
