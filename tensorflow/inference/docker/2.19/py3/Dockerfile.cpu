@@ -71,7 +71,7 @@ RUN apt-get update \
     build-essential \
     zlib1g-dev \
     openssl \
-    libssl3 \
+    libssl1.1 \
     libreadline-dev \
     libncursesw5-dev \
     libssl-dev \
