@@ -67,6 +67,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN curl -sSL --retry 5 https://raw.githubusercontent.com/tensorflow/serving/${TF_SERVING_VERSION_GIT_COMMIT}/tensorflow_serving/tools/docker/setup.sources.sh | sh
 
+# Install python
+RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
+ && tar -xvf Python-${PYTHON_VERSION}.tgz \
+ && cd Python-${PYTHON_VERSION} \
+ && ./configure && make && make install -j \
+ && rm -rf ../Python-${PYTHON_VERSION}*
+
+ 
 # allow unauthenticated and allow downgrades for special libcublas library
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades\
@@ -91,10 +99,10 @@ RUN apt-get update \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
     libcublas-${CUDA_DASH} \
     libcublas-dev-${CUDA_DASH} \
-    #libcudnn8=${CUDNN_VERSION} \
-    #libcudnn8-dev=${CUDNN_VERSION} \
-    #libnccl2=${NCCL_VERSION} \
-    #libnccl-dev=${NCCL_VERSION}  \
+    libcudnn8=${CUDNN_VERSION} \
+    libcudnn8-dev=${CUDNN_VERSION} \
+    libnccl2=${NCCL_VERSION} \
+    libnccl-dev=${NCCL_VERSION}  \
     libgomp1 \
     libffi-dev \
     curl \
@@ -121,24 +129,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 
-# Install python
-RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
- && tar -xvf Python-${PYTHON_VERSION}.tgz \
- && cd Python-${PYTHON_VERSION} \
- && ./configure && make && make install -j \
- && rm -rf ../Python-${PYTHON_VERSION}*
-
-# Then install CUDNN and NCCL manually with dpkg
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libcudnn8_${CUDNN_VERSION}_amd64.deb && \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libcudnn8-dev_${CUDNN_VERSION}_amd64.deb && \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libnccl2_${NCCL_VERSION}_amd64.deb && \
-    wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/libnccl-dev_${NCCL_VERSION}_amd64.deb && \
-    dpkg -i libcudnn8_${CUDNN_VERSION}_amd64.deb && \
-    dpkg -i libcudnn8-dev_${CUDNN_VERSION}_amd64.deb && \
-    dpkg -i libnccl2_${NCCL_VERSION}_amd64.deb && \
-    dpkg -i libnccl-dev_${NCCL_VERSION}_amd64.deb && \
-    rm *.deb
-    
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
