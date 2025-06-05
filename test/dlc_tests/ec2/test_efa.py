@@ -357,9 +357,7 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             raise RuntimeError("IPv6 testing enabled but not all workers have IPv6 addresses")
         
         hosts_string = f"compute1 slots={slots} "
-        LOGGER.info(f"hosts_string: {hosts_string}")
         etc_string = f'{master_ip} compute1'
-        LOGGER.info(f"etc_string: {etc_string}")
         compute_counter = 2
         
         for worker_ip in worker_ips:
@@ -375,14 +373,17 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         )
 
         # TODO: remove cat command after making sure it works
+        LOGGER.info("cat /etc/hosts")
         etc_hosts_content = run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
             "cat /etc/hosts",
             hide=False
         )
-        LOGGER.info("cat /etc/hosts")
-        LOGGER.info(f"{etc_hosts_content}")
+        LOGGER.info(f"etc_hosts_content: {etc_hosts_content}")
+
+        LOGGER.info(f"etc_string -> {etc_string}")
+        LOGGER.info(f"hosts_string -> {hosts_string}")
 
         run_cmd_on_container(
             MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
