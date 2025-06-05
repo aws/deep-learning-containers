@@ -67,11 +67,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN curl -sSL --retry 5 https://raw.githubusercontent.com/tensorflow/serving/${TF_SERVING_VERSION_GIT_COMMIT}/tensorflow_serving/tools/docker/setup.sources.sh | sh
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && \
-    dpkg -i cuda-keyring_1.0-1_all.deb && \
-    rm cuda-keyring_1.0-1_all.deb && \
-    apt-get update
-    
+
 # First install basic tools needed for Python compilation
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -95,6 +91,11 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+ RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && \
+    dpkg -i cuda-keyring_1.0-1_all.deb && \
+    rm cuda-keyring_1.0-1_all.deb && \
+    apt-get update
+    
 # Install python
 RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
  && tar -xvf Python-${PYTHON_VERSION}.tgz \
