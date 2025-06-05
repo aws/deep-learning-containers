@@ -431,7 +431,7 @@ def efa_ec2_instances(
             InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
         )
 
-    request.addfinalizer(terminate_efa_instances)
+    # request.addfinalizer(terminate_efa_instances)
 
     master_instance_id = instances[0]["InstanceId"]
     ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
@@ -471,8 +471,8 @@ def efa_ec2_instances(
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
         # TODO: uncomment delete_elastic_ips lines after debugging
-        # def elastic_ips_finalizer():
-        #     ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+        def elastic_ips_finalizer():
+            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
 
         # request.addfinalizer(elastic_ips_finalizer)
 
@@ -557,7 +557,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
 
-    request.addfinalizer(delete_s3_artifact_copy)
+    # request.addfinalizer(delete_s3_artifact_copy)
 
     master_connection.run("rm -rf $HOME/container_tests")
     master_connection.run(
@@ -606,7 +606,7 @@ def ec2_instance(
             with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
                 destroy_keys.write(f"{key_filename}\n")
 
-    request.addfinalizer(delete_ssh_keypair)
+    # request.addfinalizer(delete_ssh_keypair)
     print(f"EC2 instance AMI-ID: {ec2_instance_ami}")
 
     params = {

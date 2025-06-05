@@ -293,6 +293,9 @@ def _setup_container(connection, docker_image, container_name):
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
+    LOGGER.info(
+        f"[_setup_container] docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 {docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
+        )
     connection.run(
         f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
         f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
@@ -363,24 +366,19 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         for worker_ip in worker_ips:
             compute_name = f"compute{compute_counter}"
             hosts_string += f"\n{compute_name} slots={slots} "
-            etc_string += f'\\n{worker_ip} {compute_name}'
+            etc_string += f"\n{worker_ip} {compute_name}"
             compute_counter += 1
+
+        # create host file on the instance
+        master_connection.run(f'sudo echo "{etc_string}" > /etc/hosts')
         
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
-            f'printf "{etc_string}" > /etc/hosts'
+            f'echo "{etc_string}" > /etc/hosts'
         )
 
         # TODO: remove cat command after making sure it works
-        LOGGER.info("cat /etc/hosts")
-        etc_hosts_content = run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            master_connection,
-            "cat /etc/hosts",
-            hide=False
-        )
-        LOGGER.info(f"etc_hosts_content: {etc_hosts_content}")
 
         LOGGER.info(f"etc_string -> {etc_string}")
         LOGGER.info(f"hosts_string -> {hosts_string}")
