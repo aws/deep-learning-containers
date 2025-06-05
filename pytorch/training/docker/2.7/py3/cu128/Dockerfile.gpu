@@ -74,9 +74,7 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-# older archs are not supported on CUDA12.1 like 3.7 for P2 instance
-# 5.2 is G3 EC2 instance, 7.5 is G4*, 7.0 is p3*, 8.0 is P4*, 8.6 is G5* and 9.0 is P5*
-# ENV TORCH_CUDA_ARCH_LIST="5.2;7.0+PTX;7.5;8.0;8.6;9.0"
+
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
 ENV DLC_CONTAINER_TYPE=training
