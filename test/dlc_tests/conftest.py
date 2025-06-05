@@ -943,7 +943,7 @@ def skip_dgl_test(request):
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1": ["cpu", "cu128"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
@@ -1008,7 +1008,7 @@ def skip_serialized_release_pt_test(request):
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1": ["cpu", "cu128"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
