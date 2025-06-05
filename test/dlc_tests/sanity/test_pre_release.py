@@ -58,13 +58,13 @@ def tail_n_lines(fname, n):
         # Use tail command to get last n lines
         result = subprocess.run(["tail", f"-n{n}", fname], capture_output=True, text=True)
         if result.returncode == 0:
-            return result.stdout.splitlines()
+            return result.stdout
         else:
-            print(f"Error reading file: {result.stderr}")
-            return []
+            LOGGER.error(f"Error reading file: {result.stderr}")
+            return
     except FileNotFoundError:
-        print(f"Error: File '{fname}' not found.")
-        return []
+        LOGGER.error(f"Error: File '{fname}' not found.")
+        return
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
