@@ -31,32 +31,34 @@ Deep Learning Containers Docker Images are available in the following regions:
 | US East (Ohio)				         | us-east-2			     |Available 			|Available			| 763104351884.dkr.ecr.us-east-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | US West (N. California)	   | us-west-1			     |Available 			|None				| 763104351884.dkr.ecr.us-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | US West (Oregon)			        | us-west-2			     |Available 			|Available			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
-| Africa (Cape Town)			      | af-south-1			    |Available			|None				| 626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Asia Pacific (Hong Kong)	  | ap-east-1			     |Available 			|None				| 871362719292.dkr.ecr.ap-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | Asia Pacific (Mumbai)		    | ap-south-1			    |Available 			|Available			| 763104351884.dkr.ecr.ap-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Asia Pacific (Hyderabad)		 | ap-south-2			    |Available 			|None			| 772153158452.dkr.ecr.ap-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| Asia Pacific (Osaka)		     | ap-northeast-3		 |Available 			|None				| 364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Seoul)		     | ap-northeast-2		 |Available 			|None				| 763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Osaka)		     | ap-northeast-3		 |Available 			|None				| 364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Singapore)	  | ap-southeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Sydney)		    | ap-southeast-2 	 |Available 			|Available			| 763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Jakarta)		   | ap-southeast-3 	 |Available 			|None			| 907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Melbourne)		 | ap-southeast-4 	 |Available 			|None			| 457447274322.dkr.ecr.ap-southeast-4.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Malaysia)		 | ap-southeast-5 	 |Available 			|None			| 550225433462.dkr.ecr.ap-southeast-5.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
-| Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Thailand)        | ap-southeast-7    |Available             |None           | 590183813437.dkr.ecr.ap-southeast-7.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Canada (Central)			        | ca-central-1		   |Available 			|None				| 763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | Canada (Calgary)			        | ca-west-1		   |Available 			|None				| 204538143572.dkr.ecr.ca-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Frankfurt) 			         | eu-central-1		   |Available 			|Available			| 763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Zurich) 			            | eu-central-2		   |Available 			|None			| 380420809688.dkr.ecr.eu-central-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Ireland) 				          | eu-west-1			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (London) 				           | eu-west-2			     |Available 			|None				| 763104351884.dkr.ecr.eu-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
+| EU (Paris) 				            | eu-west-3			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (Milan)					            | eu-south-1			    |Available			|None				| 692866216735.dkr.ecr.eu-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | EU (Spain)					            | eu-south-2			    |Available			|None				| 503227376785.dkr.ecr.eu-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| EU (Paris) 				            | eu-west-3			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (Stockholm) 			         | eu-north-1			    |Available 			|None				| 763104351884.dkr.ecr.eu-north-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| Israel (Tel Aviv) 			      | il-central-1			  |Available 			|None				| 780543022126.dkr.ecr.il-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			    |
 | Middle East (Bahrain) 		   | me-south-1			    |Available 			|None				| 217643126080.dkr.ecr.me-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Middle East (UAE)		        | me-central-1 	   |Available 			|None			| 914824155844.dkr.ecr.me-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
+| Israel (Tel Aviv) 			      | il-central-1			  |Available 			|None				| 780543022126.dkr.ecr.il-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			    |
 | South America (Sao Paulo)	 | sa-east-1			     |Available 			|Available			| 763104351884.dkr.ecr.sa-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
+| Africa (Cape Town)			      | af-south-1			    |Available			|None				| 626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
+| Mexico (Central)                    | mx-central-1            |Available          |None               | 637423239942.dkr.ecr.mx-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | China (Beijing)			         | cn-north-1			    |Available 			|None				| 727897471807.dkr.ecr.cn-north-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>		    |
 | China (Ningxia)			         | cn-northwest-1		 |Available 			|None				| 727897471807.dkr.ecr.cn-northwest-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>	 |
 
@@ -89,12 +91,29 @@ DLC Available Image User Guide
 ============================
 
 To use the following tables, select your desired framework, the kind of job you're starting, and your desired Python version. Your
-job type is either ``training`` or ``inference``. Your Python version is
+job type is either ``training``, ``inference`` or ``general``. Your Python version is
 either ``py37``, ``py38``, ``py39``, ``py310``, ``py311`` or ``py312`` depending on availability. Plug this information into the replaceable portions of the URL as shown in the example URL.
 
 You can pin your version by adding the version tag to your URL as follows:
 
     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+
+
+Base Containers 
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| CUDA 12.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/base:12.8.1-gpu-py312-cu128-ubuntu24.04-ec2        |
+
+
+EC2 vLLM Containers (EC2, ECS, and EKS support only)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| vLLM 0.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.8-gpu-py312-ec2        |
+
 
 EC2 Framework Containers (EC2, ECS, and EKS support only)
 ============================
