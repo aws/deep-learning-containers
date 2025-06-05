@@ -1094,13 +1094,14 @@ def test_license_file(image):
     s3_object_key = f"{framework}-{short_version}/license.txt"
     s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
 
-    tail_container_file = tail_n_lines(container_file_local_path, 5)
-    tail_s3_file = tail_n_lines(s3_file_local_path, 5)
+    tail_line_num = 5
+    tail_container_file = tail_n_lines(container_file_local_path, tail_line_num)
+    tail_s3_file = tail_n_lines(s3_file_local_path, tail_line_num)
 
     assert filecmp.cmp(container_file_local_path, s3_file_local_path, shallow=False), (
-        f"{container_filename} content is different from {s3_filename}.\n"
-        f"{container_filename} content: {tail_container_file}\n"
-        f"{s3_filename} content: {tail_s3_file}"
+        f"{container_filename} content is different from {s3_filename}.\n\n"
+        f"{container_filename} tail -n {tail_line_num} content: {tail_container_file}\n\n"
+        f"{s3_filename} tail -n {tail_line_num} content: {tail_s3_file}"
     )
 
 
