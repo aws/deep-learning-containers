@@ -11,6 +11,7 @@ from packaging.specifiers import SpecifierSet
 
 import pytest
 import requests
+import filecmp
 
 from urllib3.util.retry import Retry
 from invoke.context import Context
@@ -50,6 +51,20 @@ from test.test_utils import (
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
 )
+
+
+def tail_n_lines(fname, n):
+    try:
+        # Use tail command to get last n lines
+        result = subprocess.run(["tail", f"-n{n}", fname], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
+        else:
+            LOGGER.error(f"Error reading file: {result.stderr}")
+            return
+    except FileNotFoundError:
+        LOGGER.error(f"Error: File '{fname}' not found.")
+        return
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
@@ -1044,6 +1059,50 @@ def test_oss_compliance(image):
                         f"Unable to check if source code is present on bucket {THIRD_PARTY_SOURCE_CODE_BUCKET}. Error: {e}"
                     )
                     raise
+
+
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
+@pytest.mark.integration("license")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    not is_dlc_cicd_context(), reason="We need to test license file only on PRs and pipelines"
+)
+def test_license_file(image):
+    """
+    Check that license file within the container is readable and valid
+    """
+    framework, version = get_framework_and_version_from_tag(image)
+    short_version = re.search(r"(\d+\.\d+)", version).group(0)
+    LICENSE_FILE_BUCKET = "aws-dlc-licenses"
+    local_repo_path = get_repository_local_path()
+    container_filename = "CONTAINER_LICENSE_FILE"
+    s3_filename = "S3_LICENSE_FILE"
+    container_file_local_path = os.path.join(local_repo_path, container_filename)
+    s3_file_local_path = os.path.join(local_repo_path, s3_filename)
+
+    # get license file in container
+    container_name = get_container_name("license_readable", image)
+    context = Context()
+    start_container(container_name, image, context)
+    try:
+        context.run(f"docker cp {container_name}:/license.txt {container_file_local_path}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    # get license file in s3
+    s3_client = boto3.client("s3")
+    s3_object_key = f"{framework}-{short_version}/license.txt"
+    s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
+
+    tail_line_num = 5
+    tail_container_file = tail_n_lines(container_file_local_path, tail_line_num)
+    tail_s3_file = tail_n_lines(s3_file_local_path, tail_line_num)
+
+    assert filecmp.cmp(container_file_local_path, s3_file_local_path, shallow=False), (
+        f"{container_filename} content is different from {s3_filename}.\n\n"
+        f"{container_filename} tail -n {tail_line_num} content: {tail_container_file}\n\n"
+        f"{s3_filename} tail -n {tail_line_num} content: {tail_s3_file}"
+    )
 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
