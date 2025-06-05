@@ -1072,6 +1072,7 @@ def test_license_file(image):
     Check that license file within the container is readable and valid
     """
     framework, version = get_framework_and_version_from_tag(image)
+    short_version = re.search(r"(\d+\.\d+)", version).group(0)
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
     local_repo_path = get_repository_local_path()
     container_filename = "CONTAINER_LICENSE_FILE"
@@ -1090,7 +1091,7 @@ def test_license_file(image):
 
     # get license file in s3
     s3_client = boto3.client("s3")
-    s3_object_key = f"{framework}-{version}/license.txt"
+    s3_object_key = f"{framework}-{short_version}/license.txt"
     s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
 
     tail_container_file = tail_n_lines(container_file_local_path, 5)
