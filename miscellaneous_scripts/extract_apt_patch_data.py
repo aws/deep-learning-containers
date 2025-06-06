@@ -1,7 +1,6 @@
 import subprocess
 import argparse
 import json
-
 from enum import Enum
 
 
@@ -17,15 +16,17 @@ def list_of_strings(arg):
     return arg.split(",") if arg else []
 
 
-def get_package_list_using_command(run_command="apt list --installed"):
+def get_package_list(run_cmd=["apt", "list", "--installed"]):
     """
     Uses the input command to retrieve the list of installed/upgradable apt packages.
-    :param run_command: str, the input apt command
-    :return: list, the list of packages
+    :param run_cmd: list of str, the command tokens to execute
+    :return: list of str, names of the packages parsed from the command output
+    :raises ValueError: if run_cmd is not a list of strings
     """
-    run_output = subprocess.run(run_command, shell=True, capture_output=True, text=True, check=True)
-    result = run_output.stdout.strip().split("\n")
-    return [output_line.split("/")[0] for output_line in result if "/" in output_line]
+    if not isinstance(run_cmd, list) or not all(isinstance(tok, str) for tok in run_cmd):
+        raise ValueError("run_cmd must be a list of strings")
+    run_output = subprocess.run(run_cmd, capture_output=True, text=True, check=True)
+    return [l.split("/")[0] for l in run_output.stdout.splitlines() if "/" in l]
 
 
 def get_installed_version_for_packages(package_list=[]):
@@ -117,16 +118,16 @@ def update_patch_package_list_and_upgradable_packages_data(
     """
     for package in installed_packages:
         source_package = ""
-        # dpkg -s <package> gives the output in the following format:
-        #     Package: xxd
-        #     Status: install ok installed
-        #     Source: vim
-        # We extract the source package from the command output
-        source_extraction_cmd_output = subprocess.run(
-            f"dpkg -s {package} | grep ^Source", shell=True, capture_output=True, text=True
+        # Fetch only the Source field via dpkg-query
+        result = subprocess.run(
+            ["dpkg-query", "-W", "-f=${Source}", package],
+            capture_output=True,
+            text=True,
+            check=False,
         )
-        if source_extraction_cmd_output.returncode in RETURN_CODE_OK:
-            source_package = source_extraction_cmd_output.stdout.strip().split()[1]
+        # dpkg-query prints "(none)" if there's no Source
+        sp = result.stdout.strip()
+        source_package = sp if sp and sp != "(none)" else ""
 
         if is_package_or_its_source_is_impacted_and_the_package_is_upgradable(
             package=package,
@@ -155,9 +156,8 @@ def execute_generative_mode_type(args):
     In the ends, it dumps the data at save_result_path location.
     """
     impacted_packages = args.impacted_packages
-    installed_packages = get_package_list_using_command(run_command="apt list --installed")
-    upgradable_packages = get_package_list_using_command(run_command="apt list --upgradable")
-
+    installed_packages = get_package_list()
+    upgradable_packages = get_package_list(["apt", "list", "--upgradable"])
     upgradable_packages_data_for_impacted_packages = {}
     patch_package_list = []
     patch_package_dict = {}
