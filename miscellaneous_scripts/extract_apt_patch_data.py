@@ -1,7 +1,6 @@
 import subprocess
 import argparse
 import json
-import shlex
 from enum import Enum
 
 
@@ -17,19 +16,17 @@ def list_of_strings(arg):
     return arg.split(",") if arg else []
 
 
-def get_package_list_using_command(run_command="apt list --installed"):
+def get_package_list(run_cmd=["apt", "list", "--installed"]):
     """
     Uses the input command to retrieve the list of installed/upgradable apt packages.
-    :param run_command: str or list, the input apt command  str
-    :return: the list of packages
+    :param run_cmd: list of str, the command tokens to execute
+    :return: list of str, names of the packages parsed from the command output
+    :raises ValueError: if run_cmd is not a list of strings
     """
-    if isinstance(run_command, str):
-        args = shlex.split(run_command)
-    else:
-        args = run_command
-    run_output = subprocess.run(args, capture_output=True, text=True, check=True)
-    lines = run_output.stdout.strip().splitlines()
-    return [line.split("/", 1)[0] for line in lines if "/" in line]
+    if not isinstance(run_cmd, list) or not all(isinstance(tok, str) for tok in run_cmd):
+        raise ValueError("run_cmd must be a list of strings")
+    run_output = subprocess.run(run_cmd, capture_output=True, text=True, check=True)
+    return [l.split("/")[0] for l in run_output.stdout.splitlines() if "/" in l]
 
 
 def get_installed_version_for_packages(package_list=[]):
@@ -159,9 +156,8 @@ def execute_generative_mode_type(args):
     In the ends, it dumps the data at save_result_path location.
     """
     impacted_packages = args.impacted_packages
-    installed_packages = get_package_list_using_command("apt list --installed")
-    upgradable_packages = get_package_list_using_command("apt list --upgradable")
-
+    installed_packages = get_package_list()
+    upgradable_packages = get_package_list(["apt", "list", "--upgradable"])
     upgradable_packages_data_for_impacted_packages = {}
     patch_package_list = []
     patch_package_dict = {}
