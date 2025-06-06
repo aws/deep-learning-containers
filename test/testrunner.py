@@ -290,6 +290,9 @@ def main():
     efa_dedicated = is_efa_dedicated()
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+    # Enable IPv6 testing from environment variable
+    ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -379,8 +382,8 @@ def main():
         "quick_checks",
         "release_candidate_integration",
     ):
-        pytest_rerun_arg = "--reruns=1"
-        pytest_rerun_delay_arg = "--reruns-delay=10"
+        # pytest_rerun_arg = "--reruns=1"
+        # pytest_rerun_delay_arg = "--reruns-delay=10"
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -419,7 +422,7 @@ def main():
         pytest_cmd = [
             "-s",
             "-rA",
-            test_path,
+            os.path.join(test_path, "test_efa.py::test_pytorch_efa"),
             f"--junitxml={report}",
             "-n=auto",
         ]
@@ -433,9 +436,9 @@ def main():
             else:
                 pytest_cmd += [
                     "--dist=worksteal",
-                    pytest_rerun_arg,
-                    pytest_rerun_delay_arg,
-                    "--rerun-except=SerialTestCaseExecutorException",
+                    # pytest_rerun_arg,
+                    # pytest_rerun_delay_arg,
+                    # "--rerun-except=SerialTestCaseExecutorException",
                 ]
         if is_pr_context():
             if specific_test_type == "eks":

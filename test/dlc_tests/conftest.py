@@ -47,6 +47,8 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
@@ -430,7 +432,7 @@ def efa_ec2_instances(
             InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
         )
 
-    request.addfinalizer(terminate_efa_instances)
+    # request.addfinalizer(terminate_efa_instances)
 
     master_instance_id = instances[0]["InstanceId"]
     ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
@@ -469,10 +471,11 @@ def efa_ec2_instances(
             elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
+        # TODO: uncomment delete_elastic_ips lines after debugging
         def elastic_ips_finalizer():
             ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
 
-        request.addfinalizer(elastic_ips_finalizer)
+        # request.addfinalizer(elastic_ips_finalizer)
 
     return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
     LOGGER.info(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
@@ -499,7 +502,8 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         }
         for worker_instance_id, worker_instance_pem_file in efa_ec2_instances[1:]
     ]
-
+    
+    ec2 = boto3.resource('ec2', region_name=region)
     user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
     master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
     LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
@@ -510,11 +514,22 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         connect_timeout=18000,
     )
 
+    if ENABLE_IPV6_TESTING:
+        master_instance = ec2.Instance(master_instance_id)
+        master_primary_interface = master_instance.network_interfaces[0]
+        master_ipv6_address = master_primary_interface.ipv6_addresses[0]['Ipv6Address'] if master_primary_interface.ipv6_addresses else None
+
+        if master_ipv6_address:
+            master_connection.ipv6_address = master_ipv6_address
+            LOGGER.info(f"Master node IPv6 address for inter-node communication: {master_connection.ipv6_address}")
+
+
     worker_instance_connections = []
     for instance in worker_instances:
         worker_instance_id = instance["worker_instance_id"]
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
+        # TODO: remove logging
         LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
         worker_connection = Connection(
             user=user_name,
@@ -522,6 +537,16 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
             connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
+
+        if ENABLE_IPV6_TESTING:
+            worker_instance = ec2.Instance(worker_instance_id)
+            worker_primary_interface = worker_instance.network_interfaces[0]
+            worker_ipv6_address = worker_primary_interface.ipv6_addresses[0]['Ipv6Address'] if worker_primary_interface.ipv6_addresses else None
+            if worker_ipv6_address:
+                # TODO: remove logging
+                worker_connection.ipv6_address = worker_ipv6_address
+                LOGGER.info(f"Worker node IPv6 address for inter-node communication: {worker_connection.ipv6_address}")
+
         worker_instance_connections.append(worker_connection)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -533,7 +558,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
 
-    request.addfinalizer(delete_s3_artifact_copy)
+    # request.addfinalizer(delete_s3_artifact_copy)
 
     master_connection.run("rm -rf $HOME/container_tests")
     master_connection.run(
@@ -582,7 +607,7 @@ def ec2_instance(
             with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
                 destroy_keys.write(f"{key_filename}\n")
 
-    request.addfinalizer(delete_ssh_keypair)
+    # request.addfinalizer(delete_ssh_keypair)
     print(f"EC2 instance AMI-ID: {ec2_instance_ami}")
 
     params = {

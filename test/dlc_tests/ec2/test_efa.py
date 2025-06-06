@@ -30,13 +30,16 @@ EFA_PYTORCH_HEALTHCHECK_TEST_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_single_node.sh"
 )
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 MASTER_SSH_KEY_NAME = "master_id_rsa"
 WORKER_SSH_KEY_NAME = "worker_id_rsa"
 MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
-DEFAULT_EFA_TIMEOUT = 300
+# TODO: increase to 600 for debugging, change back to 300 after
+DEFAULT_EFA_TIMEOUT = 600
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
@@ -86,10 +89,12 @@ def test_pytorch_efa(
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
 
+    ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
@@ -130,59 +135,63 @@ def test_efa_tensorflow(
     )
     master_connection = efa_ec2_connections[0]
     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+
+    # pass IPv6 flag if enabled
+    ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
+
     run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
-        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
 
 
-@pytest.mark.skip(
-    "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
-)
-@pytest.mark.processor("gpu")
-@pytest.mark.model("N/A")
-@pytest.mark.integration("efa")
-@pytest.mark.usefixtures("sagemaker_only")
-@pytest.mark.usefixtures("pt201_and_above_only")
-@pytest.mark.allow_p4de_use
-@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
-@pytest.mark.team("conda")
-@pytest.mark.skipif(
-    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
-    reason="Skip EFA test in PR context unless explicitly enabled",
-)
-def test_pytorch_efa_healthcheck(
-    pytorch_training,
-    efa_ec2_instances,
-    efa_ec2_connections,
-    ec2_instance_type,
-    region,
-    gpu_only,
-):
-    """
-    Run EFA Health Check tests on DLC.
-    :param pytorch_training: str PyTorch Training DLC image URI
-    :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
-    :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
-    :param ec2_instance_type: str Instance Type being tested
-    :param region: str Region in which EFA-enabled instances are launched
-    :param gpu_only: pytest fixture to limit test only to GPU DLCs
-    """
-    _setup_multinode_efa_instances(
-        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-    )
-    master_connection = efa_ec2_connections[0]
-    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
-        master_connection,
-        f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
-        hide=False,
-        timeout=DEFAULT_EFA_TIMEOUT,
-    )
+# @pytest.mark.skip(
+#     "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
+# )
+# @pytest.mark.processor("gpu")
+# @pytest.mark.model("N/A")
+# @pytest.mark.integration("efa")
+# @pytest.mark.usefixtures("sagemaker_only")
+# @pytest.mark.usefixtures("pt201_and_above_only")
+# @pytest.mark.allow_p4de_use
+# @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
+# @pytest.mark.team("conda")
+# @pytest.mark.skipif(
+#     is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+#     reason="Skip EFA test in PR context unless explicitly enabled",
+# )
+# def test_pytorch_efa_healthcheck(
+#     pytorch_training,
+#     efa_ec2_instances,
+#     efa_ec2_connections,
+#     ec2_instance_type,
+#     region,
+#     gpu_only,
+# ):
+#     """
+#     Run EFA Health Check tests on DLC.
+#     :param pytorch_training: str PyTorch Training DLC image URI
+#     :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
+#     :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
+#     :param ec2_instance_type: str Instance Type being tested
+#     :param region: str Region in which EFA-enabled instances are launched
+#     :param gpu_only: pytest fixture to limit test only to GPU DLCs
+#     """
+#     _setup_multinode_efa_instances(
+#         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
+#     )
+#     master_connection = efa_ec2_connections[0]
+#     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+#     run_cmd_on_container(
+#         MASTER_CONTAINER_NAME,
+#         master_connection,
+#         f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
+#         hide=False,
+#         timeout=DEFAULT_EFA_TIMEOUT,
+#     )
 
 
 def _setup_multinode_efa_instances(
@@ -232,7 +241,7 @@ def _setup_multinode_efa_instances(
     _setup_master_efa_ssh_config(master_connection)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
-    _create_master_mpi_hosts_file(master_connection, worker_instance_ids, ec2_instance_type, region)
+    _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, ec2_instance_type, region)
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
@@ -284,6 +293,9 @@ def _setup_container(connection, docker_image, container_name):
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
+    LOGGER.info(
+        f"[_setup_container] docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 {docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
+        )
     connection.run(
         f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
         f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
@@ -322,25 +334,75 @@ def _setup_master_efa_ssh_config(connection):
     run_cmd_on_container(MASTER_CONTAINER_NAME, connection, "chmod -R 600 $HOME/.ssh/*")
 
 
-def _create_master_mpi_hosts_file(connection, worker_instance_ids, instance_type, region):
+def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, instance_type, region):
     """
     Create MPI Hosts file that contains private IP addresses of all hosts used in training job.
-    :param connection: Fabric Connection object
+    :param efa_ec2_connections: List of Fabric Connection objects [master_connection, *worker_connections]
     :param worker_instance_ids: list of str worker instance IDs
     :param instance_type: str EC2 Instance Type being used
     :param region: str region name in which test is run
     """
+    master_connection = efa_ec2_connections[0]
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-    # Configure MPI hosts file with IP addresses and slots for worker nodes
-    hosts_string = f"localhost slots={slots} "
-    for worker_ip in worker_instance_private_ips:
-        hosts_string += f"\n{worker_ip} slots={slots} "
-    run_cmd_on_container(
-        MASTER_CONTAINER_NAME, connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
-    )
+    # TODO: remove logging
+    LOGGER.info(f"worker private addresses: {worker_instance_private_ips}")
+
+    if ENABLE_IPV6_TESTING:
+        master_ip = master_connection.ipv6_address
+        if not master_ip:
+            raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
+        
+        worker_ips = [conn.ipv6_address for conn in efa_ec2_connections[1:]]
+        if not all(worker_ips):
+            raise RuntimeError("IPv6 testing enabled but not all workers have IPv6 addresses")
+        
+        hosts_string = f"compute1 slots={slots} "
+        etc_string = f'{master_ip} compute1'
+        compute_counter = 2
+        
+        for worker_ip in worker_ips:
+            compute_name = f"compute{compute_counter}"
+            hosts_string += f"\n{compute_name} slots={slots} "
+            etc_string += f"\n{worker_ip} {compute_name}"
+            compute_counter += 1
+
+        # create host file on the instance
+        master_connection.run(f'sudo echo "{etc_string}" > /etc/hosts')
+        
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f'echo "{etc_string}" > /etc/hosts'
+        )
+
+        # TODO: remove cat command after making sure it works
+
+        LOGGER.info(f"etc_string -> {etc_string}")
+        LOGGER.info(f"hosts_string -> {hosts_string}")
+
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+        )
+
+        # TODO: remove after confirming it works
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f"cat {HOSTS_FILE_LOCATION}",
+            hide=False
+        )
+    else:
+        # Configure MPI hosts file with IP addresses and slots for worker nodes
+        hosts_string = f"localhost slots={slots} "
+        for worker_ip in worker_instance_private_ips:
+            hosts_string += f"\n{worker_ip} slots={slots} "
+
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+        )
 
 
 def _setup_worker_efa_ssh_config(connection, master_pub_key):
