@@ -10,7 +10,7 @@ ARG TORCHDATA_VERSION=0.11.0
 ARG CUDA_VERSION=12.8.0
 ARG CUDNN_VERSION=9.7.1.26
 ARG NCCL_VERSION=2.26.2
-ARG EFA_VERSION=1.40.0
+ARG EFA_VERSION=1.41.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
@@ -159,7 +159,7 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
  && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^lo,docker >> /etc/nccl.conf
+ && echo NCCL_SOCKET_IFNAME=^docker0,lo >> /etc/nccl.conf
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
