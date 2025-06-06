@@ -1,12 +1,8 @@
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from datetime import datetime
 
 import pytest
 import re
-import time
-
-import os
 
 from invoke.context import Context
 
@@ -26,6 +22,7 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "torch",
     "torchvision",
+    "torchtext",
     "torchaudio",
     "PIL",
     "boto3",
@@ -41,8 +38,6 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "psutil",
     "cv2",
 ]
-
-TIMEOUT_IMPORT_TEST = 500
 
 
 # TODO: Need to be added to all DLC images in furture.
@@ -126,6 +121,7 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     Verify that common utility packages are installed in the Training DLC image
     :param pytorch_training: training ECR image URI
     """
+
     ctx = Context()
     container_name = test_utils.get_container_name(
         "common_pytorch_utility_packages_using_import", pytorch_training
@@ -150,24 +146,13 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
-            start_time = datetime.now()
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
                 f"import {package}; print({package}.__version__)",
                 executable="python",
-                timeout=TIMEOUT_IMPORT_TEST,
             )
-            end_time = datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            test_utils.LOGGER.info(f"Package {package} import time: {duration:.2f} seconds")
         except Exception as e:
-            test_utils.LOGGER.info(f"Exception {e}")
-            end_time = datetime.now()
-            duration = (end_time - start_time).total_seconds()
-            test_utils.LOGGER.info(
-                f"Package {package} failed to import time: {duration:.2f} seconds"
-            )
             import_failed = True
             list_of_packages.append(package)
 
