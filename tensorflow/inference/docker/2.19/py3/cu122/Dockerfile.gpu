@@ -104,9 +104,9 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && rm -rf ../Python-${PYTHON_VERSION}*
 
 # Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
- && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
- && rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1p-1ubuntu2_amd64.deb \
+ && dpkg -i libssl1.1_1.1.1p-1ubuntu2_amd64.deb \
+ && rm libssl1.1_1.1.1p-1ubuntu2_amd64.deb
 
 # Now install CUDA and other packages that might depend on Python
 RUN apt-get update \
@@ -242,7 +242,7 @@ LABEL dlc_major_version="1"
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
-LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.5
+LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG TFS_SHORT_VERSION=2.19
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"

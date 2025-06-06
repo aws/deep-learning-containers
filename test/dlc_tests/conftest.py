@@ -147,8 +147,8 @@ NIGHTLY_FIXTURES = {
 
 # Skip telemetry tests for specific versions
 TELEMETRY_SKIP_VERSIONS = {
-    "entrypoint": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0", "2.19.0"]},
-    "bashrc": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0", "2.19.0"]},
+    "entrypoint": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "bashrc": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
     "framework": {"pytorch": [""], "tensorflow": ["2.19.0"]},
 }
 
