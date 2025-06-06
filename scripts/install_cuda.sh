@@ -34,7 +34,6 @@ function prune_cuda {
 function install_cuda128_stack {
     CUDNN_VERSION="9.8.0.87"
     NCCL_VERSION="v2.26.2-1"
-    NCCL_TEST_VERSION="v2.16.2"
     CUDA_HOME="/usr/local/cuda"
     
     # move cuda-compt and remove existing cuda dir from nvidia/cuda:**.*.*-base-*
