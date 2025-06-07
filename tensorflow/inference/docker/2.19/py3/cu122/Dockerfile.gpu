@@ -104,9 +104,9 @@ RUN wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VER
  && rm -rf ../Python-${PYTHON_VERSION}*
 
 # Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
-RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
- && dpkg -i libssl1.1_1.1.1f-1ubuntu2_amd64.deb \
- && rm libssl1.1_1.1.1f-1ubuntu2_amd64.deb
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1t-1ubuntu2_amd64.deb \
+ && dpkg -i libssl1.1_1.1.1t-1ubuntu2_amd64.deb \
+ && rm libssl1.1_1.1.1t-1ubuntu2_amd64.deb
 
 #Upgrading OpenSSL to a newer version that doesn't have vulnerabilities
 RUN apt-get update && \
