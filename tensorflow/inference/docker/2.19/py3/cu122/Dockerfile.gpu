@@ -108,13 +108,6 @@ RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1-1u
  && dpkg -i libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb \
  && rm libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb
 
-#Upgrading OpenSSL to a newer version that doesn't have vulnerabilities
-#RUN apt-get update && \
-#    apt-get install -y --only-upgrade openssl libssl-dev && \
-#    apt-get clean && \
-#    rm -rf /var/lib/apt/lists/*
-
-# Now install CUDA and other packages that might depend on Python
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
     cuda-command-line-tools-${CUDA_DASH} \
