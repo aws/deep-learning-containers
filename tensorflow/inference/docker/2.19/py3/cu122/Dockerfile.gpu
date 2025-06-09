@@ -15,7 +15,7 @@
 
 FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 
-FROM nvidia/cuda:12.2.2-base-ubuntu22.04 AS base_image
+FROM nvidia/cuda:12.2.0-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
