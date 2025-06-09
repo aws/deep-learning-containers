@@ -15,7 +15,7 @@
 
 FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 
-FROM nvidia/cuda:12.2.0-base-ubuntu22.04 AS base_image
+FROM nvidia/cuda:12.2.2-base-ubuntu22.04 AS base_image
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -143,10 +143,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-#Uninsalling libssl1.1 after cuda installations
-RUN apt-get remove -y libssl1.1 && \
-    apt-get autoremove -y && \
-    apt-get clean
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
