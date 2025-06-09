@@ -48,15 +48,7 @@ function install_efa {
     ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
     cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
-    
-    # Install NCCL-Test
-    # cd /tmp
-    # git clone -b ${NCCL_TEST_VERSION} https://github.com/NVIDIA/nccl-tests.git
-    # cd nccl-tests
-    # make MPI=1 MPI_HOME=${OPEN_MPI_PATH} CUDA_HOME=${CUDA_HOME} NCCL_HOME=/usr/local
-    # mv build/ /usr/local/nccl-test
-    # rm -rf /tmp/nccl-tests
-    
+        
     # Remove build time tools
     # apt-get remove -y
     #     curl

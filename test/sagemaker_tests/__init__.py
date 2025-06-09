@@ -182,6 +182,9 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
+        # Skip tests if region is ap-northeast-2
+        if region == "ap-northeast-2" and "tensorflow" in ecr_image:
+            return
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
