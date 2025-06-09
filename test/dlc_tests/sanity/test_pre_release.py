@@ -553,7 +553,7 @@ def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compati
 def test_dataclasses_check(image):
     """
     Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
-    Python version retrieved from the ecr image uri is expected in the format `py<major_verion><minor_version>`
+    Python version retrieved from the ecr image uri is expected in the format `py<major_version><minor_version>`
     :param image: ECR image URI
     """
     ctx = Context()
@@ -794,7 +794,7 @@ def test_cuda_paths(gpu):
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
+            LOGGER.warning(
                 f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context."
             )
         else:
@@ -865,7 +865,7 @@ def _test_sm_toolkit_and_ts_version(image, region):
     has_expected_label = image_labels.get(expected_label)
     assert (
         has_expected_label
-    ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+    ), f"The label {expected_label} which enforces compatibility between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 def _test_framework_and_cuda_version(gpu, ec2_connection):
