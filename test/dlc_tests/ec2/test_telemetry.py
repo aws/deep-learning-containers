@@ -384,7 +384,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     actual_output = invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
+        image_uri, container_name, framework, job_type, ec2_connection, test_mode="1"
     )
 
     py_version = (
@@ -584,10 +584,10 @@ def invoke_telemetry_call(
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
         )
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(
-            f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
-        )
         if test_mode:
+            ec2_connection.run(
+                f"docker run {docker_runtime} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri} bash"
+            )
             ec2_connection.run(
                 f"docker exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
@@ -595,6 +595,9 @@ def invoke_telemetry_call(
                 f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
+            ec2_connection.run(
+                f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
+            )
             output = ec2_connection.run(
                 f"docker exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )

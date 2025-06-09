@@ -54,6 +54,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__7",
     "pytorch_training___2__6",
     "pytorch_training___2__5",
     "pytorch_training___2__4",
@@ -915,7 +916,10 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4,<2.6": ["cpu", "cu124"]}
+    skip_dict = {
+        ">2.1.1": ["cpu", "cu118", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
@@ -939,7 +943,8 @@ def skip_smdebug_v1_test(request):
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
@@ -962,7 +967,8 @@ def skip_dgl_test(request):
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
@@ -1026,7 +1032,8 @@ def skip_serialized_release_pt_test(request):
         "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
