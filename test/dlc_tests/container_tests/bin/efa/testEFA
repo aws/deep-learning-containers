@@ -7,9 +7,6 @@ NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
 IS_IPV6=$3
 
-cat /etc/hosts
-cat /root/hosts
-
 if [[ -z "${CUDA_HOME}" ]]; then
     echo "CUDA_HOME variable is empty, please define it in dockerfile"
     exit 1

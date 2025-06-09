@@ -368,14 +368,11 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             hosts_string += f"\n{compute_name} slots={slots} "
             etc_string += f"\n{worker_ip} {compute_name}"
             compute_counter += 1
-
-        # create host file on the instance
-        master_connection.run(f'sudo echo "{etc_string}" > /etc/hosts')
         
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
-            f'echo "{etc_string}" > /etc/hosts'
+            f"""echo "{etc_string}" > /etc/hosts"""
         )
 
         # TODO: remove cat command after making sure it works
