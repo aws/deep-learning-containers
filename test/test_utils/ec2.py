@@ -2067,8 +2067,8 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             "SubnetId": subnet_id,
         }
 
-        if ENABLE_IPV6_TESTING and i == 0:
-            interface["Ipv6AddressCount"] = 1
+        # if ENABLE_IPV6_TESTING and i == 0:
+        #     interface["Ipv6AddressCount"] = 1
 
         network_interfaces.append(interface)
 
@@ -2095,7 +2095,7 @@ def get_network_interface_id(instance_id, region=DEFAULT_REGION):
     raise Exception("Could not find network device 0, retry operation")
 
 
-def attach_elastic_ip(network_interface_id, region="us-east-1"):
+def attach_elastic_ip(network_interface_id, region="us-east-1", is_ipv6=False):
     """
     Creates and attaches an elastic ip to a network interface which is already
     attached to an efa enabled device. This is needed specifically for 4 efa devices
@@ -2117,6 +2117,10 @@ def attach_elastic_ip(network_interface_id, region="us-east-1"):
     response = ec2_client.associate_address(
         AllocationId=elastic_ip_allocation_id, NetworkInterfaceId=network_interface_id
     )
+    if is_ipv6:
+        ec2_client.assign_ipv6_addresses(
+            NetworkInterfaceId=network_interface_id, Ipv6AddressCount=1
+        )
     return elastic_ip_allocation_id
 
 
