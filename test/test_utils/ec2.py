@@ -2069,7 +2069,6 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
 
         if ENABLE_IPV6_TESTING and i == 0:
             interface["Ipv6AddressCount"] = 1
-            interface["AssociatePublicIpAddress"] = True
 
         network_interfaces.append(interface)
 
