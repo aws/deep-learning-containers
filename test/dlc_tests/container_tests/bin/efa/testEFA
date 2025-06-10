@@ -30,16 +30,76 @@ if [[ ${INSTANCE_TYPE} == p4d.24xlarge || ${INSTANCE_TYPE} == p4de.24xlarge  || 
 fi
 
 validate_all_reduce_performance_logs(){
-    grep "aws-ofi-nccl" ${TRAINING_LOG} || { echo "aws-ofi-nccl is not working, please check if it is installed correctly"; exit 1; }
-    grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
-    # EFA 1.37.0 using "Using network Libfabric" instead of "Using network AWS Libfabric"
-    # grep -E "Using network (AWS )?Libfabric" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
-    if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
-        grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}
-        # EFA 1.37.0 change from NET/AWS Libfabric/0/GDRDMA to NET/Libfabric/0/GDRDMA
-        grep -E "NET/(AWS )?Libfabric/0/GDRDMA" ${TRAINING_LOG}
+    echo "DEBUG: Starting log validation..."
+    echo "DEBUG: Checking log file ${TRAINING_LOG}"
+    
+    # Check if log file exists
+    if [ ! -f "${TRAINING_LOG}" ]; then
+        echo "DEBUG: ERROR - Log file ${TRAINING_LOG} does not exist"
+        exit 1
+    
+    echo "DEBUG: Checking for 'aws-ofi-nccl' string..."
+    if grep "aws-ofi-nccl" ${TRAINING_LOG}; then
+        echo "DEBUG: Found 'aws-ofi-nccl' string"
+    else
+        echo "DEBUG: ERROR - 'aws-ofi-nccl' string not found"
+        echo "DEBUG: aws-ofi-nccl is not working, please check if it is installed correctly"
+        exit 1
     fi
+
+    echo "DEBUG: Checking for 'NET/OFI Selected Provider is efa' string..."
+    if grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG}; then
+        echo "DEBUG: Found EFA provider string"
+    else
+        echo "DEBUG: ERROR - EFA provider string not found"
+        echo "DEBUG: efa is not working, please check if it is installed correctly"
+        exit 1
+    fi
+
+    echo "DEBUG: Checking for Libfabric network string..."
+    if grep -E "Using network (AWS )?Libfabric" ${TRAINING_LOG}; then
+        echo "DEBUG: Found Libfabric network string"
+    else
+        echo "DEBUG: ERROR - Libfabric network string not found"
+        echo "DEBUG: efa is not working, please check if it is installed correctly"
+        exit 1
+    fi
+
+    if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
+        echo "DEBUG: Instance type is ${INSTANCE_TYPE}, checking additional p4d/p5 specific strings..."
+        
+        echo "DEBUG: Checking for NCCL_TOPO_FILE string..."
+        if grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}; then
+            echo "DEBUG: Found NCCL_TOPO_FILE string"
+        else
+            echo "DEBUG: ERROR - NCCL_TOPO_FILE string not found"
+            exit 1
+        fi
+
+        echo "DEBUG: Checking for GDRDMA string..."
+        if grep -E "NET/(AWS )?Libfabric/0/GDRDMA" ${TRAINING_LOG}; then
+            echo "DEBUG: Found GDRDMA string"
+        else
+            echo "DEBUG: ERROR - GDRDMA string not found"
+            exit 1
+        fi
+    fi
+    
+    echo "DEBUG: All validation checks passed successfully"
 }
+
+
+# validate_all_reduce_performance_logs(){
+#     grep "aws-ofi-nccl" ${TRAINING_LOG} || { echo "aws-ofi-nccl is not working, please check if it is installed correctly"; exit 1; }
+#     grep "NET/OFI Selected Provider is efa" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
+#     # EFA 1.37.0 using "Using network Libfabric" instead of "Using network AWS Libfabric"
+#     grep -E "Using network (AWS )?Libfabric" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
+#     if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
+#         grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}
+#         # EFA 1.37.0 change from NET/AWS Libfabric/0/GDRDMA to NET/Libfabric/0/GDRDMA
+#         grep -E "NET/(AWS )?Libfabric/0/GDRDMA" ${TRAINING_LOG}
+#     fi
+# }
 
 check_efa_nccl_all_reduce_performance(){
     benchmark=$(cat $TRAINING_LOG | grep '1073741824' | tail -n1 | awk -F " " '{{print $11}}' | sed 's/ //' | sed  's/  5e-07//')
@@ -76,7 +136,7 @@ check_efa_nccl_all_reduce(){
 
     RETURN_VAL=${PIPESTATUS[0]}
     # In case, if you would like see logs, uncomment below line
-    # cat ${TRAINING_LOG}
+    cat ${TRAINING_LOG}
 
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"
