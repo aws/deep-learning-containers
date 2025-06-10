@@ -434,12 +434,25 @@ def efa_ec2_instances(
 
     # request.addfinalizer(terminate_efa_instances)
 
+    def wait_for_ipv6_address(instance_id, max_attempts=5):
+        for attempt in range(max_attempts):
+            instance = boto3.resource('ec2', region_name=region).Instance(instance_id)
+            if instance.network_interfaces[0].ipv6_addresses:
+                return True
+            LOGGER.info(f"Waiting for IPv6 address assignment on instance {instance_id}, attempt {attempt + 1}/{max_attempts}")
+            time.sleep(30)
+        return False
+
     master_instance_id = instances[0]["InstanceId"]
     ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
     ec2_utils.check_system_state(
         master_instance_id, system_status="ok", instance_status="ok", region=region
     )
     print(f"Master instance {master_instance_id} is ready")
+
+    if ENABLE_IPV6_TESTING:
+        if not wait_for_ipv6_address(master_instance_id):
+            raise RuntimeError(f"Timeout waiting for IPv6 address assignment on master instance {master_instance_id}")
 
     if len(instances) > 1:
         ec2_utils.create_name_tags_for_instance(
@@ -455,6 +468,10 @@ def efa_ec2_instances(
                 worker_instance_id, system_status="ok", instance_status="ok", region=region
             )
             print(f"Worker instance {worker_instance_id} is ready")
+
+            if ENABLE_IPV6_TESTING:
+                if not wait_for_ipv6_address(worker_instance_id):
+                    raise RuntimeError(f"Timeout waiting for IPv6 address assignment on worker instance {worker_instance_id}")
 
     num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
         ec2_instance_type, region=region
