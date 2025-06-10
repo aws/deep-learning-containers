@@ -257,7 +257,7 @@ release_images:
     version: "2.7.1"
     arch_type: "x86"
     customer_type: "ec2"
-    inference:
+    training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
@@ -270,7 +270,7 @@ release_images:
     version: "2.7.1"
     arch_type: "x86"
     customer_type: "sagemaker"
-    inference:
+    training:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
