@@ -434,13 +434,13 @@ def efa_ec2_instances(
 
     # request.addfinalizer(terminate_efa_instances)
 
-    def wait_for_ipv6_address(instance_id, max_attempts=5):
+    def wait_for_ipv6_address(instance_id, max_attempts=10):
         for attempt in range(max_attempts):
             instance = boto3.resource('ec2', region_name=region).Instance(instance_id)
             if instance.network_interfaces[0].ipv6_addresses:
                 return True
             LOGGER.info(f"Waiting for IPv6 address assignment on instance {instance_id}, attempt {attempt + 1}/{max_attempts}")
-            time.sleep(30)
+            time.sleep(60)
         return False
 
     master_instance_id = instances[0]["InstanceId"]
