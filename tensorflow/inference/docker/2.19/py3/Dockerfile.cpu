@@ -35,7 +35,6 @@ ARG PYTHON=python3.12
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.12.10
-#ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.18_aws/cpu/2025-01-15-19-48/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
 
 

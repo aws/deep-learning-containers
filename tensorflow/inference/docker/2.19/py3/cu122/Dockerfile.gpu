@@ -35,7 +35,6 @@ ARG PYTHON=python3.12
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
 ARG PYTHON_VERSION=3.12.10
-#ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.18_aws/gpu/2025-01-17-21-54/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
 ARG CUDA_DASH=12-2
 
@@ -175,8 +174,6 @@ RUN ${PIP} install -U --no-cache-dir \
  && ${PIP} install --no-dependencies --no-cache-dir \
     tensorflow-serving-api-gpu=="2.19.0"
 
-#RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
-# && chmod 555 /usr/bin/tensorflow_model_server
 
 # Install TF Serving GPU pkg
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/bin/tensorflow_model_server
