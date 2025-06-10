@@ -2095,6 +2095,23 @@ def get_network_interface_id(instance_id, region=DEFAULT_REGION):
     raise Exception("Could not find network device 0, retry operation")
 
 
+def get_ipv6_address_for_eth0(instance_id, region=DEFAULT_REGION):
+    """
+    Gets the IPv6 address specifically from eth0 (Device Index 0) of an EC2 instance
+    """
+    instance = get_instance_from_id(instance_id, region)
+    network_interfaces_info = instance["NetworkInterfaces"]
+    for device in network_interfaces_info:
+        if device["Attachment"]["DeviceIndex"] == 0:
+            if device["Ipv6Addresses"]:
+                return device["Ipv6Addresses"][0]["Ipv6Address"]
+            LOGGER.info(f"No IPv6 address found on eth0 for instance {instance_id}")
+            return None
+
+    LOGGER.error(f"Could not find eth0 for instance {instance_id}")
+    return None
+
+
 def attach_elastic_ip(network_interface_id, region="us-east-1", is_ipv6=False):
     """
     Creates and attaches an elastic ip to a network interface which is already
