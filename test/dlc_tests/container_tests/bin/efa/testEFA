@@ -29,6 +29,7 @@ if [[ ${INSTANCE_TYPE} == p4d.24xlarge || ${INSTANCE_TYPE} == p4de.24xlarge  || 
   USE_DEVICE_RDMA_ARG="-x FI_EFA_USE_DEVICE_RDMA=1"
 fi
 
+
 validate_all_reduce_performance_logs(){
     echo "DEBUG: Starting log validation..."
     echo "DEBUG: Checking log file ${TRAINING_LOG}"
@@ -37,6 +38,7 @@ validate_all_reduce_performance_logs(){
     if [ ! -f "${TRAINING_LOG}" ]; then
         echo "DEBUG: ERROR - Log file ${TRAINING_LOG} does not exist"
         exit 1
+    fi
     
     echo "DEBUG: Checking for 'aws-ofi-nccl' string..."
     if grep "aws-ofi-nccl" ${TRAINING_LOG}; then
