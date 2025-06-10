@@ -116,9 +116,6 @@ RUN ${PIP} install --no-cache-dir \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
  && ln -s $(which ${PIP}) /usr/bin/pip
 
-#we use different installation method other than this
-#RUN curl $TFS_URL -o /usr/bin/tensorflow_model_server \
-# && chmod 555 /usr/bin/tensorflow_model_server
 
 # Install TF Serving pkg
 COPY --from=build_image /usr/local/bin/tensorflow_model_server /usr/bin/tensorflow_model_server
