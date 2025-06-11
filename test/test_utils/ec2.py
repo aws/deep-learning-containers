@@ -1895,7 +1895,6 @@ def get_default_security_group_id_by_vpc_id(ec2_client, vpc_name):
         raise
 
 
-# TODO: make this method more scalable by not directly putting the SG name in
 def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
     """
     Get EFA-enabled SG ID for IPv6 VPC by identifying security groups that allow
@@ -1907,19 +1906,55 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
     try:
         vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
 
-        # get EFA-enabled SG
         response = ec2_client.describe_security_groups(
             Filters=[
                 {"Name": "vpc-id", "Values": [vpc_id]},
-                {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]},
-            ],
+            ]
         )
 
-        efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
-        return efa_security_group_id
+        for sg in response["SecurityGroups"]:
+            inbound_all_traffic = any(
+                rule["IpProtocol"] == "-1"
+                and any(
+                    pair["GroupId"] == sg["GroupId"] for pair in rule.get("UserIdGroupPairs", [])
+                )
+                for rule in sg["IpPermissions"]
+            )
+
+            outbound_all_traffic = any(
+                rule["IpProtocol"] == "-1"
+                and any(
+                    pair["GroupId"] == sg["GroupId"] for pair in rule.get("UserIdGroupPairs", [])
+                )
+                for rule in sg["IpPermissionsEgress"]
+            )
+
+            if inbound_all_traffic and outbound_all_traffic:
+                return sg["GroupId"]
+
+        raise ValueError(
+            f"No EFA-enabled security group found in VPC {vpc_name}. Expected a sg that allows all traffic to and from itself."
+        )
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
         raise
+
+    # try:
+    #     vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
+
+    #     # get EFA-enabled SG
+    #     response = ec2_client.describe_security_groups(
+    #         Filters=[
+    #             {"Name": "vpc-id", "Values": [vpc_id]},
+    #             {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]},
+    #         ],
+    #     )
+
+    #     efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
+    #     return efa_security_group_id
+    # except Exception as e:
+    #     LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
+    #     raise
 
 
 def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
@@ -1956,8 +1991,6 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
                 f"No IPv6-enabled subnet found in AZ {availability_zone} for VPC {vpc_id}"
             )
 
-        # TODO: remove logging
-        LOGGER.info(f"[get_ipv6_enabled_subnet_for_az]: {ipv6_subnets[0]['SubnetId']}")
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
         LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
@@ -2019,10 +2052,6 @@ def generate_standard_dual_stack_network_interface(ec2_client, availability_zone
             }
         ]
 
-        # TODO: remove logging
-        LOGGER.info(
-            f"[generate_standard_dual_stack_network_interface] Generated dual-stack network interface in AZ {availability_zone}: {network_interfaces}"
-        )
         return network_interfaces
 
     except Exception as e:
@@ -2067,16 +2096,7 @@ def generate_network_interfaces(ec2_client, ec2_instance_type, availability_zone
             "SubnetId": subnet_id,
         }
 
-        # if ENABLE_IPV6_TESTING and i == 0:
-        #     interface["Ipv6AddressCount"] = 1
-
         network_interfaces.append(interface)
-
-    # TODO: remove logging
-    LOGGER.info(
-        f"[generate_network_interfaces]Generated {len(network_interfaces)} network interfaces for instance type {ec2_instance_type} in subnet {subnet_id}: {network_interfaces}"
-        f"{' (with IPv6)' if ENABLE_IPV6_TESTING else ''}"
-    )
 
     return network_interfaces
 

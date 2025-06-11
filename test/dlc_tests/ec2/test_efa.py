@@ -38,8 +38,7 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
-# TODO: increase to 600 for debugging, change back to 300 after
-DEFAULT_EFA_TIMEOUT = 600
+DEFAULT_EFA_TIMEOUT = 300
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
@@ -241,7 +240,9 @@ def _setup_multinode_efa_instances(
     _setup_master_efa_ssh_config(master_connection)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
-    _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, ec2_instance_type, region)
+    _create_master_mpi_hosts_file(
+        efa_ec2_connections, worker_instance_ids, ec2_instance_type, region
+    )
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
@@ -293,9 +294,6 @@ def _setup_container(connection, docker_image, container_name):
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
-    LOGGER.info(
-        f"[_setup_container] docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 {docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
-        )
     connection.run(
         f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
         f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
@@ -347,49 +345,34 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-    # TODO: remove logging
-    LOGGER.info(f"worker private addresses: {worker_instance_private_ips}")
 
     if ENABLE_IPV6_TESTING:
         master_ip = master_connection.ipv6_address
         if not master_ip:
             raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
-        
+
         worker_ips = [conn.ipv6_address for conn in efa_ec2_connections[1:]]
         if not all(worker_ips):
             raise RuntimeError("IPv6 testing enabled but not all workers have IPv6 addresses")
-        
+
         hosts_string = f"compute1 slots={slots} "
-        etc_string = f'{master_ip} compute1'
+        etc_string = f"{master_ip} compute1"
         compute_counter = 2
-        
+
         for worker_ip in worker_ips:
             compute_name = f"compute{compute_counter}"
             hosts_string += f"\n{compute_name} slots={slots} "
             etc_string += f"\n{worker_ip} {compute_name}"
             compute_counter += 1
-        
+
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME, master_connection, f"""echo "{etc_string}" > /etc/hosts"""
+        )
+
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
-            f"""echo "{etc_string}" > /etc/hosts"""
-        )
-
-        # TODO: remove cat command after making sure it works
-
-        LOGGER.info(f"etc_string -> {etc_string}")
-        LOGGER.info(f"hosts_string -> {hosts_string}")
-
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
-        )
-
-        # TODO: remove after confirming it works
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            master_connection,
-            f"cat {HOSTS_FILE_LOCATION}",
-            hide=False
+            f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
     else:
         # Configure MPI hosts file with IP addresses and slots for worker nodes
@@ -398,7 +381,9 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             hosts_string += f"\n{worker_ip} slots={slots} "
 
         run_cmd_on_container(
-            MASTER_CONTAINER_NAME, master_connection, f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""
+            MASTER_CONTAINER_NAME,
+            master_connection,
+            f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
 
 

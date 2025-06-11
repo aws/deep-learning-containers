@@ -382,8 +382,8 @@ def main():
         "quick_checks",
         "release_candidate_integration",
     ):
-        # pytest_rerun_arg = "--reruns=1"
-        # pytest_rerun_delay_arg = "--reruns-delay=10"
+        pytest_rerun_arg = "--reruns=1"
+        pytest_rerun_delay_arg = "--reruns-delay=10"
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         # The following two report files will only be used by EKS tests, as eks_train.xml and eks_infer.xml.
         # This is to sequence the tests and prevent one set of tests from waiting too long to be scheduled.
@@ -436,9 +436,9 @@ def main():
             else:
                 pytest_cmd += [
                     "--dist=worksteal",
-                    # pytest_rerun_arg,
-                    # pytest_rerun_delay_arg,
-                    # "--rerun-except=SerialTestCaseExecutorException",
+                    pytest_rerun_arg,
+                    pytest_rerun_delay_arg,
+                    "--rerun-except=SerialTestCaseExecutorException",
                 ]
         if is_pr_context():
             if specific_test_type == "eks":
