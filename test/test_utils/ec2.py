@@ -1939,23 +1939,6 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
         LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
         raise
 
-    # try:
-    #     vpc_id = get_vpc_id_by_name(ec2_client, vpc_name)
-
-    #     # get EFA-enabled SG
-    #     response = ec2_client.describe_security_groups(
-    #         Filters=[
-    #             {"Name": "vpc-id", "Values": [vpc_id]},
-    #             {"Name": "group-name", "Values": ["EFA-enabled-ipv6"]},
-    #         ],
-    #     )
-
-    #     efa_security_group_id = response["SecurityGroups"][0]["GroupId"]
-    #     return efa_security_group_id
-    # except Exception as e:
-    #     LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
-    #     raise
-
 
 def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
     """

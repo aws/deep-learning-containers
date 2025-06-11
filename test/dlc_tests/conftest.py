@@ -520,9 +520,7 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
         if master_ipv6_address:
             master_connection.ipv6_address = master_ipv6_address
-            LOGGER.info(
-                f"Master node IPv6 address for inter-node communication (eth0): {master_connection.ipv6_address}"
-            )
+            LOGGER.info(f"Master node IPv6 address (eth0): {master_connection.ipv6_address}")
         else:
             raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
 
@@ -540,10 +538,10 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
         if ENABLE_IPV6_TESTING:
             worker_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(worker_instance_id, region)
-            
+
             if worker_ipv6_address:
                 worker_connection.ipv6_address = worker_ipv6_address
-                LOGGER.info(f"Worker node IPv6 address for inter-node communication (eth0): {worker_connection.ipv6_address}")
+                LOGGER.info(f"Worker node IPv6 address (eth0): {worker_connection.ipv6_address}")
             else:
                 raise RuntimeError("IPv6 testing enabled but no IPv6 address found for worker node")
 
