@@ -237,6 +237,12 @@ def skip_tf218_only(framework_version):
         pytest.skip("Test does not support Tensorflow 2.18")
 
 
+@pytest.fixture
+def skip_tf219_only(framework_version):
+    if Version(framework_version) in SpecifierSet("==2.19.*"):
+        pytest.skip("Test does not support Tensorflow 2.19")
+
+
 @pytest.fixture(autouse=True)
 def skip_py2_containers(request, tag):
     if request.node.get_closest_marker("skip_py2_containers"):
