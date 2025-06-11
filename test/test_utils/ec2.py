@@ -1936,7 +1936,7 @@ def get_ipv6_efa_enabled_security_group_id(ec2_client, vpc_name):
             f"No EFA-enabled security group found in VPC {vpc_name}. Expected a sg that allows all traffic to and from itself."
         )
     except Exception as e:
-        LOGGER.error(f"Error in get_ipv6_efa_enabled_security_group_id: {str(e)}")
+        LOGGER.error(f"Error when getting IPv6 EFA-enabled sg id: {str(e)}")
         raise
 
 
@@ -1976,7 +1976,7 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
 
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
-        LOGGER.error(f"Error in get_ipv6_enabled_subnet_for_az: {str(e)}")
+        LOGGER.error(f"Error in when getting IPv6 enabled subnet for AZ {availability_zone}: {str(e)}")
         raise
 
 
@@ -2039,7 +2039,7 @@ def generate_standard_dual_stack_network_interface(ec2_client, availability_zone
 
     except Exception as e:
         LOGGER.error(
-            f"[generate_standard_dual_stack_network_interface] Failed to generate dual-stack network interface in AZ {availability_zone}: {str(e)}"
+            f"Failed to generate dual-stack network interface in AZ {availability_zone}: {str(e)}"
         )
         raise
 
