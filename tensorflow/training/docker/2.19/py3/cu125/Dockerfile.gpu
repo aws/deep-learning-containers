@@ -1,4 +1,4 @@
-ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow-2.19.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+ARG TF_URL=https://storage.googleapis.com/tensorflow/versions/2.19.0/tensorflow-2.19.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
 
 FROM nvidia/cuda:12.5.1-base-ubuntu22.04 AS base_image
 
@@ -37,14 +37,14 @@ ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
 
-ARG PYTHON=python3.10
+ARG PYTHON=python3.12
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.14
+ARG PYTHON_VERSION=3.12.11
 
 ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.40.0
-ARG OMPI_VERSION=4.1.7
+ARG OMPI_VERSION=4.1.8
 
 
 
@@ -343,7 +343,7 @@ RUN ${PIP} install \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     #tensorflow-metadata 1.17.1 has requirement protobuf<6.0.0,>=4.25.2, but sagemaker-training need protobuf 3.20.3
-    "tensorflow-metadata==1.16.1" \
+    #"tensorflow-metadata==1.16.1" \
     tensorflow-datasets 
     
 
