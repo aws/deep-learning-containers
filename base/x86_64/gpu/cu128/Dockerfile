@@ -3,10 +3,12 @@ ARG PYTHON_VERSION="3.12.10"
 ARG PYTHON_SHORT_VERSION="3.12"
 ARG CUDA_MAJOR="12"
 ARG CUDA_MINOR="8"
-ARG EFA_VERSION="1.40.0"
+ARG EFA_VERSION="1.41.0"
 FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS base-builder
 
-RUN apt-get update \
+
+RUN mv /usr/local/cuda/compat /usr/local \
+    && apt-get update \
     && apt-get -y upgrade --only-upgrade systemd \
     && apt-get install -y --allow-change-held-packages --no-install-recommends \
         automake \
