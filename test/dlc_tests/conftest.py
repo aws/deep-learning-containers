@@ -504,7 +504,6 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         for worker_instance_id, worker_instance_pem_file in efa_ec2_instances[1:]
     ]
 
-    ec2 = boto3.resource("ec2", region_name=region)
     user_name = ec2_utils.get_instance_user(master_instance_id, region=region)
     master_public_ip = ec2_utils.get_public_ip(master_instance_id, region)
     LOGGER.info(f"Instance master_ip_address: {master_public_ip}")
