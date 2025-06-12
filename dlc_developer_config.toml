@@ -46,7 +46,7 @@ build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -71,19 +71,19 @@ ec2_benchmark_tests = false
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = true
+ec2_tests_on_heavy_instances = false
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 ### Set enable_ipv6 = true to run tests with IPv6-enabled resources
 ### Off by default (set to false)
 enable_ipv6 = false
 ### Set the VPC name to be used for IPv6 testing
 ### Empty by default
-ipv6_vpc_name = "dlc-ipv6-test-vpc"
+ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = false
+sagemaker_remote_tests = true
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
@@ -110,7 +110,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-sm.yml"
+dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
@@ -140,7 +140,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-sm.yml"
+dlc-pr-pytorch-inference = ""
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
