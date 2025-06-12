@@ -385,14 +385,6 @@ def launch_instances_with_retry(
     # Look at available CRs first
     while reservations:
         reservation = reservations.pop(0)
-        if ENABLE_IPV6_TESTING:
-            network_interfaces = generate_standard_dual_stack_network_interface(
-                ec2_client, reservation["AvailabilityZone"]
-            )
-            if network_interfaces:
-                ec2_create_instances_definition["NetworkInterfaces"] = network_interfaces
-            else:
-                continue
         ec2_create_instances_definition["CapacityReservationSpecification"] = {
             "CapacityReservationTarget": {
                 "CapacityReservationId": reservation["CapacityReservationId"]
