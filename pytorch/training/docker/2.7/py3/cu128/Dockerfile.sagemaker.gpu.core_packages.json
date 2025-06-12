@@ -17,7 +17,7 @@
   "torchtnt": {
     "version_specifier": "==0.2.4",
     "skip": "True"
-  }
+  },
   "thinc": {
     "version_specifier": "==8.3.4",
     "skip": "True"
