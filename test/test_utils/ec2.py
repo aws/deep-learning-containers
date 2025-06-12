@@ -418,17 +418,7 @@ def launch_instances_with_retry(
 
     if availability_zone_options:
         error = None
-        found_ipv6_az = False
         for a_zone in availability_zone_options:
-            if ENABLE_IPV6_TESTING:
-                network_interfaces = generate_standard_dual_stack_network_interface(
-                    ec2_client, a_zone
-                )
-                if network_interfaces:
-                    ec2_create_instances_definition["NetworkInterfaces"] = network_interfaces
-                    found_ipv6_az = True
-                else:
-                    continue
             ec2_create_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
             try:
                 instances = ec2_resource.create_instances(**ec2_create_instances_definition)
@@ -438,24 +428,9 @@ def launch_instances_with_retry(
                 LOGGER.error(f"Failed to launch in {a_zone} due to {e} for {fn_name}")
                 error = e
                 continue
-        if ENABLE_IPV6_TESTING and not found_ipv6_az:
-            raise Exception("No IPv6 subnets available in any of the provided availability zones")
         if not instances:
             raise error
     else:
-        if ENABLE_IPV6_TESTING:
-            all_azs = get_availability_zone_ids(ec2_client)
-            found_ipv6_az = False
-            for az in all_azs:
-                network_interfaces = generate_standard_dual_stack_network_interface(ec2_client, az)
-                if network_interfaces:
-                    found_ipv6_az = True
-                    ec2_create_instances_definition["Placement"] = {"AvailabilityZone": az}
-                    ec2_create_instances_definition["NetworkInterfaces"] = network_interfaces
-                    break
-            if not found_ipv6_az:
-                raise Exception("No AZs available with IPv6 subnets")
-
         instances = ec2_resource.create_instances(**ec2_create_instances_definition)
     return instances
 
