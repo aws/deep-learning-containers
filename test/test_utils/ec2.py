@@ -1943,7 +1943,9 @@ def get_ipv6_enabled_subnet_for_az(ec2_client, vpc_name, availability_zone):
 
         return ipv6_subnets[0]["SubnetId"]
     except Exception as e:
-        LOGGER.error(f"Error in when getting IPv6 enabled subnet for AZ {availability_zone}: {str(e)}")
+        LOGGER.error(
+            f"Error in when getting IPv6 enabled subnet for AZ {availability_zone}: {str(e)}"
+        )
         raise
 
 
