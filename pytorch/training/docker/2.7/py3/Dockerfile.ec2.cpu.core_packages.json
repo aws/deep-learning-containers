@@ -27,11 +27,11 @@
     "skip": "True"
   },
    "jinja2": {
-    "version_specifier": "==3.1.6",
+    "version_specifier": ">=3.1.6",
     "skip": "True"
   },
    "tornado": {
-    "version_specifier": "==6.5.1",
+    "version_specifier": ">=6.5.1",
     "skip": "True"
   },
    "s3torchconnector": {
