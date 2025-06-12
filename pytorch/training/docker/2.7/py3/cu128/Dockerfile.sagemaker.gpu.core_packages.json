@@ -1,17 +1,17 @@
 {
-  "torch": {
-    "version_specifier": "==2.7.1+cu128"
+ "torch": {
+    "version_specifier": "==2.7.1"
   },
   "torchvision": {
-    "version_specifier": "==0.22.1+cu128",
+    "version_specifier": "==0.22.1",
     "skip": "True"
   },
   "torchaudio": {
-    "version_specifier": "==2.7.1+cu128",
+    "version_specifier": "==2.7.1",
     "skip": "True"
   },
   "torchdata": {
-    "version_specifier": "==0.11.0+cu128",
+    "version_specifier": "==0.11.0",
     "skip": "True"
   },
   "torchtnt": {
