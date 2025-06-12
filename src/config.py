@@ -75,6 +75,10 @@ def are_heavy_instance_ec2_tests_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances")
 
 
+def is_ipv6_test_enabled():
+    return parse_dlc_developer_configs("test", "enable_ipv6")
+
+
 def is_ecs_test_enabled():
     return parse_dlc_developer_configs("test", "ecs_tests")
 
@@ -156,6 +160,13 @@ def get_notification_severity():
         )
 
     return AllowedNotificationSeverity.MEDIUM.value
+
+
+def get_ipv6_vpc_name():
+    """
+    Get the config value for ipv6_vpc_name
+    """
+    return parse_dlc_developer_configs("test", "ipv6_vpc_name")
 
 
 def get_sagemaker_remote_efa_instance_type():
