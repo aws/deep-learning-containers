@@ -121,7 +121,7 @@ EC2 Framework Containers (EC2, ECS, and EKS support only)
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
 |-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
 | PyTorch 2.7.1     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-cpu-py312-ubuntu22.04-ec2             |
-| PyTorch 2.7.1     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu126-ubuntu22.04-ec2       |
+| PyTorch 2.7.1     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-ec2       |
 | PyTorch 2.6.0     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-ec2             |
 | PyTorch 2.6.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-ec2       |
 | PyTorch 2.6.0     |inference	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-ec2            |
@@ -138,7 +138,7 @@ SageMaker Framework Containers (SM support only)
 | Framework         | Job Type  | Horovod Options | CPU/GPU   | Python Version Options | Example URL																						                                                                              |
 |-------------------|-----------|-----------------|-----------|------------------------|----------------------------------------------------------------------------------------------------------------|
 | PyTorch 2.7.1     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-cpu-py312-ubuntu22.04-sagemaker           |
-| PyTorch 2.7.1     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu126-ubuntu22.04-sagemaker     |
+| PyTorch 2.7.1     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker     |
 | PyTorch 2.6.0     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
 | PyTorch 2.6.0     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker     |
 | PyTorch 2.6.0     | inference	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
