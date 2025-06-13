@@ -41,5 +41,9 @@
   "accelerate": {
     "version_specifier": "==1.7.0",
     "skip": "True"
+  },
+  "sagemaker-training": {
+    "version_specifier": "==4.8.3",
+    "skip": "True"
   }
 }
