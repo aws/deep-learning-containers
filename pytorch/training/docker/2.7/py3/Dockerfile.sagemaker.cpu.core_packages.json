@@ -26,20 +26,20 @@
     "version_specifier": "==2.8.2",
     "skip": "True"
   },
-   "jinja2": {
-    "version_specifier": "==3.1.6",
+  "jinja2": {
+    "version_specifier": ">=3.1.6",
     "skip": "True"
   },
-   "tornado": {
-    "version_specifier": "==6.5.1",
+  "tornado": {
+    "version_specifier": ">=6.5.1",
     "skip": "True"
   },
-   "s3torchconnector": {
-    "version_specifier": "==1.4.0",
+  "s3torchconnector": {
+    "version_specifier": "==1.4.1",
     "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.6.0",
+    "version_specifier": "==1.7.0",
     "skip": "True"
   }
 }
