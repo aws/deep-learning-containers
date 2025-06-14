@@ -266,8 +266,7 @@ RUN HOME_DIR=/root \
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-COPY dockerd_entrypoint.sh /usr/local/bin/
-dockerd_entrypoint.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 
