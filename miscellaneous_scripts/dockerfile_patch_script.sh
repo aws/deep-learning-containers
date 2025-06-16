@@ -44,6 +44,7 @@ chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 # Upgrade sagemaker-training package to latest
+# For PT 2.7 sagemaker has dependency on protobuf 3.20.3 and sagemaker-training 4.8.3
 if pip show sagemaker-training; then
     pip install "sagemaker-training>4.7.4,<=4.8.3" --upgrade
 fi
