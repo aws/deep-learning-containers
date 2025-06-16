@@ -73,5 +73,5 @@
    "awscli": {
     "version_specifier": "<2",
     "skip": "True"
-  },
+  }
 }
