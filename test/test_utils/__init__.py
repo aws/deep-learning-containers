@@ -1742,11 +1742,18 @@ def get_unique_name_from_tag(image_uri):
 
 
 def get_image_type_from_tag(image_uri):
-    valid_image_types = ["training", "inference"]
-    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
-    if len(image_type_match) != 1:
-        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
-    return image_type_match[0]
+    """
+    Extract the image type (training, inference, or general) from the image URI.
+
+    :param image_uri: str ECR image URI
+    :return: str "training", "inference", or "general"
+    """
+    if "training" in image_uri:
+        return "training"
+    elif "inference" in image_uri:
+        return "inference"
+    else:
+        return "general"
 
 
 def get_image_arch_type_from_tag(image_uri):

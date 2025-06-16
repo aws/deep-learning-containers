@@ -75,6 +75,21 @@ ec2_tests_on_heavy_instances = false
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = true
+### Set enable_ipv6 = true to run tests with IPv6-enabled resources
+### Off by default (set to false)
+enable_ipv6 = false
+### Set the VPC name to be used for IPv6 testing, this variable is empty by default
+### To create an IPv6-enabled VPC and its related resources:
+### 1. Follow this AWS doc: https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc.html#create-vpc-and-other-resources
+### 2. After creating the VPC and related resources:
+###    a. Set 'Auto-assign IPv6 address' option to 'No' in all public subnets within the VPC
+###    b. Configure the default security group to allow SSH traffic using IPv4
+###
+### 3. Create an EFA-enabled security group:
+###    a. Follow 'Step 1: Prepare an EFA-enabled security group' in: 
+###       https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html#efa-start-security
+###    b. Configure this security group to also allow SSH traffic via IPv4
+ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = true
