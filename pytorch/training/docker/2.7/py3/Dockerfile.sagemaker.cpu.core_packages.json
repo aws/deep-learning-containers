@@ -18,19 +18,7 @@
     "version_specifier": "==0.2.4",
     "skip": "True"
   },
-  "thinc": {
-    "version_specifier": "==8.3.4",
-  },
-  "fastai": {
-    "version_specifier": "==2.8.2",
-  },
-  "jinja2": {
-    "version_specifier": ">=3.1.6",
-  },
-  "tornado": {
-    "version_specifier": ">=6.5.1",
-  },
-  "s3torchconnector": {
+    "s3torchconnector": {
     "version_specifier": "==1.4.1",
      "skip": "True"
   },
@@ -38,28 +26,40 @@
     "version_specifier": "==1.7.0",
      "skip": "True"
   },
+  "thinc": {
+    "version_specifier": "==8.3.4"
+  },
+  "fastai": {
+    "version_specifier": "==2.8.2"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.6"
+  },
+  "tornado": {
+    "version_specifier": ">=6.5.1"
+  },
   "sagemaker": {
-    "version_specifier": ">=2,<3",
+    "version_specifier": ">=2,<3"
   },
    "sagemaker-experiments": {
-    "version_specifier": "<1",
+    "version_specifier": "<1"
   },
   "sagemaker-training": {
-    "version_specifier": "<=4.8.3",
+    "version_specifier": "<=4.8.3"
   },
   "tqdm": {
-    "version_specifier": ">=4.66.3",
+    "version_specifier": ">=4.66.3"
   },
   "requests": {
-    "version_specifier": ">=2.32.0",
+    "version_specifier": ">=2.32.0"
   },
   "setuptools": {
-    "version_specifier": ">=70.0.0",
+    "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2",
+    "version_specifier": "<2"
   },
    "awscli": {
-    "version_specifier": "<2",
+    "version_specifier": "<2"
   }
 }
