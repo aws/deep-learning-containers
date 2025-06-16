@@ -45,7 +45,7 @@ $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 # Upgrade sagemaker-training package to latest
 if pip show sagemaker-training; then
-    pip install "sagemaker-training>4.7.4" --upgrade
+    pip install "sagemaker-training>4.7.4,<=4.8.3" --upgrade
 fi
 
 # For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
