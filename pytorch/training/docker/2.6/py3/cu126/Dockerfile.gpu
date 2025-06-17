@@ -7,7 +7,7 @@ ARG CUDA_VERSION=12.6.3
 ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.23.4
 ARG EFA_VERSION=1.38.0
-ARG GDRCOPY_VERSION=2.4.4
+ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.0
 ARG FLASH_ATTN_VERSION=2.7.3
 
@@ -310,7 +310,7 @@ RUN pip install --no-cache-dir -U \
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
@@ -418,7 +418,7 @@ RUN pip install --no-cache-dir -U \
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
