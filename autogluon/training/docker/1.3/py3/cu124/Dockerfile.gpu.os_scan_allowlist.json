@@ -385,5 +385,129 @@
       "title": "CVE-2024-43598 - lightgbm",
       "reason_to_ignore": "No fix provided"
     }
+  ],
+  "nltk": [
+    {
+      "description": "NLTK through 3.8.1 allows remote code execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used. This affects, for example, averaged_perceptron_tagger and punkt.", 
+      "vulnerability_id": "CVE-2024-39705", 
+      "name": "CVE-2024-39705", 
+      "package_name": "nltk", 
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/nltk-3.8.1.dist-info/METADATA", 
+        "name": "nltk", 
+        "package_manager": "PYTHON", 
+        "version": "3.8.1", 
+        "release": null
+      }, 
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      }, 
+      "cvss_v3_score": 9.8, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 9.8, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": "CRITICAL", 
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-39705", 
+      "source": "NVD", 
+      "severity": "CRITICAL", 
+      "status": "ACTIVE", 
+      "title": "CVE-2024-39705 - nltk", 
+      "reason_to_ignore": "N/A"
+    }
+  ], 
+  "torch": [
+    {
+      "description": "PyTorch is a Python package that provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system. In version 2.5.1 and prior, a Remote Command Execution (RCE) vulnerability exists in PyTorch when loading a model using torch.load with weights_only=True. This issue has been patched in version 2.6.0.", 
+      "vulnerability_id": "CVE-2025-32434", 
+      "name": "CVE-2025-32434", 
+      "package_name": "torch", 
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.5.1+cu124.dist-info/METADATA", 
+        "name": "torch", 
+        "package_manager": "PYTHON", 
+        "version": "2.5.1+cu124", 
+        "release": null
+      }, 
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      }, 
+      "cvss_v3_score": 9.8, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 9.8, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-32434", 
+      "source": "NVD", 
+      "severity": "CRITICAL", 
+      "status": "ACTIVE", 
+      "title": "CVE-2025-32434 - torch", 
+      "reason_to_ignore": "N/A"
+    }
+  ], 
+  "transformers": [
+    {
+      "description": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack. The regular expression used to process code blocks in docstrings contains nested quantifiers, leading to exponential backtracking when processing input with a large number of newline characters. An attacker can exploit this by providing a specially crafted payload, causing high CPU usage and potential application downtime, effectively resulting in a Denial of Service (DoS) scenario.", 
+      "vulnerability_id": "CVE-2025-2099", 
+      "name": "CVE-2025-2099", 
+      "package_name": "transformers", 
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/transformers-4.49.0.dist-info/METADATA", 
+        "name": "transformers", 
+        "package_manager": "PYTHON", 
+        "version": "4.49.0", 
+        "release": null
+      }, 
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      }, 
+      "cvss_v3_score": 7.5, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 7.5, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": "HIGH", 
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-2099", 
+      "source": "NVD", 
+      "severity": "HIGH", 
+      "status": "ACTIVE",
+      "title": "CVE-2025-2099 - transformers",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "jupyter_core": [
+    {
+      "description": "Jupyter Core is a package for the core common functionality of Jupyter projects. When using Jupyter Core prior to version 5.8.0 on Windows, the shared `%PROGRAMDATA%` directory is searched for configuration files (`SYSTEM_CONFIG_PATH` and `SYSTEM_JUPYTER_PATH`), which may allow users to create configuration files affecting other users. Only shared Windows systems with multiple users and unprotected `%PROGRAMDATA%` are affected. Users should upgrade to Jupyter Core version 5.8.0 or later to receive a patch. Some other mitigations are available. As administrator, modify the permissions on the `%PROGRAMDATA%` directory so it is not writable by unauthorized users; or as administrator, create the `%PROGRAMDATA%\\jupyter` directory with appropriately restrictive permissions; or as user or administrator, set the `%PROGRAMDATA%` environment variable to a directory with appropriately restrictive permissions (e.g. controlled by administrators _or_ the current user).", 
+      "vulnerability_id": "CVE-2025-30167", 
+      "name": "CVE-2025-30167", 
+      "package_name": "jupyter_core", 
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/jupyter_core-5.7.2.dist-info/METADATA", 
+        "name": "jupyter_core", 
+        "package_manager": "PYTHON", 
+        "version": "5.7.2", 
+        "release": null
+      }, 
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      }, 
+      "cvss_v3_score": 7.3, 
+      "cvss_v30_score": 0.0, 
+      "cvss_v31_score": 7.3, 
+      "cvss_v2_score": 0.0, 
+      "cvss_v3_severity": "HIGH", 
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-30167", 
+      "source": "NVD", 
+      "severity": "HIGH", 
+      "status": "ACTIVE", 
+      "title": "CVE-2025-30167 - jupyter_core", 
+      "reason_to_ignore": "N/A"
+    }
   ]
 }
