@@ -51,5 +51,8 @@
   },
   "awscli": {
     "version_specifier": "<2"
+  },
+  "triton": {
+    "version_specifier": "==3.2.0"
   }
 }
