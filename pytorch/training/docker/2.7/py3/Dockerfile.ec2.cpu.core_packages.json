@@ -1,0 +1,60 @@
+{
+  "torch": {
+    "version_specifier": "==2.7.1"
+  },
+  "torchvision": {
+    "version_specifier": "==0.22.1",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.7.1",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.11.0",
+    "skip": "True"
+  },
+  "torchtnt": {
+    "version_specifier": "==0.2.4",
+    "skip": "True"
+  },
+  "tornado": {
+    "version_specifier": ">=6.5.1",
+    "skip": "True"
+  },
+  "s3torchconnector": {
+    "version_specifier": "==1.4.1",
+     "skip": "True"
+  },
+  "accelerate": {
+    "version_specifier": "==1.7.0",
+     "skip": "True"
+  },
+   "thinc": {
+    "version_specifier": "==8.3.4"
+  },
+  "fastai": {
+    "version_specifier": "==2.8.2"
+  },
+  "jinja2": {
+    "version_specifier": ">=3.1.6"
+  },
+  "idna": {
+    "version_specifier": ">=3.7"
+  },
+  "tqdm": {
+    "version_specifier": ">=4.66.3"
+  },
+  "requests": {
+    "version_specifier": ">=2.32.0"
+  },
+  "setuptools": {
+    "version_specifier": ">=70.0.0"
+  },
+  "urllib3": {
+    "version_specifier": "<2"
+  },
+   "awscli": {
+    "version_specifier": "<2"
+  }
+}

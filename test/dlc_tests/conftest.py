@@ -47,6 +47,8 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
@@ -466,7 +468,9 @@ def efa_ec2_instances(
 
             network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
 
-            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
+            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                network_interface_id, region, ENABLE_IPV6_TESTING
+            )
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
         def elastic_ips_finalizer():
@@ -510,18 +514,36 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         connect_timeout=18000,
     )
 
+    if ENABLE_IPV6_TESTING:
+        master_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(master_instance_id, region)
+
+        if master_ipv6_address:
+            master_connection.ipv6_address = master_ipv6_address
+            LOGGER.info(f"Master node IPv6 address (eth0): {master_connection.ipv6_address}")
+        else:
+            raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
+
     worker_instance_connections = []
     for instance in worker_instances:
         worker_instance_id = instance["worker_instance_id"]
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
-        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
         worker_connection = Connection(
             user=user_name,
             host=worker_public_ip,
             connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
+
+        if ENABLE_IPV6_TESTING:
+            worker_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(worker_instance_id, region)
+
+            if worker_ipv6_address:
+                worker_connection.ipv6_address = worker_ipv6_address
+                LOGGER.info(f"Worker node IPv6 address (eth0): {worker_connection.ipv6_address}")
+            else:
+                raise RuntimeError("IPv6 testing enabled but no IPv6 address found for worker node")
+
         worker_instance_connections.append(worker_connection)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
