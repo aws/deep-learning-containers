@@ -346,7 +346,9 @@ RUN ${PIP} install \
     #"tensorflow-metadata==1.16.1" \
     tensorflow-datasets 
     
-
+# Install rust and cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && export PATH="/root/.cargo/bin:${PATH}"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
@@ -361,7 +363,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
-    sagemaker-training \
+    "sagemaker-training<5.0" \
+    "y-py<0.7.0" \
     "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
