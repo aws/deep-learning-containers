@@ -35,6 +35,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
@@ -1079,7 +1080,10 @@ def test_license_file(image):
         pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
 
     framework, version = get_framework_and_version_from_tag(image)
-    short_version = re.search(r"(\d+\.\d+)", version).group(0)
+    if framework == "autogluon":
+        short_version = get_pytorch_version_from_autogluon_image(image)
+    else:
+        short_version = re.search(r"(\d+\.\d+)", version).group(0)
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
     local_repo_path = get_repository_local_path()
     container_filename = "CONTAINER_LICENSE_FILE"

@@ -2091,6 +2091,30 @@ def get_python_version_from_image_uri(image_uri):
     return "py36" if python_version == "py3" else python_version
 
 
+def get_pytorch_version_from_autogluon_image(image):
+    """
+    Extract the PyTorch version from an AutoGluon container.
+    :param image: ECR image URI
+    :return: PyTorch short version or None if detection fails
+    """
+    ctx = Context()
+    container_name = get_container_name("pytorch-version-check", image)
+    try:
+        start_container(container_name, image, ctx)
+        pytorch_version_output = run_cmd_on_container(
+            container_name, ctx, "import torch; print(torch.__version__)", executable="python"
+        )
+        # Parse "2.5.1+cpu" -> "2.5"
+        pytorch_full_version = pytorch_version_output.stdout.strip()
+        pytorch_short_version = re.search(r"(\d+\.\d+)", pytorch_full_version).group(0)
+        return pytorch_short_version
+    except Exception as e:
+        LOGGER.error(f"Failed to detect PyTorch version in AutoGluon image: {e}")
+        return None
+    finally:
+        stop_and_remove_container(container_name, ctx)
+
+
 def get_buildspec_path(dlc_path):
     """
     Get buildspec file that should be used in testing a particular DLC image. This file is normally
