@@ -289,7 +289,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     shap
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker<3" \
+    "sagemaker>=2.0.0,<3.0.0" \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
     "sagemaker-training" \
