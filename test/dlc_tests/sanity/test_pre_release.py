@@ -35,6 +35,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
@@ -1095,6 +1096,14 @@ def test_license_file(image):
     # get license file in s3
     s3_client = boto3.client("s3")
     s3_object_key = f"{framework}-{short_version}/license.txt"
+    if framework == "autogluon":
+        # AutoGluon is built on PyTorch DLC base images and inherits PyTorch license files
+        # rather than having its own license files in S3.
+        pytorch_version = get_pytorch_version_from_autogluon_image(image)
+        if pytorch_version:
+            s3_object_key = f"pytorch-{pytorch_version}/license.txt"
+        else:
+            pytest.skip("Could not detect PyTorch version for Autogluon image")
     s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
 
     tail_line_num = 5
