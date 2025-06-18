@@ -2114,6 +2114,7 @@ def get_pytorch_version_from_autogluon_image(image):
     finally:
         stop_and_remove_container(container_name, ctx)
 
+
 def get_buildspec_path(dlc_path):
     """
     Get buildspec file that should be used in testing a particular DLC image. This file is normally
