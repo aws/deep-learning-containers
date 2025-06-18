@@ -1117,6 +1117,8 @@ def test_license_file(image):
     s3_client = boto3.client("s3")
     s3_object_key = f"{framework}-{short_version}/license.txt"
     if framework == "autogluon":
+        # AutoGluon is built on PyTorch DLC base images and inherits PyTorch license files
+        # rather than having its own license files in S3.
         pytorch_version = get_pytorch_version_from_autogluon_image(image)
         if pytorch_version:
             s3_object_key = f"pytorch-{pytorch_version}/license.txt"
