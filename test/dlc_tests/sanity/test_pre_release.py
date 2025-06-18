@@ -101,6 +101,24 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
         )
     return rf"{overall_regex_string}"
 
+@pytest.fixture
+def dlc_owned_only(image):
+    """
+    Fixture to skip tests for third-party framework images.
+    Only runs tests on DLC-owned framework images (tensorflow, pytorch, mxnet).
+    """
+    # Extract framework name
+    framework, _ = get_framework_and_version_from_tag(image)
+    
+    # Skip for third-party frameworks
+    third_party_prefixes = ["huggingface_", "stabilityai_"]
+    third_party_frameworks = ["autogluon"]
+    
+    if any(framework.startswith(prefix) for prefix in third_party_prefixes):
+        pytest.skip(f"Skipping test for third-party framework: {framework}")
+    
+    if framework in third_party_frameworks:
+        pytest.skip(f"Skipping test for third-party framework: {framework}")
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
 @pytest.mark.model("N/A")
@@ -1061,7 +1079,7 @@ def test_oss_compliance(image):
                     raise
 
 
-@pytest.mark.usefixtures("sagemaker_only", "security_sanity")
+@pytest.mark.usefixtures("sagemaker_only", "security_sanity","dlc_owned_only")
 @pytest.mark.integration("license")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
