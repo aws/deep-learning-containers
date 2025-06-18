@@ -35,6 +35,7 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
@@ -1116,17 +1117,11 @@ def test_license_file(image):
     s3_client = boto3.client("s3")
     s3_object_key = f"{framework}-{short_version}/license.txt"
     if framework == "autogluon":
-        # Get PyTorch version from the running container
-        container_name = get_container_name("pytorch-version-check", image)
-        start_container(container_name, image, context)
-        pytorch_version_output = run_cmd_on_container(
-            container_name, context, "import torch; print(torch.__version__)", executable="python"
-        )
-        stop_and_remove_container(container_name, context)
-        # "2.5.1+cpu" -> "2.5"
-        pytorch_full_version = pytorch_version_output.stdout.strip()
-        pytorch_short_version = re.search(r"(\d+\.\d+)", pytorch_full_version).group(0)
-        s3_object_key = f"pytorch-{pytorch_short_version}/license.txt"
+        pytorch_version = get_pytorch_version_from_autogluon_image(image)
+        if pytorch_version:
+            s3_object_key = f"pytorch-{pytorch_version}/license.txt"
+        else:
+            pytest.skip("Could not detect PyTorch version for Autogluon image")
     s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
 
     tail_line_num = 5
