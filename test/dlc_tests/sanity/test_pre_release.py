@@ -1076,7 +1076,10 @@ def test_license_file(image):
         pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
 
     framework, version = get_framework_and_version_from_tag(image)
-    short_version = re.search(r"(\d+\.\d+)", version).group(0)
+    if framework == "autogluon":
+        short_version = get_pytorch_version_from_autogluon_image(image)
+    else:
+        short_version = re.search(r"(\d+\.\d+)", version).group(0)
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
     local_repo_path = get_repository_local_path()
     container_filename = "CONTAINER_LICENSE_FILE"
@@ -1096,14 +1099,6 @@ def test_license_file(image):
     # get license file in s3
     s3_client = boto3.client("s3")
     s3_object_key = f"{framework}-{short_version}/license.txt"
-    if framework == "autogluon":
-        # AutoGluon is built on PyTorch DLC base images and inherits PyTorch license files
-        # rather than having its own license files in S3.
-        pytorch_version = get_pytorch_version_from_autogluon_image(image)
-        if pytorch_version:
-            s3_object_key = f"pytorch-{pytorch_version}/license.txt"
-        else:
-            pytest.skip("Could not detect PyTorch version for Autogluon image")
     s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
 
     tail_line_num = 5
