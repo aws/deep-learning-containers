@@ -1115,17 +1115,15 @@ def test_license_file(image):
     # get license file in s3
     s3_client = boto3.client("s3")
     s3_object_key = f"{framework}-{short_version}/license.txt"
-    if framework=="autogluon":
+    if framework == "autogluon":
         # Get PyTorch version from the running container
         container_name = get_container_name("pytorch-version-check", image)
         start_container(container_name, image, ctx)
         pytorch_version_output = run_cmd_on_container(
-            container_name, ctx, 
-            "import torch; print(torch.__version__)", 
-            executable="python"
+            container_name, ctx, "import torch; print(torch.__version__)", executable="python"
         )
         stop_and_remove_container(container_name, ctx)
-        
+
         # Parse "2.5.1+cpu" -> "2.5"
         pytorch_full_version = pytorch_version_output.stdout.strip()
         pytorch_short_version = re.search(r"(\d+\.\d+)", pytorch_full_version).group(0)
