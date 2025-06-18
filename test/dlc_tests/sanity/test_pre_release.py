@@ -1061,7 +1061,7 @@ def test_oss_compliance(image):
                     raise
 
 
-@pytest.mark.usefixtures("sagemaker", "security_sanity")
+@pytest.mark.usefixtures("sagemaker_only", "security_sanity")
 @pytest.mark.integration("license")
 @pytest.mark.model("N/A")
 @pytest.mark.skipif(
@@ -1071,7 +1071,7 @@ def test_license_file(image):
     """
     Check that license file within the container is readable and valid
     """
-    if "base" in image or "vllm" in image or "autogluon" in image:
+    if "base" in image or "vllm" in image:
         pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
 
     framework, version = get_framework_and_version_from_tag(image)
