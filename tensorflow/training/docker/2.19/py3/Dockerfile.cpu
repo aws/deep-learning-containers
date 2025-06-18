@@ -275,10 +275,10 @@ RUN ${PIP} install \
     #"tensorflow-metadata==1.16.1" \
     tensorflow-datasets
 
-#Install rust and cargo
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && export PATH="/root/.cargo/bin:${PATH}"
-
+# Install rust and cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+RUN source $HOME/.cargo/env
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
