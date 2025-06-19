@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==1.7.0",
+    "version_specifier": "==1.8.0",
     "skip": "True"
   },
   "flash-attn": {
