@@ -270,26 +270,26 @@
         {
             "cvss_v2_score": 0.0,
             "cvss_v30_score": 0.0,
-            "cvss_v31_score": 0.0,
-            "cvss_v3_score": 0.0,
-            "cvss_v3_severity": "UNKNOWN",
+            "cvss_v31_score": 9.8,
+            "cvss_v3_score": 9.8,
+            "cvss_v3_severity": "CRITICAL",
             "description": "NLTK through 3.8.1 allows remote code execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used. This affects, for example, averaged_perceptron_tagger and punkt.",
             "name": "CVE-2024-39705",
             "package_details": {
-                "file_path": null,
+                "file_path": "/opt/conda/lib/python3.11/site-packages/nltk-3.8.1.dist-info/METADATA",
                 "name": "nltk",
-                "package_manager": "OS",
-                "release": "unknown",
-                "version": "unknown"
+                "package_manager": "PYTHON",
+                "release": null,
+                "version": "3.8.1"
             },
             "package_name": "nltk",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC",
+            "reason_to_ignore": "N/A",
             "remediation": {
                 "recommendation": {
                     "text": "None Provided"
                 }
             },
-            "severity": "UNKNOWN",
+            "severity": "CRITICAL",
             "source": "NVD",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-39705",
             "status": "ACTIVE",
@@ -330,33 +330,34 @@
     ],
     "torch": [
         {
-            "cvss_v2_score": 0.0,
-            "cvss_v30_score": 0.0,
-            "cvss_v31_score": 0.0,
-            "cvss_v3_score": 0.0,
-            "cvss_v3_severity": "UNKNOWN",
             "description": "PyTorch is a Python package that provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system. In version 2.5.1 and prior, a Remote Command Execution (RCE) vulnerability exists in PyTorch when loading a model using torch.load with weights_only=True. This issue has been patched in version 2.6.0.",
+            "vulnerability_id": "CVE-2025-32434",
             "name": "CVE-2025-32434",
-            "package_details": {
-                "file_path": null,
-                "name": "torch",
-                "package_manager": "OS",
-                "release": "unknown",
-                "version": "unknown"
-            },
             "package_name": "torch",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC",
+            "package_details": {
+                "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.5.1+cu124.dist-info/METADATA",
+                "name": "torch",
+                "package_manager": "PYTHON",
+                "version": "2.5.1+cu124",
+                "release": "null"
+            },
             "remediation": {
                 "recommendation": {
                     "text": "None Provided"
                 }
             },
-            "severity": "UNKNOWN",
-            "source": "NVD",
+            "cvss_v3_score": 9.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 9.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "CRITICAL",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-32434",
+            "source": "NVD",
+            "severity": "CRITICAL",
             "status": "ACTIVE",
             "title": "CVE-2025-32434 - torch",
-            "vulnerability_id": "CVE-2025-32434"
+            "reason_to_ignore": "N/A"
+
         }
     ],
     "transformers": [
@@ -450,26 +451,26 @@
         {
             "cvss_v2_score": 0.0,
             "cvss_v30_score": 0.0,
-            "cvss_v31_score": 0.0,
-            "cvss_v3_score": 0.0,
-            "cvss_v3_severity": "UNKNOWN",
+            "cvss_v31_score": 7.5,
+            "cvss_v3_score": 7.5,
+            "cvss_v3_severity": "HIGH",
             "description": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack. The regular expression used to process code blocks in docstrings contains nested quantifiers, leading to exponential backtracking when processing input with a large number of newline characters. An attacker can exploit this by providing a specially crafted payload, causing high CPU usage and potential application downtime, effectively resulting in a Denial of Service (DoS) scenario.",
             "name": "CVE-2025-2099",
             "package_details": {
-                "file_path": null,
+                "file_path": "/opt/conda/lib/python3.11/site-packages/transformers-4.49.0.dist-info/METADATA",
                 "name": "transformers",
-                "package_manager": "OS",
-                "release": "unknown",
-                "version": "unknown"
+                "package_manager": "PYTHON",
+                "release": "null",
+                "version": "4.49.0"
             },
             "package_name": "transformers",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC",
+            "reason_to_ignore": "N/A",
             "remediation": {
                 "recommendation": {
                     "text": "None Provided"
                 }
             },
-            "severity": "UNKNOWN",
+            "severity": "HIGH",
             "source": "NVD",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-2099",
             "status": "ACTIVE",
