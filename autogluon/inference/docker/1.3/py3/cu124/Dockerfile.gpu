@@ -35,9 +35,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "ninja<1.11.1.1"
 RUN pip install --no-cache-dir \
-    nltk --upgrade \
-    torch --upgrade \
-    transformers --upgrade
+    nltk --upgrade
 # add TS entrypoint
 COPY config.properties /home/model-server
 
