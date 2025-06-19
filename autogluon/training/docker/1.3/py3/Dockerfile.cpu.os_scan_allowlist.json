@@ -339,7 +339,7 @@
                 "name": "torch",
                 "package_manager": "PYTHON",
                 "version": "2.5.1+cu124",
-                "release": "null"
+                "release": null
             },
             "remediation": {
                 "recommendation": {
@@ -460,7 +460,7 @@
                 "file_path": "/opt/conda/lib/python3.11/site-packages/transformers-4.49.0.dist-info/METADATA",
                 "name": "transformers",
                 "package_manager": "PYTHON",
-                "release": "null",
+                "release": null,
                 "version": "4.49.0"
             },
             "package_name": "transformers",
