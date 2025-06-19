@@ -32,7 +32,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # Fix pip test
  && pip install --no-cache-dir "datasets<3.1.0" \
  && pip install --no-cache-dir "pathos<0.3.3"
-
+RUN pip install --no-cache-dir \
+    nltk --upgrade \
+    torch --upgrade \
+    transformers --upgrade
 
 
 RUN HOME_DIR=/root \
@@ -46,10 +49,4 @@ RUN HOME_DIR=/root \
 
 RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
-
-# Security fixes - Python packages
-RUN pip install --no-cache-dir \
-    nltk --upgrade \
-    torch --upgrade \
-    transformers --upgrade
 CMD ["/bin/bash"]

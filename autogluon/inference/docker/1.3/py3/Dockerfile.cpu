@@ -32,7 +32,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 #  FastAI, breaking changes from 2.7 to 2.8, maintaining same version for both training and inference to load model correctly
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "ninja<1.11.1.1"
-
+RUN pip install --no-cache-dir \
+    nltk --upgrade \
+    torch --upgrade \
+    transformers --upgrade
 
 
 # add TS entrypoint
@@ -54,10 +57,5 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 EXPOSE 8080 8081
 
-# Security fixes - Python packages
-RUN pip install --no-cache-dir \
-    nltk --upgrade \
-    torch --upgrade \
-    transformers --upgrade
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
