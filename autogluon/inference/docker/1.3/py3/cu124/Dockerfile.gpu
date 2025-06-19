@@ -53,5 +53,11 @@ RUN HOME_DIR=/root \
 RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
 EXPOSE 8080 8081
+
+# Security fixes - Python packages
+RUN pip install --no-cache-dir \
+    nltk --upgrade \
+    torch --upgrade \
+    transformers --upgrade
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
 CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
