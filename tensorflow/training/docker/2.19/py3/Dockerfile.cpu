@@ -289,14 +289,14 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     shap
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker>=2.0.0,<3.0.0" \
-    sagemaker-experiments==0.* \
+    sagemaker \
+    sagemaker-experiments \
     sagemaker-tensorflow-training \
-    "sagemaker-training" \
-    "y-py" \
-    "sagemaker-studio-analytics-extension<1" \
+    sagemaker-training \
+    y-py \
+    sagemaker-studio-analytics-extension \
     "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
+    sagemaker-studio-sparkmagic-lib \
     smclarify
 
 # Remove python kernel installed by sparkmagic
