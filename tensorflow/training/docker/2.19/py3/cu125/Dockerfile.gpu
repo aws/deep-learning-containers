@@ -234,13 +234,10 @@ RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_confi
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-
 RUN chmod +x /usr/local/bin/bash_telemetry.sh
-
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/license.txt -o /license.txt
@@ -280,6 +277,10 @@ RUN HOME_DIR=/root \
 
 # remove tmp files
 RUN rm -rf /tmp/*
+
+COPY dockerd_ec2_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+ENTRYPOINT [“bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 
 CMD ["/bin/bash"]
 
@@ -407,4 +408,5 @@ RUN HOME_DIR=/root \
    && rm -rf ${HOME_DIR}/oss_compliance*
 
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+
 CMD ["/bin/bash"]
