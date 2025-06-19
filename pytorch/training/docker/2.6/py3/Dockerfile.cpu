@@ -334,7 +334,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training
+    "sagemaker-training==4.9.0"
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
