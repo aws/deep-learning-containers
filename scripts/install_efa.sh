@@ -2,6 +2,17 @@
 
 set -ex
 
+function check_libnccl_net_so {
+    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu"
+    NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
+
+    # Check if file exists
+    if [ ! -f "$NCCL_NET_SO" ]; then
+        echo "ERROR: $NCCL_NET_SO does not exist"
+        return 1
+    fi
+}
+
 function install_efa {
     EFA_VERSION=$1
     OPEN_MPI_PATH="/opt/amazon/openmpi"
@@ -31,7 +42,7 @@ function install_efa {
     echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf
     echo NCCL_DEBUG=INFO >> /etc/nccl.conf
     echo NCCL_SOCKET_IFNAME=^docker0,lo >> /etc/nccl.conf
-    
+
     # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
     apt-get install -y --no-install-recommends \
         openssh-client \
@@ -61,6 +72,7 @@ function install_efa {
     apt-get autoremove -y
     rm -rf /var/lib/apt/lists/*
     ldconfig
+    check_libnccl_net_so
 }
 
 # idiomatic parameter and option handling in sh
