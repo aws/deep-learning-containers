@@ -391,7 +391,7 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # remove tmp files
 RUN rm -rf /tmp/*
 
-COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
+#COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
