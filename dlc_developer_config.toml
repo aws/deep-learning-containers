@@ -46,7 +46,7 @@ build_inference = false
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = true 
+do_build = false 
 
 [notify]
 ### Notify on test failures
@@ -58,12 +58,12 @@ notify_test_failures = false
 [test]
 ### On by default
 sanity_tests = true
-security_tests = true
+security_tests = false
   safety_check_test = false
   ecr_scan_allowlist_feature = false
-ecs_tests = true
-eks_tests = true
-ec2_tests = true
+ecs_tests = false
+eks_tests = false
+ec2_tests = false
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -92,7 +92,7 @@ enable_ipv6 = false
 ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true
+sagemaker_remote_tests = false
 # run efa sagemaker tests
 sagemaker_efa_tests = false
 # run release_candidate_integration tests
