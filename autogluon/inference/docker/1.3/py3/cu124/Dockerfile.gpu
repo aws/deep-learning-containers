@@ -37,6 +37,10 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
 
 # add TS entrypoint
 
+# Security fixes - Python packages
+RUN pip install --no-cache-dir \
+    "nltk>=3.8.2"
+
 
 COPY config.properties /home/model-server
 
