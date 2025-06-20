@@ -161,7 +161,7 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python \
     werkzeug \
     psutil \
-    "protobuf<4"
+    protobuf
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 

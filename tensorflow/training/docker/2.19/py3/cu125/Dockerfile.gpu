@@ -223,7 +223,7 @@ RUN ${PIP} install --no-cache-dir -U \
    opencv-python \
    werkzeug \
    urllib3 \
-   "protobuf<4"
+   protobuf
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
