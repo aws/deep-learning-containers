@@ -47,4 +47,8 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 
 
+
+# Security fixes - Python packages
+RUN pip install --no-cache-dir \
+    "nltk>=3.8.2"
 CMD ["/bin/bash"]
