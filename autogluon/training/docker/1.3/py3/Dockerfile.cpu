@@ -47,7 +47,4 @@ RUN HOME_DIR=/root \
 RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com/licenses/THIRD-PARTY-LICENSES.txt
 
 
-# Security fixes - Python packages
-RUN pip install --no-cache-dir "nltk>=3.8.2" \
-RUN pip install --no-cache-dir nltk --upgrade
 CMD ["/bin/bash"]
