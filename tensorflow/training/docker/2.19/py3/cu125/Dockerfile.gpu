@@ -300,13 +300,6 @@ CMD ["/bin/bash"]
 
 FROM common AS sagemaker
 
-# Install SageMaker Profiler binary
-#ARG SMP_URL=https://smppy.s3.amazonaws.com/tensorflow/cu118/smprof-0.3.332-cp310-cp310-linux_x86_64.whl
-#RUN apt-get update  \
-# && apt-get install -y libunwind-dev  \
-# && rm -rf /var/lib/apt/lists/* \
-# && apt-get clean \
-# && ${PYTHON} -m pip install --no-cache-dir ${SMP_URL}
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -342,8 +335,6 @@ RUN ${PIP} install \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    #tensorflow-metadata 1.17.1 has requirement protobuf<6.0.0,>=4.25.2, but sagemaker-training need protobuf 3.20.3
-    #"tensorflow-metadata==1.16.1" \
     tensorflow-datasets 
     
 # Install rust and cargo
@@ -391,7 +382,6 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # remove tmp files
 RUN rm -rf /tmp/*
 
-#COPY sitecustomize.py /usr/local/lib/${PYTHON}/sitecustomize.py
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY dockerd-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
