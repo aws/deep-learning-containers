@@ -69,6 +69,12 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     chmod +x /usr/local/bin/start_cuda_compat.sh
 fi
 
+# For all GPU images, remove cuobjdump and nvdisasm
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/(pytorch|tensorflow)(.+)gpu(.+) ]]; then
+    rm -rf /usr/local/cuda/bin/cuobjdump*
+    rm -rf /usr/local/cuda/bin/nvdisasm*
+fi
+
 pip cache purge
 
 ## Update GPG key in case Nginx exists
