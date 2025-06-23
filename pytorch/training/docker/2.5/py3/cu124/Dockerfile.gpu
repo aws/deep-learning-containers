@@ -446,7 +446,7 @@ RUN mkdir /tmp/aws-ofi-nccl \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
