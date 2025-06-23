@@ -129,24 +129,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# For EFA, below flags are needed to install EFA on docker image
-#  -n, --no-verify       Skip EFA device verification and test
-#  -l, --skip-limit-conf Skip EFA limit configuration
-#  -k, --skip-kmod       Skip EFA kmod installation
-RUN mkdir /tmp/efa \
- && cd /tmp/efa \
- && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
- && cd aws-efa-installer \
- && apt-get update \
- && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
- && rm -rf /tmp/efa \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
-ENV LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib:${EFA_PATH}/lib:${LD_LIBRARY_PATH}"
-
 # Configure Open MPI and configure NCCL parameters
 RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo '#!/bin/bash' > ${OPEN_MPI_PATH}/bin/mpirun \
@@ -156,37 +138,6 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
-
-# Install hwloc
-RUN mkdir /tmp/hwloc \
- && cd /tmp/hwloc \
- && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
- && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
- && cd hwloc-${HWLOC_VERSION} \
- && ./configure \
- && make \
- && make install \
- && rm -rf /tmp/hwloc \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install aws-ofi-nccl plugin
-RUN mkdir /tmp/aws-ofi-nccl \
- && cd /tmp/aws-ofi-nccl \
- && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
- && ./autogen.sh \
- && ./configure --with-mpi=${OPEN_MPI_PATH} \
-                --with-libfabric=${EFA_PATH} \
-                --with-cuda=${CUDA_HOME} \
-                --disable-tests \
-                --enable-platform-aws \
- && make \
- && make install \
- && rm -rf /tmp/aws-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -436,6 +387,55 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
     "triton<=3.1.0" \
     s3torchconnector \
  && /opt/conda/bin/mamba clean -afy
+
+# For EFA, below flags are needed to install EFA on docker image
+#  -n, --no-verify       Skip EFA device verification and test
+#  -l, --skip-limit-conf Skip EFA limit configuration
+#  -k, --skip-kmod       Skip EFA kmod installation
+RUN mkdir /tmp/efa \
+ && cd /tmp/efa \
+ && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+ && cd aws-efa-installer \
+ && apt-get update \
+ && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
+ && rm -rf /tmp/efa \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib:${EFA_PATH}/lib:${LD_LIBRARY_PATH}"
+
+# Install hwloc
+RUN mkdir /tmp/hwloc \
+ && cd /tmp/hwloc \
+ && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
+ && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
+ && cd hwloc-${HWLOC_VERSION} \
+ && ./configure \
+ && make \
+ && make install \
+ && rm -rf /tmp/hwloc \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install aws-ofi-nccl plugin
+RUN mkdir /tmp/aws-ofi-nccl \
+ && cd /tmp/aws-ofi-nccl \
+ && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+ && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+ && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
+ && ./autogen.sh \
+ && ./configure --with-mpi=${OPEN_MPI_PATH} \
+                --with-libfabric=${EFA_PATH} \
+                --with-cuda=${CUDA_HOME} \
+                --disable-tests \
+                --enable-platform-aws \
+ && make \
+ && make install \
+ && rm -rf /tmp/aws-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
