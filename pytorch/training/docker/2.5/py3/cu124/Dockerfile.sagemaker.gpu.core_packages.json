@@ -1,10 +1,10 @@
 {
   "accelerate": {
-    "version_specifier": "==1.5.1",
+    "version_specifier": "==1.8.0",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.19",
+    "version_specifier": "==2.8.2",
     "skip": "True"
   },
   "flash-attn": {
@@ -16,18 +16,18 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.3.2",
+    "version_specifier": "==1.4.1",
     "skip": "True"
   },
   "torch": {
-    "version_specifier": "==2.5.1+cu124"
+    "version_specifier": "==2.5.1"
   },
   "torchaudio": {
-    "version_specifier": "==2.5.1+cu124",
+    "version_specifier": "==2.5.1",
     "skip": "True"
   },
   "torchtext": {
-    "version_specifier": "==0.18.0+cu124",
+    "version_specifier": "==0.18.0",
     "skip": "True"
   },
   "torchtnt": {
@@ -35,7 +35,7 @@
     "skip": "True"
   },
   "torchvision": {
-    "version_specifier": "==0.20.1+cu124",
+    "version_specifier": "==0.20.1",
     "skip": "True"
   },
   "idna": {
@@ -48,7 +48,7 @@
     "version_specifier": ">=2.32.0"
   },
   "setuptools": {
-    "version_specifier": ">=70.0.0"
+    "version_specifier": ">=78.1.1"
   },
   "urllib3": {
     "version_specifier": "<2"
