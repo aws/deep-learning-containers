@@ -1,7 +1,7 @@
 ARG CUDA_VER=12.4
 ARG PYTHON_VERSION=3.11.9
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker-v1.10-2025-06-02-19-53-12
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -27,7 +27,6 @@ RUN pip install --no-cache-dir -U pip setuptools wheel build
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir "jupyter_core>=5.8.0" 
 
 
 

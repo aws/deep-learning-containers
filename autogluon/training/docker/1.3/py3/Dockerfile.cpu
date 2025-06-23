@@ -1,6 +1,6 @@
 ARG PYTHON_VERSION=3.11.9
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-sagemaker
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-sagemaker-v1.10
 
 # PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK - see https://github.com/autogluon/autogluon/issues/2534
 # ENV PYTORCH_SKIP_CUDNN_COMPATIBILITY_CHECK=1
@@ -27,7 +27,6 @@ RUN pip install --no-cache-dir -U pip setuptools wheel build
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir "jupyter_core>=5.8.0" 
 
 
 RUN HOME_DIR=/root \
