@@ -64,7 +64,6 @@ ARG HWLOC_VERSION
 ARG AWS_OFI_NCCL_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
-ENV CUDA_HOME="/opt/conda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
@@ -156,6 +155,37 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
+
+# Install hwloc
+RUN mkdir /tmp/hwloc \
+ && cd /tmp/hwloc \
+ && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
+ && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
+ && cd hwloc-${HWLOC_VERSION} \
+ && ./configure \
+ && make \
+ && make install \
+ && rm -rf /tmp/hwloc \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Install aws-ofi-nccl plugin
+RUN mkdir /tmp/aws-ofi-nccl \
+ && cd /tmp/aws-ofi-nccl \
+ && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+ && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
+ && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
+ && ./autogen.sh \
+ && ./configure --with-mpi=${OPEN_MPI_PATH} \
+                --with-libfabric=${EFA_PATH} \
+                --with-cuda=${CUDA_HOME} \
+                --disable-tests \
+                --enable-platform-aws \
+ && make \
+ && make install \
+ && rm -rf /tmp/aws-ofi-nccl \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
@@ -354,8 +384,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG NCCL_VERSION
-ARG HWLOC_VERSION
-ARG AWS_OFI_NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
@@ -380,17 +408,7 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    # pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio torchtext=0.18.0 \
-    pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio \
-    --override-channels \
-    -c pytorch \
-    -c nvidia \
-    -c conda-forge \
- && /opt/conda/bin/mamba clean -afy
-
-# Install CUDA libraries
-RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    cuda-libraries-dev=12.4 cuda-libraries-static=12.4 cuda-compiler=12.4 \
+    pytorch-cuda=12.4 torchvision torchaudio torchtext=0.18.0 \
     --override-channels \
     -c pytorch \
     -c nvidia \
@@ -409,44 +427,13 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge -c fastai \
     s3torchconnector \
  && /opt/conda/bin/mamba clean -afy
 
-# Install hwloc
-RUN mkdir /tmp/hwloc \
- && cd /tmp/hwloc \
- && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
- && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
- && cd hwloc-${HWLOC_VERSION} \
- && ./configure \
- && make \
- && make install \
- && rm -rf /tmp/hwloc \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install aws-ofi-nccl plugin
-RUN mkdir /tmp/aws-ofi-nccl \
- && cd /tmp/aws-ofi-nccl \
- && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
- && ./autogen.sh \
- && ./configure --with-mpi=${OPEN_MPI_PATH} \
-                --with-libfabric=${EFA_PATH} \
-                --with-cuda=${CUDA_HOME} \
-                --disable-tests \
-                --enable-platform-aws \
- && make \
- && make install \
- && rm -rf /tmp/aws-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib/stubs@' tests/Makefile \
+ && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
