@@ -266,6 +266,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
