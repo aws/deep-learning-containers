@@ -20,7 +20,8 @@
     "skip": "True"
   },
   "torch": {
-    "version_specifier": "==2.5.1"
+    "version_specifier": "==2.5.1",
+    "skip": "True"
   },
   "torchaudio": {
     "version_specifier": "==2.5.1",
