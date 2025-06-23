@@ -7,7 +7,7 @@ ARG CUDA_VERSION=12.6.3
 ARG CUDNN_VERSION=9.7.0.66
 ARG NCCL_VERSION=2.23.4
 ARG EFA_VERSION=1.38.0
-ARG GDRCOPY_VERSION=2.4.4
+ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.0
 ARG FLASH_ATTN_VERSION=2.7.3
 
@@ -247,6 +247,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
@@ -288,7 +292,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    triton \
+    triton==3.2.0 \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
@@ -297,7 +301,8 @@ RUN pip install --no-cache-dir -U \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    thinc \
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4 \
     blis \
     numpy \
  && pip uninstall dataclasses
@@ -306,7 +311,7 @@ RUN pip install --no-cache-dir -U \
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
@@ -396,7 +401,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHTEXT_URL} \
     ${TORCHDATA_URL} \
     torchtnt \
-    triton \
+    triton==3.2.0 \
     s3torchconnector \
     # fastai hasn't released a version compatible with torch 2.6.0
     # https://github.com/fastai/fastai/issues/4068
@@ -405,7 +410,8 @@ RUN pip install --no-cache-dir -U \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    thinc \
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4 \
     blis \
     numpy \
  && pip uninstall -y dataclasses
@@ -414,7 +420,7 @@ RUN pip install --no-cache-dir -U \
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
@@ -442,7 +448,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training
+    "sagemaker-training==4.9.0"
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \

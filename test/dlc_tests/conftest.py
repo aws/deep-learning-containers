@@ -47,11 +47,14 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__7",
     "pytorch_training___2__6",
     "pytorch_training___2__5",
     "pytorch_training___2__4",
@@ -142,6 +145,13 @@ NIGHTLY_FIXTURES = {
         NightlyFeatureLabel.TORCHDATA_INSTALLED.value,
     },
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+}
+
+# Skip telemetry tests for specific versions
+TELEMETRY_SKIP_VERSIONS = {
+    "entrypoint": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "bashrc": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "framework": {"pytorch": [""], "tensorflow": ["2.19.0"]},
 }
 
 
@@ -383,12 +393,13 @@ def efa_ec2_instances(
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     instance_name_prefix = f"CI-CD {ec2_key_name}"
     ec2_run_instances_definition = {
         "BlockDeviceMappings": [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "DeleteOnTermination": True,
                     "VolumeSize": 150,
@@ -457,7 +468,9 @@ def efa_ec2_instances(
 
             network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
 
-            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
+            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                network_interface_id, region, ENABLE_IPV6_TESTING
+            )
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
         def elastic_ips_finalizer():
@@ -501,18 +514,36 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         connect_timeout=18000,
     )
 
+    if ENABLE_IPV6_TESTING:
+        master_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(master_instance_id, region)
+
+        if master_ipv6_address:
+            master_connection.ipv6_address = master_ipv6_address
+            LOGGER.info(f"Master node IPv6 address (eth0): {master_connection.ipv6_address}")
+        else:
+            raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
+
     worker_instance_connections = []
     for instance in worker_instances:
         worker_instance_id = instance["worker_instance_id"]
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
-        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
         worker_connection = Connection(
             user=user_name,
             host=worker_public_ip,
             connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
+
+        if ENABLE_IPV6_TESTING:
+            worker_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(worker_instance_id, region)
+
+            if worker_ipv6_address:
+                worker_connection.ipv6_address = worker_ipv6_address
+                LOGGER.info(f"Worker node IPv6 address (eth0): {worker_connection.ipv6_address}")
+            else:
+                raise RuntimeError("IPv6 testing enabled but no IPv6 address found for worker node")
+
         worker_instance_connections.append(worker_connection)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -528,16 +559,18 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     master_connection.run("rm -rf $HOME/container_tests")
     master_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
     )
+    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
     master_connection.run(
         f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
     )
     for worker_connection in worker_instance_connections:
         worker_connection.run("rm -rf $HOME/container_tests")
         worker_connection.run(
-            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
         )
+        print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
         worker_connection.run(
             f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
         )
@@ -880,7 +913,10 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu118", "cu121"], ">=2.4,<2.6": ["cpu", "cu124"]}
+    skip_dict = {
+        ">2.1.1": ["cpu", "cu118", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
@@ -904,7 +940,8 @@ def skip_smdebug_v1_test(request):
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
@@ -927,7 +964,8 @@ def skip_dgl_test(request):
         "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
@@ -991,13 +1029,64 @@ def skip_serialized_release_pt_test(request):
         "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6": ["cpu", "cu126"],
+        ">=2.6,<2.7.1": ["cpu", "cu126"],
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
     ):
         pytest.skip(
             f"Skip test for {image_uri} given that the image is being tested in serial execution."
+        )
+
+
+@pytest.fixture(autouse=True)
+def skip_telemetry_tests(request):
+    """Skip specific telemetry tests based on test name and image version"""
+    test_name = request.node.name.lower()
+
+    if "telemetry_entrypoint" in test_name:
+        _check_telemetry_skip(request, "entrypoint")
+    elif "telemetry_bashrc" in test_name:
+        _check_telemetry_skip(request, "bashrc")
+    elif "telemetry_framework" in test_name:
+        _check_telemetry_skip(request, "framework")
+
+
+def _get_telemetry_image_info(request):
+    """Helper function to get image URI and framework info from fixtures."""
+    telemetry_framework_fixtures = [
+        "pytorch_training",
+        "tensorflow_training",
+        "tensorflow_inference",
+        "pytorch_inference",
+        "pytorch_inference_arm64",
+        "pytorch_training_arm64",
+        "tensorflow_inference_arm64",
+    ]
+
+    for fixture_name in telemetry_framework_fixtures:
+        if fixture_name in request.fixturenames:
+            img_uri = request.getfixturevalue(fixture_name)
+            image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+            return image_framework, image_framework_version
+    return None, None
+
+
+def _check_telemetry_skip(request, test_type):
+    """Common logic for skipping telemetry tests."""
+    if test_type not in TELEMETRY_SKIP_VERSIONS:
+        return
+    image_framework, image_framework_version = _get_telemetry_image_info(request)
+    if not image_framework:
+        return
+    if image_framework not in TELEMETRY_SKIP_VERSIONS[test_type]:
+        return
+
+    if image_framework_version in TELEMETRY_SKIP_VERSIONS[test_type][image_framework]:
+        pytest.skip(
+            f"Telemetry {test_type} test is not supported for "
+            f"{image_framework} version {image_framework_version}"
         )
 
 

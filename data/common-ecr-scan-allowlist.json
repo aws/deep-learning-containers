@@ -1,4 +1,35 @@
 {
+    "vllm": [
+        {
+        "description": "vLLM is an inference and serving engine for large language models. In a multi-node vLLM deployment using the V0 engine, vLLM uses ZeroMQ for some multi-node communication purposes. The secondary vLLM hosts open a `SUB` ZeroMQ socket and connect to an `XPUB` socket on the primary vLLM host. When data is received on this `SUB` socket, it is deserialized with `pickle`. This is unsafe, as it can be abused to execute code on a remote machine. Since the vulnerability exists in a client that connects to the primary vLLM host, this vulnerability serves as an escalation point. If the primary vLLM host is compromised, this vulnerability could be used to compromise the rest of the hosts in the vLLM deployment. Attackers could also use other means to exploit the vulnerability without requiring access to the primary vLLM host. One example would be the use of ARP cache poisoning to redirect traffic to a malicious endpoint used to deliver a payload with arbitrary code to execute on the target machine. Note that this issue o",
+        "vulnerability_id": "CVE-2025-30165",
+        "name": "CVE-2025-30165",
+        "package_name": "vllm",
+        "package_details": {
+            "file_path": "/usr/local/lib/python3.12/dist-packages/vllm-0.8.5.dist-info/METADATA",
+            "name": "vllm",
+            "package_manager": "PYTHON",
+            "version": "0.8.5",
+            "release": null
+        },
+        "remediation": {
+            "recommendation": {
+            "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 8.0,
+        "cvss_v30_score": 0.0,
+        "cvss_v31_score": 8.0,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "HIGH",
+        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-30165",
+        "source": "NVD",
+        "severity": "HIGH",
+        "status": "ACTIVE",
+        "title": "CVE-2025-30165 - vllm",
+        "reason_to_ignore": "this vulnerability specifically affects the vllm package when used with the v0 engine, which is not the default engine in vLLM. The default engine is v1, which does not use ZeroMQ for communication. Therefore, this vulnerability does not affect the default configuration of vLLM."
+        }
+    ],
     "pip": [
         {
             "description": "An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely",

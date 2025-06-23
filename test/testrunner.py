@@ -290,6 +290,9 @@ def main():
     efa_dedicated = is_efa_dedicated()
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+    # Enable IPv6 testing from environment variable
+    ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -303,6 +306,17 @@ def main():
         re.sub("benchmark-", "", test_type) if "benchmark" in test_type else test_type
     )
     build_context = get_build_context()
+
+    # Skip non-sanity/security test suites for base or vllm images in MAINLINE context
+    if (
+        build_context == "MAINLINE"
+        and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
+        and test_type not in {"functionality_sanity", "security_sanity"}
+    ):
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
+        )
+        return
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:

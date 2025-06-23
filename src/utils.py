@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 import os
 import re
 import json
@@ -148,19 +149,47 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     build_enabled = is_build_enabled()
 
     for docker_image in images:
+        # Skip if test promotion is not enabled for this image
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (
-            not build_enabled
-        ) and docker_image.build_status == constants.NOT_BUILT
-        if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
+
+        # Determine if we should test this image based on build status
+        should_test_image = docker_image.build_status == constants.SUCCESS or (
+            not build_enabled and docker_image.build_status == constants.NOT_BUILT
+        )
+
+        if should_test_image:
+            # Get ECR URL to test - use latest tag if specified and available
             ecr_url_to_test = docker_image.ecr_url
-            if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
+            if use_latest_additional_tag and docker_image.additional_tags:
                 ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
-            # Set up tests on all platforms
-            for test_platform in DLC_IMAGES:
-                DLC_IMAGES[test_platform].append(ecr_url_to_test)
+            # If test configs exist and are valid dict
+            if docker_image.test_configs is not None and isinstance(
+                docker_image.test_configs, dict
+            ):
+                LOGGER.info(f"Test Configs: {docker_image.test_configs}")
+
+                # If specific test platforms are configured
+                if "test_platforms" in docker_image.test_configs:
+                    test_platforms = docker_image.test_configs["test_platforms"]
+
+                    # Validate test_platforms is a list
+                    assert isinstance(
+                        test_platforms, list
+                    ), f"Test platforms should be a list, but got {type(test_platforms)}"
+
+                    # Add image to each specified test platform
+                    for test_platform in test_platforms:
+                        assert test_platform in DLC_IMAGES, (
+                            f"Test platform {test_platform} is not supported, "
+                            f"supported test platforms are {DLC_IMAGES.keys()}"
+                        )
+                        DLC_IMAGES[test_platform].append(ecr_url_to_test)
+            else:
+                # No specific test configs - add image to all test platforms
+                for test_platform in DLC_IMAGES:
+                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES:
         test_images = DLC_IMAGES[test_type]
@@ -281,11 +310,13 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia"
             if "eia" in image_uri
-            else "inference-neuronx"
-            if "neuronx" in image_uri
-            else "inference-neuron"
-            if "neuron" in image_uri
-            else "inference"
+            else (
+                "inference-neuronx"
+                if "neuronx" in image_uri
+                else "inference-neuron"
+                if "neuron" in image_uri
+                else "inference"
+            )
         )
 
     if job_type == "training":
@@ -458,10 +489,10 @@ def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, 
 
 def get_core_packages_path(image_uri, python_version=None):
     """
-    Retrieves the safety_scan_allowlist_path for each image_uri.
+    Retrieves the ecr_scan_allowlist_path for each image_uri.
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
-    :return: string, safety scan allowlist path for the image
+    :return: string, ecr_scan_allowlist_path for the image
     """
     from test.test_utils import get_ecr_scan_allowlist_path
 
@@ -657,7 +688,8 @@ def generate_dlc_cmd(template_path, output_path, framework, framework_version, c
     }
 
     for anchor, value in replacements.items():
-        content = content.replace(f"{{{anchor}}}", value)
+        content = content.replace(f"${{{anchor}}}", value)  # replace ${VARIABLE} with value
+        content = content.replace(f"{{{anchor}}}", value)  # replace {VARIABLE} with value
 
     with open(output_path, "w") as out_f:
         out_f.write(content)

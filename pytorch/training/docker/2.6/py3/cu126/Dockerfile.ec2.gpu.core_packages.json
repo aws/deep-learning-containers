@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==1.4.0",
+    "version_specifier": "==1.8.1",
     "skip": "True"
   },
   "flash-attn": {
@@ -12,7 +12,7 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.3.2",
+    "version_specifier": "==1.4.1",
     "skip": "True"
   },
   "torch": {
@@ -51,5 +51,8 @@
   },
   "awscli": {
     "version_specifier": "<2"
+  },
+  "triton": {
+    "version_specifier": "==3.2.0"
   }
 }

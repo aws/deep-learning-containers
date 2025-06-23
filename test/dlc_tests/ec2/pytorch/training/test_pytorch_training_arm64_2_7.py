@@ -32,7 +32,7 @@ def test_pytorch_2_7_gpu(
         (common_cases.pytorch_training_torchdata, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_cudnn_match_gpu, (pytorch_training, ec2_connection, region)),
         (common_cases.pytorch_curand_gpu, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry_framework_gpu, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:

@@ -27,9 +27,16 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
-# For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working 
+# For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu ]]; then
     apt update && apt install -y --no-install-recommends openssh-client openssh-server && echo "Installed openssh-client openssh-server"
+fi
+
+# For PT 2.6, 2.7, rerun license file
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.6 ]]; then
+    curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.7 ]]; then
+    curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 fi
 
 # Install packages and derive history and package diff data
@@ -37,8 +44,9 @@ chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 # Upgrade sagemaker-training package to latest
+# For PT 2.7 sagemaker has dependency on protobuf 3.20.3 and sagemaker-training 4.8.3
 if pip show sagemaker-training; then
-    pip install "sagemaker-training>4.7.4" --upgrade
+    pip install "sagemaker-training>4.7.4,<=4.8.3" --upgrade
 fi
 
 # For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one

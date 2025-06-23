@@ -218,6 +218,9 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
+# S3 Transfer bucket region
+TEST_TRANSFER_S3_BUCKET_REGION = "us-west-2"
+
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
@@ -1739,11 +1742,18 @@ def get_unique_name_from_tag(image_uri):
 
 
 def get_image_type_from_tag(image_uri):
-    valid_image_types = ["training", "inference"]
-    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
-    if len(image_type_match) != 1:
-        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
-    return image_type_match[0]
+    """
+    Extract the image type (training, inference, or general) from the image URI.
+
+    :param image_uri: str ECR image URI
+    :return: str "training", "inference", or "general"
+    """
+    if "training" in image_uri:
+        return "training"
+    elif "inference" in image_uri:
+        return "inference"
+    else:
+        return "general"
 
 
 def get_image_arch_type_from_tag(image_uri):
@@ -1771,7 +1781,6 @@ def get_framework_and_version_from_tag(image_uri):
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
-        "mxnet",
         "pytorch",
         "autogluon",
     )
@@ -1878,45 +1887,26 @@ def get_os_version_from_image_uri(image_uri):
 
 
 def get_framework_from_image_uri(image_uri):
-    return (
-        "huggingface_tensorflow_trcomp"
-        if "huggingface-tensorflow-trcomp" in image_uri
-        else (
-            "huggingface_tensorflow"
-            if "huggingface-tensorflow" in image_uri
-            else (
-                "huggingface_pytorch_trcomp"
-                if "huggingface-pytorch-trcomp" in image_uri
-                else (
-                    "pytorch_trcomp"
-                    if "pytorch-trcomp" in image_uri
-                    else (
-                        "huggingface_pytorch"
-                        if "huggingface-pytorch" in image_uri
-                        else (
-                            "stabilityai_pytorch"
-                            if "stabilityai-pytorch" in image_uri
-                            else (
-                                "mxnet"
-                                if "mxnet" in image_uri
-                                else (
-                                    "pytorch"
-                                    if "pytorch" in image_uri
-                                    else (
-                                        "tensorflow"
-                                        if "tensorflow" in image_uri
-                                        else "autogluon"
-                                        if "autogluon" in image_uri
-                                        else None
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
-            )
-        )
-    )
+    framework_map = {
+        "huggingface-tensorflow-trcomp": "huggingface_tensorflow_trcomp",
+        "huggingface-tensorflow": "huggingface_tensorflow",
+        "huggingface-pytorch-trcomp": "huggingface_pytorch_trcomp",
+        "pytorch-trcomp": "pytorch_trcomp",
+        "huggingface-pytorch": "huggingface_pytorch",
+        "stabilityai-pytorch": "stabilityai_pytorch",
+        "mxnet": "mxnet",
+        "pytorch": "pytorch",
+        "tensorflow": "tensorflow",
+        "autogluon": "autogluon",
+        "base": "base",
+        "vllm": "vllm",
+    }
+
+    for image_pattern, framework in framework_map.items():
+        if image_pattern in image_uri:
+            return framework
+
+    return None
 
 
 def is_trcomp_image(image_uri):
@@ -2037,7 +2027,7 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference")
+    allowed_job_types = ("training", "inference", "base", "vllm")
     for job_type in allowed_job_types:
         if job_type in image_uri:
             tested_job_type = job_type
@@ -2079,7 +2069,7 @@ def get_processor_from_image_uri(image_uri):
     allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
-        match = re.search(rf"-({processor})", image_uri)
+        match = re.search(rf"({processor})", image_uri)
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
@@ -2099,6 +2089,30 @@ def get_python_version_from_image_uri(image_uri):
         )
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
+
+
+def get_pytorch_version_from_autogluon_image(image):
+    """
+    Extract the PyTorch version from an AutoGluon container.
+    :param image: ECR image URI
+    :return: PyTorch short version or None if detection fails
+    """
+    ctx = Context()
+    container_name = get_container_name("pytorch-version-check", image)
+    try:
+        start_container(container_name, image, ctx)
+        pytorch_version_output = run_cmd_on_container(
+            container_name, ctx, "import torch; print(torch.__version__)", executable="python"
+        )
+        # Parse "2.5.1+cpu" -> "2.5"
+        pytorch_full_version = pytorch_version_output.stdout.strip()
+        pytorch_short_version = re.search(r"(\d+\.\d+)", pytorch_full_version).group(0)
+        return pytorch_short_version
+    except Exception as e:
+        LOGGER.error(f"Failed to detect PyTorch version in AutoGluon image: {e}")
+        return None
+    finally:
+        stop_and_remove_container(container_name, ctx)
 
 
 def get_buildspec_path(dlc_path):

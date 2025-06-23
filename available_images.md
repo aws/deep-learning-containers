@@ -31,32 +31,34 @@ Deep Learning Containers Docker Images are available in the following regions:
 | US East (Ohio)				         | us-east-2			     |Available 			|Available			| 763104351884.dkr.ecr.us-east-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | US West (N. California)	   | us-west-1			     |Available 			|None				| 763104351884.dkr.ecr.us-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | US West (Oregon)			        | us-west-2			     |Available 			|Available			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
-| Africa (Cape Town)			      | af-south-1			    |Available			|None				| 626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Asia Pacific (Hong Kong)	  | ap-east-1			     |Available 			|None				| 871362719292.dkr.ecr.ap-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | Asia Pacific (Mumbai)		    | ap-south-1			    |Available 			|Available			| 763104351884.dkr.ecr.ap-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Asia Pacific (Hyderabad)		 | ap-south-2			    |Available 			|None			| 772153158452.dkr.ecr.ap-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| Asia Pacific (Osaka)		     | ap-northeast-3		 |Available 			|None				| 364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Seoul)		     | ap-northeast-2		 |Available 			|None				| 763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Osaka)		     | ap-northeast-3		 |Available 			|None				| 364406365360.dkr.ecr.ap-northeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Singapore)	  | ap-southeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Sydney)		    | ap-southeast-2 	 |Available 			|Available			| 763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Jakarta)		   | ap-southeast-3 	 |Available 			|None			| 907027046896.dkr.ecr.ap-southeast-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Melbourne)		 | ap-southeast-4 	 |Available 			|None			| 457447274322.dkr.ecr.ap-southeast-4.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Asia Pacific (Malaysia)		 | ap-southeast-5 	 |Available 			|None			| 550225433462.dkr.ecr.ap-southeast-5.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
-| Asia Pacific (Tokyo)		     | ap-northeast-1		 |Available 			|Available			| 763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
+| Asia Pacific (Thailand)        | ap-southeast-7    |Available             |None           | 590183813437.dkr.ecr.ap-southeast-7.amazonaws.com/&lt;repository-name>:&lt;image-tag>		   |
 | Canada (Central)			        | ca-central-1		   |Available 			|None				| 763104351884.dkr.ecr.ca-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | Canada (Calgary)			        | ca-west-1		   |Available 			|None				| 204538143572.dkr.ecr.ca-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Frankfurt) 			         | eu-central-1		   |Available 			|Available			| 763104351884.dkr.ecr.eu-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Zurich) 			            | eu-central-2		   |Available 			|None			| 380420809688.dkr.ecr.eu-central-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
 | EU (Ireland) 				          | eu-west-1			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (London) 				           | eu-west-2			     |Available 			|None				| 763104351884.dkr.ecr.eu-west-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
+| EU (Paris) 				            | eu-west-3			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (Milan)					            | eu-south-1			    |Available			|None				| 692866216735.dkr.ecr.eu-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | EU (Spain)					            | eu-south-2			    |Available			|None				| 503227376785.dkr.ecr.eu-south-2.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| EU (Paris) 				            | eu-west-3			     |Available 			|Available			| 763104351884.dkr.ecr.eu-west-3.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
 | EU (Stockholm) 			         | eu-north-1			    |Available 			|None				| 763104351884.dkr.ecr.eu-north-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
-| Israel (Tel Aviv) 			      | il-central-1			  |Available 			|None				| 780543022126.dkr.ecr.il-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			    |
 | Middle East (Bahrain) 		   | me-south-1			    |Available 			|None				| 217643126080.dkr.ecr.me-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | Middle East (UAE)		        | me-central-1 	   |Available 			|None			| 914824155844.dkr.ecr.me-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>		     |
+| Israel (Tel Aviv) 			      | il-central-1			  |Available 			|None				| 780543022126.dkr.ecr.il-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			    |
 | South America (Sao Paulo)	 | sa-east-1			     |Available 			|Available			| 763104351884.dkr.ecr.sa-east-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			       |
+| Africa (Cape Town)			      | af-south-1			    |Available			|None				| 626614931356.dkr.ecr.af-south-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
+| Mexico (Central)                    | mx-central-1            |Available          |None               | 637423239942.dkr.ecr.mx-central-1.amazonaws.com/&lt;repository-name>:&lt;image-tag>			      |
 | China (Beijing)			         | cn-north-1			    |Available 			|None				| 727897471807.dkr.ecr.cn-north-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>		    |
 | China (Ningxia)			         | cn-northwest-1		 |Available 			|None				| 727897471807.dkr.ecr.cn-northwest-1.amazonaws.com.cn/&lt;repository-name>:&lt;image-tag>	 |
 
@@ -89,20 +91,37 @@ DLC Available Image User Guide
 ============================
 
 To use the following tables, select your desired framework, the kind of job you're starting, and your desired Python version. Your
-job type is either ``training`` or ``inference``. Your Python version is
+job type is either ``training``, ``inference`` or ``general``. Your Python version is
 either ``py37``, ``py38``, ``py39``, ``py310``, ``py311`` or ``py312`` depending on availability. Plug this information into the replaceable portions of the URL as shown in the example URL.
 
 You can pin your version by adding the version tag to your URL as follows:
 
     763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
 
+
+Base Containers 
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| CUDA 12.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/base:12.8.1-gpu-py312-cu128-ubuntu24.04-ec2        |
+
+
+EC2 vLLM Containers (EC2, ECS, and EKS support only)
+============================
+
+| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| vLLM 0.9 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.9-gpu-py312-ec2        |
+
+
 EC2 Framework Containers (EC2, ECS, and EKS support only)
 ============================
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
 |-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| PyTorch 2.6.0     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-ec2             |
-| PyTorch 2.6.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-ec2       |
+| PyTorch 2.7.1     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-cpu-py312-ubuntu22.04-ec2             |
+| PyTorch 2.7.1     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-ec2       |
 | PyTorch 2.6.0     |inference	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-ec2            |
 | PyTorch 2.6.0     |inference	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-gpu-py312-cu124-ubuntu22.04-ec2      |
 | TensorFlow 2.18.0 |training	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-cpu-py310-ubuntu22.04-ec2		      |
@@ -116,8 +135,8 @@ SageMaker Framework Containers (SM support only)
 
 | Framework         | Job Type  | Horovod Options | CPU/GPU   | Python Version Options | Example URL																						                                                                              |
 |-------------------|-----------|-----------------|-----------|------------------------|----------------------------------------------------------------------------------------------------------------|
-| PyTorch 2.6.0     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
-| PyTorch 2.6.0     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker     |
+| PyTorch 2.7.1     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-cpu-py312-ubuntu22.04-sagemaker           |
+| PyTorch 2.7.1     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker     |
 | PyTorch 2.6.0     | inference	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
 | PyTorch 2.6.0     | inference	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker     |
 | TensorFlow 2.18.0 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-cpu-py310-ubuntu22.04-sagemaker		      |
@@ -133,6 +152,7 @@ instead of "pytorch-inference-graviton". Graviton DLCs and ARM64 DLCs are functi
 
 | Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                             |
 |-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------------------|
+| PyTorch 2.7.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training-arm64:2.7.0-gpu-py312-cu128-ubuntu22.04-ec2		     |
 | PyTorch 2.6.0     |inference	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-cpu-py312-ubuntu22.04-ec2		     |
 | PyTorch 2.6.0     |inference	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.6.0-gpu-py312-cu124-ubuntu22.04-ec2		     |
 | TensorFlow 2.18.0 |inference	|No			|CPU 		| 3.10 (py310)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference-arm64:2.18.0-cpu-py310-ubuntu20.04-ec2		 |
@@ -159,12 +179,12 @@ from sagemaker import image_uris
 
 triton_framework = "sagemaker-tritonserver"
 region="us-west-2"
-version="24.09"
 instance_type="ml.g5.12xlarge"
 
-uri = image_uris.retrieve(framework=triton_framework, region=region, version=version, instance_type=instance_type)
+available_versions = list(image_uris.config_for_framework(triton_framework)['versions'].keys())
+image_uri = image_uris.retrieve(framework=triton_framework, region=region, instance_type=instance_type, version=available_versions[0])
 ```
-3. Available versions: `23.12`, `24.01`, `24.03`, `24.05` and `24.09`.
+3. Available versions: `25.04`, `24.09`, `24.05`, `24.03`, `24.01`, `23.12`
 
 The Sagemaker Triton inference containers are built on top of the NGC containers with SageMaker support. To identify the python version and versions for other packages please refer to the corresponding official release notes for the specific version here: https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/index.html
 
@@ -219,16 +239,16 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version  | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|--------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 1.2.0 | 1.2.0              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-gpu-py311-cu124-ubuntu22.04 |
-| AutoGluon 1.2.0 | 1.2.0              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-cpu-py311-ubuntu22.04       |
+| AutoGluon 1.3.0 | 1.3.0              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.3.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.3.0 | 1.3.0              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.3.0-cpu-py311-ubuntu22.04       |
 
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version  | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|--------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 1.2.0 | 1.2.0              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-gpu-py311-cu124-ubuntu22.04 |
-| AutoGluon 1.2.0 | 1.2.0              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-cpu-py311-ubuntu22.04       |
+| AutoGluon 1.3.0 | 1.3.0              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.3.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.3.0 | 1.3.0              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.3.0-cpu-py311-ubuntu22.04       |
 
 HuggingFace Training Containers
 ===============================
@@ -302,8 +322,10 @@ Note: Starting from Neuron SDK 2.17.0, Dockerfiles for PyTorch Neuron Containers
 
 | Framework                                                                                                                                          | Neuron Package                                           | Neuron SDK Version | Job Type  | Supported EC2 Instance Types | Python Version Options | Example URL                                                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|--------------------|-----------|------------------------------|------------------------|----------------------------------------------------------------------------------------------------------------------|
+| [PyTorch 2.6.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.23.0/docker/pytorch/inference/2.6.0/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.23.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.6.0-neuronx-py310-sdk2.23.0-ubuntu22.04     |
+| [PyTorch 2.6.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.23.0/docker/pytorch/training/2.6.0/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.23.0      | training | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.6.0-neuronx-py310-sdk2.23.0-ubuntu22.04     |
 | [PyTorch 2.5.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.22.0/docker/pytorch/inference/2.5.1/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.22.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.5.1-neuronx-py310-sdk2.22.0-ubuntu22.04     |
-| [PyTorch 2.5.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.22.0/docker/pytorch/training/2.5.1/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.22.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.5.1-neuronx-py310-sdk2.22.0-ubuntu22.04     |
+| [PyTorch 2.5.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.22.0/docker/pytorch/training/2.5.1/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.22.0      | training | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.5.1-neuronx-py310-sdk2.22.0-ubuntu22.04     |
 | [PyTorch 2.1.2](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/inference/2.1.2/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed | Neuron 2.20.2      | inference | trn1,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.1.2-neuronx-py310-sdk2.20.2-ubuntu20.04     |
 | [PyTorch 2.1.2](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/training/2.1.2/Dockerfile.neuronx)               | torch-neuronx, neuronx_distributed                       | Neuron 2.20.2      | training  | trn1, inf2                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.1.2-neuronx-py310-sdk2.20.2-ubuntu20.04      |
 | [PyTorch 1.13.1](https://github.com/aws-neuron/deep-learning-containers/blob/2.20.2/docker/pytorch/inference/1.13.1/Dockerfile.neuron)             | torch-neuron                                             | Neuron 2.20.2      | inference | inf1                         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuron:1.13.1-neuron-py310-sdk2.20.2-ubuntu20.04      |
@@ -324,6 +346,8 @@ Prior EC2 Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| PyTorch 2.6.0     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-ec2             |
+| PyTorch 2.6.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-ec2       |
 | PyTorch 2.5.1     |training	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-ec2             |
 | PyTorch 2.5.1     |training	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2       |
 | PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-ec2            |
@@ -337,6 +361,8 @@ Prior SageMaker Framework Container Versions
 ==============
 | Framework 			                      |Job Type 			   |Horovod Options 			     |CPU/GPU 	  |Python Version Options 			      |Example URL 			                                                                               |
 |---------------------------------------------|------------------------|---------------------------------|------------|---------------------------------------|----------------------------------------------------------------------------------------------------|
+| PyTorch 2.6.0     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
+| PyTorch 2.6.0     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker     |
 | PyTorch 2.5.1     | training	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-sagemaker           |
 | PyTorch 2.5.1     | training	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker     |
 | PyTorch 2.5.1     | inference	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker           |
@@ -367,16 +393,16 @@ Prior AutoGluon Training Containers
 
 | Framework       | AutoGluon Version | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|-------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.1 | 1.1.1              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.1-gpu-py311-cu121-ubuntu20.04 |
-| AutoGluon 1.1.1 | 1.1.1              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.1.1-cpu-py311-ubuntu20.04       |
+| AutoGluon 1.2.0 | 1.2.0              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.2.0 | 1.2.0              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.2.0-cpu-py311-ubuntu22.04       |
 
 Prior AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|-------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 1.1.1 | 1.1.1              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.1-gpu-py311-cu121-ubuntu20.04 |
-| AutoGluon 1.1.1 | 1.1.1              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.1.1-cpu-py311-ubuntu20.04       |
+| AutoGluon 1.2.0 | 1.2.0              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.2.0 | 1.2.0              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.2.0-cpu-py311-ubuntu22.04       |
 
 Prior SageMaker Training Compiler Containers
 ===============================

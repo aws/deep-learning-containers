@@ -9,8 +9,13 @@ from packaging.specifiers import SpecifierSet
 import test.test_utils.ec2 as ec2_utils
 
 from test import test_utils
-from test.test_utils.ec2 import get_ec2_instance_type, get_ec2_accelerator_type
+from test.test_utils.ec2 import (
+    get_ec2_instance_type,
+    get_ec2_accelerator_type,
+    execute_ec2_telemetry_test,
+)
 from test.dlc_tests.conftest import LOGGER
+from test.test_utils import CONTAINER_TESTS_PREFIX
 
 TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."
@@ -21,6 +26,7 @@ TF_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.4xlarge", processor
 TF_EC2_EIA_ACCELERATOR_TYPE = get_ec2_accelerator_type(default="eia1.large", processor="eia")
 TF_EC2_NEURON_ACCELERATOR_TYPE = get_ec2_instance_type(default="inf1.xlarge", processor="neuron")
 TF_EC2_NEURONX_ACCELERATOR_TYPE = get_ec2_instance_type(default="trn1.2xlarge", processor="neuronx")
+TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTelemetry")
 TF_EC2_NEURONX_INF2_ACCELERATOR_TYPE = get_ec2_instance_type(
     default="inf2.xlarge", processor="neuronx"
 )
@@ -30,10 +36,10 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     filter_function=ec2_utils.filter_only_single_gpu,
 )
 TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+    default="c6g.8xlarge", processor="cpu", arch_type="graviton"
 )
 TF_EC2_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="arm64"
+    default="c6g.8xlarge", processor="cpu", arch_type="arm64"
 )
 
 
@@ -244,7 +250,7 @@ def test_ec2_tensorflow_inference_eia_gpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_gpu_telemetry(
+def test_ec2_tensorflow_inference_telemetry_framework_gpu(
     tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
@@ -257,11 +263,65 @@ def test_ec2_tensorflow_inference_gpu_telemetry(
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_telemetry_bashrc_gpu(
+    tensorflow_inference, ec2_connection, region, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_inference, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_inference} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_ec2_tensorflow_inference_cpu_telemetry(
+def test_ec2_tensorflow_inference_telemetry_framework_cpu(
     tensorflow_inference, ec2_connection, region, cpu_only
 ):
     run_ec2_tensorflow_inference(tensorflow_inference, ec2_connection, "8500", region, True)
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("mnist")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_ec2_tensorflow_inference_telemetry_bashrc_cpu(
+    tensorflow_inference, ec2_connection, region, cpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
 
 
 @pytest.mark.model("mnist")
@@ -291,7 +351,7 @@ def test_ec2_tensorflow_inference_arm64_cpu(
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
+def test_ec2_tensorflow_inference_graviton_telemetry_framework_cpu(
     tensorflow_inference_graviton, ec2_connection, region, cpu_only
 ):
     run_ec2_tensorflow_inference(
@@ -304,10 +364,36 @@ def test_ec2_tensorflow_inference_graviton_cpu_telemetry(
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
-def test_ec2_tensorflow_inference_arm64_cpu_telemetry(
+def test_ec2_tensorflow_inference_arm64_telemetry_framework_cpu(
     tensorflow_inference_arm64, ec2_connection, region, cpu_only
 ):
     run_ec2_tensorflow_inference(tensorflow_inference_arm64, ec2_connection, "8500", region, True)
+
+
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+def test_ec2_tensorflow_inference_arm64_telemetry_bashrc_cpu(
+    tensorflow_inference_arm64, ec2_connection, region, cpu_only
+):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference_arm64,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_inference_arm64,
+        "bashrc",
+        "tensorflow_inf_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
 
 
 def run_ec2_tensorflow_inference(

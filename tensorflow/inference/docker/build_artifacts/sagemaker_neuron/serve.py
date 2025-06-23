@@ -298,9 +298,9 @@ class ServiceManager(object):
             "NGINX_HTTP_PORT": self._nginx_http_port,
             "NGINX_LOG_LEVEL": self._nginx_loglevel,
             "FORWARD_PING_REQUESTS": GUNICORN_PING if self._use_gunicorn else JS_PING,
-            "FORWARD_INVOCATION_REQUESTS": GUNICORN_INVOCATIONS
-            if self._use_gunicorn
-            else JS_INVOCATIONS,
+            "FORWARD_INVOCATION_REQUESTS": (
+                GUNICORN_INVOCATIONS if self._use_gunicorn else JS_INVOCATIONS
+            ),
             "PROXY_READ_TIMEOUT": str(self._nginx_proxy_read_timeout_seconds),
         }
 
