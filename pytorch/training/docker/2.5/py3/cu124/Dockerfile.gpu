@@ -64,6 +64,7 @@ ARG HWLOC_VERSION
 ARG AWS_OFI_NCCL_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
+ENV CUDA_HOME="/opt/conda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
@@ -109,7 +110,7 @@ RUN apt-get update \
     unzip \
     vim \
     wget \
-    cuda-toolkit-12=${CUDA_VERSION}-1 \
+    # cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     libhwloc-dev \
