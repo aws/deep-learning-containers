@@ -4,7 +4,7 @@ on: [pull_request]
 
 jobs:
   python-formatting:
-    runs-on: ubuntulatest
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - uses: psf/black@24.8.0
