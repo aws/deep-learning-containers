@@ -136,8 +136,8 @@ def _update_test_fixtures_mapping(file_to_check, test_fixtures_mapping):
             if re.match(test_func_pattern, line):
                 function_name = re.match(test_func_pattern, line).group(1)
                 # Map list of fixtures per tests
-                test_fixtures_mapping[f"{os.path.basename(file_to_check)}::{function_name}"] = (
-                    fixture_list
-                )
+                test_fixtures_mapping[
+                    f"{os.path.basename(file_to_check)}::{function_name}"
+                ] = fixture_list
                 # Empty test_fixtures list for the next test method
                 fixture_list = []

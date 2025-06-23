@@ -564,9 +564,9 @@ class FP16_Optimizer(object):
                             master_param_buffer, requires_grad=param.requires_grad
                         )
 
-                        self.master_is_distributed[master_param] = (
-                            self.model.is_distributed_parameter(param)
-                        )
+                        self.master_is_distributed[
+                            master_param
+                        ] = self.model.is_distributed_parameter(param)
                         self.master_distribution_axis[id(master_param)] = get_distribution_axis(
                             param
                         )
