@@ -1,6 +1,6 @@
 {
   "accelerate": {
-    "version_specifier": "==1.8.0",
+    "version_specifier": "==1.8.1",
     "skip": "True"
   },
   "fastai": {
@@ -25,10 +25,6 @@
   },
   "torchaudio": {
     "version_specifier": "==2.5.1",
-    "skip": "True"
-  },
-  "torchtext": {
-    "version_specifier": "==0.18.0",
     "skip": "True"
   },
   "torchtnt": {
