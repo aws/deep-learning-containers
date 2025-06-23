@@ -1,4 +1,4 @@
 {
     "65189": "Ray - autogluon uses ray >=2.10,< 2.45",
-    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use",
+    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use"
 }
