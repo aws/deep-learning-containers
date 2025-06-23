@@ -9,11 +9,14 @@ PT_VERSION=$(python -c "import torch; print(torch.__version__.split('+')[0]);")
 CUDA_VERSION=$(python -c "import torch; print(torch.version.cuda.replace('.', '') if torch.version.cuda else 'None')")
 
 # install OSS PyTorch
-if [ $(version $PT_VERSION) -lt $(version "2.0") ] || [ $(version $PT_VERSION) -ge $(version "2.4") ]; then
-    pip uninstall -y torch torchvision torchaudio torchdata
-else
-    conda remove -y --force pytorch torchvision torchaudio
-fi
+# if [ $(version $PT_VERSION) -lt $(version "2.0") ] || [ $(version $PT_VERSION) -ge $(version "2.4") ]; then
+#     pip uninstall -y torch torchvision torchaudio torchdata
+# else
+#     conda remove -y --force pytorch torchvision torchaudio
+# fi
+
+# NOTE: TEMP remove conda for custom PT 2.5 GPU test
+conda remove -y --force pytorch torchvision torchaudio
 
 if [ "$CUDA_VERSION" != "None" ]; then
     echo "CUDA is available. Version: $CUDA_VERSION"
