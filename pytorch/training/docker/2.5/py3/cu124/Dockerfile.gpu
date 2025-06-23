@@ -248,7 +248,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=78.1.0" \
+    "setuptools>=78.1.1" \
     "urllib3<2" \
     "awscli<2" \
     libgcc \
