@@ -28,8 +28,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
  # Install AutoGluon, ensuring no vulnerable dependencies are left behind
- && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
-
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION}
+ 
 
 # add TS entrypoint
 
