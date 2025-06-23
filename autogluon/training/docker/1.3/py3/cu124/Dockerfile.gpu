@@ -26,7 +26,9 @@ RUN pip install --no-cache-dir -U pip setuptools wheel build
 # Comments are added to explain the reason behind each update
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
- && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION}
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install --no-cache-dir "pathos<0.3.3"
+
 
 
 
