@@ -380,7 +380,8 @@ RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
-    pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio torchtext=0.18.0 \
+    # pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio torchtext=0.18.0 \
+    pytorch-cuda=12.4 cuda-nvcc=12.4.* torchvision torchaudio \
     --override-channels \
     -c pytorch \
     -c nvidia \
