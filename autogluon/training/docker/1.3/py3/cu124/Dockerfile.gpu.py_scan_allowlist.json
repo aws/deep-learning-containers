@@ -1,5 +1,4 @@
 {
     "65189": "Ray - autogluon uses ray >=2.10,< 2.45",
-    "72089": "Affected versions of NLTK are vulnerable to Remote Code Execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used.",
     "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use"
 }
