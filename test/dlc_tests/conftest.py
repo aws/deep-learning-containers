@@ -1288,9 +1288,11 @@ def below_tf216_only():
 def below_tf218_only():
     pass
 
+
 @pytest.fixture(scope="session")
 def below_tf219_only():
     pass
+
 
 @pytest.fixture(scope="session")
 def skip_tf216():
@@ -1301,9 +1303,11 @@ def skip_tf216():
 def skip_tf218():
     pass
 
+
 @pytest.fixture(scope="session")
 def skip_tf219():
     pass
+
 
 @pytest.fixture(scope="session")
 def mx18_and_above_only():
