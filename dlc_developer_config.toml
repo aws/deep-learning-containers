@@ -94,11 +94,11 @@ ipv6_vpc_name = ""
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = true
 # run efa sagemaker tests
-sagemaker_efa_tests = false
+sagemaker_efa_tests = true
 # run release_candidate_integration tests
-sagemaker_rc_tests = false
+sagemaker_rc_tests = true
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = false
+sagemaker_benchmark_tests = true
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -119,7 +119,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-ec2.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-6-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
