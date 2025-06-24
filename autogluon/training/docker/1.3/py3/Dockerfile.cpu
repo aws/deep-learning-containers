@@ -30,7 +30,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  # FastAI, breaking changes from 2.7 to 2.8, maintaining same version for both training and inference to load model correctly
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
   # Fix pip test
- && pip install --no-cache-dir "datasets<3.1.0" 
+ && pip install --no-cache-dir "datasets<3.1.0" \
+ && pip install --no-cache-dir "pathos<0.3.3"
  
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
