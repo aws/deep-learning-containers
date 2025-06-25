@@ -1,6 +1,6 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12.11
-ARG PYTHON_SHORT_VERSION=3.11
+ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.5.1
 
 ARG MINIFORGE3_VERSION=24.9.0-0
@@ -397,10 +397,10 @@ ARG FLASH_ATTN_VERSION
 # ARG TORCHTEXT_URL
 
 # SageMaker Profiler Binary
-ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
+# ARG SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu124/smprof-0.3.341-cp311-cp311-linux_x86_64.whl
 
 # SageMaker DataParallel Binary
-ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.5.1/cu124/03-10-25/smdistributed_dataparallel-2.6.0-cp311-cp311-linux_x86_64.whl
+# ARG SMD_DATA_PARALLEL_URL=https://smdataparallel.s3.us-east-1.amazonaws.com/binary/pytorch/2.5.1/cu124/03-10-25/smdistributed_dataparallel-2.6.0-cp311-cp311-linux_x86_64.whl
 
 WORKDIR /
 
@@ -486,7 +486,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
 RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Add SageMaker DataParallel to LD_LIBRARY_PATH
-ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
+# ENV LD_LIBRARY_PATH="/opt/conda/lib/python${PYTHON_SHORT_VERSION}/site-packages/smdistributed/dataparallel/lib:$LD_LIBRARY_PATH"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
