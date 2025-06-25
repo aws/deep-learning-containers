@@ -40,6 +40,7 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_cpu
+@pytest.mark.skip("NOTE: TEMP SKIP for custom PT 2.5 py312 container. No profiler py312 supported")
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
     _skip_if_image_is_not_compatible_with_smppy(docker_image)
     estimator = PyTorch(
