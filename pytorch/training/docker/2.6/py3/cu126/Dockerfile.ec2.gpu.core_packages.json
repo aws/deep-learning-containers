@@ -47,7 +47,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5"
   },
   "awscli": {
     "version_specifier": "<2"
