@@ -66,9 +66,7 @@ def get_framework_from_image_uri(image_uri):
                         else (
                             "pytorch"
                             if "pytorch" in image_uri
-                            else "tensorflow"
-                            if "tensorflow" in image_uri
-                            else None
+                            else "tensorflow" if "tensorflow" in image_uri else None
                         )
                     )
                 )
