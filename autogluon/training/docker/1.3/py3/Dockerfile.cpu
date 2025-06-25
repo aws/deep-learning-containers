@@ -29,8 +29,8 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir "jupyter_core>=5.8.0" \
  # FastAI, breaking changes from 2.7 to 2.8, maintaining same version for both training and inference to load model correctly
- && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
   # Fix pip test
+ && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "pathos<0.3.3"
  
 RUN HOME_DIR=/root \
