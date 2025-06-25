@@ -404,11 +404,11 @@ ARG FLASH_ATTN_VERSION
 
 WORKDIR /
 
-# Install SageMaker Profiler Binary
-RUN pip install --no-cache-dir -U ${SMP_URL}
-
-# Install SM Distributed DataParallel binary
-RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
+# # Install SageMaker Profiler Binary
+# RUN pip install --no-cache-dir -U ${SMP_URL}
+#
+# # Install SM Distributed DataParallel binary
+# RUN SMDATAPARALLEL_PT=1 pip install --no-cache-dir ${SMD_DATA_PARALLEL_URL}
 
 # Install PyTorch
 RUN /opt/conda/bin/mamba install -y python=${PYTHON_SHORT_VERSION} pytorch=${PYTORCH_VERSION} \
