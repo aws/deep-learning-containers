@@ -1,7 +1,7 @@
 {
   "mlflow": [
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.0.0rc0 or newer, enabling a maliciously uploaded Tensorflow model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37057",
       "name": "CVE-2024-37057",
       "package_name": "mlflow",
@@ -12,7 +12,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -26,7 +30,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Remote Code Execution can occur in versions of the MLflow platform running version 1.11.0 or newer, enabling a maliciously crafted MLproject to execute arbitrary code on an end user\u2019s system when run.",
+      "description": "Remote Code Execution can occur in versions of the MLflow platform running version 1.11.0 or newer, enabling a maliciously crafted MLproject to execute arbitrary code on an end user’s system when run.",
       "vulnerability_id": "CVE-2024-37061",
       "name": "CVE-2024-37061",
       "package_name": "mlflow",
@@ -37,7 +41,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -51,7 +59,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.24.0 or newer, enabling a maliciously uploaded pmdarima model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.24.0 or newer, enabling a maliciously uploaded pmdarima model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37055",
       "name": "CVE-2024-37055",
       "package_name": "mlflow",
@@ -62,7 +70,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -76,7 +88,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.23.0 or newer, enabling a maliciously uploaded LightGBM scikit-learn model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.23.0 or newer, enabling a maliciously uploaded LightGBM scikit-learn model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37056",
       "name": "CVE-2024-37056",
       "package_name": "mlflow",
@@ -87,7 +99,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -101,7 +117,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.5.0 or newer, enabling a maliciously uploaded Langchain AgentExecutor model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 2.5.0 or newer, enabling a maliciously uploaded Langchain AgentExecutor model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37058",
       "name": "CVE-2024-37058",
       "package_name": "mlflow",
@@ -112,7 +128,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -137,7 +157,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -151,7 +175,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.27.0 or newer, enabling a maliciously crafted Recipe to execute arbitrary code on an end user\u2019s system when run.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.27.0 or newer, enabling a maliciously crafted Recipe to execute arbitrary code on an end user’s system when run.",
       "vulnerability_id": "CVE-2024-37060",
       "name": "CVE-2024-37060",
       "package_name": "mlflow",
@@ -162,7 +186,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -176,7 +204,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 0.9.0 or newer, enabling a maliciously uploaded PyFunc model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 0.9.0 or newer, enabling a maliciously uploaded PyFunc model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37054",
       "name": "CVE-2024-37054",
       "package_name": "mlflow",
@@ -187,7 +215,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -201,7 +233,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.1.0 or newer, enabling a maliciously uploaded scikit-learn model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 1.1.0 or newer, enabling a maliciously uploaded scikit-learn model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37052",
       "name": "CVE-2024-37052",
       "package_name": "mlflow",
@@ -212,7 +244,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -226,7 +262,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 0.5.0 or newer, enabling a maliciously uploaded PyTorch model to run arbitrary code on an end user\u2019s system when interacted with.",
+      "description": "Deserialization of untrusted data can occur in versions of the MLflow platform running version 0.5.0 or newer, enabling a maliciously uploaded PyTorch model to run arbitrary code on an end user’s system when interacted with.",
       "vulnerability_id": "CVE-2024-37059",
       "name": "CVE-2024-37059",
       "package_name": "mlflow",
@@ -237,7 +273,11 @@
         "version": "2.18.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.8,
@@ -368,6 +408,37 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2025-32414 - libxml2",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "jupyter_core": [
+    {
+      "description": "Jupyter Core is a package for the core common functionality of Jupyter projects. When using Jupyter Core prior to version 5.8.0 on Windows, the shared `%PROGRAMDATA%` directory is searched for configuration files (`SYSTEM_CONFIG_PATH` and `SYSTEM_JUPYTER_PATH`), which may allow users to create configuration files affecting other users. Only shared Windows systems with multiple users and unprotected `%PROGRAMDATA%` are affected. Users should upgrade to Jupyter Core version 5.8.0 or later to receive a patch. Some other mitigations are available. As administrator, modify the permissions on the `%PROGRAMDATA%` directory so it is not writable by unauthorized users; or as administrator, create the `%PROGRAMDATA%\\jupyter` directory with appropriately restrictive permissions; or as user or administrator, set the `%PROGRAMDATA%` environment variable to a directory with appropriately restrictive permissions (e.g. controlled by administrators _or_ the current user).",
+      "vulnerability_id": "CVE-2025-30167",
+      "name": "CVE-2025-30167",
+      "package_name": "jupyter_core",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/jupyter_core-5.7.2.dist-info/METADATA",
+        "name": "jupyter_core",
+        "package_manager": "PYTHON",
+        "version": "5.7.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-30167",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-30167 - jupyter_core",
       "reason_to_ignore": "N/A"
     }
   ]
