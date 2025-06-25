@@ -301,7 +301,6 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # remove tmp files
 RUN rm -rf /tmp/*
 
-
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
