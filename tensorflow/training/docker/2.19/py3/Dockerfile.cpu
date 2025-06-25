@@ -203,6 +203,8 @@ RUN HOME_DIR=/root \
 # remove tmp files
 RUN rm -rf /tmp/*
 
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
+
 CMD ["/bin/bash"]
 
 #################################################################
@@ -267,8 +269,6 @@ RUN ${PIP} install \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    #tensorflow-metadata 1.17.1 has requirement protobuf<6.0.0,>=4.25.2, but sagemaker-training need protobuf 3.20.3
-    #"tensorflow-metadata==1.16.1" \
     tensorflow-datasets
 
 # Install rust and cargo
