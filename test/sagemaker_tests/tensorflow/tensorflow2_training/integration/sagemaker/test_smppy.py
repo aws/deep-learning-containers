@@ -52,8 +52,10 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="SageMaker Profiler binary is not installed")
 def test_training_smppy(ecr_image, sagemaker_regions, py_version, tmpdir):
+    if "tensorflow-2.19" in ecr_image:
+        pytest.skip("SageMaker Profiler binary is not installed in TF 2.19")
+    
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smppy_mnist_function)
 
@@ -110,8 +112,10 @@ def _test_smppy_mnist_function(ecr_image, sagemaker_session):
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="SageMaker Profiler binary is not installed")
 def test_training_smppy_multinode(ecr_image, sagemaker_regions, py_version, tmpdir):
+    if "tensorflow-2.19" in ecr_image:
+        pytest.skip("SageMaker Profiler binary is not installed in TF 2.19")
+    
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smppy_mnist_multinode_function)
 

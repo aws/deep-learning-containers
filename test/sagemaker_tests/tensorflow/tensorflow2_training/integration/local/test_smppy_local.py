@@ -41,8 +41,10 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="SageMaker Profiler binary is not installed")
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
+    if "tensorflow-2.19" in docker_image:
+        pytest.skip("SageMaker Profiler binary is not installed in TF 2.19")
+    
     _skip_if_image_is_not_compatible_with_smppy(docker_image)
 
     script = os.path.join(MNIST_PATH, "mnist_smppy.py")

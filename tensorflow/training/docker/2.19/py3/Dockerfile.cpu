@@ -11,16 +11,17 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-
-
-
 FROM base_image AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-# TensorFlow major.minor version
-ENV TF_VERSION=2.19
+# Declaring ARG values
+ARG TF_VERSION=2.19
+ARG PYTHON=python3.12
+ARG PYTHON_VERSION=3.12.11
+ARG PIP=pip3
+ARG OMPI_VERSION=4.1.8
 
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
@@ -29,7 +30,6 @@ ENV DEBCONF_NONINTERACTIVE_SEEN true
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
 # https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
-
 ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
@@ -40,20 +40,10 @@ ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-ARG PYTHON=python3.12
-ARG PYTHON_VERSION=3.12.11
-
-ARG PIP=pip3
-
-ARG OMPI_VERSION=4.1.8
-
-# To be passed to ec2 and sagemaker stages
-ENV PYTHON=${PYTHON}
-ENV PYTHON_VERSION=${PYTHON_VERSION}
-
 ENV PIP=${PIP}
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
     build-essential \
     openssh-client \
     openssh-server \
@@ -193,6 +183,8 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 ARG TF_URL
+ARG PYTHON
+ARG PYTHON_VERSION
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -234,6 +226,8 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG TF_URL
+ARG PYTHON
+ARG PYTHON_VERSION
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -243,9 +237,10 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 RUN apt-get update  \
  && apt-get install -y --no-install-recommends \
     libgtk2.0-dev \
- && apt-get install -y -qq libkrb5-dev \
- && apt-get install -y -qq libsasl2-dev libsasl2-modules \
- && apt-get install -y -qq krb5-user \
+    libkrb5-dev \
+    libsasl2-dev \
+    libsasl2-modules \
+    krb5-user \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
