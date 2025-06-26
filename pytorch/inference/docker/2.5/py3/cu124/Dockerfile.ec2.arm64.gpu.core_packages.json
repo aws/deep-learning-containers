@@ -19,10 +19,7 @@
     "skip": "True"
   },
   "requests": {
-    "version_specifier": ">=2.32.4"
-  },
-  "urllib3": {
-    "version_specifier": ">=2.5.0"
+    "version_specifier": ">=2.32.3"
   },
   "torchserve": {
     "version_specifier": "==0.12.0"

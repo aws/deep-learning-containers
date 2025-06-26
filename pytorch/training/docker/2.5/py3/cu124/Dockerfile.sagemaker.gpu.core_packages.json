@@ -68,9 +68,6 @@
   "sagemaker-experiments": {
     "version_specifier": "<1"
   },
-  "sagemaker-training": {
-    "version_specifier": ">=4.9.0"
-  },
   "cloudpickle": {
     "version_specifier": "==2.2.1"
   },
