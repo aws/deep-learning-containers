@@ -23,6 +23,12 @@ ARG PYTHON_VERSION=3.12.11
 ARG PIP=pip3
 ARG OMPI_VERSION=4.1.8
 
+# To be passed to ec2 and sagemaker stages
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+
+ENV PIP=${PIP}
+
 # prevent stopping by user interaction
 ENV DEBIAN_FRONTEND noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN true
@@ -39,8 +45,6 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-
-ENV PIP=${PIP}
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -183,8 +187,6 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 ARG TF_URL
-ARG PYTHON
-ARG PYTHON_VERSION
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
@@ -228,8 +230,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG TF_URL
-ARG PYTHON
-ARG PYTHON_VERSION
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main

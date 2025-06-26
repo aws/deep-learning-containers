@@ -28,6 +28,12 @@ ARG CUDA_DASH=12-5
 ARG CUDNN=9.3.0.75
 ARG NCCL_VERSION=2.23.4-1+cuda12.5
 
+# To be passed to ec2 and sagemaker stages
+ENV PYTHON=${PYTHON}
+ENV PYTHON_VERSION=${PYTHON_VERSION}
+
+ENV PIP=${PIP}
+
 ENV OPEN_MPI_PATH=/opt/amazon/openmpi
 ENV EFA_PATH=/opt/amazon/efa
 
@@ -48,8 +54,6 @@ ENV KMP_AFFINITY=granularity=fine,compact,1,0
 ENV KMP_BLOCKTIME=1
 ENV KMP_SETTINGS=0
 ENV RDMAV_FORK_SAFE=1
-
-ENV PIP=${PIP}
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades  --allow-change-held-packages \
@@ -250,8 +254,6 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 
 ARG TF_URL
-ARG PYTHON
-ARG PYTHON_VERSION
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -295,8 +297,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG TF_URL
-ARG PYTHON
-ARG PYTHON_VERSION
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
