@@ -116,7 +116,9 @@ class JobRequester:
         return (
             "ml.g5.12xlarge"
             if "gpu" in image
-            else "ml.c5.4xlarge" if "tensorflow" in image else "ml.c5.9xlarge"
+            else "ml.c5.4xlarge"
+            if "tensorflow" in image
+            else "ml.c5.9xlarge"
         )
 
     def extract_timestamp(self, ticket_key):
