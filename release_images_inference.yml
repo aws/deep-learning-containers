@@ -195,7 +195,7 @@ release_images:
       cuda_version: "cu128"
       example: False
       disable_sm_tag: True
-      force_release: True
+      force_release: False
   16:
     framework: "djl"
     version: "0.32.0"
