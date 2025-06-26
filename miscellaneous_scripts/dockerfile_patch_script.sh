@@ -27,6 +27,15 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
+
+##### Temporary Fixes #####
+
+# For TF 2.18 training sm gpu, replace entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/tensorflow-training:2\.18\.0-gpu(.+)sagemaker ]]; then
+    mv /tmp/new-tf-entrypoint /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/dockerd-entrypoint.py
+fi
+
 # For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu ]]; then
     apt update && apt install -y --no-install-recommends openssh-client openssh-server && echo "Installed openssh-client openssh-server"
@@ -39,29 +48,18 @@ elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazon
     curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 fi
 
-# Install packages and derive history and package diff data
-chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
-$PATCHING_INFO_PATH/patch-details/install_script_language.sh
-
 # Upgrade sagemaker-training
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6](.+)sagemaker ]]; then
     pip install -U "sagemaker-training>4.7.4" "protobuf>=4.25.8,<6"
 fi
 
-# For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
-# replace start_cuda_compat.sh if it's a gpu image
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)gpu(.+)sagemaker ]]; then
-    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
+# For PT inference gpu sagemaker images, replace start_cuda_compat.sh
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_pytorch_inference_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
-    chmod +x /usr/local/bin/dockerd-entrypoint.py
     chmod +x /usr/local/bin/start_cuda_compat.sh
-elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
-    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
-    chmod +x /usr/local/bin/dockerd-entrypoint.py
-fi
 
 # For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)gpu(.+)sagemaker ]]; then
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_start_with_right_hostname /usr/local/bin/start_with_right_hostname.sh
     mv /tmp/new_pytorch_training_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
     chmod +x /usr/local/bin/start_with_right_hostname.sh
@@ -73,6 +71,13 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     rm -rf /usr/local/cuda/bin/cuobjdump*
     rm -rf /usr/local/cuda/bin/nvdisasm*
 fi
+
+###########################
+
+
+# Install packages and derive history and package diff data
+chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
+$PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 pip cache purge
 
