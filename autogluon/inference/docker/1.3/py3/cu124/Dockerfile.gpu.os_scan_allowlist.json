@@ -1,480 +1,389 @@
 {
-    "linux": [
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Fix hashtab overflow check on 32-bit arches The hashtab code relies on roundup_pow_of_two() to compute the number of hash buckets, and contains an overflow check by checking if the resulting value is 0. However, on 32-bit arches, the roundup code itself can overflow by doing a 32-bit left-shift of an unsigned long value, which is undefined behaviour, so it is not guaranteed to truncate neatly. This was triggered by syzbot on the DEVMAP_HASH type, which contains the same check, copied from the hashtab code. So apply the same fix to hashtab, by moving the overflow check to before the roundup.",
-            "vulnerability_id": "CVE-2024-26884",
-            "name": "CVE-2024-26884",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "187.207"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26884.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-26884 - linux",
-            "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts This patch is against CVE-2023-6270. The description of cve is: A flaw was found in the ATA over Ethernet (AoE) driver in the Linux kernel. The aoecmd_cfg_pkts() function improperly updates the refcnt on `struct net_device`, and a use-after-free can be triggered by racing between the free on the struct and the access through the `skbtxq` global queue. This could lead to a denial of service condition or potential code execution. In aoecmd_cfg_pkts(), it always calls dev_put(ifp) when skb initial code is finished. But the net_device ifp will still be used in later tx()->dev_queue_xmit() in kthread. Which means that the dev_put(ifp) should NOT be called in the success path of skb initial code in aoecmd_cfg_pkts(). Otherwise tx() may run into use-after-free because the net_device is freed. This patch removed the dev_put(ifp) in the success path in aoecmd_cfg_pkts(), and added dev_p",
-            "vulnerability_id": "CVE-2024-26898",
-            "name": "CVE-2024-26898",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "187.207"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26898.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-26898 - linux",
-            "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv() Apply the same fix than ones found in : 8d975c15c0cd (\"ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()\") 1ca1ba465e55 (\"geneve: make sure to pull inner header in geneve_rx()\") We have to save skb->network_header in a temporary variable in order to be able to recompute the network_header pointer after a pskb_inet_may_pull() call. pskb_inet_may_pull() makes sure the needed headers are in skb->head. syzbot reported: BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] BUG: KMSAN: uninit-value in INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] BUG: KMSAN: uninit-value in IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline] BUG: KMSAN: uninit-value in ip_tunnel_rcv+0xed9/0x2ed0 net/ipv4/ip_tunnel.c:409 __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] IP_ECN_",
-            "vulnerability_id": "CVE-2024-26882",
-            "name": "CVE-2024-26882",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "187.207"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26882.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-26882 - linux",
-            "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
-            "vulnerability_id": "CVE-2023-52434",
-            "name": "CVE-2023-52434",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "190.210"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2023-52434 - linux",
-            "reason_to_ignore": "No fix provided"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
-            "vulnerability_id": "CVE-2022-48674",
-            "name": "CVE-2022-48674",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "190.210"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2022-48674 - linux",
-            "reason_to_ignore": "No fix provided"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
-            "vulnerability_id": "CVE-2023-52752",
-            "name": "CVE-2023-52752",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "190.210"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2023-52752 - linux",
-            "reason_to_ignore": "No fix provided"
-        },
-        {
-            "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
-            "vulnerability_id": "CVE-2024-36971",
-            "name": "CVE-2024-36971",
-            "package_name": "linux",
-            "package_details": {
-                "file_path": null,
-                "name": "linux",
-                "package_manager": "OS",
-                "version": "5.4.0",
-                "release": "190.210"
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
-            "source": "UBUNTU_CVE",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-36971 - linux",
-            "reason_to_ignore": "No fix provided"
+  "linux": [
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: aoe: fix the potential use-after-free problem in aoecmd_cfg_pkts This patch is against CVE-2023-6270. The description of cve is: A flaw was found in the ATA over Ethernet (AoE) driver in the Linux kernel. The aoecmd_cfg_pkts() function improperly updates the refcnt on `struct net_device`, and a use-after-free can be triggered by racing between the free on the struct and the access through the `skbtxq` global queue. This could lead to a denial of service condition or potential code execution. In aoecmd_cfg_pkts(), it always calls dev_put(ifp) when skb initial code is finished. But the net_device ifp will still be used in later tx()->dev_queue_xmit() in kthread. Which means that the dev_put(ifp) should NOT be called in the success path of skb initial code in aoecmd_cfg_pkts(). Otherwise tx() may run into use-after-free because the net_device is freed. This patch removed the dev_put(ifp) in the success path in aoecmd_cfg_pkts(), and added dev_p",
+      "vulnerability_id": "CVE-2024-26898",
+      "name": "CVE-2024-26898",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "187.207"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "ray": [
-        {
-            "description": "Anyscale Ray 2.6.3 and 2.8.0 allows a remote attacker to execute arbitrary code via the job submission API. NOTE: the vendor's position is that this report is irrelevant because Ray, as stated in its documentation, is not intended for use outside of a strictly controlled network environment",
-            "vulnerability_id": "CVE-2023-48022",
-            "name": "CVE-2023-48022",
-            "package_name": "ray",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/ray-2.10.0.dist-info/METADATA",
-                "name": "ray",
-                "package_manager": "PYTHONPKG",
-                "version": "2.10.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 9.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-48022",
-            "source": "NVD",
-            "severity": "CRITICAL",
-            "status": "ACTIVE",
-            "title": "CVE-2023-48022 - ray",
-            "reason_to_ignore": "fix not available yet, autogluon uses Ray < 2.11"
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26898.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26898 - linux",
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: net: ip_tunnel: make sure to pull inner header in ip_tunnel_rcv() Apply the same fix than ones found in : 8d975c15c0cd (\"ip6_tunnel: make sure to pull inner header in __ip6_tnl_rcv()\") 1ca1ba465e55 (\"geneve: make sure to pull inner header in geneve_rx()\") We have to save skb->network_header in a temporary variable in order to be able to recompute the network_header pointer after a pskb_inet_may_pull() call. pskb_inet_may_pull() makes sure the needed headers are in skb->head. syzbot reported: BUG: KMSAN: uninit-value in __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] BUG: KMSAN: uninit-value in INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] BUG: KMSAN: uninit-value in IP_ECN_decapsulate include/net/inet_ecn.h:302 [inline] BUG: KMSAN: uninit-value in ip_tunnel_rcv+0xed9/0x2ed0 net/ipv4/ip_tunnel.c:409 __INET_ECN_decapsulate include/net/inet_ecn.h:253 [inline] INET_ECN_decapsulate include/net/inet_ecn.h:275 [inline] IP_ECN_",
+      "vulnerability_id": "CVE-2024-26882",
+      "name": "CVE-2024-26882",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "187.207"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "idna": [
-        {
-            "description": "A vulnerability was identified in the kjd/idna library, specifically within the `idna.encode()` function, affecting version 3.6. The issue arises from the function's handling of crafted input strings, which can lead to quadratic complexity and consequently, a denial of service condition. This vulnerability is triggered by a crafted input that causes the `idna.encode()` function to process the input with considerable computational load, significantly increasing the processing time in a quadratic manner relative to the input size.",
-            "vulnerability_id": "CVE-2024-3651",
-            "name": "CVE-2024-3651",
-            "package_name": "idna",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/ray/_private/runtime_env/agent/thirdparty_files/idna-3.6.dist-info/METADATA",
-                "name": "idna",
-                "package_manager": "PYTHONPKG",
-                "version": "3.6",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-3651 - idna",
-            "reason_to_ignore": "this is as false positive as autogluon uses idna >=3.7"
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26882.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26882 - linux",
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: bpf: Fix hashtab overflow check on 32-bit arches The hashtab code relies on roundup_pow_of_two() to compute the number of hash buckets, and contains an overflow check by checking if the resulting value is 0. However, on 32-bit arches, the roundup code itself can overflow by doing a 32-bit left-shift of an unsigned long value, which is undefined behaviour, so it is not guaranteed to truncate neatly. This was triggered by syzbot on the DEVMAP_HASH type, which contains the same check, copied from the hashtab code. So apply the same fix to hashtab, by moving the overflow check to before the roundup.",
+      "vulnerability_id": "CVE-2024-26884",
+      "name": "CVE-2024-26884",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "187.207"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "transformers": [
-        {
-            "description": "Hugging Face Transformers MaskFormer Model Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the parsing of model files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-25191.",
-            "vulnerability_id": "CVE-2024-11393",
-            "name": "CVE-2024-11393",
-            "package_name": "transformers",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
-                "name": "transformers",
-                "package_manager": "PYTHONPKG",
-                "version": "4.47.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11393",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-11393 - transformers",
-            "reason_to_ignore": "N/A"
-        },
-        {
-            "description": "Hugging Face Transformers MobileViTV2 Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the handling of configuration files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-24322.",
-            "vulnerability_id": "CVE-2024-11392",
-            "name": "CVE-2024-11392",
-            "package_name": "transformers",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
-                "name": "transformers",
-                "package_manager": "PYTHONPKG",
-                "version": "4.47.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11392",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-11392 - transformers",
-            "reason_to_ignore": "N/A"
-        },
-        {
-            "description": "Hugging Face Transformers Trax Model Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the handling of model files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-25012.",
-            "vulnerability_id": "CVE-2024-11394",
-            "name": "CVE-2024-11394",
-            "package_name": "transformers",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
-                "name": "transformers",
-                "package_manager": "PYTHONPKG",
-                "version": "4.47.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8.8,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8.8,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11394",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-11394 - transformers",
-            "reason_to_ignore": "N/A"
-        },
-        {
-            "description": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack. The regular expression used to process code blocks in docstrings contains nested quantifiers, leading to exponential backtracking when processing input with a large number of newline characters. An attacker can exploit this by providing a specially crafted payload, causing high CPU usage and potential application downtime, effectively resulting in a Denial of Service (DoS) scenario.",
-            "vulnerability_id": "CVE-2025-2099",
-            "name": "CVE-2025-2099",
-            "package_name": "transformers",
-            "package_details": {
-                "file_path": "/opt/conda/lib/python3.11/site-packages/transformers-4.49.0.dist-info/METADATA",
-                "name": "transformers",
-                "package_manager": "PYTHON",
-                "version": "4.49.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 7.5,
-            "cvss_v30_score": 0.0,
-            "cvss_v31_score": 7.5,
-            "cvss_v2_score": 0.0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-2099",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2025-2099 - transformers",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC"
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-26884.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-26884 - linux",
+      "reason_to_ignore": "vulnerability from Linux kernel 5.4.0 in base image"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential OOBs in smb2_parse_contexts() Validate offsets and lengths before dereferencing create contexts in smb2_parse_contexts(). This fixes following oops when accessing invalid create contexts from server: BUG: unable to handle page fault for address: ffff8881178d8cc3 #PF: supervisor read access in kernel mode #PF: error_code(0x0000) - not-present page PGD 4a01067 P4D 4a01067 PUD 0 Oops: 0000 [#1] PREEMPT SMP NOPTI CPU: 3 PID: 1736 Comm: mount.cifs Not tainted 6.7.0-rc4 #1 Hardware name: QEMU Standard PC (Q35 + ICH9, 2009), BIOS rel-1.16.2-3-gd478f380-rebuilt.opensuse.org 04/01/2014 RIP: 0010:smb2_parse_contexts+0xa0/0x3a0 [cifs] Code: f8 10 75 13 48 b8 93 ad 25 50 9c b4 11 e7 49 39 06 0f 84 d2 00 00 00 8b 45 00 85 c0 74 61 41 29 c5 48 01 c5 41 83 fd 0f 76 55 <0f> b7 7d 04 0f b7 45 06 4c 8d 74 3d 00 66 83 f8 04 75 bc ba 04 00 RSP: 0018:ffffc900007939e0 EFLAGS: 00010216 RAX: ffffc90000793c78 RBX: ffff8880180cc000 RCX: fff",
+      "vulnerability_id": "CVE-2023-52434",
+      "name": "CVE-2023-52434",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "lightgbm": [
-        {
-            "description": "LightGBM Remote Code Execution Vulnerability",
-            "vulnerability_id": "CVE-2024-43598",
-            "name": "CVE-2024-43598",
-            "package_name": "lightgbm",
-            "package_details": {
-                "file_path": "opt/conda/lib/python3.11/site-packages/lightgbm-4.5.0.dist-info/METADATA",
-                "name": "lightgbm",
-                "package_manager": "PYTHONPKG",
-                "version": "4.5.0",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 8.1,
-            "cvss_v30_score": 0,
-            "cvss_v31_score": 8.1,
-            "cvss_v2_score": 0,
-            "cvss_v3_severity": "HIGH",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43598",
-            "source": "NVD",
-            "severity": "HIGH",
-            "status": "ACTIVE",
-            "title": "CVE-2024-43598 - lightgbm",
-            "reason_to_ignore": "No fix provided"
+      },
+      "cvss_v3_score": 8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52434.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52434 - linux",
+      "reason_to_ignore": "No fix provided"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: erofs: fix pcluster use-after-free on UP platforms During stress testing with CONFIG_SMP disabled, KASAN reports as below: ================================================================== BUG: KASAN: use-after-free in __mutex_lock+0xe5/0xc30 Read of size 8 at addr ffff8881094223f8 by task stress/7789 CPU: 0 PID: 7789 Comm: stress Not tainted 6.0.0-rc1-00002-g0d53d2e882f9 #3 Hardware name: Red Hat KVM, BIOS 0.5.1 01/01/2011 Call Trace: <TASK> .. __mutex_lock+0xe5/0xc30 .. z_erofs_do_read_page+0x8ce/0x1560 .. z_erofs_readahead+0x31c/0x580 .. Freed by task 7787 kasan_save_stack+0x1e/0x40 kasan_set_track+0x20/0x30 kasan_set_free_info+0x20/0x40 __kasan_slab_free+0x10c/0x190 kmem_cache_free+0xed/0x380 rcu_core+0x3d5/0xc90 __do_softirq+0x12d/0x389 Last potentially related work creation: kasan_save_stack+0x1e/0x40 __kasan_record_aux_stack+0x97/0xb0 call_rcu+0x3d/0x3f0 erofs_shrink_workstation+0x11f/0x210 erofs_shrink_scan+0xdc/0x170 shrink_slab.co",
+      "vulnerability_id": "CVE-2022-48674",
+      "name": "CVE-2022-48674",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "nltk": [
-        {
-            "description": "NLTK through 3.8.1 allows remote code execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used. This affects, for example, averaged_perceptron_tagger and punkt.",
-            "vulnerability_id": "CVE-2024-39705",
-            "name": "CVE-2024-39705",
-            "package_name": "nltk",
-            "package_details": {
-                "file_path": "/opt/conda/lib/python3.11/site-packages/nltk-3.8.1.dist-info/METADATA",
-                "name": "nltk",
-                "package_manager": "PYTHON",
-                "version": "3.8.1",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 0.0,
-            "cvss_v31_score": 9.8,
-            "cvss_v2_score": 0.0,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-39705",
-            "source": "NVD",
-            "severity": "CRITICAL",
-            "status": "ACTIVE",
-            "title": "CVE-2024-39705 - nltk",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC"
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2022/CVE-2022-48674.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2022-48674 - linux",
+      "reason_to_ignore": "No fix provided"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: smb: client: fix use-after-free bug in cifs_debug_data_proc_show() Skip SMB sessions that are being teared down (e.g. @ses->ses_status == SES_EXITING) in cifs_debug_data_proc_show() to avoid use-after-free in @ses. This fixes the following GPF when reading from /proc/fs/cifs/DebugData while mounting and umounting [ 816.251274] general protection fault, probably for non-canonical address 0x6b6b6b6b6b6b6d81: 0000 [#1] PREEMPT SMP NOPTI ... [ 816.260138] Call Trace: [ 816.260329] <TASK> [ 816.260499] ? die_addr+0x36/0x90 [ 816.260762] ? exc_general_protection+0x1b3/0x410 [ 816.261126] ? asm_exc_general_protection+0x26/0x30 [ 816.261502] ? cifs_debug_tcon+0xbd/0x240 [cifs] [ 816.261878] ? cifs_debug_tcon+0xab/0x240 [cifs] [ 816.262249] cifs_debug_data_proc_show+0x516/0xdb0 [cifs] [ 816.262689] ? seq_read_iter+0x379/0x470 [ 816.262995] seq_read_iter+0x118/0x470 [ 816.263291] proc_reg_read_iter+0x53/0x90 [ 816.263596] ? srso_alias_return_thunk+0x5",
+      "vulnerability_id": "CVE-2023-52752",
+      "name": "CVE-2023-52752",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ],
-    "torch": [
-        {
-            "description": "PyTorch is a Python package that provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system. In version 2.5.1 and prior, a Remote Command Execution (RCE) vulnerability exists in PyTorch when loading a model using torch.load with weights_only=True. This issue has been patched in version 2.6.0.",
-            "vulnerability_id": "CVE-2025-32434",
-            "name": "CVE-2025-32434",
-            "package_name": "torch",
-            "package_details": {
-                "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.5.1+cpu.dist-info/METADATA",
-                "name": "torch",
-                "package_manager": "PYTHON",
-                "version": "2.5.1+cpu",
-                "release": null
-            },
-            "remediation": {
-                "recommendation": {
-                    "text": "None Provided"
-                }
-            },
-            "cvss_v3_score": 9.8,
-            "cvss_v30_score": 0.0,
-            "cvss_v31_score": 9.8,
-            "cvss_v2_score": 0.0,
-            "cvss_v3_severity": "CRITICAL",
-            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-32434",
-            "source": "NVD",
-            "severity": "CRITICAL",
-            "status": "ACTIVE",
-            "title": "CVE-2025-32434 - torch",
-            "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC"
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2023/CVE-2023-52752.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2023-52752 - linux",
+      "reason_to_ignore": "No fix provided"
+    },
+    {
+      "description": " In the Linux kernel, the following vulnerability has been resolved: net: fix __dst_negative_advice() race __dst_negative_advice() does not enforce proper RCU rules when sk->dst_cache must be cleared, leading to possible UAF. RCU rules are that we must first clear sk->sk_dst_cache, then call dst_release(old_dst). Note that sk_dst_reset(sk) is implementing this protocol correctly, while __dst_negative_advice() uses the wrong order. Given that ip6_negative_advice() has special logic against RTF_CACHE, this means each of the three ->negative_advice() existing methods must perform the sk_dst_reset() themselves. Note the check against NULL dst is centralized in __dst_negative_advice(), there is no need to duplicate it in various callbacks. Many thanks to Clement Lecigne for tracking this issue. This old bug became visible after the blamed commit, using UDP sockets.",
+      "vulnerability_id": "CVE-2024-36971",
+      "name": "CVE-2024-36971",
+      "package_name": "linux",
+      "package_details": {
+        "file_path": null,
+        "name": "linux",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "190.210"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
         }
-    ]
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-36971.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-36971 - linux",
+      "reason_to_ignore": "No fix provided"
+    }
+  ],
+  "ray": [
+    {
+      "description": "Anyscale Ray 2.6.3 and 2.8.0 allows a remote attacker to execute arbitrary code via the job submission API. NOTE: the vendor's position is that this report is irrelevant because Ray, as stated in its documentation, is not intended for use outside of a strictly controlled network environment",
+      "vulnerability_id": "CVE-2023-48022",
+      "name": "CVE-2023-48022",
+      "package_name": "ray",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/ray-2.10.0.dist-info/METADATA",
+        "name": "ray",
+        "package_manager": "PYTHONPKG",
+        "version": "2.10.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-48022",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-48022 - ray",
+      "reason_to_ignore": "fix not available yet, autogluon uses Ray < 2.11"
+    }
+  ],
+  "idna": [
+    {
+      "description": "A vulnerability was identified in the kjd/idna library, specifically within the `idna.encode()` function, affecting version 3.6. The issue arises from the function's handling of crafted input strings, which can lead to quadratic complexity and consequently, a denial of service condition. This vulnerability is triggered by a crafted input that causes the `idna.encode()` function to process the input with considerable computational load, significantly increasing the processing time in a quadratic manner relative to the input size.",
+      "vulnerability_id": "CVE-2024-3651",
+      "name": "CVE-2024-3651",
+      "package_name": "idna",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/ray/_private/runtime_env/agent/thirdparty_files/idna-3.6.dist-info/METADATA",
+        "name": "idna",
+        "package_manager": "PYTHONPKG",
+        "version": "3.6",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-3651",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-3651 - idna",
+      "reason_to_ignore": "this is as false positive as autogluon uses idna >=3.7"
+    }
+  ],
+  "transformers": [
+    {
+      "description": "Hugging Face Transformers MaskFormer Model Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the parsing of model files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-25191.",
+      "vulnerability_id": "CVE-2024-11393",
+      "name": "CVE-2024-11393",
+      "package_name": "transformers",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.47.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11393",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-11393 - transformers",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Hugging Face Transformers MobileViTV2 Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the handling of configuration files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-24322.",
+      "vulnerability_id": "CVE-2024-11392",
+      "name": "CVE-2024-11392",
+      "package_name": "transformers",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.47.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11392",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-11392 - transformers",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Hugging Face Transformers Trax Model Deserialization of Untrusted Data Remote Code Execution Vulnerability. This vulnerability allows remote attackers to execute arbitrary code on affected installations of Hugging Face Transformers. User interaction is required to exploit this vulnerability in that the target must visit a malicious page or open a malicious file.\n\nThe specific flaw exists within the handling of model files. The issue results from the lack of proper validation of user-supplied data, which can result in deserialization of untrusted data. An attacker can leverage this vulnerability to execute code in the context of the current user. Was ZDI-CAN-25012.",
+      "vulnerability_id": "CVE-2024-11394",
+      "name": "CVE-2024-11394",
+      "package_name": "transformers",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/transformers-4.47.0.dist-info/METADATA",
+        "name": "transformers",
+        "package_manager": "PYTHONPKG",
+        "version": "4.47.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-11394",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-11394 - transformers",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "lightgbm": [
+    {
+      "description": "LightGBM Remote Code Execution Vulnerability",
+      "vulnerability_id": "CVE-2024-43598",
+      "name": "CVE-2024-43598",
+      "package_name": "lightgbm",
+      "package_details": {
+        "file_path": "opt/conda/lib/python3.11/site-packages/lightgbm-4.5.0.dist-info/METADATA",
+        "name": "lightgbm",
+        "package_manager": "PYTHONPKG",
+        "version": "4.5.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-43598",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-43598 - lightgbm",
+      "reason_to_ignore": "No fix provided"
+    }
+  ]
 }
