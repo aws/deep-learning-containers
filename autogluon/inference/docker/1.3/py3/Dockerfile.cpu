@@ -28,6 +28,9 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip uninstall -y dataclasses \
  # Install AutoGluon, ensuring no vulnerable dependencies are left behind
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ && pip install --no-cache-dir "nltk>3.8.1,<=3.9" \
+ && pip install --no-cache-dir "requests>=2.32.4" \
+ && pip install --no-cache-dir "urllib3>=2.5.0" \
 #  FastAI, breaking changes from 2.7 to 2.8, maintaining same version for both training and inference to load model correctly
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "ninja<1.11.1.1"
