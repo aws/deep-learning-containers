@@ -599,9 +599,9 @@ def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
     if buildspec_paths:
         for buildspec_path in buildspec_paths:
             orig_buildspec = restore_buildspec(buildspec_path)
-            changes[
-                os.path.join(get_cloned_folder_path(), buildspec_path)
-            ] = f"Restored {buildspec_path} to {orig_buildspec}"
+            changes[os.path.join(get_cloned_folder_path(), buildspec_path)] = (
+                f"Restored {buildspec_path} to {orig_buildspec}"
+            )
 
     if not buildspec_paths or toml_path not in changes:
         restore_default_toml(toml_path)

@@ -1027,9 +1027,7 @@ def _get_safety_ignore_list(image_uri):
                     else (
                         "inference-neuronx"
                         if "inference-neuronx" in image_uri
-                        else "inference-neuron"
-                        if "inference-neuron" in image_uri
-                        else "inference"
+                        else "inference-neuron" if "inference-neuron" in image_uri else "inference"
                     )
                 )
             )
