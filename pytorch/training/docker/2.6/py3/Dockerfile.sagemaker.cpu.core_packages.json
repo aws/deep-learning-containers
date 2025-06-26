@@ -58,6 +58,6 @@
     "version_specifier": ">=2.2.1"
   },
   "protobuf": {
-    "version_specifier": ">4.25.8"
+    "version_specifier": ">=4.25.8"
   }
 }
