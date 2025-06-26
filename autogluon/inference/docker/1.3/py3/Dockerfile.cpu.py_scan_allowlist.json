@@ -1,4 +1,6 @@
 {
     "65189": "Ray - autogluon uses ray >=2.10,< 2.45",
-    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use"
+    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use",
+    "72089": "Remote Code Execution vulnerability with untrusted pickled packages",
+    "77714": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack."
 }
