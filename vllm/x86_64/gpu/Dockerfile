@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
-    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
     PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -42,6 +42,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
     # create symlink for python
     ln -s /usr/bin/python3 /usr/bin/python && \
+    # remove cuobjdump and nvdisasm
+    rm -rf /usr/local/cuda/bin/cuobjdump* && \
+    rm -rf /usr/local/cuda/bin/nvdisasm* && \
     # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \

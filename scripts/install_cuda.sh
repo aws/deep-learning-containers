@@ -12,6 +12,7 @@ function prune_cuda {
     # - Debugging tools (compute-sanitizer, debugger)
     # - Profiling tools (Nsight Compute, Nsight Systems)
     # - Legacy tools (Visual Profiler)
+    # - ELF file processing components
     # This keeps only the essential runtime libraries, headers and development tools
     rm -rf /usr/local/cuda/compute-sanitizer/docs \
         /usr/local/cuda/nsight-compute-****.*.*/docs \
@@ -24,7 +25,9 @@ function prune_cuda {
         /usr/local/cuda/compute-sanitizer \
         /usr/local/cuda/extras/Debugger \
         /usr/local/cuda/nsight-compute-****.*.* \
-        /usr/local/cuda/nsight-systems-****.*.*
+        /usr/local/cuda/nsight-systems-****.*.* \
+        /usr/local/cuda/bin/cuobjdump* \
+        /usr/local/cuda/bin/nvdisasm*
     rm -rf /usr/local/cuda/doc
     rm -rf /usr/local/cuda/samples
     rm -rf /usr/local/cuda/share/doc

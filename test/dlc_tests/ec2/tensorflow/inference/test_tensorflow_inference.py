@@ -36,10 +36,10 @@ TF_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
     filter_function=ec2_utils.filter_only_single_gpu,
 )
 TF_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+    default="c6g.8xlarge", processor="cpu", arch_type="graviton"
 )
 TF_EC2_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="arm64"
+    default="c6g.8xlarge", processor="cpu", arch_type="arm64"
 )
 
 

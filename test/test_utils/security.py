@@ -984,9 +984,9 @@ def conduct_failure_routine(
         )
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
-    return_dict[
-        "s3_filename_for_current_image_ecr_scan_list"
-    ] = s3_filename_for_current_image_ecr_scan_list
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = (
+        s3_filename_for_current_image_ecr_scan_list
+    )
     return return_dict
 
 
@@ -1355,9 +1355,9 @@ def extract_non_patchable_vulnerabilities(
                 docker_exec_command=docker_exec_cmd,
             )
             if allowlistable_python_vulns:
-                non_patchable_vulnerabilities_with_reason.vulnerability_list[
-                    package_name
-                ] = allowlistable_python_vulns
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[package_name] = (
+                    allowlistable_python_vulns
+                )
             else:
                 patchable_packages.append(package_name)
 
