@@ -47,7 +47,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5.0"
   },
   "awscli": {
     "version_specifier": "<2"
@@ -60,5 +60,8 @@
   },
   "cloudpickle": {
     "version_specifier": ">=2.2.1"
+  },
+  "protobuf": {
+    "version_specifier": ">4.25.8"
   }
 }
