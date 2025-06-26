@@ -47,8 +47,5 @@
   },
   "awscli": {
     "version_specifier": "<2"
-  },
-  "protobuf": {
-    "version_specifier": ">=4.25.8"
   }
 }
