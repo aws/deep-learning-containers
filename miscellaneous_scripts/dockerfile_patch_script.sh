@@ -45,7 +45,7 @@ $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 # Upgrade sagemaker-training
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6](.+)sagemaker ]]; then
-    pip install -U "sagemaker-training>4.7.4" "protobuf>=4.25.8"
+    pip install -U "sagemaker-training>4.7.4" "protobuf>=4.25.8,<6"
 fi
 
 # For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
