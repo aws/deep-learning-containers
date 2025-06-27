@@ -1078,6 +1078,7 @@ def test_license_file(image):
     framework, version = get_framework_and_version_from_tag(image)
     if framework == "autogluon":
         short_version = get_pytorch_version_from_autogluon_image(image)
+        framework = "pytorch"
     else:
         short_version = re.search(r"(\d+\.\d+)", version).group(0)
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
