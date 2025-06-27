@@ -45,7 +45,7 @@
     "version_specifier": "<1"
   },
   "sagemaker-training": {
-    "version_specifier": "<=4.8.3"
+    "version_specifier": ">=4.8.3"
   },
   "tqdm": {
     "version_specifier": ">=4.66.3"
