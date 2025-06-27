@@ -12,7 +12,7 @@ if [ ! -d $PATCHING_INFO_PATH/patch-details-archive ] ; then \
     echo $LATEST_RELEASED_IMAGE_SHA >> $PATCHING_INFO_PATH/patch-details-archive/first_image_sha.txt ; \
 fi
 
-## We use > instead of >> since we want to override the contents of the previous file.
+# We use > instead of >> since we want to override the contents of the previous file
 echo $LATEST_RELEASED_IMAGE_SHA > $PATCHING_INFO_PATH/patch-details-archive/last_released_image_sha.txt
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
@@ -26,6 +26,10 @@ fi
 
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
+
+# Language patching
+chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
+$PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
 
 ##### Temporary Fixes #####
@@ -75,12 +79,6 @@ fi
 ###########################
 
 
-# Install packages and derive history and package diff data
-chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
-$PATCHING_INFO_PATH/patch-details/install_script_language.sh
-
-pip cache purge
-
 ## Update GPG key in case Nginx exists
 VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && \
 if [ $VARIABLE != 0 ]; then \
@@ -89,14 +87,12 @@ if [ $VARIABLE != 0 ]; then \
     apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg;
 fi
 
+# OS patching
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_os.sh
 
-rm -rf /var/lib/apt/lists/* && \
-  apt-get clean
-
+# Derive history and package diff data
 python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
-
 python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
 set -e
@@ -111,4 +107,9 @@ HOME_DIR=/root \
     && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
     && rm -rf ${HOME_DIR}/oss_compliance* || exit
 
-rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts
+# Clean up
+pip cache purge
+apt-get clean
+rm -rf /var/lib/apt/lists/*
+rm -rf /tmp/*
+rm -rf /opt/aws/dlc/miscellaneous_scripts
