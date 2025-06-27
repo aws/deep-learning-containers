@@ -44,13 +44,13 @@ PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
 )
 
 PT_EC2_CPU_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="graviton"
+    default="c6g.8xlarge", processor="cpu", arch_type="graviton"
 )
 PT_EC2_GPU_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="graviton"
 )
 PT_EC2_CPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
-    default="c6g.4xlarge", processor="cpu", arch_type="arm64"
+    default="c6g.8xlarge", processor="cpu", arch_type="arm64"
 )
 PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="arm64"
