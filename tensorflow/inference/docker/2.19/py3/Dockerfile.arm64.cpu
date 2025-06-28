@@ -62,7 +62,6 @@ RUN apt-get update \
     zlib1g-dev \
     openssl \
     libssl1.1 \
-    libreadline-gplv2-dev \
     libncursesw5-dev \
     libssl-dev \
     libsqlite3-dev \
