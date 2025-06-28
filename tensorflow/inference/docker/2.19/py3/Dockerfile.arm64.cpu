@@ -28,10 +28,14 @@ ARG PYTHON_VERSION=3.10.14
 ARG TFS_API_VERSION=2.19.0
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.19_aws/cpu_arm/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
+ARG CUDA_DASH=12-2
 
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
+ENV CUDA_DASH=12-2
+ENV NCCL_VERSION=2.18.3-1+cuda12.2
+ENV CUDNN_VERSION=8.9.4.25-1+cuda12.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -50,19 +54,15 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
-    emacs \
-    git \
-    unzip \
     wget \
-    vim \
     libbz2-dev \
     liblzma-dev \
     libffi-dev \
     build-essential \
     zlib1g-dev \
     openssl \
-    libssl1.1 \
     libncursesw5-dev \
+    libreadline-dev \
     libssl-dev \
     libsqlite3-dev \
     tk-dev \
@@ -79,20 +79,62 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && rm -rf ../Python-$PYTHON_VERSION*
 
+# Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb \
+ && dpkg -i libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb \
+ && rm libssl1.1_1.1.1-1ubuntu2.1~18.04.23_amd64.deb
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
+    cuda-command-line-tools-${CUDA_DASH} \
+    cuda-cupti-${CUDA_DASH} \
+    cuda-libraries-${CUDA_DASH} \
+    cuda-nvprune-${CUDA_DASH} \
+    cuda-nvrtc-${CUDA_DASH} \
+    cuda-nvrtc-dev-${CUDA_DASH} \
+    cuda-cudart-dev-${CUDA_DASH} \
+    cuda-nvcc-${CUDA_DASH} \
+    libcufft-${CUDA_DASH} \
+    libcufft-dev-${CUDA_DASH} \
+    libcurand-${CUDA_DASH} \
+    libcurand-dev-${CUDA_DASH} \
+    libcusolver-${CUDA_DASH} \
+    libcusolver-dev-${CUDA_DASH} \
+    libcusparse-dev-${CUDA_DASH} \
+    #cuda-cublas-dev not available with 10-1, install libcublas instead
+    libcublas-${CUDA_DASH} \
+    libcublas-dev-${CUDA_DASH} \
+    libcudnn8=${CUDNN_VERSION} \
+    libcudnn8-dev=${CUDNN_VERSION} \
+    libnccl2=${NCCL_VERSION} \
+    libnccl-dev=${NCCL_VERSION} \
+    libgomp1 \
+    emacs \
+    git \
+    unzip \
+    vim \
+    libfreetype6-dev \
+    pkg-config \
+    software-properties-common \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
+# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
+RUN apt-get install -y --only-upgrade libsasl2-2
+
 # cython, falcon, gunicorn, grpc
-RUN ${PIP} install --no-cache-dir \
+RUN ${PIP} install -U --no-cache-dir \
     "awscli<2" \
     boto3 \
     "cython<3.0" \
     gevent \
     requests \
     grpcio \
-    # protobuf version requirements in https://github.com/tensorflow/serving/blob/master/tensorflow_serving/tools/pip_package/setup.py#L66
-    "protobuf<5.0" \
+    "protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.20.3" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
@@ -115,15 +157,21 @@ EXPOSE 8500 8501
 # Set where models should be stored in the container
 RUN mkdir -p ${MODEL_BASE_PATH}
 
+ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py
+
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 # Create a script that runs the model server so we can use environment variables
 # while also passing in arguments from the docker command line
 RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
-
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -163,6 +211,7 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
+LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG TFS_SHORT_VERSION=2.19
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
@@ -185,6 +234,11 @@ RUN ${PIP} install --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
 # Expose ports
 # gRPC and REST
 EXPOSE 8500 8501
@@ -200,4 +254,5 @@ RUN HOME_DIR=/root \
 
 RUN rm -rf /tmp/*
 
+ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
