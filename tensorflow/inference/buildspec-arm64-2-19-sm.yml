@@ -5,7 +5,7 @@ framework: &FRAMEWORK tensorflow
 version: &VERSION 2.19.0
 short_version: &SHORT_VERSION 2.19
 arch_type: arm64
-autopatch_build: "True"
+#autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
