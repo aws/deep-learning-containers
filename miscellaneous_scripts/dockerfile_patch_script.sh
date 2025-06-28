@@ -109,7 +109,5 @@ HOME_DIR=/root \
 
 # Clean up
 pip cache purge
-apt-get clean
-rm -rf /var/lib/apt/lists/*
-rm -rf /tmp/*
-rm -rf /opt/aws/dlc/miscellaneous_scripts
+rm -rf /var/lib/apt/lists/* && apt-get clean
+rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts
