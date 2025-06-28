@@ -1,4 +1,7 @@
 {
     "65189": "Ray - autogluon uses ray >=2.10,< 2.45",
-    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use"
+    "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use",
+    "72089": "Affected versions of NLTK are vulnerable to Remote Code Execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used. This affects, for example, averaged_perceptron_tagger and punkt.",
+    "77740": "Affected versions of this package are vulnerable to a potential Denial of Service (DoS) attack due to unbounded recursion when parsing untrusted Protocol Buffers data. The pure-Python implementation fails to enforce recursion depth limits when processing recursive groups, recursive messages, or a series of SGROUP tags, leading to stack overflow conditions that can crash the application by exceeding Python's recursion limit.",
+    "77714": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack. The regular expression used to process code blocks in docstrings contains nested quantifiers, leading to exponential backtracking when processing input with a large number of newline characters. An attacker can exploit this by providing a specially crafted payload, causing high CPU usage and potential application downtime, effectively resulting in a Denial of Service (DoS) scenario."
 }
