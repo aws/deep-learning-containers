@@ -80,9 +80,9 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && rm -rf ../Python-$PYTHON_VERSION*
 
  # Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
-RUN wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_arm64.deb\
- && dpkg -i libssl1.1_1.1.1f-1ubuntu2_arm64.deb \
- && rm libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+#RUN wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_arm64.deb\
+# && dpkg -i libssl1.1_1.1.1f-1ubuntu2_arm64.deb \
+# && rm libssl1.1_1.1.1f-1ubuntu2_arm64.deb
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
@@ -96,7 +96,8 @@ RUN ${PIP} install --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    "protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.20.3" \
+    # protobuf version requirements in https://github.com/tensorflow/serving/blob/master/tensorflow_serving/tools/pip_package/setup.py#L66
+    "protobuf<5.0" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
@@ -180,7 +181,7 @@ ENV PATH="$PATH:/sagemaker"
 
 # nginx + njs
 RUN curl -s http://nginx.org/keys/nginx_signing.key | apt-key add - \
- && echo 'deb http://nginx.org/packages/ubuntu/ focal nginx' >> /etc/apt/sources.list \
+ && echo 'deb http://nginx.org/packages/ubuntu/ jammy nginx' >> /etc/apt/sources.list \
  && apt-get update \
  && apt-get -y install --no-install-recommends \
     nginx \
