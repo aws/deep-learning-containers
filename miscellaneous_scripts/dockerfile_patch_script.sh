@@ -108,6 +108,8 @@ HOME_DIR=/root \
     && rm -rf ${HOME_DIR}/oss_compliance* || exit
 
 # Clean up
+echo "cleaning up"
 pip cache purge
-rm -rf /var/lib/apt/lists/* && apt-get clean
+rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts
