@@ -13,7 +13,7 @@
 #                  |_|
 ########################################################
 
-FROM nvidia/cuda:12.2.0-base-ubuntu22.04 AS base_image
+FROM arm64v8/ubuntu:22.04 AS ec2
 
 ENV DEBIAN_FRONTEND=noninteractive \
     LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
@@ -23,8 +23,6 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
-
-FROM base_image AS ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -36,14 +34,10 @@ ARG PYTHON_VERSION=3.10.14
 ARG TFS_API_VERSION=2.19.0
 ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.19_aws/cpu_arm/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
-ARG CUDA_DASH=12-2
 
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
 ENV PYTHON=${PYTHON}
-ENV CUDA_DASH=12-2
-ENV NCCL_VERSION=2.18.3-1+cuda12.2
-ENV CUDNN_VERSION=8.9.4.25-1+cuda12.2
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -62,15 +56,19 @@ RUN apt-get update \
     curl \
     gnupg2 \
     ca-certificates \
+    emacs \
+    git \
+    unzip \
     wget \
+    vim \
     libbz2-dev \
     liblzma-dev \
     libffi-dev \
     build-essential \
     zlib1g-dev \
     openssl \
-    libncursesw5-dev \
     libreadline-dev \
+    libncursesw5-dev \
     libssl-dev \
     libsqlite3-dev \
     tk-dev \
@@ -80,11 +78,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/arm64/cuda-keyring_1.0-1_all.deb && \
-    dpkg -i cuda-keyring_1.0-1_all.deb && \
-    rm cuda-keyring_1.0-1_all.deb && \
-    apt-get update 
-
 # Install python3.10
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
@@ -92,55 +85,12 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && rm -rf ../Python-$PYTHON_VERSION*
 
-# Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
-RUN wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_arm64.deb \
- && dpkg -i libssl1.1_1.1.1f-1ubuntu2_arm64.deb \
- && rm libssl1.1_1.1.1f-1ubuntu2_arm64.deb
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-downgrades \
-    cuda-command-line-tools-${CUDA_DASH} \
-    cuda-cupti-${CUDA_DASH} \
-    cuda-libraries-${CUDA_DASH} \
-    cuda-nvprune-${CUDA_DASH} \
-    cuda-nvrtc-${CUDA_DASH} \
-    cuda-nvrtc-dev-${CUDA_DASH} \
-    cuda-cudart-dev-${CUDA_DASH} \
-    cuda-nvcc-${CUDA_DASH} \
-    libcufft-${CUDA_DASH} \
-    libcufft-dev-${CUDA_DASH} \
-    libcurand-${CUDA_DASH} \
-    libcurand-dev-${CUDA_DASH} \
-    libcusolver-${CUDA_DASH} \
-    libcusolver-dev-${CUDA_DASH} \
-    libcusparse-dev-${CUDA_DASH} \
-    #cuda-cublas-dev not available with 10-1, install libcublas instead
-    libcublas-${CUDA_DASH} \
-    libcublas-dev-${CUDA_DASH} \
-    libcudnn8=${CUDNN_VERSION} \
-    libcudnn8-dev=${CUDNN_VERSION} \
-    libnccl2=${NCCL_VERSION} \
-    libnccl-dev=${NCCL_VERSION} \
-    libgomp1 \
-    emacs \
-    git \
-    unzip \
-    vim \
-    libfreetype6-dev \
-    pkg-config \
-    software-properties-common \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
 
-# Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
-RUN apt-get install -y --only-upgrade libsasl2-2
-
 # cython, falcon, gunicorn, grpc
-RUN ${PIP} install -U --no-cache-dir \
+RUN ${PIP} install --no-cache-dir \
     "awscli<2" \
     boto3 \
     "cython<3.0" \
@@ -224,7 +174,6 @@ LABEL dlc_major_version="1"
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
 LABEL com.amazonaws.sagemaker.capabilities.multi-models=true
-LABEL com.amazonaws.sagemaker.inference.cuda.verified_versions=12.2
 
 ARG TFS_SHORT_VERSION=2.19
 ENV SAGEMAKER_TFS_VERSION="${TFS_SHORT_VERSION}"
@@ -247,11 +196,6 @@ RUN ${PIP} install --no-cache-dir \
 
 COPY ./sagemaker /sagemaker
 
-COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
-
 # Expose ports
 # gRPC and REST
 EXPOSE 8500 8501
@@ -267,5 +211,4 @@ RUN HOME_DIR=/root \
 
 RUN rm -rf /tmp/*
 
-ENTRYPOINT ["bash", "-m", "/usr/local/bin/dockerd_entrypoint.sh"]
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
