@@ -8,7 +8,7 @@ ARG LATEST_RELEASED_IMAGE_URI=""
 COPY patching-info /opt/aws/dlc/patching-info
 COPY miscellaneous_scripts /opt/aws/dlc/miscellaneous_scripts
 
-COPY new-torchserve-entrypoint /tmp/new-torchserve-entrypoint
+COPY new-tf-entrypoint /tmp/new-tf-entrypoint
 COPY new_start_with_right_hostname /tmp/new_start_with_right_hostname
 COPY new_pytorch_inference_start_cuda_compat /tmp/new_pytorch_inference_start_cuda_compat
 COPY new_pytorch_training_start_cuda_compat /tmp/new_pytorch_training_start_cuda_compat

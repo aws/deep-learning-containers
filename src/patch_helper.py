@@ -256,9 +256,14 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "build_artifacts",
     )
 
-    torchserve_entrypoint_path = os.path.join(
-        pytorch_inference_artifacts_path,
-        "torchserve-entrypoint.py",
+    tf_entrypoint_path = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "tensorflow",
+        "training",
+        "docker",
+        "build_artifacts",
+        "dockerd-entrypoint.py",
     )
 
     start_with_right_hostname_path = os.path.join(
@@ -304,9 +309,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": complete_patching_info_dump_location,
             "target": "patching-info",
         },
-        "new-torchserve-entrypoint": {
-            "source": torchserve_entrypoint_path,
-            "target": "new-torchserve-entrypoint",
+        "new-tf-entrypoint": {
+            "source": tf_entrypoint_path,
+            "target": "new-tf-entrypoint",
         },
         "new_start_with_right_hostname": {
             "source": start_with_right_hostname_path,
