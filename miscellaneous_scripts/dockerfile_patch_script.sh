@@ -61,6 +61,7 @@ fi
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_pytorch_inference_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
     chmod +x /usr/local/bin/start_cuda_compat.sh
+fi
 
 # For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
@@ -108,7 +109,7 @@ HOME_DIR=/root \
     && rm -rf ${HOME_DIR}/oss_compliance* || exit
 
 # Clean up
-echo "cleaning up"
+echo "Cleaning up"
 pip cache purge
 rm -rf /var/lib/apt/lists/* && \
     apt-get clean
