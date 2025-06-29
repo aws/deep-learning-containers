@@ -79,6 +79,11 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
  && ./configure && make && make install \
  && rm -rf ../Python-$PYTHON_VERSION*
 
+ # Install libssl1.1 from Ubuntu 20.04 to satisfy CUDA dependencies
+RUN wget http://ports.ubuntu.com/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2_arm64.deb\
+ && dpkg -i libssl1.1_1.1.1f-1ubuntu2_arm64.deb \
+ && rm libssl1.1_1.1.1f-1ubuntu2_arm64.deb
+
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     setuptools
