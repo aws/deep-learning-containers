@@ -42,7 +42,7 @@ NUM_CHECKS = 5
 
 def _skip_if_image_is_not_compatible_with_smppy(image_uri):
     _, framework_version = get_framework_and_version_from_tag(image_uri)
-    compatible_versions = SpecifierSet(">=2.12")
+    compatible_versions = SpecifierSet(">=2.12,!=2.19")
     if Version(framework_version) not in compatible_versions:
         pytest.skip(f"This test only works for TF versions in {compatible_versions}")
 
@@ -52,7 +52,6 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
 @pytest.mark.model("mnist")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="SageMaker Profiler binary is not installed")
 def test_training_smppy(ecr_image, sagemaker_regions, py_version, tmpdir):
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smppy_mnist_function)
@@ -110,7 +109,6 @@ def _test_smppy_mnist_function(ecr_image, sagemaker_session):
 @pytest.mark.multinode(2)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
-@pytest.mark.skip(reason="SageMaker Profiler binary is not installed")
 def test_training_smppy_multinode(ecr_image, sagemaker_regions, py_version, tmpdir):
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     invoke_sm_helper_function(ecr_image, sagemaker_regions, _test_smppy_mnist_multinode_function)
