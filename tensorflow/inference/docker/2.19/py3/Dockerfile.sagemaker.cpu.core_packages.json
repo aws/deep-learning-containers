@@ -9,7 +9,7 @@
         "version_specifier": "<2"
     },
     "tensorflow-serving-api":{
-        "version_specifier": "==2.18.0",
+        "version_specifier": "==2.19.0",
         "skip":"True"
     },
     "falcon":{
