@@ -230,6 +230,7 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG TF_URL
+ARG TF_VERSION
 
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
@@ -254,8 +255,11 @@ RUN apt-get update  \
 # and this is fine since sagemaker is more important than the models and
 # the models still work on pyyaml 6 in this context.
 # Need to install wheel before we can fix the pyyaml issue below
-RUN pip install wheel \
- && pip install "cython<3" "pyyaml<6" --no-build-isolation
+RUN pip install --no-cache-dir -U \
+    wheel \
+    "cython<3" \
+    "pyyaml<6" \
+    --no-build-isolation
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
@@ -263,8 +267,8 @@ RUN ${PIP} install \
     --default-timeout=300 \ 
     --retries 5 \
     --no-cache-dir -U \
-    tf-models-official==2.19.1 \
-    tensorflow-text==2.19.0 \
+    tf-models-official==${TF_VERISON}.1 \
+    tensorflow-text==${TF_VERISON}.0 
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
