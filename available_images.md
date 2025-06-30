@@ -141,8 +141,8 @@ SageMaker Framework Containers (SM support only)
 | PyTorch 2.6.0     | inference	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker     |
 | TensorFlow 2.18.0 | training  | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-cpu-py310-ubuntu22.04-sagemaker		      |
 | TensorFlow 2.18.0 | training  | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.18.0-gpu-py310-cu125-ubuntu22.04-sagemaker  |
-| TensorFlow 2.18.0 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-cpu-py310-ubuntu20.04-sagemaker	      |
-| TensorFlow 2.18.0 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-gpu-py310-cu122-ubuntu20.04-sagemaker |
+| TensorFlow 2.19.0 | inference | No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.19.0-cpu-py312-ubuntu22.04-sagemaker	      |
+| TensorFlow 2.19.0 | inference | No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.19.0-gpu-py312-cu122-ubuntu22.04-sagemaker |
 
 
 EC2 Framework ARM64/Graviton Containers (EC2, ECS, and EKS support only)
@@ -212,6 +212,8 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 
 | Framework                                                                                                                   | Job Type  | Accelerator | Python Version Options | Example URL                                                                               |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|-------------------------------------------------------------------------------------------|
+| DJLServing 0.33.0 with LMI Dist 15.0.0, vLLM 0.8.4, HuggingFace Transformers 4.51.3, and HuggingFace Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-lmi15.0.0-cu128 |
+| DJLServing 0.33.0 with TensorRT-LLM 0.21.0rc1, HuggingFace Transformers 4.51.3, and HuggingFace Accelerate 1.0.1 | inference | GPU | 3.12 (py312)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-tensorrtllm0.21.0-cu128 |
 | DJLServing 0.32.0 with LMI Dist 13.0.0, vLLM 0.7.1, HuggingFace Transformers 4.45.2, and HuggingFace Accelerate 1.0.1 | inference | GPU         | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.32.0-lmi14.0.0-cu126         |
 | DJLServing 0.32.0 with TensorRT-LLM 0.12.0, HuggingFace Transformers 4.44.2, and HuggingFace Accelerate 0.32.1              | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.32.0-tensorrtllm0.12.0-cu125 |
 | DJLServing 0.31.0 with LMI Dist 13.0.0, vLLM 0.6.3.post1, HuggingFace Transformers 4.45.2, and HuggingFace Accelerate 1.0.1 | inference | GPU         | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.31.0-lmi13.0.0-cu124         |
@@ -371,6 +373,8 @@ Prior SageMaker Framework Container Versions
 | PyTorch 2.4.0     | training	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.4.0-gpu-py311-cu124-ubuntu22.04-sagemaker     |
 | PyTorch 2.4.0     | inference	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.4.0-cpu-py311-ubuntu22.04-sagemaker           |
 | PyTorch 2.4.0     | inference	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.4.0-gpu-py311-cu124-ubuntu22.04-sagemaker     |
+| TensorFlow 2.18.0 | inference | No			  | CPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-cpu-py310-ubuntu20.04-sagemaker	    |
+| TensorFlow 2.18.0 | inference | No			  | GPU 	  | 3.10 (py310)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-inference:2.18.0-gpu-py310-cu122-ubuntu20.04-sagemaker |
 
 Prior EC2 Framework ARM64/Graviton Containers
 ============================

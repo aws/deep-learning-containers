@@ -42,6 +42,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
     # create symlink for python
     ln -s /usr/bin/python3 /usr/bin/python && \
+    # remove cuobjdump and nvdisasm
+    rm -rf /usr/local/cuda/bin/cuobjdump* && \
+    rm -rf /usr/local/cuda/bin/nvdisasm* && \
     # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
