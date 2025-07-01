@@ -21,12 +21,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ARG PYTHON=python3.10
+ARG PYTHON=python3.12
 ARG PYTHON_PIP=python3-pip
 ARG PIP=pip3
-ARG PYTHON_VERSION=3.10.14
+ARG PYTHON_VERSION=3.12.10
 ARG TFS_API_VERSION=2.19.0
-ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.19_aws/cpu/2025-06-28-05-43/tensorflow_model_server
+ARG TFS_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/tensorflow_serving/r2.19_aws/cpu_arm/tensorflow_model_server
 ARG TFS_SHORT_VERSION=2.19
 
 # ENV variable to be passed to SageMaker stage
@@ -72,7 +72,7 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-# Install python3.10
+# Install python3.12
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
  && cd Python-$PYTHON_VERSION \
