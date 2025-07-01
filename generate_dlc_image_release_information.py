@@ -74,6 +74,13 @@ if __name__ == "__main__":
     dlc_release_successful = github_publishing_metadata.get("release_successful")
     dlc_region = os.getenv("REGION")
 
+    dlc_public_registry = github_publishing_metadata.get("target_ecr_public_registry")
+    public_registry_image_uri_with_dlc_version = None
+    if dlc_public_registry is not None:
+        public_registry_image_uri_with_dlc_version = (
+            f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
+        )
+
     if dlc_release_successful != "1":
         LOGGER.error(
             "Skipping generation of release information as the DLC release failed/skipped."
@@ -93,6 +100,7 @@ if __name__ == "__main__":
         "imp_apt_packages": dlc_release_information.imp_apt_packages,
         "image_digest": dlc_release_information.image_digest,
         "image_uri_with_dlc_version": dlc_release_information.image,
+        "public_registry_image_uri_with_dlc_version": public_registry_image_uri_with_dlc_version,
         "image_tags": dlc_release_information.image_tags,
         "dlc_release_successful": dlc_release_successful,
     }
