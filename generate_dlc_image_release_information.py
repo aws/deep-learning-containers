@@ -77,9 +77,7 @@ if __name__ == "__main__":
     dlc_public_registry = github_publishing_metadata.get("target_ecr_public_registry")
     public_registry_image_uri_with_dlc_version = None
     if dlc_public_registry is not None:
-        public_registry_image_uri_with_dlc_version = (
-            f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
-        )
+        public_registry_image_uri_with_dlc_version = f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
 
     if dlc_release_successful != "1":
         LOGGER.error(
