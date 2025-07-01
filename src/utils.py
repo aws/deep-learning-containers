@@ -313,7 +313,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
             else (
                 "inference-neuronx"
                 if "neuronx" in image_uri
-                else "inference-neuron" if "neuron" in image_uri else "inference"
+                else "inference-neuron"
+                if "neuron" in image_uri
+                else "inference"
             )
         )
 
@@ -321,7 +323,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "training-neuronx"
             if "neuronx" in image_uri
-            else "training-neuron" if "neuron" in image_uri else "training"
+            else "training-neuron"
+            if "neuron" in image_uri
+            else "training"
         )
 
     if "habana" in image_uri:
