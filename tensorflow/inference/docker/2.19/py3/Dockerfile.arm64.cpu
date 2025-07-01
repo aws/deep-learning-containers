@@ -96,8 +96,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    # protobuf version requirements in https://github.com/tensorflow/serving/blob/master/tensorflow_serving/tools/pip_package/setup.py#L66
-    "protobuf<5.0" \
+    "protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.20.3" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
@@ -134,6 +133,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 # while also passing in arguments from the docker command line
 RUN echo '#!/bin/bash \n\n' > /usr/bin/tf_serving_entrypoint.sh \
  && echo '/usr/bin/tensorflow_model_server --port=8500 --rest_api_port=8501 --model_name=${MODEL_NAME} --model_base_path=${MODEL_BASE_PATH}/${MODEL_NAME} "$@"' >> /usr/bin/tf_serving_entrypoint.sh \
+ && echo 'bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true'  > /usr/bin/tf_serving_entrypoint.sh \
  && chmod +x /usr/bin/tf_serving_entrypoint.sh
 
 RUN HOME_DIR=/root \
