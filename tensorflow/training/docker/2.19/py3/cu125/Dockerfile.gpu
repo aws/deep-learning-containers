@@ -253,6 +253,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 
 ARG TF_URL
+ARG TF_VERSION
 
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
@@ -319,9 +320,6 @@ RUN pip install --no-cache-dir -U \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install \
-    --default-timeout=300 \ 
-    --retries 5 \
-    \
     --default-timeout=300 \ 
     --retries 5 \
     --no-cache-dir -U \

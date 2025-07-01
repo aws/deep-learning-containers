@@ -187,6 +187,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 
 FROM common AS ec2
 ARG TF_URL
+ARG TF_VERSION
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
