@@ -268,7 +268,7 @@ RUN ${PIP} install \
     --retries 5 \
     --no-cache-dir -U \
     tf-models-official==${TF_VERISON}.1 \
-    tensorflow-text==${TF_VERISON}.0 
+    tensorflow-text==${TF_VERISON}.0 \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
