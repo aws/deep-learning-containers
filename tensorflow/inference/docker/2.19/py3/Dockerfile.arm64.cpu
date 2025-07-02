@@ -211,4 +211,8 @@ RUN HOME_DIR=/root \
 
 RUN rm -rf /tmp/*
 
+# Removing cuobjdump and nvdisasm for CVE-2025-23280 CVE-2025-23248
+RUN rm -rf /usr/local/cuda/bin/cuobjdump*
+RUN rm -rf /usr/local/cuda/bin/nvdisasm*
+
 CMD ["/usr/bin/tf_serving_entrypoint.sh"]
