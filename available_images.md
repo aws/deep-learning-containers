@@ -241,17 +241,15 @@ AutoGluon Training Containers
 
 | Framework       | AutoGluon Version  | Job Type | CPU/GPU | Python Version Options | Example URL                                                                                      |
 |-----------------|--------------------|----------|---------|------------------------|--------------------------------------------------------------------------------------------------|
-| AutoGluon 1.3.0 | 1.3.0              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.3.0-gpu-py311-cu124-ubuntu22.04 |
-| AutoGluon 1.3.0 | 1.3.0              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-training:1.3.0-cpu-py311-ubuntu22.04       |
-
+| AutoGluon 1.3.1 | 1.3.1              | training | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.3.0-gpu-py311-cu124-ubuntu22.04-v1.0 |
+| AutoGluon 1.3.1 | 1.3.1              | training | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-training:1.2.0-cpu-py311-ubuntu22.04-v1.0 |
 AutoGluon Inference Containers
 ===============================
 
 | Framework       | AutoGluon Version  | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                                       |
 |-----------------|--------------------|-----------|---------|------------------------|---------------------------------------------------------------------------------------------------|
-| AutoGluon 1.3.0 | 1.3.0              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.3.0-gpu-py311-cu124-ubuntu22.04 |
-| AutoGluon 1.3.0 | 1.3.0              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-west-2.amazonaws.com/autogluon-inference:1.3.0-cpu-py311-ubuntu22.04       |
-
+| AutoGluon 1.3.1 | 1.3.1              | inference | GPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.3.0-gpu-py311-cu124-ubuntu22.04 |
+| AutoGluon 1.3.1 | 1.3.1              | inference | CPU     | 3.11 (py311)             | 763104351884.dkr.ecr.us-east-1.amazonaws.com/autogluon-inference:1.3.0-cpu-py311-ubuntu22.04-v1.0 |
 HuggingFace Training Containers
 ===============================
 
