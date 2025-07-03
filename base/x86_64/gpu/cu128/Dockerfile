@@ -1,10 +1,10 @@
 ARG PYTHON="python3"
-ARG PYTHON_VERSION="3.12.10"
-ARG PYTHON_SHORT_VERSION="3.12"
+ARG PYTHON_VERSION="3.11.12"
+ARG PYTHON_SHORT_VERSION="3.11"
 ARG CUDA_MAJOR="12"
-ARG CUDA_MINOR="8"
+ARG CUDA_MINOR="6"
 ARG EFA_VERSION="1.42.0"
-FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS base-builder
+FROM nvidia/cuda:12.6.3-base-ubuntu22.04 AS base-builder
 
 
 RUN mv /usr/local/cuda/compat /usr/local \
@@ -65,7 +65,7 @@ COPY install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" && rm install_cuda.sh
 
 ##############################################################################
-FROM nvidia/cuda:12.8.1-base-ubuntu24.04 AS final 
+FROM nvidia/cuda:12.6.3-base-ubuntu22.04 AS final 
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
