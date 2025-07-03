@@ -103,7 +103,7 @@ def get_args():
     parser.add_argument(
         "-o",
         action="store_true",
-        help="Comments out autopatch_build and uncomments build_tag_override in buildspec",
+        help="Comments out autopatch_build and uncomments skip_build in buildspec",
     )
     return parser.parse_args()
 
@@ -342,7 +342,7 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
 
 def generate_new_file_content(previous_version_path, major_version, minor_version):
     """
-    Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
+    Generate the content for the new buildspec file with the updated version, short_version, and skip_build values.
     """
     new_version = f"{major_version}.{minor_version}.0"
     with open(previous_version_path, "r") as prev_file:
@@ -354,14 +354,8 @@ def generate_new_file_content(previous_version_path, major_version, minor_versio
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
             elif line.strip().startswith("autopatch_build"):
                 content[i] = f"# {line}"
-            elif line.strip().startswith("# build_tag_override:"):
-                build_tag_parts = line.strip().split('"')
-                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
-                build_tag_rest = (
-                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
-                )
-                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
-                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
+            elif line.strip().startswith("# skip_build:"):
+                content[i] = f"    # skip_build: \"False\"\n"
 
     return content
 
@@ -524,7 +518,7 @@ def create_docker_file(docker_file_path):
 
 def override_existing_buildspec(buildspec_path):
     """
-    Override the autopatch_build and build_tag_override tags in an existing buildspec file.
+    Override the autopatch_build and skip_build tags in an existing buildspec file.
     """
     full_path = validate_buildspec_path(buildspec_path)
     if not full_path:
@@ -533,14 +527,14 @@ def override_existing_buildspec(buildspec_path):
     with open(full_path, "r") as file:
         content = file.readlines()
 
-    build_tag_override_found = any("# build_tag_override:" in line for line in content)
+    skip_build_found = any("# skip_build:" in line for line in content)
 
-    if build_tag_override_found:
+    if skip_build_found:
         updated_content = []
 
         for line in content:
-            if line.strip().startswith("# build_tag_override:"):
-                updated_line = uncomment_build_tag_override_line(line)
+            if line.strip().startswith("# skip_build:"):
+                updated_line = line.strip("# ").replace("False", "True")
             elif line.strip().startswith("autopatch_build"):
                 updated_line = f"# {line}"
             else:
@@ -553,18 +547,8 @@ def override_existing_buildspec(buildspec_path):
         LOGGER.info(f"Updated {buildspec_path}")
     else:
         LOGGER.warning(
-            f"WARNING: No build_tag_override tag found in {buildspec_path}, file will not be overridden"
+            f"WARNING: No skip_build tag found in {buildspec_path}, file will not be overridden"
         )
-
-
-def uncomment_build_tag_override_line(line):
-    """
-    Handle the build_tag_override line based on the override_tags value.
-    """
-    build_tag_parts = line.strip().split(":")
-    build_tag_handle = build_tag_parts[0].strip("# ").strip()
-    rest_of_line = ":".join(build_tag_parts[1:])
-    return f"    {build_tag_handle}: {rest_of_line.strip()}\n"
 
 
 def restore_buildspec(buildspec_path):
