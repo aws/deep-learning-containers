@@ -1,8 +1,9 @@
-from invoke.context import Context
-from datetime import datetime
-
 import json
 import os
+from datetime import datetime
+
+from invoke.context import Context
+
 import utils
 from config import is_autopatch_build_enabled
 

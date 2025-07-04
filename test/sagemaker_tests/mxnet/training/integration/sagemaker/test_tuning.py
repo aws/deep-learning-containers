@@ -15,12 +15,11 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
-from ..... import invoke_sm_helper_function
 from sagemaker.tuner import ContinuousParameter, HyperparameterTuner
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from .timeout import timeout
 

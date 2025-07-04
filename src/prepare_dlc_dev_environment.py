@@ -1,20 +1,19 @@
-import os
 import argparse
 import logging
-import sys
-import re
-import requests
-
-import toml
+import os
 import pprint
-import git
-
-from config import get_dlc_developer_config_path
-from codebuild_environment import get_cloned_folder_path
-from packaging.version import Version
+import re
+import sys
 from pathlib import Path
-from buildspec import Buildspec
 
+import git
+import requests
+import toml
+from packaging.version import Version
+
+from buildspec import Buildspec
+from codebuild_environment import get_cloned_folder_path
+from config import get_dlc_developer_config_path
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

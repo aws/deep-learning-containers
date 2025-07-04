@@ -11,15 +11,18 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import argparse
-import numpy as np
-import os
 import json
+import os
+
+import numpy as np
+
 import tensorflow as tf
 
 tf_major, tf_minor, _ = tf.__version__.split(".")
 if int(tf_major) > 2 or (int(tf_major) == 2 and int(tf_minor) >= 6):
     import tensorflow_io as tfio
-from tensorflow.keras.layers import Conv2D, BatchNormalization, Dense, Flatten
+
+from tensorflow.keras.layers import BatchNormalization, Conv2D, Dense, Flatten
 
 """
 This script uses custom loops to train Mnist model and saves the checkpoints using 

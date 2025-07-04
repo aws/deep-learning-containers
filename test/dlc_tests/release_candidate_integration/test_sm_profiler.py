@@ -1,24 +1,21 @@
-import os
 import json
+import os
 import time
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
-import pytest
-
-from invoke.context import Context
-from invoke.exceptions import UnexpectedExit
-
 from test.test_utils import (
+    LOGGER,
+    get_container_name,
+    get_framework_and_version_from_tag,
+    get_processor_from_image_uri,
     is_mainline_context,
     is_rc_test_context,
-    get_framework_and_version_from_tag,
-    get_container_name,
-    get_processor_from_image_uri,
     is_tf_version,
-    LOGGER,
 )
+
+import pytest
+from invoke.context import Context
+from invoke.exceptions import UnexpectedExit
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 
 @pytest.mark.usefixtures("feature_smdebug_present")

@@ -30,15 +30,15 @@ from __future__ import print_function
 import sys
 import threading
 
-# This is a placeholder for a Google-internal import.
-
 import grpc
+import mnist_input_data
 import numpy
+from tensorflow_serving.apis import predict_pb2, prediction_service_pb2_grpc
+
 import tensorflow as tf
 
-from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2_grpc
-import mnist_input_data
+# This is a placeholder for a Google-internal import.
+
 
 tf.compat.v1.app.flags.DEFINE_integer(
     "concurrency", 1, "maximum number of concurrent inference requests"

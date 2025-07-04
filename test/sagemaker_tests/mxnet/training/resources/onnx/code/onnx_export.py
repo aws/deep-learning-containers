@@ -16,13 +16,14 @@ import argparse
 import json
 import os
 
+import gluoncv
+import numpy as np
+import onnx
+from onnx import checker
+
 # test the new mxnet-onnx module that released since mxnet 1.9.0
 import mxnet
 from mxnet import onnx as onnx_mxnet
-import numpy as np
-import gluoncv
-import onnx
-from onnx import checker
 
 
 def _assert_onnx_validity(model_path):

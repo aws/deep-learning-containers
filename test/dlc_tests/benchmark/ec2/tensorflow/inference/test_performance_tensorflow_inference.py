@@ -1,25 +1,25 @@
 import os
 import time
-import pytest
-
-from packaging.version import Version
-
-from src.benchmark_metrics import (
-    TENSORFLOW_INFERENCE_GPU_THRESHOLD,
-    TENSORFLOW_INFERENCE_CPU_THRESHOLD,
-    get_threshold_for_image,
-)
 from test.test_utils import (
+    UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
+    get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     is_pr_context,
     is_tf_version,
-    UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
     login_to_ecr_registry,
-    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
     post_process_inference,
+)
+
+import pytest
+from packaging.version import Version
+
+from src.benchmark_metrics import (
+    TENSORFLOW_INFERENCE_CPU_THRESHOLD,
+    TENSORFLOW_INFERENCE_GPU_THRESHOLD,
+    get_threshold_for_image,
 )
 
 

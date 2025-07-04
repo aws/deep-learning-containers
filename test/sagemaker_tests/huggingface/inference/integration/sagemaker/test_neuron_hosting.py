@@ -13,21 +13,21 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_framework_and_version_from_tag
 
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
-from test.test_utils import get_framework_and_version_from_tag
+from ..... import invoke_sm_endpoint_helper_function
 from ...integration import (
+    dump_logs_from_cloudwatch,
     model_dir,
     pt_neuron_model,
-    script_dir,
     pt_neuron_script,
-    dump_logs_from_cloudwatch,
+    script_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from ..... import invoke_sm_endpoint_helper_function
 
 
 @pytest.mark.model("tiny-distilbert")

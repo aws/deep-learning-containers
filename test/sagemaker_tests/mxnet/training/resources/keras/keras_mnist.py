@@ -20,11 +20,10 @@ import json
 import os
 
 import keras
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
 import numpy as np
+from keras import backend as K
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
+from keras.models import Sequential
 
 
 def main(batch_size, epochs, num_classes, training_channel, model_dir):

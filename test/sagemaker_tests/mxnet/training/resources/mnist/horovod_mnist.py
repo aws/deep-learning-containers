@@ -13,13 +13,14 @@
 import argparse
 import logging
 import os
-import zipfile
 import time
+import zipfile
+
+import horovod.mxnet as hvd
+from mxnet.test_utils import download
 
 import mxnet as mx
-import horovod.mxnet as hvd
 from mxnet import autograd, gluon, nd
-from mxnet.test_utils import download
 
 
 def main():

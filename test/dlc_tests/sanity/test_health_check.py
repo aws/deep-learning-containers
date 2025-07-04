@@ -1,17 +1,11 @@
 import os
-import pytest
-
-from invoke.context import Context
 from test import test_utils
+from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER
+from test.test_utils import ec2 as ec2_utils
+from test.test_utils import get_container_name, run_cmd_on_container, start_container
 
-from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
-    LOGGER,
-    get_container_name,
-    run_cmd_on_container,
-    start_container,
-    ec2 as ec2_utils,
-)
+import pytest
+from invoke.context import Context
 
 EFA_LOCAL_TEST_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "healthcheck_tests", "efa_checker_test.sh"

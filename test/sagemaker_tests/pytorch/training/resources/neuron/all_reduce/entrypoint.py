@@ -12,12 +12,12 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import sys
 import argparse
 import json
 import logging
 import os
 import sys
+
 from sagemaker_training import environment
 
 logger = logging.getLogger(__name__)

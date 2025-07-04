@@ -13,14 +13,13 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
+import json
+import logging
 from datetime import datetime
 
-from docker import APIClient
-from docker import DockerClient
+from docker import APIClient, DockerClient
 
 import constants
-import logging
-import json
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

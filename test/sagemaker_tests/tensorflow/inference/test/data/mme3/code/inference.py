@@ -17,7 +17,6 @@ from collections import namedtuple
 
 import requests
 
-
 Context = namedtuple(
     "Context",
     "model_name, model_version, method, rest_uri, grpc_uri, "

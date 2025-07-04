@@ -14,14 +14,14 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, pt_model, tf_model, dump_logs_from_cloudwatch
-from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from ..... import invoke_sm_endpoint_helper_function
+from ...integration import dump_logs_from_cloudwatch, model_dir, pt_model, tf_model
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("tiny-distilbert")

@@ -11,10 +11,12 @@
 #  express or implied. See the License for the specific language governing
 #  permissions and limitations under the License.
 
-import mxnet as mx
-import eimx
 import logging
 import os
+
+import eimx
+
+import mxnet as mx
 
 
 def model_fn(model_dir):

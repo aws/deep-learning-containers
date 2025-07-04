@@ -14,8 +14,8 @@ from __future__ import absolute_import
 
 import datetime
 import os
-import time
 import random
+import time
 
 import pytest
 from sagemaker import utils
@@ -25,8 +25,7 @@ from smexperiments.trial import Trial
 from smexperiments.trial_component import TrialComponent
 
 from ..... import invoke_sm_helper_function
-from ...integration import DEFAULT_TIMEOUT
-from ...integration import RESOURCE_PATH
+from ...integration import DEFAULT_TIMEOUT, RESOURCE_PATH
 from .timeout import timeout
 
 DATA_PATH = os.path.join(RESOURCE_PATH, "mnist")

@@ -1,13 +1,11 @@
 import time
+from test import test_utils
+from test.test_utils import LOGGER, TELEMETRY_REGION_MAPPING
+from test.test_utils import ec2 as ec2_utils
 
 import pytest
-
-from test import test_utils
-from test.test_utils import ec2 as ec2_utils
-from test.test_utils import LOGGER
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from test.test_utils import TELEMETRY_REGION_MAPPING
+from packaging.version import Version
 
 
 @pytest.mark.flaky(reruns=2)

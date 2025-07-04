@@ -13,13 +13,15 @@
 from __future__ import absolute_import
 
 import os
+
 import pytest
 import sagemaker
+from retrying import retry
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
-from ...integration import neuron_allreduce_path, neuron_mlp_path, DEFAULT_TIMEOUT
+
+from ...integration import DEFAULT_TIMEOUT, neuron_allreduce_path, neuron_mlp_path
 from ...integration.sagemaker.timeout import timeout
-from retrying import retry
 
 
 def retry_if_value_error(exception):
@@ -49,7 +51,7 @@ def invoke_neuron_helper_function(
 
     :return: None
     """
-    from ..... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     for region in sagemaker_regions:

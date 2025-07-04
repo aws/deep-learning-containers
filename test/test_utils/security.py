@@ -1,32 +1,23 @@
-from abc import abstractmethod
+import collections
+import copy
+import dataclasses
+import json
 import os
-import json
-import copy, collections
-import boto3
-import json
-import requests
-
-from invoke import run, Context
-from time import sleep, time
+from abc import abstractmethod
+from dataclasses import dataclass
 from enum import IntEnum
 from test import test_utils
-from test.test_utils import (
-    LOGGER,
-    EnhancedJSONEncoder,
-    ecr as ecr_utils,
-    get_installed_python_packages_with_version,
-    is_huggingface_image,
-)
-import dataclasses
-from dataclasses import dataclass
+from test.test_utils import LOGGER, EnhancedJSONEncoder
+from test.test_utils import ecr as ecr_utils
+from test.test_utils import get_installed_python_packages_with_version, is_huggingface_image
+from time import sleep, time
 from typing import Any, List, Set
-from packaging.version import Version
 
-from tenacity import (
-    retry,
-    stop_after_delay,
-    wait_random_exponential,
-)
+import boto3
+import requests
+from invoke import Context, run
+from packaging.version import Version
+from tenacity import retry, stop_after_delay, wait_random_exponential
 
 
 @dataclass

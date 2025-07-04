@@ -9,16 +9,18 @@
 # BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for
 # the specific language governing permissions and limitations under the License.
 from __future__ import print_function
-import os
+
 import argparse
+import os
+
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torchvision import datasets, transforms
-from torch.optim.lr_scheduler import StepLR
 from torch.nn.parallel import DistributedDataParallel as DDP
-import torch.distributed as dist
+from torch.optim.lr_scheduler import StepLR
+from torchvision import datasets, transforms
 
 """
 For EC2 conda env, in controller node run 'source /shared/pytorch_env/bin/activate', then launch the training using:

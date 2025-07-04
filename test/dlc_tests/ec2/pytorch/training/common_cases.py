@@ -1,23 +1,21 @@
 import os
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 import test.test_utils.ec2 as ec2_utils
-
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    get_framework_and_version_from_tag,
-    get_cuda_version_from_tag,
-    login_to_ecr_registry,
     get_account_id_from_image_uri,
+    get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
-    execute_ec2_training_test,
     execute_ec2_telemetry_test,
+    execute_ec2_training_test,
     get_ec2_instance_type,
     get_efa_ec2_instance_type,
 )
+
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 # Test functions
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")

@@ -13,14 +13,15 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-import time
-import sys
-import shutil
 import logging
+import shutil
+import sys
+import time
 from collections import defaultdict
 
 import pyfiglet
 import reprint
+
 import constants
 
 

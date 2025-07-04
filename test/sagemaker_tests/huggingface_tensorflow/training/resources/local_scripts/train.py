@@ -3,10 +3,10 @@ import logging
 import os
 import sys
 
-import tensorflow as tf
 from datasets import load_dataset
 from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
 
+import tensorflow as tf
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

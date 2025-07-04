@@ -15,9 +15,11 @@
 #!/usr/bin/env python
 
 import argparse
-import tensorflow as tf
-import horovod.tensorflow as hvd
 import os
+
+import horovod.tensorflow as hvd
+
+import tensorflow as tf
 
 parser = argparse.ArgumentParser(
     description="TensorFlow Synthetic Benchmark",

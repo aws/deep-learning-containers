@@ -12,11 +12,12 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import unittest.mock as mock
+
 import pytest
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
 from ...integration import ROLE, distilbert_script
-import unittest.mock as mock
 
 
 @pytest.mark.model("hf_bert")

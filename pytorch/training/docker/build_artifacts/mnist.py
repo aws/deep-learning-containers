@@ -1,16 +1,17 @@
 # From: https://github.com/pytorch/examples/blob/master/mnist/main.py
 
 from __future__ import print_function
+
 import argparse
+import urllib
+
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import urllib
-from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
-import torch.distributed as dist
-
+from torchvision import datasets, transforms
 
 opener = urllib.request.build_opener()
 opener.addheaders = [("User-agent", "Mozilla/5.0")]

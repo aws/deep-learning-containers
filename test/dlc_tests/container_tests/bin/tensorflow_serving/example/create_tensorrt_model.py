@@ -1,11 +1,13 @@
 ## Resource Motivation: https://docs.nvidia.com/deeplearning/frameworks/tf-trt-user-guide/index.html
 
-import os
 import argparse
+import os
+
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+
 import tensorflow as tf
 from tensorflow import keras
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
 
 def run_training(model_save_folder_path=os.path.join("script_folder", "models")):

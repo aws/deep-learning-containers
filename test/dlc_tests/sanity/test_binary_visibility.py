@@ -1,15 +1,15 @@
 import json
-import pytest
-
-from invoke.context import Context
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 from test.test_utils import (
-    is_pr_context,
     PR_ONLY_REASON,
-    is_trcomp_image,
     get_framework_and_version_from_tag,
+    is_pr_context,
+    is_trcomp_image,
 )
+
+import pytest
+from invoke.context import Context
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")

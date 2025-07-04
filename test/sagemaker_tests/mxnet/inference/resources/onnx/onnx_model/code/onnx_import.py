@@ -14,8 +14,9 @@ from __future__ import absolute_import
 
 import os
 
-import mxnet as mx
 from mxnet.contrib import onnx as onnx_mxnet
+
+import mxnet as mx
 
 
 def model_fn(model_dir):

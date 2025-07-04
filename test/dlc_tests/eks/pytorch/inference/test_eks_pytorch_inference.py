@@ -1,15 +1,13 @@
 import os
 import random
+import test.test_utils as test_utils
+import test.test_utils.eks as eks_utils
+from time import sleep
 
 import pytest
-from time import sleep
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 from invoke import run
-
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 
 def __run_pytorch_neuron_inference(image, model_name, model_url, processor):

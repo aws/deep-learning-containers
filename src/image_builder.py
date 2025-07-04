@@ -15,27 +15,24 @@ language governing permissions and limitations under the License.
 
 import concurrent.futures
 import datetime
+import itertools
 import os
 import re
 import tempfile
-
 from copy import deepcopy
 
 import constants
-import utils
-import itertools
 import patch_helper
-
-from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
-from context import Context
-from metrics import Metrics
-from image import DockerImage
-from common_stage_image import CommonStageImage
+import utils
 from buildspec import Buildspec
+from codebuild_environment import get_cloned_folder_path, get_codebuild_project_name
+from common_stage_image import CommonStageImage
+from config import is_autopatch_build_enabled, is_build_enabled
+from context import Context
+from image import DockerImage
+from metrics import Metrics
 from output import OutputFormatter
 from utils import get_dummy_boto_client
-
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")

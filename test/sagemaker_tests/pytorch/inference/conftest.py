@@ -22,13 +22,12 @@ import tempfile
 
 import boto3
 import pytest
-
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
-from .utils import image_utils, get_ecr_registry
-from .. import NO_P4_REGIONS, NO_G5_REGIONS
+from .. import NO_G5_REGIONS, NO_P4_REGIONS
+from .utils import get_ecr_registry, image_utils
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)

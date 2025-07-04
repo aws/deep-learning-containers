@@ -12,11 +12,12 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import os
 import shlex
+import signal
 import subprocess
 import sys
-import os
-import signal
+
 import torch
 
 try:

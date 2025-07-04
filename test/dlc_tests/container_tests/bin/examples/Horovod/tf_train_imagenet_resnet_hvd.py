@@ -31,25 +31,26 @@ try:
     from builtins import range
 except ImportError:
     pass
-import tensorflow as tf
-import numpy as np
-from tensorflow.contrib.image.python.ops import distort_image_ops
-from tensorflow.python.ops import data_flow_ops
-from tensorflow.contrib.data.python.ops import interleave_ops
-from tensorflow.contrib.data.python.ops import batching
-import horovod.tensorflow as hvd
-import os
-import sys
-import time
 import argparse
-import random
-import shutil
 import logging
 import math
+import os
+import random
 import re
+import shutil
+import sys
+import time
 from glob import glob
 from operator import itemgetter
+
+import horovod.tensorflow as hvd
+import numpy as np
+from tensorflow.contrib.data.python.ops import batching, interleave_ops
+from tensorflow.contrib.image.python.ops import distort_image_ops
+from tensorflow.python.ops import data_flow_ops
 from tensorflow.python.util import nest
+
+import tensorflow as tf
 
 
 def rank0log(logger, *args, **kwargs):

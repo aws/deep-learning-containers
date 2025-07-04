@@ -1,19 +1,17 @@
-import pytest
-
-import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
+import test.test_utils.ecs as ecs_utils
 from test.test_utils import (
-    request_pytorch_inference_densenet,
-    get_framework_and_version_from_tag,
-    get_inference_server_type,
-)
-from test.test_utils import (
+    AML2_BASE_ARM64_DLAMI_US_WEST_2,
+    ECS_AML2_ARM64_CPU_USWEST2,
     ECS_AML2_CPU_USWEST2,
     ECS_AML2_GPU_USWEST2,
     ECS_AML2_NEURON_USWEST2,
-    ECS_AML2_ARM64_CPU_USWEST2,
-    AML2_BASE_ARM64_DLAMI_US_WEST_2,
+    get_framework_and_version_from_tag,
+    get_inference_server_type,
+    request_pytorch_inference_densenet,
 )
+
+import pytest
 
 
 @pytest.mark.model("densenet")

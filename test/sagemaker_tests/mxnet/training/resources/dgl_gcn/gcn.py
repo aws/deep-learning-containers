@@ -7,17 +7,18 @@ References:
 - Paper: https://arxiv.org/abs/1609.02907
 - Code: https://github.com/tkipf/gcn
 """
+import argparse
+import collections
 import os
 import time
-import argparse
+
 import numpy as np
-import collections
+from dgl import DGLGraph
+from dgl.data import load_data, register_data_args
+from dgl.nn.mxnet import GraphConv
 
 import mxnet as mx
 from mxnet import gluon
-from dgl import DGLGraph
-from dgl.nn.mxnet import GraphConv
-from dgl.data import register_data_args, load_data
 
 
 class GCN(gluon.Block):

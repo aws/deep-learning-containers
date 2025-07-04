@@ -1,12 +1,14 @@
 import argparse
-from mxnet import gluon, init, autograd
+import random
+import time
+
+import numpy as np
 from mxnet.gluon import nn
 from mxnet.gluon.data.vision import datasets, transforms
-import time
-import mxnet as mx
 from smdebug.mxnet import Hook, SaveConfig, modes
-import random
-import numpy as np
+
+import mxnet as mx
+from mxnet import autograd, gluon, init
 
 
 def parse_args():

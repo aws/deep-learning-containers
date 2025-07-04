@@ -1,10 +1,10 @@
-import boto3
 import json
 import logging
 import os
 import sys
 import xml.etree.ElementTree as ET
 
+import boto3
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

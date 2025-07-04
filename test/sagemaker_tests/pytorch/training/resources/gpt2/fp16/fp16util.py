@@ -3,15 +3,14 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # Modifications Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-import torch
-import torch.nn as nn
-from torch.autograd import Variable
-from torch._utils import _flatten_dense_tensors, _unflatten_dense_tensors
-
-from apex.multi_tensor_apply import multi_tensor_applier
 import amp_C
 import smdistributed.modelparallel.torch as smp
+import torch
+import torch.nn as nn
+from apex.multi_tensor_apply import multi_tensor_applier
 from smdistributed.modelparallel.torch.state_mod import state as smp_state
+from torch._utils import _flatten_dense_tensors, _unflatten_dense_tensors
+from torch.autograd import Variable
 
 
 class tofp16(nn.Module):

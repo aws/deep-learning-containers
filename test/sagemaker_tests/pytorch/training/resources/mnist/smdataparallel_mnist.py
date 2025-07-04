@@ -18,26 +18,27 @@ urllib.request.install_opener(opener)
 import argparse
 import os
 import time
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torchvision
 from packaging.version import Version
-from torchvision import datasets, transforms
 from torch.optim.lr_scheduler import StepLR
+from torchvision import datasets, transforms
 
 TORCH_VERSION = torch.__version__
 
 if Version(TORCH_VERSION) < Version("1.10"):
-    from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
     import smdistributed.dataparallel.torch.distributed as dist
+    from smdistributed.dataparallel.torch.parallel.distributed import DistributedDataParallel as DDP
 
     dist.init_process_group()
 else:
-    from torch.nn.parallel import DistributedDataParallel as DDP
-    import torch.distributed as dist
     import smdistributed.dataparallel.torch.torch_smddp
+    import torch.distributed as dist
+    from torch.nn.parallel import DistributedDataParallel as DDP
 
     # set default instance type to p4
     if "SAGEMAKER_INSTANCE_TYPE" not in os.environ:

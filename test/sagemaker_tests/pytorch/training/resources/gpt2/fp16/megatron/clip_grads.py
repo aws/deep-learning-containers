@@ -5,12 +5,11 @@
 
 """Gradient clipping."""
 
-import torch
-from torch._six import inf
-import smdistributed.modelparallel.torch as smp
-
-from apex.multi_tensor_apply import multi_tensor_applier
 import amp_C
+import smdistributed.modelparallel.torch as smp
+import torch
+from apex.multi_tensor_apply import multi_tensor_applier
+from torch._six import inf
 
 
 def clip_grad_norm_fp32(parameters, param_is_distributed, max_norm, norm_type=2):

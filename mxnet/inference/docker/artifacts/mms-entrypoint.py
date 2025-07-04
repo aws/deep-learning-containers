@@ -11,10 +11,10 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import os.path
 import shlex
 import subprocess
 import sys
-import os.path
 
 if sys.argv[1] == "serve":
     from sagemaker_mxnet_serving_container import serving

@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-import sys
+import logging
 import subprocess
+import sys
 from subprocess import PIPE
 
-import logging
 import torch
 
 LOGGER = logging.getLogger(__name__)

@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import os
 import sys
 
-
 py_version = "%s.%s" % (sys.version_info.major, sys.version_info.minor)
 
 with open(os.path.join(os.environ["SM_OUTPUT_DIR"], "py_version"), "a") as f:

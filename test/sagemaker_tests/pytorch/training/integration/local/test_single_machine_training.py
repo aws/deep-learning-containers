@@ -15,20 +15,20 @@ from __future__ import absolute_import
 import os
 
 import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker.pytorch import PyTorch
 
-from ...utils.local_mode_utils import assert_files_exist
 from ...integration import (
+    ROLE,
     data_dir,
-    fastai_path,
     fastai_mnist_script,
+    fastai_path,
+    get_framework_and_version_from_tag,
     mnist_path,
     mnist_script,
-    ROLE,
-    get_framework_and_version_from_tag,
 )
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
+from ...utils.local_mode_utils import assert_files_exist
 
 
 @pytest.mark.model("mnist")

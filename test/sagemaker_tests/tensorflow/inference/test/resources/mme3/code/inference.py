@@ -15,9 +15,8 @@
 import json
 from collections import namedtuple
 
-import requests
-
 import dummy_module  # for testing requirements.txt install and pythonpath
+import requests
 
 Context = namedtuple(
     "Context",

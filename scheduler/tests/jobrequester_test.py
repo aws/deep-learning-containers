@@ -3,13 +3,9 @@ import logging
 import os
 import sys
 
-
 import boto3
-
 import log_return
-
 from job_requester import JobRequester
-
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

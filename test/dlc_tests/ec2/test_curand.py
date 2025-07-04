@@ -1,12 +1,10 @@
 import os
-
-import pytest
-
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
-
 from test.test_utils import CONTAINER_TESTS_PREFIX, is_tf_version
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+
+import pytest
 
 CURAND_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testCurand")
 CURAND_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(

@@ -16,9 +16,9 @@ import os
 
 import pytest
 
+from .. import RESOURCE_PATH
 from .ag_tools import AutoGluon
 from .local_mode_utils import assert_output_files_exist
-from .. import RESOURCE_PATH
 
 
 @pytest.mark.integration("ag_local")

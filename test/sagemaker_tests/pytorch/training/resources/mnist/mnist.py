@@ -12,14 +12,13 @@
 # language governing permissions and limitations under the License.
 
 # Workaround for https://github.com/pytorch/vision/issues/1938
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import, print_function
+
 from six.moves import urllib
 
 opener = urllib.request.build_opener()
 opener.addheaders = [("User-agent", "Mozilla/5.0")]
 urllib.request.install_opener(opener)
-from packaging.version import Version
-
 import argparse
 import logging
 import os
@@ -34,8 +33,8 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
-
 import torchvision
+from packaging.version import Version
 from torchvision import datasets, transforms
 
 # from torchvision 0.9.1, 2 candidate mirror website links will be added before "resources" items automatically

@@ -1,6 +1,7 @@
-import re
-import boto3
 import json
+import re
+
+import boto3
 
 
 def get_image_account_id(image_uri):

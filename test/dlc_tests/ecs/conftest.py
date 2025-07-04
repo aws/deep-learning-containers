@@ -1,12 +1,11 @@
-import time
-
-import pytest
-import boto3
-from botocore.exceptions import ClientError
-
-from test import test_utils
-import test.test_utils.ecs as ecs_utils
 import test.test_utils.ec2 as ec2_utils
+import test.test_utils.ecs as ecs_utils
+import time
+from test import test_utils
+
+import boto3
+import pytest
+from botocore.exceptions import ClientError
 
 
 @pytest.fixture(scope="function")

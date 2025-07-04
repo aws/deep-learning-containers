@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-
 NO_P4_REGIONS = [
     "af-south-1",
     "ap-east-1",

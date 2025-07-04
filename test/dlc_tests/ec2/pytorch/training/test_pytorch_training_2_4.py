@@ -1,11 +1,9 @@
-import pytest
-
 import test.test_utils as test_utils
-
+from test.dlc_tests.ec2 import smclarify_cases
+from test.dlc_tests.ec2.pytorch.training import common_cases
 from test.test_utils import ec2
 
-from test.dlc_tests.ec2.pytorch.training import common_cases
-from test.dlc_tests.ec2 import smclarify_cases
+import pytest
 
 
 @pytest.mark.usefixtures("sagemaker")

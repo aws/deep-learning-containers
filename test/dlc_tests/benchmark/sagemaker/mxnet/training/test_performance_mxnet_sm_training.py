@@ -1,19 +1,19 @@
 import os
 import time
+from test.test_utils import (
+    BENCHMARK_RESULTS_S3_BUCKET,
+    LOGGER,
+    get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
+)
 
 import pytest
-
 from invoke.context import Context
+
 from src.benchmark_metrics import (
     MXNET_TRAINING_GPU_IMAGENET_ACCURACY_THRESHOLD,
     MXNET_TRAINING_GPU_IMAGENET_LATENCY_THRESHOLD,
     get_threshold_for_image,
-)
-from test.test_utils import (
-    BENCHMARK_RESULTS_S3_BUCKET,
-    LOGGER,
-    get_framework_and_version_from_tag,
-    get_cuda_version_from_tag,
 )
 
 

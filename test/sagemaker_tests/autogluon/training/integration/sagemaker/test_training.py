@@ -17,10 +17,10 @@ import os
 import pytest
 from sagemaker import utils
 
-from .timeout import timeout
-from ..local.ag_tools import AutoGluon
 from ..... import invoke_sm_helper_function
-from ...integration import RESOURCE_PATH, DEFAULT_TIMEOUT
+from ...integration import DEFAULT_TIMEOUT, RESOURCE_PATH
+from ..local.ag_tools import AutoGluon
+from .timeout import timeout
 
 
 @pytest.mark.model("autogluon")

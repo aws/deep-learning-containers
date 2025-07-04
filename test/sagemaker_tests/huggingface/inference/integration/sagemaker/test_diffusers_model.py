@@ -12,21 +12,22 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+from test.test_utils import get_framework_and_version_from_tag
+
 import pytest
 import sagemaker
 from sagemaker.huggingface import HuggingFaceModel
 
-from test.test_utils import get_framework_and_version_from_tag
+from ..... import invoke_sm_endpoint_helper_function
 from ...integration import (
     dump_logs_from_cloudwatch,
     model_dir,
-    pt_model,
     pt_diffusers_cpu_script,
     pt_diffusers_gpu_script,
+    pt_model,
     script_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from ..... import invoke_sm_endpoint_helper_function
 
 
 @pytest.mark.model("tiny-stable-diffusion")

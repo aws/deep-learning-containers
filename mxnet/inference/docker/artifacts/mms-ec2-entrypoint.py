@@ -11,10 +11,10 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import os.path
 import shlex
 import subprocess
 import sys
-import os.path
 
 subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
 

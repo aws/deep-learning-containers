@@ -14,17 +14,22 @@ from __future__ import absolute_import
 
 import os
 import re
+from test.test_utils import (
+    SKIP_PR_REASON,
+    get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
+    is_pr_context,
+)
+
 import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 from six.moves.urllib.parse import urlparse
-from packaging.version import Version
 
 from ..... import invoke_sm_helper_function
-from test.test_utils import is_pr_context, SKIP_PR_REASON
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 from .timeout import timeout
 

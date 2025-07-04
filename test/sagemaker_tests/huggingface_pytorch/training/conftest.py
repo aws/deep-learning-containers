@@ -20,22 +20,21 @@ import shutil
 import sys
 import tempfile
 
-import pytest
 import boto3
-
+import pytest
 from botocore.exceptions import ClientError
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 
-from .utils import image_utils, get_ecr_registry
 from .integration import (
-    get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
     get_processor_from_image_uri,
     get_transformers_version_from_image_uri,
 )
+from .utils import get_ecr_registry, image_utils
 
 NO_P4_REGIONS = [
     "af-south-1",

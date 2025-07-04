@@ -3,11 +3,12 @@ import sys
 
 # Third Party
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.layers import Dense
 
 # First Party
 import smdistributed.modelparallel.tensorflow as smp
+from tensorflow.keras.layers import Dense
+
+import tensorflow as tf
 
 tf.random.set_seed(1234)
 

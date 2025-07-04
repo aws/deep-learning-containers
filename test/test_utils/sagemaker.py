@@ -1,40 +1,39 @@
 import datetime
 import os
-import subprocess
 import random
 import re
-
+import subprocess
 from time import sleep
 
 import boto3
 import invoke
-
 from botocore.config import Config
-from invoke.context import Context
 from invoke import exceptions
-from junit_xml import TestSuite, TestCase
-
-from test_utils import ec2 as ec2_utils
-from test_utils import metrics as metrics_utils
+from invoke.context import Context
+from junit_xml import TestCase, TestSuite
 from test_utils import (
-    destroy_ssh_keypair,
-    generate_ssh_keypair,
-    get_framework_and_version_from_tag,
-    get_job_type_from_image,
-    is_pr_context,
-    SAGEMAKER_EXECUTION_REGIONS,
-    SAGEMAKER_NEURON_EXECUTION_REGIONS,
-    SAGEMAKER_NEURONX_EXECUTION_REGIONS,
     AL2023_BASE_DLAMI_ARM64_US_EAST_1,
     AL2023_BASE_DLAMI_ARM64_US_WEST_2,
-    SAGEMAKER_LOCAL_TEST_TYPE,
-    SAGEMAKER_REMOTE_TEST_TYPE,
     AL2023_HOME_DIR,
     DEFAULT_REGION,
-    is_nightly_context,
+    SAGEMAKER_EXECUTION_REGIONS,
+    SAGEMAKER_LOCAL_TEST_TYPE,
+    SAGEMAKER_NEURON_EXECUTION_REGIONS,
+    SAGEMAKER_NEURONX_EXECUTION_REGIONS,
+    SAGEMAKER_REMOTE_TEST_TYPE,
+    destroy_ssh_keypair,
+)
+from test_utils import ec2 as ec2_utils
+from test_utils import (
+    generate_ssh_keypair,
     get_dlami_id,
+    get_framework_and_version_from_tag,
+    get_job_type_from_image,
+    is_nightly_context,
+    is_pr_context,
     login_to_ecr_registry,
 )
+from test_utils import metrics as metrics_utils
 from test_utils.pytest_cache import PytestCache
 
 

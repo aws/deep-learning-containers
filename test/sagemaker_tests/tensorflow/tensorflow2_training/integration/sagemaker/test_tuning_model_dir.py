@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 

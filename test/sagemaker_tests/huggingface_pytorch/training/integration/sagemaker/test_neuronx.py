@@ -14,15 +14,16 @@ from __future__ import absolute_import
 
 import os
 import re
+
 import pytest
 import sagemaker
-from sagemaker import utils
+from packaging.specifiers import SpecifierSet
+from retrying import retry
+from sagemaker import get_execution_role, utils
 from sagemaker.huggingface import HuggingFace
+
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-from retrying import retry
-from sagemaker import get_execution_role
-from packaging.specifiers import SpecifierSet
 
 # configuration for running training on torch distributed Data Parallel
 distribution = {"torch_distributed": {"enabled": True}}
@@ -79,7 +80,7 @@ def invoke_neuron_helper_function(
 
     :return: None
     """
-    from ..... import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from ..... import get_ecr_image, get_ecr_image_region, get_sagemaker_session
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     for region in sagemaker_regions:

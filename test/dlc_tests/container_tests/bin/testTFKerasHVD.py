@@ -1,8 +1,10 @@
-import tensorflow as tf
-import horovod.tensorflow.keras as hvd
 import argparse
+
+import horovod.tensorflow.keras as hvd
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+import tensorflow as tf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("data_type")

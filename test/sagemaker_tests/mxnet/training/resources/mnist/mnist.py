@@ -18,10 +18,10 @@ import os
 import struct
 import sys
 
-import mxnet as mx
 import numpy as np
-
 from sagemaker_mxnet_container.training_utils import scheduler_host
+
+import mxnet as mx
 
 
 def load_data(path):

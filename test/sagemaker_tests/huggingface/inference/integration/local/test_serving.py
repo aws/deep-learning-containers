@@ -15,13 +15,13 @@ from __future__ import absolute_import
 from contextlib import contextmanager
 
 import pytest
+from packaging.version import Version
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import JSONDeserializer
-from packaging.version import Version
 
-from ...integration import model_dir, ROLE, pt_model, tf_model
+from ...integration import ROLE, model_dir, pt_model, tf_model
 from ...utils import local_mode_utils
 
 

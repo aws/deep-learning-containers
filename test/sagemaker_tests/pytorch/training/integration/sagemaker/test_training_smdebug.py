@@ -17,7 +17,7 @@ from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
-from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
+from ...integration import DEFAULT_TIMEOUT, smdebug_mnist_script, training_dir
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
 

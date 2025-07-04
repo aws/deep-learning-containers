@@ -7,12 +7,13 @@ import time
 
 # Third Party
 import numpy as np
-import tensorflow as tf
-from tensorflow.keras.layers import Conv2D, Dense, Flatten
-from utils import log_result
 
 # First Party
 import smdistributed.modelparallel.tensorflow as smp
+from tensorflow.keras.layers import Conv2D, Dense, Flatten
+
+import tensorflow as tf
+from utils import log_result
 
 tf.random.set_seed(1234)
 

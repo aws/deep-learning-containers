@@ -1,6 +1,6 @@
-import tensorflow as tf
 import numpy as np
 
+import tensorflow as tf
 
 flags = tf.compat.v1.app.flags
 

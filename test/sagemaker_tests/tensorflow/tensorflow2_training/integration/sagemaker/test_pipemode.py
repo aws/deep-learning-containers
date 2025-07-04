@@ -17,13 +17,12 @@ import shutil
 import uuid
 
 import pytest
-
-from ..... import invoke_sm_helper_function
-from .recordio_utils import build_record_file, build_single_record_file
 from sagemaker import TrainingInput
 from sagemaker.tensorflow import TensorFlow
 
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
+from .recordio_utils import build_record_file, build_single_record_file
 from .timeout import timeout
 
 DIMENSION = 5

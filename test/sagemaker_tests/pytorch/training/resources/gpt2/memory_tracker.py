@@ -1,6 +1,6 @@
-import psutil
 import os
 
+import psutil
 import smdistributed.modelparallel.torch as smp
 import torch
 

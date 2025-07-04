@@ -14,18 +14,16 @@ from __future__ import absolute_import
 
 import pytest
 import sagemaker
-
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-
+from packaging.version import Version
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
-from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import model_dir, dump_logs_from_cloudwatch, image_sample_file_path
-from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from ..... import invoke_sm_endpoint_helper_function
+from ...integration import dump_logs_from_cloudwatch, image_sample_file_path, model_dir
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("vit")

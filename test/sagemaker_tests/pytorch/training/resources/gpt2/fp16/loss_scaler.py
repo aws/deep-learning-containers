@@ -3,12 +3,10 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # Modifications Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-import torch
-
-from apex.multi_tensor_apply import multi_tensor_applier
 import amp_C
-
 import smdistributed.modelparallel.torch as smp
+import torch
+from apex.multi_tensor_apply import multi_tensor_applier
 
 
 def to_python_float(t):

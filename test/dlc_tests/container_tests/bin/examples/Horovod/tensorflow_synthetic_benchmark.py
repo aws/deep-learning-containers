@@ -20,12 +20,13 @@ from __future__ import absolute_import, division, print_function
 
 import argparse
 import os
-import numpy as np
 import timeit
 
-import tensorflow as tf
 import horovod.tensorflow as hvd
+import numpy as np
 from tensorflow.keras import applications
+
+import tensorflow as tf
 
 # Benchmark settings
 parser = argparse.ArgumentParser(

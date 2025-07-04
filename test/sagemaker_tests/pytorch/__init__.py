@@ -17,9 +17,7 @@ import time
 import botocore.exceptions
 import sagemaker
 import sagemaker.exceptions
-
-from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
-
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
 NO_P4_REGIONS = [
     "af-south-1",
@@ -101,7 +99,7 @@ def invoke_pytorch_helper_function(
 
     :return: None
     """
-    from .. import get_ecr_image_region, get_sagemaker_session, get_ecr_image
+    from .. import get_ecr_image, get_ecr_image_region, get_sagemaker_session
 
     ecr_image_region = get_ecr_image_region(ecr_image)
     error = None

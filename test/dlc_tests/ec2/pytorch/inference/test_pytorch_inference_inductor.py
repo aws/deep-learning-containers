@@ -1,20 +1,18 @@
 import os
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-import pytest
-
 from test import test_utils
+from test.dlc_tests.conftest import LOGGER
 from test.test_utils import (
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
+    get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     get_inference_server_type,
-    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     login_to_ecr_registry,
-    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import get_ec2_instance_type, is_mainline_context
-from test.dlc_tests.conftest import LOGGER
 
+import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_CPU_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]

@@ -4,24 +4,20 @@ Helper functions for ECS Integration Tests
 
 import datetime
 import os
+from test.test_utils import DEFAULT_REGION, build_tensorflow_inference_command_tf27_and_above
+from test.test_utils import ec2 as ec2_utils
+from test.test_utils import (
+    get_framework_and_version_from_tag,
+    get_inference_run_command,
+    get_tensorflow_inference_environment_variables,
+    get_tensorflow_model_base_path,
+    get_tensorflow_model_name,
+)
 
 import boto3
-
-from retrying import retry
-
-from test.test_utils import (
-    DEFAULT_REGION,
-    get_inference_run_command,
-    get_tensorflow_model_name,
-    get_tensorflow_model_base_path,
-    build_tensorflow_inference_command_tf27_and_above,
-    get_framework_and_version_from_tag,
-    get_tensorflow_inference_environment_variables,
-)
-from test.test_utils import ec2 as ec2_utils
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-
+from packaging.version import Version
+from retrying import retry
 
 ECS_AMI_ID = {
     "cpu": "ami-0fb71e703258ab7eb",

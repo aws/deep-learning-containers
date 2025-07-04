@@ -1,12 +1,12 @@
 # Note: for vanilla PyTorch inference. Not with EIA
 
 import argparse
-import numpy as np
 import time
+
+import numpy as np
 import torch
 import torchvision
-from transformers import BertModel, RobertaModel, DistilBertModel, Wav2Vec2Model, AutoModel
-
+from transformers import AutoModel, BertModel, DistilBertModel, RobertaModel, Wav2Vec2Model
 
 cpu_models = [
     "ResNet18",

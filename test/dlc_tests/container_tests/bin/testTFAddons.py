@@ -1,7 +1,8 @@
 # Tensorflow addons layers_normalizations example
 
-import tensorflow as tf
 import tensorflow_addons as tfa
+
+import tensorflow as tf
 
 
 def train():

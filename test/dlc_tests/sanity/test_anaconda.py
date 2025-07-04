@@ -1,6 +1,7 @@
+from test import test_utils
+
 import pytest
 from invoke.context import Context
-from test import test_utils
 
 
 @pytest.mark.usefixtures("sagemaker", "security_sanity")

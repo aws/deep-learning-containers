@@ -53,11 +53,11 @@ import warnings
 
 warnings.filterwarnings("ignore")
 
-from mxnet import gluon
-from mxnet import nd
-import gluonnlp as nlp
 import re
 
+import gluonnlp as nlp
+
+from mxnet import gluon, nd
 
 # ## Creating Vocabulary with Word Embeddings
 #

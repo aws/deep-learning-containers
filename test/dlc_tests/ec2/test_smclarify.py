@@ -1,12 +1,10 @@
 import os
-
-import pytest
-
-from packaging.version import Version
-
+from test.dlc_tests.ec2 import smclarify_cases
 from test.test_utils import CONTAINER_TESTS_PREFIX, get_cuda_version_from_tag
 from test.test_utils.ec2 import get_ec2_instance_type
-from test.dlc_tests.ec2 import smclarify_cases
+
+import pytest
+from packaging.version import Version
 
 SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py")
 

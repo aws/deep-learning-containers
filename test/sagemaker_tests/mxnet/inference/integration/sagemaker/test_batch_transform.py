@@ -17,7 +17,6 @@ import os
 from urllib.parse import urlparse
 
 import pytest
-
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
 

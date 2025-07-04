@@ -18,14 +18,13 @@ import os
 
 import boto3
 import pytest
-
 from botocore.exceptions import ClientError
+from packaging.version import Version, parse
 from sagemaker import LocalSession, Session
 from sagemaker.mxnet import MXNet
-from packaging.version import Version, parse
 
+from ... import NO_G5_REGIONS, NO_P4_REGIONS
 from .integration import get_ecr_registry
-from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)

@@ -1,8 +1,8 @@
-import subprocess as sp
 import argparse
-import os
-import time
 import glob
+import os
+import subprocess as sp
+import time
 from os.path import dirname, join
 
 # set the timezone once in-process

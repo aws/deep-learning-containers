@@ -1,6 +1,7 @@
+import sys
+
 import cv2
 import numpy as np
-import sys
 
 
 def test_transformation(img):

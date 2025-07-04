@@ -2,20 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import copy
-import os
-import logging
-import sys
 import json
-import boto3
-
-from typing import Dict, Optional
-
-import pandas as pd
-from smclarify.bias.report import FacetColumn, LabelColumn, bias_report, StageType
-from smclarify.util.dataset import Datasets
+import logging
+import os
 
 # Install and import pytest
 import subprocess
+import sys
+from typing import Dict, Optional
+
+import boto3
+import pandas as pd
+from smclarify.bias.report import FacetColumn, LabelColumn, StageType, bias_report
+from smclarify.util.dataset import Datasets
 
 subprocess.call([sys.executable, "-m", "pip", "install", "pytest"])
 import pytest

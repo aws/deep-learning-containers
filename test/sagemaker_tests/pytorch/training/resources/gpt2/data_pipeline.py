@@ -1,10 +1,10 @@
 import gzip
 import json
 import os
-import h5py
-from typing import List, Tuple
 import random
+from typing import List, Tuple
 
+import h5py
 import numpy as np
 import smdistributed.modelparallel.torch as smp
 import torch

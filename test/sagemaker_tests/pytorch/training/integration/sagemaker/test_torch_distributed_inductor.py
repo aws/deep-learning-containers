@@ -16,9 +16,9 @@ import os
 
 import pytest
 
+from ....training import get_efa_test_instance_type
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
-from ....training import get_efa_test_instance_type
 from . import invoke_pytorch_estimator
 from .test_torch_distributed import validate_or_skip_distributed_training
 

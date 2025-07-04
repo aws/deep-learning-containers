@@ -12,14 +12,13 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
+import json
 import os
 
+import numpy as np
 import pytest
-
 from sagemaker import utils
 from sagemaker.mxnet.model import MXNetModel
-import numpy as np
-import json
 
 from ...integration import RESOURCE_PATH
 from ...integration.sagemaker import timeout

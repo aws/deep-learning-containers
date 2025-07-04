@@ -1,8 +1,7 @@
 import os
-
-
-from test.test_utils import CONTAINER_TESTS_PREFIX, LOGGER
 from test.test_utils import (
+    CONTAINER_TESTS_PREFIX,
+    LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
     login_to_ecr_registry,

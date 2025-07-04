@@ -15,10 +15,9 @@
 import json
 from collections import namedtuple
 
-import requests
-
 # for testing requirements.txt install and pythonpath
 import PIL
+import requests
 from PIL.Image import core as _imaging
 
 Context = namedtuple(

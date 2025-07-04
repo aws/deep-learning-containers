@@ -19,11 +19,11 @@ import os
 import subprocess
 import sys
 import time
-import pytest
 
+import pytest
 import requests
 
-from .multi_model_endpoint_test_utils import make_load_model_request, make_headers
+from .multi_model_endpoint_test_utils import make_headers, make_load_model_request
 
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"

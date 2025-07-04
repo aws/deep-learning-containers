@@ -16,9 +16,7 @@ import os
 
 import boto3
 import pytest
-
 from botocore.exceptions import ClientError
-
 
 TFS_DOCKER_BASE_NAME = "sagemaker-tensorflow-serving"
 

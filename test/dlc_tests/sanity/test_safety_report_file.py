@@ -1,15 +1,12 @@
 import json
 import logging
 import sys
-
-import pytest
-
-from invoke import run
 from dataclasses import dataclass
+from test.test_utils import is_canary_context
 from typing import List
 
-from test.test_utils import is_canary_context
-
+import pytest
+from invoke import run
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

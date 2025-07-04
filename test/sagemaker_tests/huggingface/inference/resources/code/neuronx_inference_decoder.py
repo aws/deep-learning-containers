@@ -1,6 +1,6 @@
 import torch
-from transformers import AutoTokenizer
 from optimum.neuron import NeuronModelForCausalLM
+from transformers import AutoTokenizer
 
 print("running neuronx decoder test...")
 

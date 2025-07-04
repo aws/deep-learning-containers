@@ -13,15 +13,14 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
 import pytest
-from sagemaker.huggingface import HuggingFace
-
 from packaging.version import Version
+from sagemaker.huggingface import HuggingFace
 
 from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 BERT_PATH = os.path.join(RESOURCE_PATH, "scripts")

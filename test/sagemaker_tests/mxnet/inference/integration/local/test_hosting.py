@@ -15,13 +15,11 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
-from sagemaker.mxnet.model import MXNetModel
 from sagemaker.deserializers import StringDeserializer
+from sagemaker.mxnet.model import MXNetModel
 
-from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
-
+from ...integration.local import local_mode_utils
 
 HOSTING_RESOURCE_PATH = os.path.join(RESOURCE_PATH, "dummy_hosting")
 MODEL_PATH = os.path.join(HOSTING_RESOURCE_PATH, "model.tar.gz")

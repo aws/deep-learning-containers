@@ -15,12 +15,13 @@
 # Link to the file from older commit:
 # https://github.com/aws/deep-learning-containers/blob/b87590af021a4c3913b3669fa5f9fc10fbebe4e8/test/sagemaker_tests/pytorch/training/resources/smdataparallel/smdataparallel_throughput.py
 
-import torch
-import numpy as np
-import time
+import argparse
 import os
 import sys
-import argparse
+import time
+
+import numpy as np
+import torch
 
 THRESHOLD = 28.0
 
@@ -59,9 +60,9 @@ if args.nccl:
 
     dist.init_process_group("nccl", world_size=size, rank=rank, store=None, group_name="")
 else:
-    import smdistributed.dataparallel.torch.distributed as dist
-    import smdistributed.dataparallel as h
     import smddpcommon as hm
+    import smdistributed.dataparallel as h
+    import smdistributed.dataparallel.torch.distributed as dist
 
     dist.init_process_group()
     hm.setBucketSize(args.bucket_size * 1024 * 1024)

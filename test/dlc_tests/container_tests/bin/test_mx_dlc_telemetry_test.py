@@ -1,6 +1,7 @@
 import os
-import numpy as np
 import time
+
+import numpy as np
 
 
 def _clean_up_reports():

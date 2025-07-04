@@ -3,17 +3,25 @@
 import argparse
 import logging
 import os
+import time
 from typing import Any
 
 import numpy as np
 import pandas as pd
 import pytorch_lightning as pl
-import time
 import torch
 import torch.distributed as dist
-
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
+from smart_sifting.data_model.data_model_interface import SiftingBatch
+from smart_sifting.dataloader.sift_dataloader import SiftingDataloader
+from smart_sifting.loss.abstract_sift_loss_module import Loss
+from smart_sifting.metrics.lightning import TrainingMetricsRecorder
+from smart_sifting.sift_config.sift_configs import (
+    LossConfig,
+    RelativeProbabilisticSiftConfig,
+    SiftingBaseConfig,
+)
 from torch.optim import AdamW
 from torch.utils.data import DataLoader, TensorDataset
 from transformers import (
@@ -21,17 +29,6 @@ from transformers import (
     BertTokenizer,
     get_linear_schedule_with_warmup,
 )
-
-from smart_sifting.data_model.data_model_interface import SiftingBatch
-from smart_sifting.dataloader.sift_dataloader import SiftingDataloader
-from smart_sifting.loss.abstract_sift_loss_module import Loss
-from smart_sifting.metrics.lightning import TrainingMetricsRecorder
-from smart_sifting.sift_config.sift_configs import (
-    RelativeProbabilisticSiftConfig,
-    LossConfig,
-    SiftingBaseConfig,
-)
-
 
 RANDOM_SEED = 7
 logger = logging.getLogger(__name__)

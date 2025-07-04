@@ -1,36 +1,35 @@
 import json
-import os
-import sys
 import logging
+import os
 import re
-
-from multiprocessing import Pool, Manager
+import sys
 from datetime import datetime
+from multiprocessing import Manager, Pool
 
 import boto3
 import pytest
-
 from botocore.config import Config
 from invoke import run
 from invoke.context import Context
+from test_utils import KEYS_TO_DESTROY_FILE, destroy_ssh_keypair
 from test_utils import eks as eks_utils
-from test_utils import sagemaker as sm_utils
-from test_utils import metrics as metrics_utils
 from test_utils import (
-    get_dlc_images,
-    is_pr_context,
-    is_efa_dedicated,
-    is_ec2_image,
-    destroy_ssh_keypair,
-    setup_sm_benchmark_tf_train_env,
-    setup_sm_benchmark_mx_train_env,
-    setup_sm_benchmark_hf_infer_env,
-    get_framework_and_version_from_tag,
-    get_build_context,
-    is_nightly_context,
     generate_unique_dlc_name,
+    get_build_context,
+    get_dlc_images,
+    get_framework_and_version_from_tag,
+    is_ec2_image,
+    is_efa_dedicated,
+    is_nightly_context,
+    is_pr_context,
 )
-from test_utils import KEYS_TO_DESTROY_FILE
+from test_utils import metrics as metrics_utils
+from test_utils import sagemaker as sm_utils
+from test_utils import (
+    setup_sm_benchmark_hf_infer_env,
+    setup_sm_benchmark_mx_train_env,
+    setup_sm_benchmark_tf_train_env,
+)
 from test_utils.pytest_cache import PytestCache
 
 from src.codebuild_environment import get_codebuild_project_name
@@ -199,6 +198,7 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
     elif use_scheduler:
         LOGGER.info("entered scheduler mode.")
         import concurrent.futures
+
         from job_requester import JobRequester
 
         job_requester = JobRequester()

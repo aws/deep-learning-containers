@@ -14,13 +14,12 @@ import contextlib
 import json
 import logging
 import os
+import random
+import sys
+import time
+from test.test_utils import LOGGER
 
 import botocore
-import random
-import time
-import sys
-
-from test.test_utils import LOGGER
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

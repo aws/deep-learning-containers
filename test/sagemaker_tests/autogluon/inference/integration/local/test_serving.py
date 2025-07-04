@@ -21,9 +21,9 @@ from sagemaker.deserializers import JSONDeserializer
 from sagemaker.mxnet import MXNetModel
 from sagemaker.serializers import CSVSerializer
 
-from .. import RESOURCE_PATH
 from ...integration import ROLE
 from ...utils import local_mode_utils
+from .. import RESOURCE_PATH
 
 
 @contextmanager

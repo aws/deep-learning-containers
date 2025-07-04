@@ -30,11 +30,12 @@ from __future__ import print_function
 import os
 import sys
 
-# This is a placeholder for a Google-internal import.
+import mnist_input_data
 
 import tensorflow as tf
 
-import mnist_input_data
+# This is a placeholder for a Google-internal import.
+
 
 tf.compat.v1.disable_eager_execution()
 tf.compat.v1.app.flags.DEFINE_integer("training_iteration", 1000, "number of training iterations.")

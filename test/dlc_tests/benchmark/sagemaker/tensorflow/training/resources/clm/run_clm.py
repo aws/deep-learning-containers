@@ -34,11 +34,9 @@ from pathlib import Path
 from typing import Optional
 
 import datasets
-import tensorflow as tf
+import transformers
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-
-import transformers
 from transformers import (
     CONFIG_MAPPING,
     CONFIG_NAME,
@@ -55,6 +53,7 @@ from transformers import (
 )
 from transformers.utils.versions import require_version
 
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 require_version(

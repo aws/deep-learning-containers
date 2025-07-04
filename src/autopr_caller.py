@@ -1,11 +1,11 @@
 import json
-import boto3
-import os
 import logging
+import os
 import sys
-
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+
+import boto3
 
 AUTOPR_PROD_QUEUE = "autopr-prod-queue"
 S3_BUCKET = "pr-creation-data-helper"

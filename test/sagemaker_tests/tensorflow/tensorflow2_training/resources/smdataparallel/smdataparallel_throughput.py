@@ -11,11 +11,13 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import time
-import sys
-import numpy as np
-import tensorflow as tf
 import argparse
+import sys
+import time
+
+import numpy as np
+
+import tensorflow as tf
 
 THRESHOLD = 40.0
 
@@ -46,8 +48,8 @@ size, rank, local_size, local_rank = None, None, None, None
 if args.nccl:
     import horovod.tensorflow as dist
 else:
-    import smdistributed.dataparallel.tensorflow as dist
     import smddpcommon as hm
+    import smdistributed.dataparallel.tensorflow as dist
 
     hm.setBucketSize(args.bucket_size * 1024 * 1024)
 

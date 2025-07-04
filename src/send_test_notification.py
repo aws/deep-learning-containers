@@ -1,17 +1,18 @@
-import os
-import xmltodict
 import json
-import config
-from send_status import get_target_url
-from codebuild_environment import get_cloned_folder_path
+import os
+
+import xmltodict
 from dlc.ticket_notification_handler import TicketNotificationHandler
 
+import config
 from codebuild_environment import (
-    get_codebuild_project_name,
-    get_codebuild_project_id,
-    get_codepipeline_url,
+    get_cloned_folder_path,
     get_cloudwatch_url,
+    get_codebuild_project_id,
+    get_codebuild_project_name,
+    get_codepipeline_url,
 )
+from send_status import get_target_url
 
 
 def get_pytest_output():

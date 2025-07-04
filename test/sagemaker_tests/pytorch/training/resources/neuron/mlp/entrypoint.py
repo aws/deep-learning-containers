@@ -12,16 +12,16 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import shlex
-import subprocess
-import sys
 import argparse
 import json
 import logging
 import os
+import shlex
+import subprocess
 import sys
-from sagemaker_training import environment
 import tarfile
+
+from sagemaker_training import environment
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

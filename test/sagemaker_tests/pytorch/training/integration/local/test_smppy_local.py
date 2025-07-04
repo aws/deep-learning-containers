@@ -12,15 +12,16 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os, sys
+import os
 import subprocess
+import sys
 
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 from sagemaker.pytorch import PyTorch
 
-from ...integration import ROLE, data_dir, smppy_mnist_script, get_framework_and_version_from_tag
+from ...integration import ROLE, data_dir, get_framework_and_version_from_tag, smppy_mnist_script
 from ...utils.local_mode_utils import assert_files_exist
 
 # only the latest version of sagemaker supports profiler

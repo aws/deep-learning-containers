@@ -13,14 +13,14 @@
 from __future__ import absolute_import
 
 import argparse
-import logging
 import json
+import logging
 import os
 
-import mxnet as mx
 import numpy as np
-
 from sagemaker_mxnet_container.training_utils import save
+
+import mxnet as mx
 
 
 def train(num_cpus, num_gpus, channel_input_dirs):

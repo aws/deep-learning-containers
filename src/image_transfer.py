@@ -1,12 +1,12 @@
+import json
+import logging
 import os
 import sys
-import json
-import boto3
-import logging
-
-from invoke import run
-from botocore.exceptions import ClientError
 from datetime import datetime, timezone
+
+import boto3
+from botocore.exceptions import ClientError
+from invoke import run
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

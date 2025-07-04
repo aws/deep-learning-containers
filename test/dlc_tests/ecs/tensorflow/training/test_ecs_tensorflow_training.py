@@ -1,16 +1,10 @@
 import os
+from test.test_utils import CONTAINER_TESTS_PREFIX, ECS_AML2_CPU_USWEST2, ECS_AML2_GPU_USWEST2
+from test.test_utils import ec2 as ec2_utils
+from test.test_utils import ecs as ecs_utils
+from test.test_utils import is_nightly_context
 
 import pytest
-
-from test.test_utils import (
-    ECS_AML2_CPU_USWEST2,
-    ECS_AML2_GPU_USWEST2,
-    CONTAINER_TESTS_PREFIX,
-    is_nightly_context,
-)
-from test.test_utils import ecs as ecs_utils
-from test.test_utils import ec2 as ec2_utils
-
 
 TF_MNIST_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 TF_FasterRCNN_TRAINING_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testFasterRCNN")

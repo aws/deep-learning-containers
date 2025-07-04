@@ -14,19 +14,20 @@ limitations under the License.
 from __future__ import absolute_import
 
 import os
-import boto3, sagemaker
-import pytest
-import tarfile, subprocess
-
-from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
-from sagemaker import utils
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
+import subprocess
+import tarfile
 from test.dlc_tests.benchmark.sagemaker import inductor_path
 from test.sagemaker_tests.pytorch import invoke_pytorch_helper_function
 from test.test_utils import get_framework_and_version_from_tag
+
+import boto3
+import pytest
+import sagemaker
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from sagemaker import utils
+from sagemaker.instance_group import InstanceGroup
+from sagemaker.pytorch import PyTorch
 
 instance_types = ["ml.g5.4xlarge", "ml.g4dn.4xlarge"]
 

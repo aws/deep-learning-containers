@@ -15,11 +15,10 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 import sagemaker
 from sagemaker.mxnet.estimator import MXNet
-from ..... import invoke_sm_helper_function
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 from ...integration.utils import unique_name_from_base
 

@@ -14,6 +14,7 @@ from __future__ import absolute_import
 
 import os
 from contextlib import contextmanager
+from test.sagemaker_tests.autogluon.training.integration import dump_logs_from_cloudwatch
 
 import pandas as pd
 import pytest
@@ -23,10 +24,9 @@ from sagemaker.exceptions import UnexpectedStatusException
 from sagemaker.mxnet import MXNetModel
 from sagemaker.serializers import CSVSerializer
 
-from test.sagemaker_tests.autogluon.training.integration import dump_logs_from_cloudwatch
-from .timeout import timeout_and_delete_endpoint
-from .. import RESOURCE_PATH
 from ..... import invoke_sm_endpoint_helper_function
+from .. import RESOURCE_PATH
+from .timeout import timeout_and_delete_endpoint
 
 
 @contextmanager

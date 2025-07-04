@@ -1,14 +1,10 @@
 import json
 import logging
 import sys
-
 from datetime import datetime
 
 import boto3
-
-from job_requester import JobRequester
-from job_requester import Message
-
+from job_requester import JobRequester, Message
 
 """
 How tests are executed:

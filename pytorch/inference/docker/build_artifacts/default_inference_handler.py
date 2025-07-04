@@ -15,7 +15,8 @@ from __future__ import absolute_import
 import os
 import textwrap
 
-import torch, torcheia
+import torch
+import torcheia
 from sagemaker_inference import (
     content_types,
     decoder,

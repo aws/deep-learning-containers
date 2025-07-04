@@ -1,23 +1,22 @@
-import pytest, re
-import numpy as np
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
-
-import boto3, sagemaker
-from sagemaker.tensorflow import TensorFlow
-from sagemaker.training_compiler.config import TrainingCompilerConfig
-
-from src.benchmark_metrics import (
-    TRCOMP_THRESHOLD,
-    get_threshold_for_image,
-)
+import os
+import re
 from test.test_utils import (
     BENCHMARK_RESULTS_S3_BUCKET,
     LOGGER,
-    get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
 )
-import os
+
+import boto3
+import numpy as np
+import pytest
+import sagemaker
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from sagemaker.tensorflow import TensorFlow
+from sagemaker.training_compiler.config import TrainingCompilerConfig
+
+from src.benchmark_metrics import TRCOMP_THRESHOLD, get_threshold_for_image
 
 
 @pytest.fixture

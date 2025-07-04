@@ -1,7 +1,7 @@
-import sys
 import re
-import dgl
+import sys
 
+import dgl
 from packaging.version import Version
 
 # starting 0.9.x, dgl using 0.xx to represent accuracy

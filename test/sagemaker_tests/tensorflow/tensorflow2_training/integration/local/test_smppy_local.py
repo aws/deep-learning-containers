@@ -12,8 +12,9 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os, sys
+import os
 import subprocess
+import sys
 
 import pytest
 from packaging.specifiers import SpecifierSet

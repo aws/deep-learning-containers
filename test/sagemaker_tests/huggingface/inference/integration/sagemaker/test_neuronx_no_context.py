@@ -12,20 +12,20 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
 import json
+import os
+from test.test_utils import get_framework_and_version_from_tag
+
 import pytest
 import sagemaker
-
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import IdentitySerializer
-from sagemaker.deserializers import JSONDeserializer
 
-from test.test_utils import get_framework_and_version_from_tag
-from ...integration import model_dir, dump_logs_from_cloudwatch
-from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from ..... import invoke_sm_endpoint_helper_function
+from ...integration import dump_logs_from_cloudwatch, model_dir
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("all-MiniLM-L6-v2")

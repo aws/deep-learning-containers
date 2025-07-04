@@ -15,11 +15,10 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 from sagemaker.mxnet import MXNet
 
-from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
+from ...integration.local import local_mode_utils
 
 ONNX_PATH = os.path.join(RESOURCE_PATH, "onnx")
 SCRIPT_PATH = os.path.join(ONNX_PATH, "code", "onnx_export.py")

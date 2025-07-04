@@ -12,30 +12,28 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import json
+import logging
 import os
 import sys
+import time
+from datetime import datetime, timedelta
 
+import boto3
 import numpy as np
 import pytest
 import sagemaker
 from sagemaker.pytorch import PyTorchModel
 
-import boto3
-from datetime import datetime, timedelta
-import time
-import json
-import logging
-
+from .... import invoke_pytorch_helper_function
 from ...integration import (
-    model_cpu_dir,
     mnist_cpu_script,
-    mnist_gpu_script,
-    model_eia_dir,
     mnist_eia_script,
+    mnist_gpu_script,
+    model_cpu_dir,
+    model_eia_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from .... import invoke_pytorch_helper_function
-
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

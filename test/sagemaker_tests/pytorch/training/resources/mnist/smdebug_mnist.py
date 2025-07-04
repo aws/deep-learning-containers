@@ -12,7 +12,8 @@
 # language governing permissions and limitations under the License.
 
 # Workaround for https://github.com/pytorch/vision/issues/1938
-from __future__ import print_function, absolute_import
+from __future__ import absolute_import, print_function
+
 from six.moves import urllib
 
 opener = urllib.request.build_opener()
@@ -21,8 +22,10 @@ urllib.request.install_opener(opener)
 
 import argparse
 import logging
+import random
 import sys
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,11 +33,9 @@ import torch.optim as optim
 import torch.utils.data
 import torch.utils.data.distributed
 import torchvision
-from torchvision import datasets, transforms
-from smdebug.pytorch import *
-import numpy as np
-import random
 from packaging.version import Version
+from smdebug.pytorch import *
+from torchvision import datasets, transforms
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

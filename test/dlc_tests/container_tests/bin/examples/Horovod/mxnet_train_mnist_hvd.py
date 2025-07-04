@@ -5,13 +5,14 @@ os.environ["MXNET_CUDNN_AUTOTUNE_DEFAULT"] = "0"
 
 import argparse
 import logging
-import zipfile
 import time
+import zipfile
+
+import horovod.mxnet as hvd
+from mxnet.test_utils import download
 
 import mxnet as mx
-import horovod.mxnet as hvd
 from mxnet import autograd, gluon
-from mxnet.test_utils import download
 
 # Training settings
 parser = argparse.ArgumentParser(description="MXNet MNIST Example")

@@ -1,13 +1,10 @@
 import os
-
-import pytest
-
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
-
 from test.test_utils import CONTAINER_TESTS_PREFIX
 from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
 
+import pytest
 from packaging.version import Version
 
 MX_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testMXNetStandalone")

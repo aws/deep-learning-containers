@@ -12,30 +12,28 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import json
 import os
 
 import numpy as np
-import json
 import pytest
 import sagemaker
+from sagemaker.deserializers import BytesDeserializer
 from sagemaker.pytorch import PyTorchModel
 from sagemaker.serializers import IdentitySerializer, JSONSerializer
-from sagemaker.deserializers import BytesDeserializer
 
+from .... import invoke_pytorch_helper_function
 from ...integration import (
     model_neuron_dir,
-    resnet_neuron_script,
-    resnet_neuron_input,
-    resnet_neuron_image_list,
-)
-from ...integration import (
     model_neuronx_dir,
-    resnet_neuronx_script,
-    resnet_neuronx_input,
+    resnet_neuron_image_list,
+    resnet_neuron_input,
+    resnet_neuron_script,
     resnet_neuronx_image_list,
+    resnet_neuronx_input,
+    resnet_neuronx_script,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from .... import invoke_pytorch_helper_function
 
 
 @pytest.mark.model("resnet")
@@ -168,6 +166,7 @@ def _test_resnet_distributed(
 
         if preprocess_image:
             import io
+
             import torchvision.transforms as transforms
             from PIL import Image
 

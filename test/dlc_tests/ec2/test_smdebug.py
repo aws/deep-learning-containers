@@ -1,22 +1,19 @@
 import os
-import pytest
-
 import test.test_utils as test_utils
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     LOGGER,
-    is_tf_version,
+    get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     is_nightly_context,
+    is_tf_version,
     login_to_ecr_registry,
-    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
+import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")

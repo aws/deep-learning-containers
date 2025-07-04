@@ -13,25 +13,22 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_framework_and_version_from_tag, get_sha_of_an_image_from_ecr
+
+import boto3
 import pytest
 import sagemaker
-import boto3
-from test.test_utils import (
-    get_framework_and_version_from_tag,
-    get_sha_of_an_image_from_ecr,
-)
 from sagemaker.huggingface import HuggingFaceModel
 
-
+from ..... import invoke_sm_endpoint_helper_function
 from ...integration import (
+    dump_logs_from_cloudwatch,
     model_dir_sdxl,
     pt_neuronx_model,
-    script_dir,
     pt_neuronx_sdxl_script,
-    dump_logs_from_cloudwatch,
+    script_dir,
 )
 from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
-from ..... import invoke_sm_endpoint_helper_function
 
 
 # This version of the test is being added to test the neuronx inference images on multiple

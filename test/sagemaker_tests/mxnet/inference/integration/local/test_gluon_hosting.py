@@ -16,11 +16,10 @@ import json
 import os
 
 import pytest
-
 from sagemaker.mxnet.model import MXNetModel
 
-from ...integration.local import local_mode_utils
 from ...integration import RESOURCE_PATH
+from ...integration.local import local_mode_utils
 
 GLUON_PATH = os.path.join(RESOURCE_PATH, "gluon_hosting")
 MODEL_PATH = os.path.join(GLUON_PATH, "model", "model.tar.gz")

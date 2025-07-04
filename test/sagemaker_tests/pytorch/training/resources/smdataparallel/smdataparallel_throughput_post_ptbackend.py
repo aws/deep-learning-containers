@@ -10,13 +10,14 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-import torch
-import numpy as np
-import time
+import argparse
 import os
 import sys
-import argparse
+import time
+
+import numpy as np
 import smdistributed.dataparallel.torch.torch_smddp
+import torch
 
 THRESHOLD = 28.0
 NUM_LOCAL_GPUS = 8

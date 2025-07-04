@@ -1,12 +1,11 @@
-import os
 import logging
+import os
 import sys
-
 from enum import Enum
 
 import toml
 
-from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
+from codebuild_environment import get_cloned_folder_path, get_codebuild_project_name
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

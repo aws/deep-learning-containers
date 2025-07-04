@@ -1,24 +1,17 @@
 import base64
-from io import BytesIO
-from einops import rearrange
 import json
+import os
+from io import BytesIO
 from pathlib import Path
+
+import numpy as np
+import sgm
+from einops import rearrange
 from PIL import Image
 from pytorch_lightning import seed_everything
-import numpy as np
 from sagemaker_inference.errors import BaseInferenceToolkitError
-import sgm
-from sgm.inference.api import (
-    ModelArchitecture,
-    SamplingParams,
-    SamplingPipeline,
-    Sampler,
-)
-from sgm.inference.helpers import (
-    get_input_image_tensor,
-    embed_watermark,
-)
-import os
+from sgm.inference.api import ModelArchitecture, Sampler, SamplingParams, SamplingPipeline
+from sgm.inference.helpers import embed_watermark, get_input_image_tensor
 
 
 def model_fn(model_dir, context=None):

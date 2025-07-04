@@ -1,24 +1,21 @@
 from __future__ import absolute_import
 
+import logging
 import os
 import sys
-
+import time
 from io import BytesIO
-from PIL import Image
+
 import pytest
 import sagemaker
+from PIL import Image
+from sagemaker.deserializers import BytesDeserializer
 from sagemaker.pytorch import PyTorchModel
 from sagemaker.serializers import JSONSerializer
-from sagemaker.deserializers import BytesDeserializer
 
-import time
-import logging
-
-from ...integration import sdxl_gpu_path, sd21_gpu_path, sdxl_gpu_code_path, sd21_gpu_code_path
-
-
-from .timeout import timeout_and_delete_endpoint
 from .... import invoke_pytorch_helper_function
+from ...integration import sd21_gpu_code_path, sd21_gpu_path, sdxl_gpu_code_path, sdxl_gpu_path
+from .timeout import timeout_and_delete_endpoint
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

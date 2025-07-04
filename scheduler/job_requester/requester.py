@@ -4,13 +4,11 @@ import os
 import re
 import sys
 import time
-
 from datetime import datetime
-from threading import Lock
 from functools import cmp_to_key
+from threading import Lock
 
 import boto3
-
 from job_requester import Message
 
 MAX_TIMEOUT_IN_SEC = 5000

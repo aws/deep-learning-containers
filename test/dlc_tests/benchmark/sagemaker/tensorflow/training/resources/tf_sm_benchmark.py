@@ -3,7 +3,6 @@ from collections import defaultdict
 
 import boto3
 import sagemaker
-
 from sagemaker.tensorflow import TensorFlow
 
 parser = argparse.ArgumentParser()

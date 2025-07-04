@@ -15,11 +15,11 @@ from __future__ import absolute_import
 import logging
 import os
 import re
+import subprocess
+from base64 import b64decode
+
 import boto3
 import botocore
-from base64 import b64decode
-import subprocess
-
 
 logging.getLogger("boto3").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)

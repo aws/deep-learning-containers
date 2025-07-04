@@ -13,12 +13,12 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
+import os
+
 from codebuild_environment import get_cloned_folder_path
 from context import Context
 from image import DockerImage
 from utils import generate_safety_report_for_image
-
-import os
 
 
 class CommonStageImage(DockerImage):

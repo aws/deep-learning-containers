@@ -19,18 +19,17 @@ import platform
 import shutil
 import tempfile
 
-import pytest
 import boto3
-
+import pytest
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
 
-from .utils import image_utils, get_ecr_registry
 from .integration import (
-    get_framework_and_version_from_tag,
     get_cuda_version_from_tag,
+    get_framework_and_version_from_tag,
     get_processor_from_image_uri,
 )
+from .utils import get_ecr_registry, image_utils
 
 NO_P4_REGIONS = [
     "af-south-1",

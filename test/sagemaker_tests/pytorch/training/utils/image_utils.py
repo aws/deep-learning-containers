@@ -12,13 +12,13 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+import json
 import os
+import re
 import subprocess
 import sys
 
-import re
 import boto3
-import json
 
 CYAN_COLOR = "\033[36m"
 END_COLOR = "\033[0m"

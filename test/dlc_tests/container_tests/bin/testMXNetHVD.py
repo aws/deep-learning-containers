@@ -1,15 +1,18 @@
-import argparse, time, logging
+import argparse
+import logging
 import os
+import time
 
 # Disable Autotune
 os.environ["MXNET_CUDNN_AUTOTUNE_DEFAULT"] = "0"
 
-import numpy as np
-import mxnet as mx
-from mxnet import gluon
-from mxnet import autograd as ag
-from mxnet.gluon.model_zoo.vision import get_model
 import horovod.mxnet as hvd
+import numpy as np
+from mxnet.gluon.model_zoo.vision import get_model
+
+import mxnet as mx
+from mxnet import autograd as ag
+from mxnet import gluon
 
 
 # CLI

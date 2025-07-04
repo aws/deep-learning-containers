@@ -13,19 +13,16 @@
 from __future__ import absolute_import
 
 import os
+import unittest.mock as mock
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
 import pytest
 import sagemaker
 import sagemaker.huggingface
+from packaging.version import Version
 from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
 
-from packaging.version import Version
-
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-
-import unittest.mock as mock
-
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 BERT_PATH = os.path.join(RESOURCE_PATH, "scripts")

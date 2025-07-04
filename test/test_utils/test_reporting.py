@@ -2,14 +2,12 @@ import csv
 import datetime
 import os
 import re
-
 from concurrent import futures
+from test.test_utils import LOGGER, get_repository_local_path
+from test.test_utils.ec2 import get_instance_num_gpus
 from venv import EnvBuilder
 
 from invoke.context import Context
-
-from test.test_utils import LOGGER, get_repository_local_path
-from test.test_utils.ec2 import get_instance_num_gpus
 
 
 def get_test_coverage_file_path():

@@ -15,16 +15,15 @@ import importlib.util
 import json
 import logging
 import os
+import random
 import subprocess
-import grpc
 import sys
 
 import falcon
+import grpc
 import requests
-import random
-
-from multi_model_utils import lock, MultiModelException
 import tfs_utils
+from multi_model_utils import MultiModelException, lock
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
 INFERENCE_SCRIPT_PATH = (

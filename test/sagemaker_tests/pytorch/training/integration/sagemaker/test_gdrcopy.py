@@ -13,18 +13,17 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
 import pytest
-from sagemaker import utils
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from ...integration import (
-    DEFAULT_TIMEOUT,
-)
+from packaging.version import Version
+from sagemaker import utils
+
+from ....training import get_efa_test_instance_type
+from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
-from ....training import get_efa_test_instance_type
 
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 GDRCOPY_SANITY_TEST_CMD = os.path.join(RESOURCE_PATH, "gdrcopy", "test_gdrcopy.sh")

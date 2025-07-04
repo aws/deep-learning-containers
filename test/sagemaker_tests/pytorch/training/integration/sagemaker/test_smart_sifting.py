@@ -12,17 +12,17 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
+
 import pytest
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-
-from sagemaker.pytorch import PyTorch
+from packaging.version import Version
 from sagemaker import utils
+from sagemaker.pytorch import PyTorch
 
-from .timeout import timeout
-from ...integration import smart_sifting_path, DEFAULT_TIMEOUT
 from .... import invoke_pytorch_helper_function
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
+from ...integration import DEFAULT_TIMEOUT, smart_sifting_path
+from .timeout import timeout
 
 
 def validate_or_skip_smart_sifting(ecr_image):

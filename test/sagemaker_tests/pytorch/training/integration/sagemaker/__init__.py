@@ -16,24 +16,23 @@ import time
 
 import botocore.exceptions
 import pytest
-import sagemaker.exceptions
 import sagemaker
-
-from sagemaker.pytorch import PyTorch
+import sagemaker.exceptions
 from sagemaker import utils
-from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
+from sagemaker.pytorch import PyTorch
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
-from .timeout import timeout
-from ...integration import training_dir, mnist_script, DEFAULT_TIMEOUT
 from ..... import (
-    get_ecr_image,
-    get_ecr_image_region,
-    get_sagemaker_session,
     LOW_AVAILABILITY_INSTANCE_TYPES,
     SMInstanceCapacityError,
     SMResourceLimitExceededError,
     SMThrottlingError,
+    get_ecr_image,
+    get_ecr_image_region,
+    get_sagemaker_session,
 )
+from ...integration import DEFAULT_TIMEOUT, mnist_script, training_dir
+from .timeout import timeout
 
 
 def upload_s3_data(estimator, path, key_prefix):

@@ -12,21 +12,20 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
+from test.test_utils import get_framework_and_version_from_tag
+
 import pytest
 import sagemaker
-
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-
+from packaging.version import Version
+from sagemaker.deserializers import JSONDeserializer
 from sagemaker.huggingface import HuggingFaceModel
 from sagemaker.predictor import Predictor
 from sagemaker.serializers import DataSerializer
-from sagemaker.deserializers import JSONDeserializer
 
-from test.test_utils import get_framework_and_version_from_tag
-from ...integration import model_dir, dump_logs_from_cloudwatch, audio_sample_file_path
-from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 from ..... import invoke_sm_endpoint_helper_function
+from ...integration import audio_sample_file_path, dump_logs_from_cloudwatch, model_dir
+from ...integration.sagemaker.timeout import timeout_and_delete_endpoint
 
 
 @pytest.mark.model("wav2vec2")

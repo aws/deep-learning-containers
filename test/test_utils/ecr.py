@@ -1,21 +1,19 @@
 import json
 import os
 import subprocess
-
 from base64 import b64decode
+from test.test_utils import (
+    LOGGER,
+    get_account_id_from_image_uri,
+    get_region_from_image_uri,
+    get_repository_and_tag_from_image_uri,
+    get_repository_local_path,
+    get_unique_name_from_tag,
+)
+from test.test_utils.security import CVESeverity
 
 import boto3
 import botocore
-
-from test.test_utils import (
-    get_repository_and_tag_from_image_uri,
-    get_region_from_image_uri,
-    get_account_id_from_image_uri,
-    get_unique_name_from_tag,
-    get_repository_local_path,
-    LOGGER,
-)
-from test.test_utils.security import CVESeverity
 
 
 class ECRScanFailedError(Exception):

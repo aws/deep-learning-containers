@@ -1,57 +1,54 @@
+import filecmp
+import json
 import os
 import re
 import subprocess
-import botocore
-import boto3
-import json
 import time
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
-import pytest
-import requests
-import filecmp
-
-from urllib3.util.retry import Retry
-from invoke.context import Context
-from botocore.exceptions import ClientError
-
-from src.buildspec import Buildspec
-import src.utils as src_utils
 from test.test_utils import (
-    LOGGER,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     CONTAINER_TESTS_PREFIX,
+    LOGGER,
+    DockerImagePullException,
     ec2,
+    execute_env_variables_test,
+    get_account_id_from_image_uri,
+    get_all_the_tags_of_an_image_from_ecr,
+    get_buildspec_path,
     get_container_name,
+    get_cuda_version_from_tag,
     get_framework_and_version_from_tag,
-    get_neuron_sdk_version_from_tag,
+    get_image_spec_from_buildspec,
+    get_installed_python_packages_using_image_uri,
+    get_installed_python_packages_with_version,
+    get_labels_from_ecr_image,
     get_neuron_release_manifest,
+    get_neuron_sdk_version_from_tag,
+    get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
+    get_region_from_image_uri,
+    get_repository_and_tag_from_image_uri,
+    get_repository_local_path,
     is_canary_context,
     is_dlc_cicd_context,
+    is_nightly_context,
+    login_to_ecr_registry,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    get_repository_local_path,
-    get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri,
-    get_pytorch_version_from_autogluon_image,
-    get_cuda_version_from_tag,
-    get_labels_from_ecr_image,
-    get_buildspec_path,
-    get_all_the_tags_of_an_image_from_ecr,
-    is_nightly_context,
-    execute_env_variables_test,
-    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
-    get_installed_python_packages_with_version,
-    login_to_ecr_registry,
-    get_account_id_from_image_uri,
-    get_region_from_image_uri,
-    DockerImagePullException,
-    get_installed_python_packages_with_version,
-    get_installed_python_packages_using_image_uri,
-    get_image_spec_from_buildspec,
 )
+
+import boto3
+import botocore
+import pytest
+import requests
+from botocore.exceptions import ClientError
+from invoke.context import Context
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from urllib3.util.retry import Retry
+
+import src.utils as src_utils
+from src.buildspec import Buildspec
 
 
 def tail_n_lines(fname, n):

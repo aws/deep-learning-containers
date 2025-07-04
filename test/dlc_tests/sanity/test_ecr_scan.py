@@ -1,59 +1,59 @@
+import copy
 import json
 import os
-from time import sleep
-from typing import List
-
-import boto3
-
-import pytest
 import traceback
-import copy
-
-from invoke import run, Context
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 from test import test_utils
-
 from test.test_utils import (
+    ECR_ENHANCED_REPO_REGION,
+    ECR_ENHANCED_SCANNING_REPO_NAME,
+    ECR_SCAN_HELPER_BUCKET,
     LOGGER,
     EnhancedJSONEncoder,
-    get_account_id_from_image_uri,
-    get_framework_and_version_from_tag,
-    get_repository_and_tag_from_image_uri,
-    get_repository_local_path,
-    ECR_SCAN_HELPER_BUCKET,
-    is_canary_context,
-    get_all_the_tags_of_an_image_from_ecr,
-    is_huggingface_image,
-    is_image_available_locally,
-    login_to_ecr_registry,
-    get_region_from_image_uri,
-    ECR_ENHANCED_SCANNING_REPO_NAME,
-    ECR_ENHANCED_REPO_REGION,
-    is_generic_image,
-    get_allowlist_path_for_enhanced_scan_from_env_variable,
-    get_ecr_scan_allowlist_path,
-    get_sha_of_an_image_from_ecr,
-    is_mainline_context,
-    is_test_phase,
 )
 from test.test_utils import ecr as ecr_utils
+from test.test_utils import (
+    get_account_id_from_image_uri,
+    get_all_the_tags_of_an_image_from_ecr,
+    get_allowlist_path_for_enhanced_scan_from_env_variable,
+    get_ecr_scan_allowlist_path,
+    get_framework_and_version_from_tag,
+    get_region_from_image_uri,
+    get_repository_and_tag_from_image_uri,
+    get_repository_local_path,
+    get_sha_of_an_image_from_ecr,
+    is_canary_context,
+    is_generic_image,
+    is_huggingface_image,
+    is_image_available_locally,
+    is_mainline_context,
+    is_test_phase,
+    login_to_ecr_registry,
+)
 from test.test_utils.security import (
+    AllowListFormatVulnerabilityForEnhancedScan,
     CVESeverity,
     ECRBasicScanVulnerabilityList,
     ECREnhancedScanVulnerabilityList,
     conduct_failure_routine,
-    process_failure_routine_summary_and_store_data_in_s3,
-    run_scan,
-    get_target_image_uri_using_current_uri_and_target_repo,
-    wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
     generate_future_allowlist,
-    AllowListFormatVulnerabilityForEnhancedScan,
+    get_target_image_uri_using_current_uri_and_target_repo,
+    process_failure_routine_summary_and_store_data_in_s3,
+    run_scan,
+    wait_for_enhanced_scans_to_complete,
 )
-from src.config import is_ecr_scan_allowlist_feature_enabled
+from time import sleep
+from typing import List
+
+import boto3
+import pytest
+from invoke import Context, run
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+
 from src import utils as src_utils
 from src.codebuild_environment import get_cloned_folder_path
+from src.config import is_ecr_scan_allowlist_feature_enabled
 
 ALLOWLIST_FEATURE_ENABLED_IMAGES = {"mxnet": SpecifierSet(">=1.8.0,<1.9.0")}
 

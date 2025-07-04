@@ -1,9 +1,9 @@
-import sys
+import argparse
+import calendar
 import logging
 import os
+import sys
 import time
-import calendar
-import argparse
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)

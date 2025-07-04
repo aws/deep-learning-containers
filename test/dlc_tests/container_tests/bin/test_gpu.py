@@ -1,8 +1,8 @@
-import subprocess
-import sys
+import argparse
 import logging
 import signal
-import argparse
+import subprocess
+import sys
 
 LOGGER = logging.getLogger(__name__)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)

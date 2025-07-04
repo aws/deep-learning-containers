@@ -16,26 +16,25 @@ import gevent.monkey
 
 gevent.monkey.patch_all()
 
-import bisect
 import argparse
+import bisect
+import copy
 import importlib.util
 import json
 import logging
 import os
+import pickle
+import random
+import shutil
 import signal
 import subprocess
-import grpc
 import sys
-import shutil
-import copy
-import pickle
 
 import falcon
+import grpc
 import requests
-import random
-
-from multi_model_utils import MultiModelException, lock
 import tfs_utils
+from multi_model_utils import MultiModelException, lock
 
 SAGEMAKER_MULTI_MODEL_ENABLED = os.environ.get("SAGEMAKER_MULTI_MODEL", "false").lower() == "true"
 INFERENCE_SCRIPT_PATH = (

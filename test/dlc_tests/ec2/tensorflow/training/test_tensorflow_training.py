@@ -1,22 +1,20 @@
-import re
 import os
-import pytest
-
+import re
 import test.test_utils as test_utils
 import test.test_utils.ec2 as ec2_utils
-
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
     LOGGER,
+    UBUNTU_18_HPU_DLAMI_US_WEST_2,
     is_tf_version,
 )
 from test.test_utils.ec2 import (
+    execute_ec2_telemetry_test,
     execute_ec2_training_test,
     get_ec2_instance_type,
-    execute_ec2_telemetry_test,
 )
 
+import pytest
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
 TF2_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow2Standalone")

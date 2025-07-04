@@ -8,22 +8,19 @@ import json
 import logging
 import os
 import sys
-
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
-
-import pytest
-import requests
-
-from invoke import run
-
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
-    is_dlc_cicd_context,
     is_canary_context,
+    is_dlc_cicd_context,
     is_mainline_context,
     is_safety_test_context,
 )
+
+import pytest
+import requests
+from invoke import run
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

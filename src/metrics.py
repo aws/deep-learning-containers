@@ -1,6 +1,8 @@
-import boto3
-import constants
 import random
+
+import boto3
+
+import constants
 
 
 class Metrics(object):

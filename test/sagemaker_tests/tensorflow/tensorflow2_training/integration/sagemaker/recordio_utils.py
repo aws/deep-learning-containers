@@ -13,11 +13,12 @@
 from __future__ import absolute_import
 
 import argparse
-from random import randint
 import struct
 import sys
+from random import randint
 
 import numpy as np
+
 import tensorflow as tf
 
 # Utility functions for generating a recordio encoded file of labeled numpy data

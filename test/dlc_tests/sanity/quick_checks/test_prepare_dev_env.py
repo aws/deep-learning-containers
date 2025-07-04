@@ -1,9 +1,10 @@
-import pytest
 import os
-
-from unittest.mock import patch, mock_open
-from src import prepare_dlc_dev_environment
 from test.test_utils import is_pr_context
+from unittest.mock import mock_open, patch
+
+import pytest
+
+from src import prepare_dlc_dev_environment
 
 
 @pytest.mark.quick_checks

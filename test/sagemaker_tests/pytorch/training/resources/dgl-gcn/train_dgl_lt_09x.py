@@ -8,13 +8,14 @@ References:
 
 import argparse
 import os
-from dgl.data import CoraGraphDataset, CiteseerGraphDataset, PubmedGraphDataset
-import dgl
-import torch.nn.functional as F
-import numpy as np
 import time
+
+import dgl
+import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from dgl.data import CiteseerGraphDataset, CoraGraphDataset, PubmedGraphDataset
 from dgl.nn.pytorch import GraphConv
 
 

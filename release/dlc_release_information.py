@@ -1,11 +1,10 @@
-import os
 import json
+import logging
+import os
 import sys
 
 import boto3
-import logging
 import requests
-
 from botocore.exceptions import ClientError
 from invoke import run
 

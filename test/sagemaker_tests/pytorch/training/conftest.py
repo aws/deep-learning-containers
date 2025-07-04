@@ -22,23 +22,17 @@ import tempfile
 
 import boto3
 import pytest
-
 from botocore.exceptions import ClientError
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker import LocalSession, Session
 from sagemaker.pytorch import PyTorch
 
+from .. import NO_G5_REGIONS, NO_P4_REGIONS, P5_AVAIL_REGIONS
 from . import get_efa_test_instance_type
-
-from .utils import get_ecr_registry, NightlyFeatureLabel, is_nightly_context
-from .integration import (
-    get_framework_and_version_from_tag,
-    get_cuda_version_from_tag,
-)
-from .utils.image_utils import build_base_image, are_fixture_labels_enabled
-from .. import NO_P4_REGIONS, NO_G5_REGIONS, P5_AVAIL_REGIONS
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
+from .integration import get_cuda_version_from_tag, get_framework_and_version_from_tag
+from .utils import NightlyFeatureLabel, get_ecr_registry, is_nightly_context
+from .utils.image_utils import are_fixture_labels_enabled, build_base_image
 
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)

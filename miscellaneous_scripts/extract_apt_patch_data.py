@@ -1,6 +1,6 @@
-import subprocess
 import argparse
 import json
+import subprocess
 from enum import Enum
 
 

@@ -1,18 +1,15 @@
+import datetime
 import json
 import os
 import random
-import datetime
+import test.test_utils.ec2 as ec2_utils
+import test.test_utils.eks as eks_utils
+from test.test_utils import SKIP_PR_REASON, is_pr_context
 
 import pytest
-
 from invoke import run
 from invoke.context import Context
 from retrying import retry
-
-import test.test_utils.eks as eks_utils
-import test.test_utils.ec2 as ec2_utils
-
-from test.test_utils import is_pr_context, SKIP_PR_REASON
 
 LOGGER = eks_utils.LOGGER
 

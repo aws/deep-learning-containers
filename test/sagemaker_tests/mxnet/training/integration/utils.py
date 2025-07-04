@@ -14,14 +14,15 @@ from __future__ import absolute_import
 
 import os
 import random
-import time
 import re
-import boto3
-import pytest
 import subprocess
-from base64 import b64decode
 import sys
+import time
+from base64 import b64decode
+
+import boto3
 import botocore
+import pytest
 
 
 def unique_name_from_base(base, max_length=63):

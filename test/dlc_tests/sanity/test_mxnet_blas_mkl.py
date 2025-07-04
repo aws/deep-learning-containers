@@ -1,8 +1,3 @@
-import pytest
-
-from invoke.context import Context
-from packaging.version import Version
-
 from test.test_utils import (
     get_container_name,
     get_framework_and_version_from_tag,
@@ -11,6 +6,10 @@ from test.test_utils import (
     start_container,
     stop_and_remove_container,
 )
+
+import pytest
+from invoke.context import Context
+from packaging.version import Version
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")

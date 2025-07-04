@@ -1,21 +1,19 @@
 import os
 import re
-from time import sleep
-import pytest
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
-from test.test_utils.ec2 import (
-    get_ec2_instance_type,
-    get_ec2_accelerator_type,
-    execute_ec2_telemetry_test,
-)
 from test.dlc_tests.conftest import LOGGER
 from test.test_utils import CONTAINER_TESTS_PREFIX
+from test.test_utils.ec2 import (
+    execute_ec2_telemetry_test,
+    get_ec2_accelerator_type,
+    get_ec2_instance_type,
+)
+from time import sleep
+
+import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 TENSORFLOW1_VERSION = "1."
 TENSORFLOW2_VERSION = "2."

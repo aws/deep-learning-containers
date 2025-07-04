@@ -1,10 +1,11 @@
-from kubernetes import client, config
-from datetime import datetime
-from invoke import run
-import pytz
-import boto3
 import logging
 import sys
+from datetime import datetime
+
+import boto3
+import pytz
+from invoke import run
+from kubernetes import client, config
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

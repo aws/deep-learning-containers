@@ -1,28 +1,28 @@
-import os
-import time
-import pytest
 import logging
+import os
 import sys
-
-from src.benchmark_metrics import (
-    PYTORCH_INFERENCE_GPU_THRESHOLD,
-    PYTORCH_INFERENCE_CPU_THRESHOLD,
-    get_threshold_for_image,
-)
+import time
 from test.test_utils import (
-    CONTAINER_TESTS_PREFIX,
-    get_framework_and_version_from_tag,
     AL2023_BASE_DLAMI_ARM64_US_WEST_2,
-    login_to_ecr_registry,
-    get_account_id_from_image_uri,
+    CONTAINER_TESTS_PREFIX,
     LOGGER,
+    get_account_id_from_image_uri,
+    get_framework_and_version_from_tag,
+    login_to_ecr_registry,
 )
 from test.test_utils.ec2 import (
     ec2_performance_upload_result_to_s3_and_validate,
-    post_process_inference,
     get_ec2_instance_type,
+    post_process_inference,
 )
 
+import pytest
+
+from src.benchmark_metrics import (
+    PYTORCH_INFERENCE_CPU_THRESHOLD,
+    PYTORCH_INFERENCE_GPU_THRESHOLD,
+    get_threshold_for_image,
+)
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

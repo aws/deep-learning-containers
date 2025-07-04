@@ -13,16 +13,15 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_framework_and_version_from_tag
 
 import pytest
-
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
+from ....training import get_efa_test_instance_type
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
-from ....training import get_efa_test_instance_type
-from test.test_utils import get_framework_and_version_from_tag
 from . import invoke_pytorch_estimator
 
 

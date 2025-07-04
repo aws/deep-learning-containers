@@ -17,11 +17,10 @@ import time
 
 import boto3
 import pytest
-
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from ...... import NO_P4_REGIONS, NO_G5_REGIONS
+from ...... import NO_G5_REGIONS, NO_P4_REGIONS
 
 
 def pytest_addoption(parser):

@@ -20,12 +20,10 @@ import sys
 
 import boto3
 
-import constants
 import config
+import constants
 import utils
-
 from codebuild_environment import get_codebuild_project_name
-
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

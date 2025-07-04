@@ -1,9 +1,8 @@
 import os
 import re
+from test.test_utils import get_repository_local_path, is_pr_context
 
 import pytest
-
-from test.test_utils import is_pr_context, get_repository_local_path
 
 
 @pytest.mark.quick_checks

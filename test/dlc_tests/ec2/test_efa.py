@@ -1,27 +1,25 @@
 import os
-
-import pytest
-
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
     LOGGER,
+    are_heavy_instance_ec2_tests_enabled,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
-    is_pr_context,
     is_efa_dedicated,
-    are_heavy_instance_ec2_tests_enabled,
+    is_pr_context,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 from test.test_utils.ec2 import (
-    get_efa_ec2_instance_type,
     filter_efa_instance_type,
     filter_efa_only_p4_instance_type,
+    get_efa_ec2_instance_type,
 )
+
+import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "build_all_reduce_perf.sh")
 EFA_SANITY_TEST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "efa", "testEFASanity")

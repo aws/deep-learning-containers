@@ -12,9 +12,10 @@
 # language governing permissions and limitations under the License.
 # TODO: this is used in all containers and sdk. We should move it to container support or sdk test utils.
 from __future__ import absolute_import
+
+import logging
 import signal
 from contextlib import contextmanager
-import logging
 
 from botocore.exceptions import ClientError
 

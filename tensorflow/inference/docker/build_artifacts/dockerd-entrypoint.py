@@ -12,8 +12,8 @@
 # language governing permissions and limitations under the License.
 
 import os.path
-import subprocess
 import shlex
+import subprocess
 import sys
 
 if not os.path.exists("/opt/ml/input/config"):

@@ -1,5 +1,5 @@
-import os
 import argparse
+import os
 
 from dlc.github_handler import GitHubHandler
 

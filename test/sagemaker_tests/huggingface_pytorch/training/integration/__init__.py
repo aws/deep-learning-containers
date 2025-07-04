@@ -12,9 +12,8 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import re
 import os
-
+import re
 
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 scripts_path = os.path.join(resources_path, "scripts")

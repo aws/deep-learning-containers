@@ -2,18 +2,17 @@
 Helper functions for EKS Integration Tests
 """
 
-import os
-import sys
 import json
 import logging
+import os
 import random
 import re
+import sys
 
 import boto3
-
 from botocore.exceptions import ClientError
+from invoke import Context, run
 from retrying import retry
-from invoke import run, Context
 
 DEFAULT_REGION = "us-west-2"
 

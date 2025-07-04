@@ -16,44 +16,47 @@
 # !/usr/bin/env python2.7
 """Tests for tensorflow_model_server."""
 
+import argparse
 import atexit
+import logging
+import marshal
 import os
+import pickle
+import pprint
 import shlex
+import shutil
 import socket
 import subprocess
 import sys
 import time
-import pickle
-import shutil
-import boto3
-import botocore
-import marshal
-import argparse
-import logging
-import pprint
 from multiprocessing.dummy import Pool
 
-# This is a placeholder for a Google-internal import.
-
+import boto3
+import botocore
 import grpc
+import numpy as np
 from grpc.beta import implementations
 from grpc.beta import interfaces as beta_interfaces
 from grpc.framework.interfaces.face import face
-import tensorflow as tf
-import numpy as np
-
 from tensorflow.core.framework import types_pb2
+from tensorflow.python.estimator import model_fn as model_fn_lib
 from tensorflow.python.platform import flags
-from tensorflow_serving.apis import classification_pb2
+from tensorflow.python.saved_model import signature_constants
 
 # from tensorflow_serving.apis import get_model_status_pb2
 # from tensorflow_serving.apis import model_service_pb2_grpc
-from tensorflow_serving.apis import predict_pb2
-from tensorflow_serving.apis import prediction_service_pb2_grpc
-from tensorflow_serving.apis import regression_pb2
-from tensorflow_serving.apis import inference_pb2
-from tensorflow.python.saved_model import signature_constants
-from tensorflow.python.estimator import model_fn as model_fn_lib
+from tensorflow_serving.apis import (
+    classification_pb2,
+    inference_pb2,
+    predict_pb2,
+    prediction_service_pb2_grpc,
+    regression_pb2,
+)
+
+import tensorflow as tf
+
+# This is a placeholder for a Google-internal import.
+
 
 FLAGS = flags.FLAGS
 

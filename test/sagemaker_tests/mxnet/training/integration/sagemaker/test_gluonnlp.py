@@ -17,8 +17,8 @@ import os
 import pytest
 from sagemaker import utils
 from sagemaker.mxnet.estimator import MXNet
-from ..... import invoke_sm_helper_function
 
+from ..... import invoke_sm_helper_function
 from ...integration import RESOURCE_PATH
 
 NLP_DATA_PATH = os.path.join(RESOURCE_PATH, "nlp")

@@ -1,19 +1,16 @@
 import os
-
-import boto3
-import pytest
-
-from botocore.exceptions import ClientError
-from invoke.context import Context
-
 from test.test_utils import (
     LOGGER,
-    is_mainline_context,
-    is_graviton_architecture,
     is_arm64_architecture,
+    is_graviton_architecture,
+    is_mainline_context,
 )
 from test.test_utils.test_reporting import get_test_coverage_file_path
 
+import boto3
+import pytest
+from botocore.exceptions import ClientError
+from invoke.context import Context
 
 ACCOUNT_ID = os.getenv("ACCOUNT_ID", boto3.client("sts").get_caller_identity().get("Account"))
 TEST_COVERAGE_REPORT_BUCKET = f"dlc-test-coverage-reports-{ACCOUNT_ID}"

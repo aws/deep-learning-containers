@@ -11,18 +11,18 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+import json
 import logging
 import multiprocessing
 import os
 import re
-import requests
 import time
-import json
-
-from multi_model_utils import timeout
-from urllib3.util.retry import Retry
-from urllib3.exceptions import NewConnectionError, MaxRetryError
 from collections import namedtuple
+
+import requests
+from multi_model_utils import timeout
+from urllib3.exceptions import MaxRetryError, NewConnectionError
+from urllib3.util.retry import Retry
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)

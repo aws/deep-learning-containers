@@ -13,8 +13,8 @@
 import argparse
 import os
 
-from tensorflow import keras
 import tensorflow as tf
+from tensorflow import keras
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model_dir", type=str)

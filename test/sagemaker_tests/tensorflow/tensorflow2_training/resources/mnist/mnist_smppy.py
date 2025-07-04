@@ -4,9 +4,9 @@ import json
 import os
 
 import numpy as np
-import tensorflow as tf
-
 import smprof
+
+import tensorflow as tf
 
 
 def _parse_args():

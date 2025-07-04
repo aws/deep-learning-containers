@@ -14,9 +14,8 @@ import os
 
 import pytest
 
-from ..sagemaker import util
 from ...... import invoke_sm_endpoint_helper_function
-
+from ..sagemaker import util
 
 MODEL_WITH_REQUIREMENTS_PATH = "test/data/tfs-model_greater_than_equal_to_tf26.tar.gz"
 MODEL_WITH_LIB_PATH = "test/data/python-with-lib.tar.gz"

@@ -15,11 +15,10 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
 from sagemaker.mxnet import MXNet
 
-from ...integration.local import local_mode_utils
 from ...integration import MODEL_SUCCESS_FILES, RESOURCE_PATH
+from ...integration.local import local_mode_utils
 
 
 @pytest.mark.integration("linear_regression")

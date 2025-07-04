@@ -19,11 +19,16 @@
 import sys
 
 sys.path.insert(0, "../../python")
-import mxnet as mx
-from mxnet.test_utils import get_mnist_ubyte
-import numpy as np
-import os, pickle, gzip, argparse
+import argparse
+import gzip
 import logging
+import os
+import pickle
+
+import numpy as np
+from mxnet.test_utils import get_mnist_ubyte
+
+import mxnet as mx
 
 
 def get_model(use_gpu):

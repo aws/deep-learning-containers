@@ -1,5 +1,6 @@
-import sys
 import logging
+import sys
+
 import boto3
 import sagemaker
 from sagemaker.remote_function import remote

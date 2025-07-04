@@ -1,16 +1,14 @@
 import os
-
-import pytest
-
-from invoke.context import Context
-
 from test.test_utils import (
+    LOGGER,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
     is_deep_canary_context,
     login_to_ecr_registry,
-    LOGGER,
 )
+
+import pytest
+from invoke.context import Context
 
 
 @pytest.mark.usefixtures("sagemaker")

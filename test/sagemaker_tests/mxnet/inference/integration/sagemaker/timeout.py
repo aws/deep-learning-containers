@@ -12,9 +12,9 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-from contextlib import contextmanager
 import logging
 import signal
+from contextlib import contextmanager
 from time import sleep
 
 from awslogs.core import AWSLogs

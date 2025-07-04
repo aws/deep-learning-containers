@@ -1,30 +1,28 @@
-import os
-import boto3
 import concurrent.futures
 import json
+import os
 from datetime import datetime
 
-import constants
-
-from output import OutputFormatter
+import boto3
 from invoke import run
-from image import DockerImage
 
-from utils import (
-    get_dummy_boto_client,
-    upload_data_to_pr_creation_s3_bucket,
-    get_core_packages_path,
-    get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
-    get_overall_history_path,
-    get_folder_size_in_bytes,
-    check_if_folder_contents_are_valid,
-    verify_if_child_image_is_built_on_top_of_base_image,
-    remove_repo_root_folder_path_from_the_given_path,
-)
+import constants
 from codebuild_environment import get_cloned_folder_path
 from context import Context
-
+from image import DockerImage
+from output import OutputFormatter
 from src.constants import PATCHING_INFO_PATH_WITHIN_DLC
+from utils import (
+    check_if_folder_contents_are_valid,
+    get_core_packages_path,
+    get_dummy_boto_client,
+    get_folder_size_in_bytes,
+    get_overall_history_path,
+    get_unique_s3_path_for_uploading_data_to_pr_creation_bucket,
+    remove_repo_root_folder_path_from_the_given_path,
+    upload_data_to_pr_creation_s3_bucket,
+    verify_if_child_image_is_built_on_top_of_base_image,
+)
 
 FORMATTER = OutputFormatter(constants.PADDING)
 

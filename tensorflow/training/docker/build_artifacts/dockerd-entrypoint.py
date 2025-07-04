@@ -16,6 +16,7 @@ import os.path
 import shlex
 import subprocess
 import sys
+
 import tensorflow as tf
 
 try:

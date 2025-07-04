@@ -11,8 +11,10 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 import os
-import tensorflow as tf
+
 import horovod.tensorflow as hvd
+
+import tensorflow as tf
 
 # Horovod: initialize Horovod.
 hvd.init()

@@ -12,18 +12,17 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import pytest
 import os
-from six.moves.urllib.parse import urlparse
-from packaging.specifiers import SpecifierSet
-from packaging.version import Version
 
 import boto3
+import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.training_compiler.config import TrainingCompilerConfig
+from six.moves.urllib.parse import urlparse
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
-
 
 resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 

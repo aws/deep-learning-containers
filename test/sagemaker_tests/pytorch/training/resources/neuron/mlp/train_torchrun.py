@@ -1,21 +1,21 @@
 import os
 import time
-import torch
-from model import MLP
 
-from torchvision.datasets import mnist
-from torch.utils.data import DataLoader
-from torchvision.transforms import ToTensor
+import torch
 
 # XLA imports
 import torch_xla.core.xla_model as xm
 
 # XLA imports for parallel loader and multi-processing
 import torch_xla.distributed.parallel_loader as pl
-from torch.utils.data.distributed import DistributedSampler
 
 # Initialize XLA process group for torchrun
 import torch_xla.distributed.xla_backend
+from model import MLP
+from torch.utils.data import DataLoader
+from torch.utils.data.distributed import DistributedSampler
+from torchvision.datasets import mnist
+from torchvision.transforms import ToTensor
 
 torch.distributed.init_process_group("xla")
 

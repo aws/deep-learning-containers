@@ -3,9 +3,7 @@ import os
 
 import boto3
 import sagemaker
-
 from sagemaker.mxnet import MXNet
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

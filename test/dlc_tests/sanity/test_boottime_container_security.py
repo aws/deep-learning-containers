@@ -1,5 +1,4 @@
 import pytest
-
 from invoke import run
 
 

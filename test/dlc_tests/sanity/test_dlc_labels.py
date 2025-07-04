@@ -1,9 +1,8 @@
 import os
 import re
+from test import test_utils
 
 import pytest
-
-from test import test_utils
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 

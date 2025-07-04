@@ -1,12 +1,14 @@
+import argparse
+import datetime
+import logging
+import os
+import subprocess
+import tarfile
+
 import boto3
+import pandas as pd
 from botocore.config import Config
 from botocore.exceptions import ClientError
-import datetime
-import pandas as pd
-import os
-import argparse
-import logging
-import tarfile, subprocess
 
 LOGGER = logging.getLogger(__name__)
 

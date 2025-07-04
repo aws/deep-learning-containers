@@ -5,7 +5,6 @@ import sys
 
 from config import get_dlc_developer_config_path, parse_dlc_developer_configs
 
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

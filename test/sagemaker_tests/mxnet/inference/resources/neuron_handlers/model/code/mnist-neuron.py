@@ -6,10 +6,11 @@ import logging
 import os
 import struct
 from collections import namedtuple
+
+import numpy as np
 from packaging import version
 
 import mxnet as mx
-import numpy as np
 
 
 def get_context():

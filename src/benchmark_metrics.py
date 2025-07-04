@@ -1,7 +1,6 @@
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
-
 # TensorFlow
 # Throughput, unit: images/second
 TENSORFLOW_TRAINING_CPU_SYNTHETIC_THRESHOLD = {"<2.0": 50, ">=2.0": 50}

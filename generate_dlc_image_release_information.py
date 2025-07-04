@@ -1,14 +1,14 @@
 import argparse
-import logging
 import json
+import logging
 import os
-import sys
 import shutil
+import sys
 import tarfile
 
 import boto3
-
 from botocore.exceptions import ClientError
+
 from release.dlc_release_information import DLCReleaseInformation
 
 LOGGER = logging.getLogger(__name__)

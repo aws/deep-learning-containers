@@ -15,11 +15,10 @@ from __future__ import absolute_import
 import os
 
 import pytest
-
-from ..... import invoke_sm_helper_function
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
 
+from ..... import invoke_sm_helper_function
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
 

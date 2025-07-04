@@ -8,6 +8,9 @@ import random
 
 # Third Party
 import numpy as np
+
+# First Party
+import smdistributed.modelparallel.torch as smp
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,9 +19,6 @@ from torch.cuda.amp import autocast
 from torch.optim.lr_scheduler import StepLR
 from torchnet.dataset import SplitDataset
 from torchvision import datasets, transforms
-
-# First Party
-import smdistributed.modelparallel.torch as smp
 
 # SM Distributed: import scaler from smdistributed.modelparallel.torch.amp, instead of torch.cuda.amp
 

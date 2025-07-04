@@ -1,27 +1,28 @@
 import os
-import time
-import pytest
 import re
-
+import time
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
+    DEFAULT_REGION,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
     UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    DEFAULT_REGION,
+    get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     is_pr_context,
     login_to_ecr_registry,
-    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
-    execute_ec2_training_performance_test,
     ec2_performance_upload_result_to_s3_and_validate,
     execute_ec2_habana_training_performance_test,
+    execute_ec2_training_performance_test,
     get_ec2_instance_type,
 )
+
+import pytest
+
 from src.benchmark_metrics import (
-    PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
     PYTORCH_TRAINING_GPU_IMAGENET_THRESHOLD,
+    PYTORCH_TRAINING_GPU_SYNTHETIC_THRESHOLD,
     get_threshold_for_image,
 )
 

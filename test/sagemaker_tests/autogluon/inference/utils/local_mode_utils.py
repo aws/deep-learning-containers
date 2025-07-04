@@ -12,11 +12,11 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-from contextlib import contextmanager
 import fcntl
 import os
 import tarfile
 import time
+from contextlib import contextmanager
 
 from ..integration import RESOURCE_PATH
 

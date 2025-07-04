@@ -1,16 +1,13 @@
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-from datetime import datetime
-
-import pytest
+import os
 import re
 import time
-
-import os
-
-from invoke.context import Context
-
+from datetime import datetime
 from test import test_utils
+
+import pytest
+from invoke.context import Context
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "bokeh",

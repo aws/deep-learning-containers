@@ -14,15 +14,13 @@ from __future__ import absolute_import
 
 import re
 import time
+from test.test_utils.ecr import reupload_image_to_test_ecr
 
 import boto3
 import botocore.exceptions
 import sagemaker
-
 from botocore.config import Config
-from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
-
-from test.test_utils.ecr import reupload_image_to_test_ecr
+from tenacity import retry, retry_if_exception_type, stop_after_delay, wait_fixed
 
 # It is possible to have such low capacity on certain instance types that the test is never able to
 # run due to ICE errors. In these cases, we are forced to xfail/skip the test, or end up causing

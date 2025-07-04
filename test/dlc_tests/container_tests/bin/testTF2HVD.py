@@ -13,10 +13,11 @@
 # limitations under the License.
 # ==============================================================================
 
-import tensorflow as tf
 import horovod.tensorflow as hvd
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+import tensorflow as tf
 
 # Horovod: initialize Horovod.
 hvd.init()

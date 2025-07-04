@@ -1,12 +1,10 @@
 import logging
 import os
 import sys
+from test.test_utils import PR_ONLY_REASON, get_repository_local_path, is_pr_context
 
 import pytest
-
 from invoke.context import Context
-
-from test.test_utils import PR_ONLY_REASON, get_repository_local_path, is_pr_context
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

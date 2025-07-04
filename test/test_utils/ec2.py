@@ -1,25 +1,31 @@
-import os
-import time
-import re
-import logging
-import sys
-import uuid
 import copy
-
-from random import randint
-
+import logging
+import os
+import re
+import sys
+import time
+import uuid
 from collections import Counter
-
 from inspect import signature
+from random import randint
+from test.test_utils import (
+    UL_AMI_LIST,
+    are_heavy_instance_ec2_tests_enabled,
+    get_account_id_from_image_uri,
+    get_synapseai_version_from_tag,
+    is_deep_canary_context,
+    is_mainline_context,
+    is_pr_context,
+    login_to_ecr_registry,
+)
 
 import boto3
-
-from fabric import Connection
 from botocore.config import Config
 from botocore.exceptions import ClientError
+from fabric import Connection
 from invoke import run
-from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -28,17 +34,7 @@ from tenacity import (
     wait_random_exponential,
 )
 
-from test.test_utils import (
-    get_synapseai_version_from_tag,
-    is_deep_canary_context,
-    is_pr_context,
-    is_mainline_context,
-    are_heavy_instance_ec2_tests_enabled,
-    login_to_ecr_registry,
-    get_account_id_from_image_uri,
-    UL_AMI_LIST,
-)
-from . import DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
+from . import BENCHMARK_RESULTS_S3_BUCKET, DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 

@@ -12,25 +12,25 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os, subprocess, tarfile
-
-import pytest
-import sagemaker.huggingface
-from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
-
+import os
+import re
+import subprocess
+import tarfile
+import unittest.mock as mock
 from test.test_utils import (
     get_framework_and_version_from_tag,
     get_transformers_version_from_image_uri,
 )
-from packaging.version import Version
+
+import pytest
+import sagemaker
+import sagemaker.huggingface
 from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from sagemaker.huggingface import HuggingFace, TrainingCompilerConfig
+
 from ...integration import DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
-import sagemaker
-import re
-
-import unittest.mock as mock
-
 
 hyperparameters = {
     "model_name_or_path": "google-bert/bert-large-uncased-whole-word-masking-finetuned-squad",

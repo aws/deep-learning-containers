@@ -13,19 +13,19 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-import os
-import re
 import json
 import logging
+import os
+import re
 import sys
-import boto3
-import constants
 
+import boto3
 from botocore.exceptions import ClientError
 from invoke.context import Context
 
+import constants
 from codebuild_environment import get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
+from config import is_autopatch_build_enabled, is_build_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)

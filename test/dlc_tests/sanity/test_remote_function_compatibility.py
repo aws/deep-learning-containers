@@ -1,7 +1,7 @@
-import pytest
-
-from invoke.context import Context
 from test import test_utils
+
+import pytest
+from invoke.context import Context
 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")

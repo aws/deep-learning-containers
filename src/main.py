@@ -5,7 +5,6 @@ import re
 import config
 import constants
 import utils
-
 from codebuild_environment import get_codebuild_project_name
 from image_builder import image_builder
 

@@ -12,8 +12,9 @@
 # language governing permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os, sys
+import os
 import subprocess
+import sys
 
 # only the latest version of sagemaker supports profiler
 subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
@@ -25,7 +26,7 @@ import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from sagemaker import ProfilerConfig, Profiler
+from sagemaker import Profiler, ProfilerConfig
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.tensorflow import TensorFlow
 

@@ -19,22 +19,20 @@ import pytest
 import torch
 import torch.utils.data
 import torch.utils.data.distributed
+from sagemaker import deserializers, serializers
 from sagemaker.pytorch import PyTorchModel
-from sagemaker import deserializers
-from sagemaker import serializers
 from sagemaker_inference import content_types
 from torchvision import datasets, transforms
 
-
 from ...integration import (
-    training_dir,
-    mnist_script,
+    ROLE,
+    call_model_fn_once_script,
     mnist_1d_script,
+    mnist_script,
+    model_cpu_1d_dir,
     model_cpu_dir,
     model_gpu_dir,
-    model_cpu_1d_dir,
-    call_model_fn_once_script,
-    ROLE,
+    training_dir,
 )
 from ...utils import local_mode_utils
 

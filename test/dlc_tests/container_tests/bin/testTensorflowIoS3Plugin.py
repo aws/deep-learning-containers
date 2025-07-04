@@ -16,9 +16,10 @@
 # - https://www.tensorflow.org/api_docs/python/tf/train/CheckpointManager
 import argparse
 
-import tensorflow as tf
 import tensorflow_datasets as tfds
 import tensorflow_io as tfio
+
+import tensorflow as tf
 
 
 def parse_args():

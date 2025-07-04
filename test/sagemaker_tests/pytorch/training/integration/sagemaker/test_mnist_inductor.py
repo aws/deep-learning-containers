@@ -17,8 +17,8 @@ from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 
-from . import _test_mnist_distributed
 from .... import invoke_pytorch_helper_function
+from . import _test_mnist_distributed
 
 inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 

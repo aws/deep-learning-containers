@@ -11,15 +11,15 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
-import boto3
 import logging
 import os
 import re
 import signal
 import subprocess
-import tfs_utils
-
 from contextlib import contextmanager
+
+import boto3
+import tfs_utils
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)

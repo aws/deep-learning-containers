@@ -13,19 +13,17 @@
 from __future__ import absolute_import
 
 import os
+from test.test_utils import get_cuda_version_from_tag, get_framework_and_version_from_tag
 
 import pytest
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 from sagemaker import utils
 from sagemaker.pytorch import PyTorch
 
-from ...integration import resources_path, DEFAULT_TIMEOUT
-from ...integration.sagemaker.timeout import timeout
-
-from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
 from .... import invoke_pytorch_helper_function
-
+from ...integration import DEFAULT_TIMEOUT, resources_path
+from ...integration.sagemaker.timeout import timeout
 
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
 DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")

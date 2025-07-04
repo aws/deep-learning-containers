@@ -1,16 +1,14 @@
 import os
 import random
 import re
-
-from datetime import datetime
-
-import pytest
-
-from invoke.context import Context
-from invoke import run
 import test.test_utils.ec2 as ec2_utils
 import test.test_utils.eks as eks_utils
-from test.test_utils import is_pr_context, SKIP_PR_REASON
+from datetime import datetime
+from test.test_utils import SKIP_PR_REASON, is_pr_context
+
+import pytest
+from invoke import run
+from invoke.context import Context
 
 
 # Test only runs in region us-west-2, on instance type g5.12xlarge, on PR_EKS_CLUSTER_NAME_TEMPLATE cluster

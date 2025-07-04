@@ -4,9 +4,8 @@ import os
 import sys
 
 import numpy as np
-import tensorflow.compat.v2 as tf
-
 import smdebug.tensorflow as smd
+import tensorflow.compat.v2 as tf
 from smdebug.core.collection import CollectionKeys
 from smdebug.core.reduction_config import ALLOWED_NORMS, ALLOWED_REDUCTIONS
 from smdebug.tensorflow import ReductionConfig, SaveConfig

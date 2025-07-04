@@ -2,8 +2,8 @@
 adapted from upstream test: https://github.com/fastai/fastai/blob/master/nbs/examples/distrib_pytorch.py
 """
 
-from fastai.vision.all import *
 from fastai.distributed import *
+from fastai.vision.all import *
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 

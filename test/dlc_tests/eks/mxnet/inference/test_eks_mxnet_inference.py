@@ -1,13 +1,11 @@
 import os
 import random
-
-import pytest
+import test.test_utils as test_utils
+import test.test_utils.eks as eks_utils
 from time import sleep
 
+import pytest
 from invoke import run
-
-import test.test_utils.eks as eks_utils
-import test.test_utils as test_utils
 
 
 @pytest.mark.model("resnet50")

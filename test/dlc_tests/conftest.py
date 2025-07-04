@@ -1,47 +1,45 @@
 import datetime
-import os
 import logging
+import os
 import random
-import sys
 import re
+import sys
+import test.test_utils.ec2 as ec2_utils
 import time
 import uuid
-import boto3
-import pytest
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-from botocore.config import Config
-from fabric import Connection
-
-import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
 from test.test_utils import (
-    get_framework_and_version_from_tag,
+    AL2023_HOME_DIR,
+    DEFAULT_REGION,
+    KEYS_TO_DESTROY_FILE,
+    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
+    NightlyFeatureLabel,
+    are_efa_tests_disabled,
     get_cuda_version_from_tag,
+    get_ecr_repo_name,
+    get_framework_and_version_from_tag,
     get_job_type_from_image,
     get_processor_from_image_uri,
-    is_tf_version,
+    get_repository_and_tag_from_image_uri,
     is_above_framework_version,
     is_below_framework_version,
-    is_equal_to_framework_version,
     is_ec2_image,
-    is_sagemaker_image,
-    is_nightly_context,
-    DEFAULT_REGION,
-    PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
-    KEYS_TO_DESTROY_FILE,
-    are_efa_tests_disabled,
-    get_repository_and_tag_from_image_uri,
-    get_ecr_repo_name,
-    AL2023_HOME_DIR,
-    NightlyFeatureLabel,
+    is_equal_to_framework_version,
     is_mainline_context,
+    is_nightly_context,
     is_pr_context,
+    is_sagemaker_image,
+    is_tf_version,
 )
-from test.test_utils.imageutils import are_image_labels_matched, are_fixture_labels_enabled
+from test.test_utils.imageutils import are_fixture_labels_enabled, are_image_labels_matched
 from test.test_utils.test_reporting import TestReportGenerator
+
+import boto3
+import pytest
+from botocore.config import Config
+from fabric import Connection
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)

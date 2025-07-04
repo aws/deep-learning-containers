@@ -1,10 +1,9 @@
 import os
 import re
+from test.test_utils import LOGGER, get_repository_local_path, is_pr_context
 
 import pytest
 import yaml
-
-from test.test_utils import is_pr_context, get_repository_local_path, LOGGER
 
 
 @pytest.mark.quick_checks

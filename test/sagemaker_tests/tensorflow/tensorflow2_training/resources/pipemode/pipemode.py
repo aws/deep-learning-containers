@@ -3,8 +3,9 @@ import multiprocessing
 import os
 import tempfile
 
-import tensorflow as tf
 from sagemaker_tensorflow import PipeModeDataset
+
+import tensorflow as tf
 
 print("Starting estimator script")
 

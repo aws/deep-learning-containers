@@ -1,22 +1,20 @@
 import os
-import pytest
-
 import test.test_utils.ec2 as ec2_utils
-
 from test import test_utils
+from test.dlc_tests.conftest import LOGGER
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX,
+    get_account_id_from_image_uri,
     get_framework_and_version_from_tag,
     login_to_ecr_registry,
-    get_account_id_from_image_uri,
 )
 from test.test_utils.ec2 import (
-    get_ec2_instance_type,
     execute_ec2_inference_test,
     get_ec2_accelerator_type,
+    get_ec2_instance_type,
 )
-from test.dlc_tests.conftest import LOGGER
 
+import pytest
 
 SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"

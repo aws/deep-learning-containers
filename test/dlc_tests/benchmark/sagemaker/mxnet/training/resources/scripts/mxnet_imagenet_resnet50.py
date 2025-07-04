@@ -21,13 +21,13 @@ import math
 import os
 import time
 
-from gluoncv.model_zoo import get_model
 import horovod.mxnet as hvd
-import mxnet as mx
 import numpy as np
-from mxnet import autograd, gluon, lr_scheduler
+from gluoncv.model_zoo import get_model
 from mxnet.io import DataBatch, DataIter
 
+import mxnet as mx
+from mxnet import autograd, gluon, lr_scheduler
 
 # Training settings
 parser = argparse.ArgumentParser(
