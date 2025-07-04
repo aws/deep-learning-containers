@@ -75,7 +75,7 @@ def test_telemetry_instance_tag_failure_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
@@ -93,7 +93,7 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
@@ -201,7 +201,7 @@ def test_telemetry_instance_tag_success_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
@@ -218,7 +218,7 @@ def test_telemetry_instance_tag_success_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
@@ -323,7 +323,7 @@ def test_telemetry_s3_query_bucket_success_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
@@ -339,7 +339,7 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
 @pytest.mark.parametrize(
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
