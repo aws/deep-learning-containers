@@ -1,6 +1,6 @@
 ARG PYTHON_VERSION=3.11.9
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker-v1.31
+FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker-v1.33-2025-07-02-17-54-10
 
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
@@ -27,9 +27,7 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
  # Install AutoGluon, ensuring no vulnerable dependencies are left behind
- && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir -U "ninja<1.11.1.1" \
- && pip install --no-cache-dir -U "fastai>=2.8.0,<2.9.0"
+ && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION}
 
 
 
