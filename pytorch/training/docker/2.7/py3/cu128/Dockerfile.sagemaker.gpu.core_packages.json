@@ -46,7 +46,7 @@
     "version_specifier": ">=6.5.1"
   },
    "sagemaker-training": {
-    "version_specifier": "<=4.8.3"
+    "version_specifier": ">=4.8.3"
   },
    "sagemaker": {
     "version_specifier": ">=2,<3"
