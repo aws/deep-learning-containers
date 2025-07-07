@@ -655,6 +655,7 @@ def test_pip_check(image):
             "2.14.2",
             "2.16.0",
             "2.18.0",
+            "2.19.1",
         ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
@@ -667,10 +668,11 @@ def test_pip_check(image):
             "2.14.0",
             "2.16.1",
             "2.18.1",
+            "2.19.0",
         ]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.16.0", "2.18.0"]:
+        for ex_ver in ["2.16.0", "2.18.0", "2.19.0"]:
             exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(

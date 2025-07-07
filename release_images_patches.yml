@@ -358,7 +358,21 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  # TensorFlow 2.19 Images
   28:
+    framework: "tensorflow"
+    version: "2.19.0"
+    customer_type: "sagemaker"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu125"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  29:
     framework: "tensorflow"
     version: "2.19.0"
     arch_type: "x86"
