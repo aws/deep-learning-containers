@@ -113,7 +113,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         extra_build_args = {}
         labels = {}
 
-        tag_override = image_config.get("build_tag_override", "False").lower() == "true"
+        tag_override = image_config.get("skip_build", "False").lower() == "true"
 
         prod_repo_uri = ""
         if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
