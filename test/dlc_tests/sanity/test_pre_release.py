@@ -655,6 +655,7 @@ def test_pip_check(image):
             "2.14.2",
             "2.16.0",
             "2.18.0",
+            "2.19.1",
         ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
@@ -667,10 +668,11 @@ def test_pip_check(image):
             "2.14.0",
             "2.16.1",
             "2.18.1",
+            "2.19.0",
         ]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.16.0", "2.18.0"]:
+        for ex_ver in ["2.16.0", "2.18.0", "2.19.0"]:
             exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
@@ -1078,6 +1080,9 @@ def test_license_file(image):
     framework, version = get_framework_and_version_from_tag(image)
     if framework == "autogluon":
         short_version = get_pytorch_version_from_autogluon_image(image)
+        # Default to pytorch framework for autogluon since autogluon is built on top of pytorch
+        # and uses the same license file structure in S3
+        framework = "pytorch"
     else:
         short_version = re.search(r"(\d+\.\d+)", version).group(0)
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
