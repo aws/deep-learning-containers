@@ -355,7 +355,7 @@ def generate_new_file_content(previous_version_path, major_version, minor_versio
             elif line.strip().startswith("autopatch_build"):
                 content[i] = f"# {line}"
             elif line.strip().startswith("# skip_build:"):
-                content[i] = f"    # skip_build: \"False\"\n"
+                content[i] = f'    # skip_build: "False"\n'
 
     return content
 
