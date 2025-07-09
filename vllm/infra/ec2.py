@@ -174,7 +174,7 @@ def ec2_test_environment():
     cleanup_functions = []
     try:
         # Setup code here
-        region = DEFAULT_REGION
+        region = P4DE_REGION
         ec2_cli = ec2_client(region)
         instance_type = VLLM_INSTANCE_TYPE[0]
         ami_id = ec2_instance_ami(region)
@@ -184,12 +184,11 @@ def ec2_test_environment():
             ec2_client=ec2_cli,
             ec2_instance_type=instance_type,
             ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
-            ec2_key_name="vllm-test",
+            ec2_key_name="vllm-ec2-test",
             ec2_instance_ami=ami_id,
             region=region,
             availability_zone_options=az_options,
         )
-
         # Register cleanup functions
         cleanup_functions.extend(
             [
@@ -214,9 +213,8 @@ def ec2_test_environment():
 
 def setup():
     LOGGER.info("Testing vllm on ec2........")
-    # with ec2_test_environment() as instances_info:
-    #     # Your test code here
-    #     return instances_info
+    with ec2_test_environment() as instances_info:
+        LOGGER.info("Test setup is completed")
 
 
 if __name__ == "__main__":

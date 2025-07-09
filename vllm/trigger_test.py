@@ -14,9 +14,10 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     Run tests for a specific platform
     """
     LOGGER.info(f"Running {platform} tests")
-    from vllm.infra.platform import setup
+    if platform == "ec2":
+        from vllm.infra.ec2 import setup
 
-    setup()
+        setup()
 
 
 def main():
