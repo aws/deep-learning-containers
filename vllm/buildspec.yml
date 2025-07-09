@@ -49,3 +49,6 @@ images:
       test_platforms:
         - sanity
         - security
+      test:
+        - type: eks
+          target: test/vllm_tests/test_vllm_eks_integration.py
