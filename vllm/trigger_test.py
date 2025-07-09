@@ -1,4 +1,4 @@
-import os
+import os, sys
 import logging
 
 from test.test_utils import get_dlc_images
