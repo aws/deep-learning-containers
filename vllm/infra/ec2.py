@@ -8,6 +8,7 @@ import boto3
 from contextlib import contextmanager
 
 import test.test_utils.ec2 as ec2_utils
+from utils.fsx_utils import FsxSetup
 
 from botocore.config import Config
 from fabric import Connection
@@ -15,6 +16,8 @@ from fabric import Connection
 
 from test import test_utils
 from test.test_utils import KEYS_TO_DESTROY_FILE
+
+from test.test_utils.ec2 import get_default_vpc_id, get_default_subnet_for_az
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -164,7 +167,7 @@ def efa_ec2_instances(
             ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
 
     return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
-    LOGGER.info(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
+    print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
 
     return return_val
 
@@ -202,7 +205,7 @@ def ec2_test_environment():
         yield instances_info
 
     finally:
-        LOGGER.info("Running cleanup operations...")
+        print("Running cleanup operations...")
         for cleanup_func in cleanup_functions:
             try:
                 if cleanup_func is not None:
@@ -212,9 +215,25 @@ def ec2_test_environment():
 
 
 def setup():
-    LOGGER.info("Testing vllm on ec2........")
-    with ec2_test_environment() as instances_info:
-        LOGGER.info("Test setup is completed")
+    print("Testing vllm on ec2........")
+    # with ec2_test_environment() as instances_info:
+    #     print("Test setup is completed")
+    fsx = FsxSetup(DEFAULT_REGION)
+    ec2_cli = ec2_client(DEFAULT_REGION)
+
+    vpc_id = get_default_vpc_id(ec2_cli)
+    subnet_id = get_default_subnet_for_az(ec2_cli, DEFAULT_REGION)
+
+    # create fsx
+    sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
+    ingress_rules = {"protocol": "tcp", "port": "988-1023"}
+    fsx.add_security_group_ingress_rules(sg_fsx, ingress_rules)
+
+    fsx_config = fsx.create_fsx_filesystem(
+        subnet_id, sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+    )
+
+    print(fsx_config)
 
 
 if __name__ == "__main__":
