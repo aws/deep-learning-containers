@@ -25,6 +25,7 @@ from test.test_utils import (
     is_tf_version,
     is_above_framework_version,
     is_below_framework_version,
+    is_below_cuda_version,
     is_equal_to_framework_version,
     is_ec2_image,
     is_sagemaker_image,
@@ -1293,6 +1294,9 @@ def below_tf218_only():
 def below_tf219_only():
     pass
 
+@pytest.fixture(scope="session")
+def below_cuda129_only():
+    pass
 
 @pytest.fixture(scope="session")
 def skip_tf216():
@@ -1407,6 +1411,23 @@ def version_skip():
             pytest.skip(f"test is not supported for version {ver}")
 
     return _version_skip
+
+def cuda_version_within_limit(metafunc_obj, image):
+    """
+    Test all pytest fixtures for CUDA version limits, and return True if all requirements are satisfied
+
+    :param metafunc_obj: pytest metafunc object from which fixture names used by test function will be obtained
+    :param image: Image URI for which the validation must be performed
+    :return: True if all validation succeeds, else False
+    """
+    image_framework_name, _ = get_framework_and_version_from_tag(image)
+    cuda129_requirement_failed = (
+        "below_cuda129_only" in metafunc_obj.fixturenames
+        and not is_below_cuda_version("129", image)
+    )
+    if cuda129_requirement_failed:
+        return False
+    return True
 
 
 def framework_version_within_limit(metafunc_obj, image):
@@ -1816,6 +1837,8 @@ def pytest_generate_tests(metafunc):
                         )
                         continue
                     if not framework_version_within_limit(metafunc, image):
+                        continue
+                    if not cuda_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
