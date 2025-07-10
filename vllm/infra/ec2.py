@@ -174,7 +174,7 @@ def ec2_test_environment():
     cleanup_functions = []
     try:
         # Setup code here
-        region = P4DE_REGION
+        region = DEFAULT_REGION
         ec2_cli = ec2_client(region)
         instance_type = VLLM_INSTANCE_TYPE[0]
         ami_id = ec2_instance_ami(region)
