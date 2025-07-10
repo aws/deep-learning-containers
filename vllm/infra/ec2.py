@@ -8,7 +8,7 @@ import boto3
 from contextlib import contextmanager
 
 import test.test_utils.ec2 as ec2_utils
-from utils.fsx_utils import FsxSetup
+from infra.utils.fsx_utils import FsxSetup
 
 from botocore.config import Config
 from fabric import Connection
