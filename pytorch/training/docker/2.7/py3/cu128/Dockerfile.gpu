@@ -226,7 +226,8 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    numpy \
+    # opencv-python 4.12.0.88 reuqirement
+    "numpy>=2,<2.3.0" \
     scipy \
     click \
     psutil \
@@ -239,7 +240,7 @@ RUN pip install --no-cache-dir \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "urllib3>=2.5.0" \
     "awscli<2" \
     ninja \
     opencv-python \
@@ -264,7 +265,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4 \
     blis \
-    numpy \
+    "numpy>=2,<2.3.0"  \
  && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt

@@ -170,7 +170,7 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    numpy \
+    "numpy>=2,<2.3.0" \
     scipy \
     click \
     psutil \
@@ -183,7 +183,7 @@ RUN pip install --no-cache-dir \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "urllib3>=2.5.0" \
     "awscli<2" \
     opencv-python \
     mpi4py \
@@ -246,7 +246,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4  \
     blis \
-    numpy \
+    "numpy>=2,<2.3.0" \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
@@ -316,7 +316,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     spacy \
     thinc==8.3.4  \
     blis \
-    numpy \
+    "numpy>=2,<2.3.0" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
