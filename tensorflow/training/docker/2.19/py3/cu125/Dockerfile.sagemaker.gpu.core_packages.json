@@ -1,0 +1,36 @@
+{
+  "awscli": {
+    "version_specifier": "<2"
+  },
+  "cython": {
+    "version_specifier": "<3.0"
+  },
+  "pyyaml": {
+    "version_specifier": ">=6.0,<6.1"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "==0.*"
+  },
+  "sparkmagic": {
+    "version_specifier": "<1"
+  },
+  "tensorflow-hub": {
+    "version_specifier": ">=0.16.1",
+    "skip": "True"
+  },
+  "tensorflow-io": {
+    "version_specifier": "==0.37.*"
+  },
+  "tf-models-official": {
+    "version_specifier": "==2.19.1",
+    "skip": "True"
+  },
+  "tensorflow-text": {
+    "version_specifier": "==2.19.0",
+    "skip": "True"
+  },
+  "tf-keras": {
+    "version_specifier": "==2.19.0",
+    "skip": "True"
+  },
+}
