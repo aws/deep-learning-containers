@@ -311,7 +311,7 @@ def main():
     if (
         build_context == "MAINLINE"
         and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
-        and test_type not in {"functionality_sanity", "security_sanity"}
+        and test_type not in {"functionality_sanity", "security_sanity", "eks", "ec2"}
     ):
         LOGGER.info(
             f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
@@ -400,23 +400,44 @@ def main():
         if specific_test_type == "bai":
             build_bai_docker_container()
         if specific_test_type == "eks" and not is_all_images_list_eia:
-            frameworks_in_images = [
-                framework
-                for framework in ("mxnet", "pytorch", "tensorflow")
-                if framework in dlc_images
-            ]
-            if len(frameworks_in_images) != 1:
-                raise ValueError(
-                    f"All images in dlc_images must be of a single framework for EKS tests.\n"
-                    f"Instead seeing {frameworks_in_images} frameworks."
-                )
-            framework = frameworks_in_images[0]
-            eks_cluster_name = f"dlc-{framework}-{build_context}"
-            eks_utils.eks_setup()
-            if eks_utils.is_eks_cluster_active(eks_cluster_name):
-                eks_utils.eks_write_kubeconfig(eks_cluster_name)
+            is_vllm_image = any("vllm" in image_uri for image_uri in all_image_list)
+            if is_vllm_image:
+                # skip pytest execution for vLLM - use vllm trigger instead
+                original_dir = os.getcwd()
+                try:
+                    os.chdir(os.path.join("..", "..")) 
+                    from test.vllm_tests.vllm_test_trigger import run_vllm_test
+                    
+                    result = run_vllm_test()
+                    if result != 0:
+                        raise Exception("vLLM EKS test failed")
+                    
+                    LOGGER.info("vLLM EKS tests completed successfully")
+                    return # skip pytest
+                    
+                except Exception as e:
+                    LOGGER.error(f"vLLM EKS test failed: {e}")
+                    raise
+                finally:
+                    os.chdir(original_dir)
             else:
-                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
+                frameworks_in_images = [
+                    framework
+                    for framework in ("mxnet", "pytorch", "tensorflow")
+                    if framework in dlc_images
+                ]
+                if len(frameworks_in_images) != 1:
+                    raise ValueError(
+                        f"All images in dlc_images must be of a single framework for EKS tests.\n"
+                        f"Instead seeing {frameworks_in_images} frameworks."
+                    )
+                framework = frameworks_in_images[0]
+                eks_cluster_name = f"dlc-{framework}-{build_context}"
+                eks_utils.eks_setup()
+                if eks_utils.is_eks_cluster_active(eks_cluster_name):
+                    eks_utils.eks_write_kubeconfig(eks_cluster_name)
+                else:
+                    raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
         pytest_cmd = [
