@@ -630,6 +630,7 @@ def is_below_framework_version(version_upper_bound, image_uri, framework):
         and image_framework_version in required_version_specifier_set
     )
 
+
 def is_below_cuda_version(version_upper_bound, image_uri):
     """
     Validate that image_uri has cuda version strictly less than version_upper_bound
@@ -639,8 +640,10 @@ def is_below_cuda_version(version_upper_bound, image_uri):
     :return: bool True if image_uri has cuda version less than version_upper_bound, else False
     """
     cuda_version = get_cuda_version_from_tag(image_uri)
+    numbers = cuda_version[2:]
+    numeric_version = f"{numbers[:-1]}.{numbers[-1]}"
     required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
-    return cuda_version in required_version_specifier_set
+    return numeric_version in required_version_specifier_set
 
 
 def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
@@ -1462,7 +1465,9 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
+        else "arm64_" + framework
+        if os.getenv("ARCH_TYPE") == "arm64"
+        else framework
     )
 
     version_regex = {

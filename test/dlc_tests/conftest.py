@@ -1294,9 +1294,11 @@ def below_tf218_only():
 def below_tf219_only():
     pass
 
+
 @pytest.fixture(scope="session")
 def below_cuda129_only():
     pass
+
 
 @pytest.fixture(scope="session")
 def skip_tf216():
@@ -1412,6 +1414,7 @@ def version_skip():
 
     return _version_skip
 
+
 def cuda_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for CUDA version limits, and return True if all requirements are satisfied
@@ -1423,7 +1426,7 @@ def cuda_version_within_limit(metafunc_obj, image):
     image_framework_name, _ = get_framework_and_version_from_tag(image)
     cuda129_requirement_failed = (
         "below_cuda129_only" in metafunc_obj.fixturenames
-        and not is_below_cuda_version("129", image)
+        and not is_below_cuda_version("12.9", image)
     )
     if cuda129_requirement_failed:
         return False
