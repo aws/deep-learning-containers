@@ -415,6 +415,8 @@ def main():
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
                 eks_utils.eks_write_kubeconfig(eks_cluster_name)
+            else:
+                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Execute dlc_tests pytest command
         pytest_cmd = [
