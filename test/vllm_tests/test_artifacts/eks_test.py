@@ -55,9 +55,9 @@ class VllmEksTest:
             raise Exception("AWS Load Balancer Controller pods failed to start after 10 minutes")
 
         # apply the LeaderWorkerSet
-        run("cd aws-vllm-dlc-blog-repo && kubectl apply -f vllm-deepseek-32b-lws.yaml")
+        run("kubectl apply -f test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws.yaml")
         # apply the ingress
-        run("cd aws-vllm-dlc-blog-repo && kubectl apply -f vllm-deepseek-32b-lws-ingress.yaml")
+        run("kubectl apply -f test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws-ingress.yaml")
         
         # monitor pod status until Running (can take 15-30 minutes for large GPU images + model loading)
         logger.info("Waiting for vLLM pods to reach Running status...")

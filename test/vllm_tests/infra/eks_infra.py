@@ -57,7 +57,6 @@ class EksInfrastructure:
             # install prerequisites
             self.connection.run("pip3 install --user boto3 invoke packaging")
             self.validate_required_tools()
-            self.setup_prerequisites()
             self.create_eks_cluster()
             self.validate_cluster_setup()
             self.setup_fsx_lustre()
@@ -140,17 +139,6 @@ class EksInfrastructure:
             return False
 
 
-    def setup_prerequisites(self):
-        """
-        Setup required tools and repositories
-        """
-        logger.info("Setting up prerequisites...")
-
-        run("pip install --quiet git-remote-codecommit")
-        run("git config --global --add protocol.codecommit.allow always")
-        run("git clone codecommit::us-west-2://aws-vllm-dlc-blog-repo aws-vllm-dlc-blog-repo")
-
-
     def create_eks_cluster(self):
         """
         Create EKS cluster and setup IAM access
@@ -158,12 +146,12 @@ class EksInfrastructure:
         logger.info("Creating EKS cluster...")
 
         run(
-            f"cd aws-vllm-dlc-blog-repo && eksctl create cluster -f eks-cluster.yaml --region {self.region}"
+            f"eksctl create cluster -f test/vllm_tests/test_artifacts/eks-cluster.yaml --region {self.region}"
         )
 
         # create a node group with EFA Support
         run(
-            f"cd aws-vllm-dlc-blog-repo && eksctl create nodegroup -f large-model-nodegroup.yaml --region {self.region}"
+            f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml --region {self.region}"
         )
 
         eks_utils.eks_write_kubeconfig(self.cluster_name, self.region)
@@ -267,11 +255,10 @@ class EksInfrastructure:
 
             fsx.setup_csi_driver()
 
-            # TODO: change the path to yaml files moved to the DLC repo
             fsx.setup_kubernetes_resources(
-                storage_class_file="aws-vllm-dlc-blog-repo/fsx-storage-class.yaml",
-                pv_file="aws-vllm-dlc-blog-repo/fsx-lustre-pv.yaml",
-                pvc_file="aws-vllm-dlc-blog-repo/fsx-lustre-pvc.yaml",
+                storage_class_file="test/vllm_tests/test_artifacts/fsx-storage-class.yaml",
+                pv_file="test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml",
+                pvc_file="test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml",
                 replacements={
                     "<subnet-id>": subnet_id,
                     "<sg-id>": sg_id,
@@ -330,7 +317,7 @@ class EksInfrastructure:
         )
         # update the sg in the ingress file
         run(
-            f"cd aws-vllm-dlc-blog-repo && sed -i 's|<sg-id>|{alb_sg}|g' vllm-deepseek-32b-lws-ingress.yaml"
+            f"sed -i 's|<sg-id>|{alb_sg}|g' test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws-ingress.yaml"
         )
         
         # verify sg were created and configured correctly
@@ -362,7 +349,7 @@ class EksInfrastructure:
             script_path = "test/vllm_tests/infra/test_vllm_eks_cleanup.sh"
             run(f"chmod +x {script_path}")
             run(
-                f"cd aws-vllm-dlc-blog-repo && echo 'y' | ../{script_path}",
+                f"echo 'y' | {script_path}",
                 check=False,
                 timeout=3600,
             )
