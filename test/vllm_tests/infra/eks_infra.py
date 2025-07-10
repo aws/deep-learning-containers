@@ -7,9 +7,10 @@ import logging
 import boto3
 import uuid
 from invoke import run
-from test_utils import eks as eks_utils
-from test_utils import ec2 as ec2_utils
-from test_utils import (
+from .utils.fsx_utils import FsxSetup
+from test.test_utils import eks as eks_utils
+from test.test_utils import ec2 as ec2_utils
+from test.test_utils import (
     generate_ssh_keypair,
     destroy_ssh_keypair,
     get_dlami_id,
@@ -70,13 +71,11 @@ class EksInfrastructure:
 
 
     def setup_eks_tools(self):
-            logger.info("Setting up EKS tools...")
-            # use existing setup for eksctl, kubectl, aws-iam-authenticator
-            eks_utils.eks_setup()
-            # install helm separately
-            self.install_helm()
+        logger.info("Setting up EKS tools...")
+        eks_utils.eks_setup()
+        self.install_helm()
 
-            logger.info("EKS tools setup completed")
+        logger.info("EKS tools setup completed")
 
     def install_helm(self):
         logger.info("Installing Helm...")
@@ -223,141 +222,71 @@ class EksInfrastructure:
 
 
     def setup_fsx_lustre(self):
-        """
-        Setup FSx Lustre filesystem with complete configuration
-        """
-        logger.info("Setting up FSx Lustre filesystem...")
-
-        vpc_id = run(
-            f"aws eks describe-cluster --name {self.cluster_name} --query 'cluster.resourcesVpcConfig.vpcId' --output text"
-        ).stdout.strip()
-        logger.info(f"Using VPC: {vpc_id}")
-
-        subnet_id = run(
-            f"aws eks describe-cluster --name {self.cluster_name} --query 'cluster.resourcesVpcConfig.subnetIds[0]' --output text"
-        ).stdout.strip()
-        logger.info(f"Using subnet: {subnet_id}")
-
-        cluster_sg_id = run(
-            f"aws eks describe-cluster --name {self.cluster_name} --query 'cluster.resourcesVpcConfig.clusterSecurityGroupId' --output text"
-        ).stdout.strip()
-        logger.info(f"Using cluster security group: {cluster_sg_id}")
-
-        # create security group for FSx Lustre
-        sg_id = run(
-            f'aws ec2 create-security-group --group-name fsx-lustre-sg --description "Security group for FSx Lustre" --vpc-id {vpc_id} --query "GroupId" --output text'
-        ).stdout.strip()
-
-        # add inbound rules for FSx Lustre
-        run(
-            f"aws ec2 authorize-security-group-ingress --group-id {sg_id} --protocol tcp --port 988-1023 --source-group {cluster_sg_id}"
-        )
-        run(
-            f"aws ec2 authorize-security-group-ingress --group-id {sg_id} --protocol tcp --port 988-1023 --source-group {sg_id}"
-        )
-
-        # create FSx filesystem
-        fsx_id = run(
-            f'aws fsx create-file-system --file-system-type LUSTRE --storage-capacity 1200 --subnet-ids {subnet_id} --security-group-ids {sg_id} --lustre-configuration DeploymentType=SCRATCH_2 --tags Key=Name,Value=vllm-model-storage --query "FileSystem.FileSystemId" --output text'
-        ).stdout.strip()
-
-        logger.info("Waiting for FSx filesystem to be available...")
-        while True:
-            status = run(
-                f"aws fsx describe-file-systems --file-system-id {fsx_id} --query 'FileSystems[0].Lifecycle' --output text"
+        try:
+            logger.info("Setting up FSx Lustre filesystem...")
+            fsx = FsxSetup(self.region)
+            vpc_id = run(
+                f"aws eks describe-cluster --name {self.cluster_name} "
+                f"--query 'cluster.resourcesVpcConfig.vpcId' --output text"
             ).stdout.strip()
-            if status == "AVAILABLE":
-                break
-            logger.info(f"FSx status: {status}, waiting...")
-            time.sleep(30)
+            logger.info(f"Using VPC: {vpc_id}")
 
-        # get FSx DNS and mount name
-        fsx_dns = run(
-            f"aws fsx describe-file-systems --file-system-id {fsx_id} --query 'FileSystems[0].DNSName' --output text"
-        ).stdout.strip()
+            subnet_id = run(
+                f"aws eks describe-cluster --name {self.cluster_name} "
+                f"--query 'cluster.resourcesVpcConfig.subnetIds[0]' --output text"
+            ).stdout.strip()
+            logger.info(f"Using subnet: {subnet_id}")
 
-        fsx_mount = run(
-            f"aws fsx describe-file-systems --file-system-id {fsx_id} --query 'FileSystems[0].LustreConfiguration.MountName' --output text"
-        ).stdout.strip()
+            cluster_sg_id = run(
+                f"aws eks describe-cluster --name {self.cluster_name} "
+                f"--query 'cluster.resourcesVpcConfig.clusterSecurityGroupId' --output text"
+            ).stdout.strip()
+            logger.info(f"Using cluster security group: {cluster_sg_id}")
 
-        logger.info(f"FSx DNS: {fsx_dns}")
-        logger.info(f"FSx Mount Name: {fsx_mount}")
+            sg_id = fsx.create_security_group(
+                vpc_id=vpc_id,
+                name="fsx-lustre-sg",
+                description="Security group for FSx Lustre"
+            )
 
-        # install AWS FSx CSI Driver
-        logger.info("Installing AWS FSx CSI Driver...")
-        run(
-            "helm repo add aws-fsx-csi-driver https://kubernetes-sigs.github.io/aws-fsx-csi-driver/"
-        )
-        run("helm repo update")
-        run(
-            "helm install aws-fsx-csi-driver aws-fsx-csi-driver/aws-fsx-csi-driver --namespace kube-system"
-        )
-        run(
-            "kubectl wait --for=condition=ready pod -l app=fsx-csi-controller -n kube-system --timeout=300s"
-        )
+            fsx.add_security_group_ingress_rules(
+                security_group_id=sg_id,
+                ingress_rules=[
+                    {"protocol": "tcp", "port": "988-1023", "source-group": cluster_sg_id},
+                    {"protocol": "tcp", "port": "988-1023", "source-group": sg_id}
+                ]
+            )
 
-        # verify FSx CSI driver pods are running
-        logger.info("Checking FSx CSI driver pods...")
-        result = run("kubectl get pods -n kube-system | grep fsx")
+            fs_info = fsx.create_fsx_filesystem(
+                subnet_id=subnet_id,
+                security_group_ids=[sg_id],
+                storage_capacity=1200,
+                deployment_type="SCRATCH_2",
+                tags={"Name": "vllm-model-storage"}
+            )
 
-        if "fsx-csi-controller" not in result.stdout or "fsx-csi-node" not in result.stdout:
-            raise Exception("FSx CSI driver pods not found")
+            fsx.setup_csi_driver()
 
-        # count running FSx pods
-        fsx_pods = [
-            line
-            for line in result.stdout.split("\n")
-            if ("fsx-csi-controller" in line or "fsx-csi-node" in line) and "Running" in line
-        ]
-        logger.info(f"Found {len(fsx_pods)} running FSx CSI driver pods")
+            # TODO: change the path to yaml files moved to the DLC repo
+            fsx.setup_kubernetes_resources(
+                storage_class_file="aws-vllm-dlc-blog-repo/fsx-storage-class.yaml",
+                pv_file="aws-vllm-dlc-blog-repo/fsx-lustre-pv.yaml",
+                pvc_file="aws-vllm-dlc-blog-repo/fsx-lustre-pvc.yaml",
+                replacements={
+                    "<subnet-id>": subnet_id,
+                    "<sg-id>": sg_id,
+                    "<fs-id>": fs_info["filesystem_id"],
+                    "<fs-id>.fsx.us-west-2.amazonaws.com": fs_info["dns_name"],
+                    "<mount-name>": fs_info["mount_name"]
+                }
+            )
 
-        if not fsx_pods:
-            raise Exception("No running FSx CSI driver pods found")
-
-        logger.info("FSx CSI driver verification completed")
-
-        # create Kubernetes resources for FSx Lustre
-        run(
-            f"cd aws-vllm-dlc-blog-repo && sed -i 's|<subnet-id>|{subnet_id}|g' fsx-storage-class.yaml"
-        )
-        run(f"cd aws-vllm-dlc-blog-repo && sed -i 's|<sg-id>|{sg_id}|g' fsx-storage-class.yaml")
-        run(f"cd aws-vllm-dlc-blog-repo && sed -i 's|<fs-id>|{fsx_id}|g' fsx-lustre-pv.yaml")
-        run(
-            f"cd aws-vllm-dlc-blog-repo && sed -i 's|<fs-id>.fsx.us-west-2.amazonaws.com|{fsx_dns}|g' fsx-lustre-pv.yaml"
-        )
-        run(
-            f"cd aws-vllm-dlc-blog-repo && sed -i 's|<mount-name>|{fsx_mount}|g' fsx-lustre-pv.yaml"
-        )
-
-        # apply FSx Kubernetes resources
-        logger.info("Creating FSx Kubernetes storage resources...")
-        run("cd aws-vllm-dlc-blog-repo && kubectl apply -f fsx-storage-class.yaml")
-        run("cd aws-vllm-dlc-blog-repo && kubectl apply -f fsx-lustre-pv.yaml")
-        run("cd aws-vllm-dlc-blog-repo && kubectl apply -f fsx-lustre-pvc.yaml")
-
-        # make sure storage resources are created correctly
-        logger.info("Validating FSx storage resources...")
-
-        # check storage class
-        sc_result = run("kubectl get sc fsx-sc")
-        if "fsx-sc" not in sc_result.stdout or "fsx.csi.aws.com" not in sc_result.stdout:
-            raise Exception("FSx storage class not created correctly")
-        logger.info("FSx storage class created")
-
-        # check persistent volume
-        pv_result = run("kubectl get pv fsx-lustre-pv")
-        if "fsx-lustre-pv" not in pv_result.stdout or "Bound" not in pv_result.stdout:
-            raise Exception("FSx persistent volume not created correctly")
-        logger.info("FSx persistent volume created and bound")
-
-        # check persistent volume claim
-        pvc_result = run("kubectl get pvc fsx-lustre-pvc")
-        if "fsx-lustre-pvc" not in pvc_result.stdout or "Bound" not in pvc_result.stdout:
-            raise Exception("FSx persistent volume claim not created correctly")
-        logger.info("FSx persistent volume claim created and bound")
-
-        logger.info("FSx Lustre setup and validation completed")
-
+            logger.info("FSx Lustre setup completed successfully")
+            
+        except Exception as e:
+            logger.error(f"FSx Lustre setup failed: {e}")
+            raise
+    
 
     def setup_load_balancer_controller(self):
         logger.info("Setting up AWS Load Balancer Controller...")
@@ -430,7 +359,7 @@ class EksInfrastructure:
     def cleanup_resources(self):
         logger.info("Running cleanup script...")
         try:
-            script_path = "test/vllm_tests/test/vllm_eks_cleanup.sh"
+            script_path = "test/vllm_tests/infra/test_vllm_eks_cleanup.sh"
             run(f"chmod +x {script_path}")
             run(
                 f"cd aws-vllm-dlc-blog-repo && echo 'y' | ../{script_path}",

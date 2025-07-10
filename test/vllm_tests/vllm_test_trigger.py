@@ -2,8 +2,8 @@
 
 import logging
 import sys
-from infra.eks_infra import EksInfrastructure
-from test.eks_test import VllmEksTest
+from test.vllm_tests.infra.eks_infra import EksInfrastructure
+from test.vllm_tests.test_artifacts.eks_test import VllmEksTest
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
