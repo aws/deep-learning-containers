@@ -94,6 +94,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   8:
     framework: "pytorch"
     version: "2.5.1"
@@ -107,6 +108,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   9:
     framework: "pytorch"
     version: "2.5.1"
@@ -120,6 +122,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   10:
     framework: "pytorch"
     version: "2.5.1"
@@ -133,6 +136,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   11:
     framework: "pytorch"
     version: "2.5.1"
@@ -146,6 +150,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   12:
     framework: "pytorch"
     version: "2.5.1"
@@ -158,6 +163,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
 
   # PyTorch 2.6 Images
   13:
@@ -173,6 +179,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   14:
     framework: "pytorch"
     version: "2.6.0"
@@ -186,6 +193,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   15:
     framework: "pytorch"
     version: "2.6.0"
@@ -199,6 +207,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   16:
     framework: "pytorch"
     version: "2.6.0"
@@ -212,6 +221,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   17:
     framework: "pytorch"
     version: "2.6.0"
@@ -225,6 +235,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   18:
     framework: "pytorch"
     version: "2.6.0"
@@ -237,6 +248,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   
   # PyTorch 2.7 Images
   19:
@@ -252,6 +264,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   20:
     framework: "pytorch"
     version: "2.7.1"
@@ -265,6 +278,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   21:
     framework: "pytorch"
     version: "2.7.1"
@@ -278,7 +292,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-
+      public_registry: True
   # TensorFlow 2.18 Images
   22:
     framework: "tensorflow"
@@ -293,6 +307,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   23:
     framework: "tensorflow"
     version: "2.18.0"
@@ -306,6 +321,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   24:
     framework: "tensorflow"
     version: "2.18.0"
@@ -319,6 +335,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   25:
     framework: "tensorflow"
     version: "2.18.0"
@@ -332,6 +349,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   26:
     framework: "tensorflow"
     version: "2.18.0"
@@ -345,6 +363,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   27:
     framework: "tensorflow"
     version: "2.18.0"
@@ -358,6 +377,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   # TensorFlow 2.19 Images
   28:
     framework: "tensorflow"
@@ -372,6 +392,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
   29:
     framework: "tensorflow"
     version: "2.19.0"
@@ -385,3 +406,4 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+      public_registry: True
