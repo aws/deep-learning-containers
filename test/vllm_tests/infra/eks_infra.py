@@ -12,11 +12,11 @@ from test.test_utils import eks as eks_utils
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
+
 class EksInfrastructure:
     def __init__(self):
         self.cluster_name = "vllm-cluster"
         self.region = os.getenv("AWS_REGION", "us-west-2")
-
 
     def setup_infrastructure(self):
         try:
@@ -33,13 +33,11 @@ class EksInfrastructure:
             self.cleanup_infrastructure()
             return False
 
-
     def setup_eks_tools(self):
         logger.info("Setting up EKS tools...")
         eks_utils.eks_setup()
         self.install_helm()
         logger.info("EKS tools setup completed")
-
 
     def install_helm(self):
         logger.info("Installing Helm...")
@@ -47,8 +45,10 @@ class EksInfrastructure:
         if result.return_code == 0:
             logger.info("Helm already installed")
             return
-        
-        run("curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3")
+
+        run(
+            "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
+        )
         run("chmod 700 get_helm.sh")
         run("./get_helm.sh")
         run("rm -f get_helm.sh")
@@ -58,7 +58,6 @@ class EksInfrastructure:
             raise Exception("Helm installation failed - helm not found in PATH")
 
         logger.info("Helm installed successfully")
-        
 
     def validate_required_tools(self):
         logger.info("Validating required tools...")
@@ -80,24 +79,6 @@ class EksInfrastructure:
         else:
             logger.info("All required tools are available")
 
-
-    def validate_aws_credentials(self):
-        logger.info("Validating AWS credentials...")
-        try:
-            sts_client = boto3.client("sts")
-            identity = sts_client.get_caller_identity()
-            logger.info(f"AWS Identity validated: {identity['Arn']}")
-
-            if not eks_utils.get_eks_role():
-                os.environ["EKS_TEST_ROLE"] = identity["Arn"]
-                logger.info(f"Set EKS_TEST_ROLE: {identity['Arn']}")
-
-            return True
-        except Exception as e:
-            logger.error(f"AWS credential validation failed: {e}")
-            return False
-
-
     def create_eks_cluster(self):
         logger.info("Creating EKS cluster...")
 
@@ -106,11 +87,11 @@ class EksInfrastructure:
         run(f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml")
 
         eks_utils.eks_write_kubeconfig(self.cluster_name, self.region)
+        self.setup_iam_identity()
 
         result = run("kubectl get nodes")
         assert "Ready" in result.stdout, "EKS nodes not ready"
         logger.info("EKS cluster created successfully")
-
 
     def validate_cluster_setup(self):
         logger.info("Validating cluster setup...")
@@ -155,7 +136,6 @@ class EksInfrastructure:
 
         logger.info("Cluster setup validation completed")
 
-
     def setup_fsx_lustre(self):
         try:
             logger.info("Setting up FSx Lustre filesystem...")
@@ -179,17 +159,15 @@ class EksInfrastructure:
             logger.info(f"Using cluster security group: {cluster_sg_id}")
 
             sg_id = fsx.create_security_group(
-                vpc_id=vpc_id,
-                name="fsx-lustre-sg",
-                description="Security group for FSx Lustre"
+                vpc_id=vpc_id, name="fsx-lustre-sg", description="Security group for FSx Lustre"
             )
 
             fsx.add_security_group_ingress_rules(
                 security_group_id=sg_id,
                 ingress_rules=[
                     {"protocol": "tcp", "port": "988-1023", "source-group": cluster_sg_id},
-                    {"protocol": "tcp", "port": "988-1023", "source-group": sg_id}
-                ]
+                    {"protocol": "tcp", "port": "988-1023", "source-group": sg_id},
+                ],
             )
 
             fs_info = fsx.create_fsx_filesystem(
@@ -197,7 +175,7 @@ class EksInfrastructure:
                 security_group_ids=[sg_id],
                 storage_capacity=1200,
                 deployment_type="SCRATCH_2",
-                tags={"Name": "vllm-model-storage"}
+                tags={"Name": "vllm-model-storage"},
             )
 
             fsx.setup_csi_driver()
@@ -211,22 +189,23 @@ class EksInfrastructure:
                     "<sg-id>": sg_id,
                     "<fs-id>": fs_info["filesystem_id"],
                     "<fs-id>.fsx.us-west-2.amazonaws.com": fs_info["dns_name"],
-                    "<mount-name>": fs_info["mount_name"]
-                }
+                    "<mount-name>": fs_info["mount_name"],
+                },
             )
 
             logger.info("FSx Lustre setup completed successfully")
-            
+
         except Exception as e:
             logger.error(f"FSx Lustre setup failed: {e}")
             raise
-    
 
     def setup_load_balancer_controller(self):
         logger.info("Setting up AWS Load Balancer Controller...")
         run("helm repo add eks https://aws.github.io/eks-charts")
         run("helm repo update")
-        run("kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml")
+        run(
+            "kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml"
+        )
         run(
             f"helm install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName={self.cluster_name} --set serviceAccount.create=false --set enableServiceMutatorWebhook=false"
         )
@@ -266,10 +245,10 @@ class EksInfrastructure:
         run(
             f"sed -i 's|<sg-id>|{alb_sg}|g' test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws-ingress.yaml"
         )
-        
+
         # verify sg were created and configured correctly
         logger.info("Verifying security group configurations...")
-        
+
         # verify ALB sg
         alb_sg_result = run(
             f'aws ec2 describe-security-groups --group-ids {alb_sg} --query "SecurityGroups[0].IpPermissions"'
@@ -277,18 +256,17 @@ class EksInfrastructure:
         if "80" not in alb_sg_result.stdout:
             raise Exception("ALB security group not configured correctly - missing port 80 rule")
         logger.info("ALB security group configured correctly")
-        
+
         # verify node sg rules
         node_sg_result = run(
             f'aws ec2 describe-security-groups --group-ids {node_sg} --query "SecurityGroups[0].IpPermissions"'
         )
         if "8000" not in node_sg_result.stdout:
             raise Exception("Node security group not configured correctly - missing port 8000 rule")
-        
+
         logger.info("Node security group configured correctly")
 
         logger.info("Load Balancer Controller setup and verification completed")
-
 
     def cleanup_resources(self):
         logger.info("Running cleanup script...")
@@ -300,6 +278,22 @@ class EksInfrastructure:
         except Exception as e:
             logger.error(f"Cleanup failed: {e}")
 
+    def setup_iam_identity(self):
+        logger.info("Setting up IAM identity mapping...")
+
+        try:
+            sts_client = boto3.client("sts")
+            identity = sts_client.get_caller_identity()
+            codebuild_role_arn = identity["Arn"]
+
+            os.environ["EKS_TEST_ROLE"] = codebuild_role_arn
+            os.environ["AWS_REGION"] = self.region
+
+            run(f"bash eks_infrastructure/add_iam_identity.sh {self.cluster_name}")
+            logger.info("IAM identity mapping completed successfully")
+        except Exception as e:
+            logger.error(f"Failed to setup IAM identity mapping: {e}")
+            raise
 
     def cleanup_infrastructure(self):
         try:
