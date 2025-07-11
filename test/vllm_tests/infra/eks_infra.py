@@ -86,7 +86,7 @@ class EksInfrastructure:
             "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
         )
         run("chmod 700 get_helm.sh")
-        run("sudo ./get_helm.sh")
+        run("./get_helm.sh")
         run("rm -f get_helm.sh")
 
         result = run("which helm", warn=True)

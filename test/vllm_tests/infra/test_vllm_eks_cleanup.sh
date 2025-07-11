@@ -134,35 +134,35 @@ fi
 print_section "Deleting Kubernetes Resources"
 
 echo "Deleting vLLM ingress..."
-kubectl delete -f vllm-deepseek-32b-lws-ingress.yaml --ignore-not-found
+kubectl delete -f test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws-ingress.yaml --ignore-not-found
 print_success "Ingress deletion initiated"
 
 echo "Waiting 30 seconds for ingress controller to process deletion..."
 sleep 30
 
 echo "Deleting vLLM LeaderWorkerSet..."
-kubectl delete -f vllm-deepseek-32b-lws.yaml --ignore-not-found
+kubectl delete -f test/vllm_tests/test_artifacts/vllm-deepseek-32b-lws.yaml --ignore-not-found
 print_success "LeaderWorkerSet deletion initiated"
 
 echo "Waiting 60 seconds for pods to terminate..."
 sleep 60
 
 echo "Deleting FSx Lustre PVC..."
-kubectl delete -f fsx-lustre-pvc.yaml --ignore-not-found
+kubectl delete -f test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml --ignore-not-found
 print_success "PVC deletion initiated"
 
 echo "Waiting 10 seconds for PVC deletion to process..."
 sleep 10
 
 echo "Deleting FSx Lustre PV..."
-kubectl delete -f fsx-lustre-pv.yaml --ignore-not-found
+kubectl delete -f test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml --ignore-not-found
 print_success "PV deletion initiated"
 
 echo "Waiting 10 seconds for PV deletion to process..."
 sleep 10
 
 echo "Deleting storage class..."
-kubectl delete -f fsx-storage-class.yaml --ignore-not-found
+kubectl delete -f test/vllm_tests/test_artifacts/fsx-storage-class.yaml --ignore-not-found
 print_success "Storage class deletion initiated"
 
 echo "Deleting AWS Load Balancer Controller..."
