@@ -18,7 +18,7 @@ from test.test_utils import TELEMETRY_REGION_MAPPING
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_gpu(
-    gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only
+    gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only, gpu_only
 ):
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -31,7 +31,7 @@ def test_telemetry_instance_tag_failure_gpu(
 @pytest.mark.parametrize("ec2_instance_type", ["c5.4xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_cpu(
-    cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only
+    cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only, gpu_only
 ):
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
