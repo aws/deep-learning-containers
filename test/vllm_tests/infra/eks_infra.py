@@ -5,16 +5,9 @@ import sys
 import time
 import logging
 import boto3
-import uuid
 from invoke import run
 from .utils.fsx_utils import FsxSetup
 from test.test_utils import eks as eks_utils
-from test.test_utils import ec2 as ec2_utils
-from test.test_utils import (
-    generate_ssh_keypair,
-    destroy_ssh_keypair,
-    get_dlami_id,
-)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -23,45 +16,17 @@ class EksInfrastructure:
     def __init__(self):
         self.cluster_name = "vllm-cluster"
         self.region = os.getenv("AWS_REGION", "us-west-2")
-        self.instance_id = None
-        self.key_filename = None
-        self.ec2_client = None
-        self.connection = None
+
 
     def setup_infrastructure(self):
         try:
-            self.ec2_client = boto3.client("ec2", region_name=self.region)
-            key_name = f"vllm-eks-test-{str(uuid.uuid4())}"
-            self.key_filename = generate_ssh_keypair(self.ec2_client, key_name)
-            
-            # launch EC2 instance
-            ami_id = get_dlami_id(self.region)
-            instance_type = ec2_utils.get_ec2_instance_type("c5.12xlarge", "cpu")[0]
-            instance_info = ec2_utils.launch_instance(
-                ami_id=ami_id,
-                instance_type=instance_type,
-                ec2_key_name=key_name,
-                region=self.region,
-                iam_instance_profile_name=ec2_utils.EC2_INSTANCE_ROLE_NAME,
-                instance_name="vLLM-EKS-Integration-Test",
-            )
-            self.instance_id = instance_info["InstanceId"]
-            
-            # setup connection
-            ec2_utils.check_instance_state(self.instance_id, region=self.region)
-            ec2_utils.check_system_state(self.instance_id, region=self.region)
-            self.connection = ec2_utils.get_ec2_fabric_connection(
-                self.instance_id, self.key_filename, self.region
-            )
-            
-            # install prerequisites
-            self.connection.run("pip3 install --user boto3 invoke packaging")
+            logger.info("Starting EKS infrastructure setup...")
             self.validate_required_tools()
             self.create_eks_cluster()
             self.validate_cluster_setup()
             self.setup_fsx_lustre()
             self.setup_load_balancer_controller()
-            
+            logger.info("EKS infrastructure setup completed successfully")
             return True
         except Exception as e:
             logger.error(f"Infrastructure setup failed: {e}")
@@ -73,8 +38,8 @@ class EksInfrastructure:
         logger.info("Setting up EKS tools...")
         eks_utils.eks_setup()
         self.install_helm()
-
         logger.info("EKS tools setup completed")
+
 
     def install_helm(self):
         logger.info("Installing Helm...")
@@ -82,9 +47,8 @@ class EksInfrastructure:
         if result.return_code == 0:
             logger.info("Helm already installed")
             return
-        run(
-            "curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3"
-        )
+        
+        run("curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3")
         run("chmod 700 get_helm.sh")
         run("./get_helm.sh")
         run("rm -f get_helm.sh")
@@ -95,10 +59,8 @@ class EksInfrastructure:
 
         logger.info("Helm installed successfully")
         
+
     def validate_required_tools(self):
-        """
-        Validate required tools and handle installation
-        """
         logger.info("Validating required tools...")
         required_tools = ["aws", "eksctl", "kubectl", "helm", "curl", "jq"]
         missing_tools = []
@@ -106,13 +68,13 @@ class EksInfrastructure:
         for tool in required_tools:
             result = run(f"which {tool}", warn=True)
             if result.return_code != 0:
-                missing_tools.append((tool, tool.upper()))
+                missing_tools.append(tool)
                 logger.warning(f"{tool} not found")
             else:
                 logger.info(f"{tool} found: {result.stdout.strip()}")
 
         if missing_tools:
-            logger.info("Installing missing tools...")
+            logger.info(f"Installing missing tools: {', '.join(missing_tools)}")
             self.setup_eks_tools()
             logger.info("Tools installed successfully")
         else:
@@ -120,9 +82,6 @@ class EksInfrastructure:
 
 
     def validate_aws_credentials(self):
-        """
-        Validate AWS credentials and set required IAM roles for EKS
-        """
         logger.info("Validating AWS credentials...")
         try:
             sts_client = boto3.client("sts")
@@ -140,32 +99,20 @@ class EksInfrastructure:
 
 
     def create_eks_cluster(self):
-        """
-        Create EKS cluster and setup IAM access
-        """
         logger.info("Creating EKS cluster...")
 
-        run(
-            f"eksctl create cluster -f test/vllm_tests/test_artifacts/eks-cluster.yaml --region {self.region}"
-        )
+        run(f"eksctl create cluster -f test/vllm_tests/test_artifacts/eks-cluster.yaml --region {self.region}")
 
-        # create a node group with EFA Support
-        run(
-            f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml --region {self.region}"
-        )
+        run(f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml --region {self.region}")
 
         eks_utils.eks_write_kubeconfig(self.cluster_name, self.region)
 
-        # verify that nodes are ready
         result = run("kubectl get nodes")
         assert "Ready" in result.stdout, "EKS nodes not ready"
         logger.info("EKS cluster created successfully")
 
 
     def validate_cluster_setup(self):
-        """
-        Validate cluster setup including NVIDIA device plugin
-        """
         logger.info("Validating cluster setup...")
 
         if not eks_utils.is_eks_cluster_active(self.cluster_name):
@@ -348,27 +295,14 @@ class EksInfrastructure:
         try:
             script_path = "test/vllm_tests/infra/test_vllm_eks_cleanup.sh"
             run(f"chmod +x {script_path}")
-            run(
-                f"echo 'y' | {script_path}",
-                check=False,
-                timeout=3600,
-            )
+            run(f"echo 'y' | {script_path}", check=False, timeout=3600)
             logger.info("Cleanup completed successfully")
-
         except Exception as e:
             logger.error(f"Cleanup failed: {e}")
 
 
     def cleanup_infrastructure(self):
         try:
-            if self.connection:
-                self.cleanup_resources()
-            
-            if self.instance_id:
-                ec2_utils.terminate_instance(self.instance_id, region=self.region)
-            
-            if self.key_filename:
-                destroy_ssh_keypair(self.ec2_client, self.key_filename)
-                
+            self.cleanup_resources()
         except Exception as e:
-            logger.error(f"Cleanup failed: {e}")
+            logger.error(f"Infrastructure cleanup failed: {e}")
