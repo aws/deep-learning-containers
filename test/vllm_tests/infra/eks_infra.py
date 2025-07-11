@@ -101,9 +101,9 @@ class EksInfrastructure:
     def create_eks_cluster(self):
         logger.info("Creating EKS cluster...")
 
-        run(f"eksctl create cluster -f test/vllm_tests/test_artifacts/eks-cluster.yaml --region {self.region}")
+        run(f"eksctl create cluster -f test/vllm_tests/test_artifacts/eks-cluster.yaml")
 
-        run(f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml --region {self.region}")
+        run(f"eksctl create nodegroup -f test/vllm_tests/test_artifacts/large-model-nodegroup.yaml")
 
         eks_utils.eks_write_kubeconfig(self.cluster_name, self.region)
 
