@@ -285,10 +285,19 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         os.sep, get_cloned_folder_path(), "src", "deep_learning_container.py"
     )
 
+    FORMATTER.print(f"[DEBUG] About to call verify_artifact_contents_for_patch_builds")
+    start_time = time.time()
+    import time
+    FORMATTER.print(f"[DEBUG] About to call verify_artifact_contents_for_patch_builds")
+    start_time = time.time()
     verify_artifact_contents_for_patch_builds(
         patching_info_folder_path=complete_patching_info_dump_location,
         miscellaneous_scripts_path=miscellaneous_scripts_path,
     )
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s")
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s")
 
     pre_push_image_object.target = None
 
@@ -466,8 +475,15 @@ def verify_artifact_contents_for_patch_builds(
     :param miscellaneous_scripts_path: str, Path of the miscellaneous_scripts folder that is present on Github.
     :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
     """
+    import time
     autopatch_size_limit = 1
+    
+    FORMATTER.print(f"[DEBUG] Starting size check for patching_info_folder_path: {patching_info_folder_path}")
+    start_time = time.time()
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] Completed size check for patching_info_folder_path in {elapsed_time:.2f}s")
+    
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
         folder_size_in_megabytes <= autopatch_size_limit
@@ -500,7 +516,12 @@ def verify_artifact_contents_for_patch_builds(
             only_acceptable_file_types=[".sh", ".txt", ".json"],
         ), f"{patch_details_folder_path} contents are invalid"
 
+    FORMATTER.print(f"[DEBUG] Starting size check for miscellaneous_scripts_path: {miscellaneous_scripts_path}")
+    start_time = time.time()
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] Completed size check for miscellaneous_scripts_path in {elapsed_time:.2f}s")
+    
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
         folder_size_in_megabytes <= autopatch_size_limit
