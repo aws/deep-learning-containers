@@ -590,11 +590,32 @@ def get_folder_size_in_bytes(folder_path):
     :param folder_path: str, Path of the folder
     :return: float, Size of the folder in bytes
     """
+    import time
+    start_time = time.time()
+    LOGGER.info(f"[DEBUG] Starting folder size calculation for: {folder_path}")
+    
     size_in_bytes = 0.0
+    file_count = 0
+    dir_count = 0
+    
     for dir_path, dir_names, file_names in os.walk(folder_path):
+        dir_count += 1
+        LOGGER.info(f"[DEBUG] Processing directory {dir_count}: {dir_path} with {len(file_names)} files")
+        
         for file_name in file_names:
+            file_count += 1
             file_path = os.path.join(dir_path, file_name)
-            size_in_bytes += os.path.getsize(file_path)
+            try:
+                file_size = os.path.getsize(file_path)
+                size_in_bytes += file_size
+                if file_count % 100 == 0:  # Log every 10 files
+                    elapsed = time.time() - start_time
+                    LOGGER.info(f"[DEBUG] Processed {file_count} files in {elapsed:.2f}s, current size: {size_in_bytes/(1024*1024):.2f} MB")
+            except OSError as e:
+                LOGGER.warning(f"[DEBUG] Error accessing file {file_path}: {e}")
+    
+    elapsed_time = time.time() - start_time
+    LOGGER.info(f"[DEBUG] Completed folder scan: {file_count} files in {dir_count} directories, took {elapsed_time:.2f}s")
     LOGGER.info(f"Folder {folder_path} has size {size_in_bytes/(1024*1024)} MB")
     return size_in_bytes
 
