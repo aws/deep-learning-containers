@@ -17,7 +17,7 @@ from fabric import Connection
 from test import test_utils
 from test.test_utils import KEYS_TO_DESTROY_FILE
 
-from test.test_utils.ec2 import get_default_vpc_id, get_default_subnet_for_az
+from test.test_utils.ec2 import get_default_vpc_id, get_default_subnet_for_az, get_subnet_id_by_vpc
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -222,7 +222,7 @@ def setup():
     ec2_cli = ec2_client(DEFAULT_REGION)
 
     vpc_id = get_default_vpc_id(ec2_cli)
-    subnet_id = get_default_subnet_for_az(ec2_cli, DEFAULT_REGION)
+    subnet_id = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
     # create fsx
     sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")

@@ -1817,6 +1817,21 @@ def get_default_subnet_for_az(ec2_client, availability_zone):
     return az_subnet_id
 
 
+def get_subnet_id_by_vpc(ec2_client, vpc_id):
+
+    response = ec2_client.describe_subnets(
+        Filters=[
+            {
+                "Name": "vpc-id",
+                "Values": [
+                    vpc_id,
+                ],
+            },
+        ],
+    )
+    return response["Subnets"]["SubnetId"]
+
+
 def get_vpc_id_by_name(ec2_client, vpc_name):
     """
     Get VPC ID by VPC name tag
