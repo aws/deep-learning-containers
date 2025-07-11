@@ -1829,6 +1829,7 @@ def get_subnet_id_by_vpc(ec2_client, vpc_id):
             },
         ],
     )
+    print(response)
     return response["Subnets"]["SubnetId"]
 
 
