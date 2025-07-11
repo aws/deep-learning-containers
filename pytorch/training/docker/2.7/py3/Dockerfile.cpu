@@ -170,7 +170,7 @@ RUN pip install --no-cache-dir \
     packaging \
     boto3 \
     PyYAML \
-    "numpy>=2,<2.3.0" \
+    numpy \
     scipy \
     click \
     psutil \
@@ -185,7 +185,7 @@ RUN pip install --no-cache-dir \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
-    opencv-python \
+    "opencv-python==4.11.0.86" \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
