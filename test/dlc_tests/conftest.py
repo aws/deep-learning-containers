@@ -1423,7 +1423,6 @@ def cuda_version_within_limit(metafunc_obj, image):
     :param image: Image URI for which the validation must be performed
     :return: True if all validation succeeds, else False
     """
-    image_framework_name, _ = get_framework_and_version_from_tag(image)
     cuda129_requirement_failed = (
         "below_cuda129_only" in metafunc_obj.fixturenames
         and not is_below_cuda_version("12.9", image)
@@ -1841,6 +1840,13 @@ def pytest_generate_tests(metafunc):
                         continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
+                    if "below_cuda129_only" in metafunc.fixturenames:
+                        cuda_version = get_cuda_version_from_tag(image)
+                        is_below = is_below_cuda_version("12.9", image)
+                        LOGGER.info(f"CUDA version check for image {image}:")
+                        LOGGER.info(f"- CUDA version: {cuda_version}")
+                        LOGGER.info(f"- Is below CUDA 12.9: {is_below}")
+                        LOGGER.info(f"- Final CUDA check result: {cuda_version_within_limit(metafunc, image)}")
                     if not cuda_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
