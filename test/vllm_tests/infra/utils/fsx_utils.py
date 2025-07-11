@@ -1,5 +1,6 @@
 import logging
 import time
+import boto3
 from invoke import run
 from typing import Dict, List, Any
 
@@ -14,6 +15,8 @@ class FsxSetup:
     """
     def __init__(self, region: str = "us-west-2"):
         self.region = region
+        self.fsx_client = boto3.client('fsx', region_name=region)
+        self.ec2_client = boto3.client('ec2', region_name=region)
 
     def create_fsx_filesystem(
         self,
@@ -24,7 +27,7 @@ class FsxSetup:
         tags: Dict[str, str],
     ):
         """
-        Create FSx filesystem with given configuration
+        Create FSx Lustre filesystem with given configuration
         : param subnet_id: subnet ID where FSx will be created
         : param security_group_ids: list of security group IDs
         : param storage_capacity: storage capacity in GiB
@@ -32,30 +35,24 @@ class FsxSetup:
         : param tags: dictionary of tags to apply to the FSx filesystem
         : return: dictionary containing filesystem details
         """
-        tags_param = " ".join([f"Key={k},Value={v}" for k, v in tags.items()])
-        
         try:
-            fsx_id = run(
-                f'aws fsx create-file-system'
-                f' --file-system-type LUSTRE'
-                f' --storage-capacity {storage_capacity}'
-                f' --subnet-ids {subnet_id}'
-                f' --security-group-ids {" ".join(security_group_ids)}'
-                f' --lustre-configuration DeploymentType={deployment_type}'
-                f' --tags {tags_param}'
-                f' --query "FileSystem.FileSystemId"'
-                f' --output text'
-            ).stdout.strip()
-
-            logger.info(f"Created FSx filesystem: {fsx_id}")
+            response = self.fsx_client.create_file_system(
+                FileSystemType='LUSTRE',
+                StorageCapacity=storage_capacity,
+                SubnetIds=[subnet_id],
+                SecurityGroupIds=security_group_ids,
+                LustreConfiguration={'DeploymentType': deployment_type},
+                Tags=[{'Key': k, 'Value': v} for k, v in tags.items()]
+            )
             
-            filesystem_info = self.wait_for_filesystem(fsx_id)
-            return filesystem_info
+            filesystem_id = response['FileSystem']['FileSystemId']
+            logger.info(f"Created FSx filesystem: {filesystem_id}")
+            
+            return self.wait_for_filesystem(filesystem_id)
             
         except Exception as e:
             logger.error(f"Failed to create FSx filesystem: {e}")
             raise
-
 
     def wait_for_filesystem(self, filesystem_id: str):
         """
@@ -65,36 +62,29 @@ class FsxSetup:
         : raises: Exception if filesystem enters FAILED, DELETING, or DELETED state
         """
         logger.info(f"Waiting for FSx filesystem {filesystem_id} to be available...")
-        while True:
-            status = run(
-                f"aws fsx describe-file-systems --file-system-id {filesystem_id} "
-                f"--query 'FileSystems[0].Lifecycle' --output text"
-            ).stdout.strip()
-            
-            if status == "AVAILABLE":
-                break
-            elif status in ["FAILED", "DELETING", "DELETED"]:
-                raise Exception(f"FSx filesystem entered {status} state")
-                
-            logger.info(f"FSx status: {status}, waiting...")
-            time.sleep(30)
+        
+        try:
+            waiter = self.fsx_client.get_waiter('file_system_available')
+            waiter.wait(
+                FileSystemIds=[filesystem_id],
+                WaiterConfig={'Delay': 30, 'MaxAttempts': 60}
+            )
 
-        # get fs DNS and mount name
-        fsx_dns = run(
-            f"aws fsx describe-file-systems --file-system-id {filesystem_id} "
-            f"--query 'FileSystems[0].DNSName' --output text"
-        ).stdout.strip()
+            # Get filesystem details
+            response = self.fsx_client.describe_file_systems(
+                FileSystemIds=[filesystem_id]
+            )
+            filesystem = response['FileSystems'][0]
 
-        fsx_mount = run(
-            f"aws fsx describe-file-systems --file-system-id {filesystem_id} "
-            f"--query 'FileSystems[0].LustreConfiguration.MountName' --output text"
-        ).stdout.strip()
+            return {
+                'filesystem_id': filesystem_id,
+                'dns_name': filesystem['DNSName'],
+                'mount_name': filesystem['LustreConfiguration']['MountName']
+            }
 
-        return {
-            'filesystem_id': filesystem_id,
-            'dns_name': fsx_dns,
-            'mount_name': fsx_mount
-        }
+        except Exception as e:
+            logger.error(f"Error waiting for filesystem {filesystem_id}: {e}")
+            raise
 
     def create_security_group(
         self,
@@ -111,21 +101,18 @@ class FsxSetup:
         : raises: Exception if security group creation fails
         """
         try:
-            sg_id = run(
-                f'aws ec2 create-security-group'
-                f' --group-name {name}'
-                f' --description "{description}"'
-                f' --vpc-id {vpc_id}'
-                f' --query "GroupId"'
-                f' --output text'
-            ).stdout.strip()
+            response = self.ec2_client.create_security_group(
+                GroupName=name,
+                Description=description,
+                VpcId=vpc_id
+            )
+            sg_id = response['GroupId']
             logger.info(f"Created security group: {sg_id}")
             return sg_id
 
         except Exception as e:
             logger.error(f"Failed to create security group: {e}")
             raise
-
 
     def add_security_group_ingress_rules(
         self,
@@ -141,18 +128,29 @@ class FsxSetup:
         : raises: Exception if adding ingress rules fails
         """
         try:
+            ip_permissions = []
             for rule in ingress_rules:
-                cmd = f"aws ec2 authorize-security-group-ingress --group-id {security_group_id}"
-                for key, value in rule.items():
-                    cmd += f" --{key} {value}"
-                run(cmd)
-                
+                from_port, to_port = map(int, rule['port'].split('-'))
+                permission = {
+                    'IpProtocol': rule['protocol'],
+                    'FromPort': from_port,
+                    'ToPort': to_port,
+                    'UserIdGroupPairs': [{
+                        'GroupId': rule['source-group']
+                    }]
+                }
+                ip_permissions.append(permission)
+
+            self.ec2_client.authorize_security_group_ingress(
+                GroupId=security_group_id,
+                IpPermissions=ip_permissions
+            )
+            
             logger.info(f"Added ingress rules to security group: {security_group_id}")
 
         except Exception as e:
             logger.error(f"Failed to add ingress rules to security group: {e}")
             raise
-
 
     def setup_csi_driver(self):
         """
@@ -172,7 +170,6 @@ class FsxSetup:
         except Exception as e:
             logger.error(f"Failed to setup FSx CSI driver: {e}")
             raise
-
 
     def _verify_csi_driver(self):
         """
@@ -194,7 +191,6 @@ class FsxSetup:
             raise Exception("No running FSx CSI driver pods found")
         
         logger.info(f"Found {len(fsx_pods)} running FSx CSI driver pods")
-
 
     def setup_kubernetes_resources(
         self,
