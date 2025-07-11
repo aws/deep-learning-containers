@@ -98,7 +98,7 @@ sagemaker_efa_tests = false
 # run release_candidate_integration tests
 sagemaker_rc_tests = false
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = false
+sagemaker_benchmark_tests = true
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
