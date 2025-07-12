@@ -1797,6 +1797,7 @@ def lookup_condition(lookup, image):
 
 
 def pytest_generate_tests(metafunc):
+    LOGGER.info(f"\nProcessing test function: {metafunc.function.__name__}")
     images = metafunc.config.getoption("--images")
 
     # Parametrize framework specific tests
