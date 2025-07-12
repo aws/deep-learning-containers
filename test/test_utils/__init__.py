@@ -631,6 +631,21 @@ def is_below_framework_version(version_upper_bound, image_uri, framework):
     )
 
 
+def is_below_cuda_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has cuda version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Cuda version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has cuda version less than version_upper_bound, else False
+    """
+    cuda_version = get_cuda_version_from_tag(image_uri)
+    numbers = cuda_version[2:]
+    numeric_version = f"{numbers[:-1]}.{numbers[-1]}"
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return numeric_version in required_version_specifier_set
+
+
 def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     """
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
