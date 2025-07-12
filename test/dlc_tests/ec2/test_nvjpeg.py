@@ -14,7 +14,7 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
-def test_nvjpeg_gpu(gpu, ec2_connection, x86_compatible_only, below_cuda129_only):
+def test_nvjpeg_gpu(gpu, ec2_connection, ec2_instance, x86_compatible_only, below_cuda129_only):
     _run_nvjpeg_test(gpu, ec2_connection)
 
 
@@ -25,7 +25,7 @@ def test_nvjpeg_gpu(gpu, ec2_connection, x86_compatible_only, below_cuda129_only
     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
 )
 @pytest.mark.timeout(1200)
-def test_nvjpeg_gpu(gpu, ec2_connection, arm64_compatible_only, below_cuda129_only):
+def test_nvjpeg_gpu(gpu, ec2_connection, ec2_instance, arm64_compatible_only, below_cuda129_only):
     _run_nvjpeg_test(gpu, ec2_connection)
 
 
