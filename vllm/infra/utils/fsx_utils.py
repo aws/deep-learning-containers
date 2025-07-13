@@ -151,7 +151,7 @@ class FsxSetup:
             logger.error(f"Failed to create security group: {e}")
             raise
 
-    def add_security_group_ingress_rules(
+    def add_security_group_ingress_and_egress_rules(
         self, security_group_id: str, ingress_rules: List[Dict[str, Any]]
     ):
         """
@@ -165,6 +165,12 @@ class FsxSetup:
         try:
             for rule in ingress_rules:
                 cmd = f"aws ec2 authorize-security-group-ingress --group-id {security_group_id}"
+                for key, value in rule.items():
+                    cmd += f" --{key} {value}"
+                run(cmd)
+
+            for rule in ingress_rules:
+                cmd = f"aws ec2 authorize-security-group-egress --group-id {security_group_id}"
                 for key, value in rule.items():
                     cmd += f" --{key} {value}"
                 run(cmd)
