@@ -251,14 +251,6 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
         except Exception as e:
             cleanup_errors.append(f"Failed to terminate EC2 instances: {str(e)}")
 
-    # Cleanup FSx filesystem if it exists
-    if fsx_config and fsx:
-        try:
-            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
-            print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
-
     # Cleanup security group if it exists
     if sg_fsx and fsx:
         try:
@@ -266,6 +258,14 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
             print(f"Deleted security group: {sg_fsx}")
         except Exception as e:
             cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+
+    # Cleanup FSx filesystem if it exists
+    if fsx_config and fsx:
+        try:
+            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+            print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
     if cleanup_errors:
         error_message = "\n".join(cleanup_errors)
