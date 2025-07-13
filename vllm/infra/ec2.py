@@ -219,7 +219,7 @@ def _setup_instance_async(connection, fsx_dns_name, mount_name):
     Setup FSx mount and VLLM environment on an instance asynchronously
     """
     # Copy script to instance
-    connection.put("setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+    connection.put("vllm/infra/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
     # Make script executable and run it
     commands = [
