@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK base
-version: &VERSION 12.8.1
-short_version: &SHORT_VERSION "12.8"
+version: &VERSION 12.6.3
+short_version: &SHORT_VERSION "12.6"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -32,7 +32,7 @@ context:
       target: install_efa.sh
 
 images:
-  base_x86_64_gpu_cuda128:
+  base_x86_64_gpu_cuda126:
     <<: *BASE_REPOSITORY
     context:
       <<: *BASE_CONTEXT
