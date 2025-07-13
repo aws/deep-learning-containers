@@ -1797,16 +1797,11 @@ def lookup_condition(lookup, image):
 
 
 def pytest_generate_tests(metafunc):
-    LOGGER.info(f"\nProcessing test function: {metafunc.function.__name__}")
     images = metafunc.config.getoption("--images")
 
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
-        # if fixture in ["gpu"]:
-        #     LOGGER.info(f"Checking gpu fixture 1: {metafunc.function.__name__},{fixture}")
         if fixture in metafunc.fixturenames:
-            # if fixture in ["gpu"]:
-            #     LOGGER.info(f"Checking gpu fixture 2: {metafunc.function.__name__}, {fixture}")
             lookup = fixture.replace("___", ":").replace("__", ".").replace("_", "-")
             images_to_parametrize = []
             for image in images:
@@ -1845,8 +1840,6 @@ def pytest_generate_tests(metafunc):
                         continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
-                    # if fixture in ["gpu"]:
-                    #     LOGGER.info(f"Checking gpu fixture 3: {metafunc.function.__name__}, {fixture}")
                     if not cuda_version_within_limit(metafunc, image):
                         continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
@@ -1862,8 +1855,6 @@ def pytest_generate_tests(metafunc):
                         "graviton" in image or "arm64" in image
                     ):
                         continue
-                    # if fixture in ["gpu"]:
-                    #     LOGGER.info(f"Checking gpu fixture 4: {metafunc.function.__name__}, {fixture}")
                     if "training_compiler_only" in metafunc.fixturenames and not (
                         "trcomp" in image
                     ):
@@ -1874,8 +1865,6 @@ def pytest_generate_tests(metafunc):
                         or is_standard_lookup
                         or is_trcomp_lookup
                     ):
-                        # if fixture in ["gpu"]:
-                        #     LOGGER.info(f"Checking gpu fixture 5: {metafunc.function.__name__},{fixture}, {metafunc.fixturenames}")
                         if (
                             "cpu_only" in metafunc.fixturenames
                             and "cpu" in image
@@ -1884,8 +1873,6 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                            # if fixture in ["gpu"]:
-                            #     LOGGER.info(f"Checking gpu fixture 6: {image} {metafunc.function.__name__} {fixture}, {metafunc.fixturenames}")
                         elif (
                             "graviton_compatible_only" in metafunc.fixturenames
                             and "graviton" in image
@@ -1901,10 +1888,6 @@ def pytest_generate_tests(metafunc):
                         ):
                             images_to_parametrize.append(image)
 
-            if fixture in ["gpu"]:
-                LOGGER.info(
-                    f"Checking gpu fixture 7: {metafunc.function.__name__}, {fixture} {images_to_parametrize}"
-                )
             # Remove all images tagged as "py2" if py3_only is a fixture
             if images_to_parametrize and "py3_only" in metafunc.fixturenames:
                 images_to_parametrize = [
@@ -1940,10 +1923,6 @@ def pytest_generate_tests(metafunc):
             fixtures_parametrized = generate_unique_values_for_fixtures(
                 metafunc, images_to_parametrize, values_to_generate_for_fixture
             )
-            if fixture in ["gpu"]:
-                LOGGER.info(
-                    f"Checking gpu fixture 9: {metafunc.function.__name__}, {fixture} {fixtures_parametrized}"
-                )
             if fixtures_parametrized:
                 for new_fixture_name, test_parametrization in fixtures_parametrized.items():
                     metafunc.parametrize(f"{fixture},{new_fixture_name}", test_parametrization)
