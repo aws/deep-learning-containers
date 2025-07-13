@@ -58,6 +58,22 @@ class FsxSetup:
             logger.error(f"Failed to create FSx filesystem: {e}")
             raise
 
+    def delete_fsx_filesystem(self, fsx_id: str):
+
+        try:
+            fsx_id = run(
+                f"aws fsx delete-file-system"
+                f" --file-system-id {fsx_id}"
+                f' --query "FileSystem.FileSystemId"'
+                f" --output text"
+            ).stdout.strip()
+
+            print(f"Deleted FSx filesystem: {fsx_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to create FSx filesystem: {e}")
+            raise
+
     def wait_for_filesystem(self, filesystem_id: str):
         """
         Wait for FSx filesystem to become available and return its details
@@ -65,7 +81,7 @@ class FsxSetup:
         : return: dictionary containing filesystem details (filesystem_id, dns_name, mount_name)
         : raises: Exception if filesystem enters FAILED, DELETING, or DELETED state
         """
-        logger.info(f"Waiting for FSx filesystem {filesystem_id} to be available...")
+        print(f"Waiting for FSx filesystem {filesystem_id} to be available...")
         while True:
             status = run(
                 f"aws fsx describe-file-systems --file-system-id {filesystem_id} "
@@ -77,7 +93,7 @@ class FsxSetup:
             elif status in ["FAILED", "DELETING", "DELETED"]:
                 raise Exception(f"FSx filesystem entered {status} state")
 
-            logger.info(f"FSx status: {status}, waiting...")
+            print(f"FSx status: {status}, waiting...")
             time.sleep(30)
 
         # get fs DNS and mount name
@@ -111,8 +127,25 @@ class FsxSetup:
                 f' --query "GroupId"'
                 f" --output text"
             ).stdout.strip()
-            logger.info(f"Created security group: {sg_id}")
+            print(f"Created security group: {sg_id}")
             return sg_id
+
+        except Exception as e:
+            logger.error(f"Failed to create security group: {e}")
+            raise
+
+    def delete_security_group(self, group_id: str):
+        """
+        Create a security group in the specified VPC
+        : param vpc_id: VPC ID where the security group will be created
+        : param name: name of the security group
+        : param description: description of the security group
+        : return: created security group ID
+        : raises: Exception if security group creation fails
+        """
+        try:
+            sg_id = run(f"aws ec2 delete-security-group" f" --group-id {group_id}").stdout.strip()
+            print(f"Deleted security group: {sg_id}")
 
         except Exception as e:
             logger.error(f"Failed to create security group: {e}")

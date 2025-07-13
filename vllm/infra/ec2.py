@@ -222,7 +222,7 @@ def setup():
     ec2_cli = ec2_client(DEFAULT_REGION)
 
     vpc_id = get_default_vpc_id(ec2_cli)
-    subnet_id = get_subnet_id_by_vpc(ec2_cli, vpc_id)
+    subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
     # create fsx
     sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
@@ -230,10 +230,14 @@ def setup():
     fsx.add_security_group_ingress_rules(sg_fsx, ingress_rules)
 
     fsx_config = fsx.create_fsx_filesystem(
-        subnet_id, sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+        subnet_ids[0], sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
     )
 
     print(fsx_config)
+
+    fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+
+    fsx.delete_security_group(sg_fsx)
 
 
 if __name__ == "__main__":

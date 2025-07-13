@@ -1829,8 +1829,13 @@ def get_subnet_id_by_vpc(ec2_client, vpc_id):
             },
         ],
     )
-    print(response)
-    return response
+
+    subnet_ids = []
+    for subnet in response["Subnets"]:
+        if subnet["SubnetId"] is not None:
+            subnet_ids.append(subnet["SubnetId"])
+
+    return subnet_ids
 
 
 def get_vpc_id_by_name(ec2_client, vpc_name):
