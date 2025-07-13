@@ -216,28 +216,34 @@ def ec2_test_environment():
 
 def setup():
     print("Testing vllm on ec2........")
-    # with ec2_test_environment() as instances_info:
-    #     print("Test setup is completed")
     fsx = FsxSetup(DEFAULT_REGION)
     ec2_cli = ec2_client(DEFAULT_REGION)
+    sg_fsx = None
+    fsx_config = None
 
-    vpc_id = get_default_vpc_id(ec2_cli)
-    subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
+    try:
+        vpc_id = get_default_vpc_id(ec2_cli)
+        subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-    # create fsx
-    sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
-    ingress_rules = {"protocol": "tcp", "port": "988-1023"}
-    fsx.add_security_group_ingress_rules(sg_fsx, ingress_rules)
+        # create fsx
+        sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
+        ingress_rules = [{"protocol": "tcp", "port": "988-1023"}]
+        fsx.add_security_group_ingress_rules(sg_fsx, ingress_rules)
 
-    fsx_config = fsx.create_fsx_filesystem(
-        subnet_ids[0], sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
-    )
+        fsx_config = fsx.create_fsx_filesystem(
+            subnet_ids[0], sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+        )
 
-    print(fsx_config)
+        print(fsx_config)
 
-    fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
-
-    fsx.delete_security_group(sg_fsx)
+    except Exception as e:
+        print(f"Error during setup: {str(e)}")
+        raise
+    finally:
+        if fsx_config:
+            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+        if sg_fsx:
+            fsx.delete_security_group(sg_fsx)
 
 
 if __name__ == "__main__":
