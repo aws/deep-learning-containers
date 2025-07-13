@@ -170,23 +170,15 @@ class FsxSetup:
                 # Ingress rules for port 988
                 f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
                 f"--protocol tcp --port 988 --source-group {security_group_id}",
-                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
-                f"--protocol tcp --port 988 --source-group {source_group}",
                 # Ingress rules for ports 1018-1023
                 f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
                 f"--protocol tcp --port 1018-1023 --source-group {security_group_id}",
-                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
-                f"--protocol tcp --port 1018-1023 --source-group {source_group}",
                 # Egress rules for port 988
                 f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
                 f"--protocol tcp --port 988 --destination-group {security_group_id}",
-                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
-                f"--protocol tcp --port 988 --destination-group {source_group}",
                 # Egress rules for ports 1018-1023
                 f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
                 f"--protocol tcp --port 1018-1023 --destination-group {security_group_id}",
-                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
-                f"--protocol tcp --port 1018-1023 --destination-group {source_group}",
             ]
 
             # Execute each rule

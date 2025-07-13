@@ -240,10 +240,11 @@ def setup():
         print(f"Error during setup: {str(e)}")
         raise
     finally:
-        if fsx_config:
-            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
         if sg_fsx:
             fsx.delete_security_group(sg_fsx)
+
+        if fsx_config:
+            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
 
 
 if __name__ == "__main__":
