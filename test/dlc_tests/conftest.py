@@ -1875,7 +1875,7 @@ def pytest_generate_tests(metafunc):
                         or is_trcomp_lookup
                     ):
                         if fixture in ["gpu"]:
-                            LOGGER.info(f"Checking gpu fixture 5: {metafunc.function.__name__},{fixture}")
+                            LOGGER.info(f"Checking gpu fixture 5: {metafunc.function.__name__},{fixture}, {metafunc.fixturenames}")
                         if (
                             "cpu_only" in metafunc.fixturenames
                             and "cpu" in image
@@ -1884,8 +1884,8 @@ def pytest_generate_tests(metafunc):
                             images_to_parametrize.append(image)
                         elif "gpu_only" in metafunc.fixturenames and "gpu" in image:
                             images_to_parametrize.append(image)
-                        if fixture in ["gpu"]:
-                            LOGGER.info(f"Checking gpu fixture 6: {fixture}")
+                            if fixture in ["gpu"]:
+                                LOGGER.info(f"Checking gpu fixture 6: {image} {metafunc.function.__name__} {fixture}, {metafunc.fixturenames}")
                         elif (
                             "graviton_compatible_only" in metafunc.fixturenames
                             and "graviton" in image
