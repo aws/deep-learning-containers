@@ -13,3 +13,7 @@ items:
   kind: Namespace
   metadata:
       name: mxnet
+- apiVersion: v1
+  kind: Namespace
+  metadata:
+      name: vllm

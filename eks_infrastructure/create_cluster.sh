@@ -14,26 +14,58 @@ function create_ec2_key_pair() {
     --output text >./${1}.pem
 }
 
+# Function to setup Helm
+function setup_helm() {
+  echo "Installing Helm..."
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  chmod 700 get_helm.sh
+  ./get_helm.sh
+  
+  # Verify Helm installation and add repos
+  helm version || exit 1
+  helm repo add aws-fsx-csi-driver https://kubernetes-sigs.github.io/aws-fsx-csi-driver/
+  helm repo add eks https://aws.github.io/eks-charts
+  helm repo update
+}
+
 # Function to create EKS cluster using eksctl.
 # The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
-
-  if [ "${3}" = "us-east-1" ]; then
-    ZONE_LIST=(a b d)
+  
+  if [[ ${1} == *"vllm"* ]]; then
+    CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
+    envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
+    echo "Verifying cluster creation..."
+    eksctl get cluster --region ${3}
   else
-    ZONE_LIST=(a b c)
-  fi
+    if [ "${3}" = "us-east-1" ]; then
+      ZONE_LIST=(a b d)
+    else
+      ZONE_LIST=(a b c)
+    fi
 
-  eksctl create cluster \
-    --name ${1} \
-    --version ${2} \
-    --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
-    --without-nodegroup
+    eksctl create cluster \
+      --name ${1} \
+      --version ${2} \
+      --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
+      --without-nodegroup
+  fi
 }
 
 # Function to create static and dynamic nodegroups in EKS cluster
 function create_node_group() {
 
+  if [[ ${1} == *"vllm"* ]]; then
+    CLUSTER_NAME=${1} AWS_REGION=${3} \
+    envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+
+    # Wait for nodes to be ready
+    echo "Waiting for nodes to be ready..."
+    kubectl wait --for=condition=ready node --all --timeout=300s
+    return
+  fi
+
+  # Existing nodegroup creation logic for other types
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
   GPU_NODEGROUP_INSTANCE_TYPE="g5.24xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
@@ -155,6 +187,156 @@ function add_iam_permissions_nodegroup() {
   fi
 }
 
+# Function to setup Load Balancer Controller
+function setup_load_balancer_controller() {
+  CLUSTER_NAME=${1}
+  
+  kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+
+  helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+    -n kube-system \
+    --set clusterName=${CLUSTER_NAME} \
+    --set serviceAccount.create=false \
+    --set enableServiceMutatorWebhook=false
+    
+  helm install lws oci://registry.k8s.io/lws/charts/lws \
+    --version=0.6.1 \
+    --namespace lws-system \
+    --create-namespace \
+    --wait --timeout 300s
+  
+  echo "Verifying AWS Load Balancer Controller installation..."
+  kubectl get pods -n kube-system | grep aws-load-balancer-controller
+}
+
+# Function to setup ALB security groups
+function setup_alb_security_groups() {
+  CLUSTER_NAME=${1}
+  REGION=${2}
+  
+  USER_IP=$(curl -s https://checkip.amazonaws.com)
+  VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} \
+    --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+  ALB_SG=$(aws ec2 create-security-group \
+    --group-name ${CLUSTER_NAME}-alb-sg \
+    --description "Security group for vLLM ALB" \
+    --vpc-id ${VPC_ID} \
+    --query "GroupId" --output text)
+    
+  echo "ALB security group: ${ALB_SG}"
+    
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${ALB_SG} \
+    --protocol tcp \
+    --port 80 \
+    --cidr ${USER_IP}/32
+    
+  NODE_INSTANCE_ID=$(aws ec2 describe-instances \
+    --filters "Name=tag:eks:nodegroup-name,Values=vllm-p4d-nodes-efa" \
+    --query "Reservations[0].Instances[0].InstanceId" --output text)
+    
+  NODE_SG=$(aws ec2 describe-instances \
+    --instance-ids ${NODE_INSTANCE_ID} \
+    --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" --output text)
+    
+  echo "Node security group: ${NODE_SG}"
+    
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${NODE_SG} \
+    --protocol tcp \
+    --port 8000 \
+    --source-group ${ALB_SG}
+}
+
+# Function to create FSx Lustre filesystem and setup storage
+function setup_fsx_storage() {
+  CLUSTER_NAME=${1}
+  REGION=${2}
+  
+  VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
+  SUBNET_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.subnetIds[0]" --output text)
+  
+  SG_ID=$(aws ec2 create-security-group \
+    --group-name ${CLUSTER_NAME}-fsx-lustre-sg \
+    --description "Security group for FSx Lustre" \
+    --vpc-id ${VPC_ID} \
+    --query "GroupId" --output text)
+  
+  echo "Created security group: ${SG_ID}"
+  
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${SG_ID} \
+    --protocol tcp \
+    --port 988-1023 \
+    --source-group $(aws eks describe-cluster --name ${CLUSTER_NAME} \
+    --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${SG_ID} \
+    --protocol tcp \
+    --port 988-1023 \
+    --source-group ${SG_ID}
+  
+  FS_ID=$(aws fsx create-file-system \
+    --file-system-type LUSTRE \
+    --storage-capacity 1200 \
+    --subnet-ids ${SUBNET_ID} \
+    --security-group-ids ${SG_ID} \
+    --lustre-configuration DeploymentType=SCRATCH_2 \
+    --tags Key=Name,Value=${CLUSTER_NAME}-model-storage \
+    --region ${REGION} \
+    --query "FileSystem.FileSystemId" --output text)
+  
+  echo "Created FSx filesystem: ${FS_ID}"
+  
+  echo "Waiting for filesystem to become available..."
+  aws fsx wait file-system-available --file-system-ids ${FS_ID} --region ${REGION}
+  
+  DNS_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].DNSName" --output text)
+  MOUNT_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].LustreConfiguration.MountName" --output text)
+  
+  echo "FSx DNS: ${DNS_NAME}"
+  echo "FSx Mount Name: ${MOUNT_NAME}"
+  
+  setup_k8s_fsx_storage ${FS_ID} ${DNS_NAME} ${MOUNT_NAME} ${SUBNET_ID} ${SG_ID}
+}
+
+# Function to setup Kubernetes FSx storage resources
+function setup_k8s_fsx_storage() {
+  FS_ID=${1}
+  DNS_NAME=${2}
+  MOUNT_NAME=${3}
+  SUBNET_ID=${4}
+  SG_ID=${5}
+  
+  echo "Installing AWS FSx CSI Driver..."
+  helm install aws-fsx-csi-driver aws-fsx-csi-driver/aws-fsx-csi-driver \
+    --namespace kube-system
+  
+  echo "Waiting for FSx CSI driver pods to be ready..."
+  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-fsx-csi-driver -n kube-system --timeout=90s
+
+  echo "Verifying FSx CSI driver installation..."
+  kubectl get pods -n kube-system | grep fsx
+  
+  sed -e "s|<subnet-id>|${SUBNET_ID}|g" \
+      -e "s|<sg-id>|${SG_ID}|g" \
+      ../test/vllm_tests/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
+  
+  sed -e "s|<fs-id>|${FS_ID}|g" \
+      -e "s|<dns-name>|${DNS_NAME}|g" \
+      -e "s|<mount-name>|${MOUNT_NAME}|g" \
+      ../test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
+  
+  kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml
+  
+  echo "Verifying FSx Kubernetes resources..."
+  kubectl get sc fsx-sc
+  kubectl get pv fsx-lustre-pv
+  kubectl get pvc fsx-lustre-pvc
+}
+
 #/ Tags added to the nodegroup do not propogate to the underlying Auto Scaling Group.
 #/ Hence adding the tags explicitly as it is required for cluster autoscalar functionality
 #/ See https://github.com/aws/containers-roadmap/issues/608
@@ -182,6 +364,11 @@ function add_tags_asg() {
     if [[ ${nodegroup_name} == *"graviton"* ]]; then
       aws autoscaling create-or-update-tags \
         --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=graviton,PropagateAtLaunch=true
+    fi
+
+    if [[ ${nodegroup_name} == *"vllm"* ]]; then
+      aws autoscaling create-or-update-tags \
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true
     fi
   done
 
@@ -216,8 +403,34 @@ else
   fi
 fi
 
+# Check prerequisites for vLLM clusters
+if [[ ${CLUSTER} == *"vllm"* ]]; then
+  setup_helm
+fi
+
+# Create cluster and nodegroups
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+
+# Configure kubectl and setup additional components for vLLM clusters
+if [[ ${CLUSTER} == *"vllm"* ]]; then
+  echo "Configuring kubectl for cluster ${CLUSTER}..."
+  aws eks update-kubeconfig --name ${CLUSTER} --region ${AWS_REGION}
+  
+  echo "Verifying nodes are ready..."
+  kubectl get nodes
+  
+  echo "Checking NVIDIA device plugin..."
+  kubectl get pods -n kube-system | grep nvidia
+  
+  echo "Verifying GPU availability..."
+  kubectl get nodes -o json | jq '.items[].status.capacity."nvidia.com/gpu"'
+  
+  setup_fsx_storage ${CLUSTER} ${AWS_REGION}
+  setup_load_balancer_controller ${CLUSTER}
+  setup_alb_security_groups ${CLUSTER} ${AWS_REGION}
+fi
+
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
 create_namespaces
