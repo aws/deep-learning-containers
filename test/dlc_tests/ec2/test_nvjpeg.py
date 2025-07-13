@@ -55,7 +55,7 @@ def _run_nvjpeg_test(image_uri, ec2_connection):
 
     # sample 12.9 or master branch has compute_100 arch support issue
     # https://github.com/NVIDIA/cuda-samples/issues/367
-    test_command_cu128 = (
+    test_command = (
         f"git clone -b v12.8 https://github.com/NVIDIA/cuda-samples.git && "
         "cd cuda-samples && "
         "mkdir build && cd build && "
