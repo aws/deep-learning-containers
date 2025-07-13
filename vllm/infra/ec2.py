@@ -231,7 +231,7 @@ def setup():
         fsx.add_security_group_ingress_rules(sg_fsx, ingress_rules)
 
         fsx_config = fsx.create_fsx_filesystem(
-            subnet_ids[0], sg_fsx, 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+            subnet_ids[0], [sg_fsx], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
         )
 
         print(fsx_config)
