@@ -214,37 +214,169 @@ def ec2_test_environment():
                 LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
 
 
+def _setup_instance_async(connection, fsx_dns_name, mount_name):
+    """
+    Setup FSx mount and VLLM environment on an instance asynchronously
+    """
+    # Copy script to instance
+    connection.put("setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+
+    # Make script executable and run it
+    commands = [
+        "chmod +x /home/ec2-user/setup_fsx_vllm.sh",
+        f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
+    ]
+
+    # Execute commands asynchronously
+    promise = connection.run("; ".join(commands), asynchronous=True)
+    return promise
+
+
+def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None, fsx=None):
+    """
+    Cleanup all resources in reverse order of creation
+    """
+    cleanup_errors = []
+
+    # Cleanup instances if they exist
+    if instances_info:
+        try:
+            instance_ids = [instance_id for instance_id, _ in instances_info]
+            ec2_cli.terminate_instances(InstanceIds=instance_ids)
+            print(f"Terminated EC2 instances: {instance_ids}")
+
+            # Wait for instances to terminate
+            waiter = ec2_cli.get_waiter("instance_terminated")
+            waiter.wait(InstanceIds=instance_ids)
+        except Exception as e:
+            cleanup_errors.append(f"Failed to terminate EC2 instances: {str(e)}")
+
+    # Cleanup FSx filesystem if it exists
+    if fsx_config and fsx:
+        try:
+            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+            print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
+
+    # Cleanup security group if it exists
+    if sg_fsx and fsx:
+        try:
+            fsx.delete_security_group(sg_fsx)
+            print(f"Deleted security group: {sg_fsx}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+
+    if cleanup_errors:
+        error_message = "\n".join(cleanup_errors)
+        raise Exception(f"Cleanup errors occurred:\n{error_message}")
+
+
 def setup():
     print("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
     ec2_cli = ec2_client(DEFAULT_REGION)
     sg_fsx = None
     fsx_config = None
+    instances_info = None
 
     try:
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        # create fsx
-        sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
+        # Create security group
+        try:
+            sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
+            fsx.add_security_group_ingress_and_egress_rules(sg_fsx)
+            print(f"Created security group: {sg_fsx}")
+        except Exception as e:
+            print(f"Error creating security group: {str(e)}")
+            cleanup_resources(ec2_cli, None, sg_fsx, None, fsx)
+            raise
 
-        fsx.add_security_group_ingress_and_egress_rules(sg_fsx)
+        # Create FSx filesystem
+        try:
+            fsx_config = fsx.create_fsx_filesystem(
+                subnet_ids[0], [sg_fsx], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+            )
+            print(f"Created FSx filesystem: {fsx_config}")
+        except Exception as e:
+            print(f"Error creating FSx filesystem: {str(e)}")
+            cleanup_resources(ec2_cli, None, sg_fsx, fsx_config, fsx)
+            raise
 
-        fsx_config = fsx.create_fsx_filesystem(
-            subnet_ids[0], [sg_fsx], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
-        )
+        # Launch EC2 instances
+        try:
+            instance_type = VLLM_INSTANCE_TYPE[0]
+            ami_id = ec2_instance_ami(DEFAULT_REGION)
+            az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
 
-        print(fsx_config)
+            instances_info = efa_ec2_instances(
+                ec2_client=ec2_cli,
+                ec2_instance_type=instance_type,
+                ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
+                ec2_key_name="vllm-ec2-test",
+                ec2_instance_ami=ami_id,
+                region=DEFAULT_REGION,
+                availability_zone_options=az_options,
+            )
+            print(f"Launched instances: {instances_info}")
+        except Exception as e:
+            print(f"Error launching EC2 instances: {str(e)}")
+            cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
+            raise
+
+        # Wait for instances to initialize
+        time.sleep(60)
+
+        # Setup FSx on instances
+        setup_promises = []
+        try:
+            for instance_id, key_filename in instances_info:
+                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
+                    "Reservations"
+                ][0]["Instances"][0]
+                public_ip = instance_details.get("PublicIpAddress")
+
+                if not public_ip:
+                    raise Exception(f"No public IP found for instance {instance_id}")
+
+                connection = Connection(
+                    host=public_ip,
+                    user="ec2-user",
+                    connect_kwargs={
+                        "key_filename": key_filename,
+                    },
+                )
+
+                promise = _setup_instance_async(
+                    connection, fsx_config["dns_name"], fsx_config["mount_name"]
+                )
+                setup_promises.append((instance_id, promise))
+
+            # Wait for all setups to complete
+            for instance_id, promise in setup_promises:
+                try:
+                    promise.join()
+                    print(f"Setup completed successfully for instance {instance_id}")
+                except Exception as e:
+                    print(f"Error setting up instance {instance_id}: {str(e)}")
+                    raise
+
+        except Exception as e:
+            print(f"Error during instance setup: {str(e)}")
+            cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
+            raise
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
+        # Final cleanup attempt if not already done
+        cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
         raise
-    finally:
-        if sg_fsx:
-            fsx.delete_security_group(sg_fsx)
 
-        if fsx_config:
-            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+    finally:
+        # Cleanup all resources in success case or if previous cleanup attempts failed
+        cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
 
 
 if __name__ == "__main__":
