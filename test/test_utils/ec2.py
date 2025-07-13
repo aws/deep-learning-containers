@@ -1830,7 +1830,7 @@ def get_subnet_id_by_vpc(ec2_client, vpc_id):
         ],
     )
     print(response)
-    return response["Subnets"]["SubnetId"]
+    return response
 
 
 def get_vpc_id_by_name(ec2_client, vpc_name):
