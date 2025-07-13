@@ -227,8 +227,8 @@ def setup():
 
         # create fsx
         sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
-        ingress_rules = [{"protocol": "tcp", "port": "988-1023"}]
-        fsx.add_security_group_ingress_and_egress_rules(sg_fsx, ingress_rules)
+
+        fsx.add_security_group_ingress_and_egress_rules(sg_fsx)
 
         fsx_config = fsx.create_fsx_filesystem(
             subnet_ids[0], [sg_fsx], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}

@@ -152,33 +152,56 @@ class FsxSetup:
             raise
 
     def add_security_group_ingress_and_egress_rules(
-        self, security_group_id: str, ingress_rules: List[Dict[str, Any]]
+        self, security_group_id: str, client_security_group_id: str = None
     ):
         """
-        Add ingress rules to an existing security group
+        Add required ingress and egress rules for FSx Lustre
         : param security_group_id: ID of the security group to modify
-        : param ingress_rules: list of dictionaries containing ingress rule configurations
-                            Example: [{"protocol": "tcp", "port": "988-1023", "source-group": "sg-xxx"}]
-        : return: None
-        : raises: Exception if adding ingress rules fails
+        : param client_security_group_id: ID of the client security group (optional)
         """
         try:
-            for rule in ingress_rules:
-                cmd = f"aws ec2 authorize-security-group-ingress --group-id {security_group_id}"
-                for key, value in rule.items():
-                    cmd += f" --{key} {value}"
-                run(cmd)
+            # If client_security_group_id is not provided, use the same security group
+            source_group = (
+                client_security_group_id if client_security_group_id else security_group_id
+            )
 
-            for rule in ingress_rules:
-                cmd = f"aws ec2 authorize-security-group-egress --group-id {security_group_id}"
-                for key, value in rule.items():
-                    cmd += f" --{key} {value}"
-                run(cmd)
+            # Define the required rules
+            rules = [
+                # Ingress rules for port 988
+                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
+                f"--protocol tcp --port 988 --source-group {security_group_id}",
+                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
+                f"--protocol tcp --port 988 --source-group {source_group}",
+                # Ingress rules for ports 1018-1023
+                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
+                f"--protocol tcp --port 1018-1023 --source-group {security_group_id}",
+                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
+                f"--protocol tcp --port 1018-1023 --source-group {source_group}",
+                # Egress rules for port 988
+                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
+                f"--protocol tcp --port 988 --destination-group {security_group_id}",
+                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
+                f"--protocol tcp --port 988 --destination-group {source_group}",
+                # Egress rules for ports 1018-1023
+                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
+                f"--protocol tcp --port 1018-1023 --destination-group {security_group_id}",
+                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
+                f"--protocol tcp --port 1018-1023 --destination-group {source_group}",
+            ]
 
-            logger.info(f"Added ingress rules to security group: {security_group_id}")
+            # Execute each rule
+            for cmd in rules:
+                try:
+                    run(cmd)
+                except Exception as e:
+                    logger.warning(
+                        f"Rule application failed: {e}. Continuing with remaining rules..."
+                    )
+
+            logger.info(f"Added security group rules to: {security_group_id}")
 
         except Exception as e:
-            logger.error(f"Failed to add ingress rules to security group: {e}")
+            logger.error(f"Failed to add security group rules: {e}")
             raise
 
     def setup_csi_driver(self):
