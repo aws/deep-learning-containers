@@ -276,110 +276,117 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
         raise Exception(f"Cleanup errors occurred:\n{error_message}")
 
 
+def launch_ec2_instances(ec2_cli):
+    """Launch EC2 instances with EFA support"""
+    instance_type = VLLM_INSTANCE_TYPE[0]
+    ami_id = ec2_instance_ami(DEFAULT_REGION)
+    az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
+
+    instances_info = efa_ec2_instances(
+        ec2_client=ec2_cli,
+        ec2_instance_type=instance_type,
+        ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
+        ec2_key_name="vllm-ec2-test",
+        ec2_instance_ami=ami_id,
+        region=DEFAULT_REGION,
+        availability_zone_options=az_options,
+    )
+    print(f"Launched instances: {instances_info}")
+    return instances_info
+
+
+def configure_security_groups(ec2_cli, fsx, vpc_id, instances_info):
+    """Configure security groups for FSx and EC2 instances"""
+    # Create FSx security group
+    sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
+    print(f"Created FSx security group: {sg_fsx}")
+
+    # Get client security group IDs
+    client_sg_ids = [get_default_security_group_id(ec2_cli) for instance_id, _ in instances_info]
+
+    # Configure security group rules
+    fsx.add_fsx_security_group_rules(sg_fsx, ec2_cli, client_sg_ids)
+
+    for client_sg_id in client_sg_ids:
+        other_client_sgs = [sg for sg in client_sg_ids if sg != client_sg_id]
+        fsx.add_client_security_group_rules(client_sg_id, ec2_cli, [sg_fsx], other_client_sgs)
+
+    return sg_fsx
+
+
+async def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+    """Setup FSx mount on a single instance"""
+    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+        "Instances"
+    ][0]
+    public_ip = instance_details.get("PublicIpAddress")
+
+    if not public_ip:
+        raise Exception(f"No public IP found for instance {instance_id}")
+
+    connection = Connection(
+        host=public_ip,
+        user="ec2-user",
+        connect_kwargs={"key_filename": key_filename},
+    )
+
+    promise = _setup_instance_async(connection, fsx_dns_name, mount_name)
+    return instance_id, promise
+
+
 def setup():
+    """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
     ec2_cli = ec2_client(DEFAULT_REGION)
-    sg_fsx = None
-    fsx_config = None
-    instances_info = None
+    resources = {"instances_info": None, "sg_fsx": None, "fsx_config": None}
 
     try:
+        # Get VPC and subnet information
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        # Create security group
-        try:
-            sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
-            ec2_sg_id = get_default_security_group_id(ec2_cli)
-            fsx.add_security_group_ingress_and_egress_rules(ec2_cli, sg_fsx, ec2_sg_id)
-            print(f"Created security group: {sg_fsx}")
-        except Exception as e:
-            print(f"Error creating security group: {str(e)}")
-            # cleanup_resources(ec2_cli, None, sg_fsx, None, None)
-            raise
+        # Launch EC2 instances
+        resources["instances_info"] = launch_ec2_instances(ec2_cli)
+        time.sleep(60)  # Wait for instances to initialize
+
+        # Configure security groups
+        resources["sg_fsx"] = configure_security_groups(
+            ec2_cli, fsx, vpc_id, resources["instances_info"]
+        )
 
         # Create FSx filesystem
-        try:
-            fsx_config = fsx.create_fsx_filesystem(
-                subnet_ids[0], [sg_fsx], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+        resources["fsx_config"] = fsx.create_fsx_filesystem(
+            subnet_ids[0], [resources["sg_fsx"]], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+        )
+        print(f"Created FSx filesystem: {resources['fsx_config']}")
+
+        # Setup FSx on all instances
+        setup_tasks = [
+            setup_instance(
+                instance_id,
+                key_filename,
+                ec2_cli,
+                resources["fsx_config"]["dns_name"],
+                resources["fsx_config"]["mount_name"],
             )
-            print(f"Created FSx filesystem: {fsx_config}")
-        except Exception as e:
-            print(f"Error creating FSx filesystem: {str(e)}")
-            # cleanup_resources(ec2_cli, None, sg_fsx, fsx_config, fsx)
-            raise
+            for instance_id, key_filename in resources["instances_info"]
+        ]
 
-        # Launch EC2 instances
-        try:
-            instance_type = VLLM_INSTANCE_TYPE[0]
-            ami_id = ec2_instance_ami(DEFAULT_REGION)
-            az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
-
-            instances_info = efa_ec2_instances(
-                ec2_client=ec2_cli,
-                ec2_instance_type=instance_type,
-                ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
-                ec2_key_name="vllm-ec2-test",
-                ec2_instance_ami=ami_id,
-                region=DEFAULT_REGION,
-                availability_zone_options=az_options,
-            )
-            print(f"Launched instances: {instances_info}")
-        except Exception as e:
-            print(f"Error launching EC2 instances: {str(e)}")
-            # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
-            raise
-
-        # Wait for instances to initialize
-        time.sleep(60)
-
-        # Setup FSx on instances
-        setup_promises = []
-        try:
-            for instance_id, key_filename in instances_info:
-                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
-                    "Reservations"
-                ][0]["Instances"][0]
-                public_ip = instance_details.get("PublicIpAddress")
-
-                if not public_ip:
-                    raise Exception(f"No public IP found for instance {instance_id}")
-
-                connection = Connection(
-                    host=public_ip,
-                    user="ec2-user",
-                    connect_kwargs={
-                        "key_filename": key_filename,
-                    },
-                )
-
-                promise = _setup_instance_async(
-                    connection, fsx_config["dns_name"], fsx_config["mount_name"]
-                )
-                setup_promises.append((instance_id, promise))
-
-            # Wait for all setups to complete
-            for instance_id, promise in setup_promises:
-                try:
-                    promise.join()
-                    print(f"Setup completed successfully for instance {instance_id}")
-                except Exception as e:
-                    print(f"Error setting up instance {instance_id}: {str(e)}")
-                    raise
-
-        except Exception as e:
-            print(f"Error during instance setup: {str(e)}")
-            # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
-            raise
+        # Wait for all setups to complete
+        for instance_id, promise in setup_tasks:
+            try:
+                promise.join()
+                print(f"Setup completed successfully for instance {instance_id}")
+            except Exception as e:
+                raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
+        cleanup_resources(
+            ec2_cli, resources["instances_info"], resources["sg_fsx"], resources["fsx_config"], fsx
+        )
         raise
-
-    finally:
-        # Cleanup all resources in success case or if previous cleanup attempts failed
-        # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
 
 
 if __name__ == "__main__":
