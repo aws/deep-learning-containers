@@ -185,9 +185,9 @@ RUN pip install --no-cache-dir \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "urllib3>=2.5.0" \
     "awscli<2" \
-    opencv-python \
+    opencv-python==4.11.0.86 \
     mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
