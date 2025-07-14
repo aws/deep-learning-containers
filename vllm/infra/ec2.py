@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 import test.test_utils.ec2 as ec2_utils
 from infra.utils.fsx_utils import FsxSetup
+from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
@@ -218,9 +219,9 @@ def ec2_test_environment():
                 LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
 
 
-def _setup_instance_async(connection, fsx_dns_name, mount_name):
+def _setup_instance(connection, fsx_dns_name, mount_name):
     """
-    Setup FSx mount and VLLM environment on an instance asynchronously
+    Setup FSx mount and VLLM environment on an instance synchronously
     """
     # Copy script to instance
     connection.put("vllm/infra/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
@@ -231,9 +232,9 @@ def _setup_instance_async(connection, fsx_dns_name, mount_name):
         f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
     ]
 
-    # Execute commands asynchronously
-    promise = connection.run("; ".join(commands), asynchronous=True)
-    return promise
+    # Execute commands synchronously
+    result = connection.run("; ".join(commands))
+    return result
 
 
 def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None, fsx=None):
@@ -331,7 +332,7 @@ def configure_security_groups(ec2_cli, fsx, vpc_id, instances_info):
         raise
 
 
-async def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
     """Setup FSx mount on a single instance"""
     instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
         "Instances"
@@ -347,8 +348,7 @@ async def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount
         connect_kwargs={"key_filename": key_filename},
     )
 
-    promise = _setup_instance_async(connection, fsx_dns_name, mount_name)
-    return instance_id, promise
+    return _setup_instance(connection, fsx_dns_name, mount_name)
 
 
 def setup():
@@ -378,25 +378,26 @@ def setup():
         )
         print(f"Created FSx filesystem: {resources['fsx_config']}")
 
-        # Setup FSx on all instances
-        setup_tasks = [
-            setup_instance(
-                instance_id,
-                key_filename,
-                ec2_cli,
-                resources["fsx_config"]["dns_name"],
-                resources["fsx_config"]["mount_name"],
-            )
-            for instance_id, key_filename in resources["instances_info"]
-        ]
+        with ThreadPoolExecutor(max_workers=len(resources["instances_info"])) as executor:
+            future_to_instance = {
+                executor.submit(
+                    setup_instance,
+                    instance_id,
+                    key_filename,
+                    ec2_cli,
+                    resources["fsx_config"]["dns_name"],
+                    resources["fsx_config"]["mount_name"],
+                ): instance_id
+                for instance_id, key_filename in resources["instances_info"]
+            }
 
-        # Wait for all setups to complete
-        for instance_id, promise in setup_tasks:
-            try:
-                promise.join()
-                print(f"Setup completed successfully for instance {instance_id}")
-            except Exception as e:
-                raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
+            for future in future_to_instance:
+                instance_id = future_to_instance[future]
+                try:
+                    future.result()
+                    print(f"Setup completed successfully for instance {instance_id}")
+                except Exception as e:
+                    raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")

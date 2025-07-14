@@ -23,7 +23,18 @@ fi
 # Install required packages
 echo "Installing required packages..."
 sudo yum install -y nfs-utils git
-check_error "Failed to install required packages"
+check_error "Failed to install base packages"
+
+# Add the Lustre client repository
+echo "Adding Lustre client repository..."
+sudo amazon-linux-extras install -y lustre
+check_error "Failed to add Lustre repository"
+
+# Install the latest Lustre client
+echo "Installing latest Lustre client..."
+sudo yum install -y lustre-client
+check_error "Failed to install Lustre client"
+
 
 # Create FSx mount directory
 echo "Creating FSx mount directory..."
