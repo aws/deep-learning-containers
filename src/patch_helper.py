@@ -157,8 +157,11 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         complete_command = f"{echo_cmd} | {file_concat_cmd}"
         print(f"For {image_uri} => {complete_command}")
         run(complete_command, hide=True)
+        FORMATTER.print(f"[DEBUG] trigger_enhanced_scan_patching function completed for {image_uri}")
     finally:
         run(f"docker rm -f {container_id}", hide=True, warn=True)
+        total_elapsed = time.time() - start_time
+        FORMATTER.print(f"[DEBUG] EXITING trigger_enhanced_scan_patching for {image_uri} in {total_elapsed:.2f}s")
     return constants.SUCCESS
 
 
@@ -172,11 +175,15 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     :param download_path: str, Path of the file where the relevant scripts have alread been downloaded.
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
+    import time
     from test.test_utils import get_sha_of_an_image_from_ecr
 
     info = pre_push_image_object.info
     image_name = info.get("name")
     latest_released_image_uri = info.get("release_image_uri")
+    
+    FORMATTER.print(f"[DEBUG] ENTERING conduct_autopatch_build_setup for {latest_released_image_uri}")
+    setup_start_time = time.time()
 
     run(f"docker pull {latest_released_image_uri}", hide=True)
 
@@ -219,15 +226,18 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         extraction_location=complete_patching_info_dump_location,
     )
 
+    FORMATTER.print(f"[DEBUG] Starting ThreadPoolExecutor for patching threads for {base_image_uri_for_patch_builds}")
     THREADS = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         get_dummy_boto_client()
+        FORMATTER.print(f"[DEBUG] Submitting trigger_language_patching thread for {base_image_uri_for_patch_builds}")
         THREADS[f"trigger_language_patching-{base_image_uri_for_patch_builds}"] = executor.submit(
             trigger_language_patching,
             image_uri=base_image_uri_for_patch_builds,
             s3_downloaded_path=download_path,
             python_version=info.get("python_version"),
         )
+        FORMATTER.print(f"[DEBUG] Submitting trigger_enhanced_scan_patching thread for {base_image_uri_for_patch_builds}")
         THREADS[f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"] = (
             executor.submit(
                 trigger_enhanced_scan_patching,
@@ -236,11 +246,15 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
                 python_version=info.get("python_version"),
             )
         )
+    FORMATTER.print(f"[DEBUG] Waiting for patching threads to complete for {base_image_uri_for_patch_builds}")
     FORMATTER.progress(THREADS)
+    FORMATTER.print(f"[DEBUG] All patching threads completed for {base_image_uri_for_patch_builds}")
 
+    FORMATTER.print(f"[DEBUG] Copying patch details for {base_image_uri_for_patch_builds}")
     run(
         f"cp -r {current_patch_details_path}/. {complete_patching_info_dump_location}/patch-details-current"
     )
+    FORMATTER.print(f"[DEBUG] Patch details copied for {base_image_uri_for_patch_builds}")
 
     pre_push_image_object.dockerfile = os.path.join(
         os.sep, get_cloned_folder_path(), "miscellaneous_dockerfiles", "Dockerfile.autopatch"
@@ -364,6 +378,8 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     sha_after_colon = latest_released_image_sha.split(":")[1]
     pre_push_image_object.additional_tags.insert(0, f"lastsha-{datetime_str}-{sha_after_colon}")
 
+    setup_elapsed = time.time() - setup_start_time
+    FORMATTER.print(f"[DEBUG] EXITING conduct_autopatch_build_setup for {latest_released_image_uri} in {setup_elapsed:.2f}s")
     return constants.SUCCESS
 
 
@@ -375,6 +391,12 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
                                   modified by the conduct_autopatch_build_setup method.
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
     """
+    import time
+    FORMATTER.print(f"[DEBUG] ENTERING initiate_multithreaded_autopatch_prep with {len(PRE_PUSH_STAGE_IMAGES)} images")
+    for i, img in enumerate(PRE_PUSH_STAGE_IMAGES):
+        FORMATTER.print(f"[DEBUG] Image {i+1}: {img.info.get('release_image_uri', 'Unknown')}")
+    
+    prep_start_time = time.time()
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
         hide=False,
@@ -386,6 +408,7 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
         run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
     run(f"bash {download_path}/preprocessing_script.sh {download_path}", hide=True)
 
+    FORMATTER.print(f"[DEBUG] Starting main ThreadPoolExecutor with max_workers=10 for {len(PRE_PUSH_STAGE_IMAGES)} images")
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
@@ -394,11 +417,16 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
+            image_uri = pre_push_image_object.info.get('release_image_uri', 'Unknown')
+            FORMATTER.print(f"[DEBUG] Submitting conduct_autopatch_build_setup thread for {image_uri}")
             THREADS[pre_push_image_object.name] = executor.submit(
                 conduct_autopatch_build_setup, pre_push_image_object, download_path
             )
     # the FORMATTER.progress(THREADS) function call also waits until all threads have completed
+    FORMATTER.print(f"[DEBUG] Waiting for all {len(THREADS)} image threads to complete")
     FORMATTER.progress(THREADS)
+    prep_elapsed = time.time() - prep_start_time
+    FORMATTER.print(f"[DEBUG] EXITING initiate_multithreaded_autopatch_prep - all threads completed in {prep_elapsed:.2f}s")
 
 
 def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
