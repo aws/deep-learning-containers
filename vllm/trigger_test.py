@@ -23,7 +23,7 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
         test_vllm_on_ec2(ec2_resources, images[0])
 
 
-def main():
+def test():
     LOGGER.info("Triggering test from vllm")
     test_type = os.getenv("TEST_TYPE")
 
