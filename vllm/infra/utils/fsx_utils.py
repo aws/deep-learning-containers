@@ -2,6 +2,10 @@ import logging
 import time
 from invoke import run
 from typing import Dict, List, Any
+import boto3
+
+
+from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 
@@ -109,29 +113,72 @@ class FsxSetup:
 
         return {"filesystem_id": filesystem_id, "dns_name": fsx_dns, "mount_name": fsx_mount}
 
-    def create_security_group(self, vpc_id: str, name: str, description: str):
+    def create_fsx_security_group(ec2_cli, vpc_id, group_name, description):
         """
-        Create a security group in the specified VPC
-        : param vpc_id: VPC ID where the security group will be created
-        : param name: name of the security group
-        : param description: description of the security group
-        : return: created security group ID
-        : raises: Exception if security group creation fails
+        Create a security group for FSx Lustre and add inbound rules.
+
+        :param vpc_id: The ID of the VPC where the security group will be created
+        :param instance_id: The ID of the newly created EC2 instance
+        :param region_name: The AWS region name
+        :return: The ID of the created security group
         """
         try:
-            sg_id = run(
-                f"aws ec2 create-security-group"
-                f" --group-name {name}"
-                f' --description "{description}"'
-                f" --vpc-id {vpc_id}"
-                f' --query "GroupId"'
-                f" --output text"
-            ).stdout.strip()
+            # Create the security group
+            response = ec2_cli.create_security_group(
+                GroupName=group_name,
+                Description=description,
+                VpcId=vpc_id,
+            )
+            sg_id = response["GroupId"]
             print(f"Created security group: {sg_id}")
+
             return sg_id
 
+        except ClientError as e:
+            print(f"An error occurred: {e}")
+            return None
+
+    def add_ingress_rules_sg(ec2_cli, sg_id, instance_ids):
+        """
+        Add ingress rules to FSx security group for multiple instances
+
+        Args:
+            ec2_cli: boto3 EC2 client
+            sg_id: ID of the FSx security group
+            instance_ids: List of EC2 instance IDs
+        """
+        try:
+            # Get security group IDs for all instances
+            instance_sg_ids = set()
+            for instance_id in instance_ids:
+                response = ec2_cli.describe_instances(InstanceIds=[instance_id])
+                sg_id_instance = response["Reservations"][0]["Instances"][0]["SecurityGroups"][0][
+                    "GroupId"
+                ]
+                instance_sg_ids.add(sg_id_instance)
+
+            instance_group_pairs = [{"GroupId": sg} for sg in instance_sg_ids]
+
+            all_group_pairs = instance_group_pairs + [{"GroupId": sg_id}]
+
+            # Add inbound rules
+            ec2_cli.authorize_security_group_ingress(
+                GroupId=sg_id,
+                IpPermissions=[
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": 988,
+                        "ToPort": 1023,
+                        "UserIdGroupPairs": all_group_pairs,
+                    }
+                ],
+            )
+            print(
+                f"Added inbound rules to FSx security group {sg_id} for instance security groups: {instance_sg_ids}"
+            )
+
         except Exception as e:
-            logger.error(f"Failed to create security group: {e}")
+            print(f"Error adding ingress rules: {str(e)}")
             raise
 
     def delete_security_group(self, group_id: str):
@@ -149,156 +196,6 @@ class FsxSetup:
 
         except Exception as e:
             logger.error(f"Failed to create security group: {e}")
-            raise
-
-    def add_fsx_security_group_rules(
-        self, security_group_id: str, ec2_client, client_security_group_ids: list = None
-    ):
-        try:
-            # Get existing rules
-            existing_rules = ec2_client.describe_security_groups(GroupIds=[security_group_id])[
-                "SecurityGroups"
-            ][0]
-            existing_ingress = existing_rules["IpPermissions"]
-            existing_egress = existing_rules["IpPermissionsEgress"]
-
-            # Define new rules
-            new_rules = [
-                {
-                    "IpProtocol": "tcp",
-                    "FromPort": 988,
-                    "ToPort": 988,
-                    "UserIdGroupPairs": [{"GroupId": security_group_id}],
-                },
-                {
-                    "IpProtocol": "tcp",
-                    "FromPort": 1018,
-                    "ToPort": 1023,
-                    "UserIdGroupPairs": [{"GroupId": security_group_id}],
-                },
-            ]
-
-            if client_security_group_ids:
-                new_rules.extend(
-                    [
-                        {
-                            "IpProtocol": "tcp",
-                            "FromPort": 988,
-                            "ToPort": 988,
-                            "UserIdGroupPairs": [
-                                {"GroupId": sg_id} for sg_id in client_security_group_ids
-                            ],
-                        },
-                        {
-                            "IpProtocol": "tcp",
-                            "FromPort": 1018,
-                            "ToPort": 1023,
-                            "UserIdGroupPairs": [
-                                {"GroupId": sg_id} for sg_id in client_security_group_ids
-                            ],
-                        },
-                    ]
-                )
-
-            # Add new ingress rules
-            new_ingress = [rule for rule in new_rules if rule not in existing_ingress]
-            if new_ingress:
-                ec2_client.authorize_security_group_ingress(
-                    GroupId=security_group_id, IpPermissions=new_ingress
-                )
-
-            # Add new egress rules
-            new_egress = [rule for rule in new_rules if rule not in existing_egress]
-            if new_egress:
-                ec2_client.authorize_security_group_egress(
-                    GroupId=security_group_id, IpPermissions=new_egress
-                )
-
-            print(f"Successfully added FSx security group rules to: {security_group_id}")
-
-        except ec2_client.exceptions.ClientError as e:
-            print(f"Error adding FSx security group rules: {str(e)}")
-            raise
-
-    def add_client_security_group_rules(
-        self,
-        client_security_group_id: str,
-        ec2_client,
-        fsx_security_group_ids: list,
-        other_client_security_group_ids: list = None,
-    ):
-        try:
-            # Get existing rules
-            existing_rules = ec2_client.describe_security_groups(
-                GroupIds=[client_security_group_id]
-            )["SecurityGroups"][0]
-            existing_ingress = existing_rules["IpPermissions"]
-            existing_egress = existing_rules["IpPermissionsEgress"]
-
-            # Define new rules
-            new_rules = []
-
-            if other_client_security_group_ids:
-                new_rules.extend(
-                    [
-                        {
-                            "IpProtocol": "tcp",
-                            "FromPort": 988,
-                            "ToPort": 988,
-                            "UserIdGroupPairs": [
-                                {"GroupId": sg_id} for sg_id in other_client_security_group_ids
-                            ],
-                        },
-                        {
-                            "IpProtocol": "tcp",
-                            "FromPort": 1018,
-                            "ToPort": 1023,
-                            "UserIdGroupPairs": [
-                                {"GroupId": sg_id} for sg_id in other_client_security_group_ids
-                            ],
-                        },
-                    ]
-                )
-
-            new_rules.extend(
-                [
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": 988,
-                        "ToPort": 988,
-                        "UserIdGroupPairs": [
-                            {"GroupId": sg_id} for sg_id in fsx_security_group_ids
-                        ],
-                    },
-                    {
-                        "IpProtocol": "tcp",
-                        "FromPort": 1018,
-                        "ToPort": 1023,
-                        "UserIdGroupPairs": [
-                            {"GroupId": sg_id} for sg_id in fsx_security_group_ids
-                        ],
-                    },
-                ]
-            )
-
-            # Add new ingress rules
-            new_ingress = [rule for rule in new_rules if rule not in existing_ingress]
-            if new_ingress:
-                ec2_client.authorize_security_group_ingress(
-                    GroupId=client_security_group_id, IpPermissions=new_ingress
-                )
-
-            # Add new egress rules
-            new_egress = [rule for rule in new_rules if rule not in existing_egress]
-            if new_egress:
-                ec2_client.authorize_security_group_egress(
-                    GroupId=client_security_group_id, IpPermissions=new_egress
-                )
-
-            print(f"Successfully added client security group rules to: {client_security_group_id}")
-
-        except ec2_client.exceptions.ClientError as e:
-            print(f"Error adding client security group rules: {str(e)}")
             raise
 
     def setup_csi_driver(self):

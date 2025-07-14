@@ -296,22 +296,39 @@ def launch_ec2_instances(ec2_cli):
 
 
 def configure_security_groups(ec2_cli, fsx, vpc_id, instances_info):
-    """Configure security groups for FSx and EC2 instances"""
-    # Create FSx security group
-    sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
-    print(f"Created FSx security group: {sg_fsx}")
+    """
+    Configure security groups for FSx and EC2 instances
 
-    # Get client security group IDs
-    client_sg_ids = [get_default_security_group_id(ec2_cli) for instance_id, _ in instances_info]
+    Args:
+        ec2_cli: boto3 EC2 client
+        fsx: FsxSetup instance
+        vpc_id: VPC ID where security group will be created
+        instances_info: List of tuples containing (instance_id, key_filename)
 
-    # Configure security group rules
-    fsx.add_fsx_security_group_rules(sg_fsx, ec2_cli, client_sg_ids)
+    Returns:
+        str: FSx security group ID
+    """
+    try:
+        # Create FSx security group
+        sg_fsx = fsx.create_fsx_security_group(
+            ec2_cli,
+            vpc_id,
+            "fsx-lustre-sg-vllm-ec2-tests",
+            "Security group for FSx Lustre VLLM EC2 Tests",
+        )
+        print(f"Created FSx security group: {sg_fsx}")
 
-    for client_sg_id in client_sg_ids:
-        other_client_sgs = [sg for sg in client_sg_ids if sg != client_sg_id]
-        fsx.add_client_security_group_rules(client_sg_id, ec2_cli, [sg_fsx], other_client_sgs)
+        # Get instance IDs from instances_info
+        instance_ids = [instance_id for instance_id, _ in instances_info]
 
-    return sg_fsx
+        # Add security group rules
+        fsx.add_ingress_rules_sg(ec2_cli, sg_fsx, instance_ids)
+
+        return sg_fsx
+
+    except Exception as e:
+        print(f"Error configuring security groups: {str(e)}")
+        raise
 
 
 async def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
