@@ -312,8 +312,8 @@ def main():
         "base" in image_uri or "vllm" in image_uri for image_uri in all_image_list
     ):
         if test_type not in {"functionality_sanity", "security_sanity"}:
-            if test_type == "ec2":
-                LOGGER.info("Running VLLM EC2 tests...")
+            if test_type in {"ec2", "eks"}:
+                LOGGER.info("Running VLLM EC2 EKS tests...")
                 test()
             else:
                 LOGGER.info(
