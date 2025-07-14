@@ -8,14 +8,13 @@ import boto3
 from contextlib import contextmanager
 
 import test.test_utils.ec2 as ec2_utils
-from infra.utils.fsx_utils import FsxSetup
+from vllm.infra.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
 
 
-from test import test_utils
 from test.test_utils import KEYS_TO_DESTROY_FILE
 
 from test.test_utils.ec2 import (

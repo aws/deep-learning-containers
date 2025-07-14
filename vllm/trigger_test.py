@@ -49,7 +49,3 @@ def main():
         commit_id=commit_id,
         ipv6_enabled=ipv6_enabled,
     )
-
-
-if __name__ == "__main__":
-    main()
