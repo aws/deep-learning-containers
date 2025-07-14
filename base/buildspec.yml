@@ -38,10 +38,10 @@ images:
       <<: *BASE_CONTEXT
     image_size_baseline: 11000
     device_type: &DEVICE_TYPE gpu
-    cuda_version: &CUDA_VERSION cu128
+    cuda_version: &CUDA_VERSION cu126
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py312
-    os_version: &OS_VERSION ubuntu24.04
+    tag_python_version: &TAG_PYTHON_VERSION py311
+    os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
