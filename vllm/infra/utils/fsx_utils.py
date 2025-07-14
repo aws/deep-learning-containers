@@ -48,6 +48,7 @@ class FsxSetup:
                 f" --subnet-ids {subnet_id}"
                 f' --security-group-ids {" ".join(security_group_ids)}'
                 f" --lustre-configuration DeploymentType={deployment_type}"
+                f" --version "
                 f" --tags {tags_param}"
                 f' --query "FileSystem.FileSystemId"'
                 f" --output text"
@@ -181,7 +182,7 @@ class FsxSetup:
             print(f"Error adding ingress rules: {str(e)}")
             raise
 
-    def delete_security_group(self, group_id: str):
+    def delete_security_group(self, ec2_cli, group_id: str):
         """
         Create a security group in the specified VPC
         : param vpc_id: VPC ID where the security group will be created
@@ -191,11 +192,14 @@ class FsxSetup:
         : raises: Exception if security group creation fails
         """
         try:
-            sg_id = run(f"aws ec2 delete-security-group --group-id {group_id}").stdout.strip()
+            response = ec2_cli.delete_security_group(
+                GroupId=group_id,
+            )
+            sg_id = response["GroupId"]
             print(f"Deleted security group: {sg_id}")
 
         except Exception as e:
-            logger.error(f"Failed to create security group: {e}")
+            logger.error(f"Failed to delete security group: {e}")
             raise
 
     def setup_csi_driver(self):

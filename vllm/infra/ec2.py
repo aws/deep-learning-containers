@@ -259,7 +259,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
     # Cleanup security group if it exists
     if sg_fsx and fsx:
         try:
-            fsx.delete_security_group(sg_fsx)
+            fsx.delete_security_group(ec2_cli, sg_fsx)
             print(f"Deleted security group: {sg_fsx}")
         except Exception as e:
             cleanup_errors.append(f"Failed to delete security group: {str(e)}")
