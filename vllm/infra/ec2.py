@@ -20,7 +20,6 @@ from test.test_utils import KEYS_TO_DESTROY_FILE
 
 from test.test_utils.ec2 import (
     get_default_vpc_id,
-    get_default_security_group_id,
     get_subnet_id_by_vpc,
 )
 
@@ -399,6 +398,7 @@ def setup():
                 except Exception as e:
                     raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
 
+        return resources
     except Exception as e:
         print(f"Error during setup: {str(e)}")
         cleanup_resources(

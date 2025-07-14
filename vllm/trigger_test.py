@@ -3,6 +3,8 @@ import logging
 from typing import List
 
 from test.test_utils import get_dlc_images
+from vllm.infra.ec2 import setup
+from vllm.test_artifacts.ec2 import test_vllm_on_ec2
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -15,9 +17,10 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     """
     LOGGER.info(f"Running {platform} tests")
     if platform == "ec2":
-        from vllm.infra.ec2 import setup
-
-        setup()
+        # create resources for test
+        ec2_resources = setup()
+        print("Finished gathering resources required for VLLM EC2 Tests")
+        test_vllm_on_ec2(ec2_resources, images[0])
 
 
 def main():

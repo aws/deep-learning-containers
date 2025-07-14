@@ -32,7 +32,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
-
+from vllm import trigger_test
 from src.codebuild_environment import get_codebuild_project_name
 
 LOGGER = logging.getLogger(__name__)
@@ -308,15 +308,18 @@ def main():
     build_context = get_build_context()
 
     # Skip non-sanity/security test suites for base or vllm images in MAINLINE context
-    if (
-        build_context == "MAINLINE"
-        and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
-        and test_type not in {"functionality_sanity", "security_sanity"}
+    if build_context == "MAINLINE" and all(
+        "base" in image_uri or "vllm" in image_uri for image_uri in all_image_list
     ):
-        LOGGER.info(
-            f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
-        )
-        return
+        if test_type not in {"functionality_sanity", "security_sanity"}:
+            if test_type == "ec2":
+                LOGGER.info("Running VLLM EC2 tests...")
+                main()
+            else:
+                LOGGER.info(
+                    f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
+                )
+                return
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
