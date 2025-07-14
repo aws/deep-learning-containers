@@ -296,7 +296,7 @@ def setup():
             print(f"Created security group: {sg_fsx}")
         except Exception as e:
             print(f"Error creating security group: {str(e)}")
-            cleanup_resources(ec2_cli, None, sg_fsx, None, None)
+            # cleanup_resources(ec2_cli, None, sg_fsx, None, None)
             raise
 
         # Create FSx filesystem
@@ -307,7 +307,7 @@ def setup():
             print(f"Created FSx filesystem: {fsx_config}")
         except Exception as e:
             print(f"Error creating FSx filesystem: {str(e)}")
-            cleanup_resources(ec2_cli, None, sg_fsx, fsx_config, fsx)
+            # cleanup_resources(ec2_cli, None, sg_fsx, fsx_config, fsx)
             raise
 
         # Launch EC2 instances
@@ -328,7 +328,7 @@ def setup():
             print(f"Launched instances: {instances_info}")
         except Exception as e:
             print(f"Error launching EC2 instances: {str(e)}")
-            cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
+            # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
             raise
 
         # Wait for instances to initialize
@@ -370,18 +370,16 @@ def setup():
 
         except Exception as e:
             print(f"Error during instance setup: {str(e)}")
-            cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
+            # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
             raise
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
-        # Final cleanup attempt if not already done
-        cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
         raise
 
     finally:
         # Cleanup all resources in success case or if previous cleanup attempts failed
-        cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
+        # cleanup_resources(ec2_cli, instances_info, sg_fsx, fsx_config, fsx)
 
 
 if __name__ == "__main__":

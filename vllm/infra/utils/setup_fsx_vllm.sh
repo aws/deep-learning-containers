@@ -30,18 +30,11 @@ echo "Creating FSx mount directory..."
 sudo mkdir -p /fsx
 check_error "Failed to create /fsx directory"
 
-# Add filesystem check before mounting
-echo "Checking FSx DNS name resolution..."
-nslookup ${FSX_DNS_NAME}
-check_error "Failed to resolve FSx DNS name"
-
-# Add network connectivity test
-echo "Testing network connectivity..."
-ping -c 1 ${FSX_DNS_NAME}
-check_error "Failed to ping FSx endpoint"
+echo "FSx DNS: $FSX_DNS"
+echo "FSx Mount Name: $FSX_MOUNT"
 
 # Modify mount command to include verbose output
-sudo mount -t lustre -o relatime,flock,_netdev,verbose ${FSX_DNS_NAME}@tcp:${MOUNT_NAME} /fsx
+sudo mount -t lustre ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
 
 # Create VLLM directory in FSx
 echo "Creating VLLM directory..."
