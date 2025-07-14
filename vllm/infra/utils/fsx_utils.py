@@ -48,7 +48,6 @@ class FsxSetup:
                 f" --subnet-ids {subnet_id}"
                 f' --security-group-ids {" ".join(security_group_ids)}'
                 f" --lustre-configuration DeploymentType={deployment_type}"
-                f" --version "
                 f" --tags {tags_param}"
                 f' --query "FileSystem.FileSystemId"'
                 f" --output text"
