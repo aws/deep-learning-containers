@@ -17,7 +17,11 @@ from fabric import Connection
 from test import test_utils
 from test.test_utils import KEYS_TO_DESTROY_FILE
 
-from test.test_utils.ec2 import get_default_vpc_id, get_default_subnet_for_az, get_subnet_id_by_vpc
+from test.test_utils.ec2 import (
+    get_default_vpc_id,
+    get_default_security_group_id,
+    get_subnet_id_by_vpc,
+)
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
@@ -287,7 +291,8 @@ def setup():
         # Create security group
         try:
             sg_fsx = fsx.create_security_group(vpc_id, "vllm-ec2-fsx-sg", "SG for Fsx Mounting")
-            fsx.add_security_group_ingress_and_egress_rules(sg_fsx)
+            ec2_sg_id = get_default_security_group_id(ec2_cli)
+            fsx.add_security_group_ingress_and_egress_rules(ec2_cli, sg_fsx, ec2_sg_id)
             print(f"Created security group: {sg_fsx}")
         except Exception as e:
             print(f"Error creating security group: {str(e)}")

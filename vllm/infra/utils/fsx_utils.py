@@ -152,12 +152,12 @@ class FsxSetup:
             raise
 
     def add_security_group_ingress_and_egress_rules(
-        self, security_group_id: str, client_security_group_id: str = None
+        self, ec2_client, security_group_id: str, client_security_group_id: str = None
     ):
         """
         Add required ingress and egress rules for FSx Lustre
-        : param security_group_id: ID of the security group to modify
-        : param client_security_group_id: ID of the client security group (optional)
+        :param security_group_id: ID of the security group to modify
+        :param client_security_group_id: ID of the client security group (optional)
         """
         try:
             # If client_security_group_id is not provided, use the same security group
@@ -165,35 +165,54 @@ class FsxSetup:
                 client_security_group_id if client_security_group_id else security_group_id
             )
 
-            # Define the required rules
-            rules = [
-                # Ingress rules for port 988
-                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
-                f"--protocol tcp --port 988 --source-group {security_group_id}",
-                # Ingress rules for ports 1018-1023
-                f"aws ec2 authorize-security-group-ingress --group-id {security_group_id} "
-                f"--protocol tcp --port 1018-1023 --source-group {security_group_id}",
-                # Egress rules for port 988
-                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
-                f"--protocol tcp --port 988 --destination-group {security_group_id}",
-                # Egress rules for ports 1018-1023
-                f"aws ec2 authorize-security-group-egress --group-id {security_group_id} "
-                f"--protocol tcp --port 1018-1023 --destination-group {security_group_id}",
+            # Define port ranges for Lustre
+            port_ranges = [
+                {"FromPort": 988, "ToPort": 988},  # TCP port 988 for data
+                {"FromPort": 1018, "ToPort": 1023},  # TCP ports 1018-1023 for management
             ]
 
-            # Execute each rule
-            for cmd in rules:
+            # Add ingress rules
+            for port_range in port_ranges:
                 try:
-                    run(cmd)
-                except Exception as e:
-                    logger.warning(
-                        f"Rule application failed: {e}. Continuing with remaining rules..."
+                    ec2_client.authorize_security_group_ingress(
+                        GroupId=security_group_id,
+                        IpPermissions=[
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": port_range["FromPort"],
+                                "ToPort": port_range["ToPort"],
+                                "UserIdGroupPairs": [{"GroupId": source_group}],
+                            }
+                        ],
                     )
+                except ec2_client.exceptions.ClientError as e:
+                    if e.response["Error"]["Code"] != "InvalidPermission.Duplicate":
+                        raise e
+                    logger.warning(f"Ingress rule already exists for ports {port_range}")
 
-            logger.info(f"Added security group rules to: {security_group_id}")
+            # Add egress rules
+            for port_range in port_ranges:
+                try:
+                    ec2_client.authorize_security_group_egress(
+                        GroupId=security_group_id,
+                        IpPermissions=[
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": port_range["FromPort"],
+                                "ToPort": port_range["ToPort"],
+                                "UserIdGroupPairs": [{"GroupId": source_group}],
+                            }
+                        ],
+                    )
+                except ec2_client.exceptions.ClientError as e:
+                    if e.response["Error"]["Code"] != "InvalidPermission.Duplicate":
+                        raise e
+                    logger.warning(f"Egress rule already exists for ports {port_range}")
+
+            logger.info(f"Successfully added security group rules to: {security_group_id}")
 
         except Exception as e:
-            logger.error(f"Failed to add security group rules: {e}")
+            logger.error(f"Failed to add security group rules: {str(e)}")
             raise
 
     def setup_csi_driver(self):
