@@ -4,7 +4,7 @@ kind: ClusterConfig
 metadata:
   name: ${CLUSTER_NAME}
   region: ${AWS_REGION} 
-  version: ${EKS_VERSION} # Latest stable EKS version
+  version: "${EKS_VERSION}" # Latest stable EKS version
 
 # Enable CloudWatch logging
 cloudWatch:
