@@ -1,6 +1,6 @@
-def main():
+def run_test():
     pass
 
 
 if __name__ == "__main__":
-    main()
+    run_test()
