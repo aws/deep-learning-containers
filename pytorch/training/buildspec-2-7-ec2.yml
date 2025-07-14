@@ -56,7 +56,7 @@ images:
   BuildEC2GPUPTTrainPy3cu128DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 24000
+    image_size_baseline: 30000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
