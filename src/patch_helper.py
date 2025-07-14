@@ -74,6 +74,10 @@ def get_impacted_os_packages(image_uri, python_version=None):
     :param python_version: str, python_version
     :return: set, impacted OS packages
     """
+    import time
+    FORMATTER.print(f"[DEBUG] Starting helper_function_for_leftover_vulnerabilities_from_enhanced_scanning for {image_uri}")
+    start_time = time.time()
+    
     # Lazy import is done over here to prevent circular dependencies. In general, it is a good practice to have lazy imports.
     from test.dlc_tests.sanity.test_ecr_scan import (
         helper_function_for_leftover_vulnerabilities_from_enhanced_scanning,
@@ -88,6 +92,9 @@ def get_impacted_os_packages(image_uri, python_version=None):
         minimum_sev_threshold="UNDEFINED",
         allowlist_removal_enabled=False,
     )
+    
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] helper_function_for_leftover_vulnerabilities_from_enhanced_scanning completed in {elapsed_time:.2f}s")
     impacted_packages = set()
     if remaining_vulnerabilities:
         for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
@@ -111,7 +118,12 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     :param python_version: str, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
+    import time
+    FORMATTER.print(f"[DEBUG] Starting enhanced scan for {image_uri}")
+    start_time = time.time()
     impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
+    elapsed_time = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] Enhanced scan completed for {image_uri} in {elapsed_time:.2f}s, found {len(impacted_packages)} impacted packages")
 
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
