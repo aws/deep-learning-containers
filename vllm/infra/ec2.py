@@ -296,7 +296,7 @@ def setup():
             print(f"Created security group: {sg_fsx}")
         except Exception as e:
             print(f"Error creating security group: {str(e)}")
-            cleanup_resources(ec2_cli, None, sg_fsx, None, fsx)
+            cleanup_resources(ec2_cli, None, sg_fsx, None, None)
             raise
 
         # Create FSx filesystem

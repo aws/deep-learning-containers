@@ -144,7 +144,7 @@ class FsxSetup:
         : raises: Exception if security group creation fails
         """
         try:
-            sg_id = run(f"aws ec2 delete-security-group" f" --group-id {group_id}").stdout.strip()
+            sg_id = run(f"aws ec2 delete-security-group --group-id {group_id}").stdout.strip()
             print(f"Deleted security group: {sg_id}")
 
         except Exception as e:
@@ -160,10 +160,6 @@ class FsxSetup:
         :param client_security_group_id: ID of the client security group (optional)
         """
         try:
-            # If client_security_group_id is not provided, use the same security group
-            source_group = (
-                client_security_group_id if client_security_group_id else security_group_id
-            )
 
             # Define port ranges for Lustre
             port_ranges = [
@@ -181,7 +177,16 @@ class FsxSetup:
                                 "IpProtocol": "tcp",
                                 "FromPort": port_range["FromPort"],
                                 "ToPort": port_range["ToPort"],
-                                "UserIdGroupPairs": [{"GroupId": source_group}],
+                            }
+                        ],
+                    )
+                    ec2_client.authorize_security_group_ingress(
+                        GroupId=client_security_group_id,
+                        IpPermissions=[
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": port_range["FromPort"],
+                                "ToPort": port_range["ToPort"],
                             }
                         ],
                     )
@@ -200,7 +205,16 @@ class FsxSetup:
                                 "IpProtocol": "tcp",
                                 "FromPort": port_range["FromPort"],
                                 "ToPort": port_range["ToPort"],
-                                "UserIdGroupPairs": [{"GroupId": source_group}],
+                            }
+                        ],
+                    )
+                    ec2_client.authorize_security_group_egress(
+                        GroupId=client_security_group_id,
+                        IpPermissions=[
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": port_range["FromPort"],
+                                "ToPort": port_range["ToPort"],
                             }
                         ],
                     )
