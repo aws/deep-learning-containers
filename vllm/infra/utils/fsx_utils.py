@@ -113,7 +113,7 @@ class FsxSetup:
 
         return {"filesystem_id": filesystem_id, "dns_name": fsx_dns, "mount_name": fsx_mount}
 
-    def create_fsx_security_group(ec2_cli, vpc_id, group_name, description):
+    def create_fsx_security_group(self, ec2_cli, vpc_id, group_name, description):
         """
         Create a security group for FSx Lustre and add inbound rules.
 
@@ -138,7 +138,7 @@ class FsxSetup:
             print(f"An error occurred: {e}")
             return None
 
-    def add_ingress_rules_sg(ec2_cli, sg_id, instance_ids):
+    def add_ingress_rules_sg(self, ec2_cli, sg_id, instance_ids):
         """
         Add ingress rules to FSx security group for multiple instances
 
