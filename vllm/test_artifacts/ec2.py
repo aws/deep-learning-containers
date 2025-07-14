@@ -6,7 +6,33 @@ from botocore.config import Config
 from fabric import Connection
 
 DEFAULT_REGION = "us-west-2"
-HF_TOKEN = os.getenv("HF_TOKEN")
+# HF_TOKEN = os.getenv("HF_TOKEN")
+
+# Use this code snippet in your app.
+# If you need more information about configurations
+# or implementing the sample code, visit the AWS docs:
+# https://aws.amazon.com/developer/language/python/
+
+import boto3
+from botocore.exceptions import ClientError
+
+
+def get_secret_hf_token():
+
+    secret_name = "test/hf_token"
+    region_name = "us-west-2"
+
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError as e:
+        raise e
+
+    HF_TOKEN = get_secret_value_response["SecretString"]
+
+    return HF_TOKEN
 
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
@@ -31,7 +57,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         # Container configuration
         container_name = "vllm-server"
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-        hf_token = HF_TOKEN
+        hf_token = get_secret_hf_token()
 
         docker_runtime = "--runtime nvidia --gpus all"
         mount_path = "-v /fsx/.cache/huggingface:/root/.cache/huggingface"
