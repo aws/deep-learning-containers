@@ -171,7 +171,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade "pip>=25.1.1" --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -200,7 +200,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     tqdm \
     requests \
     setuptools \
-    urllib3 \
+    "urllib3>=2.5.0" \
     awscli \
     libgcc \
     # ninja is needed for apex to speed up the build
