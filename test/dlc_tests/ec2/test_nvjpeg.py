@@ -56,7 +56,7 @@ def _run_nvjpeg_test(image_uri, ec2_connection):
     cuda_version_numeric = cuda_version.strip("cu")
     if cuda_version_numeric < Version("126"):
         # 12.4.1 has a different branch tag in cuda-samples
-        if cuda_version_numeric == Version("124"):
+        if Version(cuda_version_numeric) == Version("124"):
             git_branch_tag = "12.4.1"
         else:
             git_branch_tag = f"{cuda_version_numeric[:-1]}.{cuda_version_numeric[-1]}"
@@ -72,8 +72,8 @@ def _run_nvjpeg_test(image_uri, ec2_connection):
         # cuda-samples repository does not support compute_100 architecture.
         # The v12.8 branch is used to avoid the issue with compute_100 architecture.
         # See
-    # sample 12.9 or master branch has compute_100 arch support issue
-    # https://github.com/NVIDIA/cuda-samples/issues/367
+        # sample 12.9 or master branch has compute_100 arch support issue
+        # https://github.com/NVIDIA/cuda-samples/issues/367
         test_command = (
             f"git clone -b v12.8 https://github.com/NVIDIA/cuda-samples.git && "
             "cd cuda-samples && "
