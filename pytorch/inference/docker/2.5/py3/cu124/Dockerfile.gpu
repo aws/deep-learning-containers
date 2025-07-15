@@ -130,6 +130,8 @@ RUN apt-get update \
     openssl \
     python3-dev \
     libgssapi-krb5-2 \
+    openssh-client \
+    openssh-server \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean

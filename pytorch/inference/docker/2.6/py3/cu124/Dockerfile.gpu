@@ -139,9 +139,13 @@ RUN apt-get update \
     liblzma-dev \
     tk-dev \
     libffi-dev \
+    # make mpi4py work
+    openssh-client \
+    openssh-server \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
 
 # patch nvjpeg
 RUN mkdir -p /tmp/nvjpeg \
