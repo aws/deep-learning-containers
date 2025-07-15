@@ -56,7 +56,7 @@ def _run_nvjpeg_test(image_uri, ec2_connection):
     cuda_version_numeric = cuda_version.strip("cu")
     if Version(cuda_version_numeric) < Version("126"):
         # 12.4.1 has a different branch tag in cuda-samples
-        if cuda_version_numeric == Version("124"):
+        if Version(cuda_version_numeric) == Version("124"):
             git_branch_tag = "12.4.1"
         else:
             git_branch_tag = f"{cuda_version_numeric[:-1]}.{cuda_version_numeric[-1]}"
