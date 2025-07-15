@@ -149,7 +149,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-6-sm.yml"
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-5-ec2.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
