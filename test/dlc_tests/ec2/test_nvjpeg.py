@@ -14,6 +14,10 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
+@pytest.mark.skipif(
+    not test_utils.is_pr_context(),
+    reason="Only run nvjpeg test in PR context to avoid block MAINLINE",
+)
 def test_nvjpeg_gpu_x86(gpu, ec2_connection, ec2_instance, x86_compatible_only, below_cuda129_only):
     _run_nvjpeg_test(gpu, ec2_connection)
 
