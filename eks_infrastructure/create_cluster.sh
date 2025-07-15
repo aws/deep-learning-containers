@@ -6,6 +6,24 @@
 
 set -ex
 
+# Install gettext for envsubst command
+if ! command -v envsubst &> /dev/null; then
+  echo "Installing gettext for envsubst..."
+  LINUX_DIST_NAME=`cat /etc/*-release | grep "^NAME=" | sed 's#^.*=##' | tr -d '"'`
+  if [ -z "$LINUX_DIST_NAME" ]; then
+    echo "Unable to identify Linux distribution"
+    exit 1
+  elif [ "$LINUX_DIST_NAME" == "Ubuntu" ]; then
+    apt-get update
+    apt-get install -y gettext-base
+  elif [ "$LINUX_DIST_NAME" == "Amazon Linux" ]; then
+    yum install -y gettext
+  else
+    echo "Unknown Linux distribution: $LINUX_DIST_NAME"
+    exit 1
+  fi
+fi
+
 # Function to create EC2 key pair
 function create_ec2_key_pair() {
   aws ec2 create-key-pair \
