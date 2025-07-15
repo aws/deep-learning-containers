@@ -257,8 +257,8 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
+    "requests>=2.32.4" \
+    "setuptools>=80.9.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
     libgcc \
@@ -267,7 +267,10 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python mpi4py
+RUN pip install --no-cache-dir "opencv-python==4.11.0.86" mpi4py
+
+#address pip cve
+RUN pip install --no-cache-dir --upgrade "pip>=25.1.1"
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.5/license.txt
 
@@ -467,7 +470,7 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
-    sagemaker-pytorch-training \
+    "sagemaker-pytorch-training>=5.0.0" \
     sagemaker-training
 
 # Install extra packages

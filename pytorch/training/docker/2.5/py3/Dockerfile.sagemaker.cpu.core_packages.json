@@ -1,14 +1,14 @@
 {
   "accelerate": {
-    "version_specifier": "==1.5.1",
+    "version_specifier": "==1.8.1",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.19",
+    "version_specifier": "==2.8.2",
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.3.2",
+    "version_specifier": "==1.4.2",
     "skip": "True"
   },
   "torch": {
