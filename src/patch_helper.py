@@ -39,31 +39,60 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     :param python_version: str, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
+    import time
+    start_time = time.time()
+    FORMATTER.print(f"[DEBUG] ENTERING trigger_language_patching for {image_uri}")
+    
     patch_dlc_folder_mount = os.path.join(os.sep, s3_downloaded_path)
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
+    
+    FORMATTER.print(f"[DEBUG] Creating docker container for {image_uri}")
     docker_run_cmd = f"docker run -v {patch_dlc_folder_mount}:/patch-dlc -v {dlc_repo_folder_mount}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     FORMATTER.print(f"[trigger_language] docker_run_cmd : {docker_run_cmd}")
+    
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
+    FORMATTER.print(f"[DEBUG] Container created with ID: {container_id}")
     docker_exec_cmd = f"docker exec -i {container_id}"
 
     try:
+        FORMATTER.print(f"[DEBUG] Getting core package path for {image_uri}")
         absolute_core_package_path = get_core_packages_path(image_uri, python_version)
+        FORMATTER.print(f"[DEBUG] Core package path: {absolute_core_package_path}")
+        
         core_package_path_within_dlc_repo = ""
         if os.path.exists(absolute_core_package_path):
+            FORMATTER.print(f"[DEBUG] Core package path exists, creating relative path")
             core_package_path_within_dlc_repo = absolute_core_package_path.replace(
                 dlc_repo_folder_mount, os.path.join(os.sep, "deep-learning-containers")
             )
+            FORMATTER.print(f"[DEBUG] Relative path: {core_package_path_within_dlc_repo}")
+        
+        FORMATTER.print(f"[DEBUG] Building script command for {image_uri}")
         script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
         if core_package_path_within_dlc_repo:
             script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
         FORMATTER.print(f"[trigger_language] script_run_cmd : {script_run_cmd}")
+        
+        FORMATTER.print(f"[DEBUG] Running script in container for {image_uri}")
         result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
+        FORMATTER.print(f"[DEBUG] Script execution completed for {image_uri}")
+        
         new_cmd = result.stdout.strip().split("\n")[-1]
+        FORMATTER.print(f"[DEBUG] Extracted command: {new_cmd}")
         print(f"For {image_uri} => {new_cmd}")
+        FORMATTER.print(f"[DEBUG] Command output printed for {image_uri}")
+    except Exception as e:
+        FORMATTER.print(f"[ERROR] Exception in trigger_language_patching for {image_uri}: {str(e)}")
+        raise
     finally:
+        FORMATTER.print(f"[DEBUG] Cleaning up container {container_id}")
         run(f"docker rm -f {container_id}", hide=True, warn=True)
+        FORMATTER.print(f"[DEBUG] Container cleanup completed")
 
+    elapsed = time.time() - start_time
+    FORMATTER.print(f"[DEBUG] EXITING trigger_language_patching for {image_uri} in {elapsed:.2f}s")
     return constants.SUCCESS
+
 
 
 def get_impacted_os_packages(image_uri, python_version=None):
