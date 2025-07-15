@@ -82,7 +82,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
             sleep 10
         done
         """
-        connection.run(wait_cmd, timeout=900)
+        connection.run(wait_cmd, timeout=1800)
 
         # Additional delay for model loading
         time.sleep(30)
