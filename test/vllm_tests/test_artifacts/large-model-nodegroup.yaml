@@ -25,5 +25,12 @@ managedNodeGroups:
       k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
       k8s.io/cluster-autoscaler/enabled: "true"
       k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+        ebs: true
+        imageBuilder: true
     # Enable EFA interfaces
     efaEnabled: true

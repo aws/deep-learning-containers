@@ -185,19 +185,7 @@ function add_iam_policy() {
     ROLE_NAME=$(echo ${ROLE_ARN} | grep -oP 'arn:aws:iam::\d+:role/\K\S+')
   fi
 
-  if [[ ${CLUSTER_NAME} == *"vllm"* ]]; then
-    # vLLM clusters need basic EKS nodegroup policies plus addon policies
-    declare -a POLICY_ARN=(
-      "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
-      "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
-      "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
-      "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
-      "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
-      "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-    )
-  else
-    declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
-  fi
+  declare -a POLICY_ARN=("arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess")
 
   for policy in ${POLICY_ARN[@]}; do
     aws iam attach-role-policy \
