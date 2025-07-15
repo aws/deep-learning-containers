@@ -266,16 +266,11 @@ function setup_alb_security_groups() {
     
   echo "ALB security group: ${ALB_SG}"
   
-  # Add ingress rule for ALB (skip if exists)
-  if ! aws ec2 describe-security-groups --group-ids ${ALB_SG} --query "SecurityGroups[0].IpPermissions[?FromPort==\`80\` && ToPort==\`80\` && IpRanges[?CidrIp==\`${USER_IP}/32\`]]" --output text | grep -q 80; then
-    aws ec2 authorize-security-group-ingress \
-      --group-id ${ALB_SG} \
-      --protocol tcp \
-      --port 80 \
-      --cidr ${USER_IP}/32
-  else
-    echo "ALB ingress rule already exists, skipping..."
-  fi
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${ALB_SG} \
+    --protocol tcp \
+    --port 80 \
+    --cidr ${USER_IP}/32
     
   NODE_INSTANCE_ID=$(aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-Node" \
