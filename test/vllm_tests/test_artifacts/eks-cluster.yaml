@@ -7,17 +7,17 @@ metadata:
   version: "${EKS_VERSION}" # Latest stable EKS version
 
 # Enable CloudWatch logging
-# cloudWatch:
-#   clusterLogging:
-#     enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+cloudWatch:
+  clusterLogging:
+    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
 # Add-ons for the cluster
-# addons:
-#   - name: vpc-cni
-#     version: latest
-#   - name: coredns
-#     version: latest
-#   - name: kube-proxy
-#     version: latest
-#   - name: aws-ebs-csi-driver
-#     version: latest
+addons:
+  - name: vpc-cni
+    version: latest
+  - name: coredns
+    version: latest
+  - name: kube-proxy
+    version: latest
+  - name: aws-ebs-csi-driver
+    version: latest
