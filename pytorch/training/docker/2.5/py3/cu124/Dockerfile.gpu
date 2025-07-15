@@ -259,7 +259,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "urllib3>=2.5.0" \
     "awscli<2" \
     libgcc \
     ninja \
