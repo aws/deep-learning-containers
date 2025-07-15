@@ -33,6 +33,19 @@ function prune_cuda {
     rm -rf /usr/local/cuda/share/doc
 }
 
+#patch CVEs
+function install_nvjpeg_for_cuda_below_129 {
+    mkdir -p /tmp/nvjpeg
+    cd /tmp/nvjpeg
+    wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz
+    tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz
+    rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg*
+    rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h
+    cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/
+    cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/
+    rm -rf /tmp/nvjpeg
+}
+
 
 function install_cuda128_stack {
     CUDNN_VERSION="9.8.0.87"
@@ -69,6 +82,7 @@ function install_cuda128_stack {
     cp -a build/include/* /usr/local/cuda/include/
     cp -a build/lib/* /usr/local/cuda/lib64/
 
+    install_nvjpeg_for_cuda_below_129
     prune_cuda
     ldconfig
 }
