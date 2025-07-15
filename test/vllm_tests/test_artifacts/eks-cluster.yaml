@@ -7,9 +7,9 @@ metadata:
   version: "${EKS_VERSION}" # Latest stable EKS version
 
 # Enable CloudWatch logging
-cloudWatch:
-  clusterLogging:
-    enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
+# cloudWatch:
+#   clusterLogging:
+#     enableTypes: ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 
 # Add-ons for the cluster
 # addons:
