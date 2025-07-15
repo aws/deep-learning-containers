@@ -458,7 +458,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    "sagemaker-training==4.9.0"
+    sagemaker-training
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -470,7 +470,6 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    # pinned for sagemaker==2.233.0
     cloudpickle 
 
 # Copy workaround script for incorrect hostname
