@@ -5,6 +5,7 @@ from vllm.infra.ec2 import cleanup_resources
 
 from botocore.config import Config
 from fabric import Connection
+from fabric.exceptions import CommandTimedOut
 
 DEFAULT_REGION = "us-west-2"
 # HF_TOKEN = os.getenv("HF_TOKEN")
@@ -47,6 +48,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
     Returns:
         ec2_res: Result object from test execution
     """
+    container_name = "vllm-server"
     try:
         # Login to ECR and pull image
         account_id = get_account_id_from_image_uri(image_uri)
@@ -56,7 +58,6 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         connection.run(f"docker pull {image_uri}", hide="out")
 
         # Container configuration
-        container_name = "vllm-server"
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
         hf_token = get_secret_hf_token()
 
@@ -75,14 +76,32 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         print("Starting VLLM server...")
         connection.run(start_cmd, hide=True)
 
-        # Wait for server to be ready
+        # Wait for server to be ready with increased timeout and logging
         print("Waiting for server to initialize...")
         wait_cmd = """
-        until $(curl --output /dev/null --silent --fail http://localhost:8000/v1/models); do
+        max_attempts=180
+        attempt=0
+        while [ $attempt -lt $max_attempts ]; do
+            if curl --output /dev/null --silent --fail http://localhost:8000/v1/models; then
+                echo "Server is ready"
+                exit 0
+            fi
+            echo "Attempt $attempt: Server not ready, waiting..."
             sleep 10
+            attempt=$((attempt+1))
         done
+        echo "Server failed to initialize within the timeout period"
+        exit 1
         """
-        connection.run(wait_cmd, timeout=1800)
+        try:
+            connection.run(wait_cmd, timeout=1800)
+        except CommandTimedOut:
+            print("Server initialization timed out. Checking docker logs...")
+            logs = connection.run(f"docker logs {container_name}", hide=True)
+            print(f"Docker logs:\n{logs.stdout}")
+            raise Exception("Server failed to initialize within the timeout period")
+
+        print("Server initialized successfully")
 
         # Additional delay for model loading
         time.sleep(30)
@@ -115,6 +134,12 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
 
     except Exception as e:
         print(f"Test execution failed: {str(e)}")
+        # If there's an error, try to get the docker logs
+        try:
+            logs = connection.run(f"docker logs {container_name}", hide=True)
+            print(f"Docker logs:\n{logs.stdout}")
+        except:
+            print("Failed to retrieve docker logs")
         raise
 
     finally:
