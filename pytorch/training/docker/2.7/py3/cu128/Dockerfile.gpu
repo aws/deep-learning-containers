@@ -131,17 +131,6 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
- # patch nvjpeg to fix CVE
-RUN mkdir -p /tmp/nvjpeg \
-&& cd /tmp/nvjpeg \
-&& wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-&& tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-&& rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
-&& rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
-&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
-&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
-&& rm -rf /tmp/nvjpeg 
-
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify       Skip EFA device verification and test
 #  -l, --skip-limit-conf Skip EFA limit configuration
@@ -241,11 +230,11 @@ RUN pip install --no-cache-dir \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
-    "urllib3>=2.5.0" \
+    "urllib3<2" \
     "awscli<2" \
     ninja \
     # pencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
-    opencv-python==4.11.0.86 \
+    opencv-python \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
