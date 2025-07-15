@@ -10,13 +10,11 @@ managedNodeGroups:
     instanceType: p4d.24xlarge
     minSize: 0
     maxSize: 2
-    desiredCapacity: 2
-    availabilityZones: ["${AWS_REGION}a"]  # EFA-enabled nodegroups must have only one subnet or one availability zone
+    desiredCapacity: 0
+    availabilityZones: ["${PREFERRED_AZ}"] # EFA-enabled nodegroups must have only one availability zone
     volumeSize: 100
     privateNetworking: true
-    # Use the EKS-optimized GPU AMI
-    ami: ami-01f1fc27c5979ac62  # Amazon EKS GPU node 1.31 (k8s: 1.31.7, containerd: 1.7.*)
-    amiFamily: AmazonLinux2
+    amiFamily: AmazonLinux2023
     labels:
       role: large-model-worker
       nvidia.com/gpu: "true"
@@ -24,6 +22,9 @@ managedNodeGroups:
       aws.amazon.com/efa: "true"  # Add EFA label
     tags:
       nodegroup-role: large-model-worker
+      k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
     iam:
       withAddonPolicies:
         autoScaler: true
@@ -33,21 +34,3 @@ managedNodeGroups:
         imageBuilder: true
     # Enable EFA interfaces
     efaEnabled: true
-    # Override bootstrap command for custom AMI
-    overrideBootstrapCommand: |
-      #!/bin/bash
-      set -ex
-      
-      # Install EFA driver and related packages
-      curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz
-      tar -xf aws-efa-installer-latest.tar.gz
-      cd aws-efa-installer
-      ./efa_installer.sh -y
-      
-      # Configure NCCL to use EFA
-      echo "export FI_PROVIDER=efa" >> /etc/environment
-      echo "export FI_EFA_USE_DEVICE_RDMA=1" >> /etc/environment
-      echo "export NCCL_DEBUG=INFO" >> /etc/environment
-      
-      # Standard EKS bootstrap
-      /etc/eks/bootstrap.sh ${CLUSTER_NAME} --container-runtime containerd

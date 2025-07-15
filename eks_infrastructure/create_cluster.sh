@@ -31,8 +31,8 @@ function setup_helm() {
 # Function to create EKS cluster using eksctl.
 # The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
-  
   if [[ ${1} == *"vllm"* ]]; then
+    echo "Creating cluster via vLLM path for cluster: ${1}"
     CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
     envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
     echo "Verifying cluster creation..."
@@ -56,16 +56,26 @@ function create_eks_cluster() {
 function create_node_group() {
 
   if [[ ${1} == *"vllm"* ]]; then
-    CLUSTER_NAME=${1} AWS_REGION=${3} \
-    envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+    # use us-west-2a
+    PREFERRED_AZ="${AWS_REGION}a"
+    echo "Using AZ: ${PREFERRED_AZ}"
+    
+    # Create nodegroup with cluster name and preferred AZ
+    CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
 
-    # Wait for nodes to be ready
-    echo "Waiting for nodes to be ready..."
-    kubectl wait --for=condition=ready node --all --timeout=300s
+    sleep 5
+
+    DESIRED_NODES=$(aws eks describe-nodegroup --cluster-name ${CLUSTER} --nodegroup-name vllm-p4d-nodes-efa --query 'nodegroup.scalingConfig.desiredSize' --output text)
+    if [ "$DESIRED_NODES" -gt 0 ]; then
+      echo "Waiting for nodes to be ready..."
+      kubectl wait --for=condition=ready node --all --timeout=300s
+    else
+      echo "Skipping node readiness check as desired node count is 0"
+    fi
     return
   fi
 
-  # Existing nodegroup creation logic for other types
+  # Nodegroup creation logic for other types
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
   GPU_NODEGROUP_INSTANCE_TYPE="g5.24xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
@@ -225,15 +235,21 @@ function setup_alb_security_groups() {
     --query "GroupId" --output text)
     
   echo "ALB security group: ${ALB_SG}"
-    
-  aws ec2 authorize-security-group-ingress \
-    --group-id ${ALB_SG} \
-    --protocol tcp \
-    --port 80 \
-    --cidr ${USER_IP}/32
+  
+  # Add ingress rule for ALB (skip if exists)
+  if ! aws ec2 describe-security-groups --group-ids ${ALB_SG} --query "SecurityGroups[0].IpPermissions[?FromPort==\`80\` && ToPort==\`80\` && IpRanges[?CidrIp==\`${USER_IP}/32\`]]" --output text | grep -q 80; then
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${ALB_SG} \
+      --protocol tcp \
+      --port 80 \
+      --cidr ${USER_IP}/32
+  else
+    echo "ALB ingress rule already exists, skipping..."
+  fi
     
   NODE_INSTANCE_ID=$(aws ec2 describe-instances \
-    --filters "Name=tag:eks:nodegroup-name,Values=vllm-p4d-nodes-efa" \
+    --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-Node" \
+    "Name=instance-state-name,Values=running" \
     --query "Reservations[0].Instances[0].InstanceId" --output text)
     
   NODE_SG=$(aws ec2 describe-instances \
@@ -291,7 +307,15 @@ function setup_fsx_storage() {
   echo "Created FSx filesystem: ${FS_ID}"
   
   echo "Waiting for filesystem to become available..."
-  aws fsx wait file-system-available --file-system-ids ${FS_ID} --region ${REGION}
+  while true; do
+    STATUS=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].Lifecycle" --output text)
+    if [ "$STATUS" = "AVAILABLE" ]; then
+      echo "Filesystem is now available"
+      break
+    fi
+    echo "Filesystem status: $STATUS, waiting..."
+    sleep 30
+  done
   
   DNS_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].DNSName" --output text)
   MOUNT_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].LustreConfiguration.MountName" --output text)
