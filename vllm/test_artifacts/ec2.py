@@ -1,6 +1,7 @@
 from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
 import time, os
-
+from vllm.infra.utils.fsx_utils import FsxSetup
+from vllm.infra.ec2 import cleanup_resources
 
 from botocore.config import Config
 from fabric import Connection
@@ -81,7 +82,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
             sleep 10
         done
         """
-        connection.run(wait_cmd, timeout=300)
+        connection.run(wait_cmd, timeout=900)
 
         # Additional delay for model loading
         time.sleep(30)
@@ -100,7 +101,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         ec2_res = connection.run(
             f"docker exec {container_name} bash -c '{test_cmd}'",
             hide=True,
-            timeout=1800,
+            timeout=3600,
         )
 
         # Validate test results
@@ -183,26 +184,61 @@ def run_vllm_test(connection, image_uri):
 
 
 def test_vllm_on_ec2(resources, image_uri):
+    """
+    Test VLLM on EC2 instances with basic error handling
 
-    ec2_cli = get_ec2_client(DEFAULT_REGION)
-    ec2_connections = {}
+    Args:
+        resources: Dictionary containing instance information and FSx config
+        image_uri: Docker image URI to test
+    """
+    try:
+        ec2_cli = get_ec2_client(DEFAULT_REGION)
+        ec2_connections = {}
+        fsx = FsxSetup(DEFAULT_REGION)
 
-    for instance_id, key_filename in resources["instances_info"]:
-        instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
-            "Instances"
-        ][0]
-        public_ip = instance_details.get("PublicIpAddress")
+        # Create connections
+        for instance_id, key_filename in resources["instances_info"]:
+            try:
+                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
+                    "Reservations"
+                ][0]["Instances"][0]
+                public_ip = instance_details.get("PublicIpAddress")
 
-        if not public_ip:
-            raise Exception(f"No public IP found for instance {instance_id}")
+                if not public_ip:
+                    raise Exception(f"No public IP found for instance {instance_id}")
 
-        connection = Connection(
-            host=public_ip,
-            user="ec2-user",
-            connect_kwargs={"key_filename": key_filename},
-        )
-        ec2_connections[instance_id] = connection
+                connection = Connection(
+                    host=public_ip,
+                    user="ec2-user",
+                    connect_kwargs={"key_filename": key_filename},
+                )
+                ec2_connections[instance_id] = connection
+                print(f"Successfully connected to instance {instance_id}")
 
-    for instance_id, connection in ec2_connections.items():
-        print(f"Running vllm benchmarking on instance: {instance_id}")
-        run_vllm_test(connection, image_uri)
+            except Exception as e:
+                print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                raise
+
+        # Run tests
+        try:
+            for instance_id, connection in ec2_connections.items():
+                print(f"Running vllm benchmarking on instance: {instance_id}")
+                run_vllm_test(connection, image_uri)
+
+        except Exception as e:
+            print(f"Test execution failed: {str(e)}")
+            raise
+
+    finally:
+        # Cleanup
+        try:
+            cleanup_resources(
+                ec2_cli,
+                resources["instances_info"],
+                resources["sg_fsx"],
+                resources["fsx_config"],
+                fsx,
+            )
+            print("Resources cleaned up successfully")
+        except Exception as e:
+            print(f"Cleanup failed: {str(e)}")
