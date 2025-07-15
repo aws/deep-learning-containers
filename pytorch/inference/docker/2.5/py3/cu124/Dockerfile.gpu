@@ -222,7 +222,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
-    triton
+    "triton==3.2.0"
 
 # Install NCCL
 RUN cd /tmp \
