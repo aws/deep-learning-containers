@@ -203,6 +203,6 @@ def test_vllm_on_ec2(resources, image_uri):
         )
         ec2_connections[instance_id] = connection
 
-    for instance_id, connection in ec2_connections:
+    for instance_id, connection in ec2_connections.items():
         print(f"Running vllm benchmarking on instance: {instance_id}")
         run_vllm_test(connection, image_uri)
