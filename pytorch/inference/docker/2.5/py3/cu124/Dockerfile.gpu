@@ -241,6 +241,9 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 # py-vuln: 71064
 RUN pip install --no-cache-dir -U "requests>=2.32.3"
 
+# address pip vulnerability
+RUN pip install --no-cache-dir --upgrade "pip>=25.1.1"
+
 # create user and folders
 RUN useradd -m model-server \
  && mkdir -p ${TEMP} /opt/ml/model \
