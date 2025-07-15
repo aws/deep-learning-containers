@@ -50,11 +50,22 @@ function setup_helm() {
 # The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
   if [[ ${1} == *"vllm"* ]]; then
-    echo "Creating cluster via vLLM path for cluster: ${1}"
-    CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
-    envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
-    echo "Verifying cluster creation..."
-    eksctl get cluster --region ${3}
+    # echo "Creating cluster via vLLM path for cluster: ${1}"
+    # CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
+    # envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
+    # echo "Verifying cluster creation..."
+    # eksctl get cluster --region ${3}
+    if [ "${3}" = "us-east-1" ]; then
+      ZONE_LIST=(a b d)
+    else
+      ZONE_LIST=(a b c)
+    fi
+
+    eksctl create cluster \
+      --name ${1} \
+      --version ${2} \
+      --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
+      --without-nodegroup
   else
     if [ "${3}" = "us-east-1" ]; then
       ZONE_LIST=(a b d)
