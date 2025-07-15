@@ -54,7 +54,7 @@ def _run_nvjpeg_test(image_uri, ec2_connection):
         f"docker run --runtime=nvidia --gpus all --name {container_name} -id {image_uri}"
     )
     cuda_version_numeric = cuda_version.strip("cu")
-    if cuda_version_numeric < Version("126"):
+    if Version(cuda_version_numeric) < Version("126"):
         # 12.4.1 has a different branch tag in cuda-samples
         if Version(cuda_version_numeric) == Version("124"):
             git_branch_tag = "12.4.1"
