@@ -5,7 +5,6 @@ from vllm.infra.ec2 import cleanup_resources
 
 from botocore.config import Config
 from fabric import Connection
-from fabric.exceptions import CommandTimedOut
 
 DEFAULT_REGION = "us-west-2"
 # HF_TOKEN = os.getenv("HF_TOKEN")
@@ -95,7 +94,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         """
         try:
             connection.run(wait_cmd, timeout=1800)
-        except CommandTimedOut:
+        except Exception as e:
             print("Server initialization timed out. Checking docker logs...")
             logs = connection.run(f"docker logs {container_name}", hide=True)
             print(f"Docker logs:\n{logs.stdout}")
