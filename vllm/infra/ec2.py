@@ -7,6 +7,7 @@ import uuid
 import boto3
 from contextlib import contextmanager
 
+from test import test_utils
 import test.test_utils.ec2 as ec2_utils
 from vllm.infra.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
