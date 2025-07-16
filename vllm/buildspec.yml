@@ -2,7 +2,7 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK vllm
-version: &VERSION "0.9.1"
+version: &VERSION "0.9.2"
 short_version: &SHORT_VERSION "0.9"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
