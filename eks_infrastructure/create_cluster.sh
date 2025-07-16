@@ -75,8 +75,8 @@ function create_node_group() {
 
   if [[ ${1} == *"vllm"* ]]; then
     # find an AZ with private subnets
-    AVAILABLE_AZS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text | xargs -I {} aws ec2 describe-subnets --subnet-ids {} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | head -1)
-    PREFERRED_AZ=${AVAILABLE_AZS}
+    SUBNET_IDS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
+    PREFERRED_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | tr '\t' '\n' | head -1)
     echo "Using AZ: ${PREFERRED_AZ}"
     
     # Create nodegroup with cluster name and preferred AZ
