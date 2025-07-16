@@ -9,11 +9,6 @@ from fabric import Connection
 DEFAULT_REGION = "us-west-2"
 # HF_TOKEN = os.getenv("HF_TOKEN")
 
-# Use this code snippet in your app.
-# If you need more information about configurations
-# or implementing the sample code, visit the AWS docs:
-# https://aws.amazon.com/developer/language/python/
-
 import boto3
 from botocore.exceptions import ClientError
 
