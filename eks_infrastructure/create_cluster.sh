@@ -74,8 +74,9 @@ function create_eks_cluster() {
 function create_node_group() {
 
   if [[ ${1} == *"vllm"* ]]; then
-    # use us-west-2a
-    PREFERRED_AZ="${AWS_REGION}a"
+    # find an AZ with private subnets
+    AVAILABLE_AZS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text | xargs -I {} aws ec2 describe-subnets --subnet-ids {} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | head -1)
+    PREFERRED_AZ=${AVAILABLE_AZS}
     echo "Using AZ: ${PREFERRED_AZ}"
     
     # Create nodegroup with cluster name and preferred AZ
