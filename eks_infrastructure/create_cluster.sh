@@ -49,6 +49,12 @@ function setup_helm() {
 # Function to create EKS cluster using eksctl.
 # The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
+  # Check if cluster already exists
+  if eksctl get cluster --name ${1} --region ${3} &>/dev/null; then
+    echo "Cluster ${1} already exists, skipping creation..."
+    return
+  fi
+  
   if [[ ${1} == *"vllm"* ]]; then
     echo "Creating cluster via vLLM path for cluster: ${1}"
     CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
@@ -74,17 +80,22 @@ function create_eks_cluster() {
 function create_node_group() {
 
   if [[ ${1} == *"vllm"* ]]; then
-    # find an AZ with private subnets
-    SUBNET_IDS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
-    PREFERRED_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | tr '\t' '\n' | head -1)
-    echo "Using AZ: ${PREFERRED_AZ}"
-    
-    # Create nodegroup with cluster name and preferred AZ
-    CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+    # Check if nodegroup already exists
+    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa --region ${AWS_REGION} &>/dev/null; then
+      echo "Nodegroup vllm-p4d-nodes-efa already exists, skipping creation..."
+    else
+      # find an AZ with private subnets
+      SUBNET_IDS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
+      PREFERRED_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | tr '\t' '\n' | head -1)
+      echo "Using AZ: ${PREFERRED_AZ}"
+      
+      # Create nodegroup with cluster name and preferred AZ
+      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+    fi
 
     sleep 5
 
-    DESIRED_NODES=$(aws eks describe-nodegroup --cluster-name ${CLUSTER} --nodegroup-name vllm-p4d-nodes-efa --query 'nodegroup.scalingConfig.desiredSize' --output text)
+    DESIRED_NODES=$(aws eks describe-nodegroup --cluster-name ${1} --nodegroup-name vllm-p4d-nodes-efa --query 'nodegroup.scalingConfig.desiredSize' --output text)
     if [ "$DESIRED_NODES" -gt 0 ]; then
       echo "Waiting for nodes to be ready..."
       kubectl wait --for=condition=ready node --all --timeout=300s
