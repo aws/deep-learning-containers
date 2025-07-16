@@ -45,9 +45,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # remove cuobjdump and nvdisasm
     rm -rf /usr/local/cuda/bin/cuobjdump* && \
     rm -rf /usr/local/cuda/bin/nvdisasm* && \
-# patch cuobjdump and nvdisasm
-&& rm -rf /usr/local/cuda/bin/cuobjdump* \
-&& rm -rf /usr/local/cuda/bin/nvdisasm* \
     # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
