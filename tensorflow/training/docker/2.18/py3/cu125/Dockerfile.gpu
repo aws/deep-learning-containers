@@ -371,7 +371,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
     bokeh \
     imageio \
-    opencv-python \
+    "opencv-python==4.11.0.86" \
     plotly \
     seaborn \
     shap
