@@ -211,7 +211,7 @@ RUN ${PIP} install --no-cache-dir -U \
    mpi4py \
    h5py \
    absl-py \
-   opencv-python \
+   "opencv-python==4.11.0.86" \
    werkzeug \
    urllib3 \
    protobuf
