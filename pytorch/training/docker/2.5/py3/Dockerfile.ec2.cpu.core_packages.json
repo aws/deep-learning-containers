@@ -1,14 +1,14 @@
 {
   "accelerate": {
-    "version_specifier": "==1.1.1",
+    "version_specifier": "==1.8.1",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.18",
+    "version_specifier": "==2.8.2",
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.2.6",
+    "version_specifier": "==1.4.2",
     "skip": "True"
   },
   "torch": {
@@ -43,7 +43,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5.0"
   },
   "awscli": {
     "version_specifier": "<2"
