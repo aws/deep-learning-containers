@@ -22,19 +22,6 @@ def test_nvjpeg_gpu_x86(gpu, ec2_connection, ec2_instance, x86_compatible_only, 
     _run_nvjpeg_test(gpu, ec2_connection)
 
 
-# @pytest.mark.usefixtures("sagemaker")
-# @pytest.mark.model("N/A")
-# @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-# @pytest.mark.parametrize(
-#     "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
-# )
-# @pytest.mark.timeout(1200)
-# def test_nvjpeg_gpu_arm64(
-#     gpu, ec2_connection, ec2_instance, arm64_compatible_only, below_cuda129_only
-# ):
-#     _run_nvjpeg_test(gpu, ec2_connection)
-
-
 def _run_nvjpeg_test(image_uri, ec2_connection):
     """
     Runs the nvJPEG test on the specified image URI.
