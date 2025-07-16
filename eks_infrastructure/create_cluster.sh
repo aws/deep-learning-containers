@@ -52,6 +52,7 @@ function create_eks_cluster() {
   # Check if cluster already exists
   if eksctl get cluster --name ${1} --region ${3} &>/dev/null; then
     echo "Cluster ${1} already exists, skipping creation..."
+    return 0
   fi
   
   if [[ ${1} == *"vllm"* ]]; then
