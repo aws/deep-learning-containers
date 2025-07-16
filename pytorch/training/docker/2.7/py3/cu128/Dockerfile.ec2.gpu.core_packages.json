@@ -27,7 +27,7 @@
     "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.8.1",
+    "version_specifier": "==1.9.0",
     "skip": "True"
   },
   "thinc": {
