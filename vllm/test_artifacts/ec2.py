@@ -38,7 +38,7 @@ def get_secret_hf_token():
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
     """
-    Run VLLM benchmark test on a single node EC2 instance
+    Run VLLM benchmark test on a single node EC2 instance using the shell script
 
     Args:
         connection: Fabric connection object to EC2 instance
@@ -47,107 +47,158 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
     Returns:
         ec2_res: Result object from test execution
     """
-    container_name = "vllm-server"
     try:
-        # Login to ECR and pull image
+        # Get HF token
+        hf_token = get_secret_hf_token()
+        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+
         account_id = get_account_id_from_image_uri(image_uri)
         login_to_ecr_registry(connection, account_id, DEFAULT_REGION)
 
         print(f"Pulling image: {image_uri}")
         connection.run(f"docker pull {image_uri}", hide="out")
 
-        # Container configuration
-        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-        hf_token = get_secret_hf_token()
+        # Create environment variables for the script
+        env_vars = f"export HF_TOKEN={hf_token}\n"
+        env_vars += f"export CONTAINER_IMAGE={image_uri}\n"
+        env_vars += f"export MODEL_NAME={model_name}\n"
 
-        docker_runtime = "--runtime nvidia --gpus all"
-        mount_path = "-v /fsx/.cache/huggingface:/root/.cache/huggingface"
-        framework_env = f"-e HUGGING_FACE_HUB_TOKEN={hf_token} " "-e NCCL_DEBUG=TRACE"
-        network_config = "-p 8000:8000 --ipc=host"
-
-        # Start VLLM server container
-        start_cmd = (
-            f"docker run --name {container_name} --rm -d "
-            f"{docker_runtime} {mount_path} {framework_env} {network_config} "
-            f"{image_uri} --model {model_name} --tensor-parallel-size 8"
+        # Copy script to instance
+        connection.put(
+            "vllm/test_artifacts/run_vllm_benchmark_single_node.sh",
+            "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 
-        print("Starting VLLM server...")
-        connection.run(start_cmd, hide=True)
+        # Write script to instance
+        connection.run("chmod +x run_vllm_benchmark_single_node.sh")
 
-        # Wait for server to be ready with increased timeout and logging
-        print("Waiting for server to initialize...")
-        wait_cmd = """
-        max_attempts=180
-        attempt=0
-        while [ $attempt -lt $max_attempts ]; do
-            if curl --output /dev/null --silent --fail http://localhost:8000/v1/models; then
-                echo "Server is ready"
-                exit 0
-            fi
-            echo "Attempt $attempt: Server not ready, waiting..."
-            sleep 10
-            attempt=$((attempt+1))
-        done
-        echo "Server failed to initialize within the timeout period"
-        exit 1
-        """
-        try:
-            connection.run(wait_cmd, timeout=1800)
-        except Exception as e:
-            print("Server initialization timed out. Checking docker logs...")
-            logs = connection.run(f"docker logs {container_name}", hide=True)
-            print(f"Docker logs:\n{logs.stdout}")
-            raise Exception("Server failed to initialize within the timeout period")
-
-        print("Server initialized successfully")
-
-        # Additional delay for model loading
-        time.sleep(30)
-
-        # Run benchmark test
-        test_cmd = (
-            "python3 /fsx/vllm/vllm/benchmarks/benchmark_serving.py "
-            f"--backend vllm --model {model_name} "
-            "--endpoint /v1/completions "
-            "--dataset-name sharegpt "
-            "--dataset-path /fsx/vllm/ShareGPT_V3_unfiltered_cleaned_split.json "
-            "--num-prompts 1000"
-        )
-
-        print("Running benchmark test...")
+        # Run the script with environment variables
+        print("Running VLLM benchmark script...")
         ec2_res = connection.run(
-            f"docker exec {container_name} bash -c '{test_cmd}'",
-            hide=True,
+            f"{env_vars}\n./run_vllm_benchmark_single_node.sh",
+            hide=False,
             timeout=3600,
         )
-
-        # Validate test results
-        if ec2_res.ok:
-            print("Benchmark test completed successfully")
-            print(f"Test output:\n{ec2_res.stdout}")
-        else:
-            print(f"Benchmark test failed with error:\n{ec2_res.stderr}")
 
         return ec2_res
 
     except Exception as e:
         print(f"Test execution failed: {str(e)}")
-        # If there's an error, try to get the docker logs
-        try:
-            logs = connection.run(f"docker logs {container_name}", hide=True)
-            print(f"Docker logs:\n{logs.stdout}")
-        except:
-            print("Failed to retrieve docker logs")
         raise
 
-    finally:
-        try:
-            print("Cleaning up resources...")
-            connection.run(f"docker stop {container_name}", hide=True)
-            connection.run(f"docker rm {container_name}", hide=True)
-        except Exception as cleanup_error:
-            print(f"Cleanup failed: {str(cleanup_error)}")
+
+# def test_vllm_benchmark_on_single_node(connection, image_uri):
+#     """
+#     Run VLLM benchmark test on a single node EC2 instance
+
+#     Args:
+#         connection: Fabric connection object to EC2 instance
+#         image_uri: ECR image URI for VLLM container
+
+#     Returns:
+#         ec2_res: Result object from test execution
+#     """
+#     container_name = "vllm-server"
+#     try:
+#         # Login to ECR and pull image
+#         account_id = get_account_id_from_image_uri(image_uri)
+#         login_to_ecr_registry(connection, account_id, DEFAULT_REGION)
+
+#         print(f"Pulling image: {image_uri}")
+#         connection.run(f"docker pull {image_uri}", hide="out")
+
+#         # Container configuration
+#         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+#         hf_token = get_secret_hf_token()
+
+#         docker_runtime = "--runtime nvidia --gpus all"
+#         mount_path = "-v /fsx/.cache/huggingface:/root/.cache/huggingface"
+#         framework_env = f"-e HUGGING_FACE_HUB_TOKEN={hf_token} " "-e NCCL_DEBUG=TRACE"
+#         network_config = "-p 8000:8000 --ipc=host"
+
+#         # Start VLLM server container
+#         start_cmd = (
+#             f"docker run --name {container_name} --rm -d "
+#             f"{docker_runtime} {mount_path} {framework_env} {network_config} "
+#             f"{image_uri} --model {model_name} --tensor-parallel-size 8"
+#         )
+
+#         print("Starting VLLM server...")
+#         connection.run(start_cmd, hide=True)
+
+#         # Wait for server to be ready with increased timeout and logging
+#         print("Waiting for server to initialize...")
+#         wait_cmd = """
+#         max_attempts=180
+#         attempt=0
+#         while [ $attempt -lt $max_attempts ]; do
+#             if curl --output /dev/null --silent --fail http://localhost:8000/v1/models; then
+#                 echo "Server is ready"
+#                 exit 0
+#             fi
+#             echo "Attempt $attempt: Server not ready, waiting..."
+#             sleep 10
+#             attempt=$((attempt+1))
+#         done
+#         echo "Server failed to initialize within the timeout period"
+#         exit 1
+#         """
+#         try:
+#             connection.run(wait_cmd, timeout=1800)
+#         except Exception as e:
+#             print("Server initialization timed out. Checking docker logs...")
+#             logs = connection.run(f"docker logs {container_name}", hide=True)
+#             print(f"Docker logs:\n{logs.stdout}")
+#             raise Exception("Server failed to initialize within the timeout period")
+
+#         print("Server initialized successfully")
+
+#         # Additional delay for model loading
+#         time.sleep(30)
+
+#         # Run benchmark test
+#         test_cmd = (
+#             "python3 /fsx/vllm/vllm/benchmarks/benchmark_serving.py "
+#             f"--backend vllm --model {model_name} "
+#             "--endpoint /v1/completions "
+#             "--dataset-name sharegpt "
+#             "--dataset-path /fsx/vllm/ShareGPT_V3_unfiltered_cleaned_split.json "
+#             "--num-prompts 1000"
+#         )
+
+#         print("Running benchmark test...")
+#         ec2_res = connection.run(
+#             f"docker exec {container_name} bash -c '{test_cmd}'",
+#             hide=True,
+#             timeout=3600,
+#         )
+
+#         # Validate test results
+#         if ec2_res.ok:
+#             print("Benchmark test completed successfully")
+#             print(f"Test output:\n{ec2_res.stdout}")
+#         else:
+#             print(f"Benchmark test failed with error:\n{ec2_res.stderr}")
+
+#         return ec2_res
+
+#     except Exception as e:
+#         print(f"Test execution failed: {str(e)}")
+#         # If there's an error, try to get the docker logs
+#         try:
+#             logs = connection.run(f"docker logs {container_name}", hide=True)
+#             print(f"Docker logs:\n{logs.stdout}")
+#         except:
+#             print("Failed to retrieve docker logs")
+#         raise
+
+#     finally:
+#         try:
+#             print("Cleaning up resources...")
+#             connection.run(f"docker stop {container_name}", hide=True)
+#             connection.run(f"docker rm {container_name}", hide=True)
+#         except Exception as cleanup_error:
+#             print(f"Cleanup failed: {str(cleanup_error)}")
 
 
 def verify_gpu_setup(connection):
