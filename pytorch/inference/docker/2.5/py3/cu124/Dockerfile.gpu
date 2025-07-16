@@ -130,9 +130,25 @@ RUN apt-get update \
     openssl \
     python3-dev \
     libgssapi-krb5-2 \
+    openssh-client \
+    openssh-server \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
+
+# patch nvjpeg
+RUN mkdir -p /tmp/nvjpeg \
+&& cd /tmp/nvjpeg \
+&& wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+&& tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+&& rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+&& rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+&& rm -rf /tmp/nvjpeg \
+# patch cuobjdump and nvdisasm
+&& rm -rf /usr/local/cuda/bin/cuobjdump* \
+&& rm -rf /usr/local/cuda/bin/nvdisasm* \
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
@@ -158,7 +174,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir --upgrade "pip>=25.1.1" --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -187,7 +203,7 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     tqdm \
     requests \
     setuptools \
-    urllib3 \
+    "urllib3>=2.5.0" \
     awscli \
     libgcc \
     # ninja is needed for apex to speed up the build
@@ -209,7 +225,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
-    triton
+    "triton==3.1.0"
 
 # Install NCCL
 RUN cd /tmp \
@@ -227,6 +243,9 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 # Patches
 # py-vuln: 71064
 RUN pip install --no-cache-dir -U "requests>=2.32.3"
+
+# address pip vulnerability
+RUN pip install --no-cache-dir --upgrade "pip>=25.1.1"
 
 # create user and folders
 RUN useradd -m model-server \
