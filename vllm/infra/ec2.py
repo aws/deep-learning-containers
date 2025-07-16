@@ -252,6 +252,8 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
             # Wait for instances to terminate
             waiter = ec2_cli.get_waiter("instance_terminated")
             waiter.wait(InstanceIds=instance_ids)
+
+            time.sleep(300)
         except Exception as e:
             cleanup_errors.append(f"Failed to terminate EC2 instances: {str(e)}")
 
