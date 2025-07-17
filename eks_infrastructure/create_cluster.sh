@@ -246,22 +246,33 @@ function add_iam_permissions_nodegroup() {
 function setup_load_balancer_controller() {
   CLUSTER_NAME=${1}
   
-  kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+  # Check if AWS Load Balancer Controller is already installed
+  if ! helm list -n kube-system | grep -q aws-load-balancer-controller; then
+    echo "Installing AWS Load Balancer Controller..."
+    kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
 
-  helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
-    -n kube-system \
-    --set clusterName=${CLUSTER_NAME} \
-    --set serviceAccount.create=false \
-    --set enableServiceMutatorWebhook=false
-    
-  helm install lws oci://registry.k8s.io/lws/charts/lws \
-    --version=0.6.1 \
-    --namespace lws-system \
-    --create-namespace \
-    --wait --timeout 300s
+    helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+      -n kube-system \
+      --set clusterName=${CLUSTER_NAME} \
+      --set serviceAccount.create=false \
+      --set enableServiceMutatorWebhook=false
+      
+    echo "Verifying AWS Load Balancer Controller installation..."
+    kubectl get pods -n kube-system | grep aws-load-balancer-controller
+  else
+    echo "AWS Load Balancer Controller already installed, skipping installation"
+  fi
   
-  echo "Verifying AWS Load Balancer Controller installation..."
-  kubectl get pods -n kube-system | grep aws-load-balancer-controller
+  if ! helm list -n lws-system | grep -q lws; then
+    echo "Installing LWS..."
+    helm install lws oci://registry.k8s.io/lws/charts/lws \
+      --version=0.6.1 \
+      --namespace lws-system \
+      --create-namespace \
+      --wait --timeout 300s
+  else
+    echo "LWS already installed, skipping installation"
+  fi
 }
 
 # Function to setup ALB security groups
@@ -273,19 +284,29 @@ function setup_alb_security_groups() {
   VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} \
     --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
-  ALB_SG=$(aws ec2 create-security-group \
-    --group-name ${CLUSTER_NAME}-alb-sg \
-    --description "Security group for vLLM ALB" \
-    --vpc-id ${VPC_ID} \
-    --query "GroupId" --output text)
-    
-  echo "ALB security group: ${ALB_SG}"
+  ALB_SG_NAME="${CLUSTER_NAME}-alb-sg"
+  ALB_SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${ALB_SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
   
-  aws ec2 authorize-security-group-ingress \
-    --group-id ${ALB_SG} \
-    --protocol tcp \
-    --port 80 \
-    --cidr ${USER_IP}/32
+  if [ -z "${ALB_SG_EXISTS}" ] || [ "${ALB_SG_EXISTS}" = "None" ]; then
+    echo "Creating new ALB security group: ${ALB_SG_NAME}"
+    ALB_SG=$(aws ec2 create-security-group \
+      --group-name ${ALB_SG_NAME} \
+      --description "Security group for vLLM ALB" \
+      --vpc-id ${VPC_ID} \
+      --query "GroupId" --output text)
+      
+    echo "Created ALB security group: ${ALB_SG}"
+    
+    echo "Adding ingress rule for HTTP"
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${ALB_SG} \
+      --protocol tcp \
+      --port 80 \
+      --cidr ${USER_IP}/32
+  else
+    echo "ALB security group ${ALB_SG_NAME} already exists, using existing: ${ALB_SG_EXISTS}"
+    ALB_SG=${ALB_SG_EXISTS}
+  fi
     
   NODE_INSTANCE_ID=$(aws ec2 describe-instances \
     --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-Node" \
@@ -312,39 +333,57 @@ function setup_fsx_storage() {
   
   VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
   SUBNET_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.subnetIds[0]" --output text)
+  SG_NAME="${CLUSTER_NAME}-fsx-lustre-sg"
+  SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
   
-  SG_ID=$(aws ec2 create-security-group \
-    --group-name ${CLUSTER_NAME}-fsx-lustre-sg \
-    --description "Security group for FSx Lustre" \
-    --vpc-id ${VPC_ID} \
-    --query "GroupId" --output text)
-  
-  echo "Created security group: ${SG_ID}"
-  
-  aws ec2 authorize-security-group-ingress \
-    --group-id ${SG_ID} \
-    --protocol tcp \
-    --port 988-1023 \
-    --source-group $(aws eks describe-cluster --name ${CLUSTER_NAME} \
-    --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+  if [ -z "${SG_EXISTS}" ] || [ "${SG_EXISTS}" = "None" ]; then
+    echo "Creating new security group: ${SG_NAME}"
+    SG_ID=$(aws ec2 create-security-group \
+      --group-name ${SG_NAME} \
+      --description "Security group for FSx Lustre" \
+      --vpc-id ${VPC_ID} \
+      --query "GroupId" --output text)
+    
+    echo "Created security group: ${SG_ID}"
+    
+    echo "Adding ingress rules to security group"
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${SG_ID} \
+      --protocol tcp \
+      --port 988-1023 \
+      --source-group $(aws eks describe-cluster --name ${CLUSTER_NAME} \
+      --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
 
-  aws ec2 authorize-security-group-ingress \
-    --group-id ${SG_ID} \
-    --protocol tcp \
-    --port 988-1023 \
-    --source-group ${SG_ID}
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${SG_ID} \
+      --protocol tcp \
+      --port 988-1023 \
+      --source-group ${SG_ID}
+  else
+    echo "Security group ${SG_NAME} already exists, using existing: ${SG_EXISTS}"
+    SG_ID=${SG_EXISTS}
+  fi
   
-  FS_ID=$(aws fsx create-file-system \
-    --file-system-type LUSTRE \
-    --storage-capacity 1200 \
-    --subnet-ids ${SUBNET_ID} \
-    --security-group-ids ${SG_ID} \
-    --lustre-configuration DeploymentType=SCRATCH_2 \
-    --tags Key=Name,Value=${CLUSTER_NAME}-model-storage \
-    --region ${REGION} \
-    --query "FileSystem.FileSystemId" --output text)
+  # Check if FSx filesystem already exists
+  FS_EXISTS=$(aws fsx describe-file-systems --region ${REGION} --query "FileSystems[?Tags[?Key=='Name' && Value=='${CLUSTER_NAME}-model-storage']].FileSystemId" --output text 2>/dev/null)
   
-  echo "Created FSx filesystem: ${FS_ID}"
+  if [ -z "${FS_EXISTS}" ] || [ "${FS_EXISTS}" = "None" ]; then
+    echo "Creating new FSx filesystem"
+    FS_ID=$(aws fsx create-file-system \
+      --file-system-type LUSTRE \
+      --storage-capacity 1200 \
+      --subnet-ids ${SUBNET_ID} \
+      --security-group-ids ${SG_ID} \
+      --lustre-configuration DeploymentType=SCRATCH_2 \
+      --tags Key=Name,Value=${CLUSTER_NAME}-model-storage \
+      --region ${REGION} \
+      --query "FileSystem.FileSystemId" --output text)
+    
+    echo "Created FSx filesystem: ${FS_ID}"
+  else
+    echo "FSx filesystem for ${CLUSTER_NAME} already exists, using existing: ${FS_EXISTS}"
+    FS_ID=${FS_EXISTS}
+  fi
   
   echo "Waiting for filesystem to become available..."
   while true; do
@@ -373,27 +412,46 @@ function setup_k8s_fsx_storage() {
   MOUNT_NAME=${3}
   SUBNET_ID=${4}
   SG_ID=${5}
-  
-  echo "Installing AWS FSx CSI Driver..."
-  helm install aws-fsx-csi-driver aws-fsx-csi-driver/aws-fsx-csi-driver \
-    --namespace kube-system
-  
-  echo "Waiting for FSx CSI driver pods to be ready..."
-  kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-fsx-csi-driver -n kube-system --timeout=90s
+ 
+  if ! helm list -n kube-system | grep -q aws-fsx-csi-driver; then
+    echo "Installing AWS FSx CSI Driver..."
+    helm install aws-fsx-csi-driver aws-fsx-csi-driver/aws-fsx-csi-driver \
+      --namespace kube-system
+    
+    echo "Waiting for FSx CSI driver pods to be ready..."
+    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-fsx-csi-driver -n kube-system --timeout=90s
 
-  echo "Verifying FSx CSI driver installation..."
-  kubectl get pods -n kube-system | grep fsx
+    echo "Verifying FSx CSI driver installation..."
+    kubectl get pods -n kube-system | grep fsx
+  else
+    echo "AWS FSx CSI Driver already installed, skipping installation"
+  fi
   
-  sed -e "s|<subnet-id>|${SUBNET_ID}|g" \
-      -e "s|<sg-id>|${SG_ID}|g" \
-      ../test/vllm_tests/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
+  if ! kubectl get sc fsx-sc &>/dev/null; then
+    echo "Creating FSx storage class"
+    sed -e "s|<subnet-id>|${SUBNET_ID}|g" \
+        -e "s|<sg-id>|${SG_ID}|g" \
+        ../test/vllm_tests/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
+  else
+    echo "FSx storage class already exists, skipping creation"
+  fi
   
-  sed -e "s|<fs-id>|${FS_ID}|g" \
-      -e "s|<dns-name>|${DNS_NAME}|g" \
-      -e "s|<mount-name>|${MOUNT_NAME}|g" \
-      ../test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
+  if ! kubectl get pv fsx-lustre-pv &>/dev/null; then
+    echo "Creating FSx persistent volume"
+    sed -e "s|<fs-id>|${FS_ID}|g" \
+        -e "s|<dns-name>|${DNS_NAME}|g" \
+        -e "s|<mount-name>|${MOUNT_NAME}|g" \
+        ../test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
+  else
+    echo "FSx persistent volume already exists, skipping creation"
+  fi
   
-  kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml
+  if ! kubectl get pvc fsx-lustre-pvc &>/dev/null; then
+    echo "Creating FSx persistent volume claim"
+    kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml
+  else
+    echo "FSx persistent volume claim already exists, skipping creation"
+  fi
   
   echo "Verifying FSx Kubernetes resources..."
   kubectl get sc fsx-sc
