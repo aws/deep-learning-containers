@@ -5,7 +5,7 @@ framework: &FRAMEWORK vllm
 version: &VERSION "0.9.2"
 short_version: &SHORT_VERSION "0.9"
 arch_type: &ARCH_TYPE x86_64
-autopatch_build: "False"
+# autopatch_build: "False"
 
 repository_info:
   build_repository: &BUILD_REPOSITORY
