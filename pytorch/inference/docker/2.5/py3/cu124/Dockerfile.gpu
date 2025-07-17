@@ -321,8 +321,9 @@ RUN pip install --no-cache-dir \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \
