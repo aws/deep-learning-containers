@@ -13,19 +13,6 @@ function check_libnccl_net_so {
     fi
 }
 
-function install_nvjpeg_for_cuda_below_129 {
-    mkdir -p /tmp/nvjpeg
-    cd /tmp/nvjpeg
-    wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz
-    tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz
-    rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg*
-    rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h
-    cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/
-    cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/
-    rm -rf /tmp/nvjpeg
-}
-
-
 function install_efa {
     EFA_VERSION=$1
     OPEN_MPI_PATH="/opt/amazon/openmpi"
@@ -86,7 +73,6 @@ function install_efa {
     rm -rf /var/lib/apt/lists/*
     ldconfig
     check_libnccl_net_so
-    install_nvjpeg_for_cuda_below_129
 }
 
 # idiomatic parameter and option handling in sh
