@@ -85,8 +85,24 @@ function create_node_group() {
     else
       # find an AZ with private subnets
       SUBNET_IDS=$(aws eks describe-cluster --name ${1} --region ${AWS_REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
-      PREFERRED_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | tr '\t' '\n' | head -1)
-      echo "Using AZ: ${PREFERRED_AZ}"
+      
+      # Try to find a private subnet in AZ 'a' first, then 'b', then 'c'
+      PREFERRED_AZ=""
+      for AZ_SUFFIX in "a" "b" "c"; do
+        CANDIDATE_AZ="${AWS_REGION}${AZ_SUFFIX}"
+        SUBNET_IN_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query "Subnets[?MapPublicIpOnLaunch==\`false\` && AvailabilityZone==\`${CANDIDATE_AZ}\`].SubnetId" --output text)
+        
+        if [ -n "${SUBNET_IN_AZ}" ]; then
+          PREFERRED_AZ=${CANDIDATE_AZ}
+          echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
+          break
+        fi
+      done
+      
+      if [ -z "${PREFERRED_AZ}" ]; then
+        PREFERRED_AZ=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query 'Subnets[?MapPublicIpOnLaunch==`false`].AvailabilityZone' --output text | tr '\t' '\n' | head -1)
+        echo "No private subnet found in preferred AZs. Using: ${PREFERRED_AZ}"
+      fi
       
       # Create nodegroup with cluster name and preferred AZ
       CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -

@@ -6,6 +6,9 @@ metadata:
   region: ${AWS_REGION} 
   version: "${EKS_VERSION}" # Latest stable EKS version
 
+# Specify availability zones
+availabilityZones: ["${AWS_REGION}a", "${AWS_REGION}b", "${AWS_REGION}c"]
+
 # Enable CloudWatch logging
 cloudWatch:
   clusterLogging:
