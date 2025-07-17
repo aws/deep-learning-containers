@@ -44,7 +44,8 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
     try:
         # Get HF token
         response = get_secret_hf_token()
-        hf_token = response["HF_TOKEN"]
+        hf_token = response.get("HF_TOKEN")
+        print("HF_TOKEN", hf_token)
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
         account_id = get_account_id_from_image_uri(image_uri)
