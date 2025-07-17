@@ -285,7 +285,7 @@ function setup_alb_security_groups() {
     --query "cluster.resourcesVpcConfig.vpcId" --output text)
 
   ALB_SG_NAME="${CLUSTER_NAME}-alb-sg"
-  ALB_SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${ALB_SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
+  ALB_SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${ALB_SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
   
   if [ -z "${ALB_SG_EXISTS}" ] || [ "${ALB_SG_EXISTS}" = "None" ]; then
     echo "Creating new ALB security group: ${ALB_SG_NAME}"
@@ -334,7 +334,7 @@ function setup_fsx_storage() {
   VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
   SUBNET_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.subnetIds[0]" --output text)
   SG_NAME="${CLUSTER_NAME}-fsx-lustre-sg"
-  SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null)
+  SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
   
   if [ -z "${SG_EXISTS}" ] || [ "${SG_EXISTS}" = "None" ]; then
     echo "Creating new security group: ${SG_NAME}"
@@ -365,7 +365,7 @@ function setup_fsx_storage() {
   fi
   
   # Check if FSx filesystem already exists
-  FS_EXISTS=$(aws fsx describe-file-systems --region ${REGION} --query "FileSystems[?Tags[?Key=='Name' && Value=='${CLUSTER_NAME}-model-storage']].FileSystemId" --output text 2>/dev/null)
+  FS_EXISTS=$(aws fsx describe-file-systems --region ${REGION} --query "FileSystems[?Tags[?Key=='Name' && Value=='${CLUSTER_NAME}-model-storage']].FileSystemId" --output text 2>/dev/null || echo "")
   
   if [ -z "${FS_EXISTS}" ] || [ "${FS_EXISTS}" = "None" ]; then
     echo "Creating new FSx filesystem"
