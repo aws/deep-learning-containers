@@ -7,13 +7,14 @@
 # Invokes add_iam_identity.sh script to create RBAC rules for test IAM role. Add cluster manager IAM role
 # and test IAM role authentication to the cluster.
 # Invokes install_cluster_components.sh script to install cluster autoscalar and kubeflow components in the cluster.
+# For vLLM clusters, always runs setup to ensure required components are configured
 function create_cluster() {
 
   for CONTEXT in "${CONTEXTS[@]}"; do
     for CLUSTER in "${EKS_CLUSTERS[@]}"; do
       CLUSTER_NAME=${CLUSTER}-${CONTEXT}
 
-      if ! check_cluster_status $CLUSTER_NAME; then
+      if ! check_cluster_status $CLUSTER_NAME || [[ ${CLUSTER_NAME} == *"vllm"* ]]; then
         ./create_cluster.sh $CLUSTER_NAME $EKS_VERSION
         ./add_iam_identity.sh $CLUSTER_NAME
         ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
