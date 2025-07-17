@@ -52,27 +52,26 @@ function create_eks_cluster() {
   # Check if cluster already exists
   if eksctl get cluster --name ${1} --region ${3} &>/dev/null; then
     echo "Cluster ${1} already exists, skipping creation..."
-    return 0
-  fi
-  
-  if [[ ${1} == *"vllm"* ]]; then
-    echo "Creating cluster via vLLM path for cluster: ${1}"
-    CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
-    envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
-    echo "Verifying cluster creation..."
-    eksctl get cluster --region ${3}
   else
-    if [ "${3}" = "us-east-1" ]; then
-      ZONE_LIST=(a b d)
+    if [[ ${1} == *"vllm"* ]]; then
+      echo "Creating cluster via vLLM path for cluster: ${1}"
+      CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
+      envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
+      echo "Verifying cluster creation..."
+      eksctl get cluster --region ${3}
     else
-      ZONE_LIST=(a b c)
-    fi
+      if [ "${3}" = "us-east-1" ]; then
+        ZONE_LIST=(a b d)
+      else
+        ZONE_LIST=(a b c)
+      fi
 
-    eksctl create cluster \
-      --name ${1} \
-      --version ${2} \
-      --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
-      --without-nodegroup
+      eksctl create cluster \
+        --name ${1} \
+        --version ${2} \
+        --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
+        --without-nodegroup
+    fi
   fi
 }
 
@@ -441,8 +440,17 @@ EKS_VERSION=${2}
 # Check for EC2 keypair environment variable. If empty, create a new key pair.
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair
-  echo "No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
-  create_ec2_key_pair ${KEY_NAME}
+  echo "No EC2 key pair name configured. Using keypair name ${KEY_NAME}"
+  
+  # Check if key already exists
+  exist=$(aws ec2 describe-key-pairs --key-name ${KEY_NAME} --region ${AWS_REGION} 2>/dev/null | grep KeyName | wc -l)
+  if [ ${exist} -eq 0 ]; then
+    echo "Creating new keypair ${KEY_NAME}"
+    create_ec2_key_pair ${KEY_NAME}
+  else
+    echo "Key pair ${KEY_NAME} already exists, skipping creation"
+  fi
+  
   EC2_KEY_PAIR_NAME=${KEY_NAME}
 else
   exist=$(aws ec2 describe-key-pairs --key-name ${EC2_KEY_PAIR_NAME} --region ${AWS_REGION} | grep KeyName | wc -l)
