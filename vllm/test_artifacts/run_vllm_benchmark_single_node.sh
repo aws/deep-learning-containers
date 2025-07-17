@@ -9,6 +9,10 @@ cleanup() {
     docker rm vllm-server 2>/dev/null || true
 }
 
+CONTAINER_IMAGE=$1
+HF_TOKEN=$2
+MODEL_NAME=$3
+
 # Set up trap to ensure cleanup on exit
 trap cleanup EXIT
 

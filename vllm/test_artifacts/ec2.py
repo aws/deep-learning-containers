@@ -53,29 +53,26 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         print(f"Pulling image: {image_uri}")
         connection.run(f"docker pull {image_uri}", hide="out")
 
-        # Create environment variables for the script
-        env_vars = f"export HF_TOKEN={hf_token}\n"
-        env_vars += f"export CONTAINER_IMAGE={image_uri}\n"
-        env_vars += f"export MODEL_NAME={model_name}\n"
-
         # Copy script to instance
         connection.put(
             "vllm/test_artifacts/run_vllm_benchmark_single_node.sh",
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 
-        # Write script to instance
-        connection.run("chmod +x run_vllm_benchmark_single_node.sh")
+        # Make script executable and run it
+        commands = [
+            "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
+            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {model_name}",
+        ]
 
-        # Run the script with environment variables
-        print("Running VLLM benchmark script...")
-        ec2_res = connection.run(
-            f"{env_vars}\n./run_vllm_benchmark_single_node.sh",
+        # Execute commands synchronously
+        result = connection.run(
+            "; ".join(commands),
             hide=False,
             timeout=3600,
         )
 
-        return ec2_res
+        return result
 
     except Exception as e:
         print(f"Test execution failed: {str(e)}")
