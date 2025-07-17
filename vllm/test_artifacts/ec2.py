@@ -1,5 +1,5 @@
 from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
-import time, os
+import time, os, json
 from vllm.infra.utils.fsx_utils import FsxSetup
 from vllm.infra.ec2 import cleanup_resources
 
@@ -25,7 +25,7 @@ def get_secret_hf_token():
     except ClientError as e:
         raise e
 
-    response = get_secret_value_response["SecretString"]
+    response = json.loads(get_secret_value_response["SecretString"])
 
     return response
 
