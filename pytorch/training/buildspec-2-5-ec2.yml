@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.5.1
 short_version: &SHORT_VERSION "2.5"
 arch_type: x86
-autopatch_build: "True"
+# autopatch_build: "True"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -21,6 +21,9 @@ context:
     changehostname:
       source: docker/build_artifacts/changehostname.c
       target: changehostname.c
+    start_cuda_compat:
+      source: docker/build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
     start_with_right_hostname:
       source: docker/build_artifacts/start_with_right_hostname.sh
       target: start_with_right_hostname.sh
