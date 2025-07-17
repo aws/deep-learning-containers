@@ -107,16 +107,6 @@ function create_node_group() {
       # Create nodegroup with cluster name and preferred AZ
       CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
     fi
-
-    # sleep 5
-
-    # DESIRED_NODES=$(aws eks describe-nodegroup --cluster-name ${1} --nodegroup-name vllm-p4d-nodes-efa --query 'nodegroup.scalingConfig.desiredSize' --output text)
-    # if [ "$DESIRED_NODES" -gt 0 ]; then
-    #   echo "Waiting for nodes to be ready..."
-    #   kubectl wait --for=condition=ready node --all --timeout=300s
-    # else
-    #   echo "Skipping node readiness check as desired node count is 0"
-    # fi
     return
   fi
 
