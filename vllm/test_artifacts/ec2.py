@@ -7,7 +7,6 @@ from botocore.config import Config
 from fabric import Connection
 
 DEFAULT_REGION = "us-west-2"
-# HF_TOKEN = os.getenv("HF_TOKEN")
 
 import boto3
 from botocore.exceptions import ClientError
@@ -26,9 +25,9 @@ def get_secret_hf_token():
     except ClientError as e:
         raise e
 
-    HF_TOKEN = get_secret_value_response["SecretString"]
+    hf_token = get_secret_value_response["SecretString"]
 
-    return HF_TOKEN
+    return hf_token
 
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
@@ -62,7 +61,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         # Make script executable and run it
         commands = [
             "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
-            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {model_name}",
+            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token["HF_TOKEN"]} {model_name}",
         ]
 
         # Execute commands synchronously
