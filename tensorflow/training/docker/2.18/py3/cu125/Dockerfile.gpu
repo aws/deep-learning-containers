@@ -237,7 +237,8 @@ RUN ${PIP} install --no-cache-dir -U \
    opencv-python \
    werkzeug \
    urllib3 \
-   "protobuf>=3.20.3,<4"
+   click \
+   "protobuf>=4.25.8"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y \
@@ -381,8 +382,10 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
-    sagemaker-training \
-    "sagemaker-studio-analytics-extension<1" \
+    sagemaker-training 
+    
+RUN $PYTHON -m pip install --no-cache-dir -U \
+"sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
