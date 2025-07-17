@@ -237,8 +237,7 @@ RUN ${PIP} install --no-cache-dir -U \
    opencv-python \
    werkzeug \
    urllib3 \
-   click \
-   "protobuf>=4.25.8"
+   "protobuf==4.25.8"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y \
@@ -298,7 +297,9 @@ ARG TF_URL
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    "tensorflow-io==0.37.*" \
-   "tensorflow-datasets==4.9.7"
+   "tensorflow-datasets==4.9.7" \
+   "protobuf==4.25.8"
+
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -367,7 +368,9 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-   "tensorflow-datasets==4.9.7"
+   "tensorflow-datasets==4.9.7" \
+   "protobuf==4.25.8"
+
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
