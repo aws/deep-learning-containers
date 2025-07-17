@@ -18,6 +18,9 @@ repository_info:
 
 context:
   inference_context: &INFERENCE_CONTEXT
+    start_cuda_compat:
+      source: docker/build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
     torchserve-ec2-entrypoint:
       source: docker/build_artifacts/torchserve-ec2-entrypoint.py
       target: torchserve-ec2-entrypoint.py
