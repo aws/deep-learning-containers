@@ -19,7 +19,8 @@ function create_cluster() {
         ./add_iam_identity.sh $CLUSTER_NAME
         ./install_cluster_components.sh $CLUSTER_NAME $CLUSTER_AUTOSCALAR_IMAGE_VERSION
       else
-        echo "EKS Cluster :: ${CLUSTER_NAME} :: already exists. Skipping create operation."
+        echo "WARNING: EKS Cluster :: ${CLUSTER_NAME} :: already exists. Skipping create operation."
+        echo "If cluster is in bad state, please manually delete the cluster and re-run the script."
       fi
     done
   done
