@@ -23,7 +23,7 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.4.1",
+    "version_specifier": "==1.4.2",
      "skip": "True"
   },
   "accelerate": {
