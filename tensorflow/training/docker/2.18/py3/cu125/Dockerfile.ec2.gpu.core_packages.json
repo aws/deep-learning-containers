@@ -3,7 +3,7 @@
     "version_specifier": ">=1.33.13,<2"
   },
   "protobuf": {
-    "version_specifier": ">=3.20.3,<4"
+    "version_specifier": ">=6.31.1"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
