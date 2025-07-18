@@ -23,11 +23,11 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.4.0",
+    "version_specifier": "==1.4.1",
     "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.6.0",
+    "version_specifier": "==1.8.1",
     "skip": "True"
   },
   "flash-attn": {
