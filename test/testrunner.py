@@ -311,7 +311,7 @@ def main():
     if (
         build_context == "MAINLINE"
         and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
-        and test_type not in {"functionality_sanity", "security_sanity"}
+        and test_type not in {"functionality_sanity", "security_sanity", "eks", "ec2"}
     ):
         LOGGER.info(
             f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."

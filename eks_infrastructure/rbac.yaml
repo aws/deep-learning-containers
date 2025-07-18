@@ -182,3 +182,79 @@ roleRef:
   kind: ClusterRole
   name: eks-cluster-role
   apiGroup: rbac.authorization.k8s.io
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: vllm-role
+  namespace: vllm
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  - pods/log
+  - services
+  - secrets
+  - persistentvolumeclaims 
+  verbs:
+  - get
+  - list
+  - create
+  - delete
+- apiGroups:
+  - "leaderworkerset.x-k8s.io"
+  resources:
+  - leaderworkersets
+  verbs:
+  - get
+  - create
+  - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vllm-cluster-role
+rules:
+- apiGroups:
+  - "networking.k8s.io"
+  resources:
+  - ingresses
+  verbs:
+  - get
+  - create
+  - delete
+- apiGroups:
+  - "storage.k8s.io"
+  resources:
+  - persistentvolumes
+  verbs:
+  - get
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: vllm-role-binding
+  namespace: vllm
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: vllm-role
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: User
+  name: test-role
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vllm-cluster-role-binding
+subjects:
+- kind: User
+  name: test-role
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: vllm-cluster-role
+  apiGroup: rbac.authorization.k8s.io
