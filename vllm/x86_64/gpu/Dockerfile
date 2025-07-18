@@ -60,6 +60,6 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /tmp/nvjpeg \ 
       # remove cuobjdump and nvdisasm
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
-    rm -rf /usr/local/cuda/bin/nvdisasm*  
+    && rm -rf /usr/local/cuda/bin/nvdisasm*  
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
