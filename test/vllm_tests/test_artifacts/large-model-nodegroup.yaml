@@ -15,9 +15,8 @@ managedNodeGroups:
     volumeSize: 100
     privateNetworking: true
     amiFamily: AmazonLinux2023
-    userData: |
-      #!/bin/bash
-      dnf install -y lustre-client
+    preBootstrapCommands:
+      - dnf install lustre-client -y
     labels:
       role: large-model-worker
       nvidia.com/gpu: "true"
