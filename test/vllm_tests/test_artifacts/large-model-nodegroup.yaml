@@ -1,0 +1,38 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${CLUSTER_NAME}
+  region: ${AWS_REGION}
+
+managedNodeGroups:
+  - name: vllm-p4d-nodes-efa
+    instanceType: p4d.24xlarge
+    minSize: 0
+    maxSize: 2
+    desiredCapacity: 0
+    availabilityZones: ["${PREFERRED_AZ}"] # EFA-enabled nodegroups must have only one availability zone
+    volumeSize: 100
+    privateNetworking: true
+    amiFamily: AmazonLinux2023
+    preBootstrapCommands:
+      - dnf install lustre-client -y
+    labels:
+      role: large-model-worker
+      nvidia.com/gpu: "true"
+      k8s.amazonaws.com/accelerator: nvidia-gpu
+      aws.amazon.com/efa: "true"  # Add EFA label
+    tags:
+      nodegroup-role: large-model-worker
+      k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+        ebs: true
+        imageBuilder: true
+    # Enable EFA interfaces
+    efaEnabled: true
