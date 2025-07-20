@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir "transformers>=4.52.1" \
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "ninja<1.11.1.1"
 

@@ -27,9 +27,6 @@ ARG AUTOGLUON_VERSION=1.3.1
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
- && pip install --no-cache-dir "jupyter_core>=5.8.0" \
- && pip install --no-cache-dir "transformers>=4.51.0" \
- && pip install --no-cache-dir "urllib3>=2.5.0" \
  && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "pathos<0.3.3"
 
