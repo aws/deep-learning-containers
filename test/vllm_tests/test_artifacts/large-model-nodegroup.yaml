@@ -14,9 +14,10 @@ managedNodeGroups:
     availabilityZones: ["${PREFERRED_AZ}"] # EFA-enabled nodegroups must have only one availability zone
     volumeSize: 100
     privateNetworking: true
-    amiFamily: AmazonLinux2023
+    amiFamily: AmazonLinux2
     preBootstrapCommands:
-      - dnf install lustre-client -y
+      - amazon-linux-extras install -y lustre
+      - lfs --version
     labels:
       role: large-model-worker
       nvidia.com/gpu: "true"
