@@ -6,7 +6,7 @@ metadata:
     # Use AWS Load Balancer Controller with ALB
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip
-    alb.ingress.kubernetes.io/security-groups: sg-052c275f46636b3ff
+    alb.ingress.kubernetes.io/security-groups: <sg-id>
     alb.ingress.kubernetes.io/healthcheck-path: /health
     alb.ingress.kubernetes.io/healthcheck-port: '8000'
     alb.ingress.kubernetes.io/healthcheck-protocol: HTTP
