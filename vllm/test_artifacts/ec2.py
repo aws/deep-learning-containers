@@ -319,12 +319,9 @@ def test_vllm_on_ec2(resources, image_uri):
                 connection = Connection(
                     host=public_ip,
                     user="ec2-user",
-                    connect_kwargs={
-                        "key_filename": key_filename,
-                        "timeout": 30,
-                        "banner_timeout": 60,
-                    },
+                    connect_kwargs={"key_filename": key_filename},
                 )
+
                 # Test connection
                 connection.run('echo "Connection test"', hide=True)
                 ec2_connections[instance_id] = connection
