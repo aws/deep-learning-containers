@@ -236,6 +236,10 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     return result
 
 
+import time
+from botocore.exceptions import WaiterError
+
+
 def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None, fsx=None):
     """
     Cleanup all resources in reverse order of creation
@@ -246,27 +250,52 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
         try:
             instance_ids = [instance_id for instance_id, _ in instances_info]
 
+            # Terminate instances
             ec2_cli.terminate_instances(InstanceIds=instance_ids)
             print(f"Terminating EC2 instances: {instance_ids}")
 
+            # Wait for instances to terminate
             waiter = ec2_cli.get_waiter("instance_terminated")
-            waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 15, "MaxAttempts": 40})
+            try:
+                waiter.wait(
+                    InstanceIds=instance_ids,
+                    WaiterConfig={
+                        "Delay": 30,
+                        "MaxAttempts": 60,
+                    },  # Increased delay and max attempts
+                )
+            except WaiterError as e:
+                print(f"Warning: Instance termination waiter timed out. Error: {str(e)}")
 
-            time.sleep(120)
+            # Wait additional time for ENIs to detach
+            print("Waiting for ENIs to detach...")
+            time.sleep(120)  # Increased wait time
 
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
 
+    # Cleanup security group with retries
     if sg_fsx and fsx:
-        try:
-            fsx.delete_security_group(ec2_cli, sg_fsx)
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            try:
+                fsx.delete_security_group(ec2_cli, sg_fsx)
+                print(f"Deleted security group: {sg_fsx}")
+                break
+            except Exception as e:
+                if attempt == max_attempts - 1:
+                    cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+                else:
+                    print(
+                        f"Attempt {attempt + 1} to delete security group failed. Retrying in 30 seconds..."
+                    )
+                    time.sleep(30)
 
-    # Cleanup filesystem
+    # Cleanup FSx filesystem
     if fsx_config and fsx:
         try:
             fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+            print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
         except Exception as e:
             cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
