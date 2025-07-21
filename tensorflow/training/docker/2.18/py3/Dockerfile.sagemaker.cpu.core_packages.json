@@ -6,7 +6,7 @@
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": ">=6.31.1"
+    "version_specifier": ">=5.28.1"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -39,7 +39,7 @@
     "version_specifier": "==2.18.0"
   },
   "tensorflow-datasets": {
-    "version_specifier": ">=4.9.4"
+    "version_specifier": ">=4.9.9"
   },
   "tensorflow-hub": {
     "version_specifier": ">=0.13.0",
@@ -52,7 +52,7 @@
     "version_specifier": "==0.37.*"
   },
   "tensorflow-metadata": {
-    "version_specifier": ">=1.14.0"
+    "version_specifier": ">=1.17.2"
   },
   "tensorflow-model-optimization": {
     "version_specifier": ">=0.4.1"
@@ -62,7 +62,7 @@
     "skip": "True"
   },
   "tensorflow-text": {
-    "version_specifier": "==2.18.1",
+    "version_specifier": "==2.19.0",
     "skip": "True"
   },
   "tf-keras": {

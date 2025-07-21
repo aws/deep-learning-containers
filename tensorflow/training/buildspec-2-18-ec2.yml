@@ -5,7 +5,7 @@ framework: &FRAMEWORK tensorflow
 version: &VERSION 2.18.0
 short_version: &SHORT_VERSION "2.18"
 arch_type: x86
-autopatch_build: "True"
+# autopatch_build: "True"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -36,7 +36,7 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 4489
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py310
+    tag_python_version: &TAG_PYTHON_VERSION py311
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION,
@@ -53,7 +53,7 @@ images:
     image_size_baseline: &IMAGE_SIZE_BASELINE 9307
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
-    tag_python_version: &TAG_PYTHON_VERSION py310
+    tag_python_version: &TAG_PYTHON_VERSION py311
     cuda_version: &CUDA_VERSION cu125
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
