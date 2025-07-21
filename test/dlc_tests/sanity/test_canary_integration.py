@@ -37,7 +37,9 @@ def test_deep_canary_integration(image, region):
     else:
         image_account_id = get_account_id_from_image_uri(image)
         image_region = get_region_from_image_uri(image)
-        assert image_region == region, f"Problem: Test region {region} != canary region {image_region}"
+        assert (
+            image_region == region
+        ), f"Problem: Test region {region} != canary region {image_region}"
 
         try:
             login_to_ecr_registry(ctx, image_account_id, region)

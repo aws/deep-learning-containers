@@ -1391,11 +1391,13 @@ def get_deep_canary_images(
                 # For public registry, we use the public account ID
                 image_repository = image_uri.split("/")[-1].split(":")[0]
                 image_tag = image_uri.split(":")[-1]
-                regionalized_image_uri = f"{DLC_PUBLIC_REGISTRY_ALIAS}/{image_repository}:{image_tag}"
+                regionalized_image_uri = (
+                    f"{DLC_PUBLIC_REGISTRY_ALIAS}/{image_repository}:{image_tag}"
+                )
             else:
                 regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
-                image_account_id, canary_region_prod_account
-            )
+                    image_account_id, canary_region_prod_account
+                )
             matching_images.append(regionalized_image_uri)
     return matching_images
 
