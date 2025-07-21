@@ -82,6 +82,7 @@ RUN apt-get update \
     libpng-dev \
     libffi-dev \
     ffmpeg \
+    linux-libc-dev \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
