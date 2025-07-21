@@ -13,7 +13,7 @@ deep_canary_mode = false
 [build]
 build_frameworks = [ "huggingface_pytorch",]
 build_training = true
-build_inference = false
+build_inference = true
 do_build = true
 
 [notify]
@@ -67,7 +67,7 @@ dlc-pr-pytorch-neuron-inference = ""
 dlc-pr-tensorflow-1-neuron-inference = ""
 dlc-pr-tensorflow-2-neuron-inference = ""
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 dlc-pr-stabilityai-pytorch-inference = ""
 dlc-pr-pytorch-eia-inference = ""
