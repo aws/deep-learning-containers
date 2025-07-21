@@ -25,13 +25,23 @@ from test.test_utils import (
 @pytest.mark.integration("deep_canary")
 def test_deep_canary_integration(image, region):
     ctx = Context()
-    image_account_id = get_account_id_from_image_uri(image)
-    image_region = get_region_from_image_uri(image)
-    assert image_region == region, f"Problem: Test region {region} != canary region {image_region}"
+    if os.get("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
+        # If the image is a public registry canary, we don't need to login to ECR
+        LOGGER.info(f"Deep Canary pull test for public registry canary {image}")
+        try:
+            ctx.run(f"docker pull {image}", hide="out")
+            LOGGER.info(f"Deep Canary pull test succeeded for {image}")
+        finally:
+            ctx.run(f"docker rmi {image}", warn=True, hide="out")
+        return
+    else:
+        image_account_id = get_account_id_from_image_uri(image)
+        image_region = get_region_from_image_uri(image)
+        assert image_region == region, f"Problem: Test region {region} != canary region {image_region}"
 
-    try:
-        login_to_ecr_registry(ctx, image_account_id, region)
-        ctx.run(f"docker pull {image}", hide="out")
-        LOGGER.info(f"Deep Canary pull test succeeded for {image}")
-    finally:
-        ctx.run(f"docker rmi {image}", warn=True, hide="out")
+        try:
+            login_to_ecr_registry(ctx, image_account_id, region)
+            ctx.run(f"docker pull {image}", hide="out")
+            LOGGER.info(f"Deep Canary pull test succeeded for {image}")
+        finally:
+            ctx.run(f"docker rmi {image}", warn=True, hide="out")

@@ -239,6 +239,7 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+DLC_PUBLIC_REGISTRY_ALIAS = "public.ecr.aws/deep-learning-containers"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
@@ -1318,6 +1319,7 @@ def get_dlc_images():
             canary_arch_type=get_test_job_arch_type(),
             canary_region=os.getenv("AWS_REGION"),
             canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
+            is_public_registry=os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true",
         )
         return " ".join(deep_canary_images)
     elif is_pr_context() or is_empty_build_context():
@@ -1345,6 +1347,7 @@ def get_deep_canary_images(
     canary_arch_type,
     canary_region,
     canary_region_prod_account,
+    is_public_registry=False,
 ):
     """
     For an input combination of canary job specs, find a matching list of image uris to be tested
@@ -1361,13 +1364,15 @@ def get_deep_canary_images(
         and canary_arch_type
         and canary_region
         and canary_region_prod_account
+        and is_public_registry
     ), (
         "Incorrect spec for one or more of the following:\n"
         f"canary_framework = {canary_framework}\n"
         f"canary_image_type = {canary_image_type}\n"
         f"canary_arch_type = {canary_arch_type}\n"
         f"canary_region = {canary_region}\n"
-        f"canary_region_prod_account = {canary_region_prod_account}"
+        f"canary_region_prod_account = {canary_region_prod_account}\n"
+        f"is_public_registry = {is_public_registry}"
     )
     all_images = get_canary_image_uris_from_bucket()
     matching_images = []
@@ -1382,7 +1387,13 @@ def get_deep_canary_images(
             and canary_image_type == image_type
             and canary_arch_type == image_arch_type
         ):
-            regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
+            if is_public_registry:
+                # For public registry, we use the public account ID
+                image_repository = image_uri.split("/")[-1].split(":")[0]
+                image_tag = image_uri.split(":")[-1]
+                regionalized_image_uri = f"{DLC_PUBLIC_REGISTRY_ALIAS}/{image_repository}:{image_tag}"
+            else:
+                regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
                 image_account_id, canary_region_prod_account
             )
             matching_images.append(regionalized_image_uri)
