@@ -37,3 +37,5 @@ managedNodeGroups:
         imageBuilder: true
     # Enable EFA interfaces
     efaEnabled: true
+    capacityReservation:
+      capacityReservationPreference: "open"
