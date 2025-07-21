@@ -64,13 +64,15 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
-        # Copy cluster scripts to both nodes
+        head_ip = head_connection.run("cd /fsx/vllm")
+        worker_ip = worker_connection.run("cd /fsx/vllm")
+
         head_connection.put(
-            "fsx/vllm/vllm/examples/online_serving/run_cluster.sh",
+            "/vllm/examples/online_serving/run_cluster.sh",
             "/home/ec2-user/run_cluster.sh",
         )
         worker_connection.put(
-            "fsx/vllm/vllm/examples/online_serving/run_cluster.sh",
+            "/vllm/examples/online_serving/run_cluster.sh",
             "/home/ec2-user/run_cluster.sh",
         )
 
@@ -120,7 +122,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # Run benchmark
         benchmark_cmd = f"""
         conda activate vllm && \
-        python3 /fsx/vllm/vllm/benchmarks/benchmark_serving.py \
+        python3 /vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
         --model {model_name} \
         --endpoint /v1/completions \
