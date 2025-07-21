@@ -3,6 +3,11 @@
 # setup_fsx_vllm.sh
 # Script to mount FSx and setup VLLM environment
 
+
+# Get FSx DNS name from argument
+FSX_DNS_NAME=$1
+MOUNT_NAME=$2
+
 # Function to check if command was successful
 check_error() {
     if [ $? -ne 0 ]; then
@@ -10,10 +15,6 @@ check_error() {
         exit 1
     fi
 }
-
-# Get FSx DNS name from argument
-FSX_DNS_NAME=$1
-MOUNT_NAME=$2
 
 if [ -z "$FSX_DNS_NAME" ] || [ -z "$MOUNT_NAME" ]; then
     echo "Usage: $0 <FSX_DNS_NAME> <MOUNT_NAME>"
@@ -41,7 +42,7 @@ echo "FSx DNS: $FSX_DNS"
 echo "FSx Mount Name: $FSX_MOUNT"
 
 # Modify mount command to include verbose output
-sudo mount -t lustre ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
+sudo mount -t lustre -o relatime,flock ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
 
 # Create VLLM directory in FSx
 echo "Creating VLLM directory..."
