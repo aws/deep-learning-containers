@@ -1,0 +1,4861 @@
+[
+    {
+        "package": "nltk",
+        "scan_status": "FAILED",
+        "installed": "3.8.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "72089",
+                "advisory": "Affected versions of NLTK are vulnerable to Remote Code Execution if untrusted packages have pickled Python code, and the integrated data package download functionality is used. This affects, for example, averaged_perceptron_tagger and punkt.",
+                "spec": "<3.9",
+                "reason_to_ignore": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ray",
+        "scan_status": "IGNORED",
+        "installed": "2.44.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "65189",
+                "advisory": "Ray allows a remote attacker to execute arbitrary code via the job submission API. In the default configuration, Ray does not enforce authentication. As a result, attackers may freely submit jobs, delete existing jobs, retrieve sensitive information, and exploit the other vulnerabilities described in this advisory. While the Ray documentation included an optional mutual TLS authentication mode, Ray does not appear to support an authorization model. In other words, even if a Ray administrator explicitly enabled TLS authentication, they would be unable to grant users different permissions, such as read-only access to the Ray Dashboard.\r\nThe most direct method of exploitation discovered is to submit arbitrary operating system commands for execution via the job submission API using a raw HTTP request or the Ray Jobs Python SDK. These do not require authentication in the default configuration, and are accessible remotely to any system with access to the Ray Dashboard (TCP port 8265 by default).\r\nNOTE: The vendor's position is that this report is irrelevant because Ray, as stated in its documentation, is not intended for use outside of a strictly controlled network environment.\r\nNOTE2: This flaw has been under active exploitation in the wild and it was baptized 'ShadowRay'.",
+                "spec": ">=0",
+                "reason_to_ignore": "Ray - autogluon uses ray >=2.10,< 2.45",
+                "ignored": true
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torch",
+        "scan_status": "IGNORED",
+        "installed": "2.5.1+cpu",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "76769",
+                "advisory": "*Disputed* A vulnerability, which was classified as problematic, was found in PyTorch 2.6.0. Affected is the function torch.nn.functional.ctc_loss of the file aten/src/ATen/native/LossCTC.cpp. The manipulation leads to denial of service. An attack has to be approached locally. The exploit has been disclosed to the public and may be used. The name of the patch is 46fc5d8e360127361211cb237d5f9eef0223e567. It is recommended to apply a patch to fix this issue.",
+                "spec": "<=2.6.0",
+                "reason_to_ignore": "A vulnerability, which was classified as problematic, was found in PyTorch 2.6.0. Which was built with container and cannot be patched.",
+                "ignored": true
+            },
+            {
+                "vulnerability_id": "76771",
+                "advisory": "PyTorch is a Python package that provides tensor computation with strong GPU acceleration and deep neural networks built on a tape-based autograd system. In version 2.5.1 and prior, a Remote Command Execution (RCE) vulnerability exists in PyTorch when loading a model using torch.load with weights_only=True. This issue has been patched in version 2.6.0.",
+                "spec": "<2.6.0",
+                "reason_to_ignore": "A vulnerability, which was classified as problematic, was found in Pytorch version 2.5.1 and prior. Which was built with container and cannot be patched.",
+                "ignored": true
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "transformers",
+        "scan_status": "FAILED",
+        "installed": "4.49.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "77714",
+                "advisory": "A vulnerability in the `preprocess_string()` function of the `transformers.testing_utils` module in huggingface/transformers version v4.48.3 allows for a Regular Expression Denial of Service (ReDoS) attack. The regular expression used to process code blocks in docstrings contains nested quantifiers, leading to exponential backtracking when processing input with a large number of newline characters. An attacker can exploit this by providing a specially crafted payload, causing high CPU usage and potential application downtime, effectively resulting in a Denial of Service (DoS) scenario.",
+                "spec": "<4.50.0",
+                "reason_to_ignore": "N/A",
+                "ignored": false
+            },
+            {
+                "vulnerability_id": "77149",
+                "advisory": "A Regular Expression Denial of Service (ReDoS) vulnerability was identified in the huggingface/transformers library, specifically in the file tokenization_gpt_neox_japanese.py of the GPT-NeoX-Japanese model. The vulnerability occurs in the SubWordJapaneseTokenizer class, where regular expressions process specially crafted inputs. The issue stems from a regex exhibiting exponential complexity under certain conditions, leading to excessive backtracking. This can result in high CPU usage and potential application downtime, effectively creating a Denial of Service (DoS) scenario. The affected version is v4.48.1 (latest).",
+                "spec": "<4.50.0",
+                "reason_to_ignore": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use",
+                "ignored": true
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "brotli",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cython",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.12",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "markdown",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "markupsafe",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pynacl",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pysocks",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.7.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyyaml",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.0.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "absl-py",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "accelerate",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "adagio",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "aiohappyeyeballs",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.6.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "aiohttp",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.12.14",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "aiohttp-cors",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.8.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "aiosignal",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "alembic",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.16.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "annotated-types",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "antlr4-python3-runtime",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.9.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "anyio",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.8.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "appdirs",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.4.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "archspec",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "asttokens",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "attrs",
+        "scan_status": "SUCCEEDED",
+        "installed": "23.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.common",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.core",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.features",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.multimodal",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.tabular",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autogluon.timeseries",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "awscli",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.38.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "bcrypt",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "beautifulsoup4",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.13.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "blis",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "bokeh",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.7.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "boltons",
+        "scan_status": "SUCCEEDED",
+        "installed": "24.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "boto3",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.37.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "botocore",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.37.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cached-property",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cachetools",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.5.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "catalogue",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.0.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "catboost",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "certifi",
+        "scan_status": "SUCCEEDED",
+        "installed": "2025.1.31",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cffi",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.17.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "charset-normalizer",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "click",
+        "scan_status": "SUCCEEDED",
+        "installed": "8.1.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cloudpathlib",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.21.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cloudpickle",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.2.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "colorama",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "colorful",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.5.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "colorlog",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "comm",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "conda",
+        "scan_status": "SUCCEEDED",
+        "installed": "24.9.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "conda-libmamba-solver",
+        "scan_status": "SUCCEEDED",
+        "installed": "24.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "conda-package-handling",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "conda-package-streaming",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.11.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "confection",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "contourpy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "coreforecast",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.15",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cryptography",
+        "scan_status": "SUCCEEDED",
+        "installed": "44.0.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cycler",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.12.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "cymem",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.0.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "datasets",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "debugpy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.8.13",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "decorator",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.2.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "defusedxml",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "dill",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "distlib",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "distro",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "docker",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "docutils",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.16",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "dparse",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.6.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "einops",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.8.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "evaluate",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "exceptiongroup",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "executing",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fastai",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.7.19",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fastapi",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.115.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fastcore",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.7.29",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fastdownload",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fastprogress",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "filelock",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.17.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fonttools",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.56.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "frozendict",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.4.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "frozenlist",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.7.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fs",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.4.16",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fsspec",
+        "scan_status": "SUCCEEDED",
+        "installed": "2025.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "fugue",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.9.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "future",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "gdown",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "gevent",
+        "scan_status": "SUCCEEDED",
+        "installed": "25.5.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "gluonts",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.16.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "google-api-core",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.25.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "google-auth",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.40.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "google-pasta",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "googleapis-common-protos",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.70.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "graphviz",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.21",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "greenlet",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.2.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "grpcio",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.71.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "h11",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.16.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "h2",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "h5py",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.13.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "hpack",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "huggingface-hub",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.29.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "hyperframe",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "hyperopt",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "idna",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "imageio",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.37.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "importlib-metadata",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.11.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "inotify-simple",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ipykernel",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.29.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ipython",
+        "scan_status": "SUCCEEDED",
+        "installed": "9.0.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ipython-pygments-lexers",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jedi",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.19.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jinja2",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.1.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jmespath",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "joblib",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.4.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jsonpatch",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.33",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jsonpointer",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jsonschema",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.23.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jsonschema-specifications",
+        "scan_status": "SUCCEEDED",
+        "installed": "2024.10.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jupyter-client",
+        "scan_status": "SUCCEEDED",
+        "installed": "8.6.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jupyter-core",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.7.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "kiwisolver",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.4.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "langcodes",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "language-data",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "lazy-loader",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "libmambapy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "lightgbm",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.6.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "lightning",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.5.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "lightning-utilities",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.14.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "llvmlite",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.44.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mako",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mamba",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "marisa-trie",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "markdown-it-py",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "matplotlib",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.10.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "matplotlib-inline",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mdurl",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "menuinst",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mlforecast",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.13.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mock",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.0.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "model-index",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mpi4py",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.0.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mpmath",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "msgpack",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "multidict",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.6.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "multiprocess",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.70.16",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "munkres",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "murmurhash",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.12",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "mypy-extensions",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "narwhals",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.30.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "nest-asyncio",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.6.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "networkx",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.4.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "nlpaug",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "numba",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.61.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "numpy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.26.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "nvidia-ml-py3",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.352.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "nvidia-nccl-cu12",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.27.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "omegaconf",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "opencensus",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.11.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "opencensus-context",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "opencv-python",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.11.0.86",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "opendatalab",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "openmim",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "openxlab",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "optuna",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ordered-set",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "orjson",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.11.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "packaging",
+        "scan_status": "SUCCEEDED",
+        "installed": "21.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pandas",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.2.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "paramiko",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.5.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "parso",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.8.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pathos",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "patsy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pdf2image",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.17.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pexpect",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pickleshare",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pillow",
+        "scan_status": "SUCCEEDED",
+        "installed": "11.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pip",
+        "scan_status": "SUCCEEDED",
+        "installed": "25.1.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "platformdirs",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.3.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "plotly",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pluggy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pox",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ppft",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.7.6.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "preshed",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "prometheus-client",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.22.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "prompt-toolkit",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.50",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "propcache",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "proto-plus",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.26.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "protobuf",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.29.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "psutil",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ptyprocess",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pure-eval",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "py4j",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.10.9.9",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyopenssl",
+        "scan_status": "SUCCEEDED",
+        "installed": "25.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "py-spy",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyarrow",
+        "scan_status": "SUCCEEDED",
+        "installed": "19.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyasn1",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.6.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyasn1-modules",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pybind11",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.13.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pybind11-global",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.13.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pycosat",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.6.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pycparser",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.22",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pycryptodome",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.23.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pydantic",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.10.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pydantic-core",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.27.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyfunctional",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pygments",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.19.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyparsing",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.2.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyre-extensions",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.32",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pytesseract",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.3.13",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "python-dateutil",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.9.0.post0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pytorch-lightning",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.5.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pytorch-metric-learning",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.8.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pytz",
+        "scan_status": "SUCCEEDED",
+        "installed": "2024.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "pyzmq",
+        "scan_status": "SUCCEEDED",
+        "installed": "26.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "referencing",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.36.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "regex",
+        "scan_status": "SUCCEEDED",
+        "installed": "2024.11.6",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "requests",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.32.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "retrying",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "rich",
+        "scan_status": "SUCCEEDED",
+        "installed": "13.9.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "rpds-py",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.23.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "rsa",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.7.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ruamel.yaml",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.18.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "ruamel.yaml.clib",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "s3fs",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "s3torchconnector",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "s3torchconnectorclient",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "s3transfer",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.11.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "safetensors",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.5.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "safety",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.3.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sagemaker",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.241.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sagemaker-core",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.25",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sagemaker-experiments",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.1.45",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sagemaker-pytorch-training",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.8.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sagemaker-training",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "schema",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "scikit-image",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.25.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "scikit-learn",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.6.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "scipy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.15.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "seaborn",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.13.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sentencepiece",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "seqeval",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "setuptools",
+        "scan_status": "SUCCEEDED",
+        "installed": "80.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "shap",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.46.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "shellingham",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.5.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "six",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.17.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "slicer",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "smart-open",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "smclarify",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "smdebug-rulesconfig",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sniffio",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "soupsieve",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.7",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "spacy",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.8.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "spacy-legacy",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.12",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "spacy-loggers",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sqlalchemy",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.0.41",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "srsly",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.5.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "stack-data",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.6.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "starlette",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.46.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "statsforecast",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "statsmodels",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.14.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "sympy",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.13.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tabulate",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tblib",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tensorboard",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.19.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tensorboard-data-server",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.7.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tensorboardx",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.6.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "text-unidecode",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "thinc",
+        "scan_status": "SUCCEEDED",
+        "installed": "8.3.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "threadpoolctl",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.6.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tifffile",
+        "scan_status": "SUCCEEDED",
+        "installed": "2025.6.11",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "timm",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.0.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tokenizers",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.21.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "toolz",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.12.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torchaudio",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.5.1+cpu",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torchmetrics",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.7.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torchtext",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.18.0+cpu",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torchtnt",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.4",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "torchvision",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.20.1+cpu",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tornado",
+        "scan_status": "SUCCEEDED",
+        "installed": "6.5.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tqdm",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.66.5",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "traitlets",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.14.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "triad",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.9.8",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "truststore",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.9.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "typer",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.15.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "typing-extensions",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.12.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "typing-inspect",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.9.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tzdata",
+        "scan_status": "SUCCEEDED",
+        "installed": "2025.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "unicodedata2",
+        "scan_status": "SUCCEEDED",
+        "installed": "16.0.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "urllib3",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.26.19",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "utilsforecast",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.10",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "uvicorn",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.34.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "virtualenv",
+        "scan_status": "SUCCEEDED",
+        "installed": "20.31.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "wasabi",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.1.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "wcwidth",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.2.13",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "weasel",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.4.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "werkzeug",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.1.3",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "wheel",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.45.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "window-ops",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.0.15",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "wrapt",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.17.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "xgboost",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.0.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "xxhash",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "xyzservices",
+        "scan_status": "SUCCEEDED",
+        "installed": "2025.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "yarl",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.20.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "zipp",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.21.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "zope.event",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "zope.interface",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "zstandard",
+        "scan_status": "SUCCEEDED",
+        "installed": "0.23.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "autocommand",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.2.2",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "backports.tarfile",
+        "scan_status": "SUCCEEDED",
+        "installed": "1.2.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "inflect",
+        "scan_status": "SUCCEEDED",
+        "installed": "7.3.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jaraco.collections",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.1.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jaraco.context",
+        "scan_status": "SUCCEEDED",
+        "installed": "5.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jaraco.functools",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "jaraco.text",
+        "scan_status": "SUCCEEDED",
+        "installed": "3.12.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "more-itertools",
+        "scan_status": "SUCCEEDED",
+        "installed": "10.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "tomli",
+        "scan_status": "SUCCEEDED",
+        "installed": "2.0.1",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    },
+    {
+        "package": "typeguard",
+        "scan_status": "SUCCEEDED",
+        "installed": "4.3.0",
+        "vulnerabilities": [
+            {
+                "vulnerability_id": "N/A",
+                "advisory": "N/A",
+                "reason_to_ignore": "N/A",
+                "spec": "N/A",
+                "ignored": false
+            }
+        ],
+        "date": "21-07-2025"
+    }
+]
