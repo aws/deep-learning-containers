@@ -3,7 +3,7 @@
     "version_specifier": ">=1.33.13,<2"
   },
   "protobuf": {
-    "version_specifier": ">=5.28.1"
+    "version_specifier": ">=3.20.3,<4"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -18,7 +18,7 @@
     "version_specifier": "==2.18.0"
   },
   "tensorflow-datasets": {
-    "version_specifier": ">=4.9.9"
+    "version_specifier": ">=4.9.4"
   },
   "tensorflow-io": {
     "version_specifier": "==0.37.*"
@@ -27,7 +27,7 @@
     "version_specifier": "==0.37.*"
   },
   "tensorflow-metadata": {
-    "version_specifier": ">=1.17.2"
+    "version_specifier": ">=1.14.0"
   },
   "urllib3": {
     "version_specifier": ">=2.2.2"
