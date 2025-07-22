@@ -128,7 +128,7 @@ dlc-pr-pytorch-arm64-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
-dlc-pr-huggingface-pytorch-training = ""
+dlc-pr-huggingface-pytorch-training = "huggingface/pytorch/training/buildspec-2-5-0.yml"
 
 # Training Compiler
 dlc-pr-huggingface-pytorch-trcomp-training = ""
