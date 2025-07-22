@@ -150,7 +150,7 @@ RUN mkdir -p /tmp/nvjpeg \
 #  -l, --skip-limit-conf Skip EFA limit configuration
 #  -k, --skip-kmod       Skip EFA kmod installation
 # start from 0.38.0 EFA now bundles the AWS OFI NCCL plugin, 
-# which can now be found in /opt/amazon/ofi-nccl rather than the original /opt/aws-ofi-nccl/.
+# which can now be found in /opt/amazon/ofi-nccl/lib/x86_64-linux-gnu rather than the original /opt/aws-ofi-nccl/.
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
