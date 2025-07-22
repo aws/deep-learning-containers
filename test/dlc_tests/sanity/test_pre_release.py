@@ -1078,6 +1078,7 @@ def test_license_file(image):
         pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
 
     framework, version = get_framework_and_version_from_tag(image)
+
     if framework == "autogluon":
         short_version = get_pytorch_version_from_autogluon_image(image)
         # Default to pytorch framework for autogluon since autogluon is built on top of pytorch
@@ -1085,6 +1086,16 @@ def test_license_file(image):
         framework = "pytorch"
     else:
         short_version = re.search(r"(\d+\.\d+)", version).group(0)
+
+    # Huggingface is built on top of DLCs, pointing framework license path to DLC license path
+    if "huggingface" in framework:
+        if "pytorch" in framework:
+            framework = "pytorch"
+        elif "tensorflow" in framework:
+            framework = "tensorflow"
+        else:
+            raise Exception(f"Invalid huggingface framework detected: {framework}")
+
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
     local_repo_path = get_repository_local_path()
     container_filename = "CONTAINER_LICENSE_FILE"
