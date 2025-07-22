@@ -9,12 +9,12 @@ docker-compose
 flake8==3.7.7
 Flask==1.1.1
 mock
-pytest
+pytest==8.4.1
 pytest-cov
 pytest-rerunfailures
 pytest-xdist
 requests==2.31.0
-pluggy<1,>=0.3.0
+pluggy<2,>=0.3.0
 requests_mock
 fabric
 invoke
