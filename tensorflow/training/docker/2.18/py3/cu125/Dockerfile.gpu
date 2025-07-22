@@ -380,9 +380,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
-    sagemaker-training 
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-training \
     "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
