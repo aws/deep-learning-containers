@@ -86,7 +86,7 @@
       "status": "ACTIVE",
       "title": "CVE-2024-48063 - torch",
       "reason_to_ignore": "this container is specifically pytorch 2.4.x so we cant upgrade to later minor versions"
-    },
+    }
   ],
   "libxml2": [
     {
