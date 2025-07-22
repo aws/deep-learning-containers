@@ -148,7 +148,7 @@ RUN mkdir -p /tmp/nvjpeg \
 && rm -rf /tmp/nvjpeg \
 # patch cuobjdump and nvdisasm
 && rm -rf /usr/local/cuda/bin/cuobjdump* \
-&& rm -rf /usr/local/cuda/bin/nvdisasm* \
+&& rm -rf /usr/local/cuda/bin/nvdisasm* 
 
 # Install OpenMPI
 RUN wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OPEN_MPI_VERSION}.tar.gz \
@@ -321,8 +321,9 @@ RUN pip install --no-cache-dir \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 
 RUN HOME_DIR=/root \

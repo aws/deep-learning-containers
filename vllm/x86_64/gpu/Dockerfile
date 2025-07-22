@@ -42,14 +42,24 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
     # create symlink for python
     ln -s /usr/bin/python3 /usr/bin/python && \
-    # remove cuobjdump and nvdisasm
-    rm -rf /usr/local/cuda/bin/cuobjdump* && \
-    rm -rf /usr/local/cuda/bin/nvdisasm* && \
     # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
     rm -rf /tmp/uv* && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
+
+RUN mkdir -p /tmp/nvjpeg \
+    && cd /tmp/nvjpeg \
+    && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+    && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+    && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+    && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+    && rm -rf /tmp/nvjpeg \ 
+      # remove cuobjdump and nvdisasm
+    && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
+    && rm -rf /usr/local/cuda/bin/nvdisasm*  
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
