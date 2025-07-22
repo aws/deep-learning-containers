@@ -50,6 +50,7 @@ class TestReportGenerator:
 
     ALLOWED_SINGLE_GPU_TESTS = (
         "telemetry",
+        "test_nvjpeg_gpu",
         "test_framework_and_cuda_version_gpu",
         "test_framework_and_cuda_version_graviton_gpu",
         "test_framework_and_cuda_version_arm64_gpu",

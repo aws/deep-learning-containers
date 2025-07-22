@@ -45,7 +45,7 @@ images:
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: ec2
-    # build_tag_override: "beta:2.14.1-cpu-py310-ubuntu20.04-ec2"
+    # skip_build: "False"
     context:
       <<: *INFERENCE_CONTEXT
   BuildSageMakerTensorflowCPUInferencePy3DockerImage:
@@ -60,6 +60,6 @@ images:
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.graviton., *DEVICE_TYPE ]
     target: sagemaker
-    # build_tag_override: "beta:2.14.1-cpu-py310-ubuntu20.04-sagemaker"
+    # skip_build: "False"
     context:
       <<: *INFERENCE_CONTEXT

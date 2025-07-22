@@ -19,11 +19,11 @@
     "skip": "True"
   },
     "s3torchconnector": {
-    "version_specifier": "==1.4.1",
+    "version_specifier": "==1.4.2",
      "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.7.0",
+    "version_specifier": "==1.9.0",
      "skip": "True"
   },
   "thinc": {
@@ -57,7 +57,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5.0"
   },
    "awscli": {
     "version_specifier": "<2"

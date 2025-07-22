@@ -18,18 +18,6 @@
     "version_specifier": "==0.11.0+cu128",
     "skip": "True"
   },
-  "torchtnt": {
-    "version_specifier": "==0.2.4",
-    "skip": "True"
-  },
-  "s3torchconnector": {
-    "version_specifier": "==1.4.0",
-    "skip": "True"
-  },
-  "accelerate": {
-    "version_specifier": "==1.6.0",
-    "skip": "True"
-  },
   "flash-attn": {
     "version_specifier": "==2.7.3",
     "skip": "True"
