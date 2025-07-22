@@ -14,7 +14,7 @@ pytest-cov
 pytest-rerunfailures
 pytest-xdist
 requests==2.31.0
-pluggy<1,>=0.3.0
+pluggy<2,>=0.3.0
 requests_mock
 fabric
 invoke
