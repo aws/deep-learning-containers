@@ -210,6 +210,7 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
+   click \
    cmake \
    scipy \
    Pillow \
