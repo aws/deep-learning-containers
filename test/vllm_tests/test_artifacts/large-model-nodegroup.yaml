@@ -6,12 +6,12 @@ metadata:
   region: ${AWS_REGION}
 
 managedNodeGroups:
-  - name: vllm-p4d-nodes-efa
+  - name: vllm-p4d-nodes-efa-2a
     instanceType: p4d.24xlarge
     minSize: 0
     maxSize: 2
     desiredCapacity: 0
-    availabilityZones: ["${PREFERRED_AZ}"] # EFA-enabled nodegroups must have only one availability zone
+    availabilityZones: ["us-west-2a"]
     volumeSize: 100
     privateNetworking: true
     amiFamily: AmazonLinux2
@@ -22,7 +22,7 @@ managedNodeGroups:
       role: large-model-worker
       nvidia.com/gpu: "true"
       k8s.amazonaws.com/accelerator: nvidia-gpu
-      aws.amazon.com/efa: "true"  # Add EFA label
+      aws.amazon.com/efa: "true"
     tags:
       nodegroup-role: large-model-worker
       k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
@@ -35,7 +35,75 @@ managedNodeGroups:
         cloudWatch: true
         ebs: true
         imageBuilder: true
-    # Enable EFA interfaces
     efaEnabled: true
     capacityReservation:
-      capacityReservationPreference: "open"
+      capacityReservationTarget:
+        capacityReservationID: "cr-08e4079a2d40aee96"
+
+  - name: vllm-p4d-nodes-efa-2b
+    instanceType: p4d.24xlarge
+    minSize: 0
+    maxSize: 2
+    desiredCapacity: 0
+    availabilityZones: ["us-west-2b"]
+    volumeSize: 100
+    privateNetworking: true
+    amiFamily: AmazonLinux2
+    preBootstrapCommands:
+      - amazon-linux-extras install -y lustre
+      - lfs --version
+    labels:
+      role: large-model-worker
+      nvidia.com/gpu: "true"
+      k8s.amazonaws.com/accelerator: nvidia-gpu
+      aws.amazon.com/efa: "true"
+    tags:
+      nodegroup-role: large-model-worker
+      k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+        ebs: true
+        imageBuilder: true
+    efaEnabled: true
+    capacityReservation:
+      capacityReservationTarget:
+        capacityReservationID: "cr-067ba7ecc6122cd94"
+
+  - name: vllm-p4d-nodes-efa-2c
+    instanceType: p4d.24xlarge
+    minSize: 0
+    maxSize: 2
+    desiredCapacity: 0
+    availabilityZones: ["us-west-2c"]
+    volumeSize: 100
+    privateNetworking: true
+    amiFamily: AmazonLinux2
+    preBootstrapCommands:
+      - amazon-linux-extras install -y lustre
+      - lfs --version
+    labels:
+      role: large-model-worker
+      nvidia.com/gpu: "true"
+      k8s.amazonaws.com/accelerator: nvidia-gpu
+      aws.amazon.com/efa: "true"
+    tags:
+      nodegroup-role: large-model-worker
+      k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
+      k8s.io/cluster-autoscaler/enabled: "true"
+      k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
+    iam:
+      withAddonPolicies:
+        autoScaler: true
+        albIngress: true
+        cloudWatch: true
+        ebs: true
+        imageBuilder: true
+    efaEnabled: true
+    capacityReservation:
+      capacityReservationTarget:
+        capacityReservationID: "cr-03a315bf1b9327cf3"
