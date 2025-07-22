@@ -63,6 +63,7 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
+ && apt-get install -y --no-install-recommends linux-libc-dev \
  && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
  && apt-get install -y git git-lfs wget tar \
  && wget https://go.dev/dl/go1.24.2.linux-amd64.tar.gz \
