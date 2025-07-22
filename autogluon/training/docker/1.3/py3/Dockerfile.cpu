@@ -29,7 +29,6 @@ RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.p
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
  && pip install --no-cache-dir "jupyter_core>=5.8.0" \
  && pip install --no-cache-dir "urllib3>=2.5.0" \
- && pip install --no-cache-dir "fastai>=2.8.0,<2.9.0" \
  && pip install --no-cache-dir "pathos<0.3.3"
 
 
