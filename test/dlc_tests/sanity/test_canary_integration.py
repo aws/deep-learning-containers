@@ -25,7 +25,7 @@ from test.test_utils import (
 @pytest.mark.integration("deep_canary")
 def test_deep_canary_integration(image, region):
     ctx = Context()
-    if os.get("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
+    if os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
         # If the image is a public registry canary, we don't need to login to ECR
         LOGGER.info(f"Deep Canary pull test for public registry canary {image}")
         try:
