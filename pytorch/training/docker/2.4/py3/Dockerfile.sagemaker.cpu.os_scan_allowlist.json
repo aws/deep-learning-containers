@@ -64,10 +64,10 @@
       "name": "CVE-2024-48063",
       "package_name": "torch",
       "package_details": {
-        "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.4.0+cu124.dist-info/METADATA",
+        "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.4.0+cpu.dist-info/METADATA",
         "name": "torch",
         "package_manager": "PYTHON",
-        "version": "2.4.0+cu124",
+        "version": "2.4.0+cpu",
         "release": null
       },
       "remediation": {
