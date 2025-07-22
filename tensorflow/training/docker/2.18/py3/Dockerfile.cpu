@@ -160,8 +160,7 @@ RUN ${PIP} install --no-cache-dir -U \
     opencv-python \
     werkzeug \
     psutil \
-    click \
-    "protobuf<4"
+    click 
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
@@ -277,7 +276,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
-    sagemaker-training \
+    sagemaker-training 
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
