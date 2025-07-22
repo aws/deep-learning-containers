@@ -38,8 +38,6 @@ echo "Creating FSx mount directory..."
 sudo mkdir -p /fsx
 check_error "Failed to create /fsx directory"
 
-echo "FSx DNS: $FSX_DNS"
-echo "FSx Mount Name: $FSX_MOUNT"
 
 # Modify mount command to include verbose output
 sudo mount -t lustre -o relatime,flock ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
