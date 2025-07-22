@@ -279,10 +279,24 @@ function setup_alb_security_groups() {
     ALB_SG=${ALB_SG_EXISTS}
   fi
     
-  NODE_INSTANCE_ID=$(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-Node" \
-    "Name=instance-state-name,Values=running" \
-    --query "Reservations[0].Instances[0].InstanceId" --output text)
+  # Try to find a running node from any of the AZ-specific nodegroups
+  for AZ_SUFFIX in "2a" "2b" "2c"; do
+    NODE_INSTANCE_ID=$(aws ec2 describe-instances \
+      --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-${AZ_SUFFIX}-Node" \
+      "Name=instance-state-name,Values=running" \
+      --query "Reservations[0].Instances[0].InstanceId" --output text)
+      
+    echo "Checking for running node in AZ ${AZ_SUFFIX}: ${NODE_INSTANCE_ID}"
+    if [ -n "${NODE_INSTANCE_ID}" ] && [ "${NODE_INSTANCE_ID}" != "None" ]; then
+      echo "Found running node in AZ ${AZ_SUFFIX}: ${NODE_INSTANCE_ID}"
+      break
+    fi
+  done
+
+  if [ -z "${NODE_INSTANCE_ID}" ] || [ "${NODE_INSTANCE_ID}" = "None" ]; then
+    echo "No running nodes found in any AZ"
+    return 1
+  fi
     
   NODE_SG=$(aws ec2 describe-instances \
     --instance-ids ${NODE_INSTANCE_ID} \
