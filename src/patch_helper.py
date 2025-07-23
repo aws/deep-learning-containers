@@ -40,16 +40,17 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
     import time
+
     start_time = time.time()
     FORMATTER.print(f"[DEBUG] ENTERING trigger_language_patching for {image_uri}")
-    
+
     patch_dlc_folder_mount = os.path.join(os.sep, s3_downloaded_path)
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
-    
+
     FORMATTER.print(f"[DEBUG] Creating docker container for {image_uri}")
     docker_run_cmd = f"docker run -v {patch_dlc_folder_mount}:/patch-dlc -v {dlc_repo_folder_mount}:/deep-learning-containers -id --entrypoint='/bin/bash' {image_uri} "
     FORMATTER.print(f"[trigger_language] docker_run_cmd : {docker_run_cmd}")
-    
+
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     FORMATTER.print(f"[DEBUG] Container created with ID: {container_id}")
     docker_exec_cmd = f"docker exec -i {container_id}"
@@ -58,7 +59,7 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
         FORMATTER.print(f"[DEBUG] Getting core package path for {image_uri}")
         absolute_core_package_path = get_core_packages_path(image_uri, python_version)
         FORMATTER.print(f"[DEBUG] Core package path: {absolute_core_package_path}")
-        
+
         core_package_path_within_dlc_repo = ""
         if os.path.exists(absolute_core_package_path):
             FORMATTER.print(f"[DEBUG] Core package path exists, creating relative path")
@@ -66,17 +67,17 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
                 dlc_repo_folder_mount, os.path.join(os.sep, "deep-learning-containers")
             )
             FORMATTER.print(f"[DEBUG] Relative path: {core_package_path_within_dlc_repo}")
-        
+
         FORMATTER.print(f"[DEBUG] Building script command for {image_uri}")
         script_run_cmd = f"bash /patch-dlc/script.sh {image_uri}"
         if core_package_path_within_dlc_repo:
             script_run_cmd = f"{script_run_cmd} {core_package_path_within_dlc_repo}"
         FORMATTER.print(f"[trigger_language] script_run_cmd : {script_run_cmd}")
-        
+
         FORMATTER.print(f"[DEBUG] Running script in container for {image_uri}")
         result = run(f"{docker_exec_cmd} {script_run_cmd}", hide=True)
         FORMATTER.print(f"[DEBUG] Script execution completed for {image_uri}")
-        
+
         new_cmd = result.stdout.strip().split("\n")[-1]
         FORMATTER.print(f"[DEBUG] Extracted command: {new_cmd}")
         print(f"For {image_uri} => {new_cmd}")
@@ -94,7 +95,6 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     return constants.SUCCESS
 
 
-
 def get_impacted_os_packages(image_uri, python_version=None):
     """
     Runs Enhanced Scan on the image and returns the impacted OS packages.
@@ -104,9 +104,12 @@ def get_impacted_os_packages(image_uri, python_version=None):
     :return: set, impacted OS packages
     """
     import time
-    FORMATTER.print(f"[DEBUG] Starting helper_function_for_leftover_vulnerabilities_from_enhanced_scanning for {image_uri}")
+
+    FORMATTER.print(
+        f"[DEBUG] Starting helper_function_for_leftover_vulnerabilities_from_enhanced_scanning for {image_uri}"
+    )
     start_time = time.time()
-    
+
     # Lazy import is done over here to prevent circular dependencies. In general, it is a good practice to have lazy imports.
     from test.dlc_tests.sanity.test_ecr_scan import (
         helper_function_for_leftover_vulnerabilities_from_enhanced_scanning,
@@ -121,9 +124,11 @@ def get_impacted_os_packages(image_uri, python_version=None):
         minimum_sev_threshold="UNDEFINED",
         allowlist_removal_enabled=False,
     )
-    
+
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] helper_function_for_leftover_vulnerabilities_from_enhanced_scanning completed in {elapsed_time:.2f}s")
+    FORMATTER.print(
+        f"[DEBUG] helper_function_for_leftover_vulnerabilities_from_enhanced_scanning completed in {elapsed_time:.2f}s"
+    )
     impacted_packages = set()
     if remaining_vulnerabilities:
         for package_name, package_cve_list in remaining_vulnerabilities.vulnerability_list.items():
@@ -148,11 +153,14 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
     :return: str, Returns constants.SUCCESS to allow the multi-threaded caller to know that the method has succeeded.
     """
     import time
+
     FORMATTER.print(f"[DEBUG] Starting enhanced scan for {image_uri}")
     start_time = time.time()
     impacted_packages = get_impacted_os_packages(image_uri=image_uri, python_version=python_version)
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] Enhanced scan completed for {image_uri} in {elapsed_time:.2f}s, found {len(impacted_packages)} impacted packages")
+    FORMATTER.print(
+        f"[DEBUG] Enhanced scan completed for {image_uri} in {elapsed_time:.2f}s, found {len(impacted_packages)} impacted packages"
+    )
 
     dlc_repo_folder_mount = os.path.join(os.sep, get_cloned_folder_path())
     image_specific_patch_folder = os.path.join(
@@ -186,11 +194,15 @@ def trigger_enhanced_scan_patching(image_uri, patch_details_path, python_version
         complete_command = f"{echo_cmd} | {file_concat_cmd}"
         print(f"For {image_uri} => {complete_command}")
         run(complete_command, hide=True)
-        FORMATTER.print(f"[DEBUG] trigger_enhanced_scan_patching function completed for {image_uri}")
+        FORMATTER.print(
+            f"[DEBUG] trigger_enhanced_scan_patching function completed for {image_uri}"
+        )
     finally:
         run(f"docker rm -f {container_id}", hide=True, warn=True)
         total_elapsed = time.time() - start_time
-        FORMATTER.print(f"[DEBUG] EXITING trigger_enhanced_scan_patching for {image_uri} in {total_elapsed:.2f}s")
+        FORMATTER.print(
+            f"[DEBUG] EXITING trigger_enhanced_scan_patching for {image_uri} in {total_elapsed:.2f}s"
+        )
     return constants.SUCCESS
 
 
@@ -210,8 +222,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     info = pre_push_image_object.info
     image_name = info.get("name")
     latest_released_image_uri = info.get("release_image_uri")
-    
-    FORMATTER.print(f"[DEBUG] ENTERING conduct_autopatch_build_setup for {latest_released_image_uri}")
+
+    FORMATTER.print(
+        f"[DEBUG] ENTERING conduct_autopatch_build_setup for {latest_released_image_uri}"
+    )
     setup_start_time = time.time()
 
     run(f"docker pull {latest_released_image_uri}", hide=True)
@@ -255,18 +269,24 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         extraction_location=complete_patching_info_dump_location,
     )
 
-    FORMATTER.print(f"[DEBUG] Starting ThreadPoolExecutor for patching threads for {base_image_uri_for_patch_builds}")
+    FORMATTER.print(
+        f"[DEBUG] Starting ThreadPoolExecutor for patching threads for {base_image_uri_for_patch_builds}"
+    )
     THREADS = {}
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
         get_dummy_boto_client()
-        FORMATTER.print(f"[DEBUG] Submitting trigger_language_patching thread for {base_image_uri_for_patch_builds}")
+        FORMATTER.print(
+            f"[DEBUG] Submitting trigger_language_patching thread for {base_image_uri_for_patch_builds}"
+        )
         THREADS[f"trigger_language_patching-{base_image_uri_for_patch_builds}"] = executor.submit(
             trigger_language_patching,
             image_uri=base_image_uri_for_patch_builds,
             s3_downloaded_path=download_path,
             python_version=info.get("python_version"),
         )
-        FORMATTER.print(f"[DEBUG] Submitting trigger_enhanced_scan_patching thread for {base_image_uri_for_patch_builds}")
+        FORMATTER.print(
+            f"[DEBUG] Submitting trigger_enhanced_scan_patching thread for {base_image_uri_for_patch_builds}"
+        )
         THREADS[f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"] = (
             executor.submit(
                 trigger_enhanced_scan_patching,
@@ -275,7 +295,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
                 python_version=info.get("python_version"),
             )
         )
-    FORMATTER.print(f"[DEBUG] Waiting for patching threads to complete for {base_image_uri_for_patch_builds}")
+    FORMATTER.print(
+        f"[DEBUG] Waiting for patching threads to complete for {base_image_uri_for_patch_builds}"
+    )
     FORMATTER.progress(THREADS)
     FORMATTER.print(f"[DEBUG] All patching threads completed for {base_image_uri_for_patch_builds}")
 
@@ -343,6 +365,7 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     FORMATTER.print(f"[DEBUG] About to call verify_artifact_contents_for_patch_builds")
     start_time = time.time()
     import time
+
     FORMATTER.print(f"[DEBUG] About to call verify_artifact_contents_for_patch_builds")
     start_time = time.time()
     verify_artifact_contents_for_patch_builds(
@@ -350,9 +373,13 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         miscellaneous_scripts_path=miscellaneous_scripts_path,
     )
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s")
+    FORMATTER.print(
+        f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s"
+    )
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s")
+    FORMATTER.print(
+        f"[DEBUG] verify_artifact_contents_for_patch_builds completed in {elapsed_time:.2f}s"
+    )
 
     pre_push_image_object.target = None
 
@@ -408,7 +435,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     pre_push_image_object.additional_tags.insert(0, f"lastsha-{datetime_str}-{sha_after_colon}")
 
     setup_elapsed = time.time() - setup_start_time
-    FORMATTER.print(f"[DEBUG] EXITING conduct_autopatch_build_setup for {latest_released_image_uri} in {setup_elapsed:.2f}s")
+    FORMATTER.print(
+        f"[DEBUG] EXITING conduct_autopatch_build_setup for {latest_released_image_uri} in {setup_elapsed:.2f}s"
+    )
     return constants.SUCCESS
 
 
@@ -421,10 +450,13 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
     :param make_dummy_boto_client: bool, specifies if a dummy client should be declared or not.
     """
     import time
-    FORMATTER.print(f"[DEBUG] ENTERING initiate_multithreaded_autopatch_prep with {len(PRE_PUSH_STAGE_IMAGES)} images")
+
+    FORMATTER.print(
+        f"[DEBUG] ENTERING initiate_multithreaded_autopatch_prep with {len(PRE_PUSH_STAGE_IMAGES)} images"
+    )
     for i, img in enumerate(PRE_PUSH_STAGE_IMAGES):
         FORMATTER.print(f"[DEBUG] Image {i+1}: {img.info.get('release_image_uri', 'Unknown')}")
-    
+
     prep_start_time = time.time()
     run(
         f"""pip install -r {os.path.join(os.sep, get_cloned_folder_path(), "test", "requirements.txt")}""",
@@ -437,7 +469,9 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
         run(f"aws s3 cp s3://patch-dlc {download_path} --recursive", hide=True)
     run(f"bash {download_path}/preprocessing_script.sh {download_path}", hide=True)
 
-    FORMATTER.print(f"[DEBUG] Starting main ThreadPoolExecutor with max_workers=10 for {len(PRE_PUSH_STAGE_IMAGES)} images")
+    FORMATTER.print(
+        f"[DEBUG] Starting main ThreadPoolExecutor with max_workers=10 for {len(PRE_PUSH_STAGE_IMAGES)} images"
+    )
     THREADS = {}
     # In the context of the ThreadPoolExecutor each instance of image.build submitted
     # to it is executed concurrently in a separate thread.
@@ -446,8 +480,10 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
         if make_dummy_boto_client:
             get_dummy_boto_client()
         for pre_push_image_object in PRE_PUSH_STAGE_IMAGES:
-            image_uri = pre_push_image_object.info.get('release_image_uri', 'Unknown')
-            FORMATTER.print(f"[DEBUG] Submitting conduct_autopatch_build_setup thread for {image_uri}")
+            image_uri = pre_push_image_object.info.get("release_image_uri", "Unknown")
+            FORMATTER.print(
+                f"[DEBUG] Submitting conduct_autopatch_build_setup thread for {image_uri}"
+            )
             THREADS[pre_push_image_object.name] = executor.submit(
                 conduct_autopatch_build_setup, pre_push_image_object, download_path
             )
@@ -455,7 +491,9 @@ def initiate_multithreaded_autopatch_prep(PRE_PUSH_STAGE_IMAGES, make_dummy_boto
     FORMATTER.print(f"[DEBUG] Waiting for all {len(THREADS)} image threads to complete")
     FORMATTER.progress(THREADS)
     prep_elapsed = time.time() - prep_start_time
-    FORMATTER.print(f"[DEBUG] EXITING initiate_multithreaded_autopatch_prep - all threads completed in {prep_elapsed:.2f}s")
+    FORMATTER.print(
+        f"[DEBUG] EXITING initiate_multithreaded_autopatch_prep - all threads completed in {prep_elapsed:.2f}s"
+    )
 
 
 def retrive_autopatched_image_history_and_upload_to_s3(image_uri):
@@ -545,14 +583,19 @@ def verify_artifact_contents_for_patch_builds(
     :return: boolean, Returns True in case the size and content conditions are met. Otherwise, returns False.
     """
     import time
+
     autopatch_size_limit = 1
-    
-    FORMATTER.print(f"[DEBUG] Starting size check for patching_info_folder_path: {patching_info_folder_path}")
+
+    FORMATTER.print(
+        f"[DEBUG] Starting size check for patching_info_folder_path: {patching_info_folder_path}"
+    )
     start_time = time.time()
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=patching_info_folder_path)
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] Completed size check for patching_info_folder_path in {elapsed_time:.2f}s")
-    
+    FORMATTER.print(
+        f"[DEBUG] Completed size check for patching_info_folder_path in {elapsed_time:.2f}s"
+    )
+
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
         folder_size_in_megabytes <= autopatch_size_limit
@@ -585,12 +628,16 @@ def verify_artifact_contents_for_patch_builds(
             only_acceptable_file_types=[".sh", ".txt", ".json"],
         ), f"{patch_details_folder_path} contents are invalid"
 
-    FORMATTER.print(f"[DEBUG] Starting size check for miscellaneous_scripts_path: {miscellaneous_scripts_path}")
+    FORMATTER.print(
+        f"[DEBUG] Starting size check for miscellaneous_scripts_path: {miscellaneous_scripts_path}"
+    )
     start_time = time.time()
     folder_size_in_bytes = get_folder_size_in_bytes(folder_path=miscellaneous_scripts_path)
     elapsed_time = time.time() - start_time
-    FORMATTER.print(f"[DEBUG] Completed size check for miscellaneous_scripts_path in {elapsed_time:.2f}s")
-    
+    FORMATTER.print(
+        f"[DEBUG] Completed size check for miscellaneous_scripts_path in {elapsed_time:.2f}s"
+    )
+
     folder_size_in_megabytes = folder_size_in_bytes / (1024.0 * 1024.0)
     assert (
         folder_size_in_megabytes <= autopatch_size_limit
