@@ -59,12 +59,25 @@ log "Setting proper permissions..."
 sudo chown -R ec2-user:ec2-user /fsx/vllm-dlc
 check_error "Failed to set permissions"
 
-# Clone VLLM repository
-log "Cloning VLLM repository..."
+# Clone VLLM repository 
+log "Preparing for VLLM repository clone..."
 cd /fsx/vllm-dlc
-rm -rf vllm 
-git clone https://github.com/vllm-project/vllm/
-check_error "Failed to clone VLLM repository"
+
+if [ -d "vllm" ]; then
+    log "Found existing vllm directory. Removing it..."
+    sudo rm -rf vllm
+    check_error "Failed to remove existing vllm directory"
+    log "Existing vllm directory removed successfully"
+fi
+
+log "Cloning VLLM repository..."
+if ! git clone https://github.com/vllm-project/vllm/; then
+    log "Failed to clone VLLM repository. Retrying after forced cleanup..."
+    sudo rm -rf vllm
+    sleep 2
+    git clone https://github.com/vllm-project/vllm/
+fi
+check_error "Failed to clone VLLM repository after retry"
 
 # Download ShareGPT dataset
 log "Downloading ShareGPT dataset..."
