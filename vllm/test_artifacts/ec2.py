@@ -64,22 +64,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
-        head_ip = head_connection.run("cd /fsx/vllm")
-        worker_ip = worker_connection.run("cd /fsx/vllm")
-
-        head_connection.put(
-            "/vllm/examples/online_serving/run_cluster.sh",
-            "/home/ec2-user/run_cluster.sh",
-        )
-        worker_connection.put(
-            "/vllm/examples/online_serving/run_cluster.sh",
-            "/home/ec2-user/run_cluster.sh",
-        )
+        head_ip = head_connection.run("cd /fsx/vllm-dlc")
+        worker_ip = worker_connection.run("cd /fsx/vllm-dlc")
 
         # Start head node
         head_cmd = f"""
-        chmod +x /home/ec2-user/run_cluster.sh &&
-        /home/ec2-user/run_cluster.sh {image_uri} {head_ip} --head /fsx/.cache/huggingface \
+        /vllm/examples/online_serving/run_cluster.sh {image_uri} {head_ip} --head /fsx/.cache/huggingface \
         -e VLLM_HOST_IP={head_ip} \
         -e HF_TOKEN={hf_token} \
         -e FI_PROVIDER=efa \
@@ -94,8 +84,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Start worker node
         worker_cmd = f"""
-        chmod +x /home/ec2-user/run_cluster.sh &&
-        /home/ec2-user/run_cluster.sh {image_uri} {head_ip} --worker /fsx/.cache/huggingface \
+        /vllm/examples/online_serving/run_cluster.sh {image_uri} {head_ip} --worker /fsx/.cache/huggingface \
         -e VLLM_HOST_IP={worker_ip} \
         -e FI_PROVIDER=efa \
         -e FI_EFA_USE_DEVICE_RDMA=1 \
@@ -127,7 +116,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --model {model_name} \
         --endpoint /v1/completions \
         --dataset-name sharegpt \
-        --dataset-path /fsx/vllm/ShareGPT_V3_unfiltered_cleaned_split.json \
+        --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
         --num-prompts 1000
         """
         result = head_connection.run(benchmark_cmd, hide=False, timeout=7200)

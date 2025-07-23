@@ -44,22 +44,22 @@ sudo mount -t lustre -o relatime,flock ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
 
 # Create VLLM directory in FSx
 echo "Creating VLLM directory..."
-sudo mkdir -p /fsx/vllm
-check_error "Failed to create /fsx/vllm directory"
+sudo mkdir -p /fsx/vllm-dlc
+check_error "Failed to create /fsx/vllm-dlc directory"
 
 # Set proper permissions
 echo "Setting proper permissions..."
-sudo chown -R ec2-user:ec2-user /fsx/vllm
+sudo chown -R ec2-user:ec2-user /fsx/vllm-dlc
 check_error "Failed to set permissions"
 
 # Clone VLLM repository
 echo "Cloning VLLM repository..."
-cd /fsx/vllm && git clone https://github.com/vllm-project/vllm/
+cd /fsx/vllm-dlc && git clone https://github.com/vllm-project/vllm/
 check_error "Failed to clone VLLM repository"
 
 # Download ShareGPT dataset
 echo "Downloading ShareGPT dataset..."
-cd /fsx/vllm && wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+cd /fsx/vllm-dlc && wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
 check_error "Failed to download ShareGPT dataset"
 
 echo "Setup completed successfully!"
