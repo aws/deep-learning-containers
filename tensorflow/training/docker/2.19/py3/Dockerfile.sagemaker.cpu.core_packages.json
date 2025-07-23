@@ -2,6 +2,10 @@
   "awscli": {
     "version_specifier": "<2"
   },
+  "opencv-python": {
+    "version_specifier": "==4.12.0.88",
+    "skip": "True"
+  },
   "cython": {
     "version_specifier": "<3.0"
   },
