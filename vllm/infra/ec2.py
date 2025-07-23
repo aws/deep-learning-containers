@@ -38,6 +38,8 @@ ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
+TEST_ID = str(uuid.uuid4())
+
 
 def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
@@ -78,7 +80,7 @@ def efa_ec2_instances(
     region,
     availability_zone_options,
 ):
-    ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
+    ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
     print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
@@ -378,11 +380,12 @@ def configure_security_groups(ec2_cli, fsx, vpc_id, instances_info):
         str: FSx security group ID
     """
     try:
+        fsx_name = f"fsx-lustre-vllm-ec2-test-sg-{TEST_ID}"
         # Create FSx security group
         sg_fsx = fsx.create_fsx_security_group(
             ec2_cli,
             vpc_id,
-            "fsx-lustre-sg-vllm-ec2-tests",
+            fsx_name,
             "Security group for FSx Lustre VLLM EC2 Tests",
         )
         print(f"Created FSx security group: {sg_fsx}")
@@ -442,7 +445,11 @@ def setup():
 
         # Create FSx filesystem
         resources["fsx_config"] = fsx.create_fsx_filesystem(
-            subnet_ids[0], [resources["sg_fsx"]], 1200, "SCRATCH_2", {"Name": "vllm-fsx-storage"}
+            subnet_ids[0],
+            [resources["sg_fsx"]],
+            1200,
+            "SCRATCH_2",
+            {"Name": f"fsx-lustre-vllm-ec2-test-fsx-{TEST_ID}"},
         )
         print(f"Created FSx filesystem: {resources['fsx_config']}")
 
