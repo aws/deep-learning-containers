@@ -10,7 +10,7 @@ managedNodeGroups:
     instanceType: p4d.24xlarge
     minSize: 0
     maxSize: 2
-    desiredCapacity: 0
+    desiredCapacity: 2
     availabilityZones: ["${AWS_REGION}a"] # EFA-enabled nodegroups must have only one availability zone
     volumeSize: 100
     privateNetworking: true

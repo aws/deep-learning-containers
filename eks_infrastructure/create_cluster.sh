@@ -278,21 +278,17 @@ function setup_alb_security_groups() {
   else
     echo "ALB security group ${ALB_SG_NAME} already exists, using existing: ${ALB_SG_EXISTS}"
     ALB_SG=${ALB_SG_EXISTS}
+    echo "ALB security group: ${ALB_SG}"
   fi
-    
-  NODE_INSTANCE_ID=$(aws ec2 describe-instances \
-    --filters "Name=tag:Name,Values=${CLUSTER_NAME}-vllm-p4d-nodes-efa-Node" \
-    "Name=instance-state-name,Values=running" \
-    --query "Reservations[0].Instances[0].InstanceId" --output text)
-    
-  NODE_SG=$(aws ec2 describe-instances \
-    --instance-ids ${NODE_INSTANCE_ID} \
-    --query "Reservations[0].Instances[0].SecurityGroups[0].GroupId" --output text)
-    
-  echo "Node security group: ${NODE_SG}"
-    
+
+  CLUSTER_SG=$(aws eks describe-cluster --name ${CLUSTER_NAME} \
+    --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+  
+  echo "Cluster security group: ${CLUSTER_SG}"
+  
+  # Add rule to allow traffic from ALB to port 8000 on all nodes in the cluster
   aws ec2 authorize-security-group-ingress \
-    --group-id ${NODE_SG} \
+    --group-id ${CLUSTER_SG} \
     --protocol tcp \
     --port 8000 \
     --source-group ${ALB_SG}
