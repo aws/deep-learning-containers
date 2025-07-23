@@ -2,6 +2,15 @@
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file.
 
+## [0.9.2] - 2025-07-15
+### Updated
+- vllm/vllm-openai version `v0.9.2`
+### Sample ECR URI
+```
+763104351884.dkr.ecr.us-east-1.amazonaws.com/0.9-gpu-py312-ec2
+763104351884.dkr.ecr.us-east-1.amazonaws.com/0.9.2-gpu-py312-cu128-ubuntu22.04-ec2
+```
+
 ## [0.9.1] - 2025-06-13
 ### Updated
 - vllm/vllm-openai version `v0.9.1`
