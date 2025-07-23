@@ -126,10 +126,10 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu24.04"
-      lmi_version: "14.0.0"
-      cuda_version: "cu126"
+      tensorrtllm_version: "0.12.0"
+      cuda_version: "cu125"
       example: False
       disable_sm_tag: True
       force_release: False
