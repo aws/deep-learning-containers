@@ -79,14 +79,15 @@ function create_eks_cluster() {
 function create_node_group() {
 
   if [[ ${1} == *"vllm"* ]]; then
-    # Check if any of the nodegroups already exist
-    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa-2a --region ${AWS_REGION} &>/dev/null || \
-       eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa-2b --region ${AWS_REGION} &>/dev/null || \
-       eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa-2c --region ${AWS_REGION} &>/dev/null; then
-      echo "One or more nodegroups already exist, skipping creation..."
+    # Check if nodegroup already exists
+    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa --region ${AWS_REGION} &>/dev/null; then
+      echo "Nodegroup vllm-p4d-nodes-efa already exists, skipping creation..."
     else
-      # Create all nodegroups as defined in the YAML
-      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+      PREFERRED_AZ="${AWS_REGION}a"
+      echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
+      
+      # Create nodegroup with cluster name and preferred AZ
+      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
     fi
     return
   fi
