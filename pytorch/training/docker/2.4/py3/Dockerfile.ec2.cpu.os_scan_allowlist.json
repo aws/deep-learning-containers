@@ -118,5 +118,36 @@
       "title": "CVE-2025-30167 - jupyter_core",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "libgdk-pixbuf-2.0-0": [
+    {
+      "description": "A flaw exists in gdk\u2011pixbuf within the gdk_pixbuf__jpeg_image_load_increment function (io-jpeg.c) and in glib\u2019s g_base64_encode_step (glib/gbase64.c). When processing maliciously crafted JPEG images, a heap buffer overflow can occur during Base64 encoding, allowing out-of-bounds reads from heap memory, potentially causing application crashes or arbitrary code execution.",
+      "vulnerability_id": "CVE-2025-7345",
+      "name": "CVE-2025-7345",
+      "package_name": "libgdk-pixbuf-2.0-0",
+      "package_details": {
+        "file_path": null,
+        "name": "libgdk-pixbuf-2.0-0",
+        "package_manager": "OS",
+        "version": "2.42.8+dfsg",
+        "release": "1ubuntu0.3"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-7345.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-7345 - libgdk-pixbuf-2.0-0",
+      "reason_to_ignore": "No fix"
+    }
   ]
 }
