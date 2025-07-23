@@ -77,22 +77,7 @@ function create_eks_cluster() {
 
 # Function to create static and dynamic nodegroups in EKS cluster
 function create_node_group() {
-
-  if [[ ${1} == *"vllm"* ]]; then
-    # Check if nodegroup already exists
-    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa --region ${AWS_REGION} &>/dev/null; then
-      echo "Nodegroup vllm-p4d-nodes-efa already exists, skipping creation..."
-    else
-      PREFERRED_AZ="${AWS_REGION}a"
-      echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
-      
-      # Create nodegroup with cluster name and preferred AZ
-      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
-    fi
-    return
-  fi
-
-  # Nodegroup creation logic for other types
+  # Nodegroup creation logic for all types
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
   GPU_NODEGROUP_INSTANCE_TYPE="g5.24xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
@@ -109,6 +94,21 @@ function create_node_group() {
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
+
+
+  if [[ ${1} == *"vllm"* ]]; then
+    # Check if nodegroup already exists
+    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa --region ${AWS_REGION} &>/dev/null; then
+      echo "Nodegroup vllm-p4d-nodes-efa already exists, skipping creation..."
+    else
+      PREFERRED_AZ="${AWS_REGION}a"
+      echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
+      
+      # Create nodegroup with cluster name and preferred AZ
+      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+    fi
+    return
+  fi
 
   # dynamic gpu nodegroup
   eksctl create nodegroup \
@@ -304,7 +304,8 @@ function setup_fsx_storage() {
   REGION=${2}
   
   VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
-  SUBNET_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.subnetIds[0]" --output text)
+  SUBNET_IDS=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
+  SUBNET_ID=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query "Subnets[?AvailabilityZone=='${REGION}a'].SubnetId" --output text | head -1)
   SG_NAME="${CLUSTER_NAME}-fsx-lustre-sg"
   SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
   
