@@ -1364,15 +1364,13 @@ def get_deep_canary_images(
         and canary_arch_type
         and canary_region
         and canary_region_prod_account
-        and is_public_registry
     ), (
         "Incorrect spec for one or more of the following:\n"
         f"canary_framework = {canary_framework}\n"
         f"canary_image_type = {canary_image_type}\n"
         f"canary_arch_type = {canary_arch_type}\n"
         f"canary_region = {canary_region}\n"
-        f"canary_region_prod_account = {canary_region_prod_account}\n"
-        f"is_public_registry = {is_public_registry}"
+        f"canary_region_prod_account = {canary_region_prod_account}"
     )
     all_images = get_canary_image_uris_from_bucket()
     matching_images = []
