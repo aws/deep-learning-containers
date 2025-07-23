@@ -1,4 +1,5 @@
 {
+    "56853": "dill - Conflict: datasets requires dill<0.3.8,>=0.3.0 but have 0.4.0.",
     "65189": "Ray - autogluon uses ray >=2.10,< 2.45",
     "77149": "Transformers - ReDoS vulnerability in GPT-NeoX-Japanese tokenizer that autogluon doesn't use"
 }
