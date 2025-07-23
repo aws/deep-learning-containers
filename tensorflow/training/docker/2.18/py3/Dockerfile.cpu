@@ -188,7 +188,7 @@ ARG TF_URL
 
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "tensorflow-io==0.37.*" \
+    tensorflow-io \
     tensorflow-datasets
 
 RUN HOME_DIR=/root \
