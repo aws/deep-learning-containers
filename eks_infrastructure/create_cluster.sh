@@ -304,8 +304,7 @@ function setup_fsx_storage() {
   REGION=${2}
   
   VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
-  SUBNET_IDS=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query 'cluster.resourcesVpcConfig.subnetIds' --output text)
-  SUBNET_ID=$(aws ec2 describe-subnets --subnet-ids ${SUBNET_IDS} --query "Subnets[?AvailabilityZone=='${REGION}a'].SubnetId" --output text | head -1)
+  SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=${VPC_ID}" "Name=availability-zone,Values=${REGION}a" --query "Subnets[0].SubnetId" --output text)
   SG_NAME="${CLUSTER_NAME}-fsx-lustre-sg"
   SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
   
