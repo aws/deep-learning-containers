@@ -260,7 +260,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
                 waiter.wait(
                     InstanceIds=instance_ids,
                     WaiterConfig={
-                        "Delay": 30,
+                        "Delay": 60,
                         "MaxAttempts": 60,
                     },  # Increased delay and max attempts
                 )
@@ -269,7 +269,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
 
             # Wait additional time for ENIs to detach
             print("Waiting for ENIs to detach...")
-            time.sleep(120)  # Increased wait time
+            time.sleep(150)  # Increased wait time
 
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
@@ -289,7 +289,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
                     print(
                         f"Attempt {attempt + 1} to delete security group failed. Retrying in 30 seconds..."
                     )
-                    time.sleep(30)
+                    time.sleep(100)
 
     # Cleanup FSx filesystem
     if fsx_config and fsx:

@@ -49,6 +49,7 @@ class FsxSetup:
                 f' --security-group-ids {" ".join(security_group_ids)}'
                 f" --lustre-configuration DeploymentType={deployment_type}"
                 f" --tags {tags_param}"
+                f"--file-system-type-version 2.15"
                 f' --query "FileSystem.FileSystemId"'
                 f" --output text"
             ).stdout.strip()
