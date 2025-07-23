@@ -60,9 +60,10 @@ sudo chown -R ec2-user:ec2-user /fsx/vllm-dlc
 check_error "Failed to set permissions"
 
 # Clone VLLM repository
-log "Cloning VLLM repository..."
-git clone https://github.com/vllm-project/vllm.git /fsx/vllm-dlc
+echo "Cloning VLLM repository..."
+cd /fsx/vllm-dlc && git clone https://github.com/vllm-project/vllm/
 check_error "Failed to clone VLLM repository"
+
 
 # Download ShareGPT dataset
 log "Downloading ShareGPT dataset..."
