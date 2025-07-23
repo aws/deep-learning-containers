@@ -339,6 +339,7 @@ function setup_fsx_storage() {
     echo "Creating new FSx filesystem"
     FS_ID=$(aws fsx create-file-system \
       --file-system-type LUSTRE \
+      --file-system-type-version 2.15 \
       --storage-capacity 1200 \
       --subnet-ids ${SUBNET_ID} \
       --security-group-ids ${SG_ID} \
