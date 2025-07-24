@@ -217,7 +217,49 @@ function add_iam_permissions_nodegroup() {
 # Function to setup Load Balancer Controller
 function setup_load_balancer_controller() {
   CLUSTER_NAME=${1}
-  
+  ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+
+  # Check if policy already exists
+  if ! aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy 2>/dev/null; then
+    echo "Creating AWSLoadBalancerControllerIAMPolicy..."
+    
+    # Create a temp directory for the policy file
+    TEMP_DIR=$(mktemp -d)
+    POLICY_FILE="${TEMP_DIR}/iam-policy.json"
+    
+    # Download the IAM policy document
+    curl -o ${POLICY_FILE} https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+    
+    # Create the IAM policy
+    aws iam create-policy \
+      --policy-name AWSLoadBalancerControllerIAMPolicy \
+      --policy-document file://${POLICY_FILE}
+    
+    # Clean up
+    rm -rf ${TEMP_DIR}
+  else
+    echo "AWSLoadBalancerControllerIAMPolicy already exists"
+  fi
+
+  # Create an IAM OIDC provider for the cluster
+  eksctl utils associate-iam-oidc-provider \
+    --cluster=${CLUSTER_NAME} \
+    --approve
+
+  # Create IAM service account
+  if ! kubectl get serviceaccount -n kube-system aws-load-balancer-controller 2>/dev/null; then
+    echo "Creating IAM service account for cluster ${CLUSTER_NAME}"
+    eksctl create iamserviceaccount \
+      --cluster=${CLUSTER_NAME} \
+      --namespace=kube-system \
+      --name=aws-load-balancer-controller \
+      --role-name=AmazonEKSLoadBalancerControllerRole \
+      --attach-policy-arn=arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy \
+      --approve
+  else
+    echo "Service account aws-load-balancer-controller already exists in cluster ${CLUSTER_NAME}"
+  fi
+
   # Check if AWS Load Balancer Controller is already installed
   if ! helm list -n kube-system | grep -q aws-load-balancer-controller; then
     echo "Installing AWS Load Balancer Controller..."
@@ -236,7 +278,7 @@ function setup_load_balancer_controller() {
   fi
   
   if ! helm list -n lws-system | grep -q lws; then
-    echo "Installing LWS..."
+    echo "Installing the LeaderWorkerSet controller..."
     helm install lws oci://registry.k8s.io/lws/charts/lws \
       --version=0.6.1 \
       --namespace lws-system \
