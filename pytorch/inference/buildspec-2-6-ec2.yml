@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.6.0
 short_version: &SHORT_VERSION "2.6"
 arch_type: x86
-# autopatch_build: "True"
+autopatch_build: "True"
 
 repository_info:
   inference_repository: &INFERENCE_REPOSITORY
