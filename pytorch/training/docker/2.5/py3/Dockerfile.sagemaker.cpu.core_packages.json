@@ -37,10 +37,10 @@
     "version_specifier": ">=4.66.3"
   },
   "requests": {
-    "version_specifier": ">=2.32.0"
+    "version_specifier": ">=2.32.4"
   },
   "setuptools": {
-    "version_specifier": ">=70.0.0"
+    "version_specifier": ">=80.9.0"
   },
   "urllib3": {
     "version_specifier": ">=2.5.0"
@@ -62,5 +62,11 @@
   },
   "tornado": {
     "version_specifier": ">=6.5.1"
+  },
+  "sagemaker-training": {
+    "version_specifier": ">=5.0.0"
+  },
+  "opencv-python": {
+    "version_specifier": "==4.11.0.86"
   }
 }
