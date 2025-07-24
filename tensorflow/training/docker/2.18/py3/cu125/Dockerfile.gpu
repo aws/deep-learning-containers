@@ -381,9 +381,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments \
     sagemaker-tensorflow-training \
     sagemaker-training \
-    "sagemaker-studio-analytics-extension<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
+    sagemaker-studio-analytics-extension \
+    sparkmagic \
+    sagemaker-studio-sparkmagic-lib \
     smclarify
    
 
