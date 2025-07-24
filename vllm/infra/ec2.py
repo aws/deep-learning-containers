@@ -233,6 +233,8 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
         f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
     ]
 
+    time.sleep(1500)
+
     # Execute commands synchronously
     result = connection.run("; ".join(commands))
     return result
