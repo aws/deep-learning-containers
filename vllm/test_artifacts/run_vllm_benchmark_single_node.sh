@@ -13,6 +13,13 @@ CONTAINER_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
+# Clone VLLM repository
+echo "Cloning VLLM repository..."
+cd /fsx/vllm-dlc
+echo *
+git clone https://github.com/vllm-project/vllm/
+check_error "Failed to clone VLLM repository"
+
 # Set up trap to ensure cleanup on exit
 trap cleanup EXIT
 
