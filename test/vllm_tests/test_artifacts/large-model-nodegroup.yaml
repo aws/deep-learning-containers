@@ -35,6 +35,11 @@ managedNodeGroups:
         cloudWatch: true
         ebs: true
         imageBuilder: true
+      attachPolicyARNs:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/ElasticLoadBalancingReadOnly
     # Enable EFA interfaces
     efaEnabled: true
     capacityReservation:
