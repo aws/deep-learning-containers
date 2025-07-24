@@ -30,5 +30,8 @@
   },
   "torch-model-archiver": {
     "version_specifier": "==0.12.0"
+  },
+  "triton": {
+    "version_specifier": "==3.2.0",
   }
 }
