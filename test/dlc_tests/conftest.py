@@ -1799,6 +1799,13 @@ def lookup_condition(lookup, image):
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
 
+    # Check for public registry canary first
+    if os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
+        # Only handle framework agnostic tests for public registry
+        if "image" in metafunc.fixturenames:
+            metafunc.parametrize("image", images)
+        return
+
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
         if fixture in metafunc.fixturenames:
