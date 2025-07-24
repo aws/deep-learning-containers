@@ -378,7 +378,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
-    sagemaker-experiments==0.* \
+    sagemaker-experiments \
     sagemaker-tensorflow-training \
     sagemaker-training \
     "sagemaker-studio-analytics-extension<1" \

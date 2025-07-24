@@ -260,7 +260,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    "tensorflow-io==0.37.*" \
+    tensorflow-io \
     tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
@@ -274,7 +274,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
-    sagemaker-experiments==0.* \
+    sagemaker-experiments \
     sagemaker-tensorflow-training \
     sagemaker-training \
     "sagemaker-studio-analytics-extension<1" \
