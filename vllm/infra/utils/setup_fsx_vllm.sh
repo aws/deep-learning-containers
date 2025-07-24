@@ -68,6 +68,36 @@ log "Downloading ShareGPT dataset..."
 cd /fsx/vllm-dlc && wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
 check_error "Failed to download ShareGPT dataset"
 
-echo *
+# Install Miniconda
+log "Installing Miniconda..."
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+check_error "Failed to download Miniconda installer"
+
+# Make the installer executable
+chmod +x ~/miniconda.sh
+check_error "Failed to make Miniconda installer executable"
+
+# Install Miniconda silently (-b flag for batch mode, -p for installation path)
+bash ~/miniconda.sh -b -p $HOME/miniconda
+check_error "Failed to install Miniconda"
+
+# Initialize conda for bash shell
+$HOME/miniconda/bin/conda init bash
+check_error "Failed to initialize conda"
+
+# Source bashrc to make conda available immediately
+source ~/.bashrc
+
+# Verify conda installation
+if command -v conda >/dev/null 2>&1; then
+    log "Conda installation verified successfully"
+else
+    log "Warning: Conda installation might not be complete. Please check manually."
+fi
+
+# Clean up installer
+rm ~/miniconda.sh
 
 log "Setup completed successfully!"
+
+    
