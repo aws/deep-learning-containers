@@ -272,11 +272,12 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     seaborn \
     shap
 
+
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
-    sagemaker-experiments==0.* \
-    sagemaker-tensorflow-training \
-    sagemaker-training \
+    sagemaker-experiments==0.1.7 \
+    sagemaker-tensorflow-training==20.5.0 \
+    "sagemaker-training==4.7.4" \
     "sagemaker-studio-analytics-extension<1" \
     "sparkmagic<1" \
     "sagemaker-studio-sparkmagic-lib<1" \
