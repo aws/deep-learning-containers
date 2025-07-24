@@ -52,7 +52,6 @@ sudo mount -t lustre -o relatime,flock ${FSX_DNS_NAME}@tcp:/${MOUNT_NAME} /fsx
 # Create VLLM directory in FSx
 log "Creating VLLM directory..."
 sudo mkdir -p /fsx/vllm-dlc
-echo *
 
 check_error "Failed to create /fsx/vllm-dlc directory"
 
@@ -60,6 +59,9 @@ check_error "Failed to create /fsx/vllm-dlc directory"
 log "Setting proper permissions..."
 sudo chown -R ec2-user:ec2-user /fsx/vllm-dlc
 check_error "Failed to set permissions"
+
+cd /fsx/vllm-dlc
+git clone https://github.com/vllm-project/vllm.git
 
 # Download ShareGPT dataset
 log "Downloading ShareGPT dataset..."

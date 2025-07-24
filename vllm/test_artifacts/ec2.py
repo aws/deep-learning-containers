@@ -65,15 +65,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
         head_connection.run("cd /fsx/vllm-dlc")
-        head_connection.run("echo *")
-        head_connection.run("git clone https://github.com/vllm-project/vllm/ .")
-
         worker_connection.run("cd /fsx/vllm-dlc")
-        worker_connection.run("echo *")
-        worker_connection.run("git clone https://github.com/vllm-project/vllm/ .")
 
-        head_connection.run("cd /fsx/vllm-dlc")
-        worker_connection.run("cd /fsx/vllm-dlc")
         # Start head node
         head_cmd = f"""
         /vllm/examples/online_serving/run_cluster.sh {image_uri} {head_ip} --head /fsx/.cache/huggingface \
