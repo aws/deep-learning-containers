@@ -134,7 +134,7 @@ RUN curl -L -o ~/miniforge3.sh https://github.com/conda-forge/miniforge/releases
  && ~/miniforge3.sh -b -p /opt/conda \
  && rm ~/miniforge3.sh
 
-RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
+RUN pip install --no-cache-dir pip --trusted-host pypi.org --trusted-host files.pythonhosted.org \
  && ln -s /opt/conda/bin/pip /usr/local/bin/pip3
 
 # Install common conda packages
@@ -166,10 +166,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "requests>=2.32.4" \
+    "setuptools>=78.1.1" \
+    "urllib3>=2.5.0" \
     "awscli<2" \
+    "pip>=25.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
@@ -217,9 +218,9 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     torchtnt \
-    s3torchconnector \
-    fastai \
-    accelerate \
+    "s3torchconnector==1.2.6" \
+    "fastai==2.7.18" \
+    "accelerate==1.0.1" \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
