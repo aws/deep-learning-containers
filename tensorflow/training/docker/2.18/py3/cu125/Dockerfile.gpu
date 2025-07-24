@@ -210,7 +210,6 @@ RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
 
 RUN ${PIP} install --no-cache-dir -U \
    pybind11 \
-   click \
    cmake \
    scipy \
    Pillow \
@@ -222,7 +221,8 @@ RUN ${PIP} install --no-cache-dir -U \
    absl-py \
    opencv-python \
    werkzeug \
-   urllib3 
+   urllib3 \
+   "protobuf<4"
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y \
@@ -364,7 +364,7 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
-    tensorflow-io \
+    "tensorflow-io==0.37.*" \
     tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
@@ -378,14 +378,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
-    sagemaker-experiments \
+    sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
     sagemaker-training \
-    sagemaker-studio-analytics-extension \
-    sparkmagic \
-    sagemaker-studio-sparkmagic-lib \
+    "sagemaker-studio-analytics-extension<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
     smclarify
-   
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"

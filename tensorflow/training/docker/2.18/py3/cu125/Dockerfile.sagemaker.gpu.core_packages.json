@@ -6,7 +6,7 @@
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": "==4.21.12"
+    "version_specifier": ">=3.20.3,<4"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -21,16 +21,13 @@
     "version_specifier": ">=4.7.4,<5"
   },
   "sagemaker-studio-analytics-extension": {
-    "version_specifier": "<1",
-    "skip": "True"
+    "version_specifier": "<1"
   },
   "sparkmagic": {
-    "version_specifier": "<1",
-    "skip": "True"
+    "version_specifier": "<1"
   },
   "sagemaker-studio-sparkmagic-lib": {
-    "version_specifier": "<1",
-    "skip": "True"
+    "version_specifier": "<1"
   },
   "tensorboard": {
     "version_specifier": "==2.18.0"
