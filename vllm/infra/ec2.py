@@ -233,8 +233,6 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
         f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
     ]
 
-    time.sleep(1500)
-
     # Execute commands synchronously
     result = connection.run("; ".join(commands))
     return result
@@ -413,26 +411,20 @@ def setup():
         )
         print(f"Created FSx filesystem: {resources['fsx_config']}")
 
-        with ThreadPoolExecutor(max_workers=len(resources["instances_info"])) as executor:
-            future_to_instance = {
-                executor.submit(
-                    setup_instance,
+        # Set up instances one at a time
+        for instance_id, key_filename in resources["instances_info"]:
+            try:
+                print(f"Setting up instance {instance_id}...")
+                setup_instance(
                     instance_id,
                     key_filename,
                     ec2_cli,
                     resources["fsx_config"]["dns_name"],
                     resources["fsx_config"]["mount_name"],
-                ): instance_id
-                for instance_id, key_filename in resources["instances_info"]
-            }
-
-            for future in future_to_instance:
-                instance_id = future_to_instance[future]
-                try:
-                    future.result()
-                    print(f"Setup completed successfully for instance {instance_id}")
-                except Exception as e:
-                    raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
+                )
+                print(f"Setup completed successfully for instance {instance_id}")
+            except Exception as e:
+                raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
 
         return resources
     except Exception as e:
