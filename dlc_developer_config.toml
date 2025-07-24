@@ -72,12 +72,15 @@ ec2_benchmark_tests = false
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
 ec2_tests_on_heavy_instances = true
+
 ### SM specific tests
 ### On by default
 sagemaker_local_tests = true
+
 ### Set enable_ipv6 = true to run tests with IPv6-enabled resources
 ### Off by default (set to false)
 enable_ipv6 = false
+
 ### Set the VPC name to be used for IPv6 testing, this variable is empty by default
 ### To create an IPv6-enabled VPC and its related resources:
 ### 1. Follow this AWS doc: https://docs.aws.amazon.com/vpc/latest/userguide/create-vpc.html#create-vpc-and-other-resources
