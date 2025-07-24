@@ -21,13 +21,16 @@
     "version_specifier": ">=4.7.4,<5"
   },
   "sagemaker-studio-analytics-extension": {
-    "version_specifier": "<1"
+    "version_specifier": "<1",
+    "skip": "True"
   },
   "sparkmagic": {
-    "version_specifier": "<1"
+    "version_specifier": "<1",
+    "skip": "True"
   },
   "sagemaker-studio-sparkmagic-lib": {
-    "version_specifier": "<1"
+    "version_specifier": "<1",
+    "skip": "True"
   },
   "tensorboard": {
     "version_specifier": "==2.18.0"
