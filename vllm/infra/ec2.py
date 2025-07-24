@@ -278,7 +278,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
 
     # Cleanup security group with retries
     if sg_fsx and fsx:
-        max_attempts = 5
+        max_attempts = 8
         for attempt in range(max_attempts):
             try:
                 fsx.delete_security_group(ec2_cli, sg_fsx)
@@ -303,48 +303,6 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
 
     if cleanup_errors:
         raise Exception("\n".join(cleanup_errors))
-
-
-# def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None, fsx=None):
-#     """
-#     Cleanup all resources in reverse order of creation
-#     """
-#     cleanup_errors = []
-
-#     # Cleanup instances if they exist
-#     if instances_info:
-#         try:
-#             instance_ids = [instance_id for instance_id, _ in instances_info]
-#             ec2_cli.terminate_instances(InstanceIds=instance_ids)
-#             print(f"Terminated EC2 instances: {instance_ids}")
-
-#             # Wait for instances to terminate
-#             waiter = ec2_cli.get_waiter("instance_terminated")
-#             waiter.wait(InstanceIds=instance_ids)
-
-#             time.sleep(300)
-#         except Exception as e:
-#             cleanup_errors.append(f"Failed to terminate EC2 instances: {str(e)}")
-
-#     # Cleanup security group if it exists
-#     if sg_fsx and fsx:
-#         try:
-#             fsx.delete_security_group(ec2_cli, sg_fsx)
-#             print(f"Deleted security group: {sg_fsx}")
-#         except Exception as e:
-#             cleanup_errors.append(f"Failed to delete security group: {str(e)}")
-
-#     # Cleanup FSx filesystem if it exists
-#     if fsx_config and fsx:
-#         try:
-#             fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
-#             print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
-#         except Exception as e:
-#             cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
-
-#     if cleanup_errors:
-#         error_message = "\n".join(cleanup_errors)
-#         raise Exception(f"Cleanup errors occurred:\n{error_message}")
 
 
 def launch_ec2_instances(ec2_cli):
