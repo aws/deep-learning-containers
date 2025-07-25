@@ -275,7 +275,7 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     torchtnt \
-    triton \
+    "triton==3.1.0" \
     "s3torchconnector==1.2.6" \
     "fastai==2.7.18" \
     "accelerate==1.0.1" \
