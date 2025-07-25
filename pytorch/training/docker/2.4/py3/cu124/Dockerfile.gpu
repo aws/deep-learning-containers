@@ -7,9 +7,7 @@ ARG MINIFORGE3_VERSION=24.7.1-2
 ARG CUDA_VERSION=12.4.1
 ARG CUDNN_VERSION=9.1.0.70
 ARG NCCL_VERSION=2.22.3
-ARG EFA_VERSION=1.34.0
-ARG HWLOC_VERSION=2.11.1
-ARG AWS_OFI_NCCL_VERSION=1.11.0
+ARG EFA_VERSION=1.42.0
 ARG GDRCOPY_VERSION=2.4.1
 ARG APEX_VERSION=24.04.01
 
@@ -59,8 +57,6 @@ ARG CUDA_VERSION
 ARG CUDNN_VERSION
 ARG NCCL_VERSION
 ARG EFA_VERSION
-ARG HWLOC_VERSION
-ARG AWS_OFI_NCCL_VERSION
 ARG GDRCOPY_VERSION
 ARG APEX_VERSION
 
@@ -68,6 +64,7 @@ ENV CUDA_HOME="/usr/local/cuda"
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV PATH="/opt/conda/bin:${PATH}"
 ENV PATH="${CUDA_HOME}/bin:${PATH}"
 ENV EFA_PATH="/opt/amazon/efa"
@@ -157,36 +154,6 @@ RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
  && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
  && echo NCCL_SOCKET_IFNAME=^docker0 >> /etc/nccl.conf
 
-# Install hwloc
-RUN mkdir /tmp/hwloc \
- && cd /tmp/hwloc \
- && wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION%.*}/hwloc-${HWLOC_VERSION}.tar.gz \
- && tar -xf hwloc-${HWLOC_VERSION}.tar.gz \
- && cd hwloc-${HWLOC_VERSION} \
- && ./configure \
- && make \
- && make install \
- && rm -rf /tmp/hwloc \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Install aws-ofi-nccl plugin
-RUN mkdir /tmp/aws-ofi-nccl \
- && cd /tmp/aws-ofi-nccl \
- && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${AWS_OFI_NCCL_VERSION}-aws/aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && tar -xf aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws.tar.gz \
- && cd aws-ofi-nccl-${AWS_OFI_NCCL_VERSION}-aws \
- && ./autogen.sh \
- && ./configure --with-mpi=${OPEN_MPI_PATH} \
-                --with-libfabric=${EFA_PATH} \
-                --with-cuda=${CUDA_HOME} \
-                --disable-tests \
- && make \
- && make install \
- && rm -rf /tmp/aws-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
 # Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
 RUN apt-get update \
  && apt-get install -y --no-install-recommends openssh-client openssh-server \
@@ -246,10 +213,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "requests>=2.32.4" \
+    "setuptools>=78.1.1" \
+    "urllib3==2.5.0" \
     "awscli<2" \
+    "pip>=25.0" \
     libgcc \
     # ninja is needed for apex to speed up the build
     ninja \
@@ -257,7 +225,11 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python mpi4py
+RUN pip install --no-cache-dir \
+    # pin numpy version
+    "numpy<2" \
+    opencv-python \
+    mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
@@ -303,10 +275,10 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     torchtnt \
-    triton \
-    s3torchconnector \
-    fastai \
-    accelerate \
+    "triton==3.1.0" \
+    "s3torchconnector==1.2.6" \
+    "fastai==2.7.18" \
+    "accelerate==1.0.1" \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
