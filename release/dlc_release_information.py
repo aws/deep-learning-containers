@@ -120,6 +120,9 @@ class DLCReleaseInformation:
             )
             self.get_container_command_output("python3 -m pip install pipdeptree")
             return self.get_container_command_output("python3 -m pipdeptree")
+        elif "large-model-inference" in self.dlc_repository:
+            self.get_container_command_output("pip install --ignore-installed pipdeptree")
+            return self.get_container_command_output("pipdeptree")
         else:
             self.get_container_command_output("pip install pipdeptree")
             return self.get_container_command_output("pipdeptree")
