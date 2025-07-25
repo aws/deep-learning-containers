@@ -78,7 +78,8 @@
     "version_specifier": "==4.11.0.86"
   },
   "sagemaker-training": {
-    "version_specifier": ">=5.0.0"
+    "version_specifier": ">=5.0.0",
+    "skip": "True"
   },
   "protobuf": {
     "version_specifier": ">=6.31.1"

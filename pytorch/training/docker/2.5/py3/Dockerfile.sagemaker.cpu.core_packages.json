@@ -64,7 +64,8 @@
     "version_specifier": ">=6.5.1"
   },
   "sagemaker-training": {
-    "version_specifier": ">=5.0.0"
+    "version_specifier": ">=5.0.0",
+    "skip": "True"
   },
   "opencv-python": {
     "version_specifier": "==4.11.0.86"
