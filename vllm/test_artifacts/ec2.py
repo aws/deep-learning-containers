@@ -111,6 +111,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # Run benchmark
         benchmark_cmd = f"""
         conda create -n vllm &&
+        conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main &&
+        conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&
         conda activate vllm && \
         python3 /vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
