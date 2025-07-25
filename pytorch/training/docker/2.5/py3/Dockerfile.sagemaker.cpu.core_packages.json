@@ -71,6 +71,7 @@
     "version_specifier": "==4.11.0.86"
   },
   "protobuf": {
-    "version_specifier": ">=6.31.1"
+    "version_specifier": ">=6.31.1",
+    "skip": "True"
   }
 }

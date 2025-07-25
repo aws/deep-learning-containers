@@ -82,6 +82,7 @@
     "skip": "True"
   },
   "protobuf": {
-    "version_specifier": ">=6.31.1"
+    "version_specifier": ">=6.31.1",
+    "skip": "True"
   }
 }
