@@ -129,6 +129,7 @@ spec:
             sizeLimit: "30Gi"  # Increase shared memory size
         nodeSelector:
           role: large-model-worker
+          test_type: vllm
         # Add tolerations for EFA
         tolerations:
         - key: "aws.amazon.com/efa"
@@ -228,6 +229,7 @@ spec:
             sizeLimit: "30Gi"  # Increase shared memory size
         nodeSelector:
           role: large-model-worker
+          test_type: vllm
         # Add tolerations for EFA
         tolerations:
         - key: "aws.amazon.com/efa"
