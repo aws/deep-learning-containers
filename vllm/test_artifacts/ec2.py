@@ -67,9 +67,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run("cd /fsx/vllm-dlc")
         worker_connection.run("cd /fsx/vllm-dlc")
 
-        # Start head node
+        # Start head node (outside container)
         head_cmd = f"""
-        /vllm/examples/online_serving/run_cluster.sh {image_uri} {head_ip} --head /fsx/.cache/huggingface \
+        bash vllm/examples/online_serving/run_cluster.sh \
+        {image_uri} {head_ip} \
+        --head \
+        /fsx/.cache/huggingface \
         -e VLLM_HOST_IP={head_ip} \
         -e HF_TOKEN={hf_token} \
         -e FI_PROVIDER=efa \
@@ -82,9 +85,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         time.sleep(100)
 
-        # Start worker node
+        # Start worker node (outside container)
         worker_cmd = f"""
-        /vllm/examples/online_serving/run_cluster.sh {image_uri} {head_ip} --worker /fsx/.cache/huggingface \
+        bash vllm/examples/online_serving/run_cluster.sh \
+        {image_uri} {head_ip} \
+        --worker \
+        /fsx/.cache/huggingface \
         -e VLLM_HOST_IP={worker_ip} \
         -e FI_PROVIDER=efa \
         -e FI_EFA_USE_DEVICE_RDMA=1 \
@@ -93,28 +99,22 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         """
         worker_connection.run(worker_cmd, hide=False, asynchronous=True)
 
-        # Wait for cluster to stabilize
         time.sleep(100)
 
-        # Execute model serving inside head node container
+        # Execute model serving (inside container)
         serve_cmd = f"""
-        docker exec node bash -c 'export HUGGING_FACE_HUB_TOKEN="{hf_token}" && \
-        vllm serve {model_name} \
+        docker exec -it $(docker ps -q) vllm serve {model_name} \
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
-        --max-num-batched-tokens 16384'
+        --max-num-batched-tokens 16384
         """
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
 
         time.sleep(300)
 
-        # Run benchmark
+        # Run benchmark (outside container)
         benchmark_cmd = f"""
-        conda create -n vllm &&
-        conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main &&
-        conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r &&
-        conda activate vllm && \
-        python3 /vllm/benchmarks/benchmark_serving.py \
+        python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
         --model {model_name} \
         --endpoint /v1/completions \

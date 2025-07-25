@@ -7,6 +7,7 @@ import uuid
 import boto3
 from contextlib import contextmanager
 
+
 from test import test_utils
 import test.test_utils.ec2 as ec2_utils
 from vllm.infra.utils.fsx_utils import FsxSetup
@@ -14,6 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
+from botocore.exceptions import WaiterError
 
 
 from test.test_utils import KEYS_TO_DESTROY_FILE
@@ -238,15 +240,22 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     return result
 
 
-import time
-from botocore.exceptions import WaiterError
-
-
-def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None, fsx=None):
+def cleanup_resources(ec2_cli, instances_info=None, sg_fsxs=None, fsx_configs=None, fsx=None):
     """
     Cleanup all resources in reverse order of creation
     """
     cleanup_errors = []
+
+    if fsx_configs and fsx:
+        for fsx_config in fsx_configs:
+            try:
+                fsx.wait_for_filesystem_available(fsx_config["filesystem_id"])
+                fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
+                print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
+                # Wait for FSx deletion to complete
+                time.sleep(60)
+            except Exception as e:
+                cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
     if instances_info:
         try:
@@ -259,46 +268,80 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsx=None, fsx_config=None
             # Wait for instances to terminate
             waiter = ec2_cli.get_waiter("instance_terminated")
             try:
-                waiter.wait(
-                    InstanceIds=instance_ids,
-                    WaiterConfig={
-                        "Delay": 60,
-                        "MaxAttempts": 60,
-                    },
-                )
+                waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 30, "MaxAttempts": 40})
             except WaiterError as e:
                 print(f"Warning: Instance termination waiter timed out. Error: {str(e)}")
 
-            print("Waiting for ENIs to detach...")
-            time.sleep(150)
+            # cleanup SSH keys
+            for _, key_filename in instances_info:
+                try:
+                    if os.path.exists(key_filename):
+                        os.remove(key_filename)
+                    if os.path.exists(f"{key_filename}.pub"):
+                        os.remove(f"{key_filename}.pub")
+                except Exception as e:
+                    cleanup_errors.append(f"Failed to delete key file {key_filename}: {str(e)}")
 
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
 
-    # Cleanup security group with retries
-    if sg_fsx and fsx:
-        max_attempts = 10
-        for attempt in range(max_attempts):
+    if instances_info:
+        max_retries = 5
+        for attempt in range(max_retries):
             try:
-                fsx.delete_security_group(ec2_cli, sg_fsx)
-                print(f"Deleted security group: {sg_fsx}")
+                # get list of ENIs associated with the terminated instances
+                eni_filters = [
+                    {
+                        "Name": "attachment.instance-id",
+                        "Values": [instance_id for instance_id, _ in instances_info],
+                    }
+                ]
+                enis = ec2_cli.describe_network_interfaces(Filters=eni_filters)["NetworkInterfaces"]
+
+                for eni in enis:
+                    try:
+                        ec2_cli.delete_network_interface(
+                            NetworkInterfaceId=eni["NetworkInterfaceId"]
+                        )
+                    except ec2_cli.exceptions.ClientError as e:
+                        if "InvalidNetworkInterfaceID.NotFound" not in str(e):
+                            raise
                 break
             except Exception as e:
-                if attempt == max_attempts - 1:
-                    cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+                if attempt == max_retries - 1:
+                    cleanup_errors.append(f"Failed to cleanup ENIs: {str(e)}")
                 else:
                     print(
-                        f"Attempt {attempt + 1} to delete security group failed. Retrying in 30 seconds..."
+                        f"Attempt {attempt + 1} to cleanup ENIs failed. Retrying in 30 seconds..."
                     )
-                    time.sleep(100)
+                    time.sleep(30)
 
-    # Cleanup FSx filesystem
-    if fsx_config and fsx:
-        try:
-            fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
-            print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
+    if sg_fsxs:
+        for sg_fsx in sg_fsxs:
+            max_retries = 5
+            for attempt in range(max_retries):
+                try:
+                    try:
+                        ec2_cli.revoke_security_group_ingress(
+                            GroupId=sg_fsx,
+                            IpPermissions=ec2_cli.describe_security_groups(GroupIds=[sg_fsx])[
+                                "SecurityGroups"
+                            ][0]["IpPermissions"],
+                        )
+                    except Exception:
+                        pass
+
+                    ec2_cli.delete_security_group(GroupId=sg_fsx)
+                    print(f"Deleted security group: {sg_fsx}")
+                    break
+                except Exception as e:
+                    if attempt == max_retries - 1:
+                        cleanup_errors.append(f"Failed to delete security group {sg_fsx}: {str(e)}")
+                    else:
+                        print(
+                            f"Attempt {attempt + 1} to delete security group {sg_fsx} failed. Retrying in 30 seconds..."
+                        )
+                        time.sleep(30)
 
     if cleanup_errors:
         raise Exception("\n".join(cleanup_errors))
@@ -445,18 +488,16 @@ def setup():
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
-        # Clean up all created resources
-        for config in resources.get("instance_configs", []):
-            cleanup_resources(
-                ec2_cli,
-                [(config["instance_id"], None)],
-                config["sg_fsx"],
-                config["fsx_config"],
-                fsx,
-            )
-        # Clean up any remaining instances
-        if resources["instances_info"]:
-            cleanup_resources(ec2_cli, resources["instances_info"], None, None, fsx)
+        try:
+            sg_fsxs = []
+            fsx_configs = []
+            for config in resources.get("instance_configs", []):
+                sg_fsxs.append(config["sg_fsx"])
+                fsx_configs.append(config["fsx_config"])
+
+            cleanup_resources(ec2_cli, resources.get("instances_info"), sg_fsxs, fsx_configs, fsx)
+        except Exception as cleanup_error:
+            print(f"Critical error during cleanup: {cleanup_error}")
         raise
 
 
