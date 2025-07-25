@@ -22,6 +22,19 @@ def test_nvjpeg_gpu_x86(gpu, ec2_connection, ec2_instance, x86_compatible_only, 
     _run_nvjpeg_test(gpu, ec2_connection)
 
 
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.8xlarge"], indirect=True)
+@pytest.mark.timeout(1200)
+@pytest.mark.skipif(
+    not test_utils.is_pr_context(),
+    reason="Only run nvjpeg test in PR context to avoid block MAINLINE",
+)
+def test_nvjpeg_gpu_arm64(gpu, ec2_connection, ec2_instance, arm64_compatible_only, below_cuda129_only):
+    _run_nvjpeg_test(gpu, ec2_connection)
+
+
 def _run_nvjpeg_test(image_uri, ec2_connection):
     """
     Runs the nvJPEG test on the specified image URI.
