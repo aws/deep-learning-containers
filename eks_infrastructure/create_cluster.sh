@@ -219,26 +219,12 @@ function setup_load_balancer_controller() {
   CLUSTER_NAME=${1}
   ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 
-  # Check if policy already exists
   if ! aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy 2>/dev/null; then
-    echo "Creating AWSLoadBalancerControllerIAMPolicy..."
-    
-    # Create a temp directory for the policy file
-    TEMP_DIR=$(mktemp -d)
-    POLICY_FILE="${TEMP_DIR}/iam-policy.json"
-    
-    # Download the IAM policy document
-    curl -o ${POLICY_FILE} https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
-    
-    # Create the IAM policy
-    aws iam create-policy \
-      --policy-name AWSLoadBalancerControllerIAMPolicy \
-      --policy-document file://${POLICY_FILE}
-    
-    # Clean up
-    rm -rf ${TEMP_DIR}
+    echo "Policy AWSLoadBalancerControllerIAMPolicy does not exist. Please create it manually first."
+    echo "See: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json"
+    exit 1
   else
-    echo "AWSLoadBalancerControllerIAMPolicy already exists"
+    echo "AWSLoadBalancerControllerIAMPolicy exists, proceeding with setup..."
   fi
 
   # Create an IAM OIDC provider for the cluster
