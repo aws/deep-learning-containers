@@ -368,3 +368,16 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+  27:
+    framework: "pytorch"
+    version: "2.4.0"
+    customer_type: "ec2"
+    arch_type: "x86"
+    training:
+      device_types: [ "cpu", "gpu" ]
+      python_versions: [ "py311" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
