@@ -255,7 +255,7 @@ function setup_load_balancer_controller() {
       -n kube-system \
       --set clusterName=${CLUSTER_NAME} \
       --set serviceAccount.create=false \
-      --set enableServiceMutatorWebhook=false
+      --set serviceAccount.name=aws-load-balancer-controller
       
     echo "Verifying AWS Load Balancer Controller installation..."
     kubectl get pods -n kube-system | grep aws-load-balancer-controller
