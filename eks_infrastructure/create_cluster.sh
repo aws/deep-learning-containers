@@ -255,8 +255,7 @@ function setup_load_balancer_controller() {
       -n kube-system \
       --set clusterName=${CLUSTER_NAME} \
       --set serviceAccount.create=false \
-      --set serviceAccount.name=aws-load-balancer-controller \
-      --set enableServiceMutatorWebhook=false
+      --set serviceAccount.name=aws-load-balancer-controller
       
     echo "Verifying AWS Load Balancer Controller installation..."
     kubectl get pods -n kube-system | grep aws-load-balancer-controller
@@ -270,7 +269,7 @@ function setup_load_balancer_controller() {
       --version=0.6.1 \
       --namespace lws-system \
       --create-namespace \
-      --wait --timeout 600s
+      --wait --timeout 300s
   else
     echo "LWS already installed, skipping installation"
   fi
