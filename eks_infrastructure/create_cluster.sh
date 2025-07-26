@@ -271,6 +271,10 @@ function setup_load_balancer_controller() {
       --namespace lws-system \
       --create-namespace \
       --wait --timeout 300s
+
+    echo "Verifying LWS installation..."
+    kubectl wait --for=condition=ready pod -l app=lws-controller-manager -n lws-system --timeout=300s
+    kubectl get svc -n lws-system 
   else
     echo "LWS already installed, skipping installation"
   fi
@@ -488,9 +492,7 @@ function add_tags_asg() {
 
     if [[ ${nodegroup_name} == *"vllm"* ]]; then
       aws autoscaling create-or-update-tags \
-        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true \
-        ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=vllm,PropagateAtLaunch=true \
-        ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/vpc.amazonaws.com/efa,Value=4,PropagateAtLaunch=true
+        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true
     fi
   done
 
