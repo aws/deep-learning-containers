@@ -28,6 +28,8 @@ managedNodeGroups:
       k8s.io/cluster-autoscaler/node-template/label/role: large-model-worker
       k8s.io/cluster-autoscaler/enabled: "true"
       k8s.io/cluster-autoscaler/${CLUSTER_NAME}: "owned"
+      k8s.io/cluster-autoscaler/node-template/resources/vpc.amazonaws.com/efa: "4"
+      k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/efa: "true"
     iam:
       withAddonPolicies:
         autoScaler: true

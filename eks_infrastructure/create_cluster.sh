@@ -487,7 +487,10 @@ function add_tags_asg() {
 
     if [[ ${nodegroup_name} == *"vllm"* ]]; then
       aws autoscaling create-or-update-tags \
-        --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true
+         --tags \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true" \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/vpc.amazonaws.com/efa,Value=4,PropagateAtLaunch=true" \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/efa,Value=true,PropagateAtLaunch=true"
     fi
   done
 
