@@ -4,7 +4,7 @@
         "PR"
     ],
     "eks_clusters": [
-        "dlc-vllm-automated"
+        "dlc-vllm"
     ],
     "eks_version": "1.32",
     "cluster_autoscalar_image_version": "v1.32.0"

@@ -390,7 +390,7 @@ function setup_fsx_storage() {
       break
     fi
     echo "Filesystem status: $STATUS, waiting..."
-    sleep 30
+    sleep 300
   done
   
   DNS_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].DNSName" --output text)
