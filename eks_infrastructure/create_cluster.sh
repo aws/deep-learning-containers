@@ -270,11 +270,7 @@ function setup_load_balancer_controller() {
       --version=0.6.1 \
       --namespace lws-system \
       --create-namespace \
-      --wait --timeout 300s
-
-    echo "Verifying LWS installation..."
-    kubectl wait --for=condition=ready pod -l app=lws-controller-manager -n lws-system --timeout=300s
-    kubectl get svc -n lws-system 
+      --wait --timeout 600s
   else
     echo "LWS already installed, skipping installation"
   fi
