@@ -47,13 +47,6 @@ elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazon
     curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 fi
 
-# Upgrade sagemaker-training
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6](.+)sagemaker ]]; then
-    pip install -U "sagemaker-training>4.7.4" "protobuf>=4.25.8,<6"
-elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.7(.+)sagemaker ]]; then
-    pip install -U "sagemaker-training>4.7.4,<5" "sagemaker-pytorch-training>=2.9.0"
-fi
-
 # For PT inference gpu sagemaker images, replace start_cuda_compat.sh
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_pytorch_inference_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
