@@ -64,8 +64,19 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
-        head_connection.run("cd /fsx/vllm-dlc")
-        worker_connection.run("cd /fsx/vllm-dlc")
+        setup_command = """
+        cd /fsx/vllm-dlc && \
+        python3 -m venv vllm_env && \
+        source vllm_env/bin/activate && \
+        pip install --upgrade pip setuptools wheel && \
+        pip install numpy torch transformers tqdm
+        """
+
+        # Run on head node
+        head_connection.run(setup_command)
+
+        # Run on worker node
+        worker_connection.run(setup_command)
 
         # Start head node (outside container)
         head_cmd = f"""
