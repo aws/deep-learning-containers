@@ -68,8 +68,14 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         cd /fsx/vllm-dlc && \
         python3 -m venv vllm_env && \
         source vllm_env/bin/activate && \
+        echo "Virtual env path: $VIRTUAL_ENV" && \
+        which python && \
+        python -c "import sys; print('Python path:', sys.executable)" && \
         pip install --upgrade pip setuptools wheel && \
-        pip install numpy torch transformers tqdm
+        pip install numpy torch tqdm && \
+        python -m pip install transformers && \
+        echo "Python version: $(python --version)" && \
+        pip list  # Shows installed packages
         """
 
         # Run on head node
