@@ -98,6 +98,12 @@ fi
 # Clean up installer
 rm ~/miniconda.sh
 
+conda create --name vllm
+
+conda activate vllm
+
+conda install numpy torch dataclass transformers tqdm 
+
 log "Setup completed successfully!"
 
     
