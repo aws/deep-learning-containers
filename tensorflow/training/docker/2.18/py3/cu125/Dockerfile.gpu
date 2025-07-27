@@ -383,7 +383,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-studio-analytics-extension==0.2.0" \
     "sparkmagic==0.22.0" \
     "sagemaker-studio-sparkmagic-lib==0.2.0" \
-    smclarify
+    "smclarify==0.4"
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
