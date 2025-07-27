@@ -98,11 +98,17 @@ fi
 # Clean up installer
 rm ~/miniconda.sh
 
-conda create --name vllm
+# Create a virtual environment
+python3 -m venv vllm_env
 
-conda activate vllm
+# Activate the virtual environment
+source vllm_env/bin/activate
 
-conda install numpy torch dataclass transformers tqdm 
+# Upgrade pip (recommended)
+pip install --upgrade pip setuptools wheel
+
+# Install required packages
+pip install numpy torch transformers tqdm
 
 log "Setup completed successfully!"
 
