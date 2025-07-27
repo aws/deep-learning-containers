@@ -47,5 +47,11 @@
   },
   "awscli": {
     "version_specifier": "<2"
+  },
+  "opencv-python": {
+    "version_specifier": "==4.11.0.86"
+  },
+  "thinc": {
+    "version_specifier": "==8.3.4"
   }
 }
