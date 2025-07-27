@@ -381,9 +381,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker-tensorflow-training==20.5.0" \
     "sagemaker-training==4.7.4" \
     "sagemaker-studio-analytics-extension==0.2.0" \
-    "sparkmagic==0.23.0" \
+    "sparkmagic==0.22.0" \
     "sagemaker-studio-sparkmagic-lib==0.2.0" \
-    "smclarify==0.5"
+    smclarify
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"

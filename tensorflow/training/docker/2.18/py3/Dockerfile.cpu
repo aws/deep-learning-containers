@@ -190,7 +190,6 @@ RUN ${PIP} install --no-cache-dir -U \
     "tensorflow-io==0.37.*" \
     "tensorflow-datasets==4.9.7"
 
-
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
    && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -275,13 +274,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3" \
-    "sagemaker-experiments==0.1.7" \
+    "sagemaker-experiments==0.1.45" \
     "sagemaker-tensorflow-training==20.5.0" \
-    "sagemaker-training>=4.3.0,<=4.7.4" \
-    "sagemaker-studio-analytics-extension<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
-    "smclarify"
+    "sagemaker-training==4.7.4" \
+    "sagemaker-studio-analytics-extension==0.2.0" \
+    "sparkmagic==0.22.0" \
+    "sagemaker-studio-sparkmagic-lib==0.2.0" \
+    smclarify
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
