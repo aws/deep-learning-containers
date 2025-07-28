@@ -99,8 +99,7 @@ def authorize_ingress(ec2_client, group_id, ip_address):
 )
 def wait_for_pods_ready():
     run_out = run(
-        "kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -o json",
-        warn=True
+        "kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -o json"
     )
     pods = json.loads(run_out.stdout)
     
@@ -116,7 +115,7 @@ def wait_for_pods_ready():
             if pod.get("status", {}).get("containerStatuses"):
                 container_status = pod["status"]["containerStatuses"][0]
                 if (container_status.get("state", {}).get("waiting", {}).get("reason") == "CrashLoopBackOff"):
-                    error_out = run(f"kubectl logs {pod_name}", warn=True).stdout
+                    error_out = run(f"kubectl logs {pod_name}").stdout
                     LOGGER.error(f"Pod {pod_name} crashed: {error_out}")
                     raise AttributeError(f"Container Error in pod {pod_name}")
             raise ValueError(f"Pod {pod_name} not ready yet")
@@ -131,8 +130,7 @@ def wait_for_pods_ready():
 )
 def wait_for_ingress_ready(name, namespace = "default"):
     run_out = run(
-        f"kubectl get ingress {name} -n {namespace} -o json",
-        warn=True
+        f"kubectl get ingress {name} -n {namespace} -o json"
     )
     ingress = json.loads(run_out.stdout)
 
@@ -176,8 +174,7 @@ def validate_api_response(result) :
 )
 def wait_for_scale_down():
     run_out = run(
-        "kubectl get nodes -l role=large-model-worker -o json",
-        warn=True
+        "kubectl get nodes -l role=large-model-worker -o json"
     )
     nodes = json.loads(run_out.stdout)
     if nodes.get("items"):
@@ -189,22 +186,30 @@ def wait_for_scale_down():
 def cleanup(ec2_client, alb_sg, user_ip):
     try:
         LOGGER.info("Revoking ingress rule...")
-        ec2_client.revoke_security_group_ingress(
-            GroupId=alb_sg,
-            IpPermissions=[
-                {
-                    'IpProtocol': 'tcp',
-                    'FromPort': 80,
-                    'ToPort': 80,
-                    'IpRanges': [{'CidrIp': f'{user_ip}/32'}]
-                }
-            ]
-        )
+        try:
+            ec2_client.revoke_security_group_ingress(
+                GroupId=alb_sg,
+                IpPermissions=[
+                    {
+                        'IpProtocol': 'tcp',
+                        'FromPort': 80,
+                        'ToPort': 80,
+                        'IpRanges': [{'CidrIp': f'{user_ip}/32'}]
+                    }
+                ]
+            )
+            LOGGER.info("Ingress rule revoked successfully")
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "InvalidPermission.NotFound":
+                LOGGER.warning("Ingress rule not found, skipping revoke operation")
+            else:
+                LOGGER.error(f"Failed to revoke ingress rule: {str(e)}")
         
         LOGGER.info("Deleting kubernetes resources...")
         try:
-            run(f"kubectl delete -f {LWS_INGRESS_YAML}", warn=True)
-            run(f"kubectl delete -f {LWS_YAML}", warn=True)
+            run(f"kubectl delete -f {LWS_INGRESS_YAML}")
+            run(f"kubectl delete -f {LWS_YAML}")
         except Exception as e:
             LOGGER.warning(f"Resource deletion warning: {str(e)}")
         
@@ -236,13 +241,13 @@ def test_vllm_on_eks():
         
         # Deploy vLLM using kubectl apply
         LOGGER.info("Deploying vLLM...")
-        run(f"kubectl apply -f {LWS_YAML}", check=True)
+        run(f"kubectl apply -f {LWS_YAML}")
         
         # Update and deploy ingress
         LOGGER.info("Deploying ingress...")
-        run(f"sed -i 's|<sg-id>|{alb_sg}|g' {LWS_INGRESS_YAML}", check=True)
-        run(f"kubectl apply -f {LWS_INGRESS_YAML}", check=True)
-        run(f"sed -i 's|{alb_sg}|<sg-id>|g' {LWS_INGRESS_YAML}", check=True)
+        run(f"sed -i 's|<sg-id>|{alb_sg}|g' {LWS_INGRESS_YAML}")
+        run(f"kubectl apply -f {LWS_INGRESS_YAML}")
+        run(f"sed -i 's|{alb_sg}|<sg-id>|g' {LWS_INGRESS_YAML}")
         
         LOGGER.info("Adding ingress rule...")
         authorize_ingress(ec2_client, alb_sg, user_ip)
