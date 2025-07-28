@@ -283,7 +283,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 #     "smclarify==0.4"
 
 # Remove python kernel installed by sparkmagic
-RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+# RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # remove tmp files
 RUN rm -rf /tmp/*
