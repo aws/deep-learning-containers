@@ -2,6 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: fsx-lustre-pvc
+  namespace: vllm
 spec:
   accessModes:
     - ReadWriteMany

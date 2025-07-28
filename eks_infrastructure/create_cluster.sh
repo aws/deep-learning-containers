@@ -446,7 +446,7 @@ function setup_k8s_fsx_storage() {
   
   if ! kubectl get pvc fsx-lustre-pvc &>/dev/null; then
     echo "Creating FSx persistent volume claim"
-    kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml
+    kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml -n vllm
   else
     echo "FSx persistent volume claim already exists, skipping creation"
   fi
@@ -454,7 +454,7 @@ function setup_k8s_fsx_storage() {
   echo "Verifying FSx Kubernetes resources..."
   kubectl get sc fsx-sc
   kubectl get pv fsx-lustre-pv
-  kubectl get pvc fsx-lustre-pvc
+  kubectl get pvc fsx-lustre-pvc -n vllm
 }
 
 #/ Tags added to the nodegroup do not propogate to the underlying Auto Scaling Group.
@@ -556,7 +556,7 @@ if [[ ${CLUSTER} == *"vllm"* ]]; then
   kubectl get pods -n kube-system | grep nvidia
   
   echo "Verifying GPU availability..."
-  kubectl get nodes -o json | jq '.items[].status.capacity."nvidia.com/gpu"'
+  kubectl get nodes -o json -n vllm | jq '.items[].status.capacity."nvidia.com/gpu"'
   
   setup_fsx_storage ${CLUSTER} ${AWS_REGION}
   setup_load_balancer_controller ${CLUSTER}
