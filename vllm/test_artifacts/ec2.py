@@ -375,8 +375,7 @@ def test_vllm_on_ec2(resources, image_uri):
                 cleanup_resources(
                     ec2_cli,
                     resources["instances_info"],
-                    resources["sg_fsx"],
-                    resources["fsx_config"],
+                    resources["instance_configs"],
                     fsx,
                 )
                 cleanup_timer.cancel()

@@ -240,15 +240,22 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     return result
 
 
-def cleanup_resources(ec2_cli, instances_info=None, sg_fsxs=None, fsx_configs=None, fsx=None):
+def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=None):
     """
     Cleanup all resources in reverse order of creation
+    Args:
+        ec2_cli: EC2 client
+        instances_info: List of tuples containing (instance_id, key_filename)
+        instance_configs: List of dictionaries containing instance configurations
+        fsx: FSx client
     """
     cleanup_errors = []
 
-    if fsx_configs and fsx:
-        for fsx_config in fsx_configs:
+    # Clean up FSx filesystems
+    if instance_configs and fsx:
+        for config in instance_configs:
             try:
+                fsx_config = config["fsx_config"]
                 fsx.wait_for_filesystem_available(fsx_config["filesystem_id"])
                 fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
                 print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
@@ -257,6 +264,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsxs=None, fsx_configs=No
             except Exception as e:
                 cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
+    # Clean up EC2 instances
     if instances_info:
         try:
             instance_ids = [instance_id for instance_id, _ in instances_info]
@@ -285,6 +293,7 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsxs=None, fsx_configs=No
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
 
+    # Clean up ENIs
     if instances_info:
         max_retries = 5
         for attempt in range(max_retries):
@@ -316,8 +325,10 @@ def cleanup_resources(ec2_cli, instances_info=None, sg_fsxs=None, fsx_configs=No
                     )
                     time.sleep(30)
 
-    if sg_fsxs:
-        for sg_fsx in sg_fsxs:
+    # Clean up security groups
+    if instance_configs:
+        for config in instance_configs:
+            sg_fsx = config["sg_fsx"]
             max_retries = 5
             for attempt in range(max_retries):
                 try:
@@ -482,7 +493,7 @@ def setup():
                     "fsx_config": instance_config["fsx_config"],
                 }
             )
-            print(f"Setup completed successfully for instance {instance_id}")
+            print(f"Setup completed successfully for instance {instance_id} {resources}")
 
         return resources
 
@@ -495,7 +506,13 @@ def setup():
                 sg_fsxs.append(config["sg_fsx"])
                 fsx_configs.append(config["fsx_config"])
 
-            cleanup_resources(ec2_cli, resources.get("instances_info"), sg_fsxs, fsx_configs, fsx)
+            cleanup_resources(
+                ec2_cli,
+                resources["instances_info"],
+                resources["instance_configs"],
+                fsx,
+            )
+
         except Exception as cleanup_error:
             print(f"Critical error during cleanup: {cleanup_error}")
         raise
