@@ -377,13 +377,14 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3"
-#     "sagemaker-experiments==0.1.45" \
-#     "sagemaker-tensorflow-training==20.5.0" \
-#     "sagemaker-training==4.7.4" \
-#     "sagemaker-studio-analytics-extension==0.2.0" \
-#     "sparkmagic==0.22.0" \
-#     "sagemaker-studio-sparkmagic-lib==0.2.0" \
-#     "smclarify==0.4"
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-experiments==0.1.43 \
+    agemaker-tensorflow-training==20.5.0 \
+    sagemaker-training==4.7.4 sparkmagic==0.21.0 \
+    sagemaker-studio-analytics-extension==0.1.6 \
+    sagemaker-studio-sparkmagic-lib==0.2.0 \
+    smclarify 
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
@@ -401,7 +402,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Remove python kernel installed by sparkmagic
-# RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # remove tmp files
 RUN rm -rf /tmp/*
