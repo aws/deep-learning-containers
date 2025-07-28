@@ -401,7 +401,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.
 ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Remove python kernel installed by sparkmagic
-RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+# RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # remove tmp files
 RUN rm -rf /tmp/*
