@@ -202,14 +202,21 @@ rules:
   - list
   - create
   - delete
+  - watch
+  - update
+  - patch
 - apiGroups:
   - "leaderworkerset.x-k8s.io"
   resources:
   - leaderworkersets
   verbs:
   - get
+  - list
   - create
   - delete
+  - watch
+  - update
+  - patch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -217,13 +224,25 @@ metadata:
   name: vllm-cluster-role
 rules:
 - apiGroups:
+  - ""
+  resources:
+  - nodes
+  verbs:
+  - list
+  - get
+  - watch
+- apiGroups:
   - "networking.k8s.io"
   resources:
   - ingresses
   verbs:
   - get
+  - list
   - create
   - delete
+  - watch
+  - update
+  - patch
 - apiGroups:
   - "storage.k8s.io"
   resources:
@@ -231,6 +250,8 @@ rules:
   verbs:
   - get
   - create
+  - list
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
