@@ -123,7 +123,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         """
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
 
-        time.sleep(300)
+        time.sleep(2000)
 
         # Run benchmark (outside container)
         benchmark_cmd = f"""

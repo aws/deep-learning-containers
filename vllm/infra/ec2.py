@@ -256,7 +256,6 @@ def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=N
         for config in instance_configs:
             try:
                 fsx_config = config["fsx_config"]
-                fsx.wait_for_filesystem_available(fsx_config["filesystem_id"])
                 fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
                 print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
                 # Wait for FSx deletion to complete
