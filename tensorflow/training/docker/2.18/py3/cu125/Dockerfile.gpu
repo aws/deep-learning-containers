@@ -388,7 +388,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-training 
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-studio-analytics-extension
+    sagemaker-studio-analytics-extension==0.1.4
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-studio-sparkmagic-lib==0.2.0 
