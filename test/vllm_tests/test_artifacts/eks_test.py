@@ -21,6 +21,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 AWS_REGION = "us-west-2"
 CLUSTER_NAME = "dlc-vllm-PR"
+VLLM_NAMESPACE = "vllm"
 TEST_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LWS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws.yaml")
 LWS_INGRESS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws-ingress.yaml")
@@ -99,7 +100,7 @@ def authorize_ingress(ec2_client, group_id, ip_address):
 )
 def wait_for_pods_ready():
     run_out = run(
-        "kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -o json"
+        f"kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -n {VLLM_NAMESPACE} -o json"
     )
     pods = json.loads(run_out.stdout)
     
@@ -115,7 +116,7 @@ def wait_for_pods_ready():
             if pod.get("status", {}).get("containerStatuses"):
                 container_status = pod["status"]["containerStatuses"][0]
                 if (container_status.get("state", {}).get("waiting", {}).get("reason") == "CrashLoopBackOff"):
-                    error_out = run(f"kubectl logs {pod_name}").stdout
+                    error_out = run(f"kubectl logs {pod_name} -n {VLLM_NAMESPACE}").stdout
                     LOGGER.error(f"Pod {pod_name} crashed: {error_out}")
                     raise AttributeError(f"Container Error in pod {pod_name}")
             raise ValueError(f"Pod {pod_name} not ready yet")
@@ -128,7 +129,7 @@ def wait_for_pods_ready():
     wait_fixed=30000,
     retry_on_exception=retry_if_value_error,
 )
-def wait_for_ingress_ready(name, namespace = "default"):
+def wait_for_ingress_ready(name, namespace = VLLM_NAMESPACE):
     run_out = run(
         f"kubectl get ingress {name} -n {namespace} -o json"
     )
@@ -208,8 +209,8 @@ def cleanup(ec2_client, alb_sg, user_ip):
         
         LOGGER.info("Deleting kubernetes resources...")
         try:
-            run(f"kubectl delete -f {LWS_INGRESS_YAML}")
-            run(f"kubectl delete -f {LWS_YAML}")
+            run(f"kubectl delete -f {LWS_INGRESS_YAML} -n {VLLM_NAMESPACE}")
+            run(f"kubectl delete -f {LWS_YAML} -n {VLLM_NAMESPACE}")
         except Exception as e:
             LOGGER.warning(f"Resource deletion warning: {str(e)}")
         
@@ -241,12 +242,12 @@ def test_vllm_on_eks():
         
         # Deploy vLLM using kubectl apply
         LOGGER.info("Deploying vLLM...")
-        run(f"kubectl apply -f {LWS_YAML}")
+        run(f"kubectl apply -f {LWS_YAML} -n {VLLM_NAMESPACE}")
         
         # Update and deploy ingress
         LOGGER.info("Deploying ingress...")
         run(f"sed -i 's|<sg-id>|{alb_sg}|g' {LWS_INGRESS_YAML}")
-        run(f"kubectl apply -f {LWS_INGRESS_YAML}")
+        run(f"kubectl apply -f {LWS_INGRESS_YAML} -n {VLLM_NAMESPACE}")
         run(f"sed -i 's|{alb_sg}|<sg-id>|g' {LWS_INGRESS_YAML}")
         
         LOGGER.info("Adding ingress rule...")
