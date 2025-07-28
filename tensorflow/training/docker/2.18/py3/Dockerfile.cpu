@@ -277,10 +277,11 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.43 \
-    sagemaker-tensorflow-training==20.5.0 \
-    sagemaker-training==4.7.4 sparkmagic==0.21.0 \
+    sagemaker-tensorflow-training \
+    sagemaker-training \
     sagemaker-studio-analytics-extension==0.1.6 \
     sagemaker-studio-sparkmagic-lib==0.2.0 \
+    sparkmagic==0.21.0 \
     smclarify 
 
 
