@@ -376,14 +376,14 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     shap
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker<3" \
-    "sagemaker-experiments==0.1.45" \
-    "sagemaker-tensorflow-training==20.5.0" \
-    "sagemaker-training==4.7.4" \
-    "sagemaker-studio-analytics-extension==0.2.0" \
-    "sparkmagic==0.22.0" \
-    "sagemaker-studio-sparkmagic-lib==0.2.0" \
-    "smclarify==0.4"
+    "sagemaker<3"
+#     "sagemaker-experiments==0.1.45" \
+#     "sagemaker-tensorflow-training==20.5.0" \
+#     "sagemaker-training==4.7.4" \
+#     "sagemaker-studio-analytics-extension==0.2.0" \
+#     "sparkmagic==0.22.0" \
+#     "sagemaker-studio-sparkmagic-lib==0.2.0" \
+#     "smclarify==0.4"
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
