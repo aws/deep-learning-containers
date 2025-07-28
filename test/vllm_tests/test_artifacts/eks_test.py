@@ -67,23 +67,33 @@ def get_sg_and_ip_info():
         raise
 
 
-def authorize_ingress(ec2_client, group_id, ip_address):
+def check_ip_rule_exists(security_group_rules, ip_address):
     """
-    Authorize security group ingress using EC2 client
+    Check if an IP rule exists in security group rules
     """
-    try:
-        existing_rules = ec2_client.describe_security_group_rules(
-            Filters=[
-                {'Name': 'group-id', 'Values': [group_id]},
-                {'Name': 'cidr', 'Values': [f'{ip_address}/32']},
-                {'Name': 'from-port', 'Values': ['80']},
-                {'Name': 'to-port', 'Values': ['80']},
-            ]
-        )['SecurityGroupRules']
+    if not security_group_rules:
+        return False
 
-        if existing_rules:
-            LOGGER.info("Ingress rule already exists, skipping creation.")
-            return
+    for rule in security_group_rules:
+        if (rule.get('FromPort') == 80 and 
+            rule.get('ToPort') == 80 and 
+            rule.get('IpProtocol') == 'tcp' and
+            'IpRanges' in rule):
+            for ip_range in rule.get('IpRanges', []):
+                if ip_range.get('CidrIp') == f'{ip_address}/32':
+                    LOGGER.info(f"Found existing rule for IP {ip_address}")
+                    return True
+    return False
+
+
+def authorize_ingress(ec2_client, group_id, ip_address):
+    try:
+        response = ec2_client.describe_security_groups(GroupIds=[group_id])
+        if response.get('SecurityGroups') and response['SecurityGroups']:
+            existing_rules = response['SecurityGroups'][0].get('IpPermissions', [])
+            if check_ip_rule_exists(existing_rules, ip_address):
+                LOGGER.info("Ingress rule already exists, skipping creation.")
+                return
         
         ec2_client.authorize_security_group_ingress(
             GroupId=group_id,
@@ -101,6 +111,7 @@ def authorize_ingress(ec2_client, group_id, ip_address):
                 }
             ]
         )
+        LOGGER.info("Ingress rule added successfully.")
     except ClientError as e:
         LOGGER.error(f"Failed to authorize ingress: {str(e)}")
         raise
@@ -201,30 +212,24 @@ def cleanup(ec2_client, alb_sg, user_ip):
     try:
         LOGGER.info("Revoking ingress rule...")
         try:
-            existing_rules = ec2_client.describe_security_group_rules(
-                Filters=[
-                    {'Name': 'group-id', 'Values': [alb_sg]},
-                    {'Name': 'cidr', 'Values': [f'{user_ip}/32']},
-                    {'Name': 'from-port', 'Values': ['80']},
-                    {'Name': 'to-port', 'Values': ['80']},
-                ]
-            )['SecurityGroupRules']
-
-            if existing_rules:
-                ec2_client.revoke_security_group_ingress(
-                    GroupId=alb_sg,
-                    IpPermissions=[
-                        {
-                            'IpProtocol': 'tcp',
-                            'FromPort': 80,
-                            'ToPort': 80,
-                            'IpRanges': [{'CidrIp': f'{user_ip}/32'}]
-                        }
-                    ]
-                )
-                LOGGER.info("Ingress rule revoked successfully")
-            else:
-                LOGGER.info("No matching ingress rule found, skipping revocation")
+            response = ec2_client.describe_security_groups(GroupIds=[alb_sg])
+            if response.get('SecurityGroups') and response['SecurityGroups']:
+                existing_rules = response['SecurityGroups'][0].get('IpPermissions', [])
+                if check_ip_rule_exists(existing_rules, user_ip):
+                    ec2_client.revoke_security_group_ingress(
+                        GroupId=alb_sg,
+                        IpPermissions=[
+                            {
+                                'IpProtocol': 'tcp',
+                                'FromPort': 80,
+                                'ToPort': 80,
+                                'IpRanges': [{'CidrIp': f'{user_ip}/32'}]
+                            }
+                        ]
+                    )
+                    LOGGER.info("Ingress rule revoked successfully")
+                else:
+                    LOGGER.info("No matching ingress rule found, skipping revocation")
         except ClientError as e:
             error_code = e.response.get("Error", {}).get("Code")
             if error_code == "InvalidPermission.NotFound":
