@@ -6,7 +6,6 @@ from invoke import run
 import requests
 import boto3
 from botocore.exceptions import ClientError
-from kubernetes import client, config
 from retrying import retry
 from test.test_utils.ec2 import get_ec2_client
 from test.test_utils.eks import (
@@ -98,29 +97,29 @@ def authorize_ingress(ec2_client, group_id, ip_address):
     wait_fixed=300000,
     retry_on_exception=retry_if_value_error,
 )
-def wait_for_pods_ready(k8s_client):
-    pods = k8s_client.list_namespaced_pod(
-        namespace="default",
-        label_selector="leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws"
+def wait_for_pods_ready():
+    run_out = run(
+        "kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -o json",
+        warn=True
     )
+    pods = json.loads(run_out.stdout)
     
-    if not pods.items:
+    if not pods.get("items"):
         LOGGER.info("No pods found yet...")
         raise ValueError("Pods not created yet")
     
-    for pod in pods.items:
-        LOGGER.info(f"Checking pod {pod.metadata.name}: {pod.status.phase}")
-        if pod.status.phase != "Running":
-            if pod.status.container_statuses:
-                container_status = pod.status.container_statuses[0]
-                if (container_status.state.waiting and 
-                    container_status.state.waiting.reason == "CrashLoopBackOff"):
-                    error_out = k8s_client.read_namespaced_pod_log(
-                        pod.metadata.name, "default"
-                    )
-                    LOGGER.error(f"Pod {pod.metadata.name} crashed: {error_out}")
-                    raise AttributeError(f"Container Error in pod {pod.metadata.name}")
-            raise ValueError(f"Pod {pod.metadata.name} not ready yet")
+    for pod in pods["items"]:
+        pod_name = pod["metadata"]["name"]
+        pod_phase = pod["status"]["phase"]
+        LOGGER.info(f"Checking pod {pod_name}: {pod_phase}")
+        if pod_phase != "Running":
+            if pod.get("status", {}).get("containerStatuses"):
+                container_status = pod["status"]["containerStatuses"][0]
+                if (container_status.get("state", {}).get("waiting", {}).get("reason") == "CrashLoopBackOff"):
+                    error_out = run(f"kubectl logs {pod_name}", warn=True).stdout
+                    LOGGER.error(f"Pod {pod_name} crashed: {error_out}")
+                    raise AttributeError(f"Container Error in pod {pod_name}")
+            raise ValueError(f"Pod {pod_name} not ready yet")
     
     return True
 
@@ -130,15 +129,17 @@ def wait_for_pods_ready(k8s_client):
     wait_fixed=30000,
     retry_on_exception=retry_if_value_error,
 )
-def wait_for_ingress_ready(k8s_networking_client, name, namespace = "default"):
-    ingress = k8s_networking_client.read_namespaced_ingress(
-        name=name,
-        namespace=namespace
+def wait_for_ingress_ready(name, namespace = "default"):
+    run_out = run(
+        f"kubectl get ingress {name} -n {namespace} -o json",
+        warn=True
     )
-    if not ingress.status.load_balancer.ingress:
+    ingress = json.loads(run_out.stdout)
+
+    if not ingress.get("status", {}).get("loadBalancer", {}).get("ingress"):
         LOGGER.info("Waiting for ALB to be ready...")
         raise ValueError("Ingress ALB not ready yet")
-    return ingress.status.load_balancer.ingress[0].hostname
+    return ingress["status"]["loadBalancer"]["ingress"][0]["hostname"]
 
 
 def test_api_endpoint(endpoint, api_type):
@@ -173,17 +174,19 @@ def validate_api_response(result) :
     wait_fixed=300000,
     retry_on_exception=retry_if_value_error,
 )
-def wait_for_scale_down(k8s_client):
-    nodes = k8s_client.list_node(
-        label_selector="role=large-model-worker"
+def wait_for_scale_down():
+    run_out = run(
+        "kubectl get nodes -l role=large-model-worker -o json",
+        warn=True
     )
-    if nodes.items:
-        LOGGER.info(f"Still have {len(nodes.items)} worker nodes, waiting...")
+    nodes = json.loads(run_out.stdout)
+    if nodes.get("items"):
+        LOGGER.info(f"Still have {len(nodes['items'])} worker nodes, waiting...")
         raise ValueError("Nodes still present")
     return True
 
 
-def cleanup(ec2_client, alb_sg, user_ip, k8s_client):
+def cleanup(ec2_client, alb_sg, user_ip):
     try:
         LOGGER.info("Revoking ingress rule...")
         ec2_client.revoke_security_group_ingress(
@@ -206,7 +209,7 @@ def cleanup(ec2_client, alb_sg, user_ip, k8s_client):
             LOGGER.warning(f"Resource deletion warning: {str(e)}")
         
         LOGGER.info("Waiting for nodes to scale down...")
-        wait_for_scale_down(k8s_client)
+        wait_for_scale_down()
         
     except Exception as e:
         LOGGER.error(f"Cleanup failed: {str(e)}")
@@ -228,11 +231,6 @@ def test_vllm_on_eks():
         eks_write_kubeconfig(CLUSTER_NAME, AWS_REGION)
         ec2_client = get_ec2_client(AWS_REGION)
         
-        # Setup kubernetes client
-        config.load_kube_config()
-        k8s_client = client.CoreV1Api()
-        k8s_networking_client = client.NetworkingV1Api()
-        
         LOGGER.info("Getting security group and IP info...")
         alb_sg, user_ip = get_sg_and_ip_info()
         
@@ -250,13 +248,10 @@ def test_vllm_on_eks():
         authorize_ingress(ec2_client, alb_sg, user_ip)
         
         LOGGER.info("Waiting for pods to be ready...")
-        wait_for_pods_ready(k8s_client)
+        wait_for_pods_ready()
         
         LOGGER.info("Waiting for ALB endpoint...")
-        endpoint = wait_for_ingress_ready(
-            k8s_networking_client, 
-            "vllm-deepseek-32b-lws-ingress"
-        )
+        endpoint = wait_for_ingress_ready("vllm-deepseek-32b-lws-ingress")
         LOGGER.info(f"ALB endpoint: {endpoint}")
         
         # Run tests
@@ -279,4 +274,4 @@ def test_vllm_on_eks():
         
     finally:
         LOGGER.info("Cleaning up...")
-        cleanup(ec2_client, alb_sg, user_ip, k8s_client)
+        cleanup(ec2_client, alb_sg, user_ip)
