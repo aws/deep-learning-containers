@@ -16,6 +16,8 @@ Once you've selected your desired Deep Learning Containers image, continue with 
 
 -   To run training and inference on Deep Learning Containers for Amazon ECS using PyTorch and TensorFlow, see [Amazon ECS tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ecs.html)
 
+- To run training and inference on Hugging Face models in SageMaker, see [Hugging Face on AWS](https://huggingface.co/docs/sagemaker/en/index)
+
 -   Deep Learning Containers for Amazon EKS offer CPU, GPU, and distributed GPU-based training, as well as CPU and GPU-based inference. To run training and inference on Deep Learning Containers for Amazon EKS using PyTorch, and TensorFlow, see [Amazon EKS Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-eks.html)
 
 -   For information on security in Deep Learning Containers, see [Security in AWS Deep Learning Containers](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/security.html)
