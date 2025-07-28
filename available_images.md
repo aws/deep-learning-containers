@@ -277,6 +277,11 @@ Please refer to the following pages to view all available versions and tags for 
 
 To get the latest one, you can check the Hugging Face [documentation](https://huggingface.co/docs/sagemaker/en/dlcs/available#llm-tgi).
 
+HuggingFace Text Embeddings Inference (TEI) Containers
+===============================
+
+To get the latest one, you can check the Hugging Face [documentation](https://huggingface.co/docs/sagemaker/dlcs/available#text-embedding-inference).
+
 HuggingFace Neuron Text Generation Inference (TGI) Containers
 ===============================
 
