@@ -43,38 +43,27 @@ docker run --name vllm-server --rm -d --runtime nvidia --gpus all \
     --ipc=host \
     ${CONTAINER_IMAGE} \
     --model ${MODEL_NAME} \
-    --tensor-parallel-size 8 \
-    --trust-remote-code \
-    --max-log-level debug
+    --tensor-parallel-size 8 
 
-# Function to check server status
-check_server() {
-    if curl --output /dev/null --silent --fail http://localhost:8000/v1/models; then
-        return 0
-    else
-        return 1
-    fi
-}
+log "Checking container status..."
+if ! docker ps | grep -q vllm-server; then
+    log "Container failed to start. Logs:"
+    docker logs vllm-server
+    exit 1
+fi
 
-# Wait for the server to start
-log "Waiting for the server to start..."
-start_time=$(date +%s)
-while ! check_server; do
-    current_time=$(date +%s)
-    elapsed=$((current_time - start_time))
-    if [ $elapsed -ge 1800 ]; then  # 30 minutes timeout
-        log "Server failed to start within 30 minutes. Exiting."
-        docker logs vllm-server
-        exit 1
-    fi
-    log "Server not ready. Elapsed time: ${elapsed}s. Waiting..."
-    sleep 30
+
+echo "Waiting for the server to start..."
+until $(curl --output /dev/null --silent --fail http://localhost:8000/v1/models); do
+  printf '.'
+  sleep 10
 done
-log "Server is up! Total startup time: $(($(date +%s) - start_time)) seconds"
+echo -e "\nServer is up!"
 
 # Additional delay to ensure model is fully loaded
-log "Waiting for model to fully load..."
+echo "Waiting for model to fully load..."
 sleep 30
+
 
 # Perform inference checks
 log "Performing inference checks..."
