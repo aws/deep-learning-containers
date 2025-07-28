@@ -194,7 +194,7 @@ RUN pip install --no-cache-dir \
     ipython \
     parso \
     awscli \
-    urllib3 \
+    "urllib3>=2.5.0" \
     idna \
     tqdm \
     requests

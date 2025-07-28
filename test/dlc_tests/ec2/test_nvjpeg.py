@@ -5,6 +5,7 @@ import pytest
 from test import test_utils
 from test.test_utils import ec2 as ec2_utils
 from test.test_utils import LOGGER
+from test.test_utils import AL2023_BASE_DLAMI_ARM64_US_WEST_2
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
@@ -26,6 +27,7 @@ def test_nvjpeg_gpu_x86(gpu, ec2_connection, ec2_instance, x86_compatible_only, 
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.timeout(1200)
 @pytest.mark.skipif(
     not test_utils.is_pr_context(),

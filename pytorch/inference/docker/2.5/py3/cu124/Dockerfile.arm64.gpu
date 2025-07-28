@@ -189,7 +189,7 @@ RUN ln -s /opt/conda/bin/pip /usr/local/bin/pip3 \
     cryptography \
     ipython \
     awscli \
-    urllib3 \
+    "urllib3>=2.5.0" \
     idna \
     tqdm
 
