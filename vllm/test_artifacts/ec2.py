@@ -82,6 +82,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Start head node (outside container)
         head_cmd = f"""
+        source vllm_env/bin/activate &&
         bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --head \
@@ -100,6 +101,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Start worker node (outside container)
         worker_cmd = f"""
+        source vllm_env/bin/activate &&
         bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --worker \
@@ -127,6 +129,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Run benchmark (outside container)
         benchmark_cmd = f"""
+        source vllm_env/bin/activate &&
         python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
         --model {model_name} \
