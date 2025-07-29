@@ -119,7 +119,7 @@ def authorize_ingress(ec2_client, group_id, ip_address):
 
 
 @retry(
-    stop_max_attempt_number=60,
+    stop_max_attempt_number=40,
     wait_fixed=300000,
     retry_on_exception=retry_if_value_error,
 )
@@ -145,6 +145,12 @@ def wait_for_pods_ready():
                     LOGGER.error(f"Pod {pod_name} crashed: {error_out}")
                     raise AttributeError(f"Container Error in pod {pod_name}")
             raise ValueError(f"Pod {pod_name} not ready yet")
+        
+        # Check if container is ready 1/1
+        container_statuses = pod.get("status", {}).get("containerStatuses", [])
+        if not container_statuses or not container_statuses[0].get("ready", False):
+            LOGGER.info(f"Pod {pod_name} is running but container not ready")
+            raise ValueError(f"Container in pod {pod_name} not ready yet")
     
     return True
 
