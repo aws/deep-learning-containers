@@ -186,15 +186,21 @@ def test_api_endpoint(endpoint, api_type, max_retries=5, wait_time=60):
             
             if api_type == "completions":
                 payload["prompt"] = "Hello, how are you?"
+                url = f"http://{endpoint}/v1/completions"
             elif api_type == "chat_completions":
                 payload["messages"] = [{"role": "user", "content": "What are the benefits of using FSx Lustre with EKS?"}]
+                url = f"http://{endpoint}/v1/chat/completions"
             
+            LOGGER.info(f"Sending request to {url} with payload: {json.dumps(payload, indent=2)}")
+
             response = requests.post(
                 f"http://{endpoint}/v1/{api_type}",
                 json=payload,
                 timeout=60
             )
             response.raise_for_status()
+            response_json = response.json()
+            LOGGER.info(f"Received response: {json.dumps(response_json, indent=2)}")
             return response.json()
         except requests.RequestException as e:
             LOGGER.warning(f"Attempt {attempt + 1} failed: {str(e)}")
@@ -339,5 +345,6 @@ def test_vllm_on_eks():
         raise
         
     finally:
+        time.sleep(180) # 3 minutes before starting cleanup
         LOGGER.info("Cleaning up...")
         cleanup(ec2_client, alb_sg, user_ip)
