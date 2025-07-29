@@ -27,42 +27,37 @@ TEST_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LWS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws.yaml")
 LWS_INGRESS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws-ingress.yaml")
 
+
 def get_sg_and_ip_info():
     """
     Get ALB security group ID and current IP address
     """
     try:
         ec2_client = get_ec2_client(AWS_REGION)
-        
+
         # Get VPC ID from EKS cluster
-        eks_client = boto3.client('eks', region_name=AWS_REGION)
-        vpc_id = eks_client.describe_cluster(
-            name=CLUSTER_NAME
-        )['cluster']['resourcesVpcConfig']['vpcId']
-        alb_sg_name=f"{CLUSTER_NAME}-alb-sg"
-        
+        eks_client = boto3.client("eks", region_name=AWS_REGION)
+        vpc_id = eks_client.describe_cluster(name=CLUSTER_NAME)["cluster"]["resourcesVpcConfig"][
+            "vpcId"
+        ]
+        alb_sg_name = f"{CLUSTER_NAME}-alb-sg"
+
         # Get ALB security group
         response = ec2_client.describe_security_groups(
             Filters=[
-                {
-                    'Name': 'group-name',
-                    'Values': [alb_sg_name]
-                },
-                {
-                    'Name': 'vpc-id',
-                    'Values': [vpc_id]
-                }
+                {"Name": "group-name", "Values": [alb_sg_name]},
+                {"Name": "vpc-id", "Values": [vpc_id]},
             ]
         )
-        
-        if not response['SecurityGroups']:
+
+        if not response["SecurityGroups"]:
             raise Exception(f"Security group {alb_sg_name} not found")
-            
-        alb_sg = response['SecurityGroups'][0]['GroupId']
-        user_ip = requests.get('https://checkip.amazonaws.com').text.strip()
-        
+
+        alb_sg = response["SecurityGroups"][0]["GroupId"]
+        user_ip = requests.get("https://checkip.amazonaws.com").text.strip()
+
         return alb_sg, user_ip
-        
+
     except Exception as e:
         LOGGER.error(f"Failed to get ALB security group or current IP: {str(e)}")
         raise
@@ -76,12 +71,14 @@ def check_ip_rule_exists(security_group_rules, ip_address):
         return False
 
     for rule in security_group_rules:
-        if (rule.get('FromPort') == 80 and 
-            rule.get('ToPort') == 80 and 
-            rule.get('IpProtocol') == 'tcp' and
-            'IpRanges' in rule):
-            for ip_range in rule.get('IpRanges', []):
-                if ip_range.get('CidrIp') == f'{ip_address}/32':
+        if (
+            rule.get("FromPort") == 80
+            and rule.get("ToPort") == 80
+            and rule.get("IpProtocol") == "tcp"
+            and "IpRanges" in rule
+        ):
+            for ip_range in rule.get("IpRanges", []):
+                if ip_range.get("CidrIp") == f"{ip_address}/32":
                     LOGGER.info(f"Found existing rule for IP {ip_address}")
                     return True
     return False
@@ -90,27 +87,27 @@ def check_ip_rule_exists(security_group_rules, ip_address):
 def authorize_ingress(ec2_client, group_id, ip_address):
     try:
         response = ec2_client.describe_security_groups(GroupIds=[group_id])
-        if response.get('SecurityGroups') and response['SecurityGroups']:
-            existing_rules = response['SecurityGroups'][0].get('IpPermissions', [])
+        if response.get("SecurityGroups") and response["SecurityGroups"]:
+            existing_rules = response["SecurityGroups"][0].get("IpPermissions", [])
             if check_ip_rule_exists(existing_rules, ip_address):
                 LOGGER.info("Ingress rule already exists, skipping creation.")
                 return
-        
+
         ec2_client.authorize_security_group_ingress(
             GroupId=group_id,
             IpPermissions=[
                 {
-                    'IpProtocol': 'tcp',
-                    'FromPort': 80,
-                    'ToPort': 80,
-                    'IpRanges': [
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "IpRanges": [
                         {
-                            'CidrIp': f'{ip_address}/32',
-                            'Description': 'Temporary access for vLLM testing'
+                            "CidrIp": f"{ip_address}/32",
+                            "Description": "Temporary access for vLLM testing",
                         }
-                    ]
+                    ],
                 }
-            ]
+            ],
         )
         LOGGER.info("Ingress rule added successfully.")
     except ClientError as e:
@@ -128,11 +125,11 @@ def wait_for_pods_ready():
         f"kubectl get pods -l leaderworkerset.sigs.k8s.io/name=vllm-deepseek-32b-lws -n {VLLM_NAMESPACE} -o json"
     )
     pods = json.loads(run_out.stdout)
-    
+
     if not pods.get("items"):
         LOGGER.info("No pods found yet...")
         raise ValueError("Pods not created yet")
-    
+
     for pod in pods["items"]:
         pod_name = pod["metadata"]["name"]
         pod_phase = pod["status"]["phase"]
@@ -140,18 +137,21 @@ def wait_for_pods_ready():
         if pod_phase != "Running":
             if pod.get("status", {}).get("containerStatuses"):
                 container_status = pod["status"]["containerStatuses"][0]
-                if (container_status.get("state", {}).get("waiting", {}).get("reason") == "CrashLoopBackOff"):
+                if (
+                    container_status.get("state", {}).get("waiting", {}).get("reason")
+                    == "CrashLoopBackOff"
+                ):
                     error_out = run(f"kubectl logs {pod_name} -n {VLLM_NAMESPACE}").stdout
                     LOGGER.error(f"Pod {pod_name} crashed: {error_out}")
                     raise AttributeError(f"Container Error in pod {pod_name}")
             raise ValueError(f"Pod {pod_name} not ready yet")
-        
+
         # Check if container is ready 1/1
         container_statuses = pod.get("status", {}).get("containerStatuses", [])
         if not container_statuses or not container_statuses[0].get("ready", False):
             LOGGER.info(f"Pod {pod_name} is running but container not ready")
             raise ValueError(f"Container in pod {pod_name} not ready yet")
-    
+
     return True
 
 
@@ -160,10 +160,8 @@ def wait_for_pods_ready():
     wait_fixed=30000,
     retry_on_exception=retry_if_value_error,
 )
-def wait_for_ingress_ready(name, namespace = VLLM_NAMESPACE):
-    run_out = run(
-        f"kubectl get ingress {name} -n {namespace} -o json"
-    )
+def wait_for_ingress_ready(name, namespace=VLLM_NAMESPACE):
+    run_out = run(f"kubectl get ingress {name} -n {namespace} -o json")
     ingress = json.loads(run_out.stdout)
 
     if not ingress.get("status", {}).get("loadBalancer", {}).get("ingress"):
@@ -181,23 +179,24 @@ def test_api_endpoint(endpoint, api_type, max_retries=5, wait_time=60):
             payload = {
                 "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
                 "max_tokens": 100,
-                "temperature": 0.7
+                "temperature": 0.7,
             }
-            
+
             if api_type == "completions":
                 payload["prompt"] = "Hello, how are you?"
                 url = f"http://{endpoint}/v1/completions"
             elif api_type == "chat_completions":
-                payload["messages"] = [{"role": "user", "content": "What are the benefits of using FSx Lustre with EKS?"}]
+                payload["messages"] = [
+                    {
+                        "role": "user",
+                        "content": "What are the benefits of using FSx Lustre with EKS?",
+                    }
+                ]
                 url = f"http://{endpoint}/v1/chat/completions"
-            
+
             LOGGER.info(f"Sending request to {url} with payload: {json.dumps(payload, indent=2)}")
 
-            response = requests.post(
-                url,
-                json=payload,
-                timeout=60
-            )
+            response = requests.post(url, json=payload, timeout=60)
             response.raise_for_status()
             response_json = response.json()
             LOGGER.info(f"Received response: {json.dumps(response_json, indent=2)}")
@@ -222,9 +221,10 @@ def test_api_endpoint(endpoint, api_type, max_retries=5, wait_time=60):
                 raise
 
 
-def validate_api_response(result) :
-    required_fields = ['id', 'object', 'choices', 'usage']
+def validate_api_response(result):
+    required_fields = ["id", "object", "choices", "usage"]
     return all(field in result for field in required_fields)
+
 
 @retry(
     stop_max_attempt_number=30,
@@ -232,9 +232,7 @@ def validate_api_response(result) :
     retry_on_exception=retry_if_value_error,
 )
 def wait_for_scale_down():
-    run_out = run(
-        "kubectl get nodes -l role=large-model-worker -o json"
-    )
+    run_out = run("kubectl get nodes -l role=large-model-worker -o json")
     nodes = json.loads(run_out.stdout)
     if nodes.get("items"):
         LOGGER.info(f"Still have {len(nodes['items'])} worker nodes, waiting...")
@@ -247,19 +245,19 @@ def cleanup(ec2_client, alb_sg, user_ip):
         LOGGER.info("Revoking ingress rule...")
         try:
             response = ec2_client.describe_security_groups(GroupIds=[alb_sg])
-            if response.get('SecurityGroups') and response['SecurityGroups']:
-                existing_rules = response['SecurityGroups'][0].get('IpPermissions', [])
+            if response.get("SecurityGroups") and response["SecurityGroups"]:
+                existing_rules = response["SecurityGroups"][0].get("IpPermissions", [])
                 if check_ip_rule_exists(existing_rules, user_ip):
                     ec2_client.revoke_security_group_ingress(
                         GroupId=alb_sg,
                         IpPermissions=[
                             {
-                                'IpProtocol': 'tcp',
-                                'FromPort': 80,
-                                'ToPort': 80,
-                                'IpRanges': [{'CidrIp': f'{user_ip}/32'}]
+                                "IpProtocol": "tcp",
+                                "FromPort": 80,
+                                "ToPort": 80,
+                                "IpRanges": [{"CidrIp": f"{user_ip}/32"}],
                             }
-                        ]
+                        ],
                     )
                     LOGGER.info("Ingress rule revoked successfully")
                 else:
@@ -270,17 +268,17 @@ def cleanup(ec2_client, alb_sg, user_ip):
                 LOGGER.warning("Ingress rule not found, skipping revoke operation")
             else:
                 LOGGER.error(f"Failed to revoke ingress rule: {str(e)}")
-        
+
         LOGGER.info("Deleting kubernetes resources...")
         try:
             run(f"kubectl delete -f {LWS_INGRESS_YAML} -n {VLLM_NAMESPACE}")
             run(f"kubectl delete -f {LWS_YAML} -n {VLLM_NAMESPACE}")
         except Exception as e:
             LOGGER.warning(f"Resource deletion warning: {str(e)}")
-        
+
         LOGGER.info("Waiting for nodes to scale down...")
         wait_for_scale_down()
-        
+
     except Exception as e:
         LOGGER.error(f"Cleanup failed: {str(e)}")
         raise
@@ -297,54 +295,54 @@ def test_vllm_on_eks():
         eks_setup()
         if not is_eks_cluster_active(CLUSTER_NAME):
             raise Exception(f"EKS cluster {CLUSTER_NAME} is not active")
-        
+
         eks_write_kubeconfig(CLUSTER_NAME, AWS_REGION)
         ec2_client = get_ec2_client(AWS_REGION)
-        
+
         LOGGER.info("Getting security group and IP info...")
         alb_sg, user_ip = get_sg_and_ip_info()
-        
+
         # Deploy vLLM using kubectl apply
         LOGGER.info("Deploying vLLM...")
         run(f"kubectl apply -f {LWS_YAML} -n {VLLM_NAMESPACE}")
-        
+
         # Update and deploy ingress
         LOGGER.info("Deploying ingress...")
         run(f"sed -i 's|<sg-id>|{alb_sg}|g' {LWS_INGRESS_YAML}")
         run(f"kubectl apply -f {LWS_INGRESS_YAML} -n {VLLM_NAMESPACE}")
         run(f"sed -i 's|{alb_sg}|<sg-id>|g' {LWS_INGRESS_YAML}")
-        
+
         LOGGER.info("Adding ingress rule...")
         authorize_ingress(ec2_client, alb_sg, user_ip)
-        
+
         LOGGER.info("Waiting for pods to be ready...")
         wait_for_pods_ready()
-        
+
         LOGGER.info("Waiting for ALB endpoint...")
         endpoint = wait_for_ingress_ready("vllm-deepseek-32b-lws-ingress")
         LOGGER.info(f"ALB endpoint: {endpoint}")
-        
+
         # Run tests
         LOGGER.info("Testing completions API...")
         completions_result = test_api_endpoint(endpoint, "completions")
         if not validate_api_response(completions_result):
             raise ValueError("Completions test failed")
-        
+
         LOGGER.info("Testing chat completions API...")
         chat_result = test_api_endpoint(endpoint, "chat_completions")
         if not validate_api_response(chat_result):
             raise ValueError("Chat completions test failed")
-        
+
         LOGGER.info("All tests passed!")
         return True
-        
+
     except Exception as e:
         LOGGER.error(f"Test failed: {str(e)}")
         LOGGER.info("Waiting 5 minutes before cleanup to allow for debugging...")
         time.sleep(300)
         raise
-        
+
     finally:
-        time.sleep(120) # 2 minutes before starting cleanup
+        time.sleep(120)  # 2 minutes before starting cleanup
         LOGGER.info("Cleaning up...")
         cleanup(ec2_client, alb_sg, user_ip)
