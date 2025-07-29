@@ -32,6 +32,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
+from test.vllm_tests.trigger_test import test_vllm_on_eks
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -402,7 +403,7 @@ def main():
         if specific_test_type == "eks" and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
-                for framework in ("mxnet", "pytorch", "tensorflow")
+                for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
                 if framework in dlc_images
             ]
             if len(frameworks_in_images) != 1:
@@ -411,6 +412,18 @@ def main():
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
+
+            if framework == "vllm":
+                try:
+                    LOGGER.info(f"Running vLLM EKS tests with image: {all_image_list[0]}")
+                    test_vllm_on_eks(all_image_list[0])
+                    LOGGER.info("vLLM EKS tests completed successfully")
+                    # Exit function after vLLM tests
+                    return
+                except Exception as e:
+                    LOGGER.error(f"vLLM EKS tests failed: {str(e)}")
+                    raise
+
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
