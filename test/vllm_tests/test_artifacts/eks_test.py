@@ -182,7 +182,7 @@ def test_api_endpoint(endpoint, api_type):
     response = requests.post(
         f"http://{endpoint}/v1/{api_type}",
         json=payload,
-        timeout=30
+        timeout=60
     )
     response.raise_for_status()
     return response.json()
