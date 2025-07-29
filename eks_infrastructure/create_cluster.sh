@@ -543,13 +543,13 @@ fi
 # Create cluster and nodegroups
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+aws eks update-kubeconfig --name ${CLUSTER} --region ${AWS_REGION}
 create_namespaces
 
 # Configure kubectl and setup additional components for vLLM clusters
 if [[ ${CLUSTER} == *"vllm"* ]]; then
   echo "Configuring kubectl for cluster ${CLUSTER}..."
-  aws eks update-kubeconfig --name ${CLUSTER} --region ${AWS_REGION}
-  
+  AWS_IAM_AUTHENTICATOR
   echo "Verifying nodes are ready..."
   kubectl get nodes
   
