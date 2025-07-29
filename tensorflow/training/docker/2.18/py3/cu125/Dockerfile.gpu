@@ -397,6 +397,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sparkmagic==0.21.0 \
     smclarify 
 
+#pin numpy version because of sagemaker-tensorflow-training dependency
+RUN pip install numpy==1.26.4
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
