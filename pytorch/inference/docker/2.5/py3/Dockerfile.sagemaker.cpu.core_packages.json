@@ -29,5 +29,8 @@
   },
   "sagemaker-pytorch-inference": {
     "version_specifier": "==2.0.25"
+  },
+  "urllib3": {
+    "version_specifier": ">=2.5.0"
   }
 }
