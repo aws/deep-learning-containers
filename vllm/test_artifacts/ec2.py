@@ -129,12 +129,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         check_model_server_command = f"""
         echo "Checking Chat Completions API..."
-        curl http://localhost:8000/v1/chat/completions \
-        -H "Content-Type: application/json" \
-        -d '{
-            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-            "messages": [{"role": "user", "content": "Hello, how are you?"}]
-        }'
+        curl http://localhost:8000/v1/chat/completions \\
+        -H "Content-Type: application/json" \\
+        -d '{{"model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+            "messages": [{{"role": "user", "content": "Hello, how are you?"}}]}}'
         """
 
         head_connection.run(check_model_server_command, hide=False, timeout=2000)
@@ -382,7 +380,7 @@ def test_vllm_on_ec2(resources, image_uri):
     finally:
         if ec2_cli and fsx:
             cleanup_timer = threading.Timer(
-                300, lambda: print("Cleanup timed out, some resources might need manual cleanup")
+                1000, lambda: print("Cleanup timed out, some resources might need manual cleanup")
             )
             cleanup_timer.start()
 
