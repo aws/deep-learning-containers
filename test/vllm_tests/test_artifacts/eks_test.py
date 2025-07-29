@@ -194,7 +194,7 @@ def test_api_endpoint(endpoint, api_type, max_retries=5, wait_time=60):
             LOGGER.info(f"Sending request to {url} with payload: {json.dumps(payload, indent=2)}")
 
             response = requests.post(
-                f"http://{endpoint}/v1/{api_type}",
+                url,
                 json=payload,
                 timeout=60
             )
