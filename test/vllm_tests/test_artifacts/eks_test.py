@@ -306,7 +306,7 @@ def test_vllm_on_eks(image):
         LOGGER.info("Deploying vLLM...")
         run(f"sed -i 's|<image>|{image}|g' {LWS_YAML}")
         run(f"kubectl apply -f {LWS_YAML} -n {VLLM_NAMESPACE}")
-        run(f"sed -i 's|{image}|<image>|g' {LWS_YAML}") 
+        run(f"sed -i 's|{image}|<image>|g' {LWS_YAML}")
 
         # Update and deploy ingress
         LOGGER.info("Deploying ingress...")
@@ -345,6 +345,6 @@ def test_vllm_on_eks(image):
         raise
 
     finally:
-        time.sleep(120)  # 2 minutes before starting cleanup
+        time.sleep(60)  # 1 minute buffer before starting cleanup
         LOGGER.info("Cleaning up...")
         cleanup(ec2_client, alb_sg, user_ip)
