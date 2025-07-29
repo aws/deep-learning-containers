@@ -118,7 +118,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Execute model serving (inside container)
         serve_cmd = f"""
-        docker exec -it $(docker ps -q) vllm-serve {model_name} \
+        docker exec -it $(docker ps -q) vllm serve {model_name} \
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
         --max-num-batched-tokens 16384
@@ -127,13 +127,25 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         time.sleep(100)
 
+        check_model_server_command = f"""
+        echo "Checking Chat Completions API..."
+        curl http://localhost:8000/v1/chat/completions \
+        -H "Content-Type: application/json" \
+        -d '{
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+            "messages": [{"role": "user", "content": "Hello, how are you?"}]
+        }'
+        """
+
+        head_connection.run(check_model_server_command, hide=False, timeout=2000)
+
         # Run benchmark (outside container)
         benchmark_cmd = f"""
         source vllm_env/bin/activate &&
         python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
         --model {model_name} \
-        --endpoint /v1/completions \
+        --endpoint /v1/chat/completions \
         --dataset-name sharegpt \
         --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
         --num-prompts 1000
