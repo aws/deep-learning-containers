@@ -284,12 +284,12 @@ def cleanup(ec2_client, alb_sg, user_ip):
         raise
 
 
-def test_vllm_on_eks():
+def test_vllm_on_eks(image):
     """
-    Run vLLM tests on EKS using image from YAML
+    Run vLLM tests on EKS using specified image
     """
     try:
-        LOGGER.info("Starting EKS tests with predefined image")
+        LOGGER.info(f"Starting EKS tests with image: {image}")
 
         # Verify EKS setup and make sure cluster is active
         eks_setup()
@@ -304,7 +304,9 @@ def test_vllm_on_eks():
 
         # Deploy vLLM using kubectl apply
         LOGGER.info("Deploying vLLM...")
+        run(f"sed -i 's|<image>|{image}|g' {LWS_YAML}")
         run(f"kubectl apply -f {LWS_YAML} -n {VLLM_NAMESPACE}")
+        run(f"sed -i 's|{image}|<image>|g' {LWS_YAML}") 
 
         # Update and deploy ingress
         LOGGER.info("Deploying ingress...")

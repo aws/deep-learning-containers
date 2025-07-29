@@ -21,7 +21,7 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     elif platform == "eks":
         LOGGER.info("Running EKS tests")
         try:
-            test_vllm_on_eks()
+            test_vllm_on_eks(images[0])
             LOGGER.info("EKS vLLM tests completed successfully")
         except Exception as e:
             LOGGER.error(f"EKS vLLM tests failed: {str(e)}")

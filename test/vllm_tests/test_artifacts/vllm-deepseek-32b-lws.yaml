@@ -15,7 +15,7 @@ spec:
       spec:
         containers:
           - name: vllm-leader
-            image: 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8.5-gpu-py312-ec2
+            image: <image>
             securityContext:
               privileged: true
               capabilities:
@@ -139,7 +139,7 @@ spec:
       spec:
         containers:
           - name: vllm-worker
-            image: 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8.5-gpu-py312-ec2
+            image: <image>
             securityContext:
               privileged: true
               capabilities:
