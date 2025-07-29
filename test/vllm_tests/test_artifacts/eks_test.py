@@ -340,11 +340,11 @@ def test_vllm_on_eks():
         
     except Exception as e:
         LOGGER.error(f"Test failed: {str(e)}")
-        LOGGER.info("Waiting 10 minutes before cleanup to allow for debugging...")
-        time.sleep(600)
+        LOGGER.info("Waiting 5 minutes before cleanup to allow for debugging...")
+        time.sleep(300)
         raise
         
     finally:
-        time.sleep(180) # 3 minutes before starting cleanup
+        time.sleep(120) # 2 minutes before starting cleanup
         LOGGER.info("Cleaning up...")
         cleanup(ec2_client, alb_sg, user_ip)
