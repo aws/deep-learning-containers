@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import sys
+import time
 from invoke import run
 import requests
 import boto3
@@ -165,27 +166,48 @@ def wait_for_ingress_ready(name, namespace = VLLM_NAMESPACE):
     return ingress["status"]["loadBalancer"]["ingress"][0]["hostname"]
 
 
-def test_api_endpoint(endpoint, api_type):
-    if api_type not in ["completions", "chat_completions"]:
-        raise ValueError(f"Invalid API type: {api_type}")
-    payload = {
-        "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-        "max_tokens": 100,
-        "temperature": 0.7
-    }
-    
-    if api_type == "completions":
-        payload["prompt"] = "Hello, how are you?"
-    elif api_type == "chat_completions":
-        payload["messages"] = [{"role": "user", "content": "What are the benefits of using FSx Lustre with EKS?"}]
-    
-    response = requests.post(
-        f"http://{endpoint}/v1/{api_type}",
-        json=payload,
-        timeout=60
-    )
-    response.raise_for_status()
-    return response.json()
+def test_api_endpoint(endpoint, api_type, max_retries=5, wait_time=60):
+    for attempt in range(max_retries):
+        try:
+            LOGGER.info(f"Attempt {attempt + 1} of {max_retries} to test endpoint")
+            if api_type not in ["completions", "chat_completions"]:
+                raise ValueError(f"Invalid API type: {api_type}")
+            payload = {
+                "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+                "max_tokens": 100,
+                "temperature": 0.7
+            }
+            
+            if api_type == "completions":
+                payload["prompt"] = "Hello, how are you?"
+            elif api_type == "chat_completions":
+                payload["messages"] = [{"role": "user", "content": "What are the benefits of using FSx Lustre with EKS?"}]
+            
+            response = requests.post(
+                f"http://{endpoint}/v1/{api_type}",
+                json=payload,
+                timeout=60
+            )
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            LOGGER.warning(f"Attempt {attempt + 1} failed: {str(e)}")
+            if attempt < max_retries - 1:
+                LOGGER.info(f"Waiting {wait_time} seconds before next attempt...")
+                time.sleep(wait_time)
+            else:
+                LOGGER.error("All attempts failed")
+                # Add debugging info before failing
+                LOGGER.info("Getting debug information...")
+                try:
+                    run("kubectl get pods -n vllm")
+                    run("kubectl describe pods -n vllm")
+                    run("kubectl logs -n vllm -l role=leader")
+                    run("kubectl get svc -n vllm")
+                    run("kubectl describe ingress -n vllm")
+                except Exception as debug_e:
+                    LOGGER.error(f"Error getting debug info: {str(debug_e)}")
+                raise
 
 
 def validate_api_response(result) :
