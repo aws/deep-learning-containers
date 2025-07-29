@@ -68,7 +68,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         python3 -m venv vllm_env && \
         source vllm_env/bin/activate && \
         pip install --upgrade pip setuptools wheel && \
-        pip install numpy torch tqdm && \
+        pip install numpy torch tqdm aiohttp pandas datasets pillow vllm && \
         pip install "transformers[torch]" && \
         echo "Python version: $(python --version)" && \
         cd /fsx/vllm-dlc 
@@ -116,7 +116,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Execute model serving (inside container)
         serve_cmd = f"""
-        docker exec -it $(docker ps -q) vllm serve {model_name} \
+        docker exec -it $(docker ps -q) vllm-serve {model_name} \
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
         --max-num-batched-tokens 16384
