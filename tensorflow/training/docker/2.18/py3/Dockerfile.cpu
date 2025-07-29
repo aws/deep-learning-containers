@@ -293,6 +293,8 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sparkmagic==0.21.0 \
     smclarify 
 
+#pin numpy version because of sagemaker-tensorflow-training dependency
+RUN pip install numpy==1.26.4
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
