@@ -103,7 +103,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         pip install --upgrade pip setuptools wheel && \
         pip install numpy torch tqdm aiohttp pandas datasets pillow vllm && \
         pip install "transformers[torch]" && \
-        echo "Python version: $(python --version)" && \
+        echo "Python version: $(python --version)"
         """
 
         print("Setting up Python environment on head node...")
