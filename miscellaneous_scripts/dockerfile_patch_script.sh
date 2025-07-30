@@ -71,6 +71,7 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     rm -rf /usr/local/cuda/targets/sbsa-linux/include/nvjpeg.h
     cp libnvjpeg-linux-aarch64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/sbsa-linux/lib/
     cp libnvjpeg-linux-aarch64-12.4.0.76-archive/include/* /usr/local/cuda/targets/sbsa-linux/include/
+    cd /
     rm -rf /tmp/nvjpeg
 fi
 
