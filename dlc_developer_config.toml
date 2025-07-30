@@ -41,7 +41,7 @@ build_frameworks = ["pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
+build_training = false
 build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
@@ -158,7 +158,7 @@ dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-5-ec2.yml"
+dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-6-ec2.yml"
 dlc-pr-tensorflow-2-arm64-inference = ""
 
 # Neuron Inference
