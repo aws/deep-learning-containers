@@ -104,7 +104,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         pip install numpy torch tqdm aiohttp pandas datasets pillow vllm && \
         pip install "transformers[torch]" && \
         echo "Python version: $(python --version)" && \
-        cd /fsx/vllm-dlc 
         """
 
         print("Setting up Python environment on head node...")
@@ -116,6 +115,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Starting head node...")
         head_cmd = f"""
         source vllm_env/bin/activate &&
+        cd /fsx/vllm-dlc &&
         bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --head \
@@ -140,6 +140,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Starting worker node...")
         worker_cmd = f"""
         source vllm_env/bin/activate &&
+        cd /fsx/vllm-dlc &&
         bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --worker \
