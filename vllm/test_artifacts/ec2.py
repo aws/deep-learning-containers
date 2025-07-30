@@ -31,18 +31,6 @@ def get_secret_hf_token():
     return response
 
 
-def check_container_status(connection):
-    """Check if the container is running and get logs if needed"""
-    result = connection.run("docker ps", hide=True)
-    if not result.stdout.strip():
-        print("No containers running!")
-        logs = connection.run("docker logs $(docker ps -aq | head -1)", warn=True)
-        print("Container logs:")
-        print(logs.stdout)
-        return False
-    return True
-
-
 def wait_for_service(connection, max_retries=30, sleep_time=10):
     """Wait for the VLLM service to be ready"""
     for i in range(max_retries):
@@ -57,30 +45,48 @@ def wait_for_service(connection, max_retries=30, sleep_time=10):
     raise Exception("Service failed to start after maximum retries")
 
 
+def get_container_id(connection, label="head"):
+    """Get container ID if exists"""
+    try:
+        result = connection.run("docker ps --format '{{.ID}}'", hide=True)
+        container_ids = result.stdout.strip().split("\n")
+        if container_ids and container_ids[0]:
+            print(f"Found {label} container: {container_ids[0]}")
+            return container_ids[0]
+        return None
+    except Exception as e:
+        print(f"Error getting container ID: {e}")
+        return None
+
+
+def check_container_logs(connection, container_id):
+    """Check container logs if container exists"""
+    if container_id:
+        try:
+            logs = connection.run(f"docker logs {container_id}", warn=True)
+            print(f"Container logs:\n{logs.stdout}")
+        except Exception as e:
+            print(f"Error getting logs: {e}")
+
+
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     """
     Run VLLM benchmark test on multiple EC2 instances using distributed setup
-
-    Args:
-        head_connection: Fabric connection object to head EC2 instance
-        worker_connection: Fabric connection object to worker EC2 instance
-        image_uri: ECR image URI for VLLM container
-
-    Returns:
-        dict: Results from benchmark execution
     """
+    head_container_id = None
+    worker_container_id = None
+
     try:
         # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
-        # Setup ECR access on both nodes
+        # Setup ECR access and pull images
         account_id = get_account_id_from_image_uri(image_uri)
         login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
         login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
 
-        # Pull images on both nodes
         print(f"Pulling image on head node: {image_uri}")
         head_connection.run(f"docker pull {image_uri}", hide="out")
         print(f"Pulling image on worker node: {image_uri}")
@@ -90,6 +96,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
+        # Setup Python environment
         setup_command = """
         python3 -m venv vllm_env && \
         source vllm_env/bin/activate && \
@@ -100,13 +107,13 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         cd /fsx/vllm-dlc 
         """
 
-        # Run on head node
+        print("Setting up Python environment on head node...")
         head_connection.run(setup_command)
-
-        # Run on worker node
+        print("Setting up Python environment on worker node...")
         worker_connection.run(setup_command)
 
         # Start head node
+        print("Starting head node...")
         head_cmd = f"""
         source vllm_env/bin/activate &&
         bash vllm/examples/online_serving/run_cluster.sh \
@@ -121,13 +128,16 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --ulimit memlock=-1:-1 \
         -p 8000:8000
         """
-        head_connection.run(head_cmd, hide=False, asynchronous=True)
+        head_connection.run(head_cmd, hide=False)
+        time.sleep(30)  # Wait for container to start
 
-        # Wait for head node to be ready
-        time.sleep(30)
-        check_container_status(head_connection)
+        # Check head container
+        head_container_id = get_container_id(head_connection, "head")
+        if not head_container_id:
+            raise Exception("Head container failed to start")
 
         # Start worker node
+        print("Starting worker node...")
         worker_cmd = f"""
         source vllm_env/bin/activate &&
         bash vllm/examples/online_serving/run_cluster.sh \
@@ -140,38 +150,55 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --device=/dev/infiniband/ \
         --ulimit memlock=-1:-1
         """
-        worker_connection.run(worker_cmd, hide=False, asynchronous=True)
+        worker_connection.run(worker_cmd, hide=False)
+        time.sleep(30)  # Wait for container to start
 
-        # Wait for worker node to be ready
-        time.sleep(30)
-        check_container_status(worker_connection)
+        # Check worker container
+        worker_container_id = get_container_id(worker_connection, "worker")
+        if not worker_container_id:
+            raise Exception("Worker container failed to start")
 
         # Start model serving
+        print("Starting model serving...")
         serve_cmd = f"""
-        docker exec -d $(docker ps -q) bash -c '
-            vllm serve {model_name} \
-            --tensor-parallel-size 8 \
-            --pipeline-parallel-size 2 \
-            --max-num-batched-tokens 16384 \
-            --host 0.0.0.0 \
-            --port 8000 \
-            > /var/log/vllm.log 2>&1'
+        docker exec {head_container_id} vllm serve {model_name} \
+        --tensor-parallel-size 8 \
+        --pipeline-parallel-size 2 \
+        --max-num-batched-tokens 16384 \
+        --host 0.0.0.0 \
+        --port 8000
         """
-        head_connection.run(serve_cmd, hide=False)
+        head_connection.run(serve_cmd, hide=False, asynchronous=True)
+        time.sleep(60)  # Wait for model to load
 
-        # Wait for service to be ready
-        wait_for_service(head_connection)
+        # Check if service is responding
+        print("Checking model server...")
+        check_cmd = """
+        for i in $(seq 1 10); do
+            if curl -s -f http://localhost:8000/health; then
+                echo "Service is ready"
+                exit 0
+            fi
+            echo "Waiting for service... attempt $i"
+            sleep 30
+        done
+        echo "Service failed to respond"
+        exit 1
+        """
+        head_connection.run(check_cmd)
 
-        # Check model server
-        check_model_server_command = f"""
+        # Test API endpoint
+        print("Testing chat completions API...")
+        test_cmd = f"""
         curl -v http://localhost:8000/v1/chat/completions \
         -H "Content-Type: application/json" \
         -d '{{"model": "{model_name}",
             "messages": [{{"role": "user", "content": "Hello, how are you?"}}]}}'
         """
-        head_connection.run(check_model_server_command, hide=False)
+        head_connection.run(test_cmd)
 
-        # Run benchmark (outside container)
+        # Run benchmark
+        print("Running benchmark...")
         benchmark_cmd = f"""
         source vllm_env/bin/activate &&
         python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
@@ -182,14 +209,23 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
         --num-prompts 1000
         """
-        result = head_connection.run(benchmark_cmd, hide=False, timeout=7200)
-
+        result = head_connection.run(benchmark_cmd, timeout=7200)
         return result
 
     except Exception as e:
-        head_connection.run("docker logs $(docker ps -q)", hide=False)
         print(f"Multi-node test execution failed: {str(e)}")
+        if head_container_id:
+            print("\nHead node container logs:")
+            check_container_logs(head_connection, head_container_id)
+        if worker_container_id:
+            print("\nWorker node container logs:")
+            check_container_logs(worker_connection, worker_container_id)
         raise
+
+    finally:
+        print("Cleaning up containers and images...")
+        head_connection.run("docker rm -f $(docker ps -aq)", warn=True)
+        worker_connection.run("docker rm -f $(docker ps -aq)", warn=True)
 
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
