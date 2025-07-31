@@ -103,7 +103,7 @@ def efa_ec2_instances(
                 "DeviceName": volume_name,
                 "Ebs": {
                     "DeleteOnTermination": True,
-                    "VolumeSize": 150,
+                    "VolumeSize": 500,
                     "VolumeType": "gp3",
                     "Iops": 3000,
                     "Throughput": 125,
