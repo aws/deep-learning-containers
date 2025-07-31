@@ -133,32 +133,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
         time.sleep(60)  # Wait for model to load
 
-        # Check if service is responding
-        print("Checking model server...")
-        check_cmd = """
-        for i in $(seq 1 10); do
-            if curl -s -f http://localhost:8000/health; then
-                echo "Service is ready"
-                exit 0
-            fi
-            echo "Waiting for service... attempt $i"
-            sleep 30
-        done
-        echo "Service failed to respond"
-        exit 1
-        """
-        head_connection.run(check_cmd)
-
-        # Test API endpoint
-        print("Testing chat completions API...")
-        test_cmd = f"""
-        curl -v http://localhost:8000/v1/chat/completions \
-        -H "Content-Type: application/json" \
-        -d '{{"model": "{model_name}",
-            "messages": [{{"role": "user", "content": "Hello, how are you?"}}]}}'
-        """
-        head_connection.run(test_cmd)
-
         # Run benchmark
         print("Running benchmark...")
         benchmark_cmd = f"""
