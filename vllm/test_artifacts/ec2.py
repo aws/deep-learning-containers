@@ -127,11 +127,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
         --max-num-batched-tokens 16384 \
-        --host 0.0.0.0 \
         --port 8000
         """
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
-        time.sleep(100)  # Wait for model to load
+
+        monitor_logs_cmd = f"timeout 100 docker logs -f {head_container_id}"
+        head_connection.run(monitor_logs_cmd, hide=False)
 
         # Test the endpoint first
         test_cmd = f"""
@@ -148,7 +149,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         source vllm_env/bin/activate &&
         python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
-        --base-url http://127.0.0.1:8080 \
         --model {model_name} \
         --endpoint /v1/chat/completions \
         --dataset-name sharegpt \
