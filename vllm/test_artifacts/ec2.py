@@ -133,6 +133,15 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
         time.sleep(100)  # Wait for model to load
 
+        # Test the endpoint first
+        test_cmd = f"""
+        curl http://localhost:8000/v1/chat/completions \
+        -H "Content-Type: application/json" \
+        -d '{{"model": "{model_name}",
+            "messages": [{{"role": "user", "content": "Hello, how are you?"}}]}}'
+        """
+        head_connection.run(test_cmd)
+
         # Run benchmark
         print("Running benchmark...")
         benchmark_cmd = f"""
