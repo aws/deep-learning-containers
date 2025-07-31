@@ -49,3 +49,4 @@ images:
       test_platforms:
         - sanity
         - security
+        - eks
