@@ -31,44 +31,6 @@ def get_secret_hf_token():
     return response
 
 
-def wait_for_service(connection, max_retries=30, sleep_time=10):
-    """Wait for the VLLM service to be ready"""
-    for i in range(max_retries):
-        try:
-            result = connection.run("curl -s http://localhost:8000/health", warn=True)
-            if result.ok:
-                print("Service is ready!")
-                return True
-        except Exception as e:
-            print(f"Attempt {i+1}/{max_retries}: Service not ready yet. Waiting...")
-        time.sleep(sleep_time)
-    raise Exception("Service failed to start after maximum retries")
-
-
-def get_container_id(connection, label="head"):
-    """Get container ID if exists"""
-    try:
-        result = connection.run("docker ps --format '{{.ID}}'", hide=True)
-        container_ids = result.stdout.strip().split("\n")
-        if container_ids and container_ids[0]:
-            print(f"Found {label} container: {container_ids[0]}")
-            return container_ids[0]
-        return None
-    except Exception as e:
-        print(f"Error getting container ID: {e}")
-        return None
-
-
-def check_container_logs(connection, container_id):
-    """Check container logs if container exists"""
-    if container_id:
-        try:
-            logs = connection.run(f"docker logs {container_id}", warn=True)
-            print(f"Container logs:\n{logs.stdout}")
-        except Exception as e:
-            print(f"Error getting logs: {e}")
-
-
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     """
     Run VLLM benchmark test on multiple EC2 instances using distributed setup
@@ -116,7 +78,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_cmd = f"""
         source vllm_env/bin/activate &&
         cd /fsx/vllm-dlc &&
-        nohup bash vllm/examples/online_serving/run_cluster.sh \
+        bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --head \
         /fsx/.cache/huggingface \
@@ -128,13 +90,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --ulimit memlock=-1:-1 \
         -p 8000:8000
         """
-        head_connection.run(head_cmd, hide=False)
+        head_connection.run(head_cmd, hide=False, asynchronous=True)
         time.sleep(30)  # Wait for container to start
-
-        # Check head container
-        head_container_id = get_container_id(head_connection, "head")
-        if not head_container_id:
-            raise Exception("Head container failed to start")
 
         # Start worker node
         print("Starting worker node...")
@@ -151,13 +108,17 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --device=/dev/infiniband/ \
         --ulimit memlock=-1:-1
         """
-        worker_connection.run(worker_cmd, hide=False)
+        worker_connection.run(worker_cmd, hide=False, asynchronous=True)
         time.sleep(30)  # Wait for container to start
 
-        # Check worker container
-        worker_container_id = get_container_id(worker_connection, "worker")
-        if not worker_container_id:
-            raise Exception("Worker container failed to start")
+        # Check Ray status from head node container
+        head_container_id = head_connection.run("docker ps -q").stdout.strip()
+        ray_status = head_connection.run(f"docker exec {head_container_id} ray status")
+        print("Ray status:", ray_status.stdout)
+
+        # Check EFA setup
+        fi_info = head_connection.run(f"docker exec {head_container_id} fi_info -p efa")
+        print("EFA info:", fi_info.stdout)
 
         # Start model serving
         print("Starting model serving...")
@@ -215,12 +176,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
     except Exception as e:
         print(f"Multi-node test execution failed: {str(e)}")
-        if head_container_id:
-            print("\nHead node container logs:")
-            check_container_logs(head_connection, head_container_id)
-        if worker_container_id:
-            print("\nWorker node container logs:")
-            check_container_logs(worker_connection, worker_container_id)
         raise
 
     finally:
