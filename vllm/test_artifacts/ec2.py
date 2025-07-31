@@ -116,7 +116,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_cmd = f"""
         source vllm_env/bin/activate &&
         cd /fsx/vllm-dlc &&
-        bash vllm/examples/online_serving/run_cluster.sh \
+        nohup bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --head \
         /fsx/.cache/huggingface \
@@ -141,7 +141,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_cmd = f"""
         source vllm_env/bin/activate &&
         cd /fsx/vllm-dlc &&
-        bash vllm/examples/online_serving/run_cluster.sh \
+        nohup bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --worker \
         /fsx/.cache/huggingface \
@@ -162,7 +162,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # Start model serving
         print("Starting model serving...")
         serve_cmd = f"""
-        docker exec {head_container_id} vllm serve {model_name} \
+        docker exec -d {head_container_id} vllm serve {model_name} \
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
         --max-num-batched-tokens 16384 \
