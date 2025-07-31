@@ -31,14 +31,19 @@ else
     log "Model is not cached. It will be downloaded during server startup."
 fi
 
+python3 -m venv vllm_env 
+source vllm_env/bin/activate 
+pip install --upgrade pip setuptools wheel 
+pip install numpy torch tqdm aiohttp pandas datasets pillow vllm
+pip install "transformers[torch]" 
+echo "Python version: $(python --version)"
+
 # Pull and run the vLLM DLC
 log "Starting vLLM server..."
-docker run --name vllm-server --rm -d --runtime nvidia --gpus all \
+docker run --name vllm-server --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     -e "HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}" \
     -e "NCCL_DEBUG=TRACE" \
-    -e "TRANSFORMERS_VERBOSITY=info" \
-    -e "HF_HUB_ENABLE_HF_TRANSFER=1" \
     -p 8000:8000 \
     --ipc=host \
     ${CONTAINER_IMAGE} \
