@@ -98,7 +98,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_cmd = f"""
         source vllm_env/bin/activate &&
         cd /fsx/vllm-dlc &&
-        nohup bash vllm/examples/online_serving/run_cluster.sh \
+        bash vllm/examples/online_serving/run_cluster.sh \
         {image_uri} {head_ip} \
         --worker \
         /fsx/.cache/huggingface \
@@ -123,7 +123,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # Start model serving
         print("Starting model serving...")
         serve_cmd = f"""
-        docker exec -d {head_container_id} vllm serve {model_name} \
+        docker exec -d {head_container_id} NCCL_DEBUG=TRACE vllm serve {model_name} \
         --tensor-parallel-size 8 \
         --pipeline-parallel-size 2 \
         --max-num-batched-tokens 16384 \
@@ -131,7 +131,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         --port 8000
         """
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
-        time.sleep(60)  # Wait for model to load
+        time.sleep(100)  # Wait for model to load
 
         # Run benchmark
         print("Running benchmark...")
@@ -139,6 +139,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         source vllm_env/bin/activate &&
         python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
         --backend vllm \
+        --base-url http://127.0.0.1:8080 \
         --model {model_name} \
         --endpoint /v1/chat/completions \
         --dataset-name sharegpt \

@@ -96,11 +96,12 @@ log "Inference checks completed."
 log "Starting benchmark..."
 python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
   --backend vllm \
+  --base-url http://127.0.0.1:8080 \
   --model ${MODEL_NAME} \
   --endpoint /v1/completions \
   --dataset-name sharegpt \
   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
-  --num-prompts 1000
+  --num-prompts 1000 \
 
 log "Benchmark completed."
 log "Script execution finished"
