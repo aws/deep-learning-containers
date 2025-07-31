@@ -108,12 +108,6 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update \
-    && apt-get install -y linux-libc-dev \
-    && apt-get upgrade -y linux-libc-dev \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
-
 # Install python
 RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
  && tar -xvf Python-$PYTHON_VERSION.tgz \
