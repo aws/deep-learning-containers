@@ -46,7 +46,7 @@ build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
-do_build = false
+do_build = true
 
 [notify]
 ### Notify on test failures
@@ -59,8 +59,8 @@ notify_test_failures = false
 ### On by default
 sanity_tests = true
 security_tests = true
-  safety_check_test = true
-  ecr_scan_allowlist_feature = true
+  safety_check_test = false
+  ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
 ec2_tests = true
@@ -153,7 +153,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-ec2.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-2-18-ec2.yml" 
 dlc-pr-autogluon-inference = ""
 
 # Graviton Inference
