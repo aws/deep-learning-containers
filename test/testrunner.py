@@ -32,7 +32,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
-from test.vllm.trigger_test import test_vllm_on_eks
+from test.vllm.trigger_test import test
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -308,16 +308,25 @@ def main():
     )
     build_context = get_build_context()
 
-    # Skip non-sanity/security test suites for base or vllm images in MAINLINE context
-    if (
-        build_context == "MAINLINE"
-        and all("base" in image_uri or "vllm" in image_uri for image_uri in all_image_list)
-        and test_type not in {"functionality_sanity", "security_sanity"}
-    ):
-        LOGGER.info(
-            f"NOTE: {specific_test_type} tests not supported on base or vllm images. Skipping..."
-        )
-        return
+    # Skip non-sanity/security test suites for base images in MAINLINE context
+    # Skip non-sanity/security/eks test suites for vllm images in MAINLINE context
+    if build_context == "MAINLINE":
+        if (
+            all("base" in image_uri for image_uri in all_image_list)
+            and test_type not in {"functionality_sanity", "security_sanity"}
+        ):
+            LOGGER.info(
+                f"NOTE: {specific_test_type} tests not supported on base images. Skipping..."
+            )
+            return
+        elif (
+            all("vllm" in image_uri for image_uri in all_image_list)
+            and test_type not in {"functionality_sanity", "security_sanity", "eks"}
+        ):
+            LOGGER.info(
+                f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
+            )
+            return
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
@@ -416,7 +425,7 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS tests with image: {all_image_list[0]}")
-                    test_vllm_on_eks(all_image_list[0])
+                    test()
                     LOGGER.info("vLLM EKS tests completed successfully")
                     # Exit function after vLLM tests
                     return
