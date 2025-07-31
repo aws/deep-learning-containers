@@ -253,28 +253,25 @@ compute2 slots=8"""
         worker_connection.run(f"docker exec {worker_container_id} bash -c '{nccl_build_cmd}'")
 
         # Run EFA test
-        print("Running EFA test...")
-        test_script = """
-        #!/bin/bash
-        set -ex
-        mpirun -x FI_PROVIDER="efa" -n 16 -N 8 --hostfile /root/hosts \
-        -x NCCL_DEBUG=INFO -x FI_EFA_USE_DEVICE_RDMA=1 \
-        -x NCCL_PROTO=simple -x NCCL_ALGO=ring -x RDMAV_FORK_SAFE=1 \
-        -x PATH -x LD_LIBRARY_PATH=${CUDA_HOME}/lib:${CUDA_HOME}/lib64:$LD_LIBRARY_PATH \
-        -x NCCL_SOCKET_IFNAME=^lo --mca pml ^cm --mca btl tcp,self \
-        --mca btl_tcp_if_exclude lo,docker0 --bind-to none \
-        -x NCCL_SOCKET_FAMILY=AF_INET6 \
-        /all_reduce_perf -b 8 -e 1G -f 2 -g 1 -c 1 -n 100
-        """
+        print("Running NCCL test...")
 
-        head_connection.run(
-            f"""
-        docker exec {head_container_id} bash -c '
-        echo "{test_script}" > /root/test_efa.sh
-        chmod +x /root/test_efa.sh
-        /root/test_efa.sh
-        '
-        """
+        # Copy script to instance
+        head_connection.put(
+            "vllm/test_artifacts/testEFA.sh",
+            "/home/ec2-user/testEFA.sh",
+        )
+
+        # Make script executable and run it
+        commands = [
+            "chmod +x /home/ec2-user/testEFA.sh",
+            f"/home/ec2-user/testEFA.sh /root/hosts 2 False",
+        ]
+
+        # Execute commands synchronously
+        result = head_connection.run(
+            "; ".join(commands),
+            hide=False,
+            timeout=3600,
         )
 
         print("=============EFA test completed successfully=================")
@@ -555,8 +552,6 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 
-        time.sleep(2000)
-
         # Make script executable and run it
         commands = [
             "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
@@ -721,20 +716,20 @@ def test_vllm_on_ec2(resources, image_uri):
                 print(f"Failed to connect to instance {instance_id}: {str(e)}")
                 raise
 
-        # Run single-node test on first instance
-        instance_id = list(ec2_connections.keys())[0]
-        print(f"\nRunning single-node test on instance: {instance_id}")
-        test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
+        # # Run single-node test on first instance
+        # instance_id = list(ec2_connections.keys())[0]
+        # print(f"\nRunning single-node test on instance: {instance_id}")
+        # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
-        # # Run multi-node test if we have at least 2 instances
-        # if len(ec2_connections) >= 2:
-        #     instance_ids = list(ec2_connections.keys())
-        #     head_conn = ec2_connections[instance_ids[0]]
-        #     worker_conn = ec2_connections[instance_ids[1]]
+        # Run multi-node test if we have at least 2 instances
+        if len(ec2_connections) >= 2:
+            instance_ids = list(ec2_connections.keys())
+            head_conn = ec2_connections[instance_ids[0]]
+            worker_conn = ec2_connections[instance_ids[1]]
 
-        #     test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
-        # else:
-        #     print("\nSkipping multi-node test: insufficient instances")
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+        else:
+            print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
