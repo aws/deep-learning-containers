@@ -32,7 +32,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
-from test.vllm_tests.trigger_test import test_vllm_on_eks
+from test.vllm.trigger_test import test_vllm_on_eks
 
 from src.codebuild_environment import get_codebuild_project_name
 

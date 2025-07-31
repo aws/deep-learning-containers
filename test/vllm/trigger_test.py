@@ -3,7 +3,7 @@ import logging
 from typing import List
 
 from test.test_utils import get_dlc_images
-from test.vllm_tests.test_artifacts.eks_test import test_vllm_on_eks
+from test.vllm.eks.eks_test import test_vllm_on_eks
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)

@@ -23,7 +23,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 AWS_REGION = "us-west-2"
 CLUSTER_NAME = "dlc-vllm-PR"
 VLLM_NAMESPACE = "vllm"
-TEST_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 LWS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws.yaml")
 LWS_INGRESS_YAML = os.path.join(TEST_DIR, "test_artifacts", "vllm-deepseek-32b-lws-ingress.yaml")
 

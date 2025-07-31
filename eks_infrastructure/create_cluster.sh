@@ -56,7 +56,7 @@ function create_eks_cluster() {
     if [[ ${1} == *"vllm"* ]]; then
       echo "Creating cluster via vLLM path for cluster: ${1}"
       CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
-      envsubst < ../test/vllm_tests/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
+      envsubst < ../test/vllm/eks/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
       echo "Verifying cluster creation..."
       eksctl get cluster --region ${3}
     else
@@ -105,7 +105,7 @@ function create_node_group() {
       echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
       
       # Create nodegroup with cluster name and preferred AZ
-      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm_tests/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm/eks/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
     fi
     return
   fi
@@ -429,7 +429,7 @@ function setup_k8s_fsx_storage() {
     echo "Creating FSx storage class"
     sed -e "s|<subnet-id>|${SUBNET_ID}|g" \
         -e "s|<sg-id>|${SG_ID}|g" \
-        ../test/vllm_tests/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
+        ../test/vllm/eks/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
   else
     echo "FSx storage class already exists, skipping creation"
   fi
@@ -439,14 +439,14 @@ function setup_k8s_fsx_storage() {
     sed -e "s|<fs-id>|${FS_ID}|g" \
         -e "s|<dns-name>|${DNS_NAME}|g" \
         -e "s|<mount-name>|${MOUNT_NAME}|g" \
-        ../test/vllm_tests/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
+        ../test/vllm/eks/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
   else
     echo "FSx persistent volume already exists, skipping creation"
   fi
   
   if ! kubectl get pvc fsx-lustre-pvc &>/dev/null; then
     echo "Creating FSx persistent volume claim"
-    kubectl apply -f ../test/vllm_tests/test_artifacts/fsx-lustre-pvc.yaml -n vllm
+    kubectl apply -f ../test/vllm/eks/test_artifacts/fsx-lustre-pvc.yaml -n vllm
   else
     echo "FSx persistent volume claim already exists, skipping creation"
   fi
