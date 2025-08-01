@@ -7,10 +7,12 @@ NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
 IS_IPV6=$3
 
-if [[ -z "${CUDA_HOME}" ]]; then
-    echo "CUDA_HOME variable is empty, please define it in dockerfile"
-    exit 1
-fi
+# if [[ -z "${CUDA_HOME}" ]]; then
+#     echo "CUDA_HOME variable is empty, please define it in dockerfile"
+#     exit 1
+# fi
+
+CUDA_HOME=/usr/local/cuda
 
 TOKEN=$(curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
 INSTANCE_TYPE=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" -v http://169.254.169.254/latest/meta-data/instance-type)
@@ -20,6 +22,9 @@ NODES=$(($GPU_COUNT * $NUM_HOSTS))
 
 
 PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
+mkdir -p test/logs
+touch test/logs/testEFA.log
+chmod +x test/logs/testEFA.log
 TRAINING_LOG="/test/logs/testEFA.log"
 
 USE_DEVICE_RDMA_ARG=""
@@ -89,7 +94,7 @@ check_efa_nccl_all_reduce(){
     
     RETURN_VAL=${PIPESTATUS[0]}
     # In case, if you would like see logs, uncomment below line
-    # RESULT=$(cat ${TRAINING_LOG})
+    RESULT=$(cat ${TRAINING_LOG})
 
     if [ ${RETURN_VAL} -eq 0 ]; then
         echo "***************************** check_efa_nccl_all_reduce passed *****************************"

@@ -135,8 +135,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         hf_token = response.get("HF_TOKEN")
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
-        time.sleep(3000)
-
         # Setup ECR access and pull images
         print("Setting up ECR access...")
         head_connection.run(
@@ -189,12 +187,13 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Get master public key
         master_pub_key = head_connection.run(
-            f"docker exec {head_container_id} cat /root/.ssh/master_id_rsa.pub"
+            f"docker start {head_container_id} && docker exec {head_container_id} cat /root/.ssh/master_id_rsa.pub"
         ).stdout.strip()
 
         # Setup worker SSH
         worker_connection.run(
             f"""
+            docker start {worker_container_id} &&
         docker exec {worker_container_id} bash -c '
         mkdir -p /root/.ssh
         echo "Port 2022" >> /etc/ssh/sshd_config
@@ -257,19 +256,27 @@ compute2 slots=8"""
         # Run EFA test
         print("Running NCCL test...")
 
-        # Copy script to instance
+        # First copy script to instance
         head_connection.put(
             "vllm/test_artifacts/testEFA.sh",
             "/home/ec2-user/testEFA.sh",
         )
 
-        # Make script executable and run it
+        # Then copy from instance to container
+        head_connection.run(f"docker cp /home/ec2-usertestEFA.sh {head_container_id}:/testEFA.sh")
+
+        # For worker container if needed
+        worker_connection.run(
+            f"docker cp /home/ec2-user/testEFA.sh {worker_container_id}:/testEFA.sh"
+        )
+
+        # Update the commands to use the script path inside container
         commands = [
-            "chmod +x /home/ec2-user/testEFA.sh",
-            f"/home/ec2-user/testEFA.sh /root/hosts 2 False",
+            f"docker exec {head_container_id} chmod +x /testEFA.sh",
+            f"docker exec {head_container_id} /testEFA.sh /root/hosts 2 False",
         ]
 
-        # Execute commands synchronously
+        # Execute commands
         result = head_connection.run(
             "; ".join(commands),
             hide=False,
@@ -351,6 +358,16 @@ compute2 slots=8"""
         """
         head_connection.run(serve_cmd, hide=False, asynchronous=True)
         time.sleep(60)  # Wait for container to start
+
+        check_model_server_command = f"""
+            echo "Checking Chat Completions API..."
+            curl http://localhost:8000/v1/chat/completions \\
+            -H "Content-Type: application/json" \\
+            -d '{{"model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+                "messages": [{{"role": "user", "content": "Hello, how are you?"}}]}}'
+        """
+
+        head_connection.run(check_model_server_command, hide=False)
 
         # Run benchmark
         print("Running benchmark...")
