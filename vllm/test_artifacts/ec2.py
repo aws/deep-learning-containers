@@ -135,6 +135,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         hf_token = response.get("HF_TOKEN")
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
+        time.sleep(3000)
+
         # Setup ECR access and pull images
         print("Setting up ECR access...")
         head_connection.run(
@@ -150,12 +152,14 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run(f"docker pull {image_uri}")
         worker_connection.run(f"docker pull {image_uri}")
 
+        head_connection.run(f"ls /dev/infiniband/uverbs*")
+        worker_connection.run(f"ls /dev/infiniband/uverbs*")
+
         # Start containers on both nodes
         print("Starting containers...")
         head_cmd = f"""
         docker run --runtime=nvidia --gpus all -id --name master_container \
-        --network host --ulimit memlock=-1:-1 --device /dev/infiniband/uverbs0 \ 
-        --device /dev/infiniband/uverbs1  --device /dev/infiniband/uverbs2 --device /dev/infiniband/uverbs3 \
+        --network host --ulimit memlock=-1:-1 \
         -v $HOME/container_tests:/test -v /dev/shm:/dev/shm 
         {image_uri} bash
         """
@@ -165,8 +169,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_cmd = f"""
         docker run --runtime=nvidia --gpus all -id --name worker_container \
         --network host --ulimit memlock=-1:-1  \
-        --device /dev/infiniband/uverbs0 --device /dev/infiniband/uverbs1 \
-        --device /dev/infiniband/uverbs2 --device /dev/infiniband/uverbs3 \
         -v $HOME/container_tests:/test -v /dev/shm:/dev/shm \
         {image_uri} bash
         """
