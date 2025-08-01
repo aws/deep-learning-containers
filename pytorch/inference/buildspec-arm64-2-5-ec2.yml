@@ -32,22 +32,22 @@ context:
       target: config.properties
 
 images:
-  # BuildEC2PytorchArm64CPUInferencePy3DockerImage:
-  #   <<: *INFERENCE_REPOSITORY
-  #   build: &PYTORCH_CPU_INFERENCE_PY3 false
-  #   image_size_baseline: 10000
-  #   device_type: &DEVICE_TYPE cpu
-  #   python_version: &DOCKER_PYTHON_VERSION py3
-  #   tag_python_version: &TAG_PYTHON_VERSION py311
-  #   os_version: &OS_VERSION ubuntu22.04
-  #   torch_serve_version: &TORCHSERVE_VERSION 0.12.0
-  #   tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
-  #   latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
-  #   # skip_build: "False"
-  #   docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.arm64., *DEVICE_TYPE ]
-  #   target: ec2
-  #   context:
-  #     <<: *INFERENCE_CONTEXT
+  BuildEC2PytorchArm64CPUInferencePy3DockerImage:
+    <<: *INFERENCE_REPOSITORY
+    build: &PYTORCH_CPU_INFERENCE_PY3 false
+    image_size_baseline: 10000
+    device_type: &DEVICE_TYPE cpu
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py311
+    os_version: &OS_VERSION ubuntu22.04
+    torch_serve_version: &TORCHSERVE_VERSION 0.12.0
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION , "-ec2"]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *OS_VERSION, "-ec2" ]
+    # skip_build: "False"
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile.arm64., *DEVICE_TYPE ]
+    target: ec2
+    context:
+      <<: *INFERENCE_CONTEXT
   BuildEC2PytorchArm64GPUInferencePy3DockerImage:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 false
