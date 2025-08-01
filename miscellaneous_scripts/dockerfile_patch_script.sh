@@ -61,6 +61,20 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     chmod +x /usr/local/bin/start_cuda_compat.sh
 fi
 
+# For PT ARM64 GPU images, patch nvjpeg
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(inference|training)-arm64:2\.[5-7]\.[0-9]+-gpu(.+) ]]; then
+    mkdir -p /tmp/nvjpeg
+    cd /tmp/nvjpeg
+    wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-aarch64/libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    tar -xvf libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    rm -rf /usr/local/cuda/targets/sbsa-linux/lib/libnvjpeg*
+    rm -rf /usr/local/cuda/targets/sbsa-linux/include/nvjpeg.h
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/sbsa-linux/lib/
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/include/* /usr/local/cuda/targets/sbsa-linux/include/
+    cd /
+    rm -rf /tmp/nvjpeg
+fi
+
 # For all GPU images, remove cuobjdump and nvdisasm
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/(pytorch|tensorflow)(.+)gpu(.+) ]]; then
     rm -rf /usr/local/cuda/bin/cuobjdump*
