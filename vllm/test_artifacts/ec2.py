@@ -152,19 +152,19 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Start containers on both nodes
         print("Starting containers...")
-        head_cmd = """
+        head_cmd = f"""
         docker run --runtime=nvidia --gpus all -id --name master_container \
-        --network host --ulimit memlock=-1:-1 \
-        --device /dev/infiniband/uverbs0 --device /dev/infiniband/uverbs1 \
-        --device /dev/infiniband/uverbs2 --device /dev/infiniband/uverbs3 \
-        -v $HOME/container_tests:/test -v /dev/shm:/dev/shm \
+        --network host --ulimit memlock=-1:-1 --device /dev/infiniband/uverbs0 \ 
+        --device /dev/infiniband/uverbs1  --device /dev/infiniband/uverbs2 --device /dev/infiniband/uverbs3 \
+        -v $HOME/container_tests:/test -v /dev/shm:/dev/shm 
         {image_uri} bash
         """
+
         head_container_id = head_connection.run(head_cmd).stdout.strip()
 
-        worker_cmd = """
+        worker_cmd = f"""
         docker run --runtime=nvidia --gpus all -id --name worker_container \
-        --network host --ulimit memlock=-1:-1 \
+        --network host --ulimit memlock=-1:-1  \
         --device /dev/infiniband/uverbs0 --device /dev/infiniband/uverbs1 \
         --device /dev/infiniband/uverbs2 --device /dev/infiniband/uverbs3 \
         -v $HOME/container_tests:/test -v /dev/shm:/dev/shm \
@@ -233,7 +233,7 @@ compute2 slots=8"""
 
         # Build and run NCCL tests
         print("Building NCCL tests...")
-        nccl_build_cmd = """
+        nccl_build_cmd = f"""
         python -c "import torch; from packaging.version import Version; assert Version(torch.__version__) >= Version('2.0')"
         TORCH_VERSION_2x=$?
         if [ $TORCH_VERSION_2x -ne 0 ]; then
@@ -242,8 +242,8 @@ compute2 slots=8"""
         cd /tmp/
         rm -rf nccl-tests/
         git clone https://github.com/NVIDIA/nccl-tests.git
-        cd nccl-tests/
-        make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr/local CUDA_HOME=${CUDA_HOME}
+        cd nccl-tests/ 
+        make MPI=1 MPI_HOME=/opt/amazon/openmpi NCCL_HOME=/usr/local CUDA_HOME=/usr/local/cuda
         cp build/all_reduce_perf /all_reduce_perf
         cd /tmp/
         rm -rf nccl-tests/
