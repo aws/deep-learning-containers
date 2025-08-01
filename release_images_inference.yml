@@ -185,13 +185,13 @@ release_images:
       force_release: False
   15:
     framework: "djl"
-    version: "0.33.0"
+    version: "0.0.0.dev1"
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu24.04"
-      tensorrtllm_version: "0.21.0"
+      lmi_version: "0.0.0"
       cuda_version: "cu128"
       example: False
       disable_sm_tag: True
