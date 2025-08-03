@@ -9,6 +9,7 @@ from test.dlc_tests.ec2.test_efa import (
     HOSTS_FILE_LOCATION,
     EFA_INTEGRATION_TEST_CMD,
     DEFAULT_EFA_TIMEOUT,
+    EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION,
 )
 from test.test_utils import run_cmd_on_container
 from botocore.config import Config
@@ -356,7 +357,7 @@ def test_vllm_on_ec2(resources, image_uri):
                 image_uri,
                 resources["instances_info"][:2],
                 [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
-                resources["instance_configs"][0]["instance_type"],
+                EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION,
                 DEFAULT_REGION,
             )
 
