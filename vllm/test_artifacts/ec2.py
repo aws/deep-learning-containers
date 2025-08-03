@@ -155,21 +155,20 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Start containers on both nodes
         print("Starting containers...")
-        head_cmd = f"""
-        docker run --runtime=nvidia --gpus all -id --name master_container \
-        --network host --ulimit memlock=-1:-1 \
-        -v $HOME/container_tests:/test -v /dev/shm:/dev/shm 
-        {image_uri} bash
-        """
+        head_cmd = (
+            f"docker run --runtime=nvidia --gpus all -id --name master_container "
+            f"--network host --ulimit memlock=-1:-1 "
+            f"-v $HOME/container_tests:/test -v /dev/shm:/dev/shm "
+            f"{image_uri} bash"
+        ).strip()
 
         head_container_id = head_connection.run(head_cmd).stdout.strip()
-
-        worker_cmd = f"""
-        docker run --runtime=nvidia --gpus all -id --name worker_container \
-        --network host --ulimit memlock=-1:-1  \
-        -v $HOME/container_tests:/test -v /dev/shm:/dev/shm \
-        {image_uri} bash
-        """
+        worker_cmd = (
+            f"docker run --runtime=nvidia --gpus all -id --name worker_container "
+            f"--network host --ulimit memlock=-1:-1 "
+            f"-v $HOME/container_tests:/test -v /dev/shm:/dev/shm "
+            f"{image_uri} bash"
+        ).strip()
         worker_container_id = worker_connection.run(worker_cmd).stdout.strip()
 
         # Setup SSH configuration inside containers
