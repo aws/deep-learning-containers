@@ -210,11 +210,12 @@ def _setup_multinode_efa_instances(
     _pull_image_on_all_instances(efa_ec2_connections, image)
     # Configure master node container
     master_connection = efa_ec2_connections[0]
-
+    print("1")
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, MASTER_CONTAINER_NAME)
     # Build all_reduce_perf binary using nccl-tests
+    print("2")
     promise = run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
@@ -222,6 +223,7 @@ def _setup_multinode_efa_instances(
         timeout=DEFAULT_EFA_TIMEOUT,
         asynchronous=True,
     )
+    print("3")
     build_all_reduce_perf_promises.append(promise)
     for worker_connection in efa_ec2_connections[1:]:
         # Run container
@@ -235,25 +237,27 @@ def _setup_multinode_efa_instances(
             asynchronous=True,
         )
         build_all_reduce_perf_promises.append(promise)
-
+    print("4")
     # Configure master node SSH client-side configurations
     _setup_master_efa_ssh_config(master_connection)
+    print("5")
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
     _create_master_mpi_hosts_file(
         efa_ec2_connections, worker_instance_ids, ec2_instance_type, region
     )
+    print("6")
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
     ).stdout.strip("\n")
-
+    print("7")
     # Configure worker node containers
     for worker_connection in efa_ec2_connections[1:]:
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
         _setup_worker_efa_ssh_config(worker_connection, master_pub_key)
-
+        print("7")
     # Wait for all_reduce_perf binaries to be built in all containers
     for promise in build_all_reduce_perf_promises:
         promise.join()
