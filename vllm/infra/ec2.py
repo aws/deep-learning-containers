@@ -206,48 +206,42 @@ def efa_ec2_instances(
 
         elastic_ip_allocation_ids = []
         if num_efa_interfaces > 1:
-            try:
-                # p4d instances require attaching elastic ip to connect to them
-                for instance in instances:
+            for instance in instances:
+                try:
                     instance_id = instance["InstanceId"]
                     network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
                     elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
                         network_interface_id, region, ENABLE_IPV6_TESTING
                     )
                     elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
-            except Exception as e:
-                print(f"Error allocating elastic IPs: {str(e)}")
-                # Clean up allocated elastic IPs
-                if elastic_ip_allocation_ids:
-                    ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
-                # Clean up instances
-                if instances:
-                    instance_ids = [instance["InstanceId"] for instance in instances]
-                    ec2_client.terminate_instances(InstanceIds=instance_ids)
-                # Clean up key pair
-                if key_filename:
-                    try:
-                        if os.path.exists(key_filename):
-                            os.remove(key_filename)
-                        if os.path.exists(f"{key_filename}.pub"):
-                            os.remove(f"{key_filename}.pub")
-                    except Exception as key_error:
-                        print(f"Error cleaning up key files: {str(key_error)}")
-                raise
+                except Exception as e:
+                    raise Exception(f"Error allocating elastic IP: {str(e)}")
 
         return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
         print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
         return return_val
 
     except Exception as e:
-        # Clean up any resources that were created
+        print(f"Error in efa_ec2_instances: {str(e)}")
+        # Clean up elastic IPs
+        if elastic_ip_allocation_ids:
+            try:
+                ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+            except Exception as cleanup_error:
+                print(f"Error cleaning up elastic IPs: {str(cleanup_error)}")
+
+        # Clean up instances
         if instances:
             try:
                 instance_ids = [instance["InstanceId"] for instance in instances]
                 ec2_client.terminate_instances(InstanceIds=instance_ids)
+                # Wait for instances to terminate
+                waiter = ec2_client.get_waiter("instance_terminated")
+                waiter.wait(InstanceIds=instance_ids)
             except Exception as cleanup_error:
                 print(f"Error terminating instances: {str(cleanup_error)}")
 
+        # Clean up key pair
         if key_filename:
             try:
                 if os.path.exists(key_filename):
@@ -321,25 +315,16 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
 
 
 def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=None):
-    """
-    Cleanup all resources in reverse order of creation
-    Args:
-        ec2_cli: EC2 client
-        instances_info: List of tuples containing (instance_id, key_filename)
-        instance_configs: List of dictionaries containing instance configurations
-        fsx: FSx client
-    """
+    """Cleanup all resources in reverse order of creation"""
     cleanup_errors = []
 
     # Clean up FSx filesystems
     if instance_configs and fsx:
         for config in instance_configs:
             try:
-                fsx_config = config["fsx_config"]
-                fsx.delete_fsx_filesystem(fsx_config["filesystem_id"])
-                print(f"Deleted FSx filesystem: {fsx_config['filesystem_id']}")
-                # Wait for FSx deletion to complete
-                time.sleep(60)
+                if "fsx_config" in config:
+                    fsx.delete_fsx_filesystem(config["fsx_config"]["filesystem_id"])
+                    print(f"Deleted FSx filesystem: {config['fsx_config']['filesystem_id']}")
             except Exception as e:
                 cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
@@ -347,94 +332,31 @@ def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=N
     if instances_info:
         try:
             instance_ids = [instance_id for instance_id, _ in instances_info]
-
-            # Terminate instances
             ec2_cli.terminate_instances(InstanceIds=instance_ids)
-            print(f"Terminating EC2 instances: {instance_ids}")
+            print(f"Terminating instances: {instance_ids}")
 
             # Wait for instances to terminate
             waiter = ec2_cli.get_waiter("instance_terminated")
             try:
                 waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 30, "MaxAttempts": 40})
             except WaiterError as e:
-                print(f"Warning: Instance termination waiter timed out. Error: {str(e)}")
+                print(f"Warning: Instance termination waiter timed out: {str(e)}")
 
-            # cleanup SSH keys
+            # Clean up SSH keys
             for _, key_filename in instances_info:
-                try:
-                    if os.path.exists(key_filename):
-                        os.remove(key_filename)
-                    if os.path.exists(f"{key_filename}.pub"):
-                        os.remove(f"{key_filename}.pub")
-                except Exception as e:
-                    cleanup_errors.append(f"Failed to delete key file {key_filename}: {str(e)}")
-
+                if key_filename:
+                    try:
+                        if os.path.exists(key_filename):
+                            os.remove(key_filename)
+                        if os.path.exists(f"{key_filename}.pub"):
+                            os.remove(f"{key_filename}.pub")
+                    except Exception as e:
+                        cleanup_errors.append(f"Failed to delete key file: {str(e)}")
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
 
-    # Clean up ENIs
-    if instances_info:
-        max_retries = 5
-        for attempt in range(max_retries):
-            try:
-                # get list of ENIs associated with the terminated instances
-                eni_filters = [
-                    {
-                        "Name": "attachment.instance-id",
-                        "Values": [instance_id for instance_id, _ in instances_info],
-                    }
-                ]
-                enis = ec2_cli.describe_network_interfaces(Filters=eni_filters)["NetworkInterfaces"]
-
-                for eni in enis:
-                    try:
-                        ec2_cli.delete_network_interface(
-                            NetworkInterfaceId=eni["NetworkInterfaceId"]
-                        )
-                    except ec2_cli.exceptions.ClientError as e:
-                        if "InvalidNetworkInterfaceID.NotFound" not in str(e):
-                            raise
-                break
-            except Exception as e:
-                if attempt == max_retries - 1:
-                    cleanup_errors.append(f"Failed to cleanup ENIs: {str(e)}")
-                else:
-                    print(
-                        f"Attempt {attempt + 1} to cleanup ENIs failed. Retrying in 30 seconds..."
-                    )
-                    time.sleep(30)
-
-    # Clean up security groups
-    if instance_configs:
-        for config in instance_configs:
-            sg_fsx = config["sg_fsx"]
-            max_retries = 5
-            for attempt in range(max_retries):
-                try:
-                    try:
-                        ec2_cli.revoke_security_group_ingress(
-                            GroupId=sg_fsx,
-                            IpPermissions=ec2_cli.describe_security_groups(GroupIds=[sg_fsx])[
-                                "SecurityGroups"
-                            ][0]["IpPermissions"],
-                        )
-                    except Exception:
-                        pass
-
-                    ec2_cli.delete_security_group(GroupId=sg_fsx)
-                    print(f"Deleted security group: {sg_fsx}")
-                    break
-                except Exception as e:
-                    if attempt == max_retries - 1:
-                        cleanup_errors.append(f"Failed to delete security group {sg_fsx}: {str(e)}")
-                    else:
-                        print(
-                            f"Attempt {attempt + 1} to delete security group {sg_fsx} failed. Retrying in 30 seconds..."
-                        )
-                        time.sleep(30)
-
     if cleanup_errors:
-        raise Exception("\n".join(cleanup_errors))
+        raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
 
 
 def launch_ec2_instances(ec2_cli):
@@ -572,28 +494,22 @@ def setup():
                     "fsx_config": instance_config["fsx_config"],
                 }
             )
-            print(f"Setup completed successfully for instance {instance_id} {resources}")
+            print(f"Setup completed successfully for instance {instance_id}")
 
         return resources
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
-        try:
-            sg_fsxs = []
-            fsx_configs = []
-            for config in resources.get("instance_configs", []):
-                sg_fsxs.append(config["sg_fsx"])
-                fsx_configs.append(config["fsx_config"])
-
-            cleanup_resources(
-                ec2_cli,
-                resources["instances_info"],
-                resources["instance_configs"],
-                fsx,
-            )
-
-        except Exception as cleanup_error:
-            print(f"Critical error during cleanup: {cleanup_error}")
+        if resources["instances_info"] or resources["instance_configs"]:
+            try:
+                cleanup_resources(
+                    ec2_cli,
+                    resources["instances_info"],
+                    resources["instance_configs"],
+                    fsx,
+                )
+            except Exception as cleanup_error:
+                print(f"Error during cleanup: {str(cleanup_error)}")
         raise
 
 
