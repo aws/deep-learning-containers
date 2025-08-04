@@ -15,8 +15,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
-from botocore.exceptions import WaiterError
-
+from botocore.exceptions import WaiterError, ClientError
 
 from test.test_utils import KEYS_TO_DESTROY_FILE
 
@@ -71,6 +70,58 @@ def availability_zone_options(ec2_client, ec2_instance_type, region):
     if not allowed_availability_zones:
         allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
     return allowed_availability_zones
+
+
+def check_ip_rule_exists(security_group_rules, ip_address):
+    """
+    Check if an IP rule exists in security group rules
+    """
+    if not security_group_rules:
+        return False
+
+    for rule in security_group_rules:
+        if (
+            rule.get("FromPort") == 80
+            and rule.get("ToPort") == 80
+            and rule.get("IpProtocol") == "tcp"
+            and "IpRanges" in rule
+        ):
+            for ip_range in rule.get("IpRanges", []):
+                if ip_range.get("CidrIp") == f"{ip_address}/32":
+                    LOGGER.info(f"Found existing rule for IP {ip_address}")
+                    return True
+    return False
+
+
+def authorize_ingress(ec2_client, group_id, ip_address):
+    try:
+        response = ec2_client.describe_security_groups(GroupIds=[group_id])
+        if response.get("SecurityGroups") and response["SecurityGroups"]:
+            existing_rules = response["SecurityGroups"][0].get("IpPermissions", [])
+            if check_ip_rule_exists(existing_rules, ip_address):
+                LOGGER.info("Ingress rule already exists, skipping creation.")
+                return
+
+        ec2_client.authorize_security_group_ingress(
+            GroupId=group_id,
+            IpPermissions=[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 80,
+                    "ToPort": 80,
+                    "IpRanges": [
+                        {
+                            "CidrIp": f"{ip_address}/32",
+                            "Description": "Temporary access for vLLM EC2 testing",
+                        }
+                    ],
+                }
+            ],
+        )
+        LOGGER.info("Ingress rule added successfully.")
+    except ClientError as e:
+        LOGGER.error(f"Failed to authorize ingress: {str(e)}")
+        raise
 
 
 def efa_ec2_instances(
@@ -469,6 +520,15 @@ def setup_single_instance(instance_id, key_filename, ec2_cli, fsx, vpc_id, subne
         sg_fsx = configure_security_groups(
             instance_id, ec2_cli, fsx, vpc_id, [(instance_id, key_filename)]
         )
+
+        instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+            "Instances"
+        ][0]
+        private_ip = instance_details.get("PrivateIpAddress")
+        if private_ip:
+            authorize_ingress(ec2_cli, sg_fsx, private_ip)
+        else:
+            print(f"Warning: Could not find private IP for instance {instance_id}")
 
         # Create FSx filesystem
         fsx_config = fsx.create_fsx_filesystem(
