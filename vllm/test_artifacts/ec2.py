@@ -110,10 +110,14 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run(worker_cmd, hide=False, asynchronous=True)
         time.sleep(30)  # Wait for container to start
 
-        # Check Ray status from head node container
         head_container_id = head_connection.run("docker ps -q").stdout.strip()
-        ray_status = head_connection.run(f"docker exec {head_container_id} ray status")
+        print("head_container_id", head_container_id)
+        ray_status = head_connection.run(f"docker exec -d {head_container_id} ray status")
         print("Ray status:", ray_status.stdout)
+
+        # Check EFA setup
+        fi_info = head_connection.run(f"docker exec -d {head_container_id} fi_info -p efa")
+        print("EFA info:", fi_info.stdout)
 
         # Start model serving
         print("Starting model serving...")
