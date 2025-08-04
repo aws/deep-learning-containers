@@ -344,12 +344,15 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
     :param instance_type: str EC2 Instance Type being used
     :param region: str region name in which test is run
     """
+    print("entered function")
     master_connection = efa_ec2_connections[0]
+    print("master_connection", master_connection)
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
+    print("slots", slots)
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-    print("worker slots", slots)
+    print("worker_instance_private_ips", worker_instance_private_ips)
     if ENABLE_IPV6_TESTING:
         print("ENABLE_IPV6_TESTING", ENABLE_IPV6_TESTING)
         master_ip = master_connection.ipv6_address
