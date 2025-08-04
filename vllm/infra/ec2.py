@@ -135,6 +135,8 @@ def efa_ec2_instances(
 ):
     instances = None
     key_filename = None
+    elastic_ip_allocation_ids = []
+
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
         print(f"Creating instance: CI-CD {ec2_key_name}")
@@ -170,6 +172,7 @@ def efa_ec2_instances(
                 }
             ],
         }
+
         instances = ec2_utils.launch_efa_instances_with_retry(
             ec2_client,
             ec2_instance_type,
@@ -203,60 +206,76 @@ def efa_ec2_instances(
             ec2_instance_type, region=region
         )
 
-        elastic_ip_allocation_ids = []
         if num_efa_interfaces > 1:
-            try:
-                # p4d instances require attaching elastic ip to connect to them
-                for instance in instances:
-                    instance_id = instance["InstanceId"]
-                    network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+            for instance in instances:
+                instance_id = instance["InstanceId"]
+                network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+                try:
                     elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
                         network_interface_id, region, ENABLE_IPV6_TESTING
                     )
                     elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
-            except Exception as e:
-                print(f"Error allocating elastic IPs: {str(e)}")
-                # Clean up allocated elastic IPs
-                if elastic_ip_allocation_ids:
-                    ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
-                # Clean up instances
-                if instances:
-                    instance_ids = [instance["InstanceId"] for instance in instances]
-                    ec2_client.terminate_instances(InstanceIds=instance_ids)
-                # Clean up key pair
-                if key_filename:
-                    try:
-                        if os.path.exists(key_filename):
-                            os.remove(key_filename)
-                        if os.path.exists(f"{key_filename}.pub"):
-                            os.remove(f"{key_filename}.pub")
-                    except Exception as key_error:
-                        print(f"Error cleaning up key files: {str(key_error)}")
-                raise
+                except Exception as e:
+                    print(
+                        f"Warning: Failed to allocate Elastic IP for instance {instance_id}: {str(e)}"
+                    )
+                    print("Continuing without Elastic IP for this instance.")
 
         return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
         print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
         return return_val
 
     except Exception as e:
-        # Clean up any resources that were created
+        print(f"Error in efa_ec2_instances: {str(e)}")
+        cleanup_resources_on_failure(ec2_client, instances, key_filename, elastic_ip_allocation_ids)
+        raise
+
+
+def cleanup_resources_on_failure(ec2_client, instances, key_filename, elastic_ip_allocation_ids):
+    """Helper function to cleanup resources on failure"""
+    try:
+        # Clean up elastic IPs first
+        if elastic_ip_allocation_ids:
+            try:
+                ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+            except Exception as e:
+                print(f"Error cleaning up elastic IPs: {str(e)}")
+
+        # Clean up instances
         if instances:
             try:
                 instance_ids = [instance["InstanceId"] for instance in instances]
+                print(f"Terminating instances: {instance_ids}")
                 ec2_client.terminate_instances(InstanceIds=instance_ids)
-            except Exception as cleanup_error:
-                print(f"Error terminating instances: {str(cleanup_error)}")
 
+                # Wait for instances to terminate
+                waiter = ec2_client.get_waiter("instance_terminated")
+                try:
+                    waiter.wait(
+                        InstanceIds=instance_ids, WaiterConfig={"Delay": 15, "MaxAttempts": 40}
+                    )
+                except WaiterError as e:
+                    print(f"Warning: Instance termination waiter timed out: {str(e)}")
+            except Exception as e:
+                print(f"Error terminating instances: {str(e)}")
+
+        # Clean up key files
         if key_filename:
-            try:
-                if os.path.exists(key_filename):
-                    os.remove(key_filename)
-                if os.path.exists(f"{key_filename}.pub"):
-                    os.remove(f"{key_filename}.pub")
-            except Exception as cleanup_error:
-                print(f"Error cleaning up key files: {str(cleanup_error)}")
+            cleanup_key_files(key_filename)
 
-        raise
+    except Exception as e:
+        print(f"Error during cleanup: {str(e)}")
+
+
+def cleanup_key_files(key_filename):
+    """Helper function to cleanup key files"""
+    try:
+        if os.path.exists(key_filename):
+            os.remove(key_filename)
+        if os.path.exists(f"{key_filename}.pub"):
+            os.remove(f"{key_filename}.pub")
+    except Exception as e:
+        print(f"Error cleaning up key files: {str(e)}")
 
 
 @contextmanager
