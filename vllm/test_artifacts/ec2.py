@@ -380,6 +380,7 @@ def test_vllm_on_ec2(resources, image_uri):
         # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
+        time.sleep(3000)
         if len(ec2_connections) >= 2:
             instance_ids = list(ec2_connections.keys())
             head_conn = ec2_connections[instance_ids[0]]
