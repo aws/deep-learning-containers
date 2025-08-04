@@ -1,6 +1,6 @@
 import os
 
-import pytest
+import pytest, time
 
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
@@ -243,6 +243,7 @@ def _setup_multinode_efa_instances(
     print("5")
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
+    time.sleep(3000)
     _create_master_mpi_hosts_file(
         efa_ec2_connections, worker_instance_ids, ec2_instance_type, region
     )
