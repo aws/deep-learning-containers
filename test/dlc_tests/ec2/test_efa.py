@@ -257,7 +257,7 @@ def _setup_multinode_efa_instances(
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
         _setup_worker_efa_ssh_config(worker_connection, master_pub_key)
-        print("7")
+    print("7")
     # Wait for all_reduce_perf binaries to be built in all containers
     for promise in build_all_reduce_perf_promises:
         promise.join()
@@ -349,8 +349,9 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-
+    print("worker slots", slots)
     if ENABLE_IPV6_TESTING:
+        print("ENABLE_IPV6_TESTING", ENABLE_IPV6_TESTING)
         master_ip = master_connection.ipv6_address
         if not master_ip:
             raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
@@ -379,11 +380,12 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
     else:
+        print("ENABLE_IPV6_TESTING", ENABLE_IPV6_TESTING)
         # Configure MPI hosts file with IP addresses and slots for worker nodes
         hosts_string = f"localhost slots={slots} "
         for worker_ip in worker_instance_private_ips:
             hosts_string += f"\n{worker_ip} slots={slots} "
-
+        print("hosts_string", hosts_string)
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
