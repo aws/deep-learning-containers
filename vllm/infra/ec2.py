@@ -82,102 +82,130 @@ def efa_ec2_instances(
     region,
     availability_zone_options,
 ):
-    ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
-    print(f"Creating instance: CI-CD {ec2_key_name}")
-    key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-    print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
+    instances = None
+    key_filename = None
+    try:
+        ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
+        print(f"Creating instance: CI-CD {ec2_key_name}")
+        key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+        print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
 
-    def delete_ssh_keypair():
-        if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
-            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
-                destroy_keys.write(f"{key_filename}\n")
+        volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
-    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
-
-    instance_name_prefix = f"CI-CD {ec2_key_name}"
-    ec2_run_instances_definition = {
-        "BlockDeviceMappings": [
-            {
-                "DeviceName": volume_name,
-                "Ebs": {
-                    "DeleteOnTermination": True,
-                    "VolumeSize": 500,
-                    "VolumeType": "gp3",
-                    "Iops": 3000,
-                    "Throughput": 125,
+        instance_name_prefix = f"CI-CD {ec2_key_name}"
+        ec2_run_instances_definition = {
+            "BlockDeviceMappings": [
+                {
+                    "DeviceName": volume_name,
+                    "Ebs": {
+                        "DeleteOnTermination": True,
+                        "VolumeSize": 500,
+                        "VolumeType": "gp3",
+                        "Iops": 3000,
+                        "Throughput": 125,
+                    },
                 },
-            },
-        ],
-        "ImageId": ec2_instance_ami,
-        "InstanceType": ec2_instance_type,
-        "IamInstanceProfile": {"Name": ec2_instance_role_name},
-        "KeyName": ec2_key_name,
-        "MaxCount": 2,
-        "MinCount": 2,
-        "TagSpecifications": [
-            {"ResourceType": "instance", "Tags": [{"Key": "Name", "Value": instance_name_prefix}]}
-        ],
-    }
-    instances = ec2_utils.launch_efa_instances_with_retry(
-        ec2_client,
-        ec2_instance_type,
-        availability_zone_options,
-        ec2_run_instances_definition,
-    )
-
-    def terminate_efa_instances():
-        ec2_client.terminate_instances(
-            InstanceIds=[instance_info["InstanceId"] for instance_info in instances]
+            ],
+            "ImageId": ec2_instance_ami,
+            "InstanceType": ec2_instance_type,
+            "IamInstanceProfile": {"Name": ec2_instance_role_name},
+            "KeyName": ec2_key_name,
+            "MaxCount": 2,
+            "MinCount": 2,
+            "TagSpecifications": [
+                {
+                    "ResourceType": "instance",
+                    "Tags": [{"Key": "Name", "Value": instance_name_prefix}],
+                }
+            ],
+        }
+        instances = ec2_utils.launch_efa_instances_with_retry(
+            ec2_client,
+            ec2_instance_type,
+            availability_zone_options,
+            ec2_run_instances_definition,
         )
 
-    master_instance_id = instances[0]["InstanceId"]
-    ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
-    ec2_utils.check_system_state(
-        master_instance_id, system_status="ok", instance_status="ok", region=region
-    )
-    print(f"Master instance {master_instance_id} is ready")
-
-    if len(instances) > 1:
-        ec2_utils.create_name_tags_for_instance(
-            master_instance_id, f"{instance_name_prefix}_master", region
+        master_instance_id = instances[0]["InstanceId"]
+        ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
+        ec2_utils.check_system_state(
+            master_instance_id, system_status="ok", instance_status="ok", region=region
         )
-        for i in range(1, len(instances)):
-            worker_instance_id = instances[i]["InstanceId"]
+        print(f"Master instance {master_instance_id} is ready")
+
+        if len(instances) > 1:
             ec2_utils.create_name_tags_for_instance(
-                worker_instance_id, f"{instance_name_prefix}_worker_{i}", region
+                master_instance_id, f"{instance_name_prefix}_master", region
             )
-            ec2_utils.check_instance_state(worker_instance_id, state="running", region=region)
-            ec2_utils.check_system_state(
-                worker_instance_id, system_status="ok", instance_status="ok", region=region
-            )
-            print(f"Worker instance {worker_instance_id} is ready")
+            for i in range(1, len(instances)):
+                worker_instance_id = instances[i]["InstanceId"]
+                ec2_utils.create_name_tags_for_instance(
+                    worker_instance_id, f"{instance_name_prefix}_worker_{i}", region
+                )
+                ec2_utils.check_instance_state(worker_instance_id, state="running", region=region)
+                ec2_utils.check_system_state(
+                    worker_instance_id, system_status="ok", instance_status="ok", region=region
+                )
+                print(f"Worker instance {worker_instance_id} is ready")
 
-    num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
-        ec2_instance_type, region=region
-    )
-    if num_efa_interfaces > 1:
-        # p4d instances require attaching elastic ip to connect to them
+        num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
+            ec2_instance_type, region=region
+        )
+
         elastic_ip_allocation_ids = []
-        # create and attach network interfaces and elastic ips to all instances
-        for instance in instances:
-            instance_id = instance["InstanceId"]
+        if num_efa_interfaces > 1:
+            try:
+                # p4d instances require attaching elastic ip to connect to them
+                for instance in instances:
+                    instance_id = instance["InstanceId"]
+                    network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+                    elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                        network_interface_id, region, ENABLE_IPV6_TESTING
+                    )
+                    elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+            except Exception as e:
+                print(f"Error allocating elastic IPs: {str(e)}")
+                # Clean up allocated elastic IPs
+                if elastic_ip_allocation_ids:
+                    ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+                # Clean up instances
+                if instances:
+                    instance_ids = [instance["InstanceId"] for instance in instances]
+                    ec2_client.terminate_instances(InstanceIds=instance_ids)
+                # Clean up key pair
+                if key_filename:
+                    try:
+                        if os.path.exists(key_filename):
+                            os.remove(key_filename)
+                        if os.path.exists(f"{key_filename}.pub"):
+                            os.remove(f"{key_filename}.pub")
+                    except Exception as key_error:
+                        print(f"Error cleaning up key files: {str(key_error)}")
+                raise
 
-            network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
+        return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
+        print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
+        return return_val
 
-            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
-                network_interface_id, region, ENABLE_IPV6_TESTING
-            )
-            elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+    except Exception as e:
+        # Clean up any resources that were created
+        if instances:
+            try:
+                instance_ids = [instance["InstanceId"] for instance in instances]
+                ec2_client.terminate_instances(InstanceIds=instance_ids)
+            except Exception as cleanup_error:
+                print(f"Error terminating instances: {str(cleanup_error)}")
 
-        def elastic_ips_finalizer():
-            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+        if key_filename:
+            try:
+                if os.path.exists(key_filename):
+                    os.remove(key_filename)
+                if os.path.exists(f"{key_filename}.pub"):
+                    os.remove(f"{key_filename}.pub")
+            except Exception as cleanup_error:
+                print(f"Error cleaning up key files: {str(cleanup_error)}")
 
-    return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
-    print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
-
-    return return_val
+        raise
 
 
 @contextmanager
