@@ -66,6 +66,10 @@ def test_sanity_gdrcopy(ecr_image, efa_instance_type, sagemaker_regions):
             "distribution": {
                 "mpi": {"enabled": True, "processes_per_host": 1},
             },
+            "environment": {
+                "GDRCOPY_LOG": "7",
+                "CUDA_DEVICE_DEBUG": "1",
+            },
         }
         job_name_prefix = "test-pt-gdrcopy-sanity"
         invoke_pytorch_estimator(

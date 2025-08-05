@@ -13,6 +13,23 @@
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
 
+set -e
+
+print_debug_info() {
+    echo "=== System Information ==="
+    uname -a
+    echo "=== GPU Information ==="
+    nvidia-smi
+    echo "=== CUDA Information ==="
+    nvcc --version
+    echo "=== GDRCopy Module Status ==="
+    lsmod | grep gdrdrv || echo "GDRCopy module not loaded"
+}
+
+echo "=== Starting GDRCopy Sanity Check ==="
+echo "GDRCopy Version: $GDRCOPY_VERSION"
+print_debug_info
+
 GDRCOPY_VERSION="$(awk '$1=="#define"&&$2=="GDR_API_MAJOR_VERSION" {printf "%s.", $3} $1=="#define"&&$2=="GDR_API_MINOR_VERSION" {printf "%s\n", $3}' /usr/local/include/gdrapi.h)"
 
 function version { echo "$@" | awk -F. '{ printf("%d%03d%03d%03d\n", $1,$2,$3,$4); }'; }
