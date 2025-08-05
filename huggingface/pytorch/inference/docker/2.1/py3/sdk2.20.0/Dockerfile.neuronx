@@ -67,6 +67,10 @@ RUN apt-get update \
  && rm -rf /tmp/tmp* \
  && apt-get clean
 
+# Solve `GLIBCXX' not found
+RUN add-apt-repository ppa:ubuntu-toolchain-r/test -y \
+ && apt-get upgrade -y libstdc++6
+
 RUN echo "deb https://apt.repos.neuron.amazonaws.com focal main" > /etc/apt/sources.list.d/neuron.list
 RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
 
