@@ -131,6 +131,9 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# for debugging purpose
+RUN apt-get update && apt-get install -y kmod
+
 RUN mkdir -p /tmp/nvjpeg \
 && cd /tmp/nvjpeg \
 && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
@@ -328,6 +331,12 @@ RUN cd /tmp \
  && cd gdrcopy \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
+ && echo "GDRCopy installation complete. Checking version:" \
+ && cat /usr/local/include/gdrapi.h | grep '#define GDR_API' || echo "gdrapi.h not found" \
+ && echo "Checking installed files:" \
+ && ls -l /usr/local/bin/gdrcopy* /usr/local/lib/libgdrapi.* || echo "No GDRCopy files found" \
+ && echo "Searching for any GDRCopy files:" \
+ && find /usr -name "*gdr*" || echo "No GDRCopy files found anywhere in /usr" \
  && rm -rf /tmp/gdrcopy
 
 # Install NCCL
