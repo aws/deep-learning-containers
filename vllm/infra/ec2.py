@@ -34,7 +34,7 @@ EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
 
 VLLM_INSTANCE_TYPE = ["p4d.24xlarge", "p5.48xlarge"]
 
-ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+ENABLE_IPV6_TESTING = "true"
 
 
 LOGGER = logging.getLogger(__name__)
