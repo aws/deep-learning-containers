@@ -1,6 +1,6 @@
 import os
 
-import pytest
+import pytest, time
 
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
@@ -210,11 +210,12 @@ def _setup_multinode_efa_instances(
     _pull_image_on_all_instances(efa_ec2_connections, image)
     # Configure master node container
     master_connection = efa_ec2_connections[0]
-
+    print("1")
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, MASTER_CONTAINER_NAME)
     # Build all_reduce_perf binary using nccl-tests
+    print("2")
     promise = run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
@@ -222,6 +223,7 @@ def _setup_multinode_efa_instances(
         timeout=DEFAULT_EFA_TIMEOUT,
         asynchronous=True,
     )
+    print("3")
     build_all_reduce_perf_promises.append(promise)
     for worker_connection in efa_ec2_connections[1:]:
         # Run container
@@ -235,25 +237,28 @@ def _setup_multinode_efa_instances(
             asynchronous=True,
         )
         build_all_reduce_perf_promises.append(promise)
-
+    print("4")
     # Configure master node SSH client-side configurations
     _setup_master_efa_ssh_config(master_connection)
+    print("5")
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
+    time.sleep(3000)
     _create_master_mpi_hosts_file(
         efa_ec2_connections, worker_instance_ids, ec2_instance_type, region
     )
+    print("6")
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
         MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
     ).stdout.strip("\n")
-
+    print("7")
     # Configure worker node containers
     for worker_connection in efa_ec2_connections[1:]:
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
         _setup_worker_efa_ssh_config(worker_connection, master_pub_key)
-
+    print("7")
     # Wait for all_reduce_perf binaries to be built in all containers
     for promise in build_all_reduce_perf_promises:
         promise.join()
@@ -340,13 +345,17 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
     :param instance_type: str EC2 Instance Type being used
     :param region: str region name in which test is run
     """
+    print("entered function")
     master_connection = efa_ec2_connections[0]
+    print("master_connection", master_connection)
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
+    print("slots", slots)
     worker_instance_private_ips = [
         ec2_utils.get_private_ip(instance_id, region) for instance_id in worker_instance_ids
     ]
-
+    print("worker_instance_private_ips", worker_instance_private_ips)
     if ENABLE_IPV6_TESTING:
+        print("ENABLE_IPV6_TESTING", ENABLE_IPV6_TESTING)
         master_ip = master_connection.ipv6_address
         if not master_ip:
             raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
@@ -375,11 +384,12 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
     else:
+        print("ENABLE_IPV6_TESTING", ENABLE_IPV6_TESTING)
         # Configure MPI hosts file with IP addresses and slots for worker nodes
         hosts_string = f"localhost slots={slots} "
         for worker_ip in worker_instance_private_ips:
             hosts_string += f"\n{worker_ip} slots={slots} "
-
+        print("hosts_string", hosts_string)
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
