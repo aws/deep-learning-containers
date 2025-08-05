@@ -410,7 +410,7 @@
             "severity": "HIGH", 
             "status": "ACTIVE", 
             "title": "CVE-2025-3262 - transformers", 
-            "reason_to_ignore": "N/A"
+            "reason_to_ignore": "No fix provided"
         }
     ],
     "lightgbm": [
