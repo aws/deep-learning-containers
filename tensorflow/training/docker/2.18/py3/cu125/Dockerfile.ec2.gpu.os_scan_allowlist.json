@@ -2505,18 +2505,14 @@
         "version": "4.21.12",
         "release": null
       },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
       "cvss_v3_score": 0.0,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 0.0,
       "cvss_v2_score": 0.0,
       "cvss_v3_severity": "UNDEFINED",
       "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-4565",
-      "source": "NVD",
+      "source": "UBUNTU_CVE",
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2025-4565 - protobuf",
