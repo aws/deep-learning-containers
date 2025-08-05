@@ -8,6 +8,14 @@
   "protobuf": {
     "version_specifier": ">=5.29.5"
   },
+  "numpy": {
+    "version_specifier": "==1.26.4",
+    "skip": "True"
+  },
+  "opencv-python": {
+    "version_specifier": "==4.9.*",
+    "skip": "True"
+  },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
   },
@@ -18,16 +26,19 @@
     "version_specifier": ">=20.4.1,<21"
   },
   "sagemaker-training": {
-    "version_specifier": ">=5"
+    "version_specifier": "==4.8.3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "==0.1.45"
   },
   "sagemaker-studio-analytics-extension": {
-    "version_specifier": "<1"
+    "version_specifier": "==0.1.4"
   },
   "sparkmagic": {
-    "version_specifier": "<1"
+    "version_specifier": "==0.21.0"
   },
   "sagemaker-studio-sparkmagic-lib": {
-    "version_specifier": "<1"
+    "version_specifier": "==0.2.0"
   },
   "tensorboard": {
     "version_specifier": "==2.18.0"
@@ -39,7 +50,8 @@
     "version_specifier": "==2.18.0"
   },
   "tensorflow-datasets": {
-    "version_specifier": ">=4.9.4"
+    "version_specifier": "==4.9.7",
+    "skip": "True",
   },
   "tensorflow-hub": {
     "version_specifier": ">=0.13.0",

@@ -266,7 +266,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     numba==0.61.0 \
     bokeh \
     imageio \
-    opencv-python \
+    "opencv-python==4.9.*" \
     plotly \
     seaborn \
     shap 
@@ -281,7 +281,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-tensorflow-training
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training
+    sagemaker-training==4.8.3
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-studio-analytics-extension==0.1.4
