@@ -29,7 +29,7 @@
   },
   "tensorflow-metadata": {
     "version_specifier": "==1.16.0",
-    "skip": "True",
+    "skip": "True"
   },
   "urllib3": {
     "version_specifier": ">=2.2.2"
