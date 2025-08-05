@@ -32,7 +32,7 @@ def test():
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
 
-    ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    ipv6_enabled = True
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
 
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
