@@ -159,8 +159,9 @@ RUN ${PIP} install --no-cache-dir -U \
     absl-py \
     opencv-python \
     werkzeug \
-    psutil 
-    
+    psutil \
+    "protobuf<4"
+
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -188,8 +189,7 @@ ARG TF_URL
 RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    "tensorflow-datasets==4.9.7" \
-    protobuf
+    tensorflow-datasets
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -261,41 +261,26 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    "tensorflow-datasets==4.9.7"
+    tensorflow-datasets
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    numba==0.61.0 \
+    numba \
     bokeh \
     imageio \
     opencv-python \
     plotly \
     seaborn \
-    shap 
+    shap
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker<3"
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-experiments==0.1.45
-   
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-tensorflow-training
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-studio-analytics-extension==0.1.4
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-studio-sparkmagic-lib==0.2.0 
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sparkmagic==0.21.0 \
-    smclarify 
-
-#pin numpy version because of sagemaker-tensorflow-training dependency
-RUN $PYTHON -m pip install --no-cache-dir numpy==1.26.4
+    "sagemaker<3" \
+    sagemaker-experiments==0.* \
+    sagemaker-tensorflow-training \
+    sagemaker-training \
+    "sagemaker-studio-analytics-extension<1" \
+    "sparkmagic<1" \
+    "sagemaker-studio-sparkmagic-lib<1" \
+    smclarify
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
