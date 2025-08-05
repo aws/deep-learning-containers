@@ -19,7 +19,7 @@
   },
   "tensorflow-datasets": {
     "version_specifier": "==4.9.7",
-    "skip": "True",
+    "skip": "True"
   },
   "tensorflow-io": {
     "version_specifier": "==0.37.*"
