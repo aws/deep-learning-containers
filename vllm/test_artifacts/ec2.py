@@ -161,7 +161,6 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
-        print("HF_TOKEN", hf_token)
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
         account_id = get_account_id_from_image_uri(image_uri)
@@ -374,20 +373,20 @@ def test_vllm_on_ec2(resources, image_uri):
             test_results["efa"] = True
             print("EFA tests completed successfully")
 
-        # # Run single-node test on first instance
-        # instance_id = list(ec2_connections.keys())[0]
-        # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-        # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
+        # Run single-node test on first instance
+        instance_id = list(ec2_connections.keys())[0]
+        print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+        test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
-        if len(ec2_connections) >= 2:
-            instance_ids = list(ec2_connections.keys())
-            head_conn = ec2_connections[instance_ids[0]]
-            worker_conn = ec2_connections[instance_ids[1]]
+        # if len(ec2_connections) >= 2:
+        #     instance_ids = list(ec2_connections.keys())
+        #     head_conn = ec2_connections[instance_ids[0]]
+        #     worker_conn = ec2_connections[instance_ids[1]]
 
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
-        else:
-            print("\nSkipping multi-node test: insufficient instances")
+        #     test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+        # else:
+        #     print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")

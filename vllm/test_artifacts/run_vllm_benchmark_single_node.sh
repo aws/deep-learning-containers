@@ -38,17 +38,48 @@ pip install numpy torch tqdm aiohttp pandas datasets pillow vllm
 pip install "transformers[torch]" 
 echo "Python version: $(python --version)"
 
-# Pull and run the vLLM DLC
 log "Starting vLLM server..."
+
+# Set variables
+GPU_ID=0 # or 0,1 for multi-GPU
+PORT=8000
+MAX_MODEL_LEN=131072
+MAX_NUM_SEQS=256
+GPU_MEMORY_UTILIZATION=0.9 # default 0.9
+LOG_FILE="/home/ec2-user/vllm_docker.log"
+dtype=half
+
+# Calculate tensor parallel size based on the number of GPUs
+IFS=',' read -r -a GPU_ARRAY <<< "$GPU_ID"
+TENSOR_PARALLEL_SIZE=${#GPU_ARRAY[@]}
+
+# Run the Docker container
 docker run --name vllm-server --runtime nvidia --gpus all \
-    -v /fsx/.cache/huggingface:/root/.cache/huggingface \
-    -e "HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}" \
-    -e "NCCL_DEBUG=TRACE" \
-    -p 8000:8000 \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    --env "HUGGING_FACE_HUB_TOKEN=$HUGGING_FACE_HUB_TOKEN" \
+    -p $PORT:8000 \
     --ipc=host \
     ${CONTAINER_IMAGE} \
     --model ${MODEL_NAME} \
-    --tensor-parallel-size 8 
+    --trust-remote-code \
+    --host 0.0.0.0 \
+    --max-model-len $MAX_MODEL_LEN \
+    --tensor-parallel-size $TENSOR_PARALLEL_SIZE \
+    --swap-space 0 \
+    --dtype $dtype \
+    --gpu-memory-utilization $GPU_MEMORY_UTILIZATION \
+    --max-num-seqs $MAX_NUM_SEQS 
+
+# Pull and run the vLLM DLC
+# docker run --name vllm-server --runtime nvidia --gpus all \
+#     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
+#     -e "HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}" \
+#     -e "NCCL_DEBUG=TRACE" \
+#     -p 8000:8000 \
+#     --ipc=host \
+#     ${CONTAINER_IMAGE} \
+#     --model ${MODEL_NAME} \
+#     --tensor-parallel-size 8 
 
 log "Checking container status..."
 if ! docker ps | grep -q vllm-server; then
