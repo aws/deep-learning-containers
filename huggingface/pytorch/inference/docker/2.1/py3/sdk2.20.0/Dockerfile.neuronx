@@ -63,6 +63,7 @@ RUN apt-get update \
     libgstreamer1.0-0 \
     libsoup2.4-1 \
     libsqlite3-0 \
+    libc6-dev \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
