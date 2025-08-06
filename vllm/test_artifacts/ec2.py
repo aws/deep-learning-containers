@@ -443,7 +443,7 @@ def test_vllm_on_ec2(resources, image_uri):
                 image_uri,
                 resources["instances_info"][:2],
                 [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
-                EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION,
+                "p4d.24xlarge",
                 DEFAULT_REGION,
             )
 
