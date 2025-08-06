@@ -1,20 +1,19 @@
 {
   "awscli": {
-    "version_specifier": ">=1.33.13,<2"
+    "version_specifier": ">=1.41.16,<2"
   },
   "cython": {
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": ">=3.19.6,<4.22"
+    "version_specifier": ">=4.21.12"
   },
    "numpy": {
     "version_specifier": "==1.26.4",
     "skip": "True"
   },
   "opencv-python": {
-    "version_specifier": "==4.9.*",
-    "skip": "True"
+    "version_specifier": ">=4.9.*"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
