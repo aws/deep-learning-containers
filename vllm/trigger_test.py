@@ -1,5 +1,5 @@
 import os, sys
-import logging
+import logging, time
 from typing import List
 
 from test.test_utils import get_dlc_images
@@ -20,6 +20,7 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
         # create resources for test
         ec2_resources = setup()
         print("Finished gathering resources required for VLLM EC2 Tests")
+        time.sleep(3000)
         test_vllm_on_ec2(ec2_resources, images[0])
 
 

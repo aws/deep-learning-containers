@@ -314,24 +314,30 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     return result
 
 
-def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=None):
+def cleanup_resources(ec2_cli, resources, fsx):
     """Cleanup all resources in reverse order of creation"""
     cleanup_errors = []
 
-    # Clean up FSx filesystems
-    if instance_configs and fsx:
-        for config in instance_configs:
-            try:
-                if "fsx_config" in config:
-                    fsx.delete_fsx_filesystem(config["fsx_config"]["filesystem_id"])
-                    print(f"Deleted FSx filesystem: {config['fsx_config']['filesystem_id']}")
-            except Exception as e:
-                cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
+    # Clean up FSx filesystem
+    if resources.get("fsx_config"):
+        try:
+            fsx.delete_fsx_filesystem(resources["fsx_config"]["filesystem_id"])
+            print(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
+
+    # Clean up security group
+    if resources.get("sg_fsx"):
+        try:
+            ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
+            print(f"Deleted security group: {resources['sg_fsx']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
 
     # Clean up EC2 instances
-    if instances_info:
+    if resources.get("instances_info"):
         try:
-            instance_ids = [instance_id for instance_id, _ in instances_info]
+            instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
             ec2_cli.terminate_instances(InstanceIds=instance_ids)
             print(f"Terminating instances: {instance_ids}")
 
@@ -343,7 +349,7 @@ def cleanup_resources(ec2_cli, instances_info=None, instance_configs=None, fsx=N
                 print(f"Warning: Instance termination waiter timed out: {str(e)}")
 
             # Clean up SSH keys
-            for _, key_filename in instances_info:
+            for _, key_filename in resources["instances_info"]:
                 if key_filename:
                     try:
                         if os.path.exists(key_filename):
@@ -465,51 +471,90 @@ def setup_single_instance(instance_id, key_filename, ec2_cli, fsx, vpc_id, subne
         raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
 
 
+def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+    """Mount FSx on worker instance without running setup script"""
+    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+        "Instances"
+    ][0]
+    public_ip = instance_details.get("PublicIpAddress")
+
+    if not public_ip:
+        raise Exception(f"No public IP found for instance {instance_id}")
+
+    connection = Connection(
+        host=public_ip,
+        user="ec2-user",
+        connect_kwargs={"key_filename": key_filename},
+    )
+
+    # Create mount directory and mount FSx
+    commands = [
+        "sudo yum install -y lustre-client",
+        "sudo mkdir -p /fsx",
+        f"sudo mount -t lustre -o relatime,flock {fsx_dns_name}@tcp:/{mount_name} /fsx",
+    ]
+
+    for cmd in commands:
+        connection.run(cmd)
+
+
 def setup():
     """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
     ec2_cli = ec2_client(DEFAULT_REGION)
-    resources = {"instances_info": None, "instance_configs": []}
+    resources = {"instances_info": None, "fsx_config": None, "sg_fsx": None}
 
     try:
-        # Get VPC and subnet information
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        # Launch EC2 instances
         resources["instances_info"] = launch_ec2_instances(ec2_cli)
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
-        # Set up each instance sequentially
-        for instance_id, key_filename in resources["instances_info"]:
-            instance_config = setup_single_instance(
-                instance_id, key_filename, ec2_cli, fsx, vpc_id, subnet_ids[0]
-            )
-            resources["instance_configs"].append(
-                {
-                    "instance_id": instance_id,
-                    "sg_fsx": instance_config["sg_fsx"],
-                    "fsx_config": instance_config["fsx_config"],
-                }
-            )
-            print(f"Setup completed successfully for instance {instance_id}")
+        # Configure single security group for both instances
+        instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
+        resources["sg_fsx"] = configure_security_groups(
+            instance_ids[0], ec2_cli, fsx, vpc_id, resources["instances_info"]
+        )
+
+        # Create FSx filesystem
+        resources["fsx_config"] = fsx.create_fsx_filesystem(
+            subnet_ids[0],
+            [resources["sg_fsx"]],
+            1200,
+            "SCRATCH_2",
+            {"Name": f"fsx-lustre-vllm-ec2-test-{instance_ids[0]}-{TEST_ID}"},
+        )
+        print("Created FSx filesystem")
+
+        master_instance_id, master_key_filename = resources["instances_info"][0]
+        setup_instance(
+            master_instance_id,
+            master_key_filename,
+            ec2_cli,
+            resources["fsx_config"]["dns_name"],
+            resources["fsx_config"]["mount_name"],
+        )
+        print(f"Setup completed for master instance {master_instance_id}")
+
+        # Mount FSx on worker node
+        worker_instance_id, worker_key_filename = resources["instances_info"][1]
+        mount_fsx_on_worker(
+            worker_instance_id,
+            worker_key_filename,
+            ec2_cli,
+            resources["fsx_config"]["dns_name"],
+            resources["fsx_config"]["mount_name"],
+        )
+        print(f"FSx mounted on worker instance {worker_instance_id}")
 
         return resources
 
     except Exception as e:
         print(f"Error during setup: {str(e)}")
-        if resources["instances_info"] or resources["instance_configs"]:
-            try:
-                cleanup_resources(
-                    ec2_cli,
-                    resources["instances_info"],
-                    resources["instance_configs"],
-                    fsx,
-                )
-            except Exception as cleanup_error:
-                print(f"Error during cleanup: {str(cleanup_error)}")
+        cleanup_resources(ec2_cli, resources, fsx)
         raise
 
 
