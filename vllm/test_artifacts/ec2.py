@@ -214,13 +214,17 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
                 raise Exception("Worker node failed to start")
 
             # Start model serving
-            logger.info("Starting model serving...")
+            print("Starting model serving inside Ray container...")
             serve_cmd = create_serve_command(model_name)
-            head_connection.run(serve_cmd, hide=False, asynchronous=True)
+            head_container_id = get_container_id(head_connection, image_uri)
+            if not head_container_id:
+                raise Exception("Cannot find head node container")
 
-            # Wait for model to load
-            logger.info("Waiting for model to load (15 minutes)...")
-            time.sleep(900)
+            serve_in_container = f"docker exec -it {head_container_id} bash -c '{serve_cmd}'"
+            head_connection.run(serve_in_container, hide=False, asynchronous=True)
+
+            print("Waiting for model to load (15 minutes)...")
+            time.sleep(900)  # 15 minutes
 
             # Run benchmark
             logger.info("Running benchmark...")
