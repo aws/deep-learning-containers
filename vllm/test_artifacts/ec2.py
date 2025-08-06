@@ -11,7 +11,7 @@ from test.dlc_tests.ec2.test_efa import (
     DEFAULT_EFA_TIMEOUT,
     EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION,
 )
-from test.test_utils import run_cmd_on_container
+from test.test_utils import run_cmd_on_container, CONTAINER_TESTS_PREFIX
 from botocore.config import Config
 import threading
 from fabric import Connection
@@ -439,6 +439,12 @@ def test_vllm_on_ec2(resources, image_uri):
             instance_ids = list(ec2_connections.keys())
             number_of_nodes = 2
 
+            local_scripts_path = os.path.join("test", "dlc_tests", "container_tests", "bin", "efa")
+            scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
+            for conn in [head_conn, worker_conn]:
+                conn.run(f"mkdir -p {scripts_path}")
+                conn.run(f"cp -r {local_scripts_path} {scripts_path}")
+
             _setup_multinode_efa_instances(
                 image_uri,
                 resources["instances_info"][:2],
@@ -504,8 +510,7 @@ def test_vllm_on_ec2(resources, image_uri):
             try:
                 cleanup_resources(
                     ec2_cli,
-                    resources["instances_info"],
-                    resources["instance_configs"],
+                    resources,
                     fsx,
                 )
                 cleanup_timer.cancel()

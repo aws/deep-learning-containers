@@ -318,22 +318,6 @@ def cleanup_resources(ec2_cli, resources, fsx):
     """Cleanup all resources in reverse order of creation"""
     cleanup_errors = []
 
-    # Clean up FSx filesystem
-    if resources.get("fsx_config"):
-        try:
-            fsx.delete_fsx_filesystem(resources["fsx_config"]["filesystem_id"])
-            print(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
-
-    # Clean up security group
-    if resources.get("sg_fsx"):
-        try:
-            ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
-            print(f"Deleted security group: {resources['sg_fsx']}")
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
-
     # Clean up EC2 instances
     if resources.get("instances_info"):
         try:
@@ -360,6 +344,22 @@ def cleanup_resources(ec2_cli, resources, fsx):
                         cleanup_errors.append(f"Failed to delete key file: {str(e)}")
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
+
+    # Clean up security group
+    if resources.get("sg_fsx"):
+        try:
+            ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
+            print(f"Deleted security group: {resources['sg_fsx']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
+
+    # Clean up FSx filesystem
+    if resources.get("fsx_config"):
+        try:
+            fsx.delete_fsx_filesystem(resources["fsx_config"]["filesystem_id"])
+            print(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
     if cleanup_errors:
         raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
