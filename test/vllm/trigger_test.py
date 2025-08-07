@@ -27,7 +27,6 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
         except Exception as e:
             LOGGER.error(f"EKS vLLM tests failed: {str(e)}")
             raise
-
     elif platform == "eks":
         LOGGER.info("Running EKS tests")
         try:

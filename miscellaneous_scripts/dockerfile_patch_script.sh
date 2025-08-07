@@ -40,23 +40,11 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     chmod +x /usr/local/bin/dockerd-entrypoint.py
 fi
 
-# For PT 2.4, 2.5 and 2.6 inference, install openssh-client to make mpi4py working
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu ]]; then
-    apt update && apt install -y --no-install-recommends openssh-client openssh-server && echo "Installed openssh-client openssh-server"
-fi
-
 # For PT 2.6, 2.7, rerun license file
 if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.6 ]]; then
     curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.7 ]]; then
     curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
-fi
-
-# Upgrade sagemaker-training
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6](.+)sagemaker ]]; then
-    pip install -U "sagemaker-training>4.7.4" "protobuf>=4.25.8,<6"
-elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.7(.+)sagemaker ]]; then
-    pip install -U "sagemaker-training>4.7.4,<5" "sagemaker-pytorch-training>=2.9.0"
 fi
 
 # For PT inference gpu sagemaker images, replace start_cuda_compat.sh
@@ -71,6 +59,20 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     mv /tmp/new_pytorch_training_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
     chmod +x /usr/local/bin/start_with_right_hostname.sh
     chmod +x /usr/local/bin/start_cuda_compat.sh
+fi
+
+# For PT ARM64 GPU images, patch nvjpeg
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(inference|training)-arm64:2\.[5-7]\.[0-9]+-gpu(.+) ]]; then
+    mkdir -p /tmp/nvjpeg
+    cd /tmp/nvjpeg
+    wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-aarch64/libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    tar -xvf libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    rm -rf /usr/local/cuda/targets/sbsa-linux/lib/libnvjpeg*
+    rm -rf /usr/local/cuda/targets/sbsa-linux/include/nvjpeg.h
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/sbsa-linux/lib/
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/include/* /usr/local/cuda/targets/sbsa-linux/include/
+    cd /
+    rm -rf /tmp/nvjpeg
 fi
 
 # For all GPU images, remove cuobjdump and nvdisasm
