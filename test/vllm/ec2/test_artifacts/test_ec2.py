@@ -262,7 +262,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
 
         # Copy script to instance
         connection.put(
-            "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
+            "ec2/utils/run_vllm_benchmark_single_node.sh",
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 
@@ -441,7 +441,7 @@ def test_vllm_on_ec2(resources, image_uri):
             head_conn = ec2_connections[instance_ids[0]]
             worker_conn = ec2_connections[instance_ids[1]]
 
-            local_scripts_path = os.path.join("dlc_tests", "container_tests", "bin", "efa")
+            local_scripts_path = os.path.join("test", "dlc_tests", "container_tests", "bin", "efa")
             scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
             for conn in [head_conn, worker_conn]:
                 conn.run(f"sudo mkdir -p {scripts_path}")
