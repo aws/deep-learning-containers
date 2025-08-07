@@ -2491,5 +2491,32 @@
       "title": "CVE-2021-38092 - libswresample3, libpostproc55 and 7 more",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "protobuf": [
+    {
+      "description": "Any project that uses Protobuf Pure-Python backend to parse untrusted Protocol Buffers data containing an arbitrary number of recursive groups, recursive messages or a series of SGROUP tags can be corrupted by exceeding the Python recursion limit. This can result in a Denial of service by crashing the application with a RecursionError. We recommend upgrading to version =>6.31.1 or beyond commit 17838beda2943d08b8a9d4df5b68f5f04f26d901",
+      "vulnerability_id": "CVE-2025-4565",
+      "name": "CVE-2025-4565", 
+      "package_name": "protobuf",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.10/site-packages/protobuf-4.21.12.dist-info/METADATA",
+        "name": "protobuf",
+        "package_manager": "PYTHON",
+        "version": "4.21.12",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 0.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 0.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-4565",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-4565 - protobuf",
+      "reason_to_ignore": "protobuf upgrade is not possible at the moment - this version has dependency with tensorflow metadata "
+    }
   ]
 }
