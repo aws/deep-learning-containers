@@ -1,7 +1,7 @@
 from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
 import time, os, json
-from vllm.infra.utils.fsx_utils import FsxSetup
-from vllm.infra.ec2 import cleanup_resources
+from test.vllm.ec2.infra.utils.fsx_utils import FsxSetup
+from test.vllm.ec2.infra.setup_ec2 import cleanup_resources
 from test.dlc_tests.ec2.test_efa import (
     _setup_multinode_efa_instances,
     EFA_SANITY_TEST_CMD,
@@ -444,8 +444,8 @@ def test_vllm_on_ec2(resources, image_uri):
             local_scripts_path = os.path.join("test", "dlc_tests", "container_tests", "bin", "efa")
             scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
             for conn in [head_conn, worker_conn]:
-                conn.run(f"mkdir -p {scripts_path}")
-                conn.run(f"cp -r {local_scripts_path} {scripts_path}")
+                conn.run(f"sudo mkdir -p {scripts_path}")
+                conn.run(f"sudo cp -r {local_scripts_path} {scripts_path}")
 
             _setup_multinode_efa_instances(
                 image_uri,

@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from test import test_utils
 import test.test_utils.ec2 as ec2_utils
-from vllm.infra.utils.fsx_utils import FsxSetup
+from test.vllm.ec2.infra.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
