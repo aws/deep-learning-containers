@@ -209,15 +209,23 @@ def efa_ec2_instances(
             for instance in instances:
                 try:
                     instance_id = instance["InstanceId"]
+
                     network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
                     elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
                         network_interface_id, region, ENABLE_IPV6_TESTING
                     )
                     elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
                 except Exception as e:
+                    if elastic_ip_allocation_ids:
+                        ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
                     raise Exception(f"Error allocating elastic IP: {str(e)}")
 
-        return_val = [(instance_info["InstanceId"], key_filename) for instance_info in instances]
+        return_val = {
+            "instances": [
+                (instance_info["InstanceId"], key_filename) for instance_info in instances
+            ],
+            "elastic_ips": elastic_ip_allocation_ids,
+        }
         print(f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val]}")
         return return_val
 
@@ -317,6 +325,14 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
 def cleanup_resources(ec2_cli, resources, fsx):
     """Cleanup all resources in reverse order of creation"""
     cleanup_errors = []
+
+    # Clean up Elastic IPs first
+    if resources.get("elastic_ips"):
+        try:
+            ec2_utils.delete_elastic_ips(resources["elastic_ips"], ec2_cli)
+            print(f"Deleted elastic IPs: {resources['elastic_ips']}")
+        except Exception as e:
+            cleanup_errors.append(f"Failed to cleanup Elastic IPs: {str(e)}")
 
     # Clean up EC2 instances
     if resources.get("instances_info"):

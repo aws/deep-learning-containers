@@ -424,13 +424,13 @@ def main():
 
             if framework == "vllm":
                 try:
-                    LOGGER.info(f"Running vLLM EKS tests with image: {all_image_list[0]}")
+                    LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     test()
-                    LOGGER.info("vLLM EKS tests completed successfully")
+                    LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
-                    LOGGER.error(f"vLLM EKS tests failed: {str(e)}")
+                    LOGGER.error(f"vLLM EKS EC2 tests failed: {str(e)}")
                     raise
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
