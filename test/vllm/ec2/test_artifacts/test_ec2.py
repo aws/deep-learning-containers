@@ -262,7 +262,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
 
         # Copy script to instance
         connection.put(
-            "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
+            "test/vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 
