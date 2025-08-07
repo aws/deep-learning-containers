@@ -409,7 +409,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type == "eks" and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
