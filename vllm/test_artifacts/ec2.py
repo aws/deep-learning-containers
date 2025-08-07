@@ -438,6 +438,8 @@ def test_vllm_on_ec2(resources, image_uri):
             print("\n=== Starting EFA Tests ===")
             instance_ids = list(ec2_connections.keys())
             number_of_nodes = 2
+            head_conn = ec2_connections[instance_ids[0]]
+            worker_conn = ec2_connections[instance_ids[1]]
 
             local_scripts_path = os.path.join("test", "dlc_tests", "container_tests", "bin", "efa")
             scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
