@@ -226,9 +226,7 @@ def efa_ec2_instances(
             ],
             "elastic_ips": elastic_ip_allocation_ids,
         }
-        print(
-            f"Launched EFA Test instances - {[instance_id for instance_id, _ in return_val["instances"]]}"
-        )
+        print("Launched EFA Test instances")
         return return_val
 
     except Exception as e:
