@@ -1,6 +1,6 @@
 from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
 import time, os, json
-from test.vllm.ec2.infra.utils.fsx_utils import FsxSetup
+from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources
 from test.dlc_tests.ec2.test_efa import (
     _setup_multinode_efa_instances,
@@ -262,7 +262,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
 
         # Copy script to instance
         connection.put(
-            "vllm/test_artifacts/run_vllm_benchmark_single_node.sh",
+            "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
 

@@ -18,7 +18,6 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     """
     LOGGER.info(f"Running {platform} tests")
     if platform == "ec2":
-        LOGGER.info("Running EC2 tests")
         try:
             ec2_resources = setup()
             print("Finished gathering resources required for VLLM EC2 Tests")

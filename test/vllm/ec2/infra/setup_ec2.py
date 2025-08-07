@@ -10,7 +10,7 @@ from contextlib import contextmanager
 
 from test import test_utils
 import test.test_utils.ec2 as ec2_utils
-from test.vllm.ec2.infra.utils.fsx_utils import FsxSetup
+from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
@@ -309,7 +309,7 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     Setup FSx mount and VLLM environment on an instance synchronously
     """
     # Copy script to instance
-    connection.put("vllm/infra/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+    connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
     # Make script executable and run it
     commands = [
@@ -525,7 +525,9 @@ def setup():
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        resources["instances_info"] = launch_ec2_instances(ec2_cli)
+        instance_result = launch_ec2_instances(ec2_cli)
+        resources["instances_info"] = instance_result["instances"]
+        resources["elastic_ips"] = instance_result["elastic_ips"]
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
