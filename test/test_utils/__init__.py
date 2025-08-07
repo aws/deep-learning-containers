@@ -2220,7 +2220,6 @@ def run_cmd_on_container(
         more details on running asynchronous commands.
     :return: invoke output, can be used to parse stdout, etc
     """
-    print(cmd)
     if executable not in ("bash", "python"):
         LOGGER.warning(
             f"Unrecognized executable {executable}. It will be run as {executable} -c '{cmd}'"
