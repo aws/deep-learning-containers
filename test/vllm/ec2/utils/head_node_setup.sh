@@ -10,6 +10,7 @@ HEAD_IP=$(hostname -i)
 # Start head node in tmux session and capture container ID
 tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
     $IMAGE_URI $HEAD_IP \
+    --head \
     /fsx/.cache/huggingface \
     -e VLLM_HOST_IP=$HEAD_IP \
     -e HUGGING_FACE_HUB_TOKEN=$HF_TOKEN \
@@ -20,6 +21,5 @@ tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving
     -p 8000:8000"
 
 echo "Waiting for container to start..."
-sleep 60
-docker ps -a 
+sleep 200
 echo "Head node started"

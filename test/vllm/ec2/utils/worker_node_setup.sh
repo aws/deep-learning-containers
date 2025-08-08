@@ -19,5 +19,5 @@ tmux new-session -d -s ray_worker "bash /fsx/vllm-dlc/vllm/examples/online_servi
     --ulimit memlock=-1:-1
     "
 
-sleep 60
+sleep 200
 echo "Worker node setup complete."
