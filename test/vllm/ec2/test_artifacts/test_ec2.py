@@ -171,11 +171,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
         login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
 
-        # Pull images
-        print(f"Pulling image: {image_uri}")
-        head_connection.run(f"docker pull {image_uri}", hide="out")
-        worker_connection.run(f"docker pull {image_uri}", hide="out")
-
         setup_env(head_connection)
         setup_env(worker_connection)
 

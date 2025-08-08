@@ -20,9 +20,8 @@ tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving
     -p 8000:8000"
 
 echo "Waiting for container to start..."
-sleep 30
+sleep 200
 
-tmux ls
 docker ps -a
 
 CONTAINER_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk '/node-/ {print $1}' | head -n 1)
