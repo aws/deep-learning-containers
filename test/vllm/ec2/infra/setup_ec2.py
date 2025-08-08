@@ -309,7 +309,7 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     Setup FSx mount and VLLM environment on an instance synchronously
     """
     # Copy script to instance
-    connection.put("test/vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+    connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
     # Make script executable and run it
     commands = [
