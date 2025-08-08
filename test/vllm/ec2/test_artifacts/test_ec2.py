@@ -189,6 +189,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run("chmod +x head_node_setup.sh")
         worker_connection.run("chmod +x worker_node_setup.sh")
 
+        time.sleep(2000)
+
         head_ip = head_connection.run("hostname -i").stdout.strip()
 
         print("Starting head node...")
