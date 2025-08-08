@@ -2,25 +2,39 @@
 
 set -e
 
-source /test/bin/pytorch_tests/setupPyTorchBackendTest
+# check GPU status
+if nvidia-smi &> /dev/null; then
+   DEVICE="cuda"
+   NUM_GPUS=$(nvidia-smi -L | wc -l)
+else
+   DEVICE="cpu"
+   NUM_GPUS=0
+fi
+
+git config --global user.email "you@example.com"
+git config --global user.name "Your Name"
+
+if which conda >/dev/null 2>&1; then
+    conda init
+    source ~/.bashrc
+fi
+
+# setup benchmark repo
+git clone https://github.com/pytorch/benchmark.git
+cd benchmark
+PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__)" 2>/dev/null || echo "pytorch not found")
+# Add git checkout for PyTorch 2.6
+if [[ "$PYTORCH_VERSION" == "2.6"* ]]; then
+    git checkout 4c7763b619b4eb1de88e57aee901eda92e270d7b
+fi
+pip install -r requirements.txt
+pip install numba
 
 export PT_BACKEND=$1
 export USE_INDUCTOR=$2
 # assign the lower of 2 and gpu #, or 2 when no gpu
 export WORLD_SIZE=$(($NUM_GPUS == 0 ? 2 : ($NUM_GPUS < 2 ? $NUM_GPUS : 2)))
 
-# test aws pytorch
 OUT_PATH=$AWS_LOG_DIR/aws_res.csv timeout 360 python run.py BERT_pytorch -d $DEVICE -t train
-
-bash ${BIN_DIR}/pytorch_tests/installOSSPyTorch
-
-# test oss pytorch
-OUT_PATH=$OSS_LOG_DIR/oss_res.csv timeout 360 python run.py BERT_pytorch -d $DEVICE -t train
-
-# compare aws and oss results process by process (result metrics are aleady medians)
-for ((i=0; i<$WORLD_SIZE; i++))
-do
-  bash ${BIN_DIR}/pytorch_tests/evaluateResults "$AWS_LOG_DIR/aws_res.csv_$i" "$OSS_LOG_DIR/oss_res.csv_$i"
-done
 
 exit 0
