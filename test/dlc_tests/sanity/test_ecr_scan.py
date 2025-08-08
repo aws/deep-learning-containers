@@ -45,7 +45,6 @@ from test.test_utils.security import (
     conduct_failure_routine,
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
-    fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
@@ -396,7 +395,15 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    if is_mainline_context() and is_test_phase() and not is_generic_image():
+    def skip_upload(image):
+        return "base" in image or "vllm" in image
+
+    if (
+        is_mainline_context()
+        and is_test_phase()
+        and not is_generic_image()
+        and not skip_upload(image)
+    ):
         upload_data = (
             allowlist_for_daily_scans.vulnerability_list if allowlist_for_daily_scans else []
         )

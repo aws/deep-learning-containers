@@ -50,7 +50,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption("--processor", default="cpu", choices=["cpu", "gpu", "cpu,gpu"])
     parser.addoption(
-        "--py-version", default="3", choices=["2", "3", "2,3", "37", "38", "39", "310"]
+        "--py-version", default="3", choices=["2", "3", "2,3", "37", "38", "39", "310", "312"]
     )
     parser.addoption("--account-id", default="142577830533")
     parser.addoption("--instance-type", default=None)
@@ -235,6 +235,12 @@ def skip_tf216_only(framework_version):
 def skip_tf218_only(framework_version):
     if Version(framework_version) in SpecifierSet("==2.18.*"):
         pytest.skip("Test does not support Tensorflow 2.18")
+
+
+@pytest.fixture
+def skip_tf219_only(framework_version):
+    if Version(framework_version) in SpecifierSet("==2.19.*"):
+        pytest.skip("Test does not support Tensorflow 2.19")
 
 
 @pytest.fixture(autouse=True)

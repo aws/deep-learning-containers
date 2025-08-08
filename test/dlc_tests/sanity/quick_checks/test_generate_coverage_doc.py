@@ -37,7 +37,8 @@ def test_generate_coverage_doc():
     # Set CODEBUILD_RESOLVED_SOURCE_VERSION to test for ease of running this test locally
     ctx.run(
         "export DLC_IMAGES='' && export CODEBUILD_RESOLVED_SOURCE_VERSION='test' && export BUILD_CONTEXT=''"
-        "&& pytest -s --collect-only  --generate-coverage-doc --ignore=container_tests/",
+        "&& python -m pip install --upgrade pip --root-user-action=ignore && "
+        "python -m pytest -s --collect-only --generate-coverage-doc --ignore=container_tests/",
         hide=True,
     )
 

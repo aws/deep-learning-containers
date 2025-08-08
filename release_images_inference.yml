@@ -17,13 +17,13 @@ release_images:
       # has already been published. Re-released image will have minor version incremented by 1.
   2:
     framework: "triton"
-    version: "24.09"
+    version: "25.04"
     arch_type: "x86"
     inference:
       device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      cuda_version: "cu129"
       example: False        # [Default: False] Set to True to denote that this image is an Example image
       disable_sm_tag: True # [Default: False] Set to True to prevent SageMaker Abbreviated Tags from being attached
       # to images being published.
@@ -126,26 +126,14 @@ release_images:
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
+      python_versions: [ "py310" ]
       os_version: "ubuntu24.04"
-      lmi_version: "14.0.0"
-      cuda_version: "cu126"
+      tensorrtllm_version: "0.12.0"
+      cuda_version: "cu125"
       example: False
       disable_sm_tag: True
       force_release: False
   11:
-    framework: "autogluon"
-    version: "1.2.0"
-    arch_type: "x86"
-    inference:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py311"]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-  12:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -158,7 +146,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  13:
+  12:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -170,7 +158,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  13:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -183,7 +171,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  14:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -195,29 +183,56 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  16:
+  15:
     framework: "djl"
-    version: "0.33.0"
+    version: "0.0.0.dev1"
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu24.04"
-      lmi_version: "15.0.0"
+      lmi_version: "0.0.0"
       cuda_version: "cu128"
       example: False
       disable_sm_tag: True
       force_release: False
+  16:
+    framework: "huggingface_pytorch"
+    version: "2.6.0"
+    arch_type: "x86"
+    hf_transformers: "4.51.3"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+
   17:
-    framework: "djl"
-    version: "0.31.0"
+    framework: "lmi"
+    version: "2.0.0"
     arch_type: "x86"
     inference:
       device_types: [ "gpu" ]
       python_versions: [ "py311" ]
       os_version: "ubuntu22.04"
-      lmi_version: "13.0.0"
-      cuda_version: "cu124"
+      lmi2_vllm_version: 0.9.2
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+  18:
+    framework: "djl"
+    version: "0.32.0"
+    arch_type: "x86"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      lmi_version: "14.0.0"
+      cuda_version: "cu126"
       example: False
       disable_sm_tag: True
       force_release: False

@@ -11,7 +11,11 @@ from test.test_utils import (
     LOGGER,
     is_tf_version,
 )
-from test.test_utils.ec2 import execute_ec2_training_test, get_ec2_instance_type
+from test.test_utils.ec2 import (
+    execute_ec2_training_test,
+    get_ec2_instance_type,
+    execute_ec2_telemetry_test,
+)
 
 
 TF1_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorflow1Standalone")
@@ -20,7 +24,7 @@ TF_MNIST_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorFlow")
 TF1_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF1HVD")
 TF2_HVD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTF2HVD")
 TF_OPENCV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testOpenCV")
-TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_tf_dlc_telemetry_test")
+TF_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTelemetry")
 TF_KERAS_HVD_CMD_AMP = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDAMP")
 TF_KERAS_HVD_CMD_FP32 = os.path.join(CONTAINER_TESTS_PREFIX, "testTFKerasHVDFP32")
 TF_TENSORBOARD_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTensorBoard")
@@ -196,30 +200,154 @@ def test_tensorflow_opencv_cpu(tensorflow_training, ec2_connection, tf2_only, cp
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_OPENCV_CMD)
 
 
-# Testing Telemetry Script on only one GPU instance
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_telemetry_gpu(tensorflow_training, ec2_connection, gpu_only, ec2_instance_type):
+def test_tensorflow_telemetry_entrypoint_gpu(
+    tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
+):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
             f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
         )
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "entrypoint",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "entrypoint",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
 
 
-# Testing Telemetry Script on only one CPU instance
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_telemetry_bashrc_gpu(
+    tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "bashrc",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "bashrc",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_SINGLE_GPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_telemetry_framework_gpu(
+    tensorflow_training, ec2_connection, gpu_only, ec2_instance_type
+):
+    if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
+        pytest.skip(
+            f"Image {tensorflow_training} is incompatible with instance type {ec2_instance_type}"
+        )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "framework",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+    )
+
+
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.flaky(reruns=3)
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
-def test_tensorflow_telemetry_cpu(tensorflow_training, ec2_connection, cpu_only):
-    execute_ec2_training_test(ec2_connection, tensorflow_training, TF_TELEMETRY_CMD)
+def test_tensorflow_telemetry_entrypoint_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "entrypoint",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "entrypoint",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_telemetry_bashrc_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "bashrc",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "bashrc",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.flaky(reruns=3)
+@pytest.mark.integration("telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.team("frameworks")
+@pytest.mark.parametrize("ec2_instance_type", TF_EC2_CPU_INSTANCE_TYPE, indirect=True)
+def test_tensorflow_telemetry_framework_cpu(tensorflow_training, ec2_connection, cpu_only):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        tensorflow_training,
+        "framework",
+        "tensorflow_tr_telemetry",
+        TF_TELEMETRY_CMD,
+    )
 
 
 # Skip test for TF 2.0 and below: https://github.com/tensorflow/tensorflow/issues/33484#issuecomment-555299647
@@ -308,7 +436,7 @@ def test_tensorflow_addons_cpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_ADDONS_CMD)
 
 
-## Skip test for TF2.16/TF2.18 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+## Skip test for TF2.16/TF2.18/2.19 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
@@ -322,6 +450,7 @@ def test_tensorflow_io_s3_plugin_gpu(
     ec2_instance_type,
     skip_tf216,
     skip_tf218,
+    skip_tf219,
 ):
     if test_utils.is_image_incompatible_with_instance_type(tensorflow_training, ec2_instance_type):
         pytest.skip(
@@ -330,7 +459,7 @@ def test_tensorflow_io_s3_plugin_gpu(
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 
 
-## Skip test for TF2.16/TF2.18 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
+## Skip test for TF2.16/TF2.18/TF2.19 image due to TF-IO s3 filesystem issue: https://github.com/tensorflow/io/issues/2039
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.integration("tensorflow_io, tensorflow_datasets")
@@ -343,6 +472,7 @@ def test_tensorflow_io_s3_plugin_cpu(
     cpu_only,
     skip_tf216,
     skip_tf218,
+    skip_tf219,
 ):
     execute_ec2_training_test(ec2_connection, tensorflow_training, TF_IO_S3_PLUGIN_TEST_CMD)
 

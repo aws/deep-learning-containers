@@ -135,9 +135,11 @@ def run_sm_perf_test(image_uri, num_nodes, region):
             else TENSORFLOW_SM_TRAINING_CPU_4NODE_THRESHOLD
         )
         if processor == "cpu"
-        else TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD
-        if num_nodes == 1
-        else TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD
+        else (
+            TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD
+            if num_nodes == 1
+            else TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD
+        )
     )
     threshold = get_threshold_for_image(framework_version, threshold_table)
     LOGGER.info(

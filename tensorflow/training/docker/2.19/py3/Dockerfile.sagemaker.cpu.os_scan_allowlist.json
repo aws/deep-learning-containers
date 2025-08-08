@@ -1,0 +1,133 @@
+{
+  "cross-spawn": [
+    {
+      "description": "Versions of the package cross-spawn before 6.0.6, from 7.0.0 and before 7.0.5 are vulnerable to Regular Expression Denial of Service (ReDoS) due to improper input sanitization. An attacker can increase the CPU usage and crash the program by crafting a very large and well crafted string.",
+      "vulnerability_id": "CVE-2024-21538",
+      "name": "CVE-2024-21538",
+      "package_name": "cross-spawn",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "cross-spawn",
+        "package_manager": "NODE",
+        "version": "7.0.3",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21538",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-21538 - cross-spawn, cross-spawn",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Versions of the package cross-spawn before 6.0.6, from 7.0.0 and before 7.0.5 are vulnerable to Regular Expression Denial of Service (ReDoS) due to improper input sanitization. An attacker can increase the CPU usage and crash the program by crafting a very large and well crafted string.",
+      "vulnerability_id": "CVE-2024-21538",
+      "name": "CVE-2024-21538",
+      "package_name": "cross-spawn",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/test_no_hyphens/yarn.lock",
+        "name": "cross-spawn",
+        "package_manager": "NODE",
+        "version": "7.0.3",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-21538",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-21538 - cross-spawn, cross-spawn",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "ip": [
+    {
+      "description": "The ip package through 2.0.1 for Node.js might allow SSRF because some IP addresses (such as 127.1, 01200034567, 012.1.2.3, 000:0:0000::01, and ::fFFf:127.0.0.1) are improperly categorized as globally routable via isPublic. NOTE: this issue exists because of an incomplete fix for CVE-2023-42282.",
+      "vulnerability_id": "CVE-2024-29415",
+      "name": "CVE-2024-29415",
+      "package_name": "ip",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "ip",
+        "package_manager": "NODE",
+        "version": "2.0.1",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-29415",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-29415 - ip",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "ws": [
+    {
+      "description": "ws is an open source WebSocket client and server for Node.js. A request with a number of headers exceeding theserver.maxHeadersCount threshold could be used to crash a ws server. The vulnerability was fixed in ws@8.17.1 (e55e510) and backported to ws@7.5.10 (22c2876), ws@6.2.3 (eeb76d3), and ws@5.2.4 (4abd8f6). In vulnerable versions of ws, the issue can be mitigated in the following ways: 1. Reduce the maximum allowed length of the request headers using the --max-http-header-size=size and/or the maxHeaderSize options so that no more headers than the server.maxHeadersCount limit can be sent. 2. Set server.maxHeadersCount to 0 so that no limit is applied.",
+      "vulnerability_id": "CVE-2024-37890",
+      "name": "CVE-2024-37890",
+      "package_name": "ws",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/test-hyphens-underscore/yarn.lock",
+        "name": "ws",
+        "package_manager": "NODE",
+        "version": "8.16.0",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-37890",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-37890 - ws, ws",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "ws is an open source WebSocket client and server for Node.js. A request with a number of headers exceeding theserver.maxHeadersCount threshold could be used to crash a ws server. The vulnerability was fixed in ws@8.17.1 (e55e510) and backported to ws@7.5.10 (22c2876), ws@6.2.3 (eeb76d3), and ws@5.2.4 (4abd8f6). In vulnerable versions of ws, the issue can be mitigated in the following ways: 1. Reduce the maximum allowed length of the request headers using the --max-http-header-size=size and/or the maxHeaderSize options so that no more headers than the server.maxHeadersCount limit can be sent. 2. Set server.maxHeadersCount to 0 so that no limit is applied.",
+      "vulnerability_id": "CVE-2024-37890",
+      "name": "CVE-2024-37890",
+      "package_name": "ws",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/tests/mock_packages/test_no_hyphens/yarn.lock",
+        "name": "ws",
+        "package_manager": "NODE",
+        "version": "8.16.0",
+        "release": null
+      },
+      "remediation": { "recommendation": { "text": "None Provided" } },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-37890",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-37890 - ws, ws",
+      "reason_to_ignore": "N/A"
+    }
+  ]
+}

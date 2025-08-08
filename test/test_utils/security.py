@@ -614,6 +614,14 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
             for vulnerable_package in ecr_format_vulnerability["packageVulnerabilityDetails"][
                 "vulnerablePackages"
             ]:
+                if "fixedInVersion" in vulnerable_package:
+                    fixed_version = vulnerable_package["fixedInVersion"].lower()
+                    if "esm" in fixed_version and "ubuntu" in fixed_version:
+                        LOGGER.info(
+                            f"Skipping ESM version {fixed_version} for package {vulnerable_package['name']}"
+                        )
+                        continue
+
                 allowlist_format_vulnerability_object = AllowListFormatVulnerabilityForEnhancedScan(
                     **ecr_format_vulnerability
                 )
@@ -752,7 +760,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     apt_ran_successfully_flag = False
     # When a command or application is updating the system or installing a new software, it locks the dpkg file (Debian package manager).
     # Since we have multiple processes running for the tests, there are cases when one of the process locks the dpkg file
-    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running apt-get update
+    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running dnf update
     # That is why we need multiple tries to ensure that it succeeds in one of the tries.
     # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
@@ -872,7 +880,7 @@ def get_vulnerabilites_fixable_by_upgrade(
     image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
 ):
     """
-    Finds out the vulnerabilities that are fixable by apt-get update and apt-get upgrade.
+    Finds out the vulnerabilities that are fixable by dnf update and dnf upgrade.
 
     :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
@@ -976,9 +984,9 @@ def conduct_failure_routine(
         )
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
-    return_dict[
-        "s3_filename_for_current_image_ecr_scan_list"
-    ] = s3_filename_for_current_image_ecr_scan_list
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = (
+        s3_filename_for_current_image_ecr_scan_list
+    )
     return return_dict
 
 
@@ -1059,47 +1067,6 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
         raise TimeoutError(
             f"ECR Scan is still in {scan_status} state with description: {scan_status_description}. Exiting."
         )
-
-
-def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
-    """
-    For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
-    ecr scan of the current image. In other words, for a given image it fetches upgraded_image_vulnerability_list and
-    image_scan_allowlist.
-
-    :param image: str Image URI for image to be tested
-    :param ecr_client: boto3 Client for ECR
-    :param minimum_sev_threshold: string, determines the minimum severity threshold for ScanVulnerabilityList objects. Can take values HIGH or MEDIUM.
-    :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
-    :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
-    """
-    new_image_uri_for_upgraded_image = get_target_image_uri_using_current_uri_and_target_repo(
-        image,
-        target_repository_name=test_utils.UPGRADE_ECR_REPO_NAME,
-        target_repository_region=os.getenv("REGION", test_utils.DEFAULT_REGION),
-        append_tag="upgraded",
-    )
-    run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
-    run_scan(ecr_client, new_image_uri_for_upgraded_image)
-    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
-        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=minimum_sev_threshold
-    )
-    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
-        new_image_uri_for_upgraded_image, scan_results_with_upgrade
-    )
-    upgraded_image_vulnerability_list = ECRBasicScanVulnerabilityList(
-        minimum_severity=CVESeverity[minimum_sev_threshold]
-    )
-    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(
-        scan_results_with_upgrade
-    )
-    image_scan_allowlist = ECRBasicScanVulnerabilityList(
-        minimum_severity=CVESeverity[minimum_sev_threshold]
-    )
-    image_scan_allowlist_path = test_utils.get_ecr_scan_allowlist_path(image)
-    if os.path.exists(image_scan_allowlist_path):
-        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-    return upgraded_image_vulnerability_list, image_scan_allowlist
 
 
 def generate_future_allowlist(
@@ -1388,9 +1355,9 @@ def extract_non_patchable_vulnerabilities(
                 docker_exec_command=docker_exec_cmd,
             )
             if allowlistable_python_vulns:
-                non_patchable_vulnerabilities_with_reason.vulnerability_list[
-                    package_name
-                ] = allowlistable_python_vulns
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[package_name] = (
+                    allowlistable_python_vulns
+                )
             else:
                 patchable_packages.append(package_name)
 

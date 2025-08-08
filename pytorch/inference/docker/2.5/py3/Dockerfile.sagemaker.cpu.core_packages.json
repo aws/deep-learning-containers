@@ -3,6 +3,9 @@
     "version_specifier": "==0.6.0",
     "skip": "True"
   },
+  "torch": {
+    "version_specifier": "==2.5.1+cpu"
+  },
   "torchaudio": {
     "version_specifier": "==2.5.1+cpu",
     "skip": "True"
@@ -26,5 +29,8 @@
   },
   "sagemaker-pytorch-inference": {
     "version_specifier": "==2.0.25"
+  },
+  "urllib3": {
+    "version_specifier": ">=2.5.0"
   }
 }

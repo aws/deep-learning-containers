@@ -448,9 +448,9 @@ class Float16OptimizerWithFloat16Params(MegatronOptimizer):
                         main_param = nn.Parameter(
                             master_param_buffer, requires_grad=param.requires_grad
                         )
-                        self.master_is_distributed[
-                            main_param
-                        ] = self.model.is_distributed_parameter(param)
+                        self.master_is_distributed[main_param] = (
+                            self.model.is_distributed_parameter(param)
+                        )
                         self.master_distribution_axis[id(main_param)] = get_distribution_axis(param)
                         fp32_from_fp16_paramids_this_group.append(id(main_param))
                         if hasattr(param, "shared"):

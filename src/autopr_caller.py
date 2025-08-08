@@ -216,4 +216,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    LOGGER.info("AutoPR is disabled. Skipping AutoPR call.")
+    # main()

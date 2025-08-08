@@ -84,7 +84,13 @@ def get_ami_id_ssm(region_name, parameter_path):
         config=Config(retries={"max_attempts": 10, "mode": "standard"}),
     )
     ami = ssm_client.get_parameter(Name=parameter_path)
-    ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+
+    # Special case for NVIDIA driver AMI paths
+    if "base-oss-nvidia-driver-gpu-amazon-linux-2023" in parameter_path:
+        ami_id = ami["Parameter"]["Value"]
+    else:
+        ami_id = eval(ami["Parameter"]["Value"])["image_id"]
+
     return ami_id
 
 
@@ -105,40 +111,21 @@ UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
     ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AML2_BASE_OSS_DLAMI_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
-AML2_BASE_OSS_DLAMI_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
-AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
-AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
+AL2023_BASE_DLAMI_ARM64_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-)
-# We use the following DLAMI for MXNet and TensorFlow tests as well, but this is ok since we use custom DLC Graviton containers on top. We just need an ARM base DLAMI.
-UL20_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
-)
-UL20_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
-    IncludeDeprecated=True,
-)
-UL22_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2",
-    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
-)
-UL22_BASE_ARM64_DLAMI_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1",
-    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Ubuntu 22.04) ????????",
+    parameter_path="/aws/service/deeplearning/ami/arm64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id ",
 )
 AML2_BASE_ARM64_DLAMI_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -153,14 +140,11 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     IncludeDeprecated=True,
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
-    region_name="us-east-1", ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?"
+    region_name="us-east-1",
+    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
-# Since latest driver is not in public DLAMI yet, using a custom one
-NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2 = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning Base AMI (Ubuntu 18.04) Version ??.?"
-)
 
 UL22_BASE_NEURON_US_WEST_2 = get_ami_id_boto3(
     region_name="us-west-2",
@@ -196,12 +180,8 @@ UL_AMI_LIST = [
     UBUNTU_18_HPU_DLAMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
     UL22_BASE_NEURON_US_WEST_2,
     NEURON_INF1_AMI_US_WEST_2,
-    UL20_CPU_ARM64_US_EAST_1,
-    UL20_CPU_ARM64_US_WEST_2,
-    UL22_BASE_ARM64_DLAMI_US_WEST_2,
     UL20_BENCHMARK_CPU_ARM64_US_WEST_2,
 ]
 
@@ -238,11 +218,13 @@ CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 
+# S3 Transfer bucket region
+TEST_TRANSFER_S3_BUCKET_REGION = "us-west-2"
+
 # S3 Bucket to use to record benchmark results for further retrieving
 BENCHMARK_RESULTS_S3_BUCKET = "s3://dlinfra-dlc-cicd-performance"
 
-# Ubuntu ami home dir
-UBUNTU_HOME_DIR = "/home/ubuntu"
+AL2023_HOME_DIR = "/home/ec2-user"
 
 # Reason string for skipping tests in PR context
 SKIP_PR_REASON = "Skipping test in PR context to speed up iteration time. Test will be run in nightly/release pipeline."
@@ -257,6 +239,7 @@ SAGEMAKER_LOCAL_TEST_TYPE = "local"
 SAGEMAKER_REMOTE_TEST_TYPE = "sagemaker"
 
 PUBLIC_DLC_REGISTRY = "763104351884"
+DLC_PUBLIC_REGISTRY_ALIAS = "public.ecr.aws/deep-learning-containers"
 
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
@@ -272,6 +255,44 @@ ECR_SCAN_FAILURE_ROUTINE_LAMBDA = "ecr-scan-failure-routine-lambda"
 ## conduct basic scanning on some repos whereas enhanced scanning on others within the same region.
 ECR_ENHANCED_SCANNING_REPO_NAME = "ecr-enhanced-scanning-dlc-repo"
 ECR_ENHANCED_REPO_REGION = "us-west-1"
+
+# region mapping for telemetry tests, need to be updated when new regions are added
+TELEMETRY_REGION_MAPPING = {
+    "ap-northeast-1": "ddce303c",
+    "ap-northeast-2": "528c8d92",
+    "ap-southeast-1": "c35f9f00",
+    "ap-southeast-2": "d2add9c0",
+    "ap-south-1": "9deb4123",
+    "ca-central-1": "b95e2bf4",
+    "eu-central-1": "bfec3957",
+    "eu-north-1": "b453c092",
+    "eu-west-1": "d763c260",
+    "eu-west-2": "ea20d193",
+    "eu-west-3": "1894043c",
+    "sa-east-1": "030b4357",
+    "us-east-1": "487d6534",
+    "us-east-2": "72252b46",
+    "us-west-1": "d02c1125",
+    "us-west-2": "d8c0d063",
+    "af-south-1": "08ea8dc5",
+    "eu-south-1": "29566eac",
+    "me-south-1": "7ea07793",
+    "ap-southeast-7": "1699f14f",
+    "ap-southeast-3": "be0a3174",
+    "me-central-1": "6e06aaeb",
+    "ap-east-1": "5e1fbf92",
+    "ap-south-2": "50209442",
+    "ap-northeast-3": "fa298003",
+    "ap-southeast-5": "5852cd87",
+    "us-northeast-1": "bbf9e961",
+    "ap-southeast-4": "dc6f76ce",
+    "mx-central-1": "ed0da79c",
+    "il-central-1": "2fb2448e",
+    "ap-east-2": "8947749e",
+    "ca-west-1": "ea83ea06",
+    "eu-south-2": "df2c9d70",
+    "eu-central-2": "aa7aabcc",
+}
 
 
 class NightlyFeatureLabel(Enum):
@@ -611,6 +632,21 @@ def is_below_framework_version(version_upper_bound, image_uri, framework):
     )
 
 
+def is_below_cuda_version(version_upper_bound, image_uri):
+    """
+    Validate that image_uri has cuda version strictly less than version_upper_bound
+
+    :param version_upper_bound: str Cuda version that image_uri is required to be below
+    :param image_uri: str ECR Image URI for the image to be validated
+    :return: bool True if image_uri has cuda version less than version_upper_bound, else False
+    """
+    cuda_version = get_cuda_version_from_tag(image_uri)
+    numbers = cuda_version[2:]
+    numeric_version = f"{numbers[:-1]}.{numbers[-1]}"
+    required_version_specifier_set = SpecifierSet(f"<{version_upper_bound}")
+    return numeric_version in required_version_specifier_set
+
+
 def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
     """
     Check for all compatibility issues between DLC Image Types and EC2 Instance Types.
@@ -647,6 +683,22 @@ def is_image_incompatible_with_instance_type(image_uri, ec2_instance_type):
         and ec2_instance_type in ["g5.12xlarge"]
     )
     incompatible_conditions.append(image_is_pytorch_1_11_on_incompatible_p2_instance_pytorch)
+
+    return any(incompatible_conditions)
+
+
+def is_image_incompatible_with_AL2023_for_gdrcopy(image_uri):
+    """
+    Images may contain gdrcopy versions that are older than the drivers running on the base AL2023 DLAMI, which could result in compatibility issues.
+    """
+    incompatible_conditions = []
+    framework, framework_version = get_framework_and_version_from_tag(image_uri)
+
+    image_is_pytorch_lower_than_or_equal_to_2_6 = framework == "pytorch" and Version(
+        framework_version
+    ) in SpecifierSet("<2.7.*")
+
+    incompatible_conditions.append(image_is_pytorch_lower_than_or_equal_to_2_6)
 
     return any(incompatible_conditions)
 
@@ -1267,6 +1319,7 @@ def get_dlc_images():
             canary_arch_type=get_test_job_arch_type(),
             canary_region=os.getenv("AWS_REGION"),
             canary_region_prod_account=os.getenv("REGIONAL_PROD_ACCOUNT", PUBLIC_DLC_REGISTRY),
+            is_public_registry=os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true",
         )
         return " ".join(deep_canary_images)
     elif is_pr_context() or is_empty_build_context():
@@ -1289,7 +1342,12 @@ def get_dlc_images():
 
 
 def get_deep_canary_images(
-    canary_framework, canary_image_type, canary_arch_type, canary_region, canary_region_prod_account
+    canary_framework,
+    canary_image_type,
+    canary_arch_type,
+    canary_region,
+    canary_region_prod_account,
+    is_public_registry=False,
 ):
     """
     For an input combination of canary job specs, find a matching list of image uris to be tested
@@ -1327,9 +1385,17 @@ def get_deep_canary_images(
             and canary_image_type == image_type
             and canary_arch_type == image_arch_type
         ):
-            regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
-                image_account_id, canary_region_prod_account
-            )
+            if is_public_registry:
+                # For public registry, we use the public account ID
+                image_repository = image_uri.split("/")[-1].split(":")[0]
+                image_tag = image_uri.split(":")[-1]
+                regionalized_image_uri = (
+                    f"{DLC_PUBLIC_REGISTRY_ALIAS}/{image_repository}:{image_tag}"
+                )
+            else:
+                regionalized_image_uri = image_uri.replace(image_region, canary_region).replace(
+                    image_account_id, canary_region_prod_account
+                )
             matching_images.append(regionalized_image_uri)
     return matching_images
 
@@ -1410,9 +1476,7 @@ def parse_canary_images(framework, region, image_type, customer_type=None):
     canary_type = (
         "graviton_" + framework
         if os.getenv("ARCH_TYPE") == "graviton"
-        else "arm64_" + framework
-        if os.getenv("ARCH_TYPE") == "arm64"
-        else framework
+        else "arm64_" + framework if os.getenv("ARCH_TYPE") == "arm64" else framework
     )
 
     version_regex = {
@@ -1702,11 +1766,18 @@ def get_unique_name_from_tag(image_uri):
 
 
 def get_image_type_from_tag(image_uri):
-    valid_image_types = ["training", "inference"]
-    image_type_match = [keyword for keyword in valid_image_types if keyword in image_uri]
-    if len(image_type_match) != 1:
-        raise LookupError(f"Failed to find whether {image_uri} is training or inference")
-    return image_type_match[0]
+    """
+    Extract the image type (training, inference, or general) from the image URI.
+
+    :param image_uri: str ECR image URI
+    :return: str "training", "inference", or "general"
+    """
+    if "training" in image_uri:
+        return "training"
+    elif "inference" in image_uri:
+        return "inference"
+    else:
+        return "general"
 
 
 def get_image_arch_type_from_tag(image_uri):
@@ -1734,7 +1805,6 @@ def get_framework_and_version_from_tag(image_uri):
         "stabilityai_pytorch",
         "pytorch_trcomp",
         "tensorflow",
-        "mxnet",
         "pytorch",
         "autogluon",
     )
@@ -1841,29 +1911,26 @@ def get_os_version_from_image_uri(image_uri):
 
 
 def get_framework_from_image_uri(image_uri):
-    return (
-        "huggingface_tensorflow_trcomp"
-        if "huggingface-tensorflow-trcomp" in image_uri
-        else "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "pytorch_trcomp"
-        if "pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "stabilityai_pytorch"
-        if "stabilityai-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
-        else "autogluon"
-        if "autogluon" in image_uri
-        else None
-    )
+    framework_map = {
+        "huggingface-tensorflow-trcomp": "huggingface_tensorflow_trcomp",
+        "huggingface-tensorflow": "huggingface_tensorflow",
+        "huggingface-pytorch-trcomp": "huggingface_pytorch_trcomp",
+        "pytorch-trcomp": "pytorch_trcomp",
+        "huggingface-pytorch": "huggingface_pytorch",
+        "stabilityai-pytorch": "stabilityai_pytorch",
+        "mxnet": "mxnet",
+        "pytorch": "pytorch",
+        "tensorflow": "tensorflow",
+        "autogluon": "autogluon",
+        "base": "base",
+        "vllm": "vllm",
+    }
+
+    for image_pattern, framework in framework_map.items():
+        if image_pattern in image_uri:
+            return framework
+
+    return None
 
 
 def is_trcomp_image(image_uri):
@@ -1984,7 +2051,7 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference")
+    allowed_job_types = ("training", "inference", "base", "vllm")
     for job_type in allowed_job_types:
         if job_type in image_uri:
             tested_job_type = job_type
@@ -2026,7 +2093,7 @@ def get_processor_from_image_uri(image_uri):
     allowed_processors = ["eia", "neuronx", "neuron", "cpu", "gpu", "hpu"]
 
     for processor in allowed_processors:
-        match = re.search(rf"-({processor})", image_uri)
+        match = re.search(rf"({processor})", image_uri)
         if match:
             return match.group(1)
     raise RuntimeError("Cannot find processor")
@@ -2046,6 +2113,30 @@ def get_python_version_from_image_uri(image_uri):
         )
     python_version = python_version_search.group()
     return "py36" if python_version == "py3" else python_version
+
+
+def get_pytorch_version_from_autogluon_image(image):
+    """
+    Extract the PyTorch version from an AutoGluon container.
+    :param image: ECR image URI
+    :return: PyTorch short version or None if detection fails
+    """
+    ctx = Context()
+    container_name = get_container_name("pytorch-version-check", image)
+    try:
+        start_container(container_name, image, ctx)
+        pytorch_version_output = run_cmd_on_container(
+            container_name, ctx, "import torch; print(torch.__version__)", executable="python"
+        )
+        # Parse "2.5.1+cpu" -> "2.5"
+        pytorch_full_version = pytorch_version_output.stdout.strip()
+        pytorch_short_version = re.search(r"(\d+\.\d+)", pytorch_full_version).group(0)
+        return pytorch_short_version
+    except Exception as e:
+        LOGGER.error(f"Failed to detect PyTorch version in AutoGluon image: {e}")
+        return None
+    finally:
+        stop_and_remove_container(container_name, ctx)
 
 
 def get_buildspec_path(dlc_path):
@@ -2465,70 +2556,26 @@ def get_image_spec_from_buildspec(image_uri, dlc_folder_path):
     return matched_image_spec
 
 
-def get_instance_type_base_dlami(instance_type, region, linux_dist="UBUNTU_20"):
+def get_dlami_id(region):
     """
-    Get Instance types based on EC2 instance, see https://docs.aws.amazon.com/dlami/latest/devguide/important-changes.html
-    For all instance names, see https://aws.amazon.com/ec2/instance-types/#Accelerated_Computing
-    OSS Nvidia Driver DLAMI supports the following: ["g4dn.xlarge",
-                                                     "g4dn.2xlarge",
-                                                     "g4dn.4xlarge",
-                                                     "g4dn.8xlarge",
-                                                     "g4dn.16xlarge",
-                                                     "g4dn.12xlarge",
-                                                     "g4dn.metal",
-                                                     "g4dn.xlarge",
-                                                     "g5.xlarge",
-                                                     "g5.2xlarge",
-                                                     "g5.4xlarge",
-                                                     "g5.8xlarge",
-                                                     "g5.16xlarge",
-                                                     "g5.12xlarge",
-                                                     "g5.24xlarge",
-                                                     "g5.48xlarge",
-                                                     "p4d.24xlarge",
-                                                     "p4de.24xlarge",
-                                                     "p5.48xlarge",]
+    Returns the appropriate base DLAMI based on region.
+    Args:
+        instance_type: The EC2 instance type (not used in current implementation)
+        region: AWS region (us-west-2 or us-east-1)
 
-    Proprietary Nvidia Driver DLAMI supports the following: []
+    Returns:
+        The appropriate base DLAMI constant for the specified region
 
-    Other instances will default to Proprietary Nvidia Driver DLAMI
+    Raises:
+        ValueError: If region is not supported
     """
-
-    base_proprietary_dlami_instances = []
-
-    ami_patterns = {
-        "AML2": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver AMI (Amazon Linux 2) Version ??.?",
-                "us-east-1": AML2_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": AML2_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-        "UBUNTU_20": {
-            "oss": {
-                "name_pattern": "Deep Learning Base OSS Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_OSS_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_OSS_DLAMI_US_WEST_2,
-            },
-            "proprietary": {
-                "name_pattern": "Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
-                "us-east-1": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1,
-                "us-west-2": UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_WEST_2,
-            },
-        },
-    }
-
-    ami_type = "proprietary" if instance_type in base_proprietary_dlami_instances else "oss"
-    instance_ami = ami_patterns[linux_dist][ami_type].get(
-        region,
-        get_ami_id_boto3(
-            region_name=region, ami_name_pattern=ami_patterns[linux_dist][ami_type]["name_pattern"]
-        ),
-    )
-
-    return instance_ami
+    if region == "us-west-2":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_WEST_2 - : {AL2023_BASE_DLAMI_US_WEST_2}")
+        return AL2023_BASE_DLAMI_US_WEST_2
+    elif region == "us-east-1":
+        LOGGER.info(f"using AL2023_BASE_DLAMI_US_EAST_1 - : {AL2023_BASE_DLAMI_US_EAST_1}")
+        return AL2023_BASE_DLAMI_US_EAST_1
+    else:
+        raise ValueError(
+            f"Unsupported region: {region}. Only 'us-west-2' and 'us-east-1' are supported."
+        )

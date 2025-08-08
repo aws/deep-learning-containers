@@ -6,7 +6,7 @@
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": ">=3.20.3,<4"
+    "version_specifier": ">=5.29.5"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -18,7 +18,7 @@
     "version_specifier": ">=20.4.1,<21"
   },
   "sagemaker-training": {
-    "version_specifier": ">=4.7.4,<5"
+    "version_specifier": ">=5"
   },
   "sagemaker-studio-analytics-extension": {
     "version_specifier": "<1"
@@ -77,5 +77,8 @@
   },
   "httpx": {
     "version_specifier": ">=0.28.0"
+  },
+   "tornado": {
+    "version_specifier": ">=6.5.1"
   }
 }

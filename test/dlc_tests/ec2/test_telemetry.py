@@ -7,6 +7,7 @@ from test.test_utils import ec2 as ec2_utils
 from test.test_utils import LOGGER
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from test.test_utils import TELEMETRY_REGION_MAPPING
 
 
 @pytest.mark.flaky(reruns=2)
@@ -41,14 +42,15 @@ def test_telemetry_instance_tag_failure_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -58,14 +60,15 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -74,15 +77,16 @@ def test_telemetry_instance_tag_failure_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -91,15 +95,16 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
@@ -165,7 +170,9 @@ def test_telemetry_instance_tag_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -180,7 +187,9 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -194,8 +203,10 @@ def test_telemetry_instance_tag_success_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -209,8 +220,10 @@ def test_telemetry_instance_tag_success_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -281,7 +294,9 @@ def test_telemetry_s3_query_bucket_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -295,7 +310,9 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_arm64_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -308,8 +325,10 @@ def test_telemetry_s3_query_bucket_success_arm64_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -322,8 +341,10 @@ def test_telemetry_s3_query_bucket_success_graviton_cpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_arm64_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
@@ -363,7 +384,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     actual_output = invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
+        image_uri, container_name, framework, job_type, ec2_connection, test_mode="1"
     )
 
     py_version = (
@@ -375,9 +396,14 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     )
 
     expected_s3_url = (
-        "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
-        "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}".format(
-            image_region, ec2_instance_id, framework, framework_version, py_version
+        "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
+        "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}".format(
+            TELEMETRY_REGION_MAPPING[image_region],
+            image_region,
+            ec2_instance_id,
+            framework,
+            framework_version,
+            py_version,
         )
     )
 
@@ -423,9 +449,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
@@ -560,10 +584,10 @@ def invoke_telemetry_call(
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
         )
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(
-            f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
-        )
         if test_mode:
+            ec2_connection.run(
+                f"docker run {docker_runtime} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri} bash"
+            )
             ec2_connection.run(
                 f"docker exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
@@ -571,6 +595,9 @@ def invoke_telemetry_call(
                 f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
+            ec2_connection.run(
+                f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
+            )
             output = ec2_connection.run(
                 f"docker exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )

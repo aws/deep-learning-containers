@@ -28,14 +28,13 @@ EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
     reason="Skip GDRCopy test in PR context unless explicitly enabled",
 )
-def test_gdrcopy(
-    pytorch_training, ec2_connection, ec2_instance_type, region, gpu_only, pt113_and_above_only
-):
+def test_gdrcopy(pytorch_training, ec2_connection, ec2_instance_type):
     if test_utils.is_image_incompatible_with_instance_type(pytorch_training, ec2_instance_type):
         pytest.skip(
             f"Image {pytorch_training} is incompatible with instance type {ec2_instance_type}"
         )
-
+    if test_utils.is_image_incompatible_with_AL2023_for_gdrcopy(pytorch_training):
+        pytest.skip(f"Image {pytorch_training} is incompatible with AL2023 base DLAMI.")
     execute_ec2_training_test(
         ec2_connection, pytorch_training, GDRCOPY_SANITY_TEST_CMD, enable_gdrcopy=True
     )

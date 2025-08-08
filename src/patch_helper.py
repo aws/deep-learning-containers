@@ -216,13 +216,13 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             s3_downloaded_path=download_path,
             python_version=info.get("python_version"),
         )
-        THREADS[
-            f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"
-        ] = executor.submit(
-            trigger_enhanced_scan_patching,
-            image_uri=base_image_uri_for_patch_builds,
-            patch_details_path=current_patch_details_path,
-            python_version=info.get("python_version"),
+        THREADS[f"trigger_enhanced_scan_patching-{base_image_uri_for_patch_builds}"] = (
+            executor.submit(
+                trigger_enhanced_scan_patching,
+                image_uri=base_image_uri_for_patch_builds,
+                patch_details_path=current_patch_details_path,
+                python_version=info.get("python_version"),
+            )
         )
     FORMATTER.progress(THREADS)
 
@@ -256,9 +256,14 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "build_artifacts",
     )
 
-    torchserve_entrypoint_path = os.path.join(
-        pytorch_inference_artifacts_path,
-        "torchserve-entrypoint.py",
+    tf_entrypoint_path = os.path.join(
+        os.sep,
+        get_cloned_folder_path(),
+        "tensorflow",
+        "training",
+        "docker",
+        "build_artifacts",
+        "dockerd-entrypoint.py",
     )
 
     start_with_right_hostname_path = os.path.join(
@@ -274,6 +279,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
     pytorch_training_start_cuda_compat_path = os.path.join(
         pytorch_training_artifacts_path,
         "start_cuda_compat.sh",
+    )
+
+    telemetry_file_path = os.path.join(
+        os.sep, get_cloned_folder_path(), "src", "deep_learning_container.py"
     )
 
     verify_artifact_contents_for_patch_builds(
@@ -300,9 +309,9 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
             "source": complete_patching_info_dump_location,
             "target": "patching-info",
         },
-        "new-torchserve-entrypoint": {
-            "source": torchserve_entrypoint_path,
-            "target": "new-torchserve-entrypoint",
+        "new-tf-entrypoint": {
+            "source": tf_entrypoint_path,
+            "target": "new-tf-entrypoint",
         },
         "new_start_with_right_hostname": {
             "source": start_with_right_hostname_path,
@@ -315,6 +324,10 @@ def conduct_autopatch_build_setup(pre_push_image_object: DockerImage, download_p
         "new_pytorch_training_start_cuda_compat": {
             "source": pytorch_training_start_cuda_compat_path,
             "target": "new_pytorch_training_start_cuda_compat",
+        },
+        "deep_learning_container": {
+            "source": telemetry_file_path,
+            "target": "deep_learning_container.py",
         },
     }
     context = Context(

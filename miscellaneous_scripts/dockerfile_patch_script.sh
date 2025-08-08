@@ -12,7 +12,7 @@ if [ ! -d $PATCHING_INFO_PATH/patch-details-archive ] ; then \
     echo $LATEST_RELEASED_IMAGE_SHA >> $PATCHING_INFO_PATH/patch-details-archive/first_image_sha.txt ; \
 fi
 
-## We use > instead of >> since we want to override the contents of the previous file.
+# We use > instead of >> since we want to override the contents of the previous file
 echo $LATEST_RELEASED_IMAGE_SHA > $PATCHING_INFO_PATH/patch-details-archive/last_released_image_sha.txt
 
 # If patch-details is present, move it to patch-details-archive and add image_sha to the folder
@@ -27,61 +27,62 @@ fi
 # Rename the patch-details-current folder to patch-details
 mv $PATCHING_INFO_PATH/patch-details-current $PATCHING_INFO_PATH/patch-details
 
-
-# For PT 2.2 and 2.3 training, install mpi4py from pip to remedy https://github.com/aws/deep-learning-containers/issues/4090
-# Explicitly pinning these framework versions as they have the same mpi4py requirements in core packages
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[2-3]\.[0-9]+-cpu ]]; then
-    conda uninstall mpi4py && pip install "mpi4py>=3.1.4,<3.2" && echo "Installed mpi4py from pip"
-fi
-
-# For PT 2.3 inference and training, install pyarrow from pip to remedy https://nvd.nist.gov/vuln/detail/CVE-2024-52338
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.3\.[0-9]+-* ]] || \
-   [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.3\.[0-9]+-* ]]; then
-    pip uninstall -y pyarrow && pip install "pyarrow>=17.0.0" && echo "Installed pyarrow from pip"
-fi
-
-# Install packages and derive history and package diff data
+# Language patching
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_language.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_language.sh
 
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu121-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu121/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
+
+##### Temporary Fixes #####
+
+# For TF 2.18 training sm gpu, replace entrypoint
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/tensorflow-training:2\.18\.0-gpu(.+)sagemaker ]]; then
+    mv /tmp/new-tf-entrypoint /usr/local/bin/dockerd-entrypoint.py
+    chmod +x /usr/local/bin/dockerd-entrypoint.py
 fi
 
-if [ $LATEST_RELEASED_IMAGE_URI == "763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.0.1-gpu-py310-cu118-ubuntu20.04-sagemaker" ]; then
-    SMP_URL=https://smppy.s3.amazonaws.com/pytorch/cu118/smprof-0.3.334-cp310-cp310-linux_x86_64.whl
-    pip install --no-cache-dir -U ${SMP_URL}
-    echo "Installed SMP";
+# For PT 2.6, 2.7, rerun license file
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.6 ]]; then
+    curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(.+):2\.7 ]]; then
+    curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 fi
 
-# Upgrade sagemaker-training package to latest
-if pip show sagemaker-training; then
-    pip install "sagemaker-training>4.7.4" --upgrade
-fi
-
-# For PT inference sagemaker images, replace torchserve-entrypoint.py with the latest one
-# replace start_cuda_compat.sh if it's a gpu image
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)gpu(.+)sagemaker ]]; then
-    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
+# For PT inference gpu sagemaker images, replace start_cuda_compat.sh
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_pytorch_inference_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
-    chmod +x /usr/local/bin/dockerd-entrypoint.py
     chmod +x /usr/local/bin/start_cuda_compat.sh
-elif [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-inference(.+)sagemaker ]]; then
-    mv /tmp/new-torchserve-entrypoint /usr/local/bin/dockerd-entrypoint.py
-    chmod +x /usr/local/bin/dockerd-entrypoint.py
 fi
 
 # For PT training gpu sagemaker images, add dynamic cuda compat mounting script to entrypoint
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training(.+)gpu(.+)sagemaker ]]; then
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[4-6]\.[0-9]+-gpu(.+)sagemaker ]]; then
     mv /tmp/new_start_with_right_hostname /usr/local/bin/start_with_right_hostname.sh
     mv /tmp/new_pytorch_training_start_cuda_compat /usr/local/bin/start_cuda_compat.sh
     chmod +x /usr/local/bin/start_with_right_hostname.sh
     chmod +x /usr/local/bin/start_cuda_compat.sh
 fi
 
-pip cache purge
+# For PT ARM64 GPU images, patch nvjpeg
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-(inference|training)-arm64:2\.[5-7]\.[0-9]+-gpu(.+) ]]; then
+    mkdir -p /tmp/nvjpeg
+    cd /tmp/nvjpeg
+    wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-aarch64/libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    tar -xvf libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz
+    rm -rf /usr/local/cuda/targets/sbsa-linux/lib/libnvjpeg*
+    rm -rf /usr/local/cuda/targets/sbsa-linux/include/nvjpeg.h
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/sbsa-linux/lib/
+    cp libnvjpeg-linux-aarch64-12.4.0.76-archive/include/* /usr/local/cuda/targets/sbsa-linux/include/
+    cd /
+    rm -rf /tmp/nvjpeg
+fi
+
+# For all GPU images, remove cuobjdump and nvdisasm
+if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/(pytorch|tensorflow)(.+)gpu(.+) ]]; then
+    rm -rf /usr/local/cuda/bin/cuobjdump*
+    rm -rf /usr/local/cuda/bin/nvdisasm*
+fi
+
+###########################
+
 
 ## Update GPG key in case Nginx exists
 VARIABLE=$(apt-key list 2>&1  |  { grep -c nginx || true; }) && \
@@ -91,14 +92,12 @@ if [ $VARIABLE != 0 ]; then \
     apt-key add /usr/share/keyrings/nginx-archive-keyring.gpg;
 fi
 
+# OS patching
 chmod +x $PATCHING_INFO_PATH/patch-details/install_script_os.sh && \
 $PATCHING_INFO_PATH/patch-details/install_script_os.sh
 
-rm -rf /var/lib/apt/lists/* && \
-  apt-get clean
-
+# Derive history and package diff data
 python /opt/aws/dlc/miscellaneous_scripts/derive_history.py
-
 python /opt/aws/dlc/miscellaneous_scripts/extract_apt_patch_data.py --save-result-path $PATCHING_INFO_PATH/patch-details/os_summary.json --mode_type modify
 
 set -e
@@ -113,4 +112,9 @@ HOME_DIR=/root \
     && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python \
     && rm -rf ${HOME_DIR}/oss_compliance* || exit
 
+# Clean up
+echo "Cleaning up"
+pip cache purge
+rm -rf /var/lib/apt/lists/* && \
+    apt-get clean
 rm -rf /tmp/* && rm -rf /opt/aws/dlc/miscellaneous_scripts

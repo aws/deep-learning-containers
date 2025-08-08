@@ -3,6 +3,9 @@
     "version_specifier": "==0.6.0",
     "skip": "True"
   },
+  "torch": {
+    "version_specifier": "==2.6.0+cu124"
+  },
   "torchaudio": {
     "version_specifier": "==2.6.0+cu124",
     "skip": "True"
@@ -27,5 +30,8 @@
   },
   "torch-model-archiver": {
     "version_specifier": "==0.12.0"
+  },
+  "triton": {
+    "version_specifier": "==3.2.0"
   }
 }

@@ -11,6 +11,7 @@ from packaging.specifiers import SpecifierSet
 
 import pytest
 import requests
+import filecmp
 
 from urllib3.util.retry import Retry
 from invoke.context import Context
@@ -34,15 +35,14 @@ from test.test_utils import (
     get_repository_local_path,
     get_repository_and_tag_from_image_uri,
     get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
     get_cuda_version_from_tag,
     get_labels_from_ecr_image,
     get_buildspec_path,
     get_all_the_tags_of_an_image_from_ecr,
     is_nightly_context,
     execute_env_variables_test,
-    UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     get_installed_python_packages_with_version,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
@@ -52,6 +52,20 @@ from test.test_utils import (
     get_installed_python_packages_using_image_uri,
     get_image_spec_from_buildspec,
 )
+
+
+def tail_n_lines(fname, n):
+    try:
+        # Use tail command to get last n lines
+        result = subprocess.run(["tail", f"-n{n}", fname], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
+        else:
+            LOGGER.error(f"Error reading file: {result.stderr}")
+            return
+    except FileNotFoundError:
+        LOGGER.error(f"Error: File '{fname}' not found.")
+        return
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
@@ -324,8 +338,10 @@ def test_framework_version_cpu(image):
     Check that the framework version in the image tag is the same as the one on a running container.
     This function tests CPU, EIA images.
 
-    :param image: ECR image URI
+    :param image: ECR image URI e.g "669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:cu128-py312-ubuntu24.04-x86_64-pr-4822"
     """
+    if "base" in image:
+        pytest.skip("Base images do not contain a framework version in the tag. Skipping test.")
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu"
@@ -520,7 +536,7 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
@@ -528,7 +544,7 @@ def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_c
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
@@ -538,7 +554,7 @@ def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compati
 def test_dataclasses_check(image):
     """
     Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
-    Python version retrieved from the ecr image uri is expected in the format `py<major_verion><minor_version>`
+    Python version retrieved from the ecr image uri is expected in the format `py<major_version><minor_version>`
     :param image: ECR image URI
     """
     ctx = Context()
@@ -573,6 +589,10 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+    if "vllm" in image:
+        pytest.skip(
+            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+        )
 
     allowed_exceptions = []
 
@@ -635,6 +655,7 @@ def test_pip_check(image):
             "2.14.2",
             "2.16.0",
             "2.18.0",
+            "2.19.1",
         ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
@@ -647,10 +668,11 @@ def test_pip_check(image):
             "2.14.0",
             "2.16.1",
             "2.18.1",
+            "2.19.0",
         ]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.16.0", "2.18.0"]:
+        for ex_ver in ["2.16.0", "2.18.0", "2.19.0"]:
             exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
@@ -715,6 +737,10 @@ def test_cuda_paths(gpu):
     :param gpu: gpu image uris
     """
     image = gpu
+    if "base" in image or "vllm" in image:
+        pytest.skip(
+            "Base/vLLM DLC doesn't have the same directory structure and buildspec as other images"
+        )
     if "example" in image:
         pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
@@ -771,7 +797,7 @@ def test_cuda_paths(gpu):
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
+            LOGGER.warning(
                 f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context."
             )
         else:
@@ -842,7 +868,7 @@ def _test_sm_toolkit_and_ts_version(image, region):
     has_expected_label = image_labels.get(expected_label)
     assert (
         has_expected_label
-    ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+    ), f"The label {expected_label} which enforces compatibility between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 def _test_framework_and_cuda_version(gpu, ec2_connection):
@@ -853,6 +879,10 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
+    if "base" in image or "vllm" in image:
+        pytest.skip(
+            "Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test."
+        )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
@@ -1034,6 +1064,70 @@ def test_oss_compliance(image):
                     raise
 
 
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
+@pytest.mark.integration("license")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    not is_dlc_cicd_context(), reason="We need to test license file only on PRs and pipelines"
+)
+def test_license_file(image):
+    """
+    Check that license file within the container is readable and valid
+    """
+    if "base" in image or "vllm" in image:
+        pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
+
+    framework, version = get_framework_and_version_from_tag(image)
+
+    if framework == "autogluon":
+        short_version = get_pytorch_version_from_autogluon_image(image)
+        # Default to pytorch framework for autogluon since autogluon is built on top of pytorch
+        # and uses the same license file structure in S3
+        framework = "pytorch"
+    else:
+        short_version = re.search(r"(\d+\.\d+)", version).group(0)
+
+    # Huggingface is built on top of DLCs, pointing framework license path to DLC license path
+    if "huggingface" in framework:
+        if "pytorch" in framework:
+            framework = "pytorch"
+        elif "tensorflow" in framework:
+            framework = "tensorflow"
+        else:
+            raise Exception(f"Invalid huggingface framework detected: {framework}")
+
+    LICENSE_FILE_BUCKET = "aws-dlc-licenses"
+    local_repo_path = get_repository_local_path()
+    container_filename = "CONTAINER_LICENSE_FILE"
+    s3_filename = "S3_LICENSE_FILE"
+    container_file_local_path = os.path.join(local_repo_path, container_filename)
+    s3_file_local_path = os.path.join(local_repo_path, s3_filename)
+
+    # get license file in container
+    container_name = get_container_name("license_readable", image)
+    context = Context()
+    start_container(container_name, image, context)
+    try:
+        context.run(f"docker cp {container_name}:/license.txt {container_file_local_path}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    # get license file in s3
+    s3_client = boto3.client("s3")
+    s3_object_key = f"{framework}-{short_version}/license.txt"
+    s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
+
+    tail_line_num = 5
+    tail_container_file = tail_n_lines(container_file_local_path, tail_line_num)
+    tail_s3_file = tail_n_lines(s3_file_local_path, tail_line_num)
+
+    assert filecmp.cmp(container_file_local_path, s3_file_local_path, shallow=False), (
+        f"{container_filename} content is different from {s3_filename}.\n\n"
+        f"{container_filename} tail -n {tail_line_num} content: {tail_container_file}\n\n"
+        f"{s3_filename} tail -n {tail_line_num} content: {tail_s3_file}"
+    )
+
+
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_training_sm_env_variables(pytorch_training):
@@ -1104,6 +1198,8 @@ def test_core_package_version(image):
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
     satisfy the version constraints specified in the core_packages.json file.
     """
+    if "base" in image or "vllm" in image:
+        pytest.skip("Base/vLLM images do not have core packages. Skipping test.")
     core_packages_path = src_utils.get_core_packages_path(image)
     if not os.path.exists(core_packages_path):
         pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
@@ -1124,9 +1220,9 @@ def test_core_package_version(image):
         package_name = package_name.lower()
         installed_version = None
         if package_name not in installed_package_version_dict:
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+            violation_data[package_name] = (
+                f"Package: {package_name} not installed in {installed_package_version_dict}"
+            )
         else:
             installed_version = Version(installed_package_version_dict[package_name])
         if installed_version and installed_version not in SpecifierSet(
@@ -1152,6 +1248,10 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
+    if "base" in image or "vllm" in image:
+        pytest.skip(
+            "Base/vLLM images don't have python packages that needs to be checked. Skipping test."
+        )
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
         image_uri=image, dlc_folder_path=dlc_path
@@ -1195,15 +1295,15 @@ def test_package_version_regression_in_image(image):
     violating_packages = {}
     for package_name, version_in_released_image in released_image_package_version_dict.items():
         if package_name not in current_image_package_version_dict:
-            violating_packages[
-                package_name
-            ] = "Not present in the image that is being currently built."
+            violating_packages[package_name] = (
+                "Not present in the image that is being currently built."
+            )
             continue
         version_in_current_image = current_image_package_version_dict[package_name]
         if Version(version_in_released_image) > Version(version_in_current_image):
-            violating_packages[
-                package_name
-            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            violating_packages[package_name] = (
+                f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            )
 
     assert (
         not violating_packages

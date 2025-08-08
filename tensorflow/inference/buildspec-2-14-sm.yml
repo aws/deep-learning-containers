@@ -47,7 +47,7 @@ images:
                                 "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /Dockerfile., *DEVICE_TYPE ]
     target: sagemaker
-    # build_tag_override: "beta:2.14.1-cpu-py310-ubuntu20.04-sagemaker"
+    # skip_build: "False"
     enable_test_promotion: true
     context:
       <<: *INFERENCE_CONTEXT
@@ -68,7 +68,7 @@ images:
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *CUDA_VERSION, /Dockerfile.,
                          *DEVICE_TYPE ]
     target: sagemaker
-    # build_tag_override: "beta:2.14.1-gpu-py310-cu118-ubuntu20.04-sagemaker"
+    # skip_build: "False"
     enable_test_promotion: true
     context:
       <<: *INFERENCE_CONTEXT

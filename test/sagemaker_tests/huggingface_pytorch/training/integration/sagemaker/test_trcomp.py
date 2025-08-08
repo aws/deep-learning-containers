@@ -335,9 +335,9 @@ class TestSingleNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
                 distribution={"pytorchxla": {"enabled": True}},
-                environment={"NCCL_P2P_LEVEL": "PXB"}
-                if should_nccl_use_pcie
-                else {},  # Temporary measure to enable communication through PCIe instead of NVLink
+                environment=(
+                    {"NCCL_P2P_LEVEL": "PXB"} if should_nccl_use_pcie else {}
+                ),  # Temporary measure to enable communication through PCIe instead of NVLink
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-SNMG-default"),
@@ -423,9 +423,9 @@ class TestMultiNodeMultiGPU:
                 py_version=py_version,
                 max_retry_attempts=15,
                 distribution={"pytorchxla": {"enabled": True}},
-                environment={"NCCL_P2P_LEVEL": "PXB"}
-                if should_nccl_use_pcie
-                else {},  # Temporary measure to enable communication through PCIe instead of NVLink
+                environment=(
+                    {"NCCL_P2P_LEVEL": "PXB"} if should_nccl_use_pcie else {}
+                ),  # Temporary measure to enable communication through PCIe instead of NVLink
             )
             estimator.fit(
                 job_name=sagemaker.utils.unique_name_from_base("hf-pt-trcomp-MNMG-default"),

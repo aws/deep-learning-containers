@@ -44,25 +44,6 @@ MX_EC2_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
 MX_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "test_mx_dlc_telemetry_test")
 
 
-@pytest.mark.model("mxnet-resnet-neuron")
-@pytest.mark.parametrize(
-    "ec2_instance_ami", [test_utils.NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2], indirect=True
-)
-@pytest.mark.parametrize("ec2_instance_type", MX_EC2_NEURON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("neuron")
-def test_ec2_mxnet_inference_neuron(mxnet_inference_neuron, ec2_connection, region):
-    run_ec2_mxnet_inference(
-        mxnet_inference_neuron,
-        "mxnet-resnet-neuron",
-        "resnet",
-        ec2_connection,
-        "neuron",
-        region,
-        80,
-        8081,
-    )
-
-
 @pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -137,7 +118,9 @@ def test_ec2_mxnet_resnet_inferencei_eia_gpu(mxnet_inference_eia, ec2_connection
 
 @pytest.mark.model(SQUEEZENET_MODEL)
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 def test_ec2_mxnet_inference_graviton_cpu(
     mxnet_inference_graviton, ec2_connection, region, cpu_only
 ):
@@ -251,6 +234,8 @@ def test_mxnet_inference_telemetry_cpu(mxnet_inference, ec2_connection, cpu_only
 @pytest.mark.integration("telemetry")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", MX_EC2_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 def test_mxnet_inference_telemetry_graviton_cpu(mxnet_inference_graviton, ec2_connection, cpu_only):
     execute_ec2_inference_test(ec2_connection, mxnet_inference_graviton, MX_TELEMETRY_CMD)

@@ -1,10 +1,10 @@
 {
   "accelerate": {
-    "version_specifier": "==1.5.1",
+    "version_specifier": "==1.9.0",
     "skip": "True"
   },
   "fastai": {
-    "version_specifier": "==2.7.19",
+    "version_specifier": "==2.8.2",
     "skip": "True"
   },
   "flash-attn": {
@@ -16,8 +16,11 @@
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.3.2",
+    "version_specifier": "==1.4.2",
     "skip": "True"
+  },
+  "torch": {
+    "version_specifier": "==2.5.1+cu124"
   },
   "torchaudio": {
     "version_specifier": "==2.5.1+cu124",
@@ -42,13 +45,13 @@
     "version_specifier": ">=4.66.3"
   },
   "requests": {
-    "version_specifier": ">=2.32.0"
+    "version_specifier": ">=2.32.4"
   },
   "setuptools": {
-    "version_specifier": ">=70.0.0"
+    "version_specifier": ">=80.9.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5.0"
   },
   "awscli": {
     "version_specifier": "<2"
@@ -67,5 +70,19 @@
   },
   "cloudpickle": {
     "version_specifier": "==2.2.1"
+  },
+  "tornado": {
+    "version_specifier": ">=6.5.1"
+  },
+  "opencv-python": {
+    "version_specifier": "==4.11.0.86"
+  },
+  "sagemaker-training": {
+    "version_specifier": ">=5.0.0",
+    "skip": "True"
+  },
+  "protobuf": {
+    "version_specifier": ">=6.31.1",
+    "skip": "True"
   }
 }

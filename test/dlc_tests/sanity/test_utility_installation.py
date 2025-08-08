@@ -1,8 +1,12 @@
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from datetime import datetime
 
 import pytest
 import re
+import time
+
+import os
 
 from invoke.context import Context
 
@@ -22,7 +26,6 @@ SM_TRAINING_UTILITY_PACKAGES_IMPORT = [
 COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "torch",
     "torchvision",
-    "torchtext",
     "torchaudio",
     "PIL",
     "boto3",
@@ -38,6 +41,8 @@ COMMON_PYTORCH_TRAINING_UTILITY_PACKAGES_IMPORT = [
     "psutil",
     "cv2",
 ]
+
+TIMEOUT_IMPORT_TEST = 500
 
 
 # TODO: Need to be added to all DLC images in furture.
@@ -121,7 +126,6 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     Verify that common utility packages are installed in the Training DLC image
     :param pytorch_training: training ECR image URI
     """
-
     ctx = Context()
     container_name = test_utils.get_container_name(
         "common_pytorch_utility_packages_using_import", pytorch_training
@@ -146,27 +150,85 @@ def test_common_pytorch_utility_packages_using_import(pytorch_training):
     list_of_packages = []
     for package in packages_to_import:
         try:
+            start_time = datetime.now()
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
                 f"import {package}; print({package}.__version__)",
                 executable="python",
+                timeout=TIMEOUT_IMPORT_TEST,
             )
-            # Test mpi4py installation further to check against regression for the issue below:
-            # https://github.com/aws/deep-learning-containers/issues/4090
-            if package == "mpi4py":
-                test_utils.run_cmd_on_container(
-                    container_name,
-                    ctx,
-                    f"from {package} import MPI",
-                    executable="python",
-                )
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            test_utils.LOGGER.info(f"Package {package} import time: {duration:.2f} seconds")
         except Exception as e:
+            test_utils.LOGGER.info(f"Exception {e}")
+            end_time = datetime.now()
+            duration = (end_time - start_time).total_seconds()
+            test_utils.LOGGER.info(
+                f"Package {package} failed to import time: {duration:.2f} seconds"
+            )
             import_failed = True
             list_of_packages.append(package)
 
     if import_failed:
         raise ImportError(f"Import failed for packages: {list_of_packages}")
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-pt-inference")
+def test_mpi4py_for_pytorch_inference(pytorch_inference):
+    """
+    Ensure mpi4py works on pytorch_inference
+
+    :param pytorch_inference: ECR image URI
+    """
+    if "gpu" in pytorch_inference:
+        _test_mpi4py_import(pytorch_inference, "pytorch_inference")
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-pt-training")
+def test_mpi4py_for_pytorch_training(pytorch_training):
+    """
+    Ensure mpi4py works on pytorch_training
+
+    :param pytorch_training: ECR image URI
+    """
+    _test_mpi4py_import(pytorch_training, "pytorch_training")
+
+
+@pytest.mark.usefixtures("sagemaker", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("mpi4py-tf-training")
+def test_mpi4py_for_tensorflow_training(tensorflow_training):
+    """
+    Ensure mpi4py works on tensorflow_training
+
+    :param tensorflow_training: ECR image URI
+    """
+    _test_mpi4py_import(tensorflow_training, "tensorflow_training")
+
+
+def _test_mpi4py_import(image, image_name_suffix):
+    """
+    Helper function to test mpi4py import on a container
+
+    :param image: The image fixture (pytorch_inference, etc.)
+    :param image_name_suffix: Suffix for image name
+    """
+    container_name = test_utils.get_container_name(f"test_mpi4py_for_{image_name_suffix}", image)
+    ctx = Context()
+    test_utils.start_container(container_name, image, ctx)
+
+    test_utils.run_cmd_on_container(
+        container_name,
+        ctx,
+        "from mpi4py import MPI",
+        executable="python",
+    )
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")

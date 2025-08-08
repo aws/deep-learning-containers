@@ -25,5 +25,65 @@
       "title": "CVE-2025-27363 - libfreetype6",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "libxml2": [
+    {
+      "description": "In libxml2 before 2.13.8 and 2.14.x before 2.14.2, xmlSchemaIDCFillNodeTables in xmlschemas.c has a heap-based buffer under-read. To exploit this, a crafted XML document must be validated against an XML schema with certain identity constraints, or a crafted XML schema must be used.",
+      "vulnerability_id": "CVE-2025-32415",
+      "name": "CVE-2025-32415",
+      "package_name": "libxml2",
+      "package_details": {
+        "file_path": null,
+        "name": "libxml2",
+        "package_manager": "OS",
+        "version": "2.9.13+dfsg",
+        "release": "1ubuntu0.6"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-32415.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-32415 - libxml2",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In libxml2 before 2.13.8 and 2.14.x before 2.14.2, out-of-bounds memory access can occur in the Python API (Python bindings) because of an incorrect return value. This occurs in xmlPythonFileRead and xmlPythonFileReadRaw because of a difference between bytes and characters.",
+      "vulnerability_id": "CVE-2025-32414",
+      "name": "CVE-2025-32414",
+      "package_name": "libxml2",
+      "package_details": {
+        "file_path": null,
+        "name": "libxml2",
+        "package_manager": "OS",
+        "version": "2.9.13+dfsg",
+        "release": "1ubuntu0.6"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-32414.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-32414 - libxml2",
+      "reason_to_ignore": "N/A"
+    }
   ]
 }

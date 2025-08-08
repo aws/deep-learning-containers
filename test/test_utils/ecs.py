@@ -1,6 +1,7 @@
 """
 Helper functions for ECS Integration Tests
 """
+
 import datetime
 import os
 
@@ -726,7 +727,9 @@ def ecs_training_test_executor(
         )
         print("Waiting for task to stop ...")
 
-        if ecs_task_waiter(cluster_name, [task_arn], "tasks_stopped"):
+        if ecs_task_waiter(
+            cluster_name, [task_arn], "tasks_stopped", waiter_delay=40, waiter_max_attempts=120
+        ):
             ret_codes = describe_ecs_task_exit_status(cluster_name, task_arn)
             if ret_codes:
                 # Assemble error message if we have nonzero return codes

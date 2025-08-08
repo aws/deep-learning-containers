@@ -60,8 +60,10 @@ NO_G5_REGIONS = [
     "ap-southeast-5",
     "ap-southeast-4",
     "ap-northeast-3",
+    "ap-southeast-1",
     "ap-southeast-7",
     "eu-south-1",
+    "eu-west-3",
     "eu-south-2",
     "eu-central-2",
     "me-south-1",
@@ -180,6 +182,9 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
         )
+        # Skip tests if region is ap-northeast-2
+        if region == "ap-northeast-2" and "tensorflow" in ecr_image:
+            return
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return

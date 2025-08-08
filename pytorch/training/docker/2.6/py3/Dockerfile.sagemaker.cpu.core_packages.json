@@ -1,11 +1,14 @@
 {
   "accelerate": {
-    "version_specifier": "==1.4.0",
+    "version_specifier": "==1.9.0",
     "skip": "True"
   },
   "s3torchconnector": {
-    "version_specifier": "==1.3.2",
+    "version_specifier": "==1.4.2",
     "skip": "True"
+  },
+  "torch": {
+    "version_specifier": "==2.6.0+cpu"
   },
   "torchaudio": {
     "version_specifier": "==2.6.0+cpu",
@@ -40,7 +43,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": ">=2.5.0"
   },
   "awscli": {
     "version_specifier": "<2"
@@ -53,5 +56,11 @@
   },
   "cloudpickle": {
     "version_specifier": ">=2.2.1"
+  },
+  "thinc": {
+    "version_specifier": "==8.3.4"
+  },
+  "sagemaker-training": {
+    "version_specifier": ">=5.0.0"
   }
 }
