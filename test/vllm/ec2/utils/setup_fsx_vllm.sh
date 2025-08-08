@@ -65,7 +65,7 @@ git clone https://github.com/vllm-project/vllm.git
 
 # Download ShareGPT dataset
 log "Downloading ShareGPT dataset..."
-cd /fsx/vllm-dlc && wget https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+cd /fsx/vllm-dlc && wget -q https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
 check_error "Failed to download ShareGPT dataset"
 
 log "Setup completed successfully!"
