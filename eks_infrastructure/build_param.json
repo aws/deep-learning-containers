@@ -4,8 +4,6 @@
         "MAINLINE"
     ],
     "eks_clusters": [
-         "dlc-pytorch",
-        "dlc-tensorflow",
         "dlc-vllm"
     ],
     "eks_version": "1.32",
