@@ -19,16 +19,7 @@ if which conda >/dev/null 2>&1; then
     source ~/.bashrc
 fi
 
-# setup benchmark repo
-git clone https://github.com/pytorch/benchmark.git
-cd benchmark
-PYTORCH_VERSION=$(python -c "import torch; print(torch.__version__)" 2>/dev/null || echo "pytorch not found")
-# Add git checkout for PyTorch 2.6
-if [[ "$PYTORCH_VERSION" == "2.6"* ]]; then
-    git checkout 4c7763b619b4eb1de88e57aee901eda92e270d7b
-fi
-pip install -r requirements.txt
-pip install numba
+source /test/bin/pytorch_tests/installPyTorchBenchmarkRepository
 
 export PT_BACKEND=$1
 export USE_INDUCTOR=$2
