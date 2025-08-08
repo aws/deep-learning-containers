@@ -159,87 +159,142 @@ def cleanup_tmux_sessions(connection):
 
 
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
-    """
-    Run VLLM benchmark test on multiple EC2 instances using distributed setup
+    try:
+        # Get HF token
+        response = get_secret_hf_token()
+        hf_token = response.get("HF_TOKEN")
+        if not hf_token:
+            raise Exception("Failed to get HF token")
 
-    Args:
-        head_connection: Fabric connection to head node
-        worker_connection: Fabric connection to worker node
-        image_uri: Docker image URI for VLLM container
+        # Get account ID and login to ECR
+        account_id = get_account_id_from_image_uri(image_uri)
+        login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
+        login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
 
-    Returns:
-        dict: Benchmark results
+        # Pull images
+        print(f"Pulling image: {image_uri}")
+        head_connection.run(f"docker pull {image_uri}", hide="out")
+        worker_connection.run(f"docker pull {image_uri}", hide="out")
 
-    Raises:
-        VLLMBenchmarkError: If benchmark fails
-    """
-    with docker_cleanup(head_connection), docker_cleanup(worker_connection):
-        try:
-            # Get HF token and setup configuration
-            response = get_secret_hf_token()
-            hf_token = response.get("HF_TOKEN")
-            if not hf_token:
-                raise Exception("Failed to get HF token")
+        setup_env(head_connection)
+        setup_env(worker_connection)
 
-            account_id = get_account_id_from_image_uri(image_uri)
-            login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
-            login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
+        head_connection.put(
+            "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
+        )
+        worker_connection.put(
+            "vllm/ec2/utils/worker_node_setup.sh", "/home/ec2-user/worker_node_setup.sh"
+        )
 
-            print(f"Pulling image: {image_uri}")
-            head_connection.run(f"docker pull {image_uri}", hide="out")
-            worker_connection.run(f"docker pull {image_uri}", hide="out")
+        head_connection.run("chmod +x head_node_setup.sh")
+        worker_connection.run("chmod +x worker_node_setup.sh")
 
-            model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-            head_ip = head_connection.run("hostname -i").stdout.strip()
-            worker_ip = worker_connection.run("hostname -i").stdout.strip()
+        head_ip = head_connection.run("hostname -i").stdout.strip()
 
-            setup_env(head_connection)
-            setup_env(worker_connection)
+        print("Starting head node...")
+        head_connection.run(f"./head_node_setup.sh {image_uri} {hf_token}")
 
-            # Setup tmux on both nodes
-            setup_tmux_sessions(head_connection)
-            setup_tmux_sessions(worker_connection)
+        print("Starting worker node...")
+        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}")
 
-            print("Starting head node...")
-            head_cmd = create_head_node_command(image_uri, head_ip, hf_token)
-            head_connection.run(f'tmux new-session -d -s ray_head "{head_cmd}"')
+        print("Waiting for model to load (15 minutes)...")
+        time.sleep(900)
 
-            head_container_id = get_container_id(head_connection, image_uri)
-            print("head_container_id", head_container_id)
-            if not head_container_id or not wait_for_container_ready(
-                head_connection, head_container_id
-            ):
-                raise Exception("Head node failed to start")
+        print("Running benchmark...")
+        benchmark_cmd = create_benchmark_command("deepseek-ai/DeepSeek-R1-Distill-Qwen-32B")
+        result = head_connection.run(benchmark_cmd, timeout=7200)
 
-            print("Starting worker node...")
-            worker_cmd = create_worker_node_command(image_uri, head_ip, worker_ip)
-            worker_connection.run(f'tmux new-session -d -s ray_worker "{worker_cmd}"')
+        return result
 
-            worker_container_id = get_container_id(worker_connection, image_uri)
-            if not worker_container_id or not wait_for_container_ready(
-                worker_connection, worker_container_id
-            ):
-                raise Exception("Worker node failed to start")
+    except Exception as e:
+        raise Exception(f"Multi-node test execution failed: {str(e)}")
+    finally:
+        head_connection.run("tmux kill-server || true", warn=True)
+        worker_connection.run("tmux kill-server || true", warn=True)
 
-            # Start model serving in a new tmux session
-            print("Starting model serving inside Ray container...")
-            serve_cmd = create_serve_command(model_name)
-            serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
-            head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
 
-            print("Waiting for model to load (15 minutes)...")
-            time.sleep(900)
+# def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
+#     """
+#     Run VLLM benchmark test on multiple EC2 instances using distributed setup
 
-            logger.info("Running benchmark...")
-            benchmark_cmd = create_benchmark_command(model_name)
-            result = head_connection.run(benchmark_cmd, timeout=7200)
+#     Args:
+#         head_connection: Fabric connection to head node
+#         worker_connection: Fabric connection to worker node
+#         image_uri: Docker image URI for VLLM container
 
-            return result
+#     Returns:
+#         dict: Benchmark results
 
-        except Exception as e:
-            cleanup_tmux_sessions(head_connection)
-            cleanup_tmux_sessions(worker_connection)
-            raise Exception(f"Multi-node test execution failed: {str(e)}")
+#     Raises:
+#         VLLMBenchmarkError: If benchmark fails
+#     """
+#     with docker_cleanup(head_connection), docker_cleanup(worker_connection):
+#         try:
+#             # Get HF token and setup configuration
+#             response = get_secret_hf_token()
+#             hf_token = response.get("HF_TOKEN")
+#             if not hf_token:
+#                 raise Exception("Failed to get HF token")
+
+#             account_id = get_account_id_from_image_uri(image_uri)
+#             login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
+#             login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
+
+#             print(f"Pulling image: {image_uri}")
+#             head_connection.run(f"docker pull {image_uri}", hide="out")
+#             worker_connection.run(f"docker pull {image_uri}", hide="out")
+
+#             model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+#             head_ip = head_connection.run("hostname -i").stdout.strip()
+#             worker_ip = worker_connection.run("hostname -i").stdout.strip()
+
+#             setup_env(head_connection)
+#             setup_env(worker_connection)
+
+#             # Setup tmux on both nodes
+#             setup_tmux_sessions(head_connection)
+#             setup_tmux_sessions(worker_connection)
+
+#             print("Starting head node...")
+#             head_cmd = create_head_node_command(image_uri, head_ip, hf_token)
+#             head_connection.run(f'tmux new-session -d -s ray_head "{head_cmd}"')
+
+#             head_container_id = get_container_id(head_connection, image_uri)
+#             print("head_container_id", head_container_id)
+#             if not head_container_id or not wait_for_container_ready(
+#                 head_connection, head_container_id
+#             ):
+#                 raise Exception("Head node failed to start")
+
+#             print("Starting worker node...")
+#             worker_cmd = create_worker_node_command(image_uri, head_ip, worker_ip)
+#             worker_connection.run(f'tmux new-session -d -s ray_worker "{worker_cmd}"')
+
+#             worker_container_id = get_container_id(worker_connection, image_uri)
+#             if not worker_container_id or not wait_for_container_ready(
+#                 worker_connection, worker_container_id
+#             ):
+#                 raise Exception("Worker node failed to start")
+
+#             # Start model serving in a new tmux session
+#             print("Starting model serving inside Ray container...")
+#             serve_cmd = create_serve_command(model_name)
+#             serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
+#             head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
+
+#             print("Waiting for model to load (15 minutes)...")
+#             time.sleep(900)
+
+#             logger.info("Running benchmark...")
+#             benchmark_cmd = create_benchmark_command(model_name)
+#             result = head_connection.run(benchmark_cmd, timeout=7200)
+
+#             return result
+
+#         except Exception as e:
+#             cleanup_tmux_sessions(head_connection)
+#             cleanup_tmux_sessions(worker_connection)
+#             raise Exception(f"Multi-node test execution failed: {str(e)}")
 
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
@@ -489,7 +544,7 @@ def test_vllm_on_ec2(resources, image_uri):
             print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
-        print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
+        # print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
         # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
