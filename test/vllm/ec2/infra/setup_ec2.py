@@ -308,9 +308,8 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     """
     Setup FSx mount and VLLM environment on an instance synchronously
     """
-    os.chdir(os.path.join("test", "vllm"))
     # Copy script to instance
-    connection.put("ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+    connection.put("test/vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
     # Make script executable and run it
     commands = [
@@ -345,7 +344,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
             # Wait for instances to terminate
             waiter = ec2_cli.get_waiter("instance_terminated")
             try:
-                waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 30, "MaxAttempts": 40})
+                waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 60, "MaxAttempts": 60})
             except WaiterError as e:
                 print(f"Warning: Instance termination waiter timed out: {str(e)}")
 
