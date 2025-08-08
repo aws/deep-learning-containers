@@ -20,18 +20,6 @@ tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving
     -p 8000:8000"
 
 echo "Waiting for container to start..."
-sleep 200
-
-docker ps -a
-
-CONTAINER_ID=$(docker ps --format '{{.ID}} {{.Names}}' | awk '/node-/ {print $1}' | head -n 1)
-echo "Head node container ID: $CONTAINER_ID"
-
-tmux new-session -d -s vllm_serve "docker exec -it $CONTAINER_ID /bin/bash -c \
-'vllm serve ${model_name} \
---tensor-parallel-size 8 \
---pipeline-parallel-size 2 \
---max-num-batched-tokens 16384 \
---port 8000'"
-
-echo "Head node and vllm serve started"
+sleep 60
+docker ps -a 
+echo "Head node started"

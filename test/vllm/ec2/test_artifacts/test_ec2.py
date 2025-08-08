@@ -170,6 +170,11 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         account_id = get_account_id_from_image_uri(image_uri)
         login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
         login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
+        print(f"Pulling image: {image_uri}")
+        head_connection.run(f"docker pull {image_uri}", hide="out")
+        worker_connection.run(f"docker pull {image_uri}", hide="out")
+
+        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
         setup_env(head_connection)
         setup_env(worker_connection)
@@ -184,8 +189,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run("chmod +x head_node_setup.sh")
         worker_connection.run("chmod +x worker_node_setup.sh")
 
-        time.sleep(2000)
-
         head_ip = head_connection.run("hostname -i").stdout.strip()
 
         print("Starting head node...")
@@ -194,11 +197,17 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Starting worker node...")
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}")
 
+        head_container_id = get_container_id(head_connection, image_uri)
+        print("Starting model serving inside Ray container...")
+        serve_cmd = create_serve_command(model_name)
+        serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
+        head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
+
         print("Waiting for model to load (15 minutes)...")
         time.sleep(900)
 
         print("Running benchmark...")
-        benchmark_cmd = create_benchmark_command("deepseek-ai/DeepSeek-R1-Distill-Qwen-32B")
+        benchmark_cmd = create_benchmark_command(model_name)
         result = head_connection.run(benchmark_cmd, timeout=7200)
 
         return result
