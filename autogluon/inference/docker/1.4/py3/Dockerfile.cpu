@@ -80,4 +80,4 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["djl-serving", "-f", "/home/model-server/serving.properties"]
+CMD ["djl-serving", "-f", "/home/model-server/config.properties"]
