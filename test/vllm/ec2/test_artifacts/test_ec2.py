@@ -441,13 +441,26 @@ def test_vllm_on_ec2(resources, image_uri):
             head_conn = ec2_connections[instance_ids[0]]
             worker_conn = ec2_connections[instance_ids[1]]
 
-            os.chdir(os.path.join("dlc_tests"))
-            local_scripts_path = os.path.join("container_tests", "bin", "efa")
-            scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
-            for conn in [head_conn, worker_conn]:
-                conn.run(f"sudo mkdir -p {scripts_path}")
-                conn.run(f"sudo cp -r {local_scripts_path} {scripts_path}/")
-                conn.run(f"sudo chmod -R +x {scripts_path}/efa/*")
+        os.chdir(os.path.join("dlc_tests"))
+        print(os.getcwd())
+        local_efa_path = os.path.join("container_tests", "bin", "efa")
+        print(local_efa_path)
+        remote_scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
+        print(remote_scripts_path)
+
+        for conn in [head_conn, worker_conn]:
+            try:
+                conn.run(f"sudo mkdir -p {remote_scripts_path}")
+                for file_name in os.listdir(local_efa_path):
+                    local_file_path = os.path.join(local_efa_path, file_name)
+                    if os.path.isfile(local_file_path):
+                        conn.put(local_file_path, f"/tmp/{file_name}")
+                        conn.run(f"sudo mv /tmp/{file_name} {remote_scripts_path}/")
+
+                conn.run(f"sudo chmod -R +x {remote_scripts_path}/*")
+                print(f"Successfully copied EFA files to instance {conn.host}")
+            except Exception as e:
+                print(f"Error copying files to instance {conn.host}: {str(e)}")
 
             _setup_multinode_efa_instances(
                 image_uri,
