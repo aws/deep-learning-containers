@@ -219,7 +219,6 @@ RUN ${PIP} install --no-cache-dir -U \
    mpi4py \
    h5py \
    absl-py \
-   opencv-python \
    werkzeug \
    urllib3 
    
@@ -295,7 +294,8 @@ ARG TF_URL
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    "tensorflow-io==0.37.*" \
-   "tensorflow-datasets==4.9.7"
+   "tensorflow-datasets==4.9.7" \
+   opencv-python 
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
