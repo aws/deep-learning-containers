@@ -8,7 +8,7 @@ HEAD_IP=$2
 
 WORKER_IP=$(hostname -i)
 
-tmux new-session -d -s ray_worker "bash vllm/examples/online_serving/run_cluster.sh \
+tmux new-session -d -s ray_worker "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
     $IMAGE_URI $HEAD_IP \
     --worker \
     /fsx/.cache/huggingface \
@@ -20,12 +20,4 @@ tmux new-session -d -s ray_worker "bash vllm/examples/online_serving/run_cluster
     "
 
 sleep 30
-
-CONTAINER_ID=$(docker ps --filter name=node-* --format "{{.ID}}" | head -n 1)
-
-if [ -z "$CONTAINER_ID" ]; then
-    echo "Failed to get container ID"
-    exit 1
-fi
-
-echo "Worker node container ID: $CONTAINER_ID"
+docker ps -a

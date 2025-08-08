@@ -6,9 +6,10 @@ set -e
 IMAGE_URI=$1
 HF_TOKEN=$2
 HEAD_IP=$(hostname -i)
+CONTAINER_ID_FILE="/tmp/vllm_container_id"
 
-# Start head node in tmux session
-tmux new-session -d -s ray_head " bash vllm/examples/online_serving/run_cluster.sh \
+# Start head node in tmux session and capture container ID
+tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
     $IMAGE_URI $HEAD_IP \
     /fsx/.cache/huggingface \
     -e VLLM_HOST_IP=$HEAD_IP \
@@ -17,20 +18,22 @@ tmux new-session -d -s ray_head " bash vllm/examples/online_serving/run_cluster.
     -e FI_EFA_USE_DEVICE_RDMA=1 \
     --device=/dev/infiniband/ \
     --ulimit memlock=-1:-1 \
-    -p 8000:8000"
+    -p 8000:8000 && \
+    docker ps --format '{{.ID}} {{.Names}}' | awk '/node-/ {print \$1}' | head -n 1 > $CONTAINER_ID_FILE"
 
+echo "Waiting for container to start..."
 sleep 30
 
-CONTAINER_ID=$(docker ps --filter name=node-* --format "{{.ID}}" | head -n 1)
-
-if [ -z "$CONTAINER_ID" ]; then
-    echo "Failed to get container ID"
+if [ ! -f "$CONTAINER_ID_FILE" ]; then
+    echo "Container ID file not found"
+    docker ps -a
     exit 1
 fi
 
+CONTAINER_ID=$(cat $CONTAINER_ID_FILE)
 echo "Head node container ID: $CONTAINER_ID"
 
-tmux new-session -d -s vllm_serve "docker exec -it \$CONTAINER_ID /bin/bash -c \
+tmux new-session -d -s vllm_serve "docker exec -it $CONTAINER_ID /bin/bash -c \
 'vllm serve ${model_name} \
 --tensor-parallel-size 8 \
 --pipeline-parallel-size 2 \
@@ -38,3 +41,6 @@ tmux new-session -d -s vllm_serve "docker exec -it \$CONTAINER_ID /bin/bash -c \
 --port 8000'"
 
 echo "Head node and vllm serve started"
+
+# Optional: Clean up the temporary file
+rm -f $CONTAINER_ID_FILE
