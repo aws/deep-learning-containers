@@ -1,6 +1,6 @@
 ARG PYTHON_VERSION=3.11.9
 
-FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker-v1.38-2025-07-30-17-53-15
+FROM --platform=linux/amd64 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker
 
 # Specify accept-bind-to-port LABEL for inference pipelines to use SAGEMAKER_BIND_TO_PORT
 # https://docs.aws.amazon.com/sagemaker/latest/dg/inference-pipeline-real-time.html
@@ -15,28 +15,57 @@ LABEL dlc_major_version="1"
 RUN apt-get update \
  && apt-get -y upgrade \
  && apt-get autoremove -y \
- && apt-get install tesseract-ocr -y \
+ && apt-get install tesseract-ocr wget git -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 ARG AUTOGLUON_VERSION=1.4.0
 
 # Upgrading pip and installing/updating Python dependencies
-# Comments are added to explain the reason behind each update
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip uninstall -y dataclasses \
  # Install AutoGluon, ensuring no vulnerable dependencies are left behind
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
+ # FastAI, breaking changes from 2.7 to 2.8, maintaining same version for both training and inference to load model correctly
  && pip install --no-cache-dir "ninja<1.11.1.1"
 
+# Explicitly remove torchserve to ensure DJLServing is used instead
+RUN pip uninstall -y torchserve torch-model-archiver torch-workflow-archiver || true \
+ && apt-get remove -y torchserve || true \
+ && rm -rf /usr/local/bin/torchserve /usr/local/bin/torch-model-archiver /usr/local/bin/torch-workflow-archiver
 
+# Install Java 17 (required for DJLServing 0.28.0+)
+RUN apt-get update \
+ && apt-get install -y openjdk-17-jdk \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
-# add TS entrypoint
-COPY config.properties /home/model-server
+# Set JAVA_HOME
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-COPY torchserve-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
-RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
+# Install DJLServing from the official DJL repository
+RUN wget https://publish.djl.ai/djl-serving/djl-serving_0.28.0-1_all.deb \
+ && dpkg -i djl-serving_0.28.0-1_all.deb \
+ && rm djl-serving_0.28.0-1_all.deb
+
+# Install djl-python dependencies and create the module structure
+# Since djl-python wheel may not be available, we'll install from source or use git
+RUN pip install --no-cache-dir numpy pandas protobuf \
+ && git clone https://github.com/deepjavalibrary/djl-serving.git /tmp/djl-serving \
+ && cd /tmp/djl-serving/engines/python/setup \
+ && pip install . \
+ && rm -rf /tmp/djl-serving
+
+# Create model server directory
+RUN mkdir -p /home/model-server
+
+# Copy DJLServing configuration and scripts
+COPY serving.properties /home/model-server/
+COPY djlserving-entrypoint.py /usr/local/bin/dockerd-entrypoint.py
+COPY setup_model.sh /usr/local/bin/setup_model.sh
+RUN chmod +x /usr/local/bin/dockerd-entrypoint.py \
+ && chmod +x /usr/local/bin/setup_model.sh
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -51,4 +80,4 @@ RUN curl -o /licenses-autogluon.txt https://autogluon.s3.us-west-2.amazonaws.com
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["torchserve", "--start", "--ts-config", "/home/model-server/config.properties", "--model-store", "/home/model-server/"]
+CMD ["djl-serving", "-f", "/home/model-server/serving.properties"]

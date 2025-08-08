@@ -15,14 +15,15 @@ from __future__ import absolute_import
 import shlex
 import subprocess
 import sys
+import os
 
 
-if sys.argv[1] == "serve":
-    from sagemaker_pytorch_serving_container import serving
-
-    serving.main()
-else:
-    subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
-
-# prevent docker exit
-subprocess.call(["tail", "-f", "/dev/null"])
+if __name__ == "__main__":
+    if len(sys.argv) > 1 and sys.argv[1] == "serve":
+        subprocess.check_call(["/usr/local/bin/setup_model.sh"])
+        os.execv("/usr/bin/djl-serving", ["djl-serving", "-f", "/home/model-server/config.properties"])
+    elif len(sys.argv) > 1:
+        subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
+    else:
+        subprocess.check_call(["/usr/local/bin/setup_model.sh"])
+        os.execv("/usr/bin/djl-serving", ["djl-serving", "-f", "/home/model-server/config.properties"])
