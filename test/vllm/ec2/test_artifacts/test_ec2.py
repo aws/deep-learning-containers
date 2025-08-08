@@ -441,11 +441,13 @@ def test_vllm_on_ec2(resources, image_uri):
             head_conn = ec2_connections[instance_ids[0]]
             worker_conn = ec2_connections[instance_ids[1]]
 
-            local_scripts_path = os.path.join("test", "dlc_tests", "container_tests", "bin", "efa")
+            os.chdir(os.path.join("test", "dlc_tests"))
+            local_scripts_path = os.path.join("container_tests", "bin", "efa")
             scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
             for conn in [head_conn, worker_conn]:
                 conn.run(f"sudo mkdir -p {scripts_path}")
-                conn.run(f"sudo cp -r {local_scripts_path} {scripts_path}")
+                conn.run(f"sudo cp -r {local_scripts_path} {scripts_path}/")
+                conn.run(f"sudo chmod -R +x {scripts_path}/efa/*")
 
             _setup_multinode_efa_instances(
                 image_uri,

@@ -402,8 +402,7 @@ def main():
         report_multinode_train = os.path.join(os.getcwd(), "test", f"eks_multinode_train.xml")
 
         # PyTest must be run in this directory to avoid conflicting w/ sagemaker_tests conftests
-        if framework != "vllm":
-            os.chdir(os.path.join("test", "dlc_tests"))
+        os.chdir(os.path.join("test", "dlc_tests"))
 
         # Pull images for necessary tests
         if "sanity" in specific_test_type:
@@ -426,6 +425,7 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
+                    os.chdir("..")
                     test()
                     LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
