@@ -441,7 +441,7 @@ def test_vllm_on_ec2(resources, image_uri):
             head_conn = ec2_connections[instance_ids[0]]
             worker_conn = ec2_connections[instance_ids[1]]
 
-            os.chdir(os.path.join("test", "dlc_tests"))
+            os.chdir(os.path.join("dlc_tests"))
             local_scripts_path = os.path.join("container_tests", "bin", "efa")
             scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
             for conn in [head_conn, worker_conn]:
