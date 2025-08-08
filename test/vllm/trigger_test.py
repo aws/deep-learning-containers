@@ -4,6 +4,8 @@ from typing import List
 
 from test.test_utils import get_dlc_images
 from test.vllm.eks.eks_test import test_vllm_on_eks
+from test.vllm.ec2.infra.setup_ec2 import setup
+from test.vllm.ec2.test_artifacts.test_ec2 import test_vllm_on_ec2
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -16,8 +18,14 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     """
     LOGGER.info(f"Running {platform} tests")
     if platform == "ec2":
-        # Placeholder for EC2 tests
-        pass
+        try:
+            ec2_resources = setup()
+            print("Finished gathering resources required for VLLM EC2 Tests")
+            test_vllm_on_ec2(ec2_resources, images[0])
+            LOGGER.info("EKS vLLM tests completed successfully")
+        except Exception as e:
+            LOGGER.error(f"EKS vLLM tests failed: {str(e)}")
+            raise
     elif platform == "eks":
         LOGGER.info("Running EKS tests")
         try:
@@ -37,7 +45,8 @@ def test():
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
 
-    ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    # ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+    ipv6_enabled = True
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
 
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
