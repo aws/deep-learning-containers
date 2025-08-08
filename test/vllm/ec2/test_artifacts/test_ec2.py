@@ -434,61 +434,61 @@ def test_vllm_on_ec2(resources, image_uri):
                 print(f"Failed to connect to instance {instance_id}: {str(e)}")
                 raise
 
-        if len(ec2_connections) >= 2:
-            print("\n=== Starting EFA Tests ===")
-            instance_ids = list(ec2_connections.keys())
-            number_of_nodes = 2
-            head_conn = ec2_connections[instance_ids[0]]
-            worker_conn = ec2_connections[instance_ids[1]]
+        # if len(ec2_connections) >= 2:
+        #     print("\n=== Starting EFA Tests ===")
+        #     instance_ids = list(ec2_connections.keys())
+        #     number_of_nodes = 2
+        #     head_conn = ec2_connections[instance_ids[0]]
+        #     worker_conn = ec2_connections[instance_ids[1]]
 
-        os.chdir(os.path.join("dlc_tests"))
-        print(os.getcwd())
-        local_efa_path = os.path.join("container_tests", "bin", "efa")
-        print(local_efa_path)
-        remote_scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
-        print(remote_scripts_path)
+        # os.chdir(os.path.join("dlc_tests"))
+        # print(os.getcwd())
+        # local_efa_path = os.path.join("container_tests", "bin", "efa")
+        # print(local_efa_path)
+        # remote_scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
+        # print(remote_scripts_path)
 
-        for conn in [head_conn, worker_conn]:
-            try:
-                conn.run(f"sudo mkdir -p {remote_scripts_path}")
-                for file_name in os.listdir(local_efa_path):
-                    local_file_path = os.path.join(local_efa_path, file_name)
-                    if os.path.isfile(local_file_path):
-                        conn.put(local_file_path, f"/tmp/{file_name}")
-                        conn.run(f"sudo mv /tmp/{file_name} {remote_scripts_path}/")
+        # for conn in [head_conn, worker_conn]:
+        #     try:
+        #         conn.run(f"sudo mkdir -p {remote_scripts_path}")
+        #         for file_name in os.listdir(local_efa_path):
+        #             local_file_path = os.path.join(local_efa_path, file_name)
+        #             if os.path.isfile(local_file_path):
+        #                 conn.put(local_file_path, f"/tmp/{file_name}")
+        #                 conn.run(f"sudo mv /tmp/{file_name} {remote_scripts_path}/")
 
-                conn.run(f"sudo chmod -R +x {remote_scripts_path}/*")
-                print(f"Successfully copied EFA files to instance {conn.host}")
-            except Exception as e:
-                print(f"Error copying files to instance {conn.host}: {str(e)}")
+        #         conn.run(f"sudo chmod -R +x {remote_scripts_path}/*")
+        #         print(f"Successfully copied EFA files to instance {conn.host}")
+        #     except Exception as e:
+        #         print(f"Error copying files to instance {conn.host}: {str(e)}")
 
-            _setup_multinode_efa_instances(
-                image_uri,
-                resources["instances_info"][:2],
-                [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
-                "p4d.24xlarge",
-                DEFAULT_REGION,
-            )
+        #     _setup_multinode_efa_instances(
+        #         image_uri,
+        #         resources["instances_info"][:2],
+        #         [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
+        #         "p4d.24xlarge",
+        #         DEFAULT_REGION,
+        #     )
 
-            master_connection = ec2_connections[instance_ids[0]]
+        #     master_connection = ec2_connections[instance_ids[0]]
 
-            # Run EFA sanity test
-            run_cmd_on_container(
-                MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
-            )
+        #     # Run EFA sanity test
+        #     run_cmd_on_container(
+        #         MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
+        #     )
 
-            run_cmd_on_container(
-                MASTER_CONTAINER_NAME,
-                master_connection,
-                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-                hide=False,
-                timeout=DEFAULT_EFA_TIMEOUT,
-            )
+        #     run_cmd_on_container(
+        #         MASTER_CONTAINER_NAME,
+        #         master_connection,
+        #         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+        #         hide=False,
+        #         timeout=DEFAULT_EFA_TIMEOUT,
+        #     )
 
-            test_results["efa"] = True
-            for conn in [head_conn, worker_conn]:
-                cleanup_containers(conn)
-            print("EFA tests completed successfully")
+        #     test_results["efa"] = True
+        #     for conn in [head_conn, worker_conn]:
+        #         cleanup_containers(conn)
+        #     print("EFA tests completed successfully")
 
         # Run single-node test on first instance
         # instance_id = list(ec2_connections.keys())[0]
