@@ -45,8 +45,6 @@ def setup_env(connection):
 def create_head_node_command(image_uri: str, head_ip: str, hf_token: str) -> str:
     """Create command for head node startup"""
     return f"""
-    source vllm_env/bin/activate &&
-    cd /fsx/vllm-dlc &&
     bash vllm/examples/online_serving/run_cluster.sh \
     {image_uri} {head_ip} \
     --head \
@@ -64,8 +62,6 @@ def create_head_node_command(image_uri: str, head_ip: str, hf_token: str) -> str
 def create_worker_node_command(image_uri: str, head_ip: str, worker_ip: str) -> str:
     """Create command for worker node startup"""
     return f"""
-    source vllm_env/bin/activate &&
-    cd /fsx/vllm-dlc &&
     bash vllm/examples/online_serving/run_cluster.sh \
     {image_uri} {head_ip} \
     --worker \
@@ -151,6 +147,17 @@ def get_container_id(connection, image_name: str) -> Optional[str]:
     return result.stdout.strip() if result.stdout else None
 
 
+def setup_tmux_sessions(connection):
+    """Setup tmux on the instance"""
+    connection.run("tmux new-session -d -s dummy || true")
+    connection.run("pkill -f tmux || true")
+
+
+def cleanup_tmux_sessions(connection):
+    """Cleanup tmux sessions"""
+    connection.run("tmux kill-server || true")
+
+
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     """
     Run VLLM benchmark test on multiple EC2 instances using distributed setup
@@ -186,26 +193,27 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             head_ip = head_connection.run("hostname -i").stdout.strip()
             worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
-            # Setup Python environment
             setup_env(head_connection)
             setup_env(worker_connection)
 
-            # Start head node
-            logger.info("Starting head node...")
-            head_cmd = create_head_node_command(image_uri, head_ip, hf_token)
-            head_connection.run(head_cmd, hide=False, asynchronous=True)
+            # Setup tmux on both nodes
+            setup_tmux_sessions(head_connection)
+            setup_tmux_sessions(worker_connection)
 
-            # Wait for head node to be ready
+            print("Starting head node...")
+            head_cmd = create_head_node_command(image_uri, head_ip, hf_token)
+            head_connection.run(f'tmux new-session -d -s ray_head "{head_cmd}"')
+
             head_container_id = get_container_id(head_connection, image_uri)
+            print("head_container_id", head_container_id)
             if not head_container_id or not wait_for_container_ready(
                 head_connection, head_container_id
             ):
                 raise Exception("Head node failed to start")
 
-            # Start worker node
-            logger.info("Starting worker node...")
+            print("Starting worker node...")
             worker_cmd = create_worker_node_command(image_uri, head_ip, worker_ip)
-            worker_connection.run(worker_cmd, hide=False, asynchronous=True)
+            worker_connection.run(f'tmux new-session -d -s ray_worker "{worker_cmd}"')
 
             worker_container_id = get_container_id(worker_connection, image_uri)
             if not worker_container_id or not wait_for_container_ready(
@@ -213,20 +221,15 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             ):
                 raise Exception("Worker node failed to start")
 
-            # Start model serving
+            # Start model serving in a new tmux session
             print("Starting model serving inside Ray container...")
             serve_cmd = create_serve_command(model_name)
-            head_container_id = get_container_id(head_connection, image_uri)
-            if not head_container_id:
-                raise Exception("Cannot find head node container")
-
-            serve_in_container = f"docker exec -it {head_container_id} bash -c '{serve_cmd}'"
-            head_connection.run(serve_in_container, hide=False, asynchronous=True)
+            serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
+            head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
 
             print("Waiting for model to load (15 minutes)...")
-            time.sleep(900)  # 15 minutes
+            time.sleep(900)
 
-            # Run benchmark
             logger.info("Running benchmark...")
             benchmark_cmd = create_benchmark_command(model_name)
             result = head_connection.run(benchmark_cmd, timeout=7200)
@@ -234,6 +237,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             return result
 
         except Exception as e:
+            cleanup_tmux_sessions(head_connection)
+            cleanup_tmux_sessions(worker_connection)
             raise Exception(f"Multi-node test execution failed: {str(e)}")
 
 
@@ -441,27 +446,6 @@ def test_vllm_on_ec2(resources, image_uri):
         #     head_conn = ec2_connections[instance_ids[0]]
         #     worker_conn = ec2_connections[instance_ids[1]]
 
-        # os.chdir(os.path.join("dlc_tests"))
-        # print(os.getcwd())
-        # local_efa_path = os.path.join("container_tests", "bin", "efa")
-        # print(local_efa_path)
-        # remote_scripts_path = os.path.join(CONTAINER_TESTS_PREFIX, "efa")
-        # print(remote_scripts_path)
-
-        # for conn in [head_conn, worker_conn]:
-        #     try:
-        #         conn.run(f"sudo mkdir -p {remote_scripts_path}")
-        #         for file_name in os.listdir(local_efa_path):
-        #             local_file_path = os.path.join(local_efa_path, file_name)
-        #             if os.path.isfile(local_file_path):
-        #                 conn.put(local_file_path, f"/tmp/{file_name}")
-        #                 conn.run(f"sudo mv /tmp/{file_name} {remote_scripts_path}/")
-
-        #         conn.run(f"sudo chmod -R +x {remote_scripts_path}/*")
-        #         print(f"Successfully copied EFA files to instance {conn.host}")
-        #     except Exception as e:
-        #         print(f"Error copying files to instance {conn.host}: {str(e)}")
-
         #     _setup_multinode_efa_instances(
         #         image_uri,
         #         resources["instances_info"][:2],
@@ -490,7 +474,6 @@ def test_vllm_on_ec2(resources, image_uri):
         #         cleanup_containers(conn)
         #     print("EFA tests completed successfully")
 
-        # Run single-node test on first instance
         # instance_id = list(ec2_connections.keys())[0]
         # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
         # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
