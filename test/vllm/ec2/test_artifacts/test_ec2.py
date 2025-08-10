@@ -507,8 +507,10 @@ def test_vllm_on_ec2(resources, image_uri):
             head_conn = ec2_connections[instance_ids[0]]
             worker_conn = ec2_connections[instance_ids[1]]
 
-            head_conn.run("cp -r dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
-            worker_conn.run("cp -r dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
+            head_conn.run("cp -r /test/dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
+            worker_conn.run(
+                "cp -r /test/dlc_tests/container_tests/bin/efa/* $HOME/container_tests/"
+            )
 
             _setup_multinode_efa_instances(
                 image_uri,
