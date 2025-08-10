@@ -2,6 +2,7 @@
 
 # Usage: ./head_node_setup.sh <image_uri> <hf_token>
 set -e
+LOG_FILE="/fsx/vllm-dlc/head_node_setup.log"
 
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"

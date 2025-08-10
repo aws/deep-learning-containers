@@ -2,6 +2,7 @@
 
 # Usage: ./worker_node_setup.sh <image_uri> <head_ip>
 set -e
+LOG_FILE="/fsx/vllm-dlc/worker_node_setup.log"
 
 
 log() {
@@ -14,7 +15,8 @@ HEAD_IP=$2
 WORKER_IP=$(hostname -i)
 
 bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
-    $IMAGE_URI $HEAD_IP \
+    $IMAGE_URI \
+    $HEAD_IP \
     --worker \
     /fsx/.cache/huggingface \
     -e VLLM_HOST_IP=$WORKER_IP \

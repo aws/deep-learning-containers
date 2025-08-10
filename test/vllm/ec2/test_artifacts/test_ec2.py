@@ -206,7 +206,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.run(serve_in_container)
 
         print("Waiting for model to load (15 minutes)...")
-        time.sleep(900)
+        time.sleep(1000)
 
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command(model_name)
