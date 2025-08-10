@@ -500,40 +500,43 @@ def test_vllm_on_ec2(resources, image_uri):
                 print(f"Failed to connect to instance {instance_id}: {str(e)}")
                 raise
 
-        # if len(ec2_connections) >= 2:
-        #     print("\n=== Starting EFA Tests ===")
-        #     instance_ids = list(ec2_connections.keys())
-        #     number_of_nodes = 2
-        #     head_conn = ec2_connections[instance_ids[0]]
-        #     worker_conn = ec2_connections[instance_ids[1]]
+        if len(ec2_connections) >= 2:
+            print("\n=== Starting EFA Tests ===")
+            instance_ids = list(ec2_connections.keys())
+            number_of_nodes = 2
+            head_conn = ec2_connections[instance_ids[0]]
+            worker_conn = ec2_connections[instance_ids[1]]
 
-        #     _setup_multinode_efa_instances(
-        #         image_uri,
-        #         resources["instances_info"][:2],
-        #         [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
-        #         "p4d.24xlarge",
-        #         DEFAULT_REGION,
-        #     )
+            head_conn.run("cp -r dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
+            worker_conn.run("cp -r dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
 
-        #     master_connection = ec2_connections[instance_ids[0]]
+            _setup_multinode_efa_instances(
+                image_uri,
+                resources["instances_info"][:2],
+                [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
+                "p4d.24xlarge",
+                DEFAULT_REGION,
+            )
 
-        #     # Run EFA sanity test
-        #     run_cmd_on_container(
-        #         MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
-        #     )
+            master_connection = ec2_connections[instance_ids[0]]
 
-        #     run_cmd_on_container(
-        #         MASTER_CONTAINER_NAME,
-        #         master_connection,
-        #         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-        #         hide=False,
-        #         timeout=DEFAULT_EFA_TIMEOUT,
-        #     )
+            # Run EFA sanity test
+            run_cmd_on_container(
+                MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
+            )
 
-        #     test_results["efa"] = True
-        #     for conn in [head_conn, worker_conn]:
-        #         cleanup_containers(conn)
-        #     print("EFA tests completed successfully")
+            run_cmd_on_container(
+                MASTER_CONTAINER_NAME,
+                master_connection,
+                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+                hide=False,
+                timeout=DEFAULT_EFA_TIMEOUT,
+            )
+
+            test_results["efa"] = True
+            for conn in [head_conn, worker_conn]:
+                cleanup_containers(conn)
+            print("EFA tests completed successfully")
 
         # instance_id = list(ec2_connections.keys())[0]
         # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
@@ -550,7 +553,7 @@ def test_vllm_on_ec2(resources, image_uri):
             print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
-        # print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
+        print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
         # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
