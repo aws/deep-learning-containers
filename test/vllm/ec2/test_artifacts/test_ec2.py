@@ -191,6 +191,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         head_ip = head_connection.run("hostname -i").stdout.strip()
 
+        time.sleep(1000)
+
         print("Starting head node...")
         head_connection.run(f"./head_node_setup.sh {image_uri} {hf_token}")
 
@@ -201,7 +203,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Starting model serving inside Ray container...")
         serve_cmd = create_serve_command(model_name)
         serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
-        head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
+        head_connection.run(serve_in_container)
 
         print("Waiting for model to load (15 minutes)...")
         time.sleep(900)

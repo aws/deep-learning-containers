@@ -3,9 +3,17 @@
 # Usage: ./head_node_setup.sh <image_uri> <hf_token>
 set -e
 
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+}
+
 IMAGE_URI=$1
 HF_TOKEN=$2
 HEAD_IP=$(hostname -i)
+
+log "Starting head node setup..."
+log "Image URI: $IMAGE_URI"
+log "Head IP: $HEAD_IP"
 
 # Start head node in tmux session and capture container ID
 tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
@@ -20,6 +28,7 @@ tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving
     --ulimit memlock=-1:-1 \
     -p 8000:8000"
 
-echo "Waiting for container to start..."
-sleep 200
-echo "Head node started"
+log "Waiting for container to start..."
+sleep 300
+log "Head node started"
+
