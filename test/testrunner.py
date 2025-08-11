@@ -314,7 +314,6 @@ def main():
         if all("base" in image_uri for image_uri in all_image_list) and test_type not in {
             "functionality_sanity",
             "security_sanity",
-            "eks",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on base images. Skipping..."
@@ -323,6 +322,7 @@ def main():
         elif all("vllm" in image_uri for image_uri in all_image_list) and test_type not in {
             "functionality_sanity",
             "security_sanity",
+            "eks",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
