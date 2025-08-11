@@ -48,7 +48,7 @@ RUN pip install --no-cache-dir \
     trl==${TRL_VERSION} \
     peft==${PEFT_VERSION} \
     flash-attn==${FLASH_ATTN_VERSION} \
-    dill==0.3.8 \
+    dill==0.3.9 \
     multiprocess==0.70.16 \
     pathos==0.3.3
 
