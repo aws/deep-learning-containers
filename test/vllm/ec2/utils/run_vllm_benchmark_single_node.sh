@@ -24,9 +24,6 @@ run_benchmark() {
         $container_image \
         --model ${MODEL_NAME} \
         --tensor-parallel-size 8
-        
-    echo "Waiting for model to fully load..."
-    sleep 1000
 
     echo "Running benchmark..."
     python3 /fsx/vllm-dlc/benchmarks/benchmark_serving.py \

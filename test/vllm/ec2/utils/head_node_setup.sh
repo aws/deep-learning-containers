@@ -2,10 +2,9 @@
 
 # Usage: ./head_node_setup.sh <image_uri> <hf_token>
 set -e
-LOG_FILE="/fsx/vllm-dlc/head_node_setup.log"
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
 IMAGE_URI=$1
@@ -29,7 +28,5 @@ tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving
     --ulimit memlock=-1:-1 \
     -p 8000:8000"
 
-log "Waiting for container to start..."
-sleep 300
 log "Head node started"
 

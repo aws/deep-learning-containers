@@ -164,7 +164,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Starting model serving inside Ray container...")
 
         serve_cmd = create_serve_command(model_name)
-        serve_in_container = f"docker ps -a | grep {head_container_id} && docker logs {head_container_id} && docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
+        serve_in_container = f"tmux new-session -d -s ray_head 'docker exec -it {head_container_id} /bin/bash -c \"{serve_cmd}\"'"
         head_connection.run(serve_in_container)
 
         print("Waiting for model to load (15 minutes)...")

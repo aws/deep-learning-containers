@@ -2,16 +2,14 @@
 
 # Usage: ./worker_node_setup.sh <image_uri> <head_ip>
 set -e
-LOG_FILE="/fsx/vllm-dlc/worker_node_setup.log"
 
 
 log() {
-    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }
 
 IMAGE_URI=$1
 HEAD_IP=$2
-
 WORKER_IP=$(hostname -i)
 
 tmux new-session -d -s ray_worker "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
