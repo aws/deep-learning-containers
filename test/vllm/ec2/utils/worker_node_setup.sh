@@ -3,7 +3,6 @@
 # Usage: ./worker_node_setup.sh <image_uri> <head_ip>
 set -e
 
-
 log() {
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"
 }

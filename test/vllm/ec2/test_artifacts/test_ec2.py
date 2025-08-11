@@ -148,26 +148,27 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
 
         print("Starting head node...")
-        time.sleep(1000)
         head_connection.run(f"./head_node_setup.sh {image_uri} {hf_token} {model_name}")
 
-        # print("Starting worker node...")
-        # worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}")
+        print("Starting worker node...")
+        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}")
 
-        # head_container_id = get_container_id(head_connection, image_uri)
-        # print("Starting model serving inside Ray container...")
+        head_container_id = get_container_id(head_connection, image_uri)
+        print("Starting model serving inside Ray container...")
 
-        # commands_serving = [
-        #     "tmux new-session -d -s vllm_serve",
-        #     "tmux ls",
-        #     "tmux attach-session -t vllm_serve",
-        #     f'docker exec -it {head_container_id} /bin/bash -c "vllm serve {model_name} \
-        #     --tensor-parallel-size 8 \
-        #     --pipeline-parallel-size 2 \
-        #     --max-num-batched-tokens 16384"',
-        # ]
+        time.sleep(700)
 
-        # head_connection.run(";".join(commands_serving), asynchronous=True)
+        commands_serving = [
+            "tmux new-session -d -s vllm_serve",
+            "tmux ls",
+            "tmux attach-session -t vllm_serve",
+            f'docker exec -it {head_container_id} -c "vllm serve {model_name} \
+            --tensor-parallel-size 8 \
+            --pipeline-parallel-size 2 \
+            --max-num-batched-tokens 16384"',
+        ]
+
+        head_connection.run(";".join(commands_serving), asynchronous=True)
 
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command(model_name)
