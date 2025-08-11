@@ -288,7 +288,6 @@ def efa_ec2_instances(
                     raise Exception(f"Error allocating elastic IP: {str(e)}")
 
         connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
-        print("connections", connections)
         return_val = {
             "instances": [
                 (instance_info["InstanceId"], key_filename) for instance_info in instances
@@ -374,29 +373,22 @@ def ec2_test_environment():
                 LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
 
 
-def _setup_instance(connections, fsx_dns_name, mount_name):
+def _setup_instance(connection, fsx_dns_name, mount_name):
     """
     Setup FSx mount and VLLM environment on an instance synchronously
     """
-    master_connection = connections[0]
-    os.chdir("..")
+    # Copy script to instance
+    connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
-    master_connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
-
-    master_conn_commands = [
+    # Make script executable and run it
+    commands = [
         "chmod +x /home/ec2-user/setup_fsx_vllm.sh",
         f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
     ]
-    master_connection.run("; ".join(master_conn_commands))
 
-    # Create mount directory and mount FSx
-    worker_conn_commands = [
-        "sudo yum install -y lustre-client",
-        "sudo mkdir -p /fsx",
-        f"sudo mount -t lustre -o relatime,flock {fsx_dns_name}@tcp:/{mount_name} /fsx",
-    ]
-    worker_connection = connections[1]
-    worker_connection.run("; ".join(worker_conn_commands))
+    # Execute commands synchronously
+    result = connection.run("; ".join(commands))
+    return result
 
 
 def cleanup_resources(ec2_cli, resources, fsx):
@@ -528,6 +520,52 @@ def configure_security_groups(instance_id, ec2_cli, fsx, vpc_id, instances_info)
         raise
 
 
+def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+    """Setup FSx mount on a single instance"""
+    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+        "Instances"
+    ][0]
+    public_ip = instance_details.get("PublicIpAddress")
+
+    if not public_ip:
+        raise Exception(f"No public IP found for instance {instance_id}")
+
+    connection = Connection(
+        host=public_ip,
+        user="ec2-user",
+        connect_kwargs={"key_filename": key_filename},
+    )
+
+    return _setup_instance(connection, fsx_dns_name, mount_name)
+
+
+def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+    """Mount FSx on worker instance without running setup script"""
+    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
+        "Instances"
+    ][0]
+    public_ip = instance_details.get("PublicIpAddress")
+
+    if not public_ip:
+        raise Exception(f"No public IP found for instance {instance_id}")
+
+    connection = Connection(
+        host=public_ip,
+        user="ec2-user",
+        connect_kwargs={"key_filename": key_filename},
+    )
+
+    # Create mount directory and mount FSx
+    commands = [
+        "sudo yum install -y lustre-client",
+        "sudo mkdir -p /fsx",
+        f"sudo mount -t lustre -o relatime,flock {fsx_dns_name}@tcp:/{mount_name} /fsx",
+    ]
+
+    for cmd in commands:
+        connection.run(cmd)
+
+
 def setup():
     """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
@@ -562,12 +600,26 @@ def setup():
         )
         print("Created FSx filesystem")
 
-        _setup_instance(
-            resources["connections"],
+        master_instance_id, master_key_filename = resources["instances_info"][0]
+        setup_instance(
+            master_instance_id,
+            master_key_filename,
+            ec2_cli,
             resources["fsx_config"]["dns_name"],
             resources["fsx_config"]["mount_name"],
         )
-        print(f"Setup completed for master and worker instance")
+        print(f"Setup completed for master instance {master_instance_id}")
+
+        # Mount FSx on worker node
+        worker_instance_id, worker_key_filename = resources["instances_info"][1]
+        mount_fsx_on_worker(
+            worker_instance_id,
+            worker_key_filename,
+            ec2_cli,
+            resources["fsx_config"]["dns_name"],
+            resources["fsx_config"]["mount_name"],
+        )
+        print(f"FSx mounted on worker instance {worker_instance_id}")
 
         return resources
 
