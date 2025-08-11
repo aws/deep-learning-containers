@@ -55,6 +55,13 @@ def create_benchmark_command(model_name: str) -> str:
     """
 
 
+def create_serve_command(model_name: str) -> str:
+    return f"""vllm serve {model_name} \
+     --tensor-parallel-size 8 \
+     --pipeline-parallel-size 2 \
+     --max-num-batched-tokens 16384"""
+
+
 def get_secret_hf_token():
 
     secret_name = "test/hf_token"
