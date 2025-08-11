@@ -44,7 +44,10 @@ RUN pip install -U \
 	boto3 \
 	botocore \
 	google-auth \
-	"urllib3>=1.26.17,<1.27"
+	"urllib3>=1.26.17,<1.27" \
+	"protobuf>=4.25.8" \
+	"regex>=2025.2.10" \
+	"transformers>=4.52.1"
 
 RUN pip install "peft==0.14.0"
 
@@ -58,6 +61,7 @@ RUN apt-get update \
 	libgstreamer1.0-0 \
 	libgstreamer-plugins-base1.0-0 \
 	libsoup2.4-1 \
+	libsqlite3-0 \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
