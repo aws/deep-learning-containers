@@ -289,7 +289,7 @@ def efa_ec2_instances(
                     raise Exception(f"Error allocating elastic IP: {str(e)}")
 
         connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
-
+        print("connections", connections)
         return_val = {
             "instances": [
                 (instance_info["InstanceId"], key_filename) for instance_info in instances
@@ -375,23 +375,29 @@ def ec2_test_environment():
                 LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
 
 
-def _setup_instance(connection, fsx_dns_name, mount_name):
+def _setup_instance(connections, fsx_dns_name, mount_name):
     """
     Setup FSx mount and VLLM environment on an instance synchronously
     """
+    master_connection = connections[0]
     os.chdir("..")
-    # Copy script to instance
-    connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
-    # Make script executable and run it
-    commands = [
+    master_connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
+
+    master_conn_commands = [
         "chmod +x /home/ec2-user/setup_fsx_vllm.sh",
         f"/home/ec2-user/setup_fsx_vllm.sh {fsx_dns_name} {mount_name}",
     ]
+    master_connection.run("; ".join(master_conn_commands))
 
-    # Execute commands synchronously
-    result = connection.run("; ".join(commands))
-    return result
+    # Create mount directory and mount FSx
+    worker_conn_commands = [
+        "sudo yum install -y lustre-client",
+        "sudo mkdir -p /fsx",
+        f"sudo mount -t lustre -o relatime,flock {fsx_dns_name}@tcp:/{mount_name} /fsx",
+    ]
+    worker_connection = connections[1]
+    worker_connection.run("; ".join(worker_conn_commands))
 
 
 def cleanup_resources(ec2_cli, resources, fsx):
@@ -509,20 +515,6 @@ def configure_security_groups(instance_id, ec2_cli, fsx, vpc_id, instances_info)
         raise
 
 
-def mount_fsx_on_worker(worker_connection, fsx_dns_name, mount_name):
-    """Mount FSx on worker instance without running setup script"""
-
-    # Create mount directory and mount FSx
-    commands = [
-        "sudo yum install -y lustre-client",
-        "sudo mkdir -p /fsx",
-        f"sudo mount -t lustre -o relatime,flock {fsx_dns_name}@tcp:/{mount_name} /fsx",
-    ]
-
-    for cmd in commands:
-        worker_connection.run(cmd)
-
-
 def setup():
     """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
@@ -556,20 +548,13 @@ def setup():
             {"Name": f"fsx-lustre-vllm-ec2-test-{instance_ids[0]}-{TEST_ID}"},
         )
         print("Created FSx filesystem")
-        _setup_instance(
-            resources["connections"][0],
-            resources["fsx_config"]["dns_name"],
-            resources["fsx_config"]["mount_name"],
-        )
-        print(f"Setup completed for master instance")
 
-        # Mount FSx on worker node
-        mount_fsx_on_worker(
-            resources["connections"][1],
+        _setup_instance(
+            resources["connections"],
             resources["fsx_config"]["dns_name"],
             resources["fsx_config"]["mount_name"],
         )
-        print(f"FSx mounted on worker instance")
+        print(f"Setup completed for master and worker instance")
 
         return resources
 
