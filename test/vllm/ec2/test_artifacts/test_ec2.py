@@ -55,13 +55,6 @@ def create_benchmark_command(model_name: str) -> str:
     """
 
 
-def create_serve_command(model_name: str) -> str:
-    return f"""vllm serve {model_name} \
-     --tensor-parallel-size 8 \
-     --pipeline-parallel-size 2 \
-     --max-num-batched-tokens 16384"""
-
-
 def get_secret_hf_token():
 
     secret_name = "test/hf_token"
@@ -163,9 +156,16 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_container_id = get_container_id(head_connection, image_uri)
         print("Starting model serving inside Ray container...")
 
-        serve_cmd = create_serve_command(model_name)
-        serve_in_container = f"tmux new-session -d -s ray_head 'docker exec -it {head_container_id} /bin/bash -c \"{serve_cmd}\"'"
-        head_connection.run(serve_in_container)
+        commands_serving = [
+            "tmux new-session -d -s vllm_serve",
+            "tmux ls",
+            "tmux attach-session -t vllm_serve",
+            f'docker exec -it {head_container_id} /bin/bash -c "vllm serve {model_name} \
+            --tensor-parallel-size 8 \
+            --pipeline-parallel-size 2 \
+            --max-num-batched-tokens 16384"',
+        ]
+        head_connection.run("; ".join(commands_serving))
 
         print("Waiting for model to load (15 minutes)...")
         time.sleep(1000)
