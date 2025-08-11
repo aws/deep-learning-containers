@@ -53,14 +53,14 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  BuildEC2GPUPTTrainPy3cu128DockerImage:
+  BuildEC2GPUPTTrainPy3cu129DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 24000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
-    cuda_version: &CUDA_VERSION cu128
+    cuda_version: &CUDA_VERSION cu129
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
