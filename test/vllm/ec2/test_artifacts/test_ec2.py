@@ -156,6 +156,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_container_id = get_container_id(head_connection, image_uri)
         print("Starting model serving inside Ray container...")
 
+        time.sleep(400)
+
         commands_serving = [
             "tmux new-session -d -s vllm_serve",
             "tmux ls",
