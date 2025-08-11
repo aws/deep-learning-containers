@@ -125,6 +125,74 @@ def authorize_ingress(ec2_client, group_id, ip_address):
         raise
 
 
+def setup_test_artifacts(ec2_client, instances, key_filename, region):
+    ec2_connections = {}
+    master_connection = None
+    worker_connection = None
+
+    for instance in instances:
+        instance_id = instance["InstanceId"]
+        try:
+            instance_details = ec2_client.describe_instances(InstanceIds=[instance_id])[
+                "Reservations"
+            ][0]["Instances"][0]
+            public_ip = instance_details.get("PublicIpAddress")
+
+            if not public_ip:
+                raise Exception(f"No public IP found for instance {instance_id}")
+
+            connection = Connection(
+                host=public_ip,
+                user="ec2-user",
+                connect_kwargs={"key_filename": key_filename},
+            )
+
+            # Test connection
+            connection.run('echo "Connection test"', hide=True)
+            ec2_connections[instance_id] = connection
+
+            if not master_connection:
+                master_connection = connection
+            else:
+                worker_connection = connection
+
+            print(f"Successfully connected to instance {instance_id}")
+
+        except Exception as e:
+            print(f"Failed to connect to instance {instance_id}: {str(e)}")
+            raise
+
+    artifact_folder = f"vllm-{TEST_ID}-folder"
+    s3_test_artifact_location = test_utils.upload_tests_to_s3(artifact_folder)
+
+    def delete_s3_artifact_copy():
+        test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
+
+    # Setup master instance
+    master_connection.run("rm -rf $HOME/container_tests")
+    master_connection.run(
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+    )
+    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
+    master_connection.run(
+        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+    )
+
+    worker_connection.run("rm -rf $HOME/container_tests")
+    worker_connection.run(
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+    )
+    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
+    worker_connection.run(
+        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+    )
+
+    # Cleanup S3 artifacts
+    delete_s3_artifact_copy()
+
+    return [master_connection, worker_connection]
+
+
 def efa_ec2_instances(
     ec2_client,
     ec2_instance_type,
@@ -220,11 +288,14 @@ def efa_ec2_instances(
                         ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
                     raise Exception(f"Error allocating elastic IP: {str(e)}")
 
+        connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
+
         return_val = {
             "instances": [
                 (instance_info["InstanceId"], key_filename) for instance_info in instances
             ],
             "elastic_ips": elastic_ip_allocation_ids,
+            "connections": connections,
         }
         print("Launched EFA Test instances")
         return return_val
@@ -308,6 +379,7 @@ def _setup_instance(connection, fsx_dns_name, mount_name):
     """
     Setup FSx mount and VLLM environment on an instance synchronously
     """
+    os.chdir("..")
     # Copy script to instance
     connection.put("vllm/ec2/utils/setup_fsx_vllm.sh", "/home/ec2-user/setup_fsx_vllm.sh")
 
@@ -437,71 +509,8 @@ def configure_security_groups(instance_id, ec2_cli, fsx, vpc_id, instances_info)
         raise
 
 
-def setup_instance(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
-    """Setup FSx mount on a single instance"""
-    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
-        "Instances"
-    ][0]
-    public_ip = instance_details.get("PublicIpAddress")
-
-    if not public_ip:
-        raise Exception(f"No public IP found for instance {instance_id}")
-
-    connection = Connection(
-        host=public_ip,
-        user="ec2-user",
-        connect_kwargs={"key_filename": key_filename},
-    )
-
-    return _setup_instance(connection, fsx_dns_name, mount_name)
-
-
-def setup_single_instance(instance_id, key_filename, ec2_cli, fsx, vpc_id, subnet_id):
-    """Set up a single EC2 instance with its FSx configuration"""
-    print(f"Setting up instance {instance_id}...")
-
-    try:
-        # Configure security groups
-        sg_fsx = configure_security_groups(
-            instance_id, ec2_cli, fsx, vpc_id, [(instance_id, key_filename)]
-        )
-
-        # Create FSx filesystem
-        fsx_config = fsx.create_fsx_filesystem(
-            subnet_id,
-            [sg_fsx],
-            1200,
-            "SCRATCH_2",
-            {"Name": f"fsx-lustre-vllm-ec2-test-fsx-{instance_id}-{TEST_ID}"},
-        )
-        print(f"Created FSx filesystem for instance {instance_id}")
-
-        # Setup instance with FSx
-        setup_instance(
-            instance_id, key_filename, ec2_cli, fsx_config["dns_name"], fsx_config["mount_name"]
-        )
-
-        return {"sg_fsx": sg_fsx, "fsx_config": fsx_config}
-
-    except Exception as e:
-        raise Exception(f"Error setting up instance {instance_id}: {str(e)}")
-
-
-def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_name):
+def mount_fsx_on_worker(worker_connection, fsx_dns_name, mount_name):
     """Mount FSx on worker instance without running setup script"""
-    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])["Reservations"][0][
-        "Instances"
-    ][0]
-    public_ip = instance_details.get("PublicIpAddress")
-
-    if not public_ip:
-        raise Exception(f"No public IP found for instance {instance_id}")
-
-    connection = Connection(
-        host=public_ip,
-        user="ec2-user",
-        connect_kwargs={"key_filename": key_filename},
-    )
 
     # Create mount directory and mount FSx
     commands = [
@@ -511,7 +520,7 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
     ]
 
     for cmd in commands:
-        connection.run(cmd)
+        worker_connection.run(cmd)
 
 
 def setup():
@@ -528,6 +537,7 @@ def setup():
         instance_result = launch_ec2_instances(ec2_cli)
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
+        resources["connections"] = instance_result["connections"]
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
@@ -546,27 +556,20 @@ def setup():
             {"Name": f"fsx-lustre-vllm-ec2-test-{instance_ids[0]}-{TEST_ID}"},
         )
         print("Created FSx filesystem")
-
-        master_instance_id, master_key_filename = resources["instances_info"][0]
-        setup_instance(
-            master_instance_id,
-            master_key_filename,
-            ec2_cli,
+        _setup_instance(
+            resources["connections"][0],
             resources["fsx_config"]["dns_name"],
             resources["fsx_config"]["mount_name"],
         )
-        print(f"Setup completed for master instance {master_instance_id}")
+        print(f"Setup completed for master instance")
 
         # Mount FSx on worker node
-        worker_instance_id, worker_key_filename = resources["instances_info"][1]
         mount_fsx_on_worker(
-            worker_instance_id,
-            worker_key_filename,
-            ec2_cli,
+            resources["connections"][1],
             resources["fsx_config"]["dns_name"],
             resources["fsx_config"]["mount_name"],
         )
-        print(f"FSx mounted on worker instance {worker_instance_id}")
+        print(f"FSx mounted on worker instance")
 
         return resources
 

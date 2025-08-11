@@ -425,7 +425,6 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    os.chdir("..")
                     test()
                     LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests

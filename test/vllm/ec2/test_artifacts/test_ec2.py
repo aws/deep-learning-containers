@@ -29,7 +29,6 @@ from typing import Optional, Tuple
 logger = logging.getLogger(__name__)
 
 
-# Helper functions
 def setup_env(connection):
     """Setup Python environment on a node"""
     setup_command = """
@@ -40,49 +39,6 @@ def setup_env(connection):
     pip install "transformers[torch]"
     """
     connection.run(setup_command)
-
-
-def create_head_node_command(image_uri: str, head_ip: str, hf_token: str) -> str:
-    """Create command for head node startup"""
-    return f"""
-    bash vllm/examples/online_serving/run_cluster.sh \
-    {image_uri} {head_ip} \
-    --head \
-    /fsx/.cache/huggingface \
-    -e VLLM_HOST_IP={head_ip} \
-    -e HF_TOKEN={hf_token} \
-    -e FI_PROVIDER=efa \
-    -e FI_EFA_USE_DEVICE_RDMA=1 \
-    --device=/dev/infiniband/ \
-    --ulimit memlock=-1:-1 \
-    -p 8000:8000
-    """
-
-
-def create_worker_node_command(image_uri: str, head_ip: str, worker_ip: str) -> str:
-    """Create command for worker node startup"""
-    return f"""
-    bash vllm/examples/online_serving/run_cluster.sh \
-    {image_uri} {head_ip} \
-    --worker \
-    /fsx/.cache/huggingface \
-    -e VLLM_HOST_IP={worker_ip} \
-    -e FI_PROVIDER=efa \
-    -e FI_EFA_USE_DEVICE_RDMA=1 \
-    --device=/dev/infiniband/ \
-    --ulimit memlock=-1:-1
-    """
-
-
-def create_serve_command(model_name: str) -> str:
-    """Create command for model serving"""
-    return f"""
-    vllm serve {model_name} \
-    --tensor-parallel-size 8 \
-    --pipeline-parallel-size 2 \
-    --max-num-batched-tokens 16384 \
-    --port 8000
-    """
 
 
 def create_benchmark_command(model_name: str) -> str:
@@ -217,90 +173,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
     finally:
         head_connection.run("tmux kill-server || true", warn=True)
         worker_connection.run("tmux kill-server || true", warn=True)
-
-
-# def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
-#     """
-#     Run VLLM benchmark test on multiple EC2 instances using distributed setup
-
-#     Args:
-#         head_connection: Fabric connection to head node
-#         worker_connection: Fabric connection to worker node
-#         image_uri: Docker image URI for VLLM container
-
-#     Returns:
-#         dict: Benchmark results
-
-#     Raises:
-#         VLLMBenchmarkError: If benchmark fails
-#     """
-#     with docker_cleanup(head_connection), docker_cleanup(worker_connection):
-#         try:
-#             # Get HF token and setup configuration
-#             response = get_secret_hf_token()
-#             hf_token = response.get("HF_TOKEN")
-#             if not hf_token:
-#                 raise Exception("Failed to get HF token")
-
-#             account_id = get_account_id_from_image_uri(image_uri)
-#             login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
-#             login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
-
-#             print(f"Pulling image: {image_uri}")
-#             head_connection.run(f"docker pull {image_uri}", hide="out")
-#             worker_connection.run(f"docker pull {image_uri}", hide="out")
-
-#             model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-#             head_ip = head_connection.run("hostname -i").stdout.strip()
-#             worker_ip = worker_connection.run("hostname -i").stdout.strip()
-
-#             setup_env(head_connection)
-#             setup_env(worker_connection)
-
-#             # Setup tmux on both nodes
-#             setup_tmux_sessions(head_connection)
-#             setup_tmux_sessions(worker_connection)
-
-#             print("Starting head node...")
-#             head_cmd = create_head_node_command(image_uri, head_ip, hf_token)
-#             head_connection.run(f'tmux new-session -d -s ray_head "{head_cmd}"')
-
-#             head_container_id = get_container_id(head_connection, image_uri)
-#             print("head_container_id", head_container_id)
-#             if not head_container_id or not wait_for_container_ready(
-#                 head_connection, head_container_id
-#             ):
-#                 raise Exception("Head node failed to start")
-
-#             print("Starting worker node...")
-#             worker_cmd = create_worker_node_command(image_uri, head_ip, worker_ip)
-#             worker_connection.run(f'tmux new-session -d -s ray_worker "{worker_cmd}"')
-
-#             worker_container_id = get_container_id(worker_connection, image_uri)
-#             if not worker_container_id or not wait_for_container_ready(
-#                 worker_connection, worker_container_id
-#             ):
-#                 raise Exception("Worker node failed to start")
-
-#             # Start model serving in a new tmux session
-#             print("Starting model serving inside Ray container...")
-#             serve_cmd = create_serve_command(model_name)
-#             serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
-#             head_connection.run(f'tmux new-session -d -s vllm_serve "{serve_in_container}"')
-
-#             print("Waiting for model to load (15 minutes)...")
-#             time.sleep(900)
-
-#             logger.info("Running benchmark...")
-#             benchmark_cmd = create_benchmark_command(model_name)
-#             result = head_connection.run(benchmark_cmd, timeout=7200)
-
-#             return result
-
-#         except Exception as e:
-#             cleanup_tmux_sessions(head_connection)
-#             cleanup_tmux_sessions(worker_connection)
-#             raise Exception(f"Multi-node test execution failed: {str(e)}")
 
 
 def test_vllm_benchmark_on_single_node(connection, image_uri):
@@ -467,92 +339,46 @@ def test_vllm_on_ec2(resources, image_uri):
     """
     ec2_cli = None
     fsx = None
-    ec2_connections = {}
+    head_conn, worker_conn = resources["connections"][0], resources["connections"][1]
     test_results = {"efa": False, "single_node": False, "multi_node": False}
 
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
 
-        # Create connections
-        for instance_id, key_filename in resources["instances_info"]:
-            try:
-                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
-                    "Reservations"
-                ][0]["Instances"][0]
-                public_ip = instance_details.get("PublicIpAddress")
+        print("\n=== Starting EFA Tests ===")
+        number_of_nodes = 2
 
-                if not public_ip:
-                    raise Exception(f"No public IP found for instance {instance_id}")
+        _setup_multinode_efa_instances(
+            image_uri,
+            resources["instances_info"][:2],
+            resources["connections"],
+            "p4d.24xlarge",
+            DEFAULT_REGION,
+        )
 
-                connection = Connection(
-                    host=public_ip,
-                    user="ec2-user",
-                    connect_kwargs={"key_filename": key_filename},
-                )
+        # Run EFA sanity test
+        run_cmd_on_container(MASTER_CONTAINER_NAME, head_conn, EFA_SANITY_TEST_CMD, hide=False)
 
-                # Test connection
-                connection.run('echo "Connection test"', hide=True)
-                ec2_connections[instance_id] = connection
-                print(f"Successfully connected to instance {instance_id}")
+        run_cmd_on_container(
+            MASTER_CONTAINER_NAME,
+            head_conn,
+            f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+            hide=False,
+            timeout=DEFAULT_EFA_TIMEOUT,
+        )
 
-            except Exception as e:
-                print(f"Failed to connect to instance {instance_id}: {str(e)}")
-                raise
-
-        if len(ec2_connections) >= 2:
-            print("\n=== Starting EFA Tests ===")
-            instance_ids = list(ec2_connections.keys())
-            number_of_nodes = 2
-            head_conn = ec2_connections[instance_ids[0]]
-            worker_conn = ec2_connections[instance_ids[1]]
-
-            head_conn.run("cp -r /test/dlc_tests/container_tests/bin/efa/* $HOME/container_tests/")
-            worker_conn.run(
-                "cp -r /test/dlc_tests/container_tests/bin/efa/* $HOME/container_tests/"
-            )
-
-            _setup_multinode_efa_instances(
-                image_uri,
-                resources["instances_info"][:2],
-                [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
-                "p4d.24xlarge",
-                DEFAULT_REGION,
-            )
-
-            master_connection = ec2_connections[instance_ids[0]]
-
-            # Run EFA sanity test
-            run_cmd_on_container(
-                MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
-            )
-
-            run_cmd_on_container(
-                MASTER_CONTAINER_NAME,
-                master_connection,
-                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-                hide=False,
-                timeout=DEFAULT_EFA_TIMEOUT,
-            )
-
-            test_results["efa"] = True
-            for conn in [head_conn, worker_conn]:
-                cleanup_containers(conn)
-            print("EFA tests completed successfully")
+        test_results["efa"] = True
+        for conn in [head_conn, worker_conn]:
+            cleanup_containers(conn)
+        print("EFA tests completed successfully")
 
         # instance_id = list(ec2_connections.keys())[0]
         # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
         # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
-        if len(ec2_connections) >= 2:
-            instance_ids = list(ec2_connections.keys())
-            head_conn = ec2_connections[instance_ids[0]]
-            worker_conn = ec2_connections[instance_ids[1]]
-
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
-        else:
-            print("\nSkipping multi-node test: insufficient instances")
+        test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
