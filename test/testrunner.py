@@ -312,9 +312,9 @@ def main():
     # Skip non-sanity/security/eks test suites for vllm images in MAINLINE context
     if build_context == "MAINLINE":
         if all("base" in image_uri for image_uri in all_image_list) and test_type not in {
-            "functionality_sanity"
+            "functionality_sanity",
             "security_sanity",
-            "eks"
+            "eks",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on base images. Skipping..."
