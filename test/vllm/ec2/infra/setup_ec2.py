@@ -204,12 +204,12 @@ def efa_ec2_instances(
 ):
     instances = None
     key_filename = None
+    elastic_ip_allocation_ids = []
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
         print(f"Creating instance: CI-CD {ec2_key_name}")
         key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
         print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
-
         volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
         instance_name_prefix = f"CI-CD {ec2_key_name}"
@@ -272,7 +272,6 @@ def efa_ec2_instances(
             ec2_instance_type, region=region
         )
 
-        elastic_ip_allocation_ids = []
         if num_efa_interfaces > 1:
             for instance in instances:
                 try:
@@ -404,6 +403,15 @@ def cleanup_resources(ec2_cli, resources, fsx):
     """Cleanup all resources in reverse order of creation"""
     cleanup_errors = []
 
+    def wait_for_instances(instance_ids):
+        waiter = ec2_cli.get_waiter("instance_terminated")
+        try:
+            waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 60, "MaxAttempts": 100})
+            return True
+        except WaiterError as e:
+            print(f"Warning: Instance termination waiter timed out: {str(e)}")
+            return False
+
     # Clean up Elastic IPs first
     if resources.get("elastic_ips"):
         try:
@@ -419,41 +427,46 @@ def cleanup_resources(ec2_cli, resources, fsx):
             ec2_cli.terminate_instances(InstanceIds=instance_ids)
             print(f"Terminating instances: {instance_ids}")
 
-            # Wait for instances to terminate
-            waiter = ec2_cli.get_waiter("instance_terminated")
-            try:
-                waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 60, "MaxAttempts": 60})
-            except WaiterError as e:
-                print(f"Warning: Instance termination waiter timed out: {str(e)}")
+            if not wait_for_instances(instance_ids):
+                cleanup_errors.append("Instances did not terminate within expected timeframe")
 
-            # Clean up SSH keys
             for _, key_filename in resources["instances_info"]:
                 if key_filename:
                     try:
-                        if os.path.exists(key_filename):
-                            os.remove(key_filename)
-                        if os.path.exists(f"{key_filename}.pub"):
-                            os.remove(f"{key_filename}.pub")
+                        ec2_cli.delete_key_pair(KeyName=key_filename)
+                        for ext in ["", ".pub"]:
+                            file_path = f"{key_filename}{ext}"
+                            if os.path.exists(file_path):
+                                os.remove(file_path)
                     except Exception as e:
                         cleanup_errors.append(f"Failed to delete key file: {str(e)}")
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup EC2 resources: {str(e)}")
 
-    # Clean up security group
-    if resources.get("sg_fsx"):
-        try:
-            ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
-            print(f"Deleted security group: {resources['sg_fsx']}")
-        except Exception as e:
-            cleanup_errors.append(f"Failed to delete security group: {str(e)}")
-
-    # Clean up FSx filesystem
     if resources.get("fsx_config"):
         try:
             fsx.delete_fsx_filesystem(resources["fsx_config"]["filesystem_id"])
             print(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
         except Exception as e:
             cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
+
+    time.sleep(30)
+
+    if resources.get("sg_fsx"):
+        max_attempts = 3
+        for attempt in range(max_attempts):
+            try:
+                ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
+                print(f"Deleted security group: {resources['sg_fsx']}")
+                break
+            except Exception as e:
+                if attempt == max_attempts - 1:
+                    cleanup_errors.append(
+                        f"Failed to delete security group after {max_attempts} attempts: {str(e)}"
+                    )
+                else:
+                    print(f"Retry {attempt + 1}/{max_attempts} to delete security group")
+                    time.sleep(30)
 
     if cleanup_errors:
         raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
