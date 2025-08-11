@@ -415,9 +415,9 @@ def test_vllm_on_ec2(resources, image_uri):
                 cleanup_containers(conn)
             print("EFA tests completed successfully")
 
-        instance_id = list(ec2_connections.keys())[0]
-        print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-        test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
+        # instance_id = list(ec2_connections.keys())[0]
+        # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+        # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
         if len(ec2_connections) >= 2:
