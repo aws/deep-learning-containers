@@ -7,7 +7,7 @@ ARG TORCHAUDIO_VERSION=2.8.0
 ARG TORCHVISION_VERSION=0.23.0
 ARG TORCHDATA_VERSION=0.11.0
 
-ARG CUDA_VERSION=12.8.1
+ARG CUDA_VERSION=12.9.1
 ARG CUDNN_VERSION=9.10.2.21
 ARG NCCL_VERSION=2.27.3
 ARG EFA_VERSION=1.43.1
@@ -15,7 +15,7 @@ ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.5
 ARG FLASH_ATTN_VERSION=2.8.2
 
-FROM nvidia/cuda:12.8.1-base-ubuntu22.04 AS base_image
+FROM nvidia/cuda:12.9.1-base-ubuntu22.04 AS base_image
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -258,12 +258,12 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu128 \
+    --index-url https://download.pytorch.org/whl/cu129 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
-    fastai==2.8.2 \
+    fastai==2.8.3 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis

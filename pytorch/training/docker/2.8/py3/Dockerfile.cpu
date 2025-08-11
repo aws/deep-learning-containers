@@ -238,7 +238,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    fastai==2.8.2 \
+    fastai==2.8.3 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
@@ -309,7 +309,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    fastai==2.8.2 \
+    fastai==2.8.3 \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
