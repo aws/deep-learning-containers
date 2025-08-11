@@ -36,9 +36,9 @@ validate_all_reduce_performance_logs(){
     # EFA 1.37.0 using "Using network Libfabric" instead of "Using network AWS Libfabric"
     grep -E "Using network (AWS )?Libfabric" ${TRAINING_LOG} || { echo "efa is not working, please check if it is installed correctly"; exit 1; }
     if [[ ${INSTANCE_TYPE} == p4d* || ${INSTANCE_TYPE} == p5* ]]; then
-        grep "Setting NCCL_TOPO_FILE environment variable to" ${TRAINING_LOG}
+        grep "NCCL_TOPO_FILE set by environment to" ${TRAINING_LOG}
         # EFA 1.37.0 change from NET/AWS Libfabric/0/GDRDMA to NET/Libfabric/0/GDRDMA
-        grep -E "NET/Libfabric/0/GDRDMA" ${TRAINING_LOG}
+        grep -E "NET/(AWS )?Libfabric/0/GDRDMA" ${TRAINING_LOG}
     fi
 }
 
