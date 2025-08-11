@@ -339,46 +339,87 @@ def test_vllm_on_ec2(resources, image_uri):
     """
     ec2_cli = None
     fsx = None
-    head_conn, worker_conn = resources["connections"][0], resources["connections"][1]
+    ec2_connections = {}
     test_results = {"efa": False, "single_node": False, "multi_node": False}
 
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
 
-        print("\n=== Starting EFA Tests ===")
-        number_of_nodes = 2
+        # Create connections
+        for instance_id, key_filename in resources["instances_info"]:
+            try:
+                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
+                    "Reservations"
+                ][0]["Instances"][0]
+                public_ip = instance_details.get("PublicIpAddress")
 
-        _setup_multinode_efa_instances(
-            image_uri,
-            resources["instances_info"][:2],
-            resources["connections"],
-            "p4d.24xlarge",
-            DEFAULT_REGION,
-        )
+                if not public_ip:
+                    raise Exception(f"No public IP found for instance {instance_id}")
 
-        # Run EFA sanity test
-        run_cmd_on_container(MASTER_CONTAINER_NAME, head_conn, EFA_SANITY_TEST_CMD, hide=False)
+                connection = Connection(
+                    host=public_ip,
+                    user="ec2-user",
+                    connect_kwargs={"key_filename": key_filename},
+                )
 
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            head_conn,
-            f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
-            hide=False,
-            timeout=DEFAULT_EFA_TIMEOUT,
-        )
+                # Test connection
+                connection.run('echo "Connection test"', hide=True)
+                ec2_connections[instance_id] = connection
+                print(f"Successfully connected to instance {instance_id}")
 
-        test_results["efa"] = True
-        for conn in [head_conn, worker_conn]:
-            cleanup_containers(conn)
-        print("EFA tests completed successfully")
+            except Exception as e:
+                print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                raise
+
+        if len(ec2_connections) >= 2:
+            print("\n=== Starting EFA Tests ===")
+            instance_ids = list(ec2_connections.keys())
+            number_of_nodes = 2
+            head_conn = ec2_connections[instance_ids[0]]
+            worker_conn = ec2_connections[instance_ids[1]]
+
+            _setup_multinode_efa_instances(
+                image_uri,
+                resources["instances_info"][:2],
+                [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
+                "p4d.24xlarge",
+                DEFAULT_REGION,
+            )
+
+            master_connection = ec2_connections[instance_ids[0]]
+
+            # Run EFA sanity test
+            run_cmd_on_container(
+                MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
+            )
+
+            run_cmd_on_container(
+                MASTER_CONTAINER_NAME,
+                master_connection,
+                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+                hide=False,
+                timeout=DEFAULT_EFA_TIMEOUT,
+            )
+
+            test_results["efa"] = True
+            for conn in [head_conn, worker_conn]:
+                cleanup_containers(conn)
+            print("EFA tests completed successfully")
 
         # instance_id = list(ec2_connections.keys())[0]
         # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
         # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
-        test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+        if len(ec2_connections) >= 2:
+            instance_ids = list(ec2_connections.keys())
+            head_conn = ec2_connections[instance_ids[0]]
+            worker_conn = ec2_connections[instance_ids[1]]
+
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+        else:
+            print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
