@@ -446,7 +446,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
     time.sleep(30)
 
     if resources.get("sg_fsx"):
-        max_attempts = 3
+        max_attempts = 5
         for attempt in range(max_attempts):
             try:
                 ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
