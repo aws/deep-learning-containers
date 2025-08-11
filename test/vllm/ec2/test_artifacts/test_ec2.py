@@ -162,8 +162,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         head_container_id = get_container_id(head_connection, image_uri)
         print("Starting model serving inside Ray container...")
+
         serve_cmd = create_serve_command(model_name)
-        serve_in_container = f"docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
+        serve_in_container = f"docker ps -a | grep {head_container_id} && docker logs {head_container_id} && docker exec -it {head_container_id} /bin/bash -c '{serve_cmd}'"
         head_connection.run(serve_in_container)
 
         print("Waiting for model to load (15 minutes)...")
@@ -414,9 +415,9 @@ def test_vllm_on_ec2(resources, image_uri):
                 cleanup_containers(conn)
             print("EFA tests completed successfully")
 
-        # instance_id = list(ec2_connections.keys())[0]
-        # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-        # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
+        instance_id = list(ec2_connections.keys())[0]
+        print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+        test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
 
         # Run multi-node test if we have at least 2 instances
         if len(ec2_connections) >= 2:
