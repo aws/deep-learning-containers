@@ -88,17 +88,33 @@ def docker_cleanup(connection):
         connection.run("docker rm -f $(docker ps -aq)", warn=True)
 
 
-def wait_for_container_ready(connection, container_id: str, timeout: int = 300) -> bool:
+def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
     """
-    Wait for container to be ready by checking logs
-    Returns True if container is ready, False if timeout
+    Wait for container and model to be ready by checking logs and endpoint
+    Returns True if container and model are ready, False if timeout
     """
     start_time = time.time()
+    model_ready = False
+
     while time.time() - start_time < timeout:
-        logs = connection.run(f"docker logs {container_id}", hide=True).stdout
-        if "Ray runtime started" in logs:
-            return True
-        time.sleep(10)
+        if not model_ready:
+            try:
+                curl_cmd = """
+                curl -s http://localhost:8000/v1/completions \
+                -H "Content-Type: application/json" \
+                -d '{
+                    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+                    "prompt": "Hello",
+                    "max_tokens": 10
+                }'
+                """
+                result = connection.run(curl_cmd, hide=True, warn=True)
+                if result.ok:
+                    print("Model endpoint is responding")
+                    model_ready = True
+                    return True
+            except Exception:
+                pass
     return False
 
 
@@ -181,8 +197,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             timeout=300,
             asynchronous=True,
         )
+
         print("Waiting for model to be ready...")
-        time.sleep(1000)
+        if not wait_for_container_ready(head_connection, timeout=1000):
+            raise Exception("Container failed to become ready within timeout period")
         print("Model serving started successfully")
 
         # Run benchmark
