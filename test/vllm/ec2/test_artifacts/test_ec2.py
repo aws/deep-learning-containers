@@ -40,7 +40,7 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
-    pip install numpy torch tqdm aiohttp pandas datasets pillow vllm && \
+    pip install numpy torch tqdm aiohttp pandas datasets pillow vllm==0.10.0 && \
     pip install "transformers[torch]"
     """
     connection.run(setup_command)
@@ -153,9 +153,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
-        # we install 3.10 in master conn because vllm code has syntax which doesn't support <3.10
-        install_python_in_instance(head_connection, "3.10")
-
         setup_env(head_connection)
         setup_env(worker_connection)
 
@@ -184,7 +181,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         print("Starting worker node...")
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}", asynchronous=True)
-        serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+        time.sleep(300)
+        serve_command = f"export NCCL_P2P_DISABLE=1 && vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --enforce-eager --max-num-batched-tokens 16384 --distributed-executor-backend ray"
         run_cmd_on_container(
             container_name,
             head_connection,
