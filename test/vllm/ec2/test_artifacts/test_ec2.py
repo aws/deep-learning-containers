@@ -1,4 +1,9 @@
-from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
+from test.test_utils.ec2 import (
+    get_account_id_from_image_uri,
+    login_to_ecr_registry,
+    get_ec2_client,
+    install_python_in_instance,
+)
 import time, os, json
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources
@@ -131,6 +136,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run(f"docker pull {image_uri}", hide="out")
 
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
+
+        # we install 3.10 in master conn because vllm code has syntax which doesn't support <3.10
+        install_python_in_instance(head_connection, "3.10")
 
         setup_env(head_connection)
         setup_env(worker_connection)
