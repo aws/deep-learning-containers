@@ -156,19 +156,20 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_container_id = get_container_id(head_connection, image_uri)
         print("Starting model serving inside Ray container...")
 
-        time.sleep(700)
+        container_name = head_connection.run(
+            'docker ps --format "{{.Names}}" --filter "ancestor=$IMAGE_URI" | head -n 1'
+        ).strip()
 
-        commands_serving = [
-            "tmux new-session -d -s vllm_serve",
-            "tmux ls",
-            "tmux attach-session -t vllm_serve",
-            f'docker exec -it {head_container_id} -c "vllm serve {model_name} \
-            --tensor-parallel-size 8 \
-            --pipeline-parallel-size 2 \
-            --max-num-batched-tokens 16384"',
-        ]
+        serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
 
-        head_connection.run(";".join(commands_serving), asynchronous=True)
+        run_cmd_on_container(
+            container_name,
+            head_connection,
+            serve_command,
+            hide=True,
+            timeout=300,
+            asynchronous=True,
+        )
 
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command(model_name)
