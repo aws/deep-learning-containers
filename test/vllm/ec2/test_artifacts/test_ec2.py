@@ -156,12 +156,15 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_container_id = get_container_id(head_connection, image_uri)
         print("Starting model serving inside Ray container...")
 
-        container_name = head_connection.run(
+        result = head_connection.run(
             'docker ps --format "{{.Names}}" --filter "ancestor=$IMAGE_URI" | head -n 1'
-        ).strip()
+        )
+        container_name = result.stdout.strip()
 
+        # Prepare serve command
         serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
 
+        # Run serve command in container
         run_cmd_on_container(
             container_name,
             head_connection,
@@ -170,12 +173,15 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             timeout=300,
             asynchronous=True,
         )
+        print("Model serving started successfully")
 
+        # Run benchmark
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command(model_name)
-        result = head_connection.run(benchmark_cmd, timeout=7200)
+        benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
+        print(f"Benchmark completed: {benchmark_result.stdout}")
 
-        return result
+        return benchmark_result
 
     except Exception as e:
         raise Exception(f"Multi-node test execution failed: {str(e)}")
