@@ -181,6 +181,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             timeout=300,
             asynchronous=True,
         )
+        print("Waiting for model to be ready...")
+        time.sleep(1000)
         print("Model serving started successfully")
 
         # Run benchmark
