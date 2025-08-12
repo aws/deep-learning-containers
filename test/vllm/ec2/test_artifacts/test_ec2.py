@@ -108,7 +108,7 @@ def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
                     "max_tokens": 10
                 }'
                 """
-                result = connection.run(curl_cmd, hide=True, warn=True)
+                result = connection.run(curl_cmd, hide=False)
                 if result.ok:
                     print("Model endpoint is responding")
                     model_ready = True
@@ -172,23 +172,19 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
 
         print("Starting head node...")
-        head_connection.run(f"./head_node_setup.sh {image_uri} {hf_token} {model_name}")
-
-        print("Starting worker node...")
-        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}")
-
-        head_container_id = get_container_id(head_connection, image_uri)
-        print("Starting model serving inside Ray container...")
+        head_connection.run(
+            f"./head_node_setup.sh {image_uri} {hf_token} {model_name}", asynchronous=True
+        )
 
         result = head_connection.run(
             'docker ps --format "{{.Names}}" --filter "ancestor=$IMAGE_URI" | head -n 1'
         )
         container_name = result.stdout.strip()
+        print(f"Container name: {container_name}")
 
-        # Prepare serve command
+        print("Starting worker node...")
+        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}", asynchronous=True)
         serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-
-        # Run serve command in container
         run_cmd_on_container(
             container_name,
             head_connection,
