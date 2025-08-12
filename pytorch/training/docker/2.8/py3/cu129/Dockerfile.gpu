@@ -105,7 +105,6 @@ RUN apt-get update \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
-    libcudnn9-headers-cuda-12=${CUDNN_VERSION}-1 \
     libhwloc-dev \
     libgomp1 \
     libibverbs-dev \
