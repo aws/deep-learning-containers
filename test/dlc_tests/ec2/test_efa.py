@@ -376,15 +376,12 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         )
     else:
         # Configure MPI hosts file with IP addresses and slots for worker nodes
-        # TODO: remove debug logging after testing
-        master_ip = ec2_utils.get_private_ip(master_connection.host, region)
-        LOGGER.info(f"Creating hosts file with master_ip={master_ip}, slots={slots}")
-        LOGGER.info(f"Worker IPs: {worker_instance_private_ips}")
-
         hosts_string = f"localhost slots={slots} "
         for worker_ip in worker_instance_private_ips:
             hosts_string += f"\n{worker_ip} slots={slots} "
-        LOGGER.info(f"Final hosts file content:\n{hosts_string}")
+
+        # TODO: remove logging
+        LOGGER.info(f"Attempting to create hosts file with content:\n{hosts_string}")
 
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
@@ -392,9 +389,8 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
 
-        # TODO: remove debug logging after testing
-        # check to make sure file was created
-        LOGGER.info("Verifying hosts file creation:")
+        # TODO: remove logging
+        LOGGER.info("Verifying hosts file:")
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,

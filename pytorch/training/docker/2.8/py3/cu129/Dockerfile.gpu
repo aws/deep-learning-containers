@@ -248,7 +248,7 @@ RUN pip install --no-cache-dir \
     "urllib3>=2.5.0" \
     "awscli" \
     ninja \
-    opencv-python \
+    opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
