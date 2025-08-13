@@ -383,7 +383,7 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         # TODO: remove logging
         LOGGER.info(f"Attempting to create hosts file with content:\n{hosts_string}")
 
-        LOGGER.info(f"Running command: {f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}"""}")
+        LOGGER.info(f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""")
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
