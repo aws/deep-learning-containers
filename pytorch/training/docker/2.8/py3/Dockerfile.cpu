@@ -184,8 +184,8 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    "awscli<2" \
-    "opencv-python==4.11.0.86" \
+    "awscli" \
+    "opencv-python" \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
@@ -238,13 +238,12 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    fastai==2.8.3 \
+    fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4  \
+    thinc  \
     blis \
     numpy \
  && pip uninstall -y dataclasses
@@ -309,7 +308,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
-    fastai==2.8.3 \
+    fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
@@ -322,8 +321,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2,<3" \
-    "sagemaker-experiments<1" \
+    "sagemaker>=2" \
+    sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training
 

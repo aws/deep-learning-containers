@@ -377,6 +377,7 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
     else:
         # Configure MPI hosts file with IP addresses and slots for worker nodes
         # TODO: remove debug logging after testing
+        master_ip = ec2_utils.get_private_ip(master_connection.host, region)
         LOGGER.info(f"Creating hosts file with master_ip={master_ip}, slots={slots}")
         LOGGER.info(f"Worker IPs: {worker_instance_private_ips}")
 
