@@ -9,7 +9,7 @@ log() {
 
 IMAGE_URI=$1
 HEAD_IP=$2
-WORKER_IP=$(hostname -i)
+WORKER_IP=$3
 
 tmux new-session -d -s ray_worker "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
     $IMAGE_URI \

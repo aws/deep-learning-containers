@@ -40,7 +40,7 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
-    pip install numpy torch tqdm aiohttp pandas datasets pillow vllm==0.10.0 && \
+    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
     pip install "transformers[torch]"
     """
     connection.run(setup_command)
@@ -167,12 +167,11 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run("chmod +x worker_node_setup.sh")
 
         head_ip = head_connection.run("hostname -i").stdout.strip()
-
-        time.sleep(3000)
+        worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
         print("Starting head node...")
         head_connection.run(
-            f"./head_node_setup.sh {image_uri} {hf_token} {model_name}", asynchronous=True
+            f"./head_node_setup.sh {image_uri} {hf_token} {head_ip}", asynchronous=True
         )
 
         result = head_connection.run(
@@ -182,8 +181,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print(f"Container name: {container_name}")
 
         print("Starting worker node...")
-        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip}", asynchronous=True)
-        serve_command = f"export NCCL_P2P_DISABLE=1 && vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --enforce-eager --max-num-batched-tokens 16384 --distributed-executor-backend ray"
+        worker_connection.run(
+            f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
+        )
+        serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --enforce-eager --max-num-batched-tokens 16384 --distributed-executor-backend ray"
         run_cmd_on_container(
             container_name,
             head_connection,
@@ -462,6 +463,8 @@ def test_vllm_on_ec2(resources, image_uri):
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
         # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
+
+        time.sleep(4000)
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
         if not any(test_results.values()):

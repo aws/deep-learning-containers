@@ -9,7 +9,7 @@ log() {
 
 IMAGE_URI=$1
 HF_TOKEN=$2
-HEAD_IP=$(hostname -i)
+HEAD_IP=$3
 
 log "Starting head node setup..."
 log "Image URI: $IMAGE_URI"
@@ -17,7 +17,8 @@ log "Head IP: $HEAD_IP"
 
 # Start head node in tmux session and capture container ID
 tmux new-session -d -s ray_head "bash /fsx/vllm-dlc/vllm/examples/online_serving/run_cluster.sh \
-    $IMAGE_URI $HEAD_IP \
+    $IMAGE_URI \
+    $HEAD_IP \
     --head \
     /fsx/.cache/huggingface \
     -e VLLM_HOST_IP=$HEAD_IP \
