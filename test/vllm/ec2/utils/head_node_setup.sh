@@ -33,7 +33,5 @@ tmux new-session -d -s ray_head "docker run \
     ${IMAGE_URI} \
     /bin/bash -c 'ray start --head --block --port=6379'"
 
-docker ps -a 
-
 log "Head node started in container: ${CONTAINER_NAME}"
 
