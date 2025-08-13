@@ -36,8 +36,7 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     pip install --upgrade pip setuptools wheel && \
     pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
-    pip install "transformers<4.54.0" && \
-    source vllm_env/bin/activate 
+    pip install "transformers<4.54.0"
     """
     connection.run(setup_command)
 
@@ -45,7 +44,6 @@ def setup_env(connection):
 def create_benchmark_command() -> str:
     """Create command for running benchmark"""
     return f"""
-    source vllm_env/bin/activate &&
     python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
     --backend vllm \
     --model {MODEL_NAME} \
@@ -160,6 +158,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # Run benchmark
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command()
+        head_connection.run("source vllm_env/bin/activate")
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
