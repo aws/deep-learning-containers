@@ -14,7 +14,7 @@ from test.test_utils.ec2 import (
     get_ec2_client,
 )
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
-from test.vllm.ec2.infra.setup_ec2 import cleanup_resources
+from test.vllm.ec2.infra.setup_ec2 import cleanup_resources, TEST_ID
 from test.dlc_tests.ec2.test_efa import (
     _setup_multinode_efa_instances,
     EFA_SANITY_TEST_CMD,
@@ -131,15 +131,13 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_ip = head_connection.run("hostname -i").stdout.strip()
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
+        container_name = "ray_head-" + TEST_ID
+
         print("Starting head node...")
         head_connection.run(
-            f"./head_node_setup.sh {image_uri} {hf_token} {head_ip}", asynchronous=True
+            f"./head_node_setup.sh {image_uri} {hf_token} {head_ip} {container_name}",
+            asynchronous=True,
         )
-
-        container_name = head_connection.run(
-            'docker ps --format "{{.Names}}"', hide=True
-        ).stdout.strip()
-        print(f"Container name: {container_name}")
 
         worker_connection.run(
             f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
