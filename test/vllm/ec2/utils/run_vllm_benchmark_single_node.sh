@@ -4,9 +4,7 @@ set -e
 CONTAINER_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
-
 INSTANCE_TYPE="p4d.24xlarge"
-UPSTREAM_IMAGE="vllm/vllm-openai:latest"
 
 # Function to run benchmark
 run_benchmark() {
@@ -15,15 +13,23 @@ run_benchmark() {
     local container_name="vllm-server-${RANDOM}"
 
     echo "Running benchmark for $container_image"
-    docker run --entrypoint=/bin/bash --name $container_name --rm -d --runtime nvidia --gpus all \
+    docker run --name $container_name --runtime nvidia --gpus all \
         -v /fsx/.cache/huggingface:/root/.cache/huggingface \
         -e "HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}" \
         -e "NCCL_DEBUG=TRACE" \
-        -p 8000:8000 \
+        -p 8001:8001 \
         --ipc=host \
         $container_image \
         --model ${MODEL_NAME} \
         --tensor-parallel-size 8
+
+    curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+        "prompt": "Hello, how are you?",
+        "max_tokens": 100
+    }'
 
     echo "Running benchmark..."
     python3 /fsx/vllm-dlc/benchmarks/benchmark_serving.py \

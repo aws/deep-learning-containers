@@ -405,7 +405,6 @@ def cleanup_resources(ec2_cli, resources, fsx):
             print(f"Warning: Instance termination waiter timed out: {str(e)}")
             return False
 
-    # Clean up Elastic IPs first
     if resources.get("elastic_ips"):
         try:
             ec2_utils.delete_elastic_ips(resources["elastic_ips"], ec2_cli)
@@ -413,7 +412,6 @@ def cleanup_resources(ec2_cli, resources, fsx):
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup Elastic IPs: {str(e)}")
 
-    # Clean up EC2 instances
     if resources.get("instances_info"):
         try:
             instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
@@ -556,7 +554,6 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
         connect_kwargs={"key_filename": key_filename},
     )
 
-    # Create mount directory and mount FSx
     commands = [
         "sudo yum install -y lustre-client",
         "sudo mkdir -p /fsx",

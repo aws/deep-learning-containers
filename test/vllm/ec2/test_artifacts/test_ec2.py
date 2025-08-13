@@ -1,10 +1,18 @@
+import threading
+import boto3
+import time, os, json
+import logging
+from botocore.exceptions import ClientError
+from botocore.config import Config
+from fabric import Connection
+from contextlib import contextmanager
+from typing import Optional, Tuple
+
 from test.test_utils.ec2 import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
     get_ec2_client,
-    install_python_in_instance,
 )
-import time, os, json
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources
 from test.dlc_tests.ec2.test_efa import (
@@ -14,23 +22,11 @@ from test.dlc_tests.ec2.test_efa import (
     HOSTS_FILE_LOCATION,
     EFA_INTEGRATION_TEST_CMD,
     DEFAULT_EFA_TIMEOUT,
-    EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION,
 )
-from test.test_utils import run_cmd_on_container, CONTAINER_TESTS_PREFIX
-from botocore.config import Config
-import threading
-from fabric import Connection
+from test.test_utils import run_cmd_on_container
 
+MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 DEFAULT_REGION = "us-west-2"
-
-import boto3
-from botocore.exceptions import ClientError
-
-import time
-import logging
-from contextlib import contextmanager
-from typing import Optional, Tuple
-
 logger = logging.getLogger(__name__)
 
 
@@ -61,31 +57,18 @@ def create_benchmark_command(model_name: str) -> str:
 
 
 def get_secret_hf_token():
-
     secret_name = "test/hf_token"
     region_name = "us-west-2"
 
     session = boto3.session.Session()
     client = session.client(service_name="secretsmanager", region_name=region_name)
-
     try:
         get_secret_value_response = client.get_secret_value(SecretId=secret_name)
     except ClientError as e:
         raise e
 
     response = json.loads(get_secret_value_response["SecretString"])
-
     return response
-
-
-@contextmanager
-def docker_cleanup(connection):
-    """Context manager to ensure Docker cleanup"""
-    try:
-        yield
-    finally:
-        logger.info("Cleaning up Docker containers...")
-        connection.run("docker rm -f $(docker ps -aq)", warn=True)
 
 
 def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
@@ -118,21 +101,11 @@ def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
     return False
 
 
-def get_container_id(connection, image_name: str) -> Optional[str]:
-    """Get container ID for running container with specified image"""
-    result = connection.run(f"docker ps -q --filter ancestor={image_name}", hide=True)
-    return result.stdout.strip() if result.stdout else None
-
-
-def setup_tmux_sessions(connection):
-    """Setup tmux on the instance"""
-    connection.run("tmux new-session -d -s dummy || true")
-    connection.run("pkill -f tmux || true")
-
-
-def cleanup_tmux_sessions(connection):
-    """Cleanup tmux sessions"""
-    connection.run("tmux kill-server || true")
+def setup_docker_image(conn, image_uri):
+    account_id = get_account_id_from_image_uri(image_uri)
+    login_to_ecr_registry(conn, account_id, DEFAULT_REGION)
+    print(f"Pulling image: {image_uri}")
+    conn.run(f"docker pull {image_uri}", hide="out")
 
 
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
@@ -143,18 +116,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         if not hf_token:
             raise Exception("Failed to get HF token")
 
-        # Get account ID and login to ECR
-        account_id = get_account_id_from_image_uri(image_uri)
-        login_to_ecr_registry(head_connection, account_id, DEFAULT_REGION)
-        login_to_ecr_registry(worker_connection, account_id, DEFAULT_REGION)
-        print(f"Pulling image: {image_uri}")
-        head_connection.run(f"docker pull {image_uri}", hide="out")
-        worker_connection.run(f"docker pull {image_uri}", hide="out")
-
-        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
-
-        setup_env(head_connection)
-        setup_env(worker_connection)
+        for conn in [head_connection, worker_connection]:
+            setup_docker_image(conn, image_uri)
+            setup_env(conn)
 
         head_connection.put(
             "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
@@ -174,34 +138,28 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             f"./head_node_setup.sh {image_uri} {hf_token} {head_ip}", asynchronous=True
         )
 
-        result = head_connection.run(
-            f'docker ps --format "{{.Names}}" --filter "ancestor={image_uri}" | head -n 1'
-        )
-        container_name = result.stdout.strip()
+        container_name = head_connection.run(
+            'docker ps --format "{{.Names}}"', hide=True
+        ).stdout.strip()
         print(f"Container name: {container_name}")
 
-        print("Starting worker node...")
         worker_connection.run(
             f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
         )
-        serve_command = f"vllm serve {model_name} --tensor-parallel-size 8 --pipeline-parallel-size 2 --enforce-eager --max-num-batched-tokens 16384 --distributed-executor-backend ray"
-        run_cmd_on_container(
-            container_name,
-            head_connection,
-            serve_command,
-            hide=True,
-            timeout=300,
-            asynchronous=True,
+
+        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+        head_connection.run(
+            f"docker exec -it {container_name} /bin/bash -c '{serve_command}'", asynchronous=True
         )
 
-        print("Waiting for model to be ready...")
-        if not wait_for_container_ready(head_connection, timeout=1000):
+        print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
+        if not wait_for_container_ready(head_connection, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
         print("Model serving started successfully")
 
         # Run benchmark
         print("Running benchmark...")
-        benchmark_cmd = create_benchmark_command(model_name)
+        benchmark_cmd = create_benchmark_command(MODEL_NAME)
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
@@ -217,39 +175,26 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 def test_vllm_benchmark_on_single_node(connection, image_uri):
     """
     Run VLLM benchmark test on a single node EC2 instance using the shell script
-
     Args:
         connection: Fabric connection object to EC2 instance
         image_uri: ECR image URI for VLLM container
-
     Returns:
         ec2_res: Result object from test execution
     """
     try:
-        # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
         model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
-        account_id = get_account_id_from_image_uri(image_uri)
-        login_to_ecr_registry(connection, account_id, DEFAULT_REGION)
-
-        print(f"Pulling image: {image_uri}")
-        connection.run(f"docker pull {image_uri}", hide="out")
-
-        # Copy script to instance
+        setup_docker_image(connection, image_uri)
         connection.put(
             "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
             "/home/ec2-user/run_vllm_benchmark_single_node.sh",
         )
-
-        # Make script executable and run it
         commands = [
             "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
             f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {model_name}",
         ]
-
-        # Execute commands synchronously
         result = connection.run(
             "; ".join(commands),
             hide=False,
@@ -257,7 +202,6 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         )
 
         return result
-
     except Exception as e:
         print(f"Test execution failed: {str(e)}")
         raise
@@ -346,9 +290,7 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
     """
     print("\n=== Starting Multi-Node Test ===")
     try:
-        # Verify GPU setup on both nodes
         verification_tasks = [(head_conn, "head"), (worker_conn, "worker")]
-
         for conn, node_type in verification_tasks:
             if not verify_gpu_setup(conn):
                 raise Exception(f"GPU setup verification failed for {node_type} node")
@@ -384,8 +326,6 @@ def test_vllm_on_ec2(resources, image_uri):
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
-
-        # Create connections
         for instance_id, key_filename in resources["instances_info"]:
             try:
                 instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
@@ -402,7 +342,6 @@ def test_vllm_on_ec2(resources, image_uri):
                     connect_kwargs={"key_filename": key_filename},
                 )
 
-                # Test connection
                 connection.run('echo "Connection test"', hide=True)
                 ec2_connections[instance_id] = connection
                 print(f"Successfully connected to instance {instance_id}")
@@ -444,23 +383,21 @@ def test_vllm_on_ec2(resources, image_uri):
             test_results["efa"] = True
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
+
             print("EFA tests completed successfully")
 
-            time.sleep(4000)
-
-            # instance_id = list(ec2_connections.keys())[0]
-            # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-            # test_results["single_node"] = run_single_node_test(ec2_connections[instance_id], image_uri)
-
-            # Run multi-node test if we have at least 2 instances
+            instance_id = list(ec2_connections.keys())[0]
+            print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+            test_results["single_node"] = run_single_node_test(
+                ec2_connections[instance_id], image_uri
+            )
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
         else:
             print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
-        # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
-
+        print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
         if not any(test_results.values()):
