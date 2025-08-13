@@ -41,20 +41,6 @@ def setup_env(connection):
     connection.run(setup_command)
 
 
-def create_benchmark_command() -> str:
-    """Create command for running benchmark"""
-    return f"""
-    source vllm_env/bin/activate &&
-    python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
-    --backend vllm \
-    --model {MODEL_NAME} \
-    --endpoint /v1/chat/completions \
-    --dataset-name sharegpt \
-    --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
-    --num-prompts 1000
-    """
-
-
 def get_secret_hf_token():
     secret_name = "test/hf_token"
     region_name = "us-west-2"
@@ -116,12 +102,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
         )
 
-        head_connection.run(f"./serve.sh {container_name} {MODEL_NAME}", asynchronous=True)
-
         # Run benchmark
         print("Running benchmark...")
-        benchmark_cmd = create_benchmark_command()
-        benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
+        benchmark_result = head_connection.run(f"./serve.sh {container_name} {MODEL_NAME}")
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
         return benchmark_result

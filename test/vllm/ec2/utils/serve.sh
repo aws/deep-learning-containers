@@ -18,3 +18,13 @@ while ! curl -s "http://localhost:8000/v1/completions" \
 done
 
 echo "Model is ready"
+
+source vllm_env/bin/activate 
+
+python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
+    --backend vllm \
+    --model $MODEL_NAME \
+    --endpoint /v1/chat/completions \
+    --dataset-name sharegpt \
+    --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
+    --num-prompts 1000
