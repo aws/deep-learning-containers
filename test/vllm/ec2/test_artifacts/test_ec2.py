@@ -44,6 +44,7 @@ def setup_env(connection):
 def create_benchmark_command() -> str:
     """Create command for running benchmark"""
     return f"""
+    source vllm_env/bin/activate &&
     python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
     --backend vllm \
     --model {MODEL_NAME} \
@@ -69,36 +70,6 @@ def get_secret_hf_token():
     return response
 
 
-def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
-    """
-    Wait for container and model to be ready by checking logs and endpoint
-    Returns True if container and model are ready, False if timeout
-    """
-    start_time = time.time()
-    model_ready = False
-
-    while time.time() - start_time < timeout:
-        if not model_ready:
-            try:
-                curl_cmd = """
-                curl -s http://localhost:8000/v1/completions \
-                -H "Content-Type: application/json" \
-                -d '{
-                    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-                    "prompt": "Hello",
-                    "max_tokens": 10
-                }'
-                """
-                result = connection.run(curl_cmd, hide=False)
-                if result.ok:
-                    print("Model endpoint is responding")
-                    model_ready = True
-                    return True
-            except Exception:
-                pass
-    return False
-
-
 def setup_docker_image(conn, image_uri):
     account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(conn, account_id, DEFAULT_REGION)
@@ -121,11 +92,13 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         head_connection.put(
             "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
         )
+        head_connection.put("vllm/ec2/utils/serve.sh", "/home/ec2-user/serve.sh")
         worker_connection.put(
             "vllm/ec2/utils/worker_node_setup.sh", "/home/ec2-user/worker_node_setup.sh"
         )
 
         head_connection.run("chmod +x head_node_setup.sh")
+        head_connection.run("chmod +x serve.sh")
         worker_connection.run("chmod +x worker_node_setup.sh")
 
         head_ip = head_connection.run("hostname -i").stdout.strip()
@@ -143,20 +116,11 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
         )
 
-        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-        head_connection.run(
-            f"docker exec -it {container_name} /bin/bash -c '{serve_command}'", asynchronous=True
-        )
-
-        print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
-        if not wait_for_container_ready(head_connection, timeout=2000):
-            raise Exception("Container failed to become ready within timeout period")
-        print("Model serving started successfully")
+        head_connection.run(f"./serve.sh {container_name} {MODEL_NAME}", asynchronous=True)
 
         # Run benchmark
         print("Running benchmark...")
         benchmark_cmd = create_benchmark_command()
-        head_connection.run("source vllm_env/bin/activate")
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
@@ -379,13 +343,13 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+
             instance_id = list(ec2_connections.keys())[0]
             print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
             test_results["single_node"] = run_single_node_test(
                 ec2_connections[instance_id], image_uri
             )
-
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
         else:
             print("\nSkipping multi-node test: insufficient instances")
