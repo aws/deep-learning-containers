@@ -8,12 +8,12 @@ MODEL_NAME=$3
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
 tmux new-session -d -s single_node docker run --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
-    -e "HUGGING_FACE_HUB_TOKEN=${HF_TOKEN}" \
+    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "NCCL_DEBUG=TRACE" \
     -p 8001:8001 \
     --ipc=host \
-    ${DLC_IMAGE} \
-    --model ${MODEL_NAME} \
+    $DLC_IMAGE \
+    --model $MODEL_NAME \
     --tensor-parallel-size 8 
 
 sleep 2000
@@ -31,7 +31,7 @@ curl http://localhost:8001/v1/completions \
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
 python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
   --backend vllm \
-  --model ${MODEL_NAME} \
+  --model $MODEL_NAME \
   --endpoint /v1/completions \
   --dataset-name sharegpt \
   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
