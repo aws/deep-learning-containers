@@ -34,21 +34,21 @@ def setup_env(connection):
     """Setup Python environment on a node"""
     setup_command = """
     python3 -m venv vllm_env && \
-    source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
     pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
-    pip install "transformers[torch]"
+    pip install "transformers<4.54.0" && \
+    source vllm_env/bin/activate 
     """
     connection.run(setup_command)
 
 
-def create_benchmark_command(model_name: str) -> str:
+def create_benchmark_command() -> str:
     """Create command for running benchmark"""
     return f"""
     source vllm_env/bin/activate &&
     python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
     --backend vllm \
-    --model {model_name} \
+    --model {MODEL_NAME} \
     --endpoint /v1/chat/completions \
     --dataset-name sharegpt \
     --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
@@ -159,7 +159,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         # Run benchmark
         print("Running benchmark...")
-        benchmark_cmd = create_benchmark_command(MODEL_NAME)
+        benchmark_cmd = create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
@@ -182,9 +182,9 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         ec2_res: Result object from test execution
     """
     try:
+        setup_env(connection)
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
-        model_name = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"
 
         setup_docker_image(connection, image_uri)
         connection.put(
@@ -193,7 +193,7 @@ def test_vllm_benchmark_on_single_node(connection, image_uri):
         )
         commands = [
             "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
-            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {model_name}",
+            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {MODEL_NAME}",
         ]
         result = connection.run(
             "; ".join(commands),
@@ -288,23 +288,19 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
         worker_conn: Fabric connection object for worker node
         image_uri: ECR image URI
     """
+
     print("\n=== Starting Multi-Node Test ===")
-    try:
-        verification_tasks = [(head_conn, "head"), (worker_conn, "worker")]
-        for conn, node_type in verification_tasks:
-            if not verify_gpu_setup(conn):
-                raise Exception(f"GPU setup verification failed for {node_type} node")
+    verification_tasks = [(head_conn, "head"), (worker_conn, "worker")]
+    for conn, node_type in verification_tasks:
+        if not verify_gpu_setup(conn):
+            raise Exception(f"GPU setup verification failed for {node_type} node")
 
-        result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
-        print(result.stdout)
-        if result.ok:
-            print("Multi-node test completed successfully")
-            return True
-        return False
-
-    finally:
-        for conn in [head_conn, worker_conn]:
-            cleanup_containers(conn)
+    result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
+    print(result.stdout)
+    if result.ok:
+        print("Multi-node test completed successfully")
+        return True
+    return False
 
 
 def test_vllm_on_ec2(resources, image_uri):
@@ -386,12 +382,13 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+
             instance_id = list(ec2_connections.keys())[0]
             print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
             test_results["single_node"] = run_single_node_test(
                 ec2_connections[instance_id], image_uri
             )
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
         else:
             print("\nSkipping multi-node test: insufficient instances")
 
