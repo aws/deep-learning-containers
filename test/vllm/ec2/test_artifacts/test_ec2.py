@@ -94,13 +94,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         print("Starting head node...")
         head_connection.run(
-            f"./head_node_setup.sh {image_uri} {hf_token} {head_ip} {container_name}",
-            asynchronous=True,
+            f"./head_node_setup.sh {image_uri} {hf_token} {head_ip} {container_name}"
         )
 
-        worker_connection.run(
-            f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}", asynchronous=True
-        )
+        worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}")
 
         # Run benchmark
         print("Running benchmark...")
