@@ -140,7 +140,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}")
 
         serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-        head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{serve_command}'")
+        commands = ["ray status", "fi_info -p efa", serve_command]
+
+        for command in commands:
+            head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, timeout=2000):
