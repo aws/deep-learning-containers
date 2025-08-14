@@ -19,7 +19,6 @@ FROM nvidia/cuda:12.9.1-base-ubuntu22.04 AS base_image
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
-# ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
 RUN apt-get update \
  && apt-get upgrade -y \
@@ -61,8 +60,6 @@ ARG NCCL_VERSION
 ARG EFA_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
-# ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
-# ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 ENV PATH="${CUDA_HOME}/bin:${PATH}"
 ENV EFA_PATH="/opt/amazon/efa"
 ENV OPEN_MPI_PATH="/opt/amazon/openmpi"
@@ -131,20 +128,6 @@ RUN apt-get update \
     libffi-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
- # patch nvjpeg to fix CVE
-RUN mkdir -p /tmp/nvjpeg \
-&& cd /tmp/nvjpeg \
-&& wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-&& tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-&& rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
-&& rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
-&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
-&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
-&& rm -rf /tmp/nvjpeg \
-# patch cuobjdump and nvdisasm
-&& rm -rf /usr/local/cuda/bin/cuobjdump* \
-&& rm -rf /usr/local/cuda/bin/nvdisasm* 
 
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify       Skip EFA device verification and test

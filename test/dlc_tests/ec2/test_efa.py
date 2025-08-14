@@ -147,50 +147,50 @@ def test_efa_tensorflow(
     )
 
 
-# @pytest.mark.skip(
-#     "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
-# )
-# @pytest.mark.processor("gpu")
-# @pytest.mark.model("N/A")
-# @pytest.mark.integration("efa")
-# @pytest.mark.usefixtures("sagemaker_only")
-# @pytest.mark.usefixtures("pt201_and_above_only")
-# @pytest.mark.allow_p4de_use
-# @pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
-# @pytest.mark.team("conda")
-# @pytest.mark.skipif(
-#     is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
-#     reason="Skip EFA test in PR context unless explicitly enabled",
-# )
-# def test_pytorch_efa_healthcheck(
-#     pytorch_training,
-#     efa_ec2_instances,
-#     efa_ec2_connections,
-#     ec2_instance_type,
-#     region,
-#     gpu_only,
-# ):
-#     """
-#     Run EFA Health Check tests on DLC.
-#     :param pytorch_training: str PyTorch Training DLC image URI
-#     :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
-#     :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
-#     :param ec2_instance_type: str Instance Type being tested
-#     :param region: str Region in which EFA-enabled instances are launched
-#     :param gpu_only: pytest fixture to limit test only to GPU DLCs
-#     """
-#     _setup_multinode_efa_instances(
-#         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-#     )
-#     master_connection = efa_ec2_connections[0]
-#     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-#     run_cmd_on_container(
-#         MASTER_CONTAINER_NAME,
-#         master_connection,
-#         f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
-#         hide=False,
-#         timeout=DEFAULT_EFA_TIMEOUT,
-#     )
+@pytest.mark.skip(
+    "EFA healthcheck binaries are not maintained by DLC, we will skip these tests moving foward unless binaries are added otherwise."
+)
+@pytest.mark.processor("gpu")
+@pytest.mark.model("N/A")
+@pytest.mark.integration("efa")
+@pytest.mark.usefixtures("sagemaker_only")
+@pytest.mark.usefixtures("pt201_and_above_only")
+@pytest.mark.allow_p4de_use
+@pytest.mark.parametrize("ec2_instance_type,region", EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION)
+@pytest.mark.team("conda")
+@pytest.mark.skipif(
+    is_pr_context() and not are_heavy_instance_ec2_tests_enabled(),
+    reason="Skip EFA test in PR context unless explicitly enabled",
+)
+def test_pytorch_efa_healthcheck(
+    pytorch_training,
+    efa_ec2_instances,
+    efa_ec2_connections,
+    ec2_instance_type,
+    region,
+    gpu_only,
+):
+    """
+    Run EFA Health Check tests on DLC.
+    :param pytorch_training: str PyTorch Training DLC image URI
+    :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
+    :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
+    :param ec2_instance_type: str Instance Type being tested
+    :param region: str Region in which EFA-enabled instances are launched
+    :param gpu_only: pytest fixture to limit test only to GPU DLCs
+    """
+    _setup_multinode_efa_instances(
+        pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
+    )
+    master_connection = efa_ec2_connections[0]
+    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
+    run_cmd_on_container(
+        MASTER_CONTAINER_NAME,
+        master_connection,
+        f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
+        hide=False,
+        timeout=DEFAULT_EFA_TIMEOUT,
+    )
 
 
 def _setup_multinode_efa_instances(
@@ -380,31 +380,10 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
         for worker_ip in worker_instance_private_ips:
             hosts_string += f"\n{worker_ip} slots={slots} "
 
-        # TODO: remove logging
-        LOGGER.info(f"Attempting to create hosts file with content:\n{hosts_string}")
-
-        LOGGER.info(f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""")
         run_cmd_on_container(
             MASTER_CONTAINER_NAME,
             master_connection,
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
-        )
-
-        # TODO: remove logging
-        LOGGER.info(f"Checking if hosts file exists:")
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            master_connection,
-            f"ls -l {HOSTS_FILE_LOCATION}",
-            hide=False
-        )
-
-        LOGGER.info(f"Checking hosts file contents:")
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            master_connection,
-            f"cat {HOSTS_FILE_LOCATION}",
-            hide=False
         )
 
 

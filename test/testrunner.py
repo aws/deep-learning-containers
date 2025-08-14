@@ -444,8 +444,7 @@ def main():
         pytest_cmd = [
             "-s",
             "-rA",
-            # test_path,
-            os.path.join(test_path, "test_efa.py::test_pytorch_efa"),
+            test_path,
             f"--junitxml={report}",
             "-n=auto",
         ]
