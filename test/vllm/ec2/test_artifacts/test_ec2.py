@@ -117,7 +117,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         for conn in [head_connection, worker_connection]:
             setup_docker_image(conn, image_uri)
-            setup_env(conn)
 
         head_connection.put(
             "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
@@ -133,7 +132,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
         container_name = "ray_head-" + TEST_ID
-
         print("Starting head node...")
         head_connection.run(
             f"./head_node_setup.sh {image_uri} {hf_token} {head_ip} {container_name}"
@@ -150,6 +148,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Model serving started successfully")
 
         # Run benchmark
+        setup_env(head_connection)
         print("Running benchmark...")
         benchmark_cmd = "source vllm_env/bin/activate" + create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
@@ -369,6 +368,7 @@ def test_vllm_on_ec2(resources, image_uri):
             )
 
             test_results["efa"] = True
+
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
 

@@ -219,7 +219,7 @@ def efa_ec2_instances(
                     "DeviceName": volume_name,
                     "Ebs": {
                         "DeleteOnTermination": True,
-                        "VolumeSize": 500,
+                        "VolumeSize": 600,
                         "VolumeType": "gp3",
                         "Iops": 3000,
                         "Throughput": 125,
@@ -592,7 +592,7 @@ def setup():
         resources["fsx_config"] = fsx.create_fsx_filesystem(
             subnet_ids[0],
             [resources["sg_fsx"]],
-            1200,
+            1500,
             "SCRATCH_2",
             {"Name": f"fsx-lustre-vllm-ec2-test-{instance_ids[0]}-{TEST_ID}"},
         )
