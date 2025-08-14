@@ -10,23 +10,26 @@ tmux new-session -d -s single_node "docker run --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "NCCL_DEBUG=TRACE" \
-    -p 8001:8001 \
+    -p 8000:8000 \
     --ipc=host \
     $DLC_IMAGE \
     --model $MODEL_NAME \
     --tensor-parallel-size 8"
 
-sleep 2000
+sleep 1500
 
-# Looks for "Starting vLLM API server on" from the log which indicate that vLLM server has started. 
-# Then run some quick inferences.
-curl http://localhost:8001/v1/completions \
+curl http://localhost:8000/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-    "prompt": "Hello, how are you?",
-    "max_tokens": 100
+    "messages": [{"role": "user", "content": "Hello, how are you?"}]
   }'
+
+python3 -m venv vllm_env
+source vllm_env/bin/activate
+pip install --upgrade pip setuptools wheel 
+pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0
+pip install "transformers<4.54.0"
 
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
 python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
