@@ -6,7 +6,7 @@ MODEL_NAME=$3
 
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
-tmux new-session -d -s single_node docker run --runtime nvidia --gpus all \
+tmux new-session -d -s single_node "docker run --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "NCCL_DEBUG=TRACE" \
@@ -14,7 +14,7 @@ tmux new-session -d -s single_node docker run --runtime nvidia --gpus all \
     --ipc=host \
     $DLC_IMAGE \
     --model $MODEL_NAME \
-    --tensor-parallel-size 8 
+    --tensor-parallel-size 8"
 
 sleep 2000
 
