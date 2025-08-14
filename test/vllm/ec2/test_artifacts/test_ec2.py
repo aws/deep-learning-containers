@@ -139,13 +139,16 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}")
 
-        time.sleep(2000)
-
         serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-        commands = ["ray status", "fi_info -p efa", serve_command]
+        docker_serve_command = f"docker exec -i {container_name} /bin/bash -c '{serve_command}'"
+        commands = ["ray status", "fi_info -p efa"]
 
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
+
+        head_connection.run(
+            f"tmux new-session -d -s serve '{docker_serve_command}'", asynchronous=True
+        )
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, timeout=2000):
@@ -315,6 +318,18 @@ def test_vllm_on_ec2(resources, image_uri):
     ec2_connections = {}
     test_results = {"efa": False, "single_node": False, "multi_node": False}
 
+    resources["instances_info"] = {
+        [
+            (
+                "i-087a9e2d5a0f622dd",
+                "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
+            ),
+            (
+                "i-0c7c2816ac2b41c09",
+                "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
+            ),
+        ]
+    }
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
@@ -404,20 +419,20 @@ def test_vllm_on_ec2(resources, image_uri):
 
     finally:
         if ec2_cli and fsx:
-            cleanup_timer = threading.Timer(
-                1000, lambda: print("Cleanup timed out, some resources might need manual cleanup")
-            )
-            cleanup_timer.start()
+            # cleanup_timer = threading.Timer(
+            #     1000, lambda: print("Cleanup timed out, some resources might need manual cleanup")
+            # )
+            # cleanup_timer.start()
 
             try:
-                cleanup_resources(
-                    ec2_cli,
-                    resources,
-                    fsx,
-                )
-                cleanup_timer.cancel()
+                # cleanup_resources(
+                #     ec2_cli,
+                #     resources,
+                #     fsx,
+                # )
+                # cleanup_timer.cancel()
                 print("Resources cleaned up successfully")
             except Exception as e:
                 print(f"Cleanup failed: {str(e)}")
-            finally:
-                cleanup_timer.cancel()
+            # finally:
+            # cleanup_timer.cancel()
