@@ -318,10 +318,17 @@ def test_vllm_on_ec2(resources, image_uri):
     ec2_connections = {}
     test_results = {"efa": False, "single_node": False, "multi_node": False}
 
-    resources["instances_info"] = {
-        "i-087a9e2d5a0f622dd": "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
-        "i-0c7c2816ac2b41c09": "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
-    }
+    resources["instances_info"] = [
+        (
+            "i-087a9e2d5a0f622dd",
+            "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
+        ),
+        (
+            "i-0c7c2816ac2b41c09",
+            "/codebuild/output/src2184347995/src/github.com/aws/deep-learning-containers/test/dlc_tests/vllm-ec2-test-42c9389c-eec6-4cdf-9fc4-5697000034e2.pem",
+        ),
+    ]
+
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
