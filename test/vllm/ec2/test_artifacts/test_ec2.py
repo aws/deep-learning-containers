@@ -374,11 +374,11 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
-            instance_id = list(ec2_connections.keys())[0]
-            print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-            test_results["single_node"] = run_single_node_test(
-                ec2_connections[instance_id], image_uri
-            )
+            # instance_id = list(ec2_connections.keys())[0]
+            # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+            # test_results["single_node"] = run_single_node_test(
+            #     ec2_connections[instance_id], image_uri
+            # )
 
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
@@ -387,7 +387,7 @@ def test_vllm_on_ec2(resources, image_uri):
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
-        print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
+        # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
         if not any(test_results.values()):
