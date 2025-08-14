@@ -18,18 +18,7 @@ tmux new-session -d -s single_node "docker run --runtime nvidia --gpus all \
 
 sleep 1500
 
-curl http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
-    "messages": [{"role": "user", "content": "Hello, how are you?"}]
-  }'
-
-python3 -m venv vllm_env
 source vllm_env/bin/activate
-pip install --upgrade pip setuptools wheel 
-pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0
-pip install "transformers<4.54.0"
 
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
 python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
