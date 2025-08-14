@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK base
-version: &VERSION 12.9.1
-short_version: &SHORT_VERSION "12.9"
+version: &VERSION 12.8.1
+short_version: &SHORT_VERSION "12.8"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -32,19 +32,19 @@ context:
       target: install_efa.sh
 
 images:
-  base_x86_64_gpu_cuda129_ubuntu22:
+  base_x86_64_gpu_cuda128:
     <<: *BASE_REPOSITORY
     context:
       <<: *BASE_CONTEXT
     image_size_baseline: 11000
     device_type: &DEVICE_TYPE gpu
-    cuda_version: &CUDA_VERSION cu129
+    cuda_version: &CUDA_VERSION cu128
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
-    os_version: &OS_VERSION ubuntu22.04
+    os_version: &OS_VERSION ubuntu24.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /, *OS_VERSION, /Dockerfile ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /Dockerfile ]
     target: final
     build: true
     enable_common_stage_build: false
