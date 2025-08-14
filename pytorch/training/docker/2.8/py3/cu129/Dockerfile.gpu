@@ -12,8 +12,8 @@ ARG CUDNN_VERSION=9.10.2.21
 ARG NCCL_VERSION=2.27.3
 ARG EFA_VERSION=1.43.1
 ARG GDRCOPY_VERSION=2.5
-ARG TE_VERSION=2.4
-ARG FLASH_ATTN_VERSION=2.8.2
+ARG TE_VERSION=2.5
+ARG FLASH_ATTN_VERSION=2.8.3
 
 FROM nvidia/cuda:12.9.1-base-ubuntu22.04 AS base_image
 
@@ -255,6 +255,32 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     numpy \
  && pip uninstall -y dataclasses
 
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -296,33 +322,6 @@ ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -374,34 +373,6 @@ ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-RUN pip uninstall -y ninja && pip install ninja
-
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
