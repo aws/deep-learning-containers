@@ -163,15 +163,11 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Running benchmark...")
         benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
-        print(f"Benchmark completed: {benchmark_result.stdout}")
 
         return benchmark_result
 
     except Exception as e:
         raise Exception(f"Multi-node test execution failed: {str(e)}")
-    finally:
-        head_connection.run("tmux kill-server || true", warn=True)
-        worker_connection.run("tmux kill-server || true", warn=True)
 
 
 def verify_gpu_setup(connection):
