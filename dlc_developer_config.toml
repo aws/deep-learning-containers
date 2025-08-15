@@ -119,7 +119,7 @@ use_scheduler = false
 ### TRAINING PR JOBS ###
 
 # Base
-dlc-pr-base="base/buildspec-cu129-ubuntu22.yml"
+dlc-pr-base="base/buildspec-cu128-ubuntu24.yml"
 
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
