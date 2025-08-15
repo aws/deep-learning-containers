@@ -148,9 +148,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
 
         serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
         docker_serve_command = f"docker exec -i {container_name} /bin/bash -c '{serve_command}'"
-        head_connection.run(
-            f"tmux new-session -d -s serve '{docker_serve_command}'", asynchronous=True
-        )
+        head_connection.run(f"tmux new-session -d -s serve '{docker_serve_command}'")
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, timeout=2000):
@@ -158,10 +156,10 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Model serving started successfully")
 
         # Run benchmark
-        setup_env(head_connection)
+        setup_env(worker_connection)
         print("Running benchmark...")
         benchmark_cmd = "source vllm_env/bin/activate" + create_benchmark_command()
-        benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
+        benchmark_result = worker_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
         return benchmark_result
