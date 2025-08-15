@@ -44,6 +44,9 @@ def can_run_gdrcopy(ecr_image):
     ) >= Version("117")
 
 
+@pytest.mark.skip(
+    reason="gdrcopy sanity test in the sagemaker test job is duplicate test to the gdrcopy test in the ec2 test job"
+)
 @pytest.mark.integration("smdataparallel")
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
