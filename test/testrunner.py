@@ -410,7 +410,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type == "eks" and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
@@ -425,13 +425,13 @@ def main():
 
             if framework == "vllm":
                 try:
-                    LOGGER.info(f"Running vLLM EKS tests with image: {all_image_list[0]}")
+                    LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     test()
-                    LOGGER.info("vLLM EKS tests completed successfully")
+                    LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
-                    LOGGER.error(f"vLLM EKS tests failed: {str(e)}")
+                    LOGGER.error(f"vLLM EKS EC2 tests failed: {str(e)}")
                     raise
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
