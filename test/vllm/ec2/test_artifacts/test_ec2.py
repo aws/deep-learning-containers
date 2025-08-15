@@ -70,7 +70,7 @@ def get_secret_hf_token():
     return response
 
 
-def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
+def wait_for_container_ready(connection, container_name, timeout: int = 1000) -> bool:
     """
     Wait for container and model to be ready by checking logs and endpoint
     Returns True if container and model are ready, False if timeout
@@ -81,6 +81,7 @@ def wait_for_container_ready(connection, timeout: int = 1000) -> bool:
     while time.time() - start_time < timeout:
         if not model_ready:
             try:
+                connection.run(f"docker exec {container_name} tail -n 5 vllm.log", hide=False)
                 curl_cmd = """
                 curl -s http://localhost:8000/v1/completions \
                 -H "Content-Type: application/json" \
@@ -142,13 +143,16 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # add timer to let container run
         time.sleep(30)
 
+        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+
         commands = ["ray status", "fi_info -p efa"]
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
 
         serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-        docker_serve_command = f"docker exec -i {container_name} /bin/bash -c '{serve_command}'"
-        head_connection.run(f"tmux new-session -d -s serve '{docker_serve_command}'")
+        head_connection.run(
+            f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
+        )
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, timeout=2000):
