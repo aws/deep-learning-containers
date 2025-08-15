@@ -158,11 +158,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
-        print("Model serving started successfully")
 
-        # Run benchmark
         print("Running benchmark...")
-        benchmark_cmd = "source vllm_env/bin/activate" + create_benchmark_command()
+        benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
         print(f"Benchmark completed: {benchmark_result.stdout}")
 
@@ -385,13 +383,13 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
-            # instance_id = list(ec2_connections.keys())[0]
-            # print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-            # test_results["single_node"] = run_single_node_test(
-            #     ec2_connections[instance_id], image_uri
-            # )
-
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+
+            instance_id = list(ec2_connections.keys())[0]
+            print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
+            test_results["single_node"] = run_single_node_test(
+                ec2_connections[instance_id], image_uri
+            )
 
         else:
             print("\nSkipping multi-node test: insufficient instances")
