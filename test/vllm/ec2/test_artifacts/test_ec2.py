@@ -82,7 +82,6 @@ def wait_for_container_ready(connection, container_name, timeout: int = 1000) ->
     while time.time() - start_time < timeout:
         if not model_ready:
             try:
-                connection.run(f"docker exec {container_name} tail -n 5 vllm.log", hide=False)
                 curl_cmd = """
                 curl -s http://localhost:8000/v1/completions \
                 -H "Content-Type: application/json" \
@@ -95,6 +94,9 @@ def wait_for_container_ready(connection, container_name, timeout: int = 1000) ->
                 result = connection.run(curl_cmd, hide=False)
                 if result.ok:
                     print("Model endpoint is responding")
+                    print("\n=== Complete vLLM Server Log ===")
+                    connection.run(f"docker exec {container_name} cat vllm.log", hide=False)
+                    print("=== End of Log ===\n")
                     model_ready = True
                     return True
             except Exception:
