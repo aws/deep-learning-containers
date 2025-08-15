@@ -174,41 +174,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run("tmux kill-server || true", warn=True)
 
 
-def test_vllm_benchmark_on_single_node(connection, image_uri):
-    """
-    Run VLLM benchmark test on a single node EC2 instance using the shell script
-    Args:
-        connection: Fabric connection object to EC2 instance
-        image_uri: ECR image URI for VLLM container
-    Returns:
-        ec2_res: Result object from test execution
-    """
-    try:
-        setup_env(connection)
-        response = get_secret_hf_token()
-        hf_token = response.get("HF_TOKEN")
-
-        setup_docker_image(connection, image_uri)
-        connection.put(
-            "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
-            "/home/ec2-user/run_vllm_benchmark_single_node.sh",
-        )
-        commands = [
-            "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
-            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {MODEL_NAME}",
-        ]
-        result = connection.run(
-            "; ".join(commands),
-            hide=False,
-            timeout=3600,
-        )
-
-        return result
-    except Exception as e:
-        print(f"Test execution failed: {str(e)}")
-        raise
-
-
 def verify_gpu_setup(connection):
     """
     Verify GPU setup on the instance before running the test
@@ -258,29 +223,6 @@ def cleanup_containers(connection):
         print(f"Cleanup warning: {str(e)}")
 
 
-def run_single_node_test(connection, image_uri):
-    """
-    Run single node VLLM benchmark test
-
-    Args:
-        connection: Fabric connection object
-        image_uri: ECR image URI
-    """
-    try:
-        print("\n=== Starting Single-Node Test ===")
-        if not verify_gpu_setup(connection):
-            raise Exception("GPU setup verification failed")
-
-        result = test_vllm_benchmark_on_single_node(connection, image_uri)
-        if result.ok:
-            print("Single-node test completed successfully")
-            return True
-        return False
-
-    finally:
-        cleanup_containers(connection)
-
-
 def run_multi_node_test(head_conn, worker_conn, image_uri):
     """
     Run multi-node VLLM benchmark test
@@ -298,7 +240,6 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
             raise Exception(f"GPU setup verification failed for {node_type} node")
 
     result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
-    print(result.stdout)
     if result.ok:
         print("Multi-node test completed successfully")
         return True
@@ -386,18 +327,11 @@ def test_vllm_on_ec2(resources, image_uri):
 
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
-            instance_id = list(ec2_connections.keys())[0]
-            print(f"\n=== Running Single-Node Test on instance: {instance_id} ===")
-            test_results["single_node"] = run_single_node_test(
-                ec2_connections[instance_id], image_uri
-            )
-
         else:
             print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
-        print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
         if not any(test_results.values()):
