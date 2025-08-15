@@ -368,19 +368,14 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         hide=True,
     )
 
-    cudnn_paths = [
-        "/usr/include/cudnn_version.h",
-        "/usr/include/x86_64-linux-gnu/cudnn_version.h"
-    ]
-    
+    cudnn_paths = ["/usr/include/cudnn_version.h", "/usr/include/x86_64-linux-gnu/cudnn_version.h"]
+
     for path in cudnn_paths:
         check_cmd = f"[ -f {path} ] && echo 'Found'"
         result = ec2_connection.run(
-            f"docker exec --user root {container_name} bash -c '{check_cmd}'",
-            hide=True,
-            warn=True
+            f"docker exec --user root {container_name} bash -c '{check_cmd}'", hide=True, warn=True
         )
-        if result.ok and result.stdout.strip() == 'Found':
+        if result.ok and result.stdout.strip() == "Found":
             cudnn_path = path
             LOGGER.info(f"Found cuDNN header at: {cudnn_path}")
             break
