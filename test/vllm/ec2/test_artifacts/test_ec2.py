@@ -46,7 +46,7 @@ def create_benchmark_command() -> str:
     """Create command for running benchmark"""
     return f"""
     python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
-    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-7B \
+    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-32B \
     --backend vllm \
     --base-url "http://localhost:8000" \
     --endpoint '/v1/completions' \
@@ -145,8 +145,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         # add timer to let container run
         time.sleep(30)
 
-        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
-
         commands = ["ray status", "fi_info -p efa"]
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
@@ -159,6 +157,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
+
+        time.sleep(100)
 
         print("Running benchmark...")
         benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
@@ -397,7 +397,7 @@ def test_vllm_on_ec2(resources, image_uri):
 
         print("\n=== Test Summary ===")
         print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
-        # print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
+        print(f"Single-node test: {'Passed' if test_results['single_node'] else 'Failed'}")
         print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
 
         if not any(test_results.values()):
