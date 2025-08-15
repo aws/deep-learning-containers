@@ -200,7 +200,7 @@ class DockerImage:
     def docker_build(self, context_path, custom_context=False):
         """
         Uses Docker Buildx for vLLM images, falls back to legacy Docker API for others
-        
+
         :param context_path: str, Path to build context
         :param custom_context: bool, Whether to use custom context from stdin (default: False)
         :return: int, Build status
@@ -215,13 +215,13 @@ class DockerImage:
     def _is_vllm_image(self):
         """
         Determine if current image is a vLLM image
-        
+
         :return: bool, True if this is a vLLM image
         """
         return (
-            self.info.get("framework") == "vllm" or
-            "vllm" in self.repository.lower() or 
-            "vllm" in str(self.info.get("name", "")).lower()
+            self.info.get("framework") == "vllm"
+            or "vllm" in self.repository.lower()
+            or "vllm" in str(self.info.get("name", "")).lower()
         )
 
     def _buildx_build(self, context_path, custom_context=False):
@@ -318,7 +318,7 @@ class DockerImage:
     def _legacy_docker_build(self, context_path, custom_context=False):
         """
         Uses legacy Docker API Client to build the image (for non-vLLM images).
-        
+
         :param context_path: str, Path to build context
         :param custom_context: bool, Whether to use custom context from stdin (default: False)
         :return: int, Build Status
@@ -331,7 +331,7 @@ class DockerImage:
 
         line_counter = 0
         line_interval = 50
-        
+
         try:
             for line in self.client.build(
                 fileobj=fileobj,
@@ -378,7 +378,7 @@ class DockerImage:
 
             self.build_status = constants.SUCCESS
             return self.build_status
-            
+
         except Exception as e:
             response.append(f"Legacy Docker build error: {str(e)}")
             self.build_status = constants.FAIL
