@@ -664,6 +664,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
         )
 
 
+@pytest.mark.skip(reason="Sagemaker efa test is a duplicate of ec2 efa test on p4d instances")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")

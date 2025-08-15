@@ -4,7 +4,7 @@ region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK vllm
 version: &VERSION "0.10.0"
 short_version: &SHORT_VERSION "0.10"
-arch_type: &ARCH_TYPE x86_64
+arch_type: &ARCH_TYPE arm64
 autopatch_build: "False"
 
 repository_info:
@@ -29,7 +29,7 @@ context:
       target: dockerd_entrypoint.sh
 
 images:
-  vllm_x86_64:
+  vllm_arm64:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
@@ -49,5 +49,4 @@ images:
       test_platforms:
         - sanity
         - security
-        - ec2
         - eks
