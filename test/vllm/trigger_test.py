@@ -23,9 +23,9 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
             print(ec2_resources)
             print("Finished gathering resources required for VLLM EC2 Tests")
             test_vllm_on_ec2(ec2_resources, images[0])
-            LOGGER.info("EKS vLLM tests completed successfully")
+            LOGGER.info("ECS vLLM tests completed successfully")
         except Exception as e:
-            LOGGER.error(f"EKS vLLM tests failed: {str(e)}")
+            LOGGER.error(f"ECS vLLM tests failed: {str(e)}")
             raise
     elif platform == "eks":
         LOGGER.info("Running EKS tests")
@@ -46,8 +46,7 @@ def test():
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
     dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
 
-    # ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
-    ipv6_enabled = True
+    ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
 
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
