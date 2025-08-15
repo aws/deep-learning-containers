@@ -1,6 +1,4 @@
 ARG PYTHON=python3
-ARG PYTHON_VERSION=3.12.10
-ARG PYTHON_SHORT_VERSION=3.12
 ARG PYTORCH_VERSION=2.8.0
 ARG TORCHTNT_VERSION=0.2.4
 ARG TORCHAUDIO_VERSION=2.8.0
@@ -43,8 +41,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHDATA_VERSION
 ARG TORCHAUDIO_VERSION
@@ -74,10 +70,9 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    automake \
+    libgl1-mesa-glx \
     build-essential \
     ca-certificates \
-    cmake \
     curl \
     emacs \
     git \
@@ -88,7 +83,6 @@ RUN apt-get update \
     wget \
     openssl \
     python3-dev \
-    autoconf \
     pkg-config \
     check \
     llvm \
@@ -155,8 +149,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     numpy \
  && pip uninstall -y dataclasses
 
-RUN pip uninstall -y ninja && pip install ninja
-
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
@@ -168,16 +160,18 @@ RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.g
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -203,16 +197,6 @@ ARG PYTHON
 ARG GDRCOPY_VERSION
 
 WORKDIR /
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
