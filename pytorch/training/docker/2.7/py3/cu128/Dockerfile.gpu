@@ -8,6 +8,9 @@ ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
 FROM public.ecr.aws/deep-learning-containers/base:12.8.1-gpu-py312-ec2 as common
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 # has EFA PYTHON and CUDA 12.8
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ARG PYTORCH_VERSION
@@ -46,8 +49,12 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
-# COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-# RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 WORKDIR /
 
@@ -77,6 +84,11 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir \
     cryptography \
     pyOpenSSL \
@@ -99,10 +111,9 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
-    # pencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
+    # opencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
     opencv-python==4.11.0.86 \
     mpi4py \
-    jinja2>=3.1.6 \
     tornado>=6.5.1 \
     s3torchconnector \
     fastai==2.8.2 \
@@ -113,6 +124,7 @@ RUN pip install --no-cache-dir \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4 \
     blis \
+    jinja2>=3.1.6 \
  && pip uninstall -y dataclasses
 
 RUN HOME_DIR=/root \
