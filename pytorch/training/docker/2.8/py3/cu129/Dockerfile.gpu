@@ -13,9 +13,9 @@ ARG NCCL_VERSION=2.27.3
 ARG EFA_VERSION=1.43.1
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.5
-ARG FLASH_ATTN_VERSION=2.8.3
+ARG FLASH_ATTN_VERSION=2.8.2
 
-FROM nvidia/cuda:12.9.1-base-ubuntu22.04 AS base_image
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.9.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5165-2025-08-14-17-49-58 AS base_image
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
@@ -46,8 +46,6 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
-ARG PYTHON_VERSION
-ARG PYTHON_SHORT_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHDATA_VERSION
 ARG TORCHAUDIO_VERSION
@@ -56,8 +54,6 @@ ARG TORCHTNT_VERSION
 
 ARG CUDA_VERSION
 ARG CUDNN_VERSION
-ARG NCCL_VERSION
-ARG EFA_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
 ENV PATH="${CUDA_HOME}/bin:${PATH}"
@@ -80,43 +76,11 @@ WORKDIR /
 RUN apt-get update \
  && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-    automake \
-    build-essential \
-    ca-certificates \
-    cmake \
-    curl \
-    emacs \
-    git \
-    jq \
-    libcurl4-openssl-dev \
-    libglib2.0-0 \
     libgl1-mesa-glx \
-    libsm6 \
-    libssl-dev \
-    libxext6 \
-    libxrender-dev \
-    zlib1g-dev \
-    unzip \
-    vim \
-    wget \
     cuda-toolkit-12=${CUDA_VERSION}-1 \
     libcudnn9-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-dev-cuda-12=${CUDNN_VERSION}-1 \
     libcudnn9-headers-cuda-12=${CUDNN_VERSION}-1 \
-    libhwloc-dev \
-    libgomp1 \
-    libibverbs-dev \
-    libnuma1 \
-    libnuma-dev \
-    libtool \
-    openssl \
-    python3-dev \
-    autoconf \
-    pkg-config \
-    check \
-    libsubunit0 \
-    libsubunit-dev \
-    libbz2-dev \
     libreadline-dev \
     libsqlite3-dev \
     llvm \
@@ -124,82 +88,11 @@ RUN apt-get update \
     libncursesw5-dev \
     xz-utils \
     tk-dev \
-    liblzma-dev \
-    libffi-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
-
-# For EFA, below flags are needed to install EFA on docker image
-#  -n, --no-verify       Skip EFA device verification and test
-#  -l, --skip-limit-conf Skip EFA limit configuration
-#  -k, --skip-kmod       Skip EFA kmod installation
-# start from 0.38.0 EFA now bundles the AWS OFI NCCL plugin, 
-# which can now be found in /opt/amazon/ofi-nccl/lib/x86_64-linux-gnu rather than the original /opt/aws-ofi-nccl/.
-RUN mkdir /tmp/efa \
- && cd /tmp/efa \
- && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
- && cd aws-efa-installer \
- && apt-get update \
- && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
- && rm -rf /tmp/efa \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
-
-# Configure Open MPI and configure NCCL parameters
-RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
- && echo '#!/bin/bash' > ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> ${OPEN_MPI_PATH}/bin/mpirun \
- && chmod a+x ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^lo,docker >> /etc/nccl.conf
-
-# Install OpenSSH for MPI to communicate between containers, allow OpenSSH to talk to containers without asking for confirmation
-RUN apt-get update \
- && apt-get install -y --no-install-recommends openssh-client openssh-server \
- && mkdir -p /var/run/sshd \
- && cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
- && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config.new \
- && mv /etc/ssh/ssh_config.new /etc/ssh/ssh_config \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-# Configure OpenSSH so that nodes can communicate with each other
-RUN mkdir -p /var/run/sshd \
- && sed 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' -i /etc/pam.d/sshd
-
-RUN rm -rf /root/.ssh/ \
- && mkdir -p /root/.ssh/ \
- && ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa \
- && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
- && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
-
-# install python
-RUN cd /tmp/ \
-&& wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
-&& tar xzf Python-${PYTHON_VERSION}.tgz \
-&& cd Python-${PYTHON_VERSION} \
-&& ./configure --enable-optimizations --with-lto --with-computed-gotos --with-system-ffi \
-&& make -j "$(nproc)" \
-&& make altinstall \
-&& cd .. \
-&& rm -rf Python-${PYTHON_VERSION} \
-&& rm Python-${PYTHON_VERSION}.tgz \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python \
-&& ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
-# This installation generate a .python_history file in the root directory leads sanity check to fail
-&& rm -f /root/.python_history
 
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
-
-# this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
-RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Install common conda packages
 RUN pip install --no-cache-dir \
@@ -255,6 +148,17 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     numpy \
  && pip uninstall -y dataclasses
 
+RUN pip uninstall -y ninja && pip install ninja
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -289,14 +193,9 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
-ARG PYTHON_SHORT_VERSION
-ARG NCCL_VERSION
 ARG GDRCOPY_VERSION
-ARG TE_VERSION
-ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -307,22 +206,6 @@ RUN cd /tmp \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -367,41 +250,8 @@ LABEL dlc_major_version="1"
 ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 ARG PYTHON
-ARG PYTHON_SHORT_VERSION
-ARG NCCL_VERSION
-ARG GDRCOPY_VERSION
-ARG TE_VERSION
-ARG FLASH_ATTN_VERSION
 
 WORKDIR /
-
-# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# The test binaries requires cuda driver library which could be found in conda
-# So update the linker path to point to it to avoid -Lcuda not found
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
- && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
- && CUDA=${CUDA_HOME} make install \
- && rm -rf /tmp/gdrcopy
-
-# Install NCCL
-RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
- && cd nccl \
- && make -j64 src.build BUILDDIR=/usr/local \
- && rm -rf /tmp/nccl
-
-RUN pip uninstall -y ninja && pip install ninja
-
-# Install flash attn and NVIDIA transformer engine.
-# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
