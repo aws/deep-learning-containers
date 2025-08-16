@@ -40,10 +40,10 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
 <summary>How to use PR description</summary>
 Use the code block below to uncomment commands and run the PR CodeBuild jobs. There are two commands available:
 
-- `# /buildspec \<buildspec_path>`
+- `# /buildspec <buildspec_path>`
   - e.g.: `# /buildspec pytorch/training/buildspec.yml`
   - If this line is commented out, dlc_developer_config.toml will be used. 
-- `# /tests \<test_list>`
+- `# /tests <test_list>`
   - e.g.: `# /tests sanity security ec2`
   - If this line is commented out, it will run the default set of tests (same as the defaults in dlc_developer_config.toml): `sanity, security, ec2, ecs, eks, sagemaker, sagemaker-local`.
 
