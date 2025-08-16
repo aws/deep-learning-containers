@@ -38,12 +38,20 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
 
 <details>
 <summary>How to use PR description</summary>
-In the code block below, uncomment the buildspec line to run the image build, and optionally the tests line to run specific tests other than the default set which will always run if the build succeeded. The default set is (sanity, security, ec2, ecs, eks, sagemaker, sagemaker-local), which are the same ones turned on by default in dlc_developer_config.toml. Replace the arguments with your desired buildspec file path and specific tests. 
+Use the code block below to uncomment commands and run the PR CodeBuild jobs. There are two commands available:
+
+- /buildspec \<buildspec_path>
+  - e.g.: /buildspec pytorch/training/buildspec.yml
+  - If this line is commented out, dlc_developer_config.toml will be used. 
+- /tests \<test_list>
+  - e.g.: /tests sanity security ec2
+  - If this line is commented out, it will run the default set of tests (same as the defaults in dlc_developer_config.toml): sanity, security, ec2, ecs, eks, sagemaker, sagemaker-local.
+
 </details>
 
 ```
-# /buildspec pytorch/inference/buildspec.yml
-# /tests sanity security ec2
+# /buildspec <buildspec_path>
+# /tests <test_list> 
 ```
 
 ### Formatting
