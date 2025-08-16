@@ -57,6 +57,13 @@ def run_test_job(commit, codebuild_project, images_str=""):
     if config.is_deep_canary_mode_enabled():
         env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
 
+    # Get specified tests from PR description if any
+    specified_tests = os.getenv("SPECIFIED_TESTS")
+    if specified_tests:
+        env_overrides.append(
+            {"name": "SPECIFIED_TESTS", "value": specified_tests, "type": "PLAINTEXT"}
+        )
+
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
     env_overrides.extend(
@@ -248,17 +255,29 @@ def main():
         # Deep Canaries, as detailed in the docstring for run_deep_canary_pr_testbuilds().
         return
 
-    # load the images for all test_types to pass on to code build jobs
+    # Load the test types to images mapping
     with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
+    specified_tests_env = os.getenv("SPECIFIED_TESTS")
+    if specified_tests_env:
+        specified_tests = specified_tests_env.split()
+        LOGGER.info(f"Running only specified tests from PR description: {specified_tests}")
+    else:
+        specified_tests = None
+
     for test_type, images in test_images.items():
-        # only run the code build test jobs when the images are present
+        # Skip any test_type not explicitly requested
+        if specified_tests and test_type not in specified_tests:
+            LOGGER.info(f"Skipping {test_type} test because it wasn’t in SPECIFIED_TESTS")
+            continue
+
         LOGGER.debug(f"test_type : {test_type}")
         LOGGER.debug(f"images: {images}")
+        # Only run the CodeBuild test jobs when images are present
         if images:
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
@@ -275,11 +294,12 @@ def main():
             ):
                 run_test_job(commit, pr_test_job, images_str)
 
-            if test_type == "autopr" and config.is_autopatch_build_enabled(
-                buildspec_path=config.get_buildspec_override()
-                or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
-            ):
-                run_test_job(commit, f"dlc-pr-{test_type}", images_str)
+            # autopr is disabled
+            # if test_type == "autopr" and config.is_autopatch_build_enabled(
+            #     buildspec_path=config.get_buildspec_override()
+            #     or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
+            # ):
+            #     run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
             if test_type == "sagemaker" and config.is_sm_local_test_enabled():

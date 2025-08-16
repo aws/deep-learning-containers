@@ -441,6 +441,11 @@ def main():
             else:
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
+        # Get specified tests if any
+        specified_tests = os.getenv("SPECIFIED_TESTS")
+        if specified_tests:
+            specified_tests = specified_tests.split()
+
         # Execute dlc_tests pytest command
         pytest_cmd = [
             "-s",
@@ -449,6 +454,9 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
+        if specified_tests:
+            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
+            pytest_cmd.extend(["-k", f"({test_expr})"])
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":

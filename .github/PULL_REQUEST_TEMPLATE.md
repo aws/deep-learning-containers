@@ -7,13 +7,13 @@
 
 ### Description
 
-### Tests run
-
-**NOTE: By default, docker builds are disabled. In order to build your container, please update dlc_developer_config.toml and specify the framework to build in "build_frameworks"**
-- [ ] I have run builds/tests on commit <INSERT COMMIT ID> for my changes.
+### Tests Run
+By default, docker image builds and tests are disabled. Two ways to run builds and tests:
+1. Using dlc_developer_config.toml
+2. Using this PR description (currently only supported for PyTorch, TensorFlow, vllm, and base images)
 
 <details>
-<summary>Confused on how to run tests? Try using the helper utility...</summary>
+<summary>How to use the helper utility for updating dlc_developer_config.toml</summary>
 
 Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
   
@@ -28,50 +28,34 @@ Assuming your remote is called `origin` (you can find out more with `git remote 
 - Restore TOML file when ready to merge
 
 `python src/prepare_dlc_dev_environment.py -rcp origin`
-</details>
 
-**NOTE: If you are creating a PR for a new framework version, please ensure success of the standard, rc, and efa sagemaker remote tests by updating the dlc_developer_config.toml file:**
-<details>
-<summary>Expand</summary>
-
+**NOTE: If you are creating a PR for a new framework version, please ensure success of the local, standard, rc, and efa sagemaker tests by updating the dlc_developer_config.toml file:**
 - [ ] `sagemaker_remote_tests = true`
 - [ ] `sagemaker_efa_tests = true`
 - [ ] `sagemaker_rc_tests = true`
-
-**Additionally, please run the sagemaker local tests in at least one revision:**
 - [ ] `sagemaker_local_tests = true`
+</details>
+
+<details>
+<summary>How to use PR description</summary>
+Use the code block below to uncomment commands and run the PR CodeBuild jobs. There are two commands available:
+
+- `# /buildspec <buildspec_path>`
+  - e.g.: `# /buildspec pytorch/training/buildspec.yml`
+  - If this line is commented out, dlc_developer_config.toml will be used. 
+- `# /tests <test_list>`
+  - e.g.: `# /tests sanity security ec2`
+  - If this line is commented out, it will run the default set of tests (same as the defaults in dlc_developer_config.toml): `sanity, security, ec2, ecs, eks, sagemaker, sagemaker-local`.
 
 </details>
+
+```
+# /buildspec <buildspec_path>
+# /tests <test_list> 
+```
 
 ### Formatting
 - [ ] I have run `black -l 100` on my code (formatting tool: https://black.readthedocs.io/en/stable/getting_started.html)
-
-### DLC image/dockerfile
-
-#### Builds to Execute
-<details>
-<summary>Expand</summary>
-
-Fill out the template and click the checkbox of the builds you'd like to execute
-
-*Note: Replace with <X.Y> with the major.minor framework version (i.e. 2.2) you would like to start.*
-
-- [ ] build_pytorch_training_<X.Y>_sm
-- [ ] build_pytorch_training_<X.Y>_ec2
-
-- [ ] build_pytorch_inference_<X.Y>_sm
-- [ ] build_pytorch_inference_<X.Y>_ec2
-- [ ] build_pytorch_inference_<X.Y>_graviton
-
-- [ ] build_tensorflow_training_<X.Y>_sm
-- [ ] build_tensorflow_training_<X.Y>_ec2
-
-- [ ] build_tensorflow_inference_<X.Y>_sm
-- [ ] build_tensorflow_inference_<X.Y>_ec2
-- [ ] build_tensorflow_inference_<X.Y>_graviton
-</details>
-
-### Additional context
 
 ### PR Checklist 
 <details>
@@ -84,14 +68,6 @@ Fill out the template and click the checkbox of the builds you'd like to execute
 - [ ] (If applicable) I've documented below the tests I've run on the DLC image
 - [ ] (If applicable) I've reviewed the licenses of updated and new binaries and their dependencies to make sure all licenses are on the Apache Software Foundation Third Party License Policy Category A or Category B license list.  See [https://www.apache.org/legal/resolved.html](https://www.apache.org/legal/resolved.html).
 - [ ] (If applicable) I've scanned the updated and new binaries to make sure they do not have vulnerabilities associated with them.
-
-#### NEURON/GRAVITON Testing Checklist
-* When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `neuron_mode = true` or `graviton_mode = true`
-
-#### Benchmark Testing Checklist
-* When creating a PR:
-- [ ] I've modified `dlc_developer_config.toml` in my PR branch by setting `ec2_benchmark_tests = true` or `sagemaker_benchmark_tests = true`
 </details>
 
 ### Pytest Marker Checklist
