@@ -368,7 +368,7 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         hide=True,
     )
 
-    cudnn_paths = ["/usr/include/cudnn_version.h", "/usr/include/x86_64-linux-gnu/cudnn_version.h"]
+    cudnn_paths = ["/usr/include/cudnn_version.h", "/usr/local/cuda/include/cudnn_version.h"]
 
     for path in cudnn_paths:
         check_cmd = f"[ -f {path} ] && echo 'Found'"
