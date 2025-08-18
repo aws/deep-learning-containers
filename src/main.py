@@ -40,11 +40,15 @@ def main():
     # this build.
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
 
-    # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
-    # Purposefully not including this in developer config to make this difficult to enable
-    # TODO: Remove when we remove these jobs completely
-    build_name = get_codebuild_project_name()
-    if build_context == "PR" and build_name == "dlc-pr-tensorflow-1":
+    # Only bypass TOML checks if buildspec comes from PR description
+    if os.getenv("FRAMEWORK_BUILDSPEC_FILE") and os.getenv("FROM_PR_DESCRIPTION") == "true":
+        utils.build_setup(
+            args.framework,
+            device_types=device_types,
+            image_types=image_types,
+            py_versions=py_versions,
+        )
+        image_builder(args.buildspec, image_types, device_types)
         return
 
     # A general build will work if build job and build mode are in non-EI, non-NEURON
