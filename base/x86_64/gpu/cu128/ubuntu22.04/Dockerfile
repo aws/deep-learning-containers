@@ -7,8 +7,6 @@ ARG EFA_VERSION="1.40.0"
 ARG OS_VERSION="ubuntu22.04"
 FROM nvidia/cuda:12.8.0-base-${OS_VERSION} AS base-builder
 
-ARG OS_VERSION
-
 RUN mv /usr/local/cuda/compat /usr/local \
     && apt-get update \
     && apt-get -y upgrade --only-upgrade systemd \
@@ -63,6 +61,7 @@ RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 FROM base-builder AS cuda-builder
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
+ARG OS_VERSION
 COPY install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "${OS_VERSION}" && rm install_cuda.sh
 
