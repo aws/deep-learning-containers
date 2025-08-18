@@ -47,7 +47,7 @@ function install_nvjpeg_for_cuda_below_129 {
 }
 
 
-function install_cuda128_stack {
+function install_cuda128_stack_ul24 {
     CUDNN_VERSION="9.8.0.87"
     NCCL_VERSION="v2.26.2-1"
     CUDA_HOME="/usr/local/cuda"
@@ -87,7 +87,47 @@ function install_cuda128_stack {
     ldconfig
 }
 
-function install_cuda129_stack {
+function install_cuda128_stack_ul22 {
+    CUDNN_VERSION="9.7.1.26"
+    NCCL_VERSION="v2.26.2-1"
+    CUDA_HOME="/usr/local/cuda"
+    
+    # move cuda-compt and remove existing cuda dir from nvidia/cuda:**.*.*-base-*
+    rm -rf /usr/local/cuda-*
+    rm -rf /usr/local/cuda
+
+    # install CUDA
+    wget -q https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/cuda_12.8.0_570.86.10_linux.run
+    chmod +x cuda_12.8.0_570.86.10_linux.run
+    ./cuda_12.8.0_570.86.10_linux.run --toolkit --silent
+    rm -f cuda_12.8.0_570.86.10_linux.run
+    ln -s /usr/local/cuda-12.8 /usr/local/cuda
+    # bring back cuda-compat
+    mv /usr/local/compat /usr/local/cuda/compat
+
+    # install cudnn
+    mkdir -p /tmp/cudnn
+    cd /tmp/cudnn
+    wget -q https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz -O cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz
+    tar xf cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive/include/* /usr/local/cuda/include/
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive/lib/* /usr/local/cuda/lib64/
+
+    # install nccl
+    mkdir -p /tmp/nccl
+    cd /tmp/nccl
+    git clone -b $NCCL_VERSION --depth 1 https://github.com/NVIDIA/nccl.git
+    cd nccl 
+    make -j src.build
+    cp -a build/include/* /usr/local/cuda/include/
+    cp -a build/lib/* /usr/local/cuda/lib64/
+
+    install_nvjpeg_for_cuda_below_129
+    prune_cuda
+    ldconfig
+}
+
+function install_cuda129_stack_ul22 {
     CUDNN_VERSION="9.10.2.21"
     NCCL_VERSION="v2.27.3-1"
     CUDA_HOME="/usr/local/cuda"
@@ -130,12 +170,20 @@ function install_cuda129_stack {
 while test $# -gt 0
 do
     case "$1" in
-    12.8) install_cuda128_stack;
-        ;;
-    12.9) install_cuda129_stack;
-        ;;
-    *) echo "bad argument $1"; exit 1
-        ;;
+        12.8)
+            case "$2" in
+                "ubuntu22.04") install_cuda128_stack_ul22 ;;
+                "ubuntu24.04") install_cuda128_stack_ul24 ;;
+                *) echo "bad OS version $2"; exit 1 ;;
+            esac
+            ;;
+        12.9)
+            case "$2" in
+                "ubuntu22.04") install_cuda129_stack_ul22 ;;
+                *) echo "bad OS version $2"; exit 1 ;;
+            esac
+            ;;
+        *) echo "bad CUDA version $1"; exit 1 ;;
     esac
-    shift
+    shift 2  # Skip both arguments at once
 done
