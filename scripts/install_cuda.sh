@@ -97,7 +97,7 @@ function install_cuda128_stack_ul22 {
     rm -rf /usr/local/cuda
 
     # install CUDA
-    wget -q https://developer.download.nvidia.com/compute/cuda/12.8.1/local_installers/cuda_12.8.0_570.86.10_linux.run
+    wget -q https://developer.download.nvidia.com/compute/cuda/12.8.0/local_installers/cuda_12.8.0_570.86.10_linux.run
     chmod +x cuda_12.8.0_570.86.10_linux.run
     ./cuda_12.8.0_570.86.10_linux.run --toolkit --silent
     rm -f cuda_12.8.0_570.86.10_linux.run
