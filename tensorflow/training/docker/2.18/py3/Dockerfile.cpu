@@ -264,13 +264,14 @@ RUN ${PIP} install --no-cache-dir -U \
     "tensorflow-datasets==4.9.7"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    numba==0.61.0 \
+    numba==0.60.0 \
     bokeh \
     imageio \
-    opencv-python \
+    opencv-python==4.8.0.76 \
     plotly \
     seaborn \
-    shap 
+    shap \
+    numpy==1.23.5
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3"
@@ -279,10 +280,10 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.45
    
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-tensorflow-training
+    sagemaker-training==4.8.3
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training
+    RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-tensorflow-training==20.5.0
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-studio-analytics-extension==0.1.4
@@ -293,9 +294,6 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sparkmagic==0.21.0 \
     smclarify 
-
-#pin numpy version because of sagemaker-tensorflow-training dependency
-RUN $PYTHON -m pip install --no-cache-dir numpy==1.26.4
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
