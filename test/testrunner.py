@@ -323,7 +323,7 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
-            "ec2"
+            "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
