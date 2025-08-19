@@ -49,4 +49,5 @@ images:
       test_platforms:
         - sanity
         - security
+        - ec2
         - eks
