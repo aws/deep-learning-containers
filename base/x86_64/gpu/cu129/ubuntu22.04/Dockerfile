@@ -64,7 +64,7 @@ ARG CUDA_MAJOR
 ARG CUDA_MINOR
 ARG OS_VERSION
 COPY install_cuda.sh install_cuda.sh
-RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "${OS_VERSION}}" && rm install_cuda.sh
+RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "${OS_VERSION}" && rm install_cuda.sh
 
 ##############################################################################
 FROM nvidia/cuda:12.9.1-base-${OS_VERSION} AS final 
