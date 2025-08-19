@@ -1,22 +1,18 @@
-# Base CUDA version and Python version
 ARG CUDA_VERSION=12.8.1
 ARG PYTHON_VERSION=3.12
 ARG BUILD_BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
 
-# AWS specific arguments
-ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.1"
 ARG VLLM_VERSION="v0.10.1" 
 
-# Base build image
 FROM ${BUILD_BASE_IMAGE} AS final
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG TARGETPLATFORM=linux/arm64
 ARG VLLM_VERSION
 ARG PYTHON="python3"
+ARG PIP=pip3
 
-# AWS specific labels
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
@@ -48,6 +44,11 @@ RUN apt-get update && apt-get install -y \
     libgl1 \
     libibverbs-dev \
     && rm -rf /var/lib/apt/lists/*
+
+RUN ${PIP} --no-cache-dir install --upgrade \
+   pip \
+   setuptools \
+   wheel
 
 RUN add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update \
