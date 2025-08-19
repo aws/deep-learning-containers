@@ -108,16 +108,8 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 
-RUN python3 -m pip install uv
-
-# Set UV configurations
-ENV UV_HTTP_TIMEOUT=500
-ENV UV_INDEX_STRATEGY="unsafe-best-match"
-ENV UV_LINK_MODE=copy
-
 # Install PyTorch for ARM64
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system \
+RUN ${PIP} install --system \
     --index-url https://download.pytorch.org/whl/nightly/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
     "torch==2.8.0.dev20250318+cu128" \
     "torchvision==0.22.0.dev20250319" \
@@ -129,31 +121,26 @@ RUN git clone https://github.com/vllm-project/vllm.git /vllm && \
 
 WORKDIR /vllm
 
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system -r requirements/cuda.txt \
+RUN ${PIP} install --system -r requirements/cuda.txt \
     --extra-index-url https://download.pytorch.org/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
-# Build and install vLLM
-RUN --mount=type=cache,target=/root/.cache/uv \
-    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" \
+RUN TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" \
     python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
-    && uv pip install --system dist/*.whl
+    && ${PIP} install --system dist/*.whl
 
 # Install FlashInfer from source
 ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
 ARG FLASHINFER_GIT_REF="v0.2.11"
-RUN --mount=type=cache,target=/root/.cache/uv \
-    git clone --depth 1 --recursive --shallow-submodules \
+RUN git clone --depth 1 --recursive --shallow-submodules \
     --branch ${FLASHINFER_GIT_REF} \
     ${FLASHINFER_GIT_REPO} flashinfer \
     && cd flashinfer \
     && TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" python3 -m flashinfer.aot \
-    && TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" uv pip install --system --no-build-isolation --force-reinstall --no-deps . \
+    && TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" ${PIP} install --system --no-build-isolation --force-reinstall --no-deps . \
     && cd .. && rm -rf flashinfer
 
 # Install additional dependencies for API server
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv pip install --system \
+RUN ${PIP} install --system \
     accelerate \
     hf_transfer \
     modelscope \
