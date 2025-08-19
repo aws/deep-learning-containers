@@ -1,4 +1,42 @@
-FROM --platform=linux/arm64 docker.io/vllm/vllm-openai:v0.10.1 as final
+FROM nvidia/cuda:12.8.1-devel-ubuntu22.04 AS builder
+
+# build arguments
+ARG CUDA_VERSION=12.8.1
+ARG PYTHON_VERSION=3.12
+ARG TARGETPLATFORM=linux/arm64
+
+RUN apt-get update && apt-get install -y \
+    git \
+    python${PYTHON_VERSION} \
+    python${PYTHON_VERSION}-dev \
+    python${PYTHON_VERSION}-venv \
+    python3-pip \
+    wget \
+    ninja-build \
+    ccache \
+    && rm -rf /var/lib/apt/lists/*
+RUN pip install --upgrade pip && \
+    pip install uv
+
+# Install PyTorch nightly for ARM64
+RUN uv pip install --system \
+    --index-url https://download.pytorch.org/whl/nightly/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
+    "torch==2.8.0.dev20250318+cu128" \
+    "torchvision==0.22.0.dev20250319" \
+    --pre pytorch_triton==3.3.0+gitab727c40
+
+WORKDIR /workspace
+RUN git clone https://github.com/vllm-project/vllm.git --branch v0.10.1
+WORKDIR /workspace/vllm
+
+ENV TORCH_CUDA_ARCH_LIST="7.5 8.9 9.0 10.0 12.0"
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system -r requirements/cuda.txt \
+    --extra-index-url https://download.pytorch.org/whl/nightly/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') && \
+    python setup.py bdist_wheel --dist-dir=/workspace/dist
+
+FROM nvidia/cuda:12.8.1-devel-ubuntu22.04 as final
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.1"
 LABEL maintainer="Amazon AI"
