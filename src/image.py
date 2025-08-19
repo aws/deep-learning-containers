@@ -23,7 +23,7 @@ import logging
 import subprocess
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 
 class DockerImage:
@@ -344,9 +344,9 @@ class DockerImage:
                 labels=self.labels,
                 target=self.target,
             ):
-                # print the log line during build for every line_interval lines for debugging
+                # print the log line during build for every line_interval lines
                 if line_counter % line_interval == 0:
-                    LOGGER.debug(line)
+                    LOGGER.info(line)
                 line_counter += 1
 
                 if line.get("error") is not None:
