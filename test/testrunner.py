@@ -32,7 +32,7 @@ from test_utils import (
 )
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
-from test.vllm.trigger_test import test
+from test.vllm.trigger_test import test as test_vllm
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -323,6 +323,7 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
+            "ec2"
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
@@ -426,7 +427,7 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    test()
+                    test_vllm()
                     LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
                     return
