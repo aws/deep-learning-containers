@@ -1,21 +1,104 @@
+# Base arguments
 ARG CUDA_VERSION=12.8.1
 ARG PYTHON_VERSION=3.12
+ARG VLLM_VERSION="v0.3.3"
 ARG BUILD_BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
+ARG FINAL_BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
 
-ARG EFA_VERSION="1.43.1"
-ARG VLLM_VERSION="v0.10.1" 
-
-FROM ${BUILD_BASE_IMAGE} AS final
+#################### BASE STAGE ####################
+FROM ${BUILD_BASE_IMAGE} AS base
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG TARGETPLATFORM=linux/arm64
-ARG VLLM_VERSION
-ARG PYTHON="python3"
-ARG PIP=pip3
 
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install basic dependencies
+RUN apt-get update && apt-get install -y \
+    ccache \
+    software-properties-common \
+    git \
+    curl \
+    wget \
+    sudo \
+    vim \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1 \
+    libibverbs-dev \
+    gcc-10 \
+    g++-10
+
+# Set up GCC 10
+RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 110 --slave /usr/bin/g++ g++ /usr/bin/g++-10
+
+# Install Python
+RUN add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update \
+    && apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python${PYTHON_VERSION}-venv \
+    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
+    && update-alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
+    && ln -sf /usr/bin/python${PYTHON_VERSION}-config /usr/bin/python3-config \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
+    && ln -s /usr/bin/python3 /usr/bin/python
+
+RUN python3 -m pip install \
+            --index-url https://download.pytorch.org/whl/nightly/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
+            --pre \
+            torch \
+            torchvision \
+            pytorch_triton; 
+
+RUN python3 -c "import torch; print(f'PyTorch {torch.__version__}, CUDA available: {torch.cuda.is_available()}')"
+
+
+RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
+
+#################### WHEEL BUILD STAGE ####################
+FROM base AS wheel
+ARG VLLM_VERSION
+
+WORKDIR /workspace
+RUN git clone https://github.com/vllm-project/vllm.git /vllm && \
+    cd /vllm && \
+    git checkout ${VLLM_VERSION}
+
+# Install build dependencies
+WORKDIR /vllm
+COPY requirements/build.txt requirements/build.txt
+RUN python3 -m pip install -r requirements/build.txt
+
+# Build wheel
+ENV TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0"
+RUN python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+
+#################### BUILD STAGE ####################
+FROM base AS build
+ARG VLLM_VERSION
+
+# Copy wheel from wheel stage
+COPY --from=wheel /vllm/dist/*.whl /tmp/
+
+# Install vLLM wheel
+RUN python3 -m pip install /tmp/*.whl
+
+# Build FlashInfer
+ARG FLASHINFER_GIT_REF="v0.2.11"
+RUN git clone --depth 1 --recursive --shallow-submodules \
+    --branch ${FLASHINFER_GIT_REF} \
+    https://github.com/flashinfer-ai/flashinfer.git && \
+    cd flashinfer && \
+    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" python3 -m flashinfer.aot && \
+    TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" python3 -m pip install --no-build-isolation --force-reinstall --no-deps .
+
+#################### FINAL STAGE ####################
+FROM ${FINAL_BASE_IMAGE} AS final
+
+ARG PYTHON="python3"
+ARG EFA_VERSION="1.43.1"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
@@ -30,70 +113,38 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-    ccache \
-    software-properties-common \
-    git \
-    curl \
-    wget \
-    sudo \
-    vim \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    libgl1 \
-    libibverbs-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+# COPY install_efa.sh install_efa.sh
+# COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+# COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+# RUN chmod +x /usr/local/bin/deep_learning_container.py && \
+#     chmod +x /usr/local/bin/bash_telemetry.sh && \
+#     chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
+#     echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
+#     # Install EFA
+#     bash install_efa.sh ${EFA_VERSION} && \
+#     rm install_efa.sh && \
+#     # OSS compliance and software update
+#     apt-get update && \
+#     apt-get upgrade -y && \
+#     apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
+#     apt-get clean && \
+#     HOME_DIR=/root && \
+#     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
+#     unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
+#     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
+#     chmod +x /usr/local/bin/testOSSCompliance && \
+#     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
+#     ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
+#     # create symlink for python
+#     ln -s /usr/bin/python3 /usr/bin/python && \
+#     # clean up
+#     rm -rf ${HOME_DIR}/oss_compliance* && \
+#     rm -rf /tmp/tmp* && \
+#     rm -rf /tmp/uv* && \
+#     rm -rf /var/lib/apt/lists/* && \
+#     rm -rf /root/.cache | true
 
-RUN add-apt-repository -y ppa:deadsnakes/ppa \
-    && apt-get update \
-    && apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python${PYTHON_VERSION}-venv \
-    && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
-    && update-alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
-    && ln -sf /usr/bin/python${PYTHON_VERSION}-config /usr/bin/python3-config \
-    && curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
-    && ln -s /usr/bin/python3 /usr/bin/python
-
-RUN ${PIP} --no-cache-dir install --upgrade \
-   pip \
-   setuptools \
-   wheel
-
-COPY install_efa.sh install_efa.sh
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/deep_learning_container.py && \
-    chmod +x /usr/local/bin/bash_telemetry.sh && \
-    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
-    # Install EFA
-    bash install_efa.sh ${EFA_VERSION} && \
-    rm install_efa.sh 
-    # # OSS compliance and software update
-    # apt-get update && \
-    # apt-get upgrade -y && \
-    # apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
-    # apt-get clean && \
-    # HOME_DIR=/root && \
-    # curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    # unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
-    # cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
-    # chmod +x /usr/local/bin/testOSSCompliance && \
-    # chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    # ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
-    # # create symlink for python
-    # ln -s /usr/bin/python3 /usr/bin/python && \
-    # # clean up
-    # rm -rf ${HOME_DIR}/oss_compliance* && \
-    # rm -rf /tmp/tmp* && \
-    # rm -rf /tmp/uv* && \
-    # rm -rf /var/lib/apt/lists/* && \
-    # rm -rf /root/.cache | true
-
-# patch nvjpeg
 RUN mkdir -p /tmp/nvjpeg \
     && cd /tmp/nvjpeg \
     && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-aarch64/libnvjpeg-linux-aarch64-12.4.0.76-archive.tar.xz \
@@ -106,52 +157,5 @@ RUN mkdir -p /tmp/nvjpeg \
     # patch cuobjdump and nvdisasm
     && rm -rf /usr/local/cuda/bin/cuobjdump* \
     && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-
-# Install PyTorch for ARM64
-RUN ${PIP} install --system \
-    --index-url https://download.pytorch.org/whl/nightly/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
-    "torch==2.8.0.dev20250318+cu128" \
-    "torchvision==0.22.0.dev20250319" \
-    --pre pytorch_triton==3.3.0+gitab727c40
-
-RUN git clone https://github.com/vllm-project/vllm.git /vllm && \
-    cd /vllm && \
-    git checkout ${VLLM_VERSION}
-
-WORKDIR /vllm
-
-RUN ${PIP} install --system -r requirements/cuda.txt \
-    --extra-index-url https://download.pytorch.org/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
-
-RUN TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" \
-    python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38 \
-    && ${PIP} install --system dist/*.whl
-
-# Install FlashInfer from source
-ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
-ARG FLASHINFER_GIT_REF="v0.2.11"
-RUN git clone --depth 1 --recursive --shallow-submodules \
-    --branch ${FLASHINFER_GIT_REF} \
-    ${FLASHINFER_GIT_REPO} flashinfer \
-    && cd flashinfer \
-    && TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" python3 -m flashinfer.aot \
-    && TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0" ${PIP} install --system --no-build-isolation --force-reinstall --no-deps . \
-    && cd .. && rm -rf flashinfer
-
-# Install additional dependencies for API server
-RUN ${PIP} install --system \
-    accelerate \
-    hf_transfer \
-    modelscope \
-    "bitsandbytes>=0.42.0" \
-    'timm==0.9.10' \
-    boto3 \
-    runai-model-streamer \
-    runai-model-streamer[s3]
-
-WORKDIR /
-
-ENV VLLM_USAGE_SOURCE production-docker-image
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
