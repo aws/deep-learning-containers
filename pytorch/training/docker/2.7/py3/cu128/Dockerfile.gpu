@@ -7,7 +7,7 @@ ARG TORCHDATA_VERSION=0.11.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
-FROM public.ecr.aws/deep-learning-containers/base:12.8.1-gpu-py312-ec2 as common
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.8.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-5177-2025-08-18-21-56-10 as common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -29,6 +29,15 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV DLC_CONTAINER_TYPE=training
 
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
+
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
 RUN pip install --no-cache-dir \
     numpy \
     "setuptools>=70.0.0"  \
@@ -46,15 +55,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton 
-
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
-
-COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
-RUN chmod +x /usr/local/bin/start_cuda_compat.sh
-
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 WORKDIR /
 
@@ -79,16 +79,17 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
-
- # for cv2 package
-RUN apt-get update && apt-get install -y \
-    libglvnd0 \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    libgl1-mesa-glx \
+    curl \
+    emacs \
+    git \
+    jq \
+    unzip \
+    vim \
+    wget \
+&& rm -rf /var/lib/apt/lists/*
 
 RUN pip install --no-cache-dir \
     cryptography \
@@ -128,16 +129,6 @@ RUN pip install --no-cache-dir \
     jinja2>=3.1.6 \
  && pip uninstall -y dataclasses
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
-
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 FROM common AS ec2
@@ -145,10 +136,27 @@ FROM common AS ec2
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY oss_compliance.sh oss_compliance.sh
+RUN bash oss_compliance.sh && rm oss_compliance.sh
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 FROM common AS sagemaker
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
@@ -171,23 +179,17 @@ RUN pip install --no-cache-dir -U \
     # pinned for sagemaker==2.233.0
     cloudpickle 
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY oss_compliance.sh oss_compliance.sh
+RUN bash oss_compliance.sh && rm oss_compliance.sh
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
-
-# Copy workaround script for incorrect hostname
-COPY changehostname.c /
-COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
-RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
