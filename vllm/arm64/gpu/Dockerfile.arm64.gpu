@@ -37,7 +37,6 @@ RUN apt-get update \
     git \
     curl \
     wget \
-    requests \
     sudo \
     vim \
     ffmpeg \
