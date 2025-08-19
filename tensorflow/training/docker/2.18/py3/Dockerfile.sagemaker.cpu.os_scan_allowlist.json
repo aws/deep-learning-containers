@@ -3436,7 +3436,7 @@
       "name": "CVE-2025-7783",
       "package_name": "form-data",
       "package_details": {
-        "file_path": "N/A",
+        "file_path": "/usr/local/lib/python3.10/site-packages/jupyterlab/staging/yarn.lock",
         "name": "form-data",
         "package_manager": "NODE",
         "version": "4.0.2",
