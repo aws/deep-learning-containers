@@ -294,10 +294,16 @@ def _setup_container(connection, docker_image, container_name):
     # using SSH on a pre-defined port (as decided by sshd_config on server-side).
     # Allow instance to share all memory with container using memlock=-1:-1.
     # Share all EFA devices with container using --device <device_location> for all EFA devices.
-    connection.run(
-        f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
-        f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
-    )
+    if "vllm" in docker_image:
+        connection.run(
+            f"docker run --entrypoint=/bin/bash -e CUDA_HOME=/usr/local/cuda --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
+            f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image}"
+        )
+    else:
+        connection.run(
+            f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
+            f"{docker_all_devices_arg} -v $HOME/container_tests:/test -v /dev/shm:/dev/shm {docker_image} bash"
+        )
 
 
 def _setup_master_efa_ssh_config(connection):

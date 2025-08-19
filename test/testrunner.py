@@ -410,7 +410,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type == "eks" and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
@@ -425,13 +425,13 @@ def main():
 
             if framework == "vllm":
                 try:
-                    LOGGER.info(f"Running vLLM EKS tests with image: {all_image_list[0]}")
+                    LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     test()
-                    LOGGER.info("vLLM EKS tests completed successfully")
+                    LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
-                    LOGGER.error(f"vLLM EKS tests failed: {str(e)}")
+                    LOGGER.error(f"vLLM EKS EC2 tests failed: {str(e)}")
                     raise
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
@@ -441,6 +441,11 @@ def main():
             else:
                 raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
+        # Get specified tests if any
+        specified_tests = os.getenv("SPECIFIED_TESTS")
+        if specified_tests:
+            specified_tests = specified_tests.split()
+
         # Execute dlc_tests pytest command
         pytest_cmd = [
             "-s",
@@ -449,6 +454,9 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
+        if specified_tests:
+            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
+            pytest_cmd.extend(["-k", f"({test_expr})"])
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
