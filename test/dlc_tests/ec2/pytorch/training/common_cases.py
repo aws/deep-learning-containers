@@ -357,7 +357,7 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     """
     Test cuDNN Package
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
-    Checks both /usr/include/ and /usr/include/x86_64-linux-gnu/ paths to support different cuDNN package installations.
+    Checks both /usr/include/ and /usr/local/cuda/include/ paths to support different cuDNN package installations.
     """
     container_name = "pytorch_cudnn"
     account_id = get_account_id_from_image_uri(pytorch_training)
