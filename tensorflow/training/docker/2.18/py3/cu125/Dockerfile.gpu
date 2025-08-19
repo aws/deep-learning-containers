@@ -237,7 +237,7 @@ RUN mkdir /tmp/efa-ofi-nccl \
  && ./configure --with-libfabric=/opt/amazon/efa \
     --with-mpi=/opt/amazon/openmpi \
     --with-cuda=/usr/local/cuda \
-    --with-nccl=/usr/local \
+    --with-nccl=/usr \
     --prefix=/usr/local \
     --disable-tests \
  && make -j $(nproc) \
