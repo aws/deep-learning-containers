@@ -76,14 +76,7 @@ RUN apt-get update \
     libgl1-mesa-glx \
     build-essential \
     ca-certificates \
-    curl \
-    emacs \
-    git \
-    jq \
     zlib1g-dev \
-    unzip \
-    vim \
-    wget \
     openssl \
     python3-dev \
     pkg-config \
@@ -110,7 +103,6 @@ RUN pip install --no-cache-dir \
     typing \
     charset-normalizer \
     packaging \
-    boto3 \
     PyYAML \
     numpy \
     scipy \
@@ -126,7 +118,6 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    "awscli" \
     ninja \
     opencv-python==4.11.0.86 \
     mpi4py \
@@ -207,6 +198,18 @@ ARG PYTHON
 
 WORKDIR /
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    git \
+    jq \
+    emacs \
+    vim \
+    unzip \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -242,6 +245,18 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 
 WORKDIR /
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    git \
+    jq \
+    emacs \
+    vim \
+    unzip \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
