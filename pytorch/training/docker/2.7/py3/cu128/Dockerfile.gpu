@@ -253,7 +253,7 @@ RUN pip install --no-cache-dir \
     jinja2>=3.1.6 \
     tornado>=6.5.1
 
-Install PyTorch
+# Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
