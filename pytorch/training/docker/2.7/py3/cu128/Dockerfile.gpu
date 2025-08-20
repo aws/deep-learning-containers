@@ -108,25 +108,25 @@ RUN pip install --no-cache-dir \
     pillow \
     h5py \
     fsspec \
+    mpi4py \
+    s3torchconnector \
+    accelerate \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
     # opencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
-    opencv-python==4.11.0.86 \
-    mpi4py \
-    tornado>=6.5.1 \
-    s3torchconnector \
-    fastai==2.8.2 \
-    accelerate \
+    "opencv-python==4.11.0.86" \
+    "tornado>=6.5.1" \
+    "fastai==2.8.2" \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4 \
+    "thinc==8.3.4" \
     blis \
-    jinja2>=3.1.6 \
+    "jinja2>=3.1.6"\
  && pip uninstall -y dataclasses
 
 # Removing the cache as it is needed for security verification
