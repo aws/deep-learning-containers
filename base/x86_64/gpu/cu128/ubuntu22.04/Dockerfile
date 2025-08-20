@@ -2,11 +2,10 @@ ARG PYTHON="python3"
 ARG PYTHON_VERSION="3.12.10"
 ARG PYTHON_SHORT_VERSION="3.12"
 ARG CUDA_MAJOR="12"
-ARG CUDA_MINOR="9"
-ARG EFA_VERSION="1.43.1"
+ARG CUDA_MINOR="8"
+ARG EFA_VERSION="1.40.0"
 ARG OS_VERSION="ubuntu22.04"
-FROM nvidia/cuda:12.9.1-base-${OS_VERSION} AS base-builder
-
+FROM nvidia/cuda:12.8.0-base-${OS_VERSION} AS base-builder
 
 RUN mv /usr/local/cuda/compat /usr/local \
     && apt-get update \
@@ -48,7 +47,6 @@ RUN mv /usr/local/cuda/compat /usr/local \
         libffi-dev \
         libbz2-dev \
         liblzma-dev \
-        libsqlite3-dev \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -68,7 +66,7 @@ COPY install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "${OS_VERSION}" && rm install_cuda.sh
 
 ##############################################################################
-FROM nvidia/cuda:12.9.1-base-${OS_VERSION} AS final 
+FROM nvidia/cuda:12.8.1-base-${OS_VERSION} AS final 
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
