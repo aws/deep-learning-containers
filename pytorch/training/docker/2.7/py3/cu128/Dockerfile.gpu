@@ -1,4 +1,5 @@
 ARG PYTHON=python3
+ARG PYTHON_VERSION=3.12.10
 ARG PYTORCH_VERSION=2.7.1
 ARG TORCHTNT_VERSION=0.2.4
 ARG TORCHAUDIO_VERSION=2.7.1
@@ -79,7 +80,6 @@ RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 RUN apt-get update \
- && apt-get -y upgrade --only-upgrade systemd \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     libgl1-mesa-glx \
     curl \
@@ -105,9 +105,9 @@ RUN pip install --no-cache-dir \
     psutil \
     ipython \
     ipykernel \
-    pillow \
+    "pillow>=11.3.0" \
     h5py \
-    fsspec \
+    "fsspec>=3.0.2" \
     mpi4py \
     s3torchconnector \
     accelerate \
@@ -127,6 +127,7 @@ RUN pip install --no-cache-dir \
     "thinc==8.3.4" \
     blis \
     "jinja2>=3.1.6"\
+    "typing-extensions>=4.12.2" \
  && pip uninstall -y dataclasses
 
 # Removing the cache as it is needed for security verification
@@ -134,6 +135,7 @@ RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
 ARG PYTHON
+ARG PYTHON_VERSION
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -156,6 +158,7 @@ CMD ["/bin/bash"]
 FROM common AS sagemaker
 
 ARG PYTHON
+ARG PYTHON_VERSION
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
