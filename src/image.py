@@ -205,12 +205,14 @@ class DockerImage:
         :param custom_context: bool, Whether to use custom context from stdin (default: False)
         :return: int, Build status
         """
-        if self._is_vllm_image():
-            LOGGER.info(f"Using Buildx for vLLM image: {self.repository}:{self.tag}")
-            return self._buildx_build(context_path, custom_context)
-        else:
-            LOGGER.info(f"Using legacy Docker API for non-vLLM image: {self.repository}:{self.tag}")
-            return self._legacy_docker_build(context_path, custom_context)
+        # NOTE: TEMP change, enforce buildx usage
+        return self._buildx_build(context_path, custom_context)
+        # if self._is_vllm_image():
+        #     LOGGER.info(f"Using Buildx for vLLM image: {self.repository}:{self.tag}")
+        #     return self._buildx_build(context_path, custom_context)
+        # else:
+        #     LOGGER.info(f"Using legacy Docker API for non-vLLM image: {self.repository}:{self.tag}")
+        #     return self._legacy_docker_build(context_path, custom_context)
 
     def _is_vllm_image(self):
         """
