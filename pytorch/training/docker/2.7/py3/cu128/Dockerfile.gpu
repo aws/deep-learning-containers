@@ -253,25 +253,25 @@ RUN pip install --no-cache-dir \
     jinja2>=3.1.6 \
     tornado>=6.5.1
 
-# Install PyTorch
-# RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-#     torchvision==${TORCHVISION_VERSION} \
-#     torchaudio==${TORCHAUDIO_VERSION} \
-#     --index-url https://download.pytorch.org/whl/cu128 \
-#     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-#     torchdata==${TORCHDATA_VERSION} \
-#     triton \
-#     s3torchconnector \
-#     fastai==2.8.2 \
-#     accelerate \
-#     # pin numpy requirement for fastai dependency
-#     # requires explicit declaration of spacy, thic, blis
-#     spacy \
-#     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-#     thinc==8.3.4 \
-#     blis \
-#     numpy \
-#  && pip uninstall -y dataclasses
+Install PyTorch
+RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
+    triton \
+    s3torchconnector \
+    fastai==2.8.2 \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4 \
+    blis \
+    numpy \
+ && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
@@ -393,42 +393,42 @@ ARG FLASH_ATTN_VERSION
 
 WORKDIR /
 
-# # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
-# # The test binaries requires cuda driver library which could be found in conda
-# # So update the linker path to point to it to avoid -Lcuda not found
-# RUN cd /tmp \
-#  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
-#  && cd gdrcopy \
-#  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
-#  && CUDA=${CUDA_HOME} make install \
-#  && rm -rf /tmp/gdrcopy
-#
-# # Install NCCL
-# RUN cd /tmp \
-#  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
-#  && cd nccl \
-#  && make -j64 src.build BUILDDIR=/usr/local \
-#  && rm -rf /tmp/nccl
-#
-# RUN pip uninstall -y ninja && pip install ninja
-#
-# # Install flash attn and NVIDIA transformer engine.
-# # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-# ENV NVTE_FRAMEWORK=pytorch
-# # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# # Set MAX_JOBS=4 to avoid OOM issues in installation process
-# RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-# RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
-#
-# # Install SM packages
-# RUN pip install --no-cache-dir -U \
-#     smclarify \
-#     "sagemaker>=2.9.0,<3" \
-#     "sagemaker-experiments<1" \
-#     sagemaker-pytorch-training \
-#     sagemaker-training
-#
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
+
+# Install NCCL
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && cd nccl \
+ && make -j64 src.build BUILDDIR=/usr/local \
+ && rm -rf /tmp/nccl
+
+RUN pip uninstall -y ninja && pip install ninja
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+
+# Install SM packages
+RUN pip install --no-cache-dir -U \
+    smclarify \
+    "sagemaker>=2.9.0,<3" \
+    "sagemaker-experiments<1" \
+    sagemaker-pytorch-training \
+    sagemaker-training
+
 # Install extra packages
 RUN pip install --no-cache-dir -U \
     bokeh \
