@@ -24,7 +24,6 @@ def run_platform_tests(platform: str, images: List[str]):
 
     if platform == "ec2":
         try:
-            print(f"Running {platform} tests on {instance_type}")
             ec2_resources = setup()
             print(ec2_resources)
             print("Finished gathering resources required for VLLM EC2 Tests")
