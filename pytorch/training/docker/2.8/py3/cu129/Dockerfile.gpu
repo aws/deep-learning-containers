@@ -11,7 +11,8 @@ ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.5
 ARG FLASH_ATTN_VERSION=2.8.2
 
-FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS base_image
+# FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS base_image
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.9.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5186-2025-08-19-23-05-36 AS base_image
 # base has EFA, PYTHON and CUDA 12.9
 
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
