@@ -133,6 +133,8 @@ RUN pip install --no-cache-dir \
 RUN rm -rf /root/.cache | true
 FROM common AS ec2
 
+ARG PYTHON
+
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -142,8 +144,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-COPY oss_compliance.sh oss_compliance.sh
-RUN bash oss_compliance.sh && rm oss_compliance.sh
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -152,6 +154,8 @@ ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
 FROM common AS sagemaker
+
+ARG PYTHON
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -185,8 +189,8 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
-COPY oss_compliance.sh oss_compliance.sh
-RUN bash oss_compliance.sh && rm oss_compliance.sh
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true

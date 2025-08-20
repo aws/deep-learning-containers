@@ -37,8 +37,8 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
     oss_compliance:
-      source: ../../scripts/oss_compliance.sh
-      target: oss_compliance.sh
+      source: ../../scripts/setup_oss_compliance.sh
+      target: setup_oss_compliance.sh
 
 images:
   BuildEC2CPUPTTrainPy3DockerImage:
