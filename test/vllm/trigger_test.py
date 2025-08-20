@@ -16,8 +16,9 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_en
     """
     Run tests for a specific platform
     """
-    LOGGER.info(f"Running {platform} tests")
-    if platform == "ec2":
+    instance_type = os.getenv("EC2_GPU_INSTANCE_TYPE")
+    print(f"Running {platform} tests on {instance_type}")
+    if platform == "ec2" and instance_type == "p4d.24xlarge":
         try:
             ec2_resources = setup()
             print(ec2_resources)
