@@ -264,14 +264,14 @@ RUN ${PIP} install --no-cache-dir -U \
     "tensorflow-datasets==4.9.7"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    numba==0.60.0 \
+    numba==0.61.0 \
     bokeh \
     imageio \
-    opencv-python==4.8.0.76 \
+    opencv-python \
     plotly \
     seaborn \
     shap \
-    numpy==1.23.5
+    numpy
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3"
@@ -280,7 +280,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.45
    
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training==4.8.3
+    sagemaker-training
 
     RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-tensorflow-training==20.4.1
