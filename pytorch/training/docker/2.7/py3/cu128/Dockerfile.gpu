@@ -107,7 +107,8 @@ RUN pip install --no-cache-dir \
     ipykernel \
     "pillow>=11.3.0" \
     h5py \
-    "fsspec>=3.0.2" \
+    "fsspec>=2025.7.0" \
+    "markupsafe>=3.0.2" \
     mpi4py \
     s3torchconnector \
     accelerate \
