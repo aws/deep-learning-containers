@@ -18,7 +18,7 @@ def run_platform_tests(platform: str, images: List[str]):
     """
     instance_type = os.getenv("EC2_GPU_INSTANCE_TYPE")
 
-    if instance_type == "p4d.24xlarge":
+    if instance_type != "p4d.24xlarge" and not is_pr_context:
         LOGGER.info(f"Skipping tests on {instance_type} instance type")
         return
 
