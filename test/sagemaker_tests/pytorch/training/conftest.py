@@ -500,7 +500,12 @@ def skip_smddataparallel_test(
     For each currency release, we can skip SMDDP tests if the binary does not exist.
     However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.6,<2.7.1": ["cu126"], ">=2.7.1,<2.8": ["cu128"]}
+    skip_dict = {
+        "==2.0.*": ["cu121"],
+        ">=2.6,<2.7.1": ["cu126"],
+        ">=2.7.1,<2.8": ["cu128"],
+        ">=2.8,<2.9": ["cu129"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
     ):
@@ -516,7 +521,7 @@ def skip_smppy_test(
     """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
     However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {">=2.7.1,<2.8": ["cpu", "cu128"]}
+    skip_dict = {">=2.7.1,<2.8": ["cpu", "cu128"], ">=2.8,<2.9": ["cpu", "cu129"]}
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smppy_test", skip_dict
     ):
