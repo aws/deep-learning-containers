@@ -100,8 +100,10 @@ check_efa_nccl_all_reduce(){
     check_efa_nccl_all_reduce_performance
 }
 
-nvidia-smi
+nvidia-smi | tee nvidia_smi.log
+cat nvidia_smi.log
 
-nvcc --version
+nvcc --version | tee nvcc.log
+cat nvcc.log
 
 check_efa_nccl_all_reduce
