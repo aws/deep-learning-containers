@@ -1,8 +1,7 @@
 #!/bin/bash
 # Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-set +x
-set -e
+set -ex
 
 NUM_HOSTS_FILE=$1
 NUM_HOSTS=$2
@@ -101,10 +100,10 @@ check_efa_nccl_all_reduce(){
     check_efa_nccl_all_reduce_performance
 }
 
-nvidia-smi > /test/logs/smi.log
+check_efa_nccl_all_reduce
+
+nvidia-smi | tee /test/logs/smi.log
 cat /test/logs/smi.log
 
-nvcc --version > /test/logs/nvcc.log
+nvcc --version | tee /test/logs/nvcc.log
 cat /test/logs/nvcc.log
-
-check_efa_nccl_all_reduce

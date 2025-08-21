@@ -1,8 +1,7 @@
 #!/bin/bash
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
-set +x
-set -e
+set -ex
 
 # Script to run fi_pingpong locally over EFA to test connectivity.
 
