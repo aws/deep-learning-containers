@@ -337,7 +337,8 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle 
+    cloudpickle \
+    dgl
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

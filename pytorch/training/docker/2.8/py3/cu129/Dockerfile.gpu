@@ -139,7 +139,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    thinc \
+    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4 \
     blis \
     numpy \
  && pip uninstall -y dataclasses
@@ -277,7 +278,8 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle 
+    cloudpickle \
+    dgl
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
