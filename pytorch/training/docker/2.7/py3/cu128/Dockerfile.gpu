@@ -128,7 +128,7 @@ RUN pip install --no-cache-dir \
     "thinc==8.3.4" \
     blis \
     "jinja2>=3.1.6"\
-    "typing-extensions>=4.12.2" \
+    "typing-extensions>=4.14.1" \
  && pip uninstall -y dataclasses
 
 # Removing the cache as it is needed for security verification
