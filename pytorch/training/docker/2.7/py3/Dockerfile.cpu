@@ -322,7 +322,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training
@@ -338,7 +338,7 @@ RUN pip install --no-cache-dir -U \
     seaborn \
     shap \
     # pinned for sagemaker==2.233.0
-    cloudpickle 
+    cloudpickle
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
@@ -361,4 +361,3 @@ RUN rm -rf /root/.cache | true
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-
