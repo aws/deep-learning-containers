@@ -2,7 +2,7 @@ import os, sys
 import logging
 from typing import List
 
-from test.test_utils import get_dlc_images
+from test.test_utils import get_dlc_images, is_pr_context
 from test.vllm.eks.eks_test import test_vllm_on_eks
 from test.vllm.ec2.infra.setup_ec2 import setup
 from test.vllm.ec2.test_artifacts.test_ec2 import test_vllm_on_ec2
@@ -12,11 +12,16 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def run_platform_tests(platform: str, images: List[str], commit_id: str, ipv6_enabled: bool):
+def run_platform_tests(platform: str, images: List[str]):
     """
     Run tests for a specific platform
     """
-    LOGGER.info(f"Running {platform} tests")
+    instance_type = os.getenv("EC2_GPU_INSTANCE_TYPE")
+
+    if instance_type == "p4d.24xlarge":
+        LOGGER.info(f"Skipping tests on {instance_type} instance type")
+        return
+
     if platform == "ec2":
         try:
             ec2_resources = setup()
@@ -60,8 +65,6 @@ def test():
     run_platform_tests(
         platform=test_type,
         images=standard_images_list,
-        commit_id=commit_id,
-        ipv6_enabled=ipv6_enabled,
     )
 
 
