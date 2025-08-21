@@ -13,14 +13,13 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-from datetime import datetime
-
-from docker import APIClient
-from docker import DockerClient
-
-import constants
 import logging
 import subprocess
+from datetime import datetime
+
+from docker import APIClient, DockerClient
+
+import constants
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -205,11 +204,15 @@ class DockerImage:
         :param custom_context: bool, Whether to use custom context from stdin (default: False)
         :return: int, Build status
         """
-        if self._is_vllm_image():
-            LOGGER.info(f"Using Buildx for vLLM image: {self.repository}:{self.tag}")
+        if self._is_vllm_image() or self._is_pytorch_training_image():
+            LOGGER.info(
+                f"Using Buildx for vLLM and PyTorch Training image: {self.repository}:{self.tag}"
+            )
             return self._buildx_build(context_path, custom_context)
         else:
-            LOGGER.info(f"Using legacy Docker API for non-vLLM image: {self.repository}:{self.tag}")
+            LOGGER.info(
+                f"Using legacy Docker API for non-vLLM and non-PyTorch Training image: {self.repository}:{self.tag}"
+            )
             return self._legacy_docker_build(context_path, custom_context)
 
     def _is_vllm_image(self):
@@ -223,6 +226,14 @@ class DockerImage:
             or "vllm" in self.repository.lower()
             or "vllm" in str(self.info.get("name", "")).lower()
         )
+
+    def _is_pytorch_training_image(self):
+        """
+        Determine if current image is a PyTorch Training image
+
+        :return: bool, True if this is a PyTorch Training image
+        """
+        return self.info.get("framework") == "pytorch" and self.info.get("image_type") == "training"
 
     def _buildx_build(self, context_path, custom_context=False):
         """

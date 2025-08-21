@@ -169,7 +169,7 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training
@@ -185,7 +185,7 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     # pinned for sagemaker==2.233.0
-    cloudpickle 
+    cloudpickle
 
 RUN apt-get update \
  && apt-get upgrade -y \
