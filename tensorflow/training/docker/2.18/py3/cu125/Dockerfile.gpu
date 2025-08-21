@@ -51,7 +51,7 @@ ARG BRANCH_OFI=1.13.2-aws
 ARG CUDA=12.5
 ARG CUDA_DASH=12-5
 ARG CUDNN=9.3.0.75
-ARG NCCL_VERSION=2.22.3-1+cuda12.5
+ARG NCCL_VERSION=2.23.4
 
 
 # To be passed to ec2 and sagemaker stages
