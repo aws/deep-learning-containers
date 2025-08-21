@@ -143,13 +143,13 @@ RUN mkdir -p /tmp/nvjpeg \
 && rm -rf /tmp/nvjpeg \
 # patch cuobjdump and nvdisasm
 && rm -rf /usr/local/cuda/bin/cuobjdump* \
-&& rm -rf /usr/local/cuda/bin/nvdisasm* 
+&& rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # For EFA, below flags are needed to install EFA on docker image
 #  -n, --no-verify       Skip EFA device verification and test
 #  -l, --skip-limit-conf Skip EFA limit configuration
 #  -k, --skip-kmod       Skip EFA kmod installation
-# start from 0.38.0 EFA now bundles the AWS OFI NCCL plugin, 
+# start from 0.38.0 EFA now bundles the AWS OFI NCCL plugin,
 # which can now be found in /opt/amazon/ofi-nccl/lib/x86_64-linux-gnu rather than the original /opt/aws-ofi-nccl/.
 RUN mkdir /tmp/efa \
  && cd /tmp/efa \
@@ -424,7 +424,7 @@ RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.g
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training
@@ -440,7 +440,7 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     # pinned for sagemaker==2.233.0
-    cloudpickle 
+    cloudpickle
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
