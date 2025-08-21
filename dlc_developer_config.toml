@@ -122,7 +122,7 @@ use_scheduler = false
 dlc-pr-base = ""
 
 # Standard Framework Training
-dlc-pr-pytorch-training = ""
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-7-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
