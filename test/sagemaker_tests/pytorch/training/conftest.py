@@ -416,6 +416,7 @@ def skip_smdebug_v1_test(
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
@@ -439,6 +440,7 @@ def skip_dgl_test(
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_dgl_test", skip_dict
@@ -473,11 +475,12 @@ def skip_smdmodelparallel_test(
     ecr_image,
 ):
     skip_dict = {
-        "==2.0.*": ["cu121"],
+        "==1.13.*": ["cpu", "cu117"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
