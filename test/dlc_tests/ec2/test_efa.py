@@ -133,22 +133,18 @@ def test_efa_tensorflow(
         tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
     )
     master_connection = efa_ec2_connections[0]
-    init_res = run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-    print("EFA SANITY Standard Output:", init_res.stdout)
-    print("EFA SANITY Standard Error:", init_res.stderr)
+    run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
 
     # pass IPv6 flag if enabled
     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
 
-    efa_res = run_cmd_on_container(
+    run_cmd_on_container(
         MASTER_CONTAINER_NAME,
         master_connection,
         f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
-    print("EFA TEST Standard Output:", efa_res.stdout)
-    print("EFA TEST Standard Error:", efa_res.stderr)
 
 
 @pytest.mark.skip(
