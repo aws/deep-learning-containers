@@ -134,8 +134,8 @@ def test_efa_tensorflow(
     )
     master_connection = efa_ec2_connections[0]
     init_res = run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-    print("EFA SANITY Standard Output:", init_res.stdout_output)
-    print("EFA SANITY Standard Error:", init_res.stderr_output)
+    print("EFA SANITY Standard Output:", init_res.stdout)
+    print("EFA SANITY Standard Error:", init_res.stderr)
 
     # pass IPv6 flag if enabled
     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
@@ -147,8 +147,8 @@ def test_efa_tensorflow(
         hide=False,
         timeout=DEFAULT_EFA_TIMEOUT,
     )
-    print("EFA TEST Standard Output:", efa_res.stdout_output)
-    print("EFA TEST Standard Error:", efa_res.stderr_output)
+    print("EFA TEST Standard Output:", efa_res.stdout)
+    print("EFA TEST Standard Error:", efa_res.stderr)
 
 
 @pytest.mark.skip(
