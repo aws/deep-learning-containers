@@ -13,14 +13,13 @@ ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
 
-from datetime import datetime
-
-from docker import APIClient
-from docker import DockerClient
-
-import constants
 import logging
 import subprocess
+from datetime import datetime
+
+from docker import APIClient, DockerClient
+
+import constants
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -224,6 +223,14 @@ class DockerImage:
             or "vllm" in self.repository.lower()
             or "vllm" in str(self.info.get("name", "")).lower()
         )
+
+    def _is_pytorch_training_image(self):
+        """
+        Determine if current image is a PyTorch Training image
+
+        :return: bool, True if this is a PyTorch Training image
+        """
+        return self.info.get("framework") == "pytorch" and self.info.get("image_type") == "training"
 
     def _buildx_build(self, context_path, custom_context=False):
         """

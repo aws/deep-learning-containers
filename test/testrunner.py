@@ -428,7 +428,6 @@ def main():
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     test_vllm()
-                    LOGGER.info("vLLM EKS EC2 tests completed successfully")
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
