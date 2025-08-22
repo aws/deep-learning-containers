@@ -8,7 +8,7 @@ ARG TORCHDATA_VERSION=0.11.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
-FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.8.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-5177-2025-08-18-21-56-10 as common
+FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.8.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-5202-2025-08-22-16-35-57 as common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
