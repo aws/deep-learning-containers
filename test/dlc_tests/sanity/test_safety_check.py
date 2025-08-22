@@ -1098,7 +1098,6 @@ def test_safety(image):
         json_str_safety_result = extract_json_from_safety_output(
             safety_check.run_safety_check_on_container(docker_exec_cmd)
         )
-        LOGGER.info(f"Safety check raw output: {json_str_safety_result}")
         safety_result = json.loads(json_str_safety_result)["vulnerabilities"]
         for vulnerability in safety_result:
             package = vulnerability["package_name"]
@@ -1106,25 +1105,15 @@ def test_safety(image):
             vulnerability_id = vulnerability["vulnerability_id"]
 
             # Get the latest version of the package with vulnerability
-            LOGGER.info(f"Getting latest version for package: {package}")
             latest_version = _get_latest_package_version(package)
-            LOGGER.info(f"Got latest version: {latest_version}")
-            try:
-                LOGGER.info(
-                    f"Checking versions for {package}: latest={latest_version}, affected={affected_versions}"
-                )
-                # If the latest version of the package is also affected, igvnore this vulnerability
-                if Version(latest_version) in SpecifierSet(affected_versions):
-                    # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
-                    # Comparing two versions as a string has some edge cases which require us to write more code.
-                    # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
-                    # gives an object that can be easily compared against a Version object.
-                    # https://packaging.pypa.io/en/latest/specifiers/
-                    ignore_str += f" -i {vulnerability_id}"
-            except Exception as e:
-                LOGGER.error(f"Version check failed for {package}: {str(e)}")
-                continue
-        LOGGER.info(f"Running final safety check with ignore list: {ignore_str}")
+            # If the latest version of the package is also affected, igvnore this vulnerability
+            if Version(latest_version) in SpecifierSet(affected_versions):
+                # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
+                # Comparing two versions as a string has some edge cases which require us to write more code.
+                # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
+                # gives an object that can be easily compared against a Version object.
+                # https://packaging.pypa.io/en/latest/specifiers/
+                ignore_str += f" -i {vulnerability_id}"
         assert (
             safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"
