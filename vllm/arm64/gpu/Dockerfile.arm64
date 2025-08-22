@@ -185,42 +185,38 @@ ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
 ARG FLASHINFER_GIT_REF="v0.2.12"
 
 ARG FLASHINFER_AOT_COMPILE=false
-RUN bash - <<'BASH'
-  . /etc/environment
+
+# Install FlashInfer
+ARG FLASHINFER_GIT_REF="v0.2.12"
+ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
+ARG FLASHINFER_AOT_COMPILE="true"
+
+RUN bash -c '. /etc/environment && \
     git clone --depth 1 --recursive --shallow-submodules \
         --branch ${FLASHINFER_GIT_REF} \
-        ${FLASHINFER_GIT_REPO} flashinfer
-    pushd flashinfer
-        if [ "${FLASHINFER_AOT_COMPILE}" = "true" ]; then
-            # Exclude CUDA arches for older versions (11.x and 12.0-12.7)
-            # TODO: Update this to allow setting TORCH_CUDA_ARCH_LIST as a build arg.
-            if [[ "${CUDA_VERSION}" == 11.* ]]; then
-                FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9"
-            elif [[ "${CUDA_VERSION}" == 12.[0-7]* ]]; then
-                FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a"
-            else
-                # CUDA 12.8+ supports 10.0a and 12.0
-                FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0"
-            fi
-            echo "🏗️  Installing FlashInfer with AOT compilation for arches: ${FI_TORCH_CUDA_ARCH_LIST}"
-            # Build AOT kernels
-            TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" \
-                python3 -m flashinfer.aot
-            # Install with no-build-isolation since we already built AOT kernels
-            TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" \
-                python3 -m pip install --system --no-build-isolation . \
-                --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
-            # Download pre-compiled cubins
-            TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" \
-                python3 -m flashinfer --download-cubin || echo "WARNING: Failed to download flashinfer cubins."
-        else
-            echo "🏗️  Installing FlashInfer without AOT compilation in JIT mode"
-            python3 -m pip install --system . \
-                --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
-        fi
-    popd
-    rm -rf flashinfer
-BASH
+        ${FLASHINFER_GIT_REPO} flashinfer && \
+    cd flashinfer && \
+    if [ "${FLASHINFER_AOT_COMPILE}" = "true" ]; then \
+        if [[ "${CUDA_VERSION}" == 11.* ]]; then \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9"; \
+        elif [[ "${CUDA_VERSION}" == 12.[0-7]* ]]; then \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a"; \
+        else \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0"; \
+        fi && \
+        echo "🏗️  Installing FlashInfer with AOT compilation for arches: ${FI_TORCH_CUDA_ARCH_LIST}" && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer.aot && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m pip install --no-build-isolation . \
+            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d ".") && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer --download-cubin || \
+            echo "WARNING: Failed to download flashinfer cubins."; \
+    else \
+        echo "🏗️  Installing FlashInfer without AOT compilation in JIT mode" && \
+        python3 -m pip install . \
+            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d "."); \
+    fi && \
+    cd .. && \
+    rm -rf flashinfer'
 
 
 COPY build_requirements.txt build_requirements.txt
