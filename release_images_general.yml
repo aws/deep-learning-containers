@@ -44,7 +44,7 @@ release_images:
       public_registry: True
   4:
     framework: "vllm"
-    version: "0.10.1.1"
+    version: "0.10.1"
     arch_type: "x86"
     customer_type: "ec2"
     general:
