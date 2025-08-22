@@ -670,7 +670,6 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
-                "77740",
             ],
         },
         "training-neuron": {
