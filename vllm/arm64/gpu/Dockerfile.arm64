@@ -66,11 +66,11 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL
 ARG PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL
 ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
 
-COPY requirements.txt .
-RUN python3 -m pip install --system -r requirements.txt \
+
+WORKDIR /workspace
+RUN python3 -m pip install --system -r https://raw.githubusercontent.com/vllm-project/vllm/v0.10.1.1/requirements/cuda.txt \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
     
-WORKDIR /workspace
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 # cuda arch list used by torch
@@ -86,16 +86,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL
 
 WORKDIR /workspace/vllm
 
-RUN python3 -m pip install \
-    cmake>=3.26.1 \
-    ninja \
-    packaging>=24.2 \
-    setuptools>=77.0.3,<80.0.0 \
-    setuptools-scm>=8 \
-    torch==2.7.1 \
-    wheel \
-    jinja2>=3.1.6 \
-    regex \
+RUN python3 -m pip install --system -r https://raw.githubusercontent.com/vllm-project/vllm/v0.10.1.1/requirements/build.txt \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
     && mkdir -p /workspace/dist
 
@@ -165,17 +156,8 @@ ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
 
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
-RUN python3 -m pip install \
-    cmake>=3.26.1 \
-    ninja \
-    packaging>=24.2 \
-    setuptools>=77.0.3,<80.0.0 \
-    setuptools-scm>=8 \
-    torch==2.7.1 \
-    wheel \
-    jinja2>=3.1.6 \
-    regex \
-    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+RUN python3 -m pip install --system -r https://raw.githubusercontent.com/vllm-project/vllm/v0.10.1.1/requirements/build.txt \
+    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') 
 
 RUN python3 -m pip install --system \
             --index-url ${PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
