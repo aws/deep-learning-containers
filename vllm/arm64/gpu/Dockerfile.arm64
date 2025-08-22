@@ -226,30 +226,25 @@ RUN python3 -m pip install --system -r build_requirements.txt \
 # Install DeepGEMM from source
 ARG DEEPGEMM_GIT_REPO="https://github.com/deepseek-ai/DeepGEMM.git"
 ARG DEEPGEMM_GIT_REF="7b6b5563b9d4c1ae07ffbce7f78ad3ac9204827c"
-RUN bash - <<'BASH'
-  . /etc/environment
-    CUDA_MAJOR="${CUDA_VERSION%%.*}"
-    CUDA_MINOR="${CUDA_VERSION#${CUDA_MAJOR}.}"
-    CUDA_MINOR="${CUDA_MINOR%%.*}"
-    if [ "$CUDA_MAJOR" -ge 12 ] && [ "$CUDA_MINOR" -ge 8 ]; then
-        git clone --recursive --shallow-submodules \
-            ${DEEPGEMM_GIT_REPO} deepgemm
-        echo "🏗️  Building DeepGEMM"
-        pushd deepgemm
-            git checkout ${DEEPGEMM_GIT_REF}
-            # Build DeepGEMM
-            # (Based on https://github.com/deepseek-ai/DeepGEMM/blob/main/install.sh)
-            rm -rf build dist
-            rm -rf *.egg-info
-            python3 setup.py bdist_wheel
-            uv pip install --system dist/*.whl
-        popd
-        rm -rf deepgemm
-    else
-        echo "Skipping DeepGEMM installation (requires CUDA 12.8+ but got ${CUDA_VERSION})"
-    fi
-BASH
-
+RUN bash -c ' \
+    . /etc/environment \
+    && CUDA_MAJOR="${CUDA_VERSION%%.*}" \
+    && CUDA_MINOR="${CUDA_VERSION#${CUDA_MAJOR}.}" \
+    && CUDA_MINOR="${CUDA_MINOR%%.*}" \
+    && if [ "$CUDA_MAJOR" -ge 12 ] && [ "$CUDA_MINOR" -ge 8 ]; then \
+        git clone --recursive --shallow-submodules ${DEEPGEMM_GIT_REPO} deepgemm \
+        && echo "🏗️  Building DeepGEMM" \
+        && cd deepgemm \
+        && git checkout ${DEEPGEMM_GIT_REF} \
+        && rm -rf build dist \
+        && rm -rf *.egg-info \
+        && python3 setup.py bdist_wheel \
+        && uv pip install --system dist/*.whl \
+        && cd .. \
+        && rm -rf deepgemm; \
+    else \
+        echo "Skipping DeepGEMM installation (requires CUDA 12.8+ but got ${CUDA_VERSION})"; \
+    fi'
 #################### vLLM installation IMAGE ####################
 
 #################### OPENAI API SERVER ####################
