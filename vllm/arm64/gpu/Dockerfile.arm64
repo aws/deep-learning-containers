@@ -66,11 +66,12 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL
 ARG PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL
 ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
 
-WORKDIR /workspace
-RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
-COPY requirements.txt build_requirements.txt ./
+COPY requirements.txt .
 RUN python3 -m pip install --system -r requirements.txt \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+    
+WORKDIR /workspace
+RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 # cuda arch list used by torch
 ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
@@ -84,7 +85,17 @@ ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
 ARG PYTORCH_CUDA_INDEX_BASE_URL
 
 WORKDIR /workspace/vllm
-RUN python3 -m pip install --system -r /workspace/build_requirements.txt \
+
+RUN python3 -m pip install \
+    cmake>=3.26.1 \
+    ninja \
+    packaging>=24.2 \
+    setuptools>=77.0.3,<80.0.0 \
+    setuptools-scm>=8 \
+    torch==2.7.1 \
+    wheel \
+    jinja2>=3.1.6 \
+    regex \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
     && mkdir -p /workspace/dist
 
@@ -154,8 +165,16 @@ ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
 
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
-COPY build_requirements.txt .
-RUN python3 -m pip install --system -r build_requirements.txt \
+RUN python3 -m pip install \
+    cmake>=3.26.1 \
+    ninja \
+    packaging>=24.2 \
+    setuptools>=77.0.3,<80.0.0 \
+    setuptools-scm>=8 \
+    torch==2.7.1 \
+    wheel \
+    jinja2>=3.1.6 \
+    regex \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 RUN python3 -m pip install --system \
