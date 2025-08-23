@@ -55,6 +55,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__8",
     "pytorch_training___2__7",
     "pytorch_training___2__6",
     "pytorch_training___2__5",
@@ -943,6 +944,7 @@ def skip_smdebug_v1_test(request):
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
         pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
@@ -967,6 +969,7 @@ def skip_dgl_test(request):
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
         pytest.skip(f"DGL binaries are removed, skipping test")
@@ -1032,6 +1035,7 @@ def skip_serialized_release_pt_test(request):
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
         ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
     }
     if _validate_pytorch_framework_version(
         request, image_uri, "skip_serialized_release_pt_test", skip_dict
