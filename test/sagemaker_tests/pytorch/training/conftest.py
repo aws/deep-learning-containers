@@ -475,7 +475,7 @@ def skip_smdmodelparallel_test(
     ecr_image,
 ):
     skip_dict = {
-        "==1.13.*": ["cpu", "cu117"],
+        "==2.0.*": ["cu121"],
         ">=2.1,<2.4": ["cpu", "cu121"],
         ">=2.4,<2.6": ["cpu", "cu124"],
         ">=2.6,<2.7.1": ["cpu", "cu126"],
