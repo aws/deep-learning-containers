@@ -1,13 +1,14 @@
 *GitHub Issue #, if available:*
 
-**Note**: 
-- If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right. 
+**Note**:
+- If merging this PR should also close the associated Issue, please also add that Issue # to the Linked Issues section on the right.
 
 - All PR's are checked weekly for staleness. This PR will be closed if not updated in 30 days.
 
 ### Description
 
 ### Tests Run
+
 By default, docker image builds and tests are disabled. Two ways to run builds and tests:
 1. Using dlc_developer_config.toml
 2. Using this PR description (currently only supported for PyTorch, TensorFlow, vllm, and base images)
@@ -16,7 +17,7 @@ By default, docker image builds and tests are disabled. Two ways to run builds a
 <summary>How to use the helper utility for updating dlc_developer_config.toml</summary>
 
 Assuming your remote is called `origin` (you can find out more with `git remote -v`)...
-  
+
 - Run default builds and tests for a particular buildspec - also commits and pushes changes to remote; Example:
 
 `python src/prepare_dlc_dev_environment.py -b </path/to/buildspec.yml> -cp origin`
@@ -42,7 +43,7 @@ Use the code block below to uncomment commands and run the PR CodeBuild jobs. Th
 
 - `# /buildspec <buildspec_path>`
   - e.g.: `# /buildspec pytorch/training/buildspec.yml`
-  - If this line is commented out, dlc_developer_config.toml will be used. 
+  - If this line is commented out, dlc_developer_config.toml will be used.
 - `# /tests <test_list>`
   - e.g.: `# /tests sanity security ec2`
   - If this line is commented out, it will run the default set of tests (same as the defaults in dlc_developer_config.toml): `sanity, security, ec2, ecs, eks, sagemaker, sagemaker-local`.
@@ -51,13 +52,13 @@ Use the code block below to uncomment commands and run the PR CodeBuild jobs. Th
 
 ```
 # /buildspec <buildspec_path>
-# /tests <test_list> 
+# /tests <test_list>
 ```
 
 ### Formatting
 - [ ] I have run `black -l 100` on my code (formatting tool: https://black.readthedocs.io/en/stable/getting_started.html)
 
-### PR Checklist 
+### PR Checklist
 <details>
 <summary>Expand</summary>
 
