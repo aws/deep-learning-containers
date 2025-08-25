@@ -6,22 +6,22 @@ set -ex
 export PATH=/opt/amazon/efa/bin:$PATH
 
 # check if efa components are correctly installed
-RESULT=$(cat /opt/amazon/efa_installed_packages)
+cat /opt/amazon/efa_installed_packages
 
 # check Libfabric EFA interfaces
-RESULT=$(fi_info -p efa)
-RESULT=$(fi_info -p efa -t FI_EP_RDM | grep 'FI_EP_RDM')
+fi_info -p efa
+fi_info -p efa -t FI_EP_RDM | grep 'FI_EP_RDM'
 
 apt-get update && apt-get install -y kmod
 
 # check if ib_uverbs is present
-RESULT=$(lsmod | grep ib_uverbs)
+lsmod | grep ib_uverbs
 
 # ensure that the security group created is configured correctly
 /test/bin/efa/efa_test.sh
 
 # Queries local RDMA devices
-RESULT=$(ibv_devinfo)
+ibv_devinfo
 
 # check if gdr device is loaded
-RESULT=$(cat /sys/class/infiniband/**/device/p2p | grep 'NVIDIA')
+cat /sys/class/infiniband/**/device/p2p | grep 'NVIDIA'

@@ -45,7 +45,7 @@ ARG OPEN_MPI_PATH=/opt/amazon/openmpi
 ARG EFA_PATH=/opt/amazon/efa
 ARG EFA_VERSION=1.37.0
 ARG OMPI_VERSION=4.1.7
-ARG BRANCH_OFI=1.13.2
+ARG BRANCH_OFI=1.13.2-aws
 
 
 ARG CUDA=12.5
@@ -102,42 +102,64 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
    # Install dependent library for OpenCV
    libgtk2.0-dev \
    jq \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
-   libnccl2 \
-   libnccl-dev \
+   libnccl2=2.27.7-1+cuda12.9 \
+   libnccl-dev=2.27.7-1+cuda12.9 \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean \
  && mkdir -p /var/run/sshd
 
 
-RUN mkdir /tmp/efa \
- && cd /tmp/efa \
- && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
- && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
- && cd aws-efa-installer \
- && apt-get update \
- && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
- && rm -rf /tmp/efa \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
+# Install EFA without AWS OPEN_MPI
+RUN apt-get update \
+  && mkdir /tmp/efa \
+  && cd /tmp/efa \
+  && curl -O https://s3-us-west-2.amazonaws.com/aws-efa-installer/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && cd aws-efa-installer \
+  && ./efa_installer.sh -y --skip-kmod -g \
+  && rm -rf $OPEN_MPI_PATH \
+  && rm -rf /tmp/efa \
+  && rm -rf /tmp/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && rm -rf /var/lib/apt/lists/*
 
-ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${OPEN_MPI_PATH}/nvidia/bin:${PATH}"
-ENV LD_LIBRARY_PATH="${OPEN_MPI_PATH}/lib:${EFA_PATH}/lib:/usr/local/lib:${LD_LIBRARY_PATH}"
-
-# Configure Open MPI and configure NCCL parameters
-RUN mv ${OPEN_MPI_PATH}/bin/mpirun ${OPEN_MPI_PATH}/bin/mpirun.real \
- && echo '#!/bin/bash' > ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "${OPEN_MPI_PATH}/bin/mpirun.real --allow-run-as-root \"\$@\"" >> ${OPEN_MPI_PATH}/bin/mpirun \
- && chmod a+x ${OPEN_MPI_PATH}/bin/mpirun \
- && echo "hwloc_base_binding_policy = none" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo "rmaps_base_mapping_policy = slot" >> ${OPEN_MPI_PATH}/etc/openmpi-mca-params.conf \
- && echo NCCL_DEBUG=INFO >> /etc/nccl.conf \
- && echo NCCL_SOCKET_IFNAME=^lo,docker >> /etc/nccl.conf
+# Install OpenMPI without libfabric support
+RUN mkdir /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default --prefix=$OPEN_MPI_PATH \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
 
 ###########################################################################
 # Horovod & its dependencies
 ###########################################################################
+
+# Create a wrapper for OpenMPI to allow running as root by default
+RUN mv $OPEN_MPI_PATH/bin/mpirun $OPEN_MPI_PATH/bin/mpirun.real \
+ && echo '#!/bin/bash' > $OPEN_MPI_PATH/bin/mpirun \
+ && echo 'mpirun.real --allow-run-as-root "$@"' >> $OPEN_MPI_PATH/bin/mpirun \
+ && chmod a+x $OPEN_MPI_PATH/bin/mpirun
+
+# Configure OpenMPI to run good defaults:
+#   --bind-to none --map-by slot --mca btl_tcp_if_exclude lo,docker0
+RUN echo "hwloc_base_binding_policy = none" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf \
+ && echo "rmaps_base_mapping_policy = slot" >> $OPEN_MPI_PATH/etc/openmpi-mca-params.conf
+
+# Set default NCCL parameters
+RUN echo NCCL_DEBUG=INFO >> /etc/nccl.conf
+ENV LD_LIBRARY_PATH=$OPEN_MPI_PATH/lib/:$EFA_PATH/lib/:$LD_LIBRARY_PATH
+# /usr/local/lib/libpython* needs to be accessible for dynamic linking
+ENV LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
+ENV PATH=$OPEN_MPI_PATH/bin/:$PATH
+ENV PATH=$OPEN_MPI_PATH/nvidia/bin:$PATH
 
 # SSH login fix. Otherwise user is kicked off after login
 RUN mkdir -p /var/run/sshd \
@@ -207,40 +229,20 @@ RUN apt-get update && apt-get install -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-RUN mkdir /tmp/aws-ofi-nccl \
- && cd /tmp/aws-ofi-nccl \
- && wget https://github.com/aws/aws-ofi-nccl/releases/download/v${BRANCH_OFI}-aws/aws-ofi-nccl-${BRANCH_OFI}-aws.tar.gz \
- && tar -xf aws-ofi-nccl-${BRANCH_OFI}-aws.tar.gz \
- && cd aws-ofi-nccl-${BRANCH_OFI}-aws \
+RUN mkdir /tmp/efa-ofi-nccl \
+ && cd /tmp/efa-ofi-nccl \
+ && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
+ && cd aws-ofi-nccl \
  && ./autogen.sh \
- && ./configure --with-mpi=${OPEN_MPI_PATH} \
-                --with-libfabric=${EFA_PATH} \
-                --with-cuda=/usr/local/cuda \
-                --with-nccl=/usr/lib \
-                --prefix=/usr/local \
-                --disable-tests \
-                --enable-platform-aws \
- && make \
+ && ./configure --with-libfabric=/opt/amazon/efa \
+    --with-mpi=/opt/amazon/openmpi \
+    --with-cuda=/usr/local/cuda \
+    --with-nccl=/usr/local \
+    --prefix=/usr/local \
+    --disable-tests \
+ && make -j $(nproc) \
  && make install \
- && rm -rf /tmp/aws-ofi-nccl \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
-
-# RUN mkdir /tmp/efa-ofi-nccl \
-#  && cd /tmp/efa-ofi-nccl \
-#  && git clone https://github.com/aws/aws-ofi-nccl.git -b v$BRANCH_OFI \
-#  && cd aws-ofi-nccl \
-#  && ./autogen.sh \
-#  && ./configure --with-libfabric=/opt/amazon/efa \
-#     --with-mpi=/opt/amazon/openmpi \
-#     --with-cuda=/usr/local/cuda \
-#     --with-nccl=/usr/local \
-#     --prefix=/usr/local \
-#     --disable-tests \
-#  && make -j $(nproc) \
-#  && make install \
-#  && rm -rf /tmp/efa-ofi-nccl
+ && rm -rf /tmp/efa-ofi-nccl
 
 # patch nvjpeg
 RUN mkdir -p /tmp/nvjpeg \
