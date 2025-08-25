@@ -6,7 +6,9 @@ MODEL_NAME=$3
 
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
-tmux new-session -d -s single_node "docker run --runtime nvidia --gpus all \
+tmux new-session -d -s single_node "docker run \
+    --entrypoint /bin/bash \
+    --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "NCCL_DEBUG=TRACE" \
@@ -16,15 +18,24 @@ tmux new-session -d -s single_node "docker run --runtime nvidia --gpus all \
     --model $MODEL_NAME \
     --tensor-parallel-size 8"
 
-sleep 1500
+echo "Waiting for the server to start..."
+until $(curl --output /dev/null --silent --fail http://localhost:8000/v1/completions); do
+    printf '.'
+    sleep 10
+done
+echo -e "\nServer is up!"
+
+echo "Waiting for model to fully load..."
+sleep 30
 
 source vllm_env/bin/activate
 
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
 python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
-  --backend vllm \
   --model $MODEL_NAME \
-  --endpoint /v1/completions \
+  --backend vllm \
+  --base-url "http://localhost:8000" \
+  --endpoint '/v1/completions' \
   --dataset-name sharegpt \
   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
   --num-prompts 1000

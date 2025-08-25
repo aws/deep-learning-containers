@@ -9,7 +9,7 @@ from contextlib import contextmanager
 
 
 from test import test_utils
-from test_utils import AL2023_BASE_DLAMI_ARM64_US_WEST_2
+from test.test_utils import DEFAULT_REGION, P4DE_REGION
 import test.test_utils.ec2 as ec2_utils
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
@@ -19,22 +19,19 @@ from fabric import Connection
 from botocore.exceptions import WaiterError
 
 
-from test.test_utils import KEYS_TO_DESTROY_FILE
+from test.test_utils import KEYS_TO_DESTROY_FILE, AL2023_BASE_DLAMI_ARM64_US_WEST_2
 
 from test.test_utils.ec2 import (
     get_default_vpc_id,
     get_subnet_id_by_vpc,
+    get_efa_ec2_instance_type,
+    filter_efa_instance_type,
+    filter_efa_only_p4_instance_type,
 )
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent region where p4de tests can be run
-P4DE_REGION = "us-east-1"
-
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
-
-VLLM_INSTANCE_TYPE = ["p4d.24xlarge", "p5.48xlarge"]
-
 ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
 
@@ -48,8 +45,21 @@ def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
-def ec2_instance_ami(region):
-    return AL2023_BASE_DLAMI_ARM64_US_WEST_2
+def ec2_instance_ami(region, image):
+    if "arm64" in image:
+        return AL2023_BASE_DLAMI_ARM64_US_WEST_2
+
+    return test_utils.get_dlami_id(region)
+
+
+def ec2_instance_type(image):
+    if "arm64" in image:
+        return get_efa_ec2_instance_type(default="g5g.4xlarge", processor="gpu", arch_type="arm64")
+    else:
+        return get_efa_ec2_instance_type(
+            default="p4d.24xlarge",
+            filter_function=filter_efa_only_p4_instance_type,
+        )
 
 
 def availability_zone_options(ec2_client, ec2_instance_type, region):
@@ -332,48 +342,6 @@ def efa_ec2_instances(
         raise
 
 
-@contextmanager
-def ec2_test_environment():
-    cleanup_functions = []
-    try:
-        # Setup code here
-        region = DEFAULT_REGION
-        ec2_cli = ec2_client(region)
-        instance_type = VLLM_INSTANCE_TYPE[0]
-        ami_id = ec2_instance_ami(region)
-        az_options = availability_zone_options(ec2_cli, instance_type, region)
-
-        instances_info = efa_ec2_instances(
-            ec2_client=ec2_cli,
-            ec2_instance_type=instance_type,
-            ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
-            ec2_key_name="vllm-ec2-test",
-            ec2_instance_ami=ami_id,
-            region=region,
-            availability_zone_options=az_options,
-        )
-        # Register cleanup functions
-        cleanup_functions.extend(
-            [
-                lambda: ec2_cli.terminate_instances(
-                    InstanceIds=[instance_id for instance_id, _ in instances_info]
-                ),
-                lambda: test_utils.destroy_ssh_keypair(ec2_cli, instances_info[0][1]),
-            ]
-        )
-
-        yield instances_info
-
-    finally:
-        print("Running cleanup operations...")
-        for cleanup_func in cleanup_functions:
-            try:
-                if cleanup_func is not None:
-                    cleanup_func()
-            except Exception as cleanup_error:
-                LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
-
-
 def _setup_instance(connection, fsx_dns_name, mount_name):
     """
     Setup FSx mount and VLLM environment on an instance synchronously
@@ -464,10 +432,10 @@ def cleanup_resources(ec2_cli, resources, fsx):
         raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
 
 
-def launch_ec2_instances(ec2_cli):
+def launch_ec2_instances(ec2_cli, image):
     """Launch EC2 instances with EFA support"""
-    instance_type = VLLM_INSTANCE_TYPE[0]
-    ami_id = ec2_instance_ami(DEFAULT_REGION)
+    instance_type = ec2_instance_type(image)
+    ami_id = ec2_instance_ami(DEFAULT_REGION, image)
     az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
 
     instances_info = efa_ec2_instances(
@@ -565,7 +533,7 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
         connection.run(cmd)
 
 
-def setup():
+def setup(image):
     """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
@@ -576,7 +544,7 @@ def setup():
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        instance_result = launch_ec2_instances(ec2_cli)
+        instance_result = launch_ec2_instances(ec2_cli, image)
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
         resources["connections"] = instance_result["connections"]
