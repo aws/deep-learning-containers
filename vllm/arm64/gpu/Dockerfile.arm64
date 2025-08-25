@@ -100,7 +100,7 @@ ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
 RUN rm -rf .deps && \
     mkdir -p .deps && \
-    export VLLM_USE_PRECOMPILED=true && \
+    export VLLM_USE_PRECOMPILED=false && \
     export VLLM_DOCKER_BUILD_CONTEXT=1 && \
     python3 setup.py bdist_wheel --dist-dir=/workspace/dist --py-limited-api=cp38
 
@@ -160,14 +160,6 @@ RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/v0.10.1.1/requirements/build.txt \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
-
-RUN python3 -m pip install \
-            --index-url ${PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
-            "torch==2.8.0.*" "torchvision==0.22.0.*" 
-
-RUN python3 -m pip install \
-            --index-url ${PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
-            --pre pytorch_triton==3.3.0+gitab727c40 
 
 # Install vllm wheel
 COPY --from=build /workspace/dist /vllm-workspace/dist

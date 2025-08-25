@@ -9,6 +9,7 @@ from contextlib import contextmanager
 
 
 from test import test_utils
+from test_utils import AL2023_BASE_DLAMI_ARM64_US_WEST_2
 import test.test_utils.ec2 as ec2_utils
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
@@ -48,7 +49,7 @@ def ec2_client(region):
 
 
 def ec2_instance_ami(region):
-    return test_utils.get_dlami_id(region)
+    return AL2023_BASE_DLAMI_ARM64_US_WEST_2
 
 
 def availability_zone_options(ec2_client, ec2_instance_type, region):
