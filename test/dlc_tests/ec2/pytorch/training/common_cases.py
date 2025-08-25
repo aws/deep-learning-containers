@@ -360,9 +360,17 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         f"docker run --runtime=nvidia --gpus all --name {container_name} -itd {pytorch_training}",
         hide=True,
     )
-    major_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
-    minor_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
-    patch_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
+
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    # 2.7.1 uses dlc base image as base with cudnn in different location and format
+    if Version(image_framework_version) in SpecifierSet(">=2.7.1"):
+        major_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
+    else:
+        major_cmd = 'cat /usr/cuda/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/cuda/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/cuda/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
     major = ec2_connection.run(
         f"docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]
