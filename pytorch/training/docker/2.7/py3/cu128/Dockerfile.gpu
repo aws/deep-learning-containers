@@ -259,11 +259,11 @@ RUN uv pip install --system --no-cache-dir \
     tornado>=6.5.1
 
 # Install PyTorch
-RUN uv pip install --system --no-cache-dir -U torch==${PYTORCH_VERSION} \
+RUN uv pip install --system --no-cache-dir torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
-    && uv pip install --system --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    && uv pip install --system --no-cache-dir torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
@@ -276,7 +276,7 @@ RUN uv pip install --system --no-cache-dir -U torch==${PYTORCH_VERSION} \
     thinc==8.3.4 \
     blis \
     numpy \
- && uv pip uninstall -y dataclasses
+ && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
