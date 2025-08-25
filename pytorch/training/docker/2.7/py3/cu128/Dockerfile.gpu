@@ -223,7 +223,7 @@ RUN  python3 -m pip install uv
 ENV UV_HTTP_TIMEOUT=500
 
 # Install common conda packages
-RUN uv pip install --no-cache-dir \
+RUN uv pip install --system --no-cache-dir \
     cython \
     cryptography \
     pyOpenSSL \
@@ -259,11 +259,11 @@ RUN uv pip install --no-cache-dir \
     tornado>=6.5.1
 
 # Install PyTorch
-RUN uv pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+RUN uv pip install --system --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
-    && uv pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    && uv pip install --system --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
@@ -343,9 +343,9 @@ RUN cd /tmp \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 uv pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=4 uv pip install --system --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN uv pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+RUN uv pip install --system --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
