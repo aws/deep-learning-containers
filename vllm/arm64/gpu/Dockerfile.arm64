@@ -70,10 +70,12 @@ ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
 WORKDIR /workspace
 
 # For torch, vision, triton
-RUN wget https://download.pytorch.org/whl/nightly/cu128/torch-2.8.0.dev20250627+cpu-cp312-cp312-manylinux_2_28_aarch64.whl && \
-wget https://download.pytorch.org/whl/nightly/cu128/torchvision-0.23.0.dev20250628-cp313-cp313-manylinux_2_28_aarch64.whl && \ 
-wget https://download.pytorch.org/whl/nightly/cu128/pytorch_triton-3.3.0+git96316ce5-cp310-cp310-linux_aarch64.whl
-
+RUN python3 -m pip install --pre \
+    --index-url https://download.pytorch.org/whl/nightly/cu128 \
+    "torch==2.8.0.*" \
+    "torchvision==0.23.0.*" \
+    "pytorch-triton==3.3.0.*"
+    
 RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 # cuda arch list used by torch
