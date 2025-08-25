@@ -215,10 +215,15 @@ RUN cd /tmp/ \
 ENV PATH="/usr/local/bin:${PATH}"
 
 # this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
-RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+RUN python -m pip install --upgrade pip \
+    --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
+# Install uv for faster pip installs
+RUN  python3 -m pip install uv
+ENV UV_HTTP_TIMEOUT=500
 
 # Install common conda packages
-RUN pip install --no-cache-dir \
+RUN uv pip install --no-cache-dir \
     cython \
     cryptography \
     pyOpenSSL \
@@ -254,11 +259,11 @@ RUN pip install --no-cache-dir \
     tornado>=6.5.1
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+RUN uv pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    && uv pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
@@ -271,7 +276,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     thinc==8.3.4 \
     blis \
     numpy \
- && pip uninstall -y dataclasses
+ && uv pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
@@ -338,9 +343,9 @@ RUN cd /tmp \
 ENV NVTE_FRAMEWORK=pytorch
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+RUN MAX_JOBS=4 uv pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+RUN uv pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
