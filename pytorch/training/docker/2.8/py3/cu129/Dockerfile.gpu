@@ -7,21 +7,9 @@ ARG TORCHAUDIO_VERSION=2.8.0
 ARG TORCHVISION_VERSION=0.23.0
 ARG TORCHDATA_VERSION=0.11.0
 
-ARG GDRCOPY_VERSION=2.5
-ARG TE_VERSION=2.5
-ARG FLASH_ATTN_VERSION=2.8.2
-
-FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS base_image
-# base has EFA, PYTHON and CUDA 12.9
-
-# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
-ENV DEBIAN_FRONTEND=noninteractive
-
-RUN apt-get update \
- && apt-get upgrade -y \
- && apt-get autoremove -y \
- && apt-get clean \
- && rm -rf /var/lib/apt/lists/*
+ARG GDRCOPY_VERSION=2.5.1
+ARG TE_VERSION=2.6.0.post1
+ARG FLASH_ATTN_VERSION=2.8.3
 
 #################################################################
 #   ____
@@ -37,7 +25,8 @@ RUN apt-get update \
 #                      |___/                        |_|
 #################################################################
 
-FROM base_image AS common
+FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS common
+# base has EFA, PYTHON and CUDA 12.9
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -155,9 +144,6 @@ RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.g
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-RUN chmod +x /usr/local/bin/deep_learning_container.py
-
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
@@ -174,6 +160,19 @@ RUN cd /tmp \
  && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
+
+# Install common packages used by both EC2 and SageMaker
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    git \
+    jq \
+    emacs \
+    vim \
+    unzip \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -199,18 +198,6 @@ ARG PYTHON
 
 WORKDIR /
 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    curl \
-    wget \
-    git \
-    jq \
-    emacs \
-    vim \
-    unzip \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
-
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -220,6 +207,14 @@ RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
 CMD ["/bin/bash"]
 
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
 
 #################################################################
 #  ____                   __  __       _
@@ -246,18 +241,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 ARG PYTHON
 
 WORKDIR /
-
-RUN apt-get update \
- && apt-get install -y --no-install-recommends \
-    curl \
-    wget \
-    git \
-    jq \
-    emacs \
-    vim \
-    unzip \
- && rm -rf /var/lib/apt/lists/* \
- && apt-get clean
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
@@ -289,3 +272,12 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
