@@ -285,7 +285,7 @@ RUN cd /tmp \
  && rm -rf /tmp/nccl
 
 # Install flash attn
-RUN MAX_JOBS=24 uv pip install --system flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation \
+RUN MAX_JOBS=20 uv pip install --system flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation \
     && pip cache purge \
     && uv cache clean
 
@@ -293,7 +293,7 @@ RUN MAX_JOBS=24 uv pip install --system flash-attn==${FLASH_ATTN_VERSION} --no-b
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
-RUN MAX_JOBS=24 uv pip install --system git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation \ 
+RUN MAX_JOBS=20 uv pip install --system git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation \ 
     && pip cache purge \
     && uv cache clean
 
