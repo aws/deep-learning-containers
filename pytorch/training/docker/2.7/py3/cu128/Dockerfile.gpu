@@ -215,73 +215,21 @@ RUN cd /tmp/ \
 ENV PATH="/usr/local/bin:${PATH}"
 
 # this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
-RUN python -m pip install --upgrade pip \
+# Install uv for faster pip installs
+RUN python3 -m pip install --upgrade pip uv \
     --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
-# Install uv for faster pip installs
-RUN  python3 -m pip install uv
 ENV UV_HTTP_TIMEOUT=500
-
-# Install common conda packages
-RUN uv pip install --system --no-cache-dir \
-    cython \
-    cryptography \
-    pyOpenSSL \
-    pybind11 \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    charset-normalizer \
-    packaging \
-    boto3 \
-    PyYAML \
-    numpy \
-    scipy \
-    click \
-    psutil \
-    ipython \
-    ipykernel \
-    pillow \
-    h5py \
-    fsspec \
-    "idna>=3.7" \
-    "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3>=2.5.0" \
-    "awscli<2" \
-    ninja \
-    # pencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
-    opencv-python==4.11.0.86 \
-    mpi4py \
-    jinja2>=3.1.6 \
-    tornado>=6.5.1
-
-# Install PyTorch
-RUN uv pip install --system --no-cache-dir torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    && uv pip install --system --no-cache-dir torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    triton \
-    s3torchconnector \
-    fastai==2.8.2 \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4 \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
+COPY pytorch_2_7_gpu.txt pytorch_2_7_gpu.txt
+RUN uv pip install --system -r pytorch_2_7_gpu.txt \
+    --extra-index-url https://download.pytorch.org/whl/cu128 \
+    && pip uninstall -y dataclasses \
+    && pip cache purge \
+    && uv cache clean
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
