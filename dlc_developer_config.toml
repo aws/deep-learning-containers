@@ -94,7 +94,7 @@ ipv6_vpc_name = ""
 # run standard sagemaker remote tests from test/sagemaker_tests
 sagemaker_remote_tests = true
 # run efa sagemaker tests
-sagemaker_efa_tests = true
+sagemaker_efa_tests = false
 # run release_candidate_integration tests
 sagemaker_rc_tests = false
 # run sagemaker benchmark tests
