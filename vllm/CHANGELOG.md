@@ -2,9 +2,9 @@
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file.
 
-## [0.10.1] - 2025-08-22
+## [0.10.1] - 2025-08-25
 ### Updated
-- vllm/vllm-openai version `v0.10.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.1) for details.
+- vllm/vllm-openai version `v0.10.1.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.1.1) for details.
 - EFA installer version `1.43.2`
 ### Sample ECR URI
 ```
