@@ -10,7 +10,6 @@ charset-normalizer
 packaging
 boto3
 PyYAML
-numpy
 scipy
 click
 psutil
