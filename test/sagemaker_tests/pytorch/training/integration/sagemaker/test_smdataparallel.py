@@ -219,7 +219,9 @@ def test_hc_smdataparallel_mnist(ecr_image, sagemaker_regions, efa_instance_type
         )
 
 
-@pytest.mark.skip("SMDDP binary releases are decoupled from DLC releases and SM Model Parallel team is maintaining their own Docker Container")
+@pytest.mark.skip(
+    "SMDDP binary releases are decoupled from DLC releases and SM Model Parallel team is maintaining their own Docker Container"
+)
 @pytest.mark.skip_cpu
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("feature_smmp_present")
