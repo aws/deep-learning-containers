@@ -157,7 +157,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && sed -ie '13s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
