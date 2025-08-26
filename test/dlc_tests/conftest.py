@@ -929,28 +929,6 @@ def skip_torchdata_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_smdebug_v1_test(request):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-        ">=2.8,<2.9": ["cpu", "cu129"],
-    }
-    if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
-        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
-
-
-@pytest.fixture(autouse=True)
 def skip_dgl_test(request):
     """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
     The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
@@ -1616,9 +1594,6 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "neuronx_test(): mark as neuronx integration test")
     config.addinivalue_line(
         "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_smdebug_v1_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
         "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
