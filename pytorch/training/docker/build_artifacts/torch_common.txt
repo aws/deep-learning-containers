@@ -30,19 +30,3 @@ opencv-python==4.11.0.86
 mpi4py
 jinja2 >= 3.1.6
 tornado >= 6.5.1
-torch == 2.7.1
-torchvision == 0.22.1
-torchaudio == 2.7.1
-torchtnt == 0.2.4
-torchdata == 0.11.0
-triton
-s3torchconnector
-fastai == 2.8.2
-accelerate
-# pin numpy requirement for fastai dependency
-# requires explicit declaration of spacy, thic, blis
-spacy
-#thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-thinc == 8.3.4
-blis
-numpy

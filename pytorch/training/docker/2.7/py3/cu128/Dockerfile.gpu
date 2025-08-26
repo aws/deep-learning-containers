@@ -214,15 +214,14 @@ RUN cd /tmp/ \
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
 
-# this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
 # Install uv for faster pip installs
-RUN python3 -m pip install --upgrade pip uv \
-    --trusted-host pypi.org --trusted-host files.pythonhosted.org
+# this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
+RUN python3 -m pip install --upgrade pip uv
 
 ENV UV_HTTP_TIMEOUT=500
-COPY pytorch_2_7_gpu.txt pytorch_2_7_gpu.txt
-RUN uv pip install --system -r pytorch_2_7_gpu.txt \
-    --extra-index-url https://download.pytorch.org/whl/cu128 \
+COPY torch_common.txt torch_common.txt
+COPY torch27_gpu.txt torch27_gpu.txt
+RUN uv pip install --system -r torch_common.txt -r torch27_gpu.txt \
     && pip uninstall -y dataclasses \
     && pip cache purge \
     && uv cache clean

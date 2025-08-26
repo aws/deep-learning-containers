@@ -37,8 +37,11 @@ context:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
     pytorch_27_gpu_requirements:
-      source: docker/build_artifacts/pytorch_2_7_gpu.txt
-      target: pytorch_2_7_gpu.txt
+      source: docker/build_artifacts/torch27_gpu.txt
+      target: torch27_gpu.txt
+    pytorch_common_requirements:
+      source: docker/build_artifacts/torch_common.txt
+      target: torch_common.txt
 
 
 images:
