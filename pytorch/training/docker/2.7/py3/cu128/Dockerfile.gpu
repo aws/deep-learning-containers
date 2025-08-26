@@ -214,69 +214,20 @@ RUN cd /tmp/ \
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
 
+# Install uv for faster pip installs
 # this will add pip systemlink to pip${PYTHON_SHORT_VERSION}
-RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+RUN python3 -m pip install --upgrade pip uv
 
-# Install common conda packages
-RUN pip install --no-cache-dir \
-    cython \
-    cryptography \
-    pyOpenSSL \
-    pybind11 \
-    mkl \
-    mkl-include \
-    parso \
-    typing \
-    charset-normalizer \
-    packaging \
-    boto3 \
-    PyYAML \
-    numpy \
-    scipy \
-    click \
-    psutil \
-    ipython \
-    ipykernel \
-    pillow \
-    h5py \
-    fsspec \
-    "idna>=3.7" \
-    "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3>=2.5.0" \
-    "awscli<2" \
-    ninja \
-    # pencv-python 4.12.0.88 reuqires numpy<2.3.0, which is not compatible with previous prod image(2.3.1)
-    opencv-python==4.11.0.86 \
-    mpi4py \
-    jinja2>=3.1.6 \
-    tornado>=6.5.1
-
-# Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu128 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    triton \
-    s3torchconnector \
-    fastai==2.8.2 \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4 \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
+ENV UV_HTTP_TIMEOUT=500
+COPY torch_common.txt torch_common.txt
+COPY torch27_gpu.txt torch27_gpu.txt
+RUN uv pip install --system -r torch_common.txt -r torch27_gpu.txt \
+    && pip cache purge \
+    && uv cache clean
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
@@ -333,14 +284,18 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
-# Install flash attn and NVIDIA transformer engine.
+# Install flash attn
+RUN MAX_JOBS=36 uv pip install --system flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation \
+    && pip cache purge \
+    && uv cache clean
+
+# Install NVIDIA transformer engine.
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
-# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+RUN MAX_JOBS=36 uv pip install --system git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation \ 
+    && pip cache purge \
+    && uv cache clean
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh

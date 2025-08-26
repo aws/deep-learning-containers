@@ -1,0 +1,17 @@
+
+torch @ https://download.pytorch.org/whl/cu128/torch-2.7.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=0b64f7d0a6f2a739ed052ba959f7b67c677028c9566ce51997f9f90fe573ddaa
+torchvision @ https://download.pytorch.org/whl/cu128/torchvision-0.22.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=f64ef9bb91d71ab35d8384912a19f7419e35928685bc67544d58f45148334373
+torchaudio @ https://download.pytorch.org/whl/cu128/torchaudio-2.7.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=0c1d407f934d44f87935b139991d8872f81f88f8a6be9b7bd25918bf744e2be6
+torchtnt == 0.2.4
+torchdata == 0.11.0
+triton
+s3torchconnector
+fastai == 2.8.2
+accelerate
+# pin numpy requirement for fastai dependency
+# requires explicit declaration of spacy, thic, blis
+spacy
+#thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+thinc == 8.3.4
+blis
+numpy
