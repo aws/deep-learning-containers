@@ -84,8 +84,7 @@ RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vll
     && mkdir -p /workspace/dist \
     && git clone https://github.com/vllm-project/vllm.git . \
     && git checkout ${VLLM_VERSION} \
-    && python3 use_existing_torch.py \
-    && python3 -m pip install --no-build-isolation -e .
+    && python3 use_existing_torch.py 
 
 ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
