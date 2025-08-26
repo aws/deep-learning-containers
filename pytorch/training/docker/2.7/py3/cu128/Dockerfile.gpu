@@ -284,16 +284,14 @@ RUN cd /tmp \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
 
-RUN /bin/bash -c '\
-    # Install flash attn and NVIDIA transformer engine.
-    # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
-    export NVTE_FRAMEWORK=pytorch \
-    export MAX_JOBS=$(nproc) && \
-    # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-    # Set MAX_JOBS=4 to avoid OOM issues in installation process
-    uv pip install --system --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation && \
-    # # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-    uv pip install --system --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation'
+# Install flash attn
+RUN MAX_JOBS=36 uv pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+
+# Install NVIDIA transformer engine.
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+RUN MAX_JOBS=36 uv pip install --system --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
