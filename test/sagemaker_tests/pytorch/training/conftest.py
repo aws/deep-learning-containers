@@ -404,30 +404,6 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_dgl_test(
-    request,
-    processor,
-    ecr_image,
-):
-    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
-    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
-    when the binaries are added in.
-    """
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-        ">=2.8,<2.9": ["cpu", "cu129"],
-    }
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_dgl_test", skip_dict
-    ):
-        pytest.skip(f"DGL binary is removed, skipping test")
-
-
-@pytest.fixture(autouse=True)
 def skip_pytorchddp_test(
     request,
     processor,
@@ -445,50 +421,6 @@ def skip_pytorchddp_test(
         request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
     ):
         pytest.skip(f"SM Data Parallel binaries exist in this image, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_smdmodelparallel_test(
-    request,
-    processor,
-    ecr_image,
-):
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-        ">=2.8,<2.9": ["cpu", "cu129"],
-    }
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
-    ):
-        pytest.skip(
-            f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
-def skip_smddataparallel_test(
-    request,
-    processor,
-    ecr_image,
-):
-    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
-    For each currency release, we can skip SMDDP tests if the binary does not exist.
-    However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
-    """
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.6,<2.7.1": ["cu126"],
-        ">=2.7.1,<2.8": ["cu128"],
-        ">=2.8,<2.9": ["cu129"],
-    }
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
-    ):
-        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
 
 @pytest.fixture(autouse=True)
