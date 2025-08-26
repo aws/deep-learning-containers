@@ -41,7 +41,7 @@ build_frameworks = ["pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true 
+build_training = true
 build_inference = false 
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
@@ -59,10 +59,10 @@ notify_test_failures = false
 ### On by default
 sanity_tests = true
 security_tests = true
-  safety_check_test = true
-  ecr_scan_allowlist_feature = true
+  safety_check_test = false
+  ecr_scan_allowlist_feature = false
 ecs_tests = true
-eks_tests = true  
+eks_tests = true
 ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = true
@@ -71,10 +71,10 @@ ec2_benchmark_tests = true
 ### default. If false, these types of tests will be skipped while other tests will run as usual.
 ### These tests are run in EC2 test jobs, so ec2_tests must be true if ec2_tests_on_heavy_instances is true.
 ### Off by default (set to false)
-ec2_tests_on_heavy_instances = true 
+ec2_tests_on_heavy_instances = true
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = true 
+sagemaker_local_tests = true
 ### Set enable_ipv6 = true to run tests with IPv6-enabled resources
 ### Off by default (set to false)
 enable_ipv6 = false
@@ -92,13 +92,13 @@ enable_ipv6 = false
 ipv6_vpc_name = ""
 
 # run standard sagemaker remote tests from test/sagemaker_tests
-sagemaker_remote_tests = true 
+sagemaker_remote_tests = true
 # run efa sagemaker tests
-sagemaker_efa_tests = false
+sagemaker_efa_tests = true 
 # run release_candidate_integration tests
-sagemaker_rc_tests = false
+sagemaker_rc_tests = true 
 # run sagemaker benchmark tests
-sagemaker_benchmark_tests = false
+sagemaker_benchmark_tests = true
 
 # SM remote EFA test instance type
 sagemaker_remote_efa_instance_type = ""
@@ -122,7 +122,7 @@ use_scheduler = false
 dlc-pr-base = ""
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/training/buildspec-2-8-ec2.yml"
+dlc-pr-pytorch-training = "pytorch/training/buildspec-2-8-sm.yml" 
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
