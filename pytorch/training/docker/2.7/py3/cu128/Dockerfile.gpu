@@ -42,6 +42,7 @@ ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 ENV DLC_CONTAINER_TYPE=training
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
 
 WORKDIR /
 
