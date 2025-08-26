@@ -27,7 +27,7 @@
     "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.10.0",
+    "version_specifier": "==1.10.1",
     "skip": "True"
   },
   "thinc": {
@@ -71,8 +71,5 @@
   },
   "awscli": {
     "version_specifier": "<2"
-  },
-  "sagemaker-pytorch-training": {
-    "version_specifier": ">=2.9.0,<3"
   }
 }
