@@ -133,7 +133,6 @@ RUN rm -rf /root/.ssh/ \
  && cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys \
  && printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-
 # install python
 RUN cd /tmp/ \
 && wget https://www.python.org/ftp/python/${PYTHON_VERSION}/Python-${PYTHON_VERSION}.tgz \
@@ -191,6 +190,24 @@ RUN pip install --no-cache-dir \
     jinja2>=3.1.6 \
     tornado>=6.5.1
 
+# Install PyTorch
+RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
+    s3torchconnector \
+    fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    thinc  \
+    blis \
+    numpy \
+ && pip uninstall -y dataclasses
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -231,36 +248,8 @@ ARG TORCHVISION_VERSION
 
 WORKDIR /
 
-# Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    s3torchconnector \
-    fastai \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc  \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
-
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
-
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -301,24 +290,6 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
-# Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cpu \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
-    torchdata==${TORCHDATA_VERSION} \
-    s3torchconnector \
-    fastai \
-    accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc==8.3.4  \
-    blis \
-    numpy \
- && pip uninstall -y dataclasses
-
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
@@ -345,18 +316,8 @@ COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-RUN HOME_DIR=/root \
- && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
- && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
- && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
- && chmod +x /usr/local/bin/testOSSCompliance \
- && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
- && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- && rm -rf ${HOME_DIR}/oss_compliance* \
- && rm -rf /tmp/tmp*
-
-# Removing the cache as it is needed for security verification
-RUN rm -rf /root/.cache | true
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]

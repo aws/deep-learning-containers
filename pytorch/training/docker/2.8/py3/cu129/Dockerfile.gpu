@@ -8,7 +8,7 @@ ARG TORCHVISION_VERSION=0.23.0
 ARG TORCHDATA_VERSION=0.11.0
 
 ARG GDRCOPY_VERSION=2.5.1
-ARG TE_VERSION=2.6.0.post1
+ARG TE_VERSION=2.5
 ARG FLASH_ATTN_VERSION=2.8.3
 
 #################################################################
@@ -127,8 +127,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
-    #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4 \
+    thinc \
     blis \
     numpy \
  && pip uninstall -y dataclasses
@@ -140,7 +139,7 @@ ENV NVTE_FRAMEWORK=pytorch
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
 RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir transformer-engine==${TE_VERSION} --no-build-isolation
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
