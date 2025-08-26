@@ -222,7 +222,6 @@ ENV UV_HTTP_TIMEOUT=500
 COPY torch_common.txt torch_common.txt
 COPY torch27_gpu.txt torch27_gpu.txt
 RUN uv pip install --system -r torch_common.txt -r torch27_gpu.txt \
-    && pip uninstall -y dataclasses \
     && pip cache purge \
     && uv cache clean
 
