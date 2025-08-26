@@ -23,7 +23,7 @@
     "skip": "True"
   },
   "accelerate": {
-    "version_specifier": "==1.10.0",
+    "version_specifier": "==1.10.1",
     "skip": "True"
   },
   "thinc": {
@@ -64,8 +64,5 @@
   },
   "opencv-python": {
     "version_specifier": "==4.11.0.86"
-  },
-  "sagemaker-pytorch-training": {
-    "version_specifier": ">=2.9.0,<3"
   }
 }

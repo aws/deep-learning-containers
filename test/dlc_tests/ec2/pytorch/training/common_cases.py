@@ -368,24 +368,17 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         hide=True,
     )
 
-    cudnn_paths = ["/usr/include/cudnn_version.h", "/usr/local/cuda/include/cudnn_version.h"]
-
-    for path in cudnn_paths:
-        check_cmd = f"[ -f {path} ] && echo 'Found'"
-        result = ec2_connection.run(
-            f"docker exec --user root {container_name} bash -c '{check_cmd}'", hide=True, warn=True
-        )
-        if result.ok and result.stdout.strip() == "Found":
-            cudnn_path = path
-            LOGGER.info(f"Found cuDNN header at: {cudnn_path}")
-            break
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    # 2.7.1 uses dlc base image as base with cudnn in different location and format
+    if Version(image_framework_version) in SpecifierSet(">=2.7.1"):
+        major_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
     else:
-        raise FileNotFoundError("Could not find cudnn_version.h in any standard location")
-
-    major_cmd = f'cat {cudnn_path} | grep "#define CUDNN_MAJOR"'
-    minor_cmd = f'cat {cudnn_path} | grep "#define CUDNN_MINOR"'
-    patch_cmd = f'cat {cudnn_path} | grep "#define CUDNN_PATCHLEVEL"'
-
+        major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
+        
     major = ec2_connection.run(
         f"docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]
