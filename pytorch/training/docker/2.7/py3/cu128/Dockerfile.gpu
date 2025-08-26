@@ -8,7 +8,7 @@ ARG TORCHDATA_VERSION=0.11.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
 ARG FLASH_ATTN_VERSION=2.7.4.post1
-FROM 669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:12.8.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-5202-2025-08-22-16-35-57 as common
+FROM public.ecr.aws/deep-learning-containers/base:12.8.0-gpu-py312-ubuntu22.04-ec2 as common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -23,12 +23,27 @@ ARG PYTHON
 ARG GDRCOPY_VERSION
 ARG TE_VERSION
 ARG FLASH_ATTN_VERSION
+
+ENV CUDA_HOME="/usr/local/cuda"
+ENV PATH="${CUDA_HOME}/bin:${PATH}"
+ENV EFA_PATH="/opt/amazon/efa"
+ENV OPEN_MPI_PATH="/opt/amazon/openmpi"
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+
+ENV DLC_CONTAINER_TYPE=training
 ENV DEBIAN_FRONTEND=noninteractive
 ENV LD_LIBRARY_PATH="/usr/local/lib:${LD_LIBRARY_PATH}"
 
-
-ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
-ENV DLC_CONTAINER_TYPE=training
+WORKDIR /
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
@@ -36,8 +51,8 @@ COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
 
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+RUN chmod +x /usr/local/bin/bash_telemetry.sh \
+ && echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 RUN pip install --no-cache-dir \
     numpy \
@@ -56,8 +71,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton 
-
-WORKDIR /
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -82,6 +95,13 @@ RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.g
 RUN apt-get update \
  && apt-get install -y --allow-change-held-packages --no-install-recommends \
     libgl1-mesa-glx \
+    build-essential \
+    ca-certificates \
+    zlib1g-dev \
+    openssl \
+    python3-dev \
+    pkg-config \
+    check \
     curl \
     emacs \
     git \
