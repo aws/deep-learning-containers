@@ -204,9 +204,6 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
-ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
-CMD ["/bin/bash"]
-
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -215,6 +212,9 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+CMD ["/bin/bash"]
 
 #################################################################
 #  ____                   __  __       _
@@ -270,9 +270,6 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
-ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
-CMD ["/bin/bash"]
-
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -281,3 +278,6 @@ RUN apt-get update \
  && apt-get autoremove -y \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]
