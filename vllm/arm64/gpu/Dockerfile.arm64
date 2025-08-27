@@ -69,7 +69,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL
 WORKDIR /workspace/vllm
 
 ARG VLLM_VERSION="v0.10.1.1"
-ARG max_jobs=2
+ARG max_jobs=16
 ENV MAX_JOBS=${max_jobs}
 
 ARG nvcc_threads=8
