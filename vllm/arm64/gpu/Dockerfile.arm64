@@ -72,7 +72,7 @@ ARG VLLM_VERSION="v0.10.1.1"
 ARG max_jobs=16
 ENV MAX_JOBS=${max_jobs}
 
-ARG nvcc_threads=8
+ARG nvcc_threads=10
 ENV NVCC_THREADS=$nvcc_threads
 
 # cuda arch list used by torch
@@ -88,9 +88,12 @@ RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vll
 
 ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
+ARG wheel_path="http://wheels.vllm.ai/3c0ef769bace3d48b276c7233ed6f39fe03f95b7/vllm/vllm-0.10.1rc2.dev314+g3c0ef769b-cp38-abi3-manylinux2014_aarch64.whl"
+ENV VLLM_PRECOMPILED_WHEEL_LOCATION = ${wheel_path}
+
 RUN rm -rf .deps \
     && mkdir -p .deps \
-    && export VLLM_USE_PRECOMPILED=false \
+    && export VLLM_USE_PRECOMPILED=true \
     && export VLLM_DOCKER_BUILD_CONTEXT=1 \
     && python3 setup.py bdist_wheel --dist-dir=/workspace/dist --py-limited-api=cp38
 
