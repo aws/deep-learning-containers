@@ -134,6 +134,9 @@ def authorize_ingress(ec2_client, group_id, ip_address):
 
 
 def setup_test_artifacts(ec2_client, instances, key_filename, region):
+    """
+    Setup test artifacts on EC2 instances
+    """
     ec2_connections = {}
     master_connection = None
     worker_connection = None
@@ -176,29 +179,34 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
 
-    # Setup master instance
-    master_connection.run("rm -rf $HOME/container_tests")
-    master_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
-    )
-    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
-    master_connection.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+    try:
+        # Setup master instance
+        if master_connection:
+            master_connection.run("rm -rf $HOME/container_tests")
+            master_connection.run(
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+            )
+            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
+            master_connection.run(
+                f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+            )
 
-    worker_connection.run("rm -rf $HOME/container_tests")
-    worker_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
-    )
-    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
-    worker_connection.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+        if worker_connection:
+            worker_connection.run("rm -rf $HOME/container_tests")
+            worker_connection.run(
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+            )
+            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
+            worker_connection.run(
+                f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+            )
 
-    # Cleanup S3 artifacts
-    delete_s3_artifact_copy()
+    finally:
+        delete_s3_artifact_copy()
 
-    return [master_connection, worker_connection]
+    if worker_connection:
+        return [master_connection, worker_connection]
+    return [master_connection]
 
 
 def launch_regular_instances_with_retry(
@@ -315,24 +323,28 @@ def efa_ec2_instances(
                 )
                 print(f"Worker instance {worker_instance_id} is ready")
 
-        num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
-            ec2_instance_type, region=region
-        )
+            num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
+                ec2_instance_type, region=region
+            )
 
-        if num_efa_interfaces > 1:
-            for instance in instances:
-                try:
-                    instance_id = instance["InstanceId"]
+            print(num_efa_interfaces)
 
-                    network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
-                    elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
-                        network_interface_id, region, ENABLE_IPV6_TESTING
-                    )
-                    elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
-                except Exception as e:
-                    if elastic_ip_allocation_ids:
-                        ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
-                    raise Exception(f"Error allocating elastic IP: {str(e)}")
+            if num_efa_interfaces > 1:
+                for instance in instances:
+                    try:
+                        instance_id = instance["InstanceId"]
+
+                        network_interface_id = ec2_utils.get_network_interface_id(
+                            instance_id, region
+                        )
+                        elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                            network_interface_id, region, ENABLE_IPV6_TESTING
+                        )
+                        elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+                    except Exception as e:
+                        if elastic_ip_allocation_ids:
+                            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+                        raise Exception(f"Error allocating elastic IP: {str(e)}")
 
         connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
         return_val = {
