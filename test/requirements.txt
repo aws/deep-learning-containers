@@ -1,4 +1,5 @@
-boto3
+awscli==1.38.9
+boto3==1.37.9
 docker
 fabric
 invoke
@@ -20,3 +21,5 @@ lxml==5.3.1
 crochet
 tenacity
 requests
+botocore==1.37.9
+s3transfer<0.12.0,>=0.11.0
