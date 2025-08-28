@@ -105,9 +105,10 @@ RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vll
 
 ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
+ENV VLLM_USE_PRECOMPILED=True
 RUN rm -rf .deps && \
     mkdir -p .deps && \
-    export VLLM_USE_PRECOMPILED=false && \
+    export VLLM_USE_PRECOMPILED=True && \
     export VLLM_DOCKER_BUILD_CONTEXT=1 && \
     python3 setup.py bdist_wheel --dist-dir=/workspace/dist --py-limited-api=cp38
 
