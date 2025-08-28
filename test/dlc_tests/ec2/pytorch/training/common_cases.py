@@ -1,6 +1,4 @@
 import os
-import sys
-import logging
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -20,10 +18,6 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
     get_efa_ec2_instance_type,
 )
-
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 # Test functions
 PT_STANDALONE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchStandalone")
@@ -357,7 +351,6 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
     """
     Test cuDNN Package
     PT 2.1 reintroduces a dependency on CUDNN to support NVDA TransformerEngine. This test is to ensure that torch CUDNN matches system CUDNN in the container.
-    Checks both /usr/include/ and /usr/local/cuda/include/ paths to support different cuDNN package installations.
     """
     container_name = "pytorch_cudnn"
     account_id = get_account_id_from_image_uri(pytorch_training)
@@ -378,7 +371,6 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
         minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
         patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
-
     major = ec2_connection.run(
         f"docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]
@@ -401,7 +393,7 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
 
     assert (
         system_cudnn == cudnn_from_torch
-    ), f"System CUDNN {system_cudnn} (from {cudnn_path}) and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
+    ), f"System CUDNN {system_cudnn} and torch cudnn {cudnn_from_torch} do not match. Please downgrade system CUDNN or recompile torch with correct CUDNN verson."
 
 
 def pytorch_curand_gpu(pytorch_training, ec2_connection):
