@@ -54,7 +54,7 @@ def ec2_instance_ami(region, image):
 
 def ec2_instance_type(image):
     if "arm64" in image:
-        return get_ec2_instance_type(default="g5g.4xlarge", processor="gpu", arch_type="arm64")
+        return get_ec2_instance_type(default="g5g.16xlarge", processor="gpu", arch_type="arm64")
     else:
         return get_efa_ec2_instance_type(
             default="p4d.24xlarge",
