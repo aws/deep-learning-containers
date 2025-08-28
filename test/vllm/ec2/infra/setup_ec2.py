@@ -269,8 +269,8 @@ def efa_ec2_instances(
             "InstanceType": ec2_instance_type,
             "IamInstanceProfile": {"Name": ec2_instance_role_name},
             "KeyName": ec2_key_name,
-            "MaxCount": 1 if is_efa else 2,
-            "MinCount": 1 if is_efa else 2,
+            "MaxCount": 2 if is_efa else 1,
+            "MinCount": 2 if is_efa else 1,
             "TagSpecifications": [
                 {
                     "ResourceType": "instance",
@@ -300,11 +300,10 @@ def efa_ec2_instances(
             master_instance_id, system_status="ok", instance_status="ok", region=region
         )
         print(f"Master instance {master_instance_id} is ready")
-
-        if len(instances) > 1:
-            ec2_utils.create_name_tags_for_instance(
-                master_instance_id, f"{instance_name_prefix}_master", region
-            )
+        ec2_utils.create_name_tags_for_instance(
+            master_instance_id, f"{instance_name_prefix}_master", region
+        )
+        if is_efa:
             for i in range(1, len(instances)):
                 worker_instance_id = instances[i]["InstanceId"]
                 ec2_utils.create_name_tags_for_instance(
