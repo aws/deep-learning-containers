@@ -25,7 +25,7 @@ from test.test_utils.ec2 import (
     get_default_vpc_id,
     get_subnet_id_by_vpc,
     get_efa_ec2_instance_type,
-    filter_efa_instance_type,
+    get_ec2_instance_type,
     filter_efa_only_p4_instance_type,
 )
 
@@ -54,7 +54,7 @@ def ec2_instance_ami(region, image):
 
 def ec2_instance_type(image):
     if "arm64" in image:
-        return get_efa_ec2_instance_type(default="g5g.4xlarge", processor="gpu", arch_type="arm64")
+        return get_ec2_instance_type(default="g5g.4xlarge", processor="gpu", arch_type="arm64")
     else:
         return get_efa_ec2_instance_type(
             default="p4d.24xlarge",
