@@ -7,7 +7,8 @@ ARG TORCHVISION_VERSION=0.22.1
 ARG TORCHDATA_VERSION=0.11.0
 ARG GDRCOPY_VERSION=2.5
 ARG TE_VERSION=2.3
-ARG FLASH_ATTN_VERSION=2.7.4.post1
+ARG FLASH_ATTN_VERSION=2.8.0.post2
+
 FROM public.ecr.aws/deep-learning-containers/base:12.8.0-gpu-py312-ubuntu22.04-ec2 as common
 
 LABEL maintainer="Amazon AI"
@@ -94,8 +95,8 @@ ENV NVTE_FRAMEWORK=pytorch
 
 RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
     && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
-    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
-    
+    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.7cxx11abiTRUE-cp312-cp312-linux_x86_64.whl 
+
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 RUN apt-get update \
