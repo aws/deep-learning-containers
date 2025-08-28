@@ -54,12 +54,9 @@ def ec2_instance_ami(region, image):
 
 def ec2_instance_type(image):
     if "arm64" in image:
-        return get_ec2_instance_type(default="g5g.16xlarge", processor="gpu", arch_type="arm64")
+        return "g5g.16xlarge"
     else:
-        return get_efa_ec2_instance_type(
-            default="p4d.24xlarge",
-            filter_function=filter_efa_only_p4_instance_type,
-        )
+        return "p4d.24xlarge"
 
 
 def availability_zone_options(ec2_client, ec2_instance_type, region):
