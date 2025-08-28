@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
-from botocore.exceptions import WaiterError
+from botocore.exceptions import ClientError, WaiterError
 
 
 from test.test_utils import KEYS_TO_DESTROY_FILE, AL2023_BASE_DLAMI_ARM64_US_WEST_2
@@ -201,6 +201,35 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     return [master_connection, worker_connection]
 
 
+def launch_regular_instances_with_retry(
+    ec2_client,
+    ec2_instance_type,
+    availability_zone_options,
+    ec2_run_instances_definition,
+):
+    """
+    Launch regular (non-EFA) EC2 instances with retry capability
+    """
+    instances = None
+    error = None
+
+    for a_zone in availability_zone_options:
+        ec2_run_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
+        try:
+            instances = ec2_client.run_instances(**ec2_run_instances_definition)["Instances"]
+            if instances:
+                break
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
+            error = e
+            continue
+
+    if not instances:
+        raise error or Exception("Failed to launch instances in any availability zone")
+
+    return instances
+
+
 def efa_ec2_instances(
     ec2_client,
     ec2_instance_type,
@@ -213,11 +242,12 @@ def efa_ec2_instances(
     instances = None
     key_filename = None
     elastic_ip_allocation_ids = []
+    is_efa = not ("arm64" in ec2_instance_ami)
+
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
         print(f"Creating instance: CI-CD {ec2_key_name}")
         key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-        print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
         volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
         instance_name_prefix = f"CI-CD {ec2_key_name}"
@@ -238,8 +268,8 @@ def efa_ec2_instances(
             "InstanceType": ec2_instance_type,
             "IamInstanceProfile": {"Name": ec2_instance_role_name},
             "KeyName": ec2_key_name,
-            "MaxCount": 2,
-            "MinCount": 2,
+            "MaxCount": 1 if is_efa else 2,
+            "MinCount": 1 if is_efa else 2,
             "TagSpecifications": [
                 {
                     "ResourceType": "instance",
@@ -247,12 +277,21 @@ def efa_ec2_instances(
                 }
             ],
         }
-        instances = ec2_utils.launch_efa_instances_with_retry(
-            ec2_client,
-            ec2_instance_type,
-            availability_zone_options,
-            ec2_run_instances_definition,
-        )
+
+        if is_efa:
+            instances = ec2_utils.launch_efa_instances_with_retry(
+                ec2_client,
+                ec2_instance_type,
+                availability_zone_options,
+                ec2_run_instances_definition,
+            )
+        else:
+            instances = launch_regular_instances_with_retry(
+                ec2_client,
+                ec2_instance_type,
+                availability_zone_options,
+                ec2_run_instances_definition,
+            )
 
         master_instance_id = instances[0]["InstanceId"]
         ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
@@ -548,7 +587,6 @@ def setup(image):
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
-        # Configure single security group for both instances
         instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
         resources["sg_fsx"] = configure_security_groups(
             instance_ids[0], ec2_cli, fsx, vpc_id, resources["instances_info"]
@@ -574,16 +612,16 @@ def setup(image):
         )
         print(f"Setup completed for master instance {master_instance_id}")
 
-        # Mount FSx on worker node
-        worker_instance_id, worker_key_filename = resources["instances_info"][1]
-        mount_fsx_on_worker(
-            worker_instance_id,
-            worker_key_filename,
-            ec2_cli,
-            resources["fsx_config"]["dns_name"],
-            resources["fsx_config"]["mount_name"],
-        )
-        print(f"FSx mounted on worker instance {worker_instance_id}")
+        if len(resources["instances_info"]) > 1:
+            worker_instance_id, worker_key_filename = resources["instances_info"][1]
+            mount_fsx_on_worker(
+                worker_instance_id,
+                worker_key_filename,
+                ec2_cli,
+                resources["fsx_config"]["dns_name"],
+                resources["fsx_config"]["mount_name"],
+            )
+            print(f"FSx mounted on worker instance {worker_instance_id}")
 
         return resources
 
