@@ -238,11 +238,12 @@ def efa_ec2_instances(
     ec2_instance_ami,
     region,
     availability_zone_options,
+    is_arm64,
 ):
     instances = None
     key_filename = None
     elastic_ip_allocation_ids = []
-    is_efa = not ("arm64" in ec2_instance_ami)
+    is_efa = not is_arm64
 
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
@@ -473,6 +474,7 @@ def launch_ec2_instances(ec2_cli, image):
     instance_type = ec2_instance_type(image)
     ami_id = ec2_instance_ami(DEFAULT_REGION, image)
     az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
+    is_arm64 = True if "arm64" in image else False
 
     instances_info = efa_ec2_instances(
         ec2_client=ec2_cli,
@@ -482,6 +484,7 @@ def launch_ec2_instances(ec2_cli, image):
         ec2_instance_ami=ami_id,
         region=DEFAULT_REGION,
         availability_zone_options=az_options,
+        is_arm64=is_arm64,
     )
     print(f"Launched instances: {instances_info}")
     return instances_info
