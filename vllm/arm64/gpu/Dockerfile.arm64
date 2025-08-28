@@ -128,6 +128,11 @@ COPY --from=build /workspace/dist /vllm-workspace/dist
 RUN python3 -m pip install /vllm-workspace/dist/*.whl --verbose \
     --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
+RUN apt-get update && apt-get install -y \
+    libstdc++-12-dev \
+    gcc-12 \
+    g++-12
+
 ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
 ARG FLASHINFER_GIT_REF="v0.2.12"
 ARG FLASHINFER_AOT_COMPILE="true"
@@ -156,6 +161,8 @@ RUN bash -c '. /etc/environment && \
     fi && \
     cd .. && \
     rm -rf flashinfer'
+
+ENV CUDA_HOME=/usr/local/cuda
 
 # Install DeepGEMM
 ARG DEEPGEMM_GIT_REPO="https://github.com/deepseek-ai/DeepGEMM.git"
