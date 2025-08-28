@@ -136,9 +136,11 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
-# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
-# Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=18 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
+
+RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
+    && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
+    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
