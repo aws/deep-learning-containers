@@ -4,6 +4,13 @@ DLC_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
+python3 -m venv vllm_env && \
+pip install --upgrade pip setuptools wheel && \
+pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
+pip install "transformers<4.54.0"
+
+source vllm_env/bin/activate
+
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
 tmux new-session -d -s single_node "docker run \
