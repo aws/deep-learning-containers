@@ -6,7 +6,7 @@ MODEL_NAME=$3
 
 python3 -m venv vllm_env && \
 pip install --upgrade pip setuptools wheel && \
-pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
+pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.1.1 && \
 pip install "transformers<4.54.0"
 
 source vllm_env/bin/activate

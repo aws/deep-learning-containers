@@ -257,7 +257,6 @@ def run_single_node_test(head_conn, image_uri):
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
 
-        time.sleep(2000)
         setup_docker_image(head_conn, image_uri)
         head_conn.put(
             "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
