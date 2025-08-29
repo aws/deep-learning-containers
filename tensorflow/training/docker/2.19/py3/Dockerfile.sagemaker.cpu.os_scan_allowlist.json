@@ -12,7 +12,11 @@
         "version": "7.0.3",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -37,7 +41,11 @@
         "version": "7.0.3",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -64,7 +72,11 @@
         "version": "2.0.1",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 8.1,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 8.1,
@@ -91,7 +103,11 @@
         "version": "8.16.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -116,7 +132,11 @@
         "version": "8.16.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.5,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.5,
@@ -143,7 +163,11 @@
         "version": "3.10.0",
         "release": null
       },
-      "remediation": { "recommendation": { "text": "None Provided" } },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
       "cvss_v3_score": 7.8,
       "cvss_v30_score": 0.0,
       "cvss_v31_score": 7.8,
@@ -154,6 +178,37 @@
       "severity": "HIGH",
       "status": "ACTIVE",
       "title": "CVE-2025-8747 - keras",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "form-data": [
+    {
+      "description": "Use of Insufficiently Random Values vulnerability in form-data allows HTTP Parameter Pollution (HPP). This vulnerability is associated with program files lib/form_data.Js.\n\nThis issue affects form-data: < 2.5.4, 3.0.0 - 3.0.3, 4.0.0 - 4.0.3.",
+      "vulnerability_id": "CVE-2025-7783",
+      "name": "CVE-2025-7783",
+      "package_name": "form-data",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "form-data",
+        "package_manager": "NODE",
+        "version": "4.0.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 0.0,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 0.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "title": "CVE-2025-7783 - form-data",
+      "source": "NVD",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-7783",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
       "reason_to_ignore": "N/A"
     }
   ]
