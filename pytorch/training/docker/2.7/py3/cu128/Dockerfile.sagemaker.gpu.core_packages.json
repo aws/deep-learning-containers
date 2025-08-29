@@ -22,14 +22,6 @@
     "version_specifier": "==2.3",
     "skip": "True"
   },
-  "s3torchconnector": {
-    "version_specifier": "==1.4.3",
-    "skip": "True"
-  },
-  "accelerate": {
-    "version_specifier": "==1.10.0",
-    "skip": "True"
-  },
   "thinc": {
     "version_specifier": "==8.3.4"
   },
@@ -71,8 +63,5 @@
   },
   "awscli": {
     "version_specifier": "<2"
-  },
-  "sagemaker-pytorch-training": {
-    "version_specifier": ">=2.9.0,<3"
   }
 }
