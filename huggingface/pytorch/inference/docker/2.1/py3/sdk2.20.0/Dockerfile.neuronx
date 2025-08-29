@@ -62,6 +62,7 @@ RUN apt-get update \
     libxml2 \
     libgstreamer1.0-0 \
     libsoup2.4-1 \
+ && apt-get upgrade -y linux-libc-dev libxml2 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean

@@ -59,7 +59,7 @@ RUN apt-get update \
 	libgstreamer-plugins-base1.0-0 \
 	libsoup2.4-1 \
 	libsqlite3-0 \
- && apt-get upgrade -y apparmor \
+ && apt-get upgrade -y apparmor linux-libc-dev libxml2 \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
