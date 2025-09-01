@@ -266,6 +266,9 @@ def run_single_node_test(head_conn, image_uri):
             "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
             f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {MODEL_NAME}",
         ]
+
+        time.sleep(2000)
+
         result = head_conn.run(
             "; ".join(commands),
             hide=False,
