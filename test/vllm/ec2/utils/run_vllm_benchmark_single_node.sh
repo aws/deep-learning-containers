@@ -13,11 +13,12 @@ source vllm_env/bin/activate
 
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
-tmux new-session -d -s single_node "docker run \
+tmux new-session -d -s single_node "docker run --rm -d --name vllm \
     --entrypoint /bin/bash \
     --runtime nvidia --gpus all \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+    -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
     -e "NCCL_DEBUG=TRACE" \
     -p 8000:8000 \
     --ipc=host \

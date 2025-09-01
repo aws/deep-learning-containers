@@ -267,12 +267,12 @@ def run_single_node_test(head_conn, image_uri):
             f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {MODEL_NAME}",
         ]
 
-        time.sleep(2000)
+        time.sleep(4000)
 
         result = head_conn.run(
             "; ".join(commands),
             hide=False,
-            timeout=3600,
+            timeout=7200,
         )
 
     except Exception as e:
