@@ -4,12 +4,14 @@ DLC_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
+cd /fsx/vllm-dlc/vllm/
+
 # Skip the new torch installation during build since we are using the specified version for arm64 in the Dockerfile
-python3 /fsx/vllm-dlc/vllm/use_existing_torch.py
+python3 use_existing_torch.py
 
 # Try building the docker image
 DOCKER_BUILDKIT=1 docker build . \
-  --file /fsx/vllm-dlc/vllm/docker/Dockerfile \
+  --file docker/Dockerfile \
   --target vllm-openai \
   --platform "linux/arm64" \
   -t t4-test \
@@ -26,7 +28,7 @@ docker run -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     --entrypoint="" \
     t4-test
-    bash -c 'python3 /fsx/vllm-dlc/vllm/examples/offline_inference/basic/generate.py --model meta-llama/Llama-3.2-1B'
+    bash -c 'python3 examples/offline_inference/basic/generate.py --model meta-llama/Llama-3.2-1B'
 
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
