@@ -4,22 +4,22 @@ DLC_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
-python3 -m venv vllm_env 
-pip install --upgrade pip setuptools wheel 
-pip install numpy torch==2.4.0 tqdm aiohttp pandas datasets pillow ray
-pip install "transformers<4.54.0"
 
-source vllm_env/bin/activate
 
 docker run -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-   -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
-   -v /fsx/.cache/huggingface:/root/.cache/huggingface \
-   --name vllm-test \
-   --gpus=all \
-   --entrypoint="" \
-   $DLC_IMAGE 
-   bash -c '
-   python3 /fsx/vllm-dlc/vllm/examples/offline_inference/basic/generate.py --model meta-llama/Llama-3.2-1B'
+    -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+    -v /fsx/.cache/huggingface:/root/.cache/huggingface \
+    --name test-vllm \
+    --runtime nvidia --gpus all \
+    --entrypoint /bin/bash \
+    669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-vllm:0.10.1.1-gpu-py312-cu128-ubuntu22.04-arm64-pr-5154 \
+    bash -c 'python3 -m venv vllm_env &&
+pip install --upgrade pip setuptools wheel &&
+pip install numpy torch==2.4.0 tqdm aiohttp pandas datasets pillow ray &&
+pip install "transformers<4.54.0" &&
+source vllm_env/bin/activate &&
+pip install vllm && 
+python3 /fsx/vllm-dlc/vllm/examples/offline_inference/basic/generate.py --model meta-llama/Llama-3.2-1B'
 
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
