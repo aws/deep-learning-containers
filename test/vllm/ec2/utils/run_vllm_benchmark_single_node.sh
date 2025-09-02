@@ -4,49 +4,59 @@ DLC_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
-python3 -m venv vllm_env && \
-pip install --upgrade pip setuptools wheel && \
-pip install numpy torch tqdm aiohttp pandas datasets pillow ray && \
+python3 -m venv vllm_env 
+pip install --upgrade pip setuptools wheel 
+pip install numpy torch==2.4.0 tqdm aiohttp pandas datasets pillow ray
 pip install "transformers<4.54.0"
 
 source vllm_env/bin/activate
 
+docker run -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+   -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+   -v /fsx/.cache/huggingface:/root/.cache/huggingface \
+   --name vllm-test \
+   --gpus=all \
+   --entrypoint="" \
+   $DLC_IMAGE 
+   bash -c '
+   python3 /fsx/vllm-dlc/vllm/examples/offline_inference/basic/generate.py --model meta-llama/Llama-3.2-1B'
+
 # Run vLLM using Official Docker image from https://docs.vllm.ai/en/latest/deployment/docker.html 
 # Here is the https://github.com/vllm-project/vllm/blob/main/docker/Dockerfile
-tmux new-session -d -s single_node "docker run --rm -d --name vllm \
-    --entrypoint /bin/bash \
-    --runtime nvidia --gpus all \
-    -v /fsx/.cache/huggingface:/root/.cache/huggingface \
-    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-    -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
-    -e "NCCL_DEBUG=TRACE" \
-    -p 8000:8000 \
-    --ipc=host \
-    $DLC_IMAGE \
-    --model $MODEL_NAME \
-    --tensor-parallel-size 2"
+# tmux new-session -d -s single_node "docker run --rm -d --name vllm \
+#     --entrypoint /bin/bash \
+#     --runtime nvidia --gpus all \
+#     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
+#     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+#     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
+#     -e "NCCL_DEBUG=TRACE" \
+#     -p 8000:8000 \
+#     --ipc=host \
+#     $DLC_IMAGE \
+#     --model $MODEL_NAME \
+#     --tensor-parallel-size 2"
 
-echo "Waiting for the server to start..."
-until $(curl --output /dev/null --silent --fail http://localhost:8000/v1/completions); do
-    printf '.'
-    sleep 10
-done
-echo -e "\nServer is up!"
+# echo "Waiting for the server to start..."
+# until $(curl --output /dev/null --silent --fail http://localhost:8000/v1/completions); do
+#     printf '.'
+#     sleep 10
+# done
+# echo -e "\nServer is up!"
 
-echo "Waiting for model to fully load..."
-sleep 30
+# echo "Waiting for model to fully load..."
+# sleep 30
 
-source vllm_env/bin/activate
+# source vllm_env/bin/activate
 
-# Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
-python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
-  --model $MODEL_NAME \
-  --backend vllm \
-  --base-url "http://localhost:8000" \
-  --endpoint '/v1/completions' \
-  --dataset-name sharegpt \
-  --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
-  --num-prompts 1000
+# # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
+# python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
+#   --model $MODEL_NAME \
+#   --backend vllm \
+#   --base-url "http://localhost:8000" \
+#   --endpoint '/v1/completions' \
+#   --dataset-name sharegpt \
+#   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
+#   --num-prompts 1000
 
 # ============ Serving Benchmark Result ============
 # Successful requests:                     1000      
