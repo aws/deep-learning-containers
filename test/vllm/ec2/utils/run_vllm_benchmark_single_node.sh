@@ -4,15 +4,28 @@ DLC_IMAGE=$1
 HF_TOKEN=$2
 MODEL_NAME=$3
 
+# Skip the new torch installation during build since we are using the specified version for arm64 in the Dockerfile
+python3 /fsx/vllm-dlc/vllm/use_existing_torch.py
+
+# Try building the docker image
+DOCKER_BUILDKIT=1 docker build . \
+  --file /fsx/vllm-dlc/vllm/docker/Dockerfile \
+  --target vllm-openai \
+  --platform "linux/arm64" \
+  -t t4-test \
+  --build-arg max_jobs=66 \
+  --build-arg nvcc_threads=2 \
+  --build-arg RUN_WHEEL_CHECK=false \
+  --build-arg torch_cuda_arch_list="7.5"
 
 
 docker run -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-    --name test-vllm \
+    --name t4-test \
     --runtime nvidia --gpus all \
     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     --entrypoint="" \
-    669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-vllm:0.10.1.1-gpu-py312-cu128-ubuntu22.04-arm64-pr-5154 \
+    t4-test
     bash -c 'python3 -m venv vllm_env &&
 pip install --upgrade pip setuptools wheel &&
 pip install numpy torch==2.4.0 tqdm aiohttp pandas datasets pillow ray &&
