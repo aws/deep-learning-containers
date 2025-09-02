@@ -7,11 +7,11 @@ MODEL_NAME=$3
 
 
 docker run -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+    --name test-vllm \
+    --entrypoint /bin/bash \
+    --runtime nvidia --gpus all \
     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
-    --name test-vllm \
-    --runtime nvidia --gpus all \
-    --entrypoint /bin/bash \
     669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-vllm:0.10.1.1-gpu-py312-cu128-ubuntu22.04-arm64-pr-5154 \
     bash -c 'python3 -m venv vllm_env &&
 pip install --upgrade pip setuptools wheel &&
