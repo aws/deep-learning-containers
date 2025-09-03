@@ -324,10 +324,7 @@ RUN python3 -m pip install \
 ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
 
-ENV CCACHE_DIR=/root/.cache/ccache
-RUN --mount=type=cache,target=/root/.cache/ccache \
-    --mount=type=bind,source=.git,target=.git \
-    export VLLM_TARGET_DEVICE=${vllm_target_device} && \
+RUN export VLLM_TARGET_DEVICE=${vllm_target_device} && \
     python setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 ##########  Build IMAGE ####################
