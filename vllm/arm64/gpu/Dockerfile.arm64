@@ -300,17 +300,20 @@ FROM base AS build
 
 RUN mkdir wheels
 
-
-# xFormers also installs its flash-attention inside not visible outside.
-# https://github.com/facebookresearch/xformers/blob/d3948b5cb9a3711032a0ef0e036e809c7b08c1e0/.github/workflows/wheels_build.yml#L120
-RUN git clone https://github.com/facebookresearch/xformers.git ; cd xformers ; git checkout v0.0.28.post3 ; git submodule update --init --recursive ; python setup.py bdist_wheel --dist-dir=/workspace/wheels
+RUN pip install ninja
+RUN export TORCH_CUDA_ARCH_LIST="7.5" MAX_JOBS=10 && \
+    pip install -v -U \
+      git+https://github.com/facebookresearch/xformers.git@v0.0.20#egg=xformers
 
 # Flashinfer.
 # https://github.com/flashinfer-ai/flashinfer/blob/8f186cf0ea07717727079d0c92bbe9be3814a9cb/scripts/run-ci-build-wheel.sh#L47C1-L47C39
-RUN git clone https://github.com/flashinfer-ai/flashinfer.git ; cd flashinfer ; git checkout  v0.2.0.post2 ; git submodule update --init --recursive ; cd python ; FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
+RUN git clone https://github.com/flashinfer-ai/flashinfer.git ; cd flashinfer ; git checkout  v0.3.0 ; git submodule update --init --recursive ; cd python ; FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 # Bitsandbytes.
-RUN git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git ; cd bitsandbytes ; git checkout 0.45 ; cmake -DCOMPUTE_BACKEND=cuda -S . ; make ; python setup.py bdist_wheel --dist-dir=/workspace/wheels
+RUN curl -LO https://pypi.debian.net/bitsandbytes/bitsandbytes-0.47.0-py3-none-manylinux_2_24_aarch64.whl \
+    && pip install bitsandbytes-0.47.0-py3-none-manylinux_2_24_aarch64.whl --no-build-isolation
+
+RUN pip install 
 
 # Install them.
 RUN pip install --no-deps /workspace/wheels/*.whl
