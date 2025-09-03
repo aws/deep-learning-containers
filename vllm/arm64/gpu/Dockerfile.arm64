@@ -36,7 +36,7 @@ RUN git clone https://github.com/facebookresearch/xformers.git \
     && cd xformers \
     && git checkout v0.0.28.post3 \
     && git submodule update --init --recursive \
-    && python setup.py bdist_wheel --dist-dir=/workspace/wheels
+    && python3 setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 # Build Flashinfer
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git \
@@ -44,7 +44,7 @@ RUN git clone https://github.com/flashinfer-ai/flashinfer.git \
     && git checkout v0.2.0.post2 \
     && git submodule update --init --recursive \
     && cd python \
-    && FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
+    && FLASHINFER_ENABLE_AOT=1 python3 setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 # Build Bitsandbytes
 RUN git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git \
@@ -52,7 +52,7 @@ RUN git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git \
     && git checkout 0.45 \
     && cmake -DCOMPUTE_BACKEND=cuda -S . \
     && make \
-    && python setup.py bdist_wheel --dist-dir=/workspace/wheels
+    && python3 setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 # Install built wheels
 RUN pip install --no-deps /workspace/wheels/*.whl
