@@ -299,6 +299,8 @@ FROM base AS build
 
 RUN mkdir wheels
 
+ENV CUDA_HOME="/usr/local/cuda"
+
 # xFormers also installs its flash-attention inside not visible outside.
 # https://github.com/facebookresearch/xformers/blob/d3948b5cb9a3711032a0ef0e036e809c7b08c1e0/.github/workflows/wheels_build.yml#L120
 RUN git clone https://github.com/facebookresearch/xformers.git ; cd xformers ; git checkout v0.0.28.post3 ; git submodule update --init --recursive ; python setup.py bdist_wheel --dist-dir=/workspace/wheels
