@@ -279,11 +279,10 @@ ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 ARG vllm_fa_cmake_gpu_arches='75'
 ENV VLLM_FA_CMAKE_GPU_ARCHES=${vllm_fa_cmake_gpu_arches}
 # max jobs used by Ninja to build extensions
-ARG max_jobs
-ENV MAX_JOBS=${max_jobs}
+ENV MAX_JOBS=16
 # number of threads used by nvcc
 ARG nvcc_threads
-ENV NVCC_THREADS=$nvcc_threads
+ENV NVCC_THREADS=6
 
 
 ARG VLLM_VERSION="v0.10.1.1"
