@@ -265,11 +265,12 @@
 
 #################### BASE BUILD IMAGE ####################
 # prepare basic build environment
-FROM nvcr.io/nvidia/pytorch:25.02-py3 AS base
+FROM nvcr.io/nvidia/pytorch:24.10-py3 AS base
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y \
     && apt-get install -y ccache software-properties-common git curl wget sudo vim libibverbs-dev ffmpeg libsm6 libxext6 libgl1
+
 
 WORKDIR /workspace
 
@@ -284,11 +285,8 @@ ENV MAX_JOBS=16
 ARG nvcc_threads
 ENV NVCC_THREADS=6
 
-
-ARG VLLM_VERSION="v0.10.1.1"
-RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/${VLLM_VERSION}/requirements/cuda.txt 
-RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/${VLLM_VERSION}/requirements/common.txt 
-
+RUN python -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/main/requirements/common.txt 
+RUN python -m pip install ray[adag]==2.40.0
 
 #################### BASE BUILD IMAGE ####################
 
@@ -299,54 +297,83 @@ FROM base AS build
 
 RUN mkdir wheels
 
-RUN pip install ninja
-RUN export TORCH_CUDA_ARCH_LIST="7.5" MAX_JOBS=10 && \
-    pip install -v -U \
-      git+https://github.com/facebookresearch/xformers.git@v0.0.20#egg=xformers
-
-# Flashinfer.
-# https://github.com/flashinfer-ai/flashinfer/blob/8f186cf0ea07717727079d0c92bbe9be3814a9cb/scripts/run-ci-build-wheel.sh#L47C1-L47C39
-RUN git clone https://github.com/flashinfer-ai/flashinfer.git ; cd flashinfer ; git checkout  v0.3.0 ; git submodule update --init --recursive ; cd python ; FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
-
-# Bitsandbytes.
-RUN curl -LO https://pypi.debian.net/bitsandbytes/bitsandbytes-0.47.0-py3-none-manylinux_2_24_aarch64.whl \
-    && pip install bitsandbytes-0.47.0-py3-none-manylinux_2_24_aarch64.whl --no-build-isolation
-
-RUN pip install 
+# xFormers also installs its flash-attention inside not visible outside.
+# https://github.com/facebookresearch/xformers/blob/d3948b5cb9a3711032a0ef0e036e809c7b08c1e0/.github/workflows/wheels_build.yml#L120
+RUN git clone https://github.com/facebookresearch/xformers.git ; cd xformers ; git checkout v0.0.28.post3 ; git submodule update --init --recursive ; python setup.py bdist_wheel --dist-dir=/workspace/wheels
 
 # Install them.
 RUN pip install --no-deps /workspace/wheels/*.whl
 
 WORKDIR /vllm-workspace
 
-# files and directories related to build wheels
-COPY . .
+RUN git clone https://github.com/vllm-project/vllm.git . \
+    && cd vllm
+
+RUN python3 -m pip install \
+    "cmake>=3.26.1" \
+    "ninja" \
+    "packaging>=24.2" \
+    "setuptools>=77.0.3,<80.0.0" \
+    "setuptools-scm>=8" \
+    "wheel" \
+    "jinja2>=3.1.6" \
+    "regex" \
+    "build" \
+    --extra-index-url https://download.pytorch.org/whl/cu128
+
+ARG vllm_target_device="cuda"
+ENV VLLM_TARGET_DEVICE=${vllm_target_device}
 
 ENV CCACHE_DIR=/root/.cache/ccache
 RUN --mount=type=cache,target=/root/.cache/ccache \
     --mount=type=bind,source=.git,target=.git \
+    export VLLM_TARGET_DEVICE=${vllm_target_device} && \
     python setup.py bdist_wheel --dist-dir=/workspace/wheels
 
-# Check the size of the wheel if RUN_WHEEL_CHECK is true
-COPY .buildkite/check-wheel-size.py check-wheel-size.py
-# sync the default value with .buildkite/check-wheel-size.py
-ARG VLLM_MAX_SIZE_MB=400
-ENV VLLM_MAX_SIZE_MB=$VLLM_MAX_SIZE_MB
-ARG RUN_WHEEL_CHECK=true
-RUN if [ "$RUN_WHEEL_CHECK" = "true" ]; then \
-        python check-wheel-size.py dist; \
-    else \
-        echo "Skipping wheel size check."; \
-    fi
-####################  Build IMAGE ####################
+##########  Build IMAGE ####################
 
 
 #################### vLLM installation IMAGE ####################
 # image with vLLM installed
 FROM base AS final
 
+
 RUN --mount=type=bind,from=build,src=/workspace/wheels,target=/workspace/wheels \
     pip install --no-deps /workspace/wheels/*.whl
+
+# Install FlashInfer
+ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
+ARG FLASHINFER_GIT_REF="v0.2.12"
+ARG FLASHINFER_AOT_COMPILE="true"
+
+RUN bash -c '. /etc/environment && \
+    git clone --depth 1 --recursive --shallow-submodules \
+        --branch ${FLASHINFER_GIT_REF} \
+        ${FLASHINFER_GIT_REPO} flashinfer && \
+    cd flashinfer && \
+    if [ "${FLASHINFER_AOT_COMPILE}" = "true" ]; then \
+        if [[ "${CUDA_VERSION}" == 11.* ]]; then \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9"; \
+        elif [[ "${CUDA_VERSION}" == 12.[0-7]* ]]; then \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a"; \
+        else \
+            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0"; \
+        fi && \
+        echo "🏗️  Installing FlashInfer with AOT compilation for arches: ${FI_TORCH_CUDA_ARCH_LIST}" && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer.aot && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m pip install --no-build-isolation . \
+            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d ".") && \
+        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer --download-cubin || \
+            echo "WARNING: Failed to download flashinfer cubins."; \
+    else \
+        echo "🏗️  Installing FlashInfer without AOT compilation in JIT mode" && \
+        python3 -m pip install . \
+            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d "."); \
+    fi && \
+    cd .. && \
+    rm -rf flashinfer'
+
+RUN python3 -m pip install accelerate hf_transfer modelscope "bitsandbytes>=0.42.0" 'timm==0.9.10' boto3 runai-model-streamer runai-model-streamer[s3]
 
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
