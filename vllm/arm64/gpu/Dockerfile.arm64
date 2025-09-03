@@ -299,12 +299,6 @@ FROM base AS build
 
 RUN mkdir wheels
 
-ENV CUDA_HOME="/usr/local/cuda"
-
-# xFormers also installs its flash-attention inside not visible outside.
-# https://github.com/facebookresearch/xformers/blob/d3948b5cb9a3711032a0ef0e036e809c7b08c1e0/.github/workflows/wheels_build.yml#L120
-RUN git clone https://github.com/facebookresearch/xformers.git ; cd xformers ; git checkout v0.0.28.post3 ; git submodule update --init --recursive ; python setup.py bdist_wheel --dist-dir=/workspace/wheels
-
 # Flashinfer.
 # https://github.com/flashinfer-ai/flashinfer/blob/8f186cf0ea07717727079d0c92bbe9be3814a9cb/scripts/run-ci-build-wheel.sh#L47C1-L47C39
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git ; cd flashinfer ; git checkout  v0.2.0.post2 ; git submodule update --init --recursive ; cd python ; FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
