@@ -285,6 +285,8 @@ ENV MAX_JOBS=${max_jobs}
 ARG nvcc_threads
 ENV NVCC_THREADS=$nvcc_threads
 
+
+ARG VLLM_VERSION="v0.10.1.1"
 RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/${VLLM_VERSION}/requirements/cuda.txt 
 
 
