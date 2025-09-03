@@ -262,6 +262,10 @@ def run_single_node_test(head_conn, image_uri):
             "vllm/ec2/utils/run_vllm_on_arm64.sh",
             "/home/ec2-user/run_vllm_on_arm64.sh",
         )
+        head_conn.put(
+            "vllm/ec2/utils/test_agents.py",
+            "/home/ec2-user/test_agents.py",
+        )
         commands = [
             "chmod +x /home/ec2-user/run_vllm_on_arm64.sh",
             f"/home/ec2-user/run_vllm_on_arm64.sh {image_uri} {hf_token}",
