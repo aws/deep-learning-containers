@@ -259,12 +259,12 @@ def run_single_node_test(head_conn, image_uri):
 
         setup_docker_image(head_conn, image_uri)
         head_conn.put(
-            "vllm/ec2/utils/run_vllm_benchmark_single_node.sh",
-            "/home/ec2-user/run_vllm_benchmark_single_node.sh",
+            "vllm/ec2/utils/run_vllm_on_arm64.sh",
+            "/home/ec2-user/run_vllm_on_arm64.sh",
         )
         commands = [
-            "chmod +x /home/ec2-user/run_vllm_benchmark_single_node.sh",
-            f"/home/ec2-user/run_vllm_benchmark_single_node.sh {image_uri} {hf_token} {MODEL_NAME}",
+            "chmod +x /home/ec2-user/run_vllm_on_arm64.sh",
+            f"/home/ec2-user/run_vllm_on_arm64.sh {image_uri} {hf_token}",
         ]
 
         result = head_conn.run(

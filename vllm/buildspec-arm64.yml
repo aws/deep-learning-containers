@@ -43,7 +43,7 @@ images:
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-arm64" ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile.arm64 ]
     target: final
-    build: false
+    build: true
     enable_common_stage_build: false
     test_configs:
       test_platforms:

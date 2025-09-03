@@ -4,84 +4,58 @@ ARG PYTHON_VERSION=3.12
 ARG BUILD_BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu20.04
 ARG FINAL_BASE_IMAGE=nvidia/cuda:${CUDA_VERSION}-devel-ubuntu22.04
 
-ARG DEADSNAKES_MIRROR_URL
-ARG DEADSNAKES_GPGKEY_URL
-
-ARG GET_PIP_URL="https://bootstrap.pypa.io/get-pip.py"
-
-ARG PIP_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL
-ARG UV_INDEX_URL=${PIP_INDEX_URL}
-ARG UV_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}
-
-ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
-ARG PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL=https://download.pytorch.org/whl/nightly
-
-ARG PIP_KEYRING_PROVIDER=disabled
-ARG UV_KEYRING_PROVIDER=${PIP_KEYRING_PROVIDER}
-
-ARG INSTALL_KV_CONNECTORS=false
-
 #################### BASE BUILD IMAGE ####################
 FROM ${BUILD_BASE_IMAGE} AS base
-ARG TARGETPLATFORM
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
-ARG INSTALL_KV_CONNECTORS=false
 ENV DEBIAN_FRONTEND=noninteractive
 
-ARG DEADSNAKES_MIRROR_URL
-ARG DEADSNAKES_GPGKEY_URL
-ARG GET_PIP_URL
-
 # Install Python and other dependencies
-RUN echo 'tzdata tzdata/Areas select America' | debconf-set-selections \
-    && echo 'tzdata tzdata/Zones/America select Los_Angeles' | debconf-set-selections \
-    && apt-get update -y \
+RUN apt-get update -y \
     && apt-get install -y ccache software-properties-common git curl sudo \
-    && if [ ! -z ${DEADSNAKES_MIRROR_URL} ] ; then \
-        if [ ! -z "${DEADSNAKES_GPGKEY_URL}" ] ; then \
-            mkdir -p -m 0755 /etc/apt/keyrings \
-            && curl -L ${DEADSNAKES_GPGKEY_URL} | gpg --dearmor > /etc/apt/keyrings/deadsnakes.gpg \
-            && sudo chmod 644 /etc/apt/keyrings/deadsnakes.gpg \
-            && echo "deb [signed-by=/etc/apt/keyrings/deadsnakes.gpg] ${DEADSNAKES_MIRROR_URL} $(lsb_release -cs) main" > /etc/apt/sources.list.d/deadsnakes.list; \
-        fi ; \
-    else \
-        for i in 1 2 3; do \
-            add-apt-repository -y ppa:deadsnakes/ppa && break || \
-            { echo "Attempt $i failed, retrying in 5s..."; sleep 5; }; \
-        done ; \
-    fi \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update -y \
     && apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python${PYTHON_VERSION}-venv \
     && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
     && update-alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
     && ln -sf /usr/bin/python${PYTHON_VERSION}-config /usr/bin/python3-config \
-    && curl -sS ${GET_PIP_URL} | python${PYTHON_VERSION} \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
     && ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/ \
     && python3 --version && python3 -m pip --version
 
-ARG PIP_INDEX_URL UV_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
-ARG PYTORCH_CUDA_INDEX_BASE_URL
-ARG PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL
-ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
-
-
 WORKDIR /workspace
 
-# For torch, vision, triton
-# RUN curl https://download.pytorch.org/whl/nightly/cu128/torch-2.8.0.dev20250627+cpu-cp312-cp312-manylinux_2_28_aarch64.whl && \
-# curl https://download.pytorch.org/whl/nightly/cu128/torchvision-0.23.0.dev20250628-cp313-cp313-manylinux_2_28_aarch64.whl && \ 
-# curl https://download.pytorch.org/whl/nightly/cu128/pytorch_triton-3.3.0+git96316ce5-cp310-cp310-linux_aarch64.whl
-
-
-#################### WHEEL BUILD IMAGE ####################
+#################### Build IMAGE ####################
 FROM base AS build
-ARG TARGETPLATFORM
-ARG PIP_INDEX_URL UV_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
-ARG PYTORCH_CUDA_INDEX_BASE_URL
+
+# Build essential components
+RUN mkdir wheels
+
+# Build xFormers
+RUN git clone https://github.com/facebookresearch/xformers.git \
+    && cd xformers \
+    && git checkout v0.0.28.post3 \
+    && git submodule update --init --recursive \
+    && python setup.py bdist_wheel --dist-dir=/workspace/wheels
+
+# Build Flashinfer
+RUN git clone https://github.com/flashinfer-ai/flashinfer.git \
+    && cd flashinfer \
+    && git checkout v0.2.0.post2 \
+    && git submodule update --init --recursive \
+    && cd python \
+    && FLASHINFER_ENABLE_AOT=1 python setup.py bdist_wheel --dist-dir=/workspace/wheels
+
+# Build Bitsandbytes
+RUN git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git \
+    && cd bitsandbytes \
+    && git checkout 0.45 \
+    && cmake -DCOMPUTE_BACKEND=cuda -S . \
+    && make \
+    && python setup.py bdist_wheel --dist-dir=/workspace/wheels
+
+# Install built wheels
+RUN pip install --no-deps /workspace/wheels/*.whl
 
 WORKDIR /workspace/vllm
 
@@ -92,12 +66,11 @@ ENV MAX_JOBS=${max_jobs}
 ARG nvcc_threads=10
 ENV NVCC_THREADS=$nvcc_threads
 
-# cuda arch list used by torch
 ARG torch_cuda_arch_list='7.5'
 ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
 
 RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/${VLLM_VERSION}/requirements/build.txt \
-    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
+    --extra-index-url https://download.pytorch.org/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.') \
     && mkdir -p /workspace/dist \
     && git clone https://github.com/vllm-project/vllm.git . \
     && git checkout ${VLLM_VERSION} \
@@ -105,26 +78,15 @@ RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vll
 
 ARG vllm_target_device="cuda"
 ENV VLLM_TARGET_DEVICE=${vllm_target_device}
-ENV VLLM_USE_PRECOMPILED=True
 RUN rm -rf .deps && \
     mkdir -p .deps && \
-    export VLLM_USE_PRECOMPILED=True && \
-    export VLLM_DOCKER_BUILD_CONTEXT=1 && \
     python3 setup.py bdist_wheel --dist-dir=/workspace/dist --py-limited-api=cp38
 
 #################### vLLM installation IMAGE ####################
 FROM ${FINAL_BASE_IMAGE} AS vllm-base
-ARG TARGETPLATFORM
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
-ARG INSTALL_KV_CONNECTORS=false
 ENV DEBIAN_FRONTEND=noninteractive
-
-SHELL ["/bin/bash", "-c"]
-
-ARG DEADSNAKES_MIRROR_URL
-ARG DEADSNAKES_GPGKEY_URL
-ARG GET_PIP_URL
 
 WORKDIR /vllm-workspace
 
@@ -132,120 +94,38 @@ RUN PYTHON_VERSION_STR=$(echo ${PYTHON_VERSION} | sed 's/\.//g') && \
     echo "export PYTHON_VERSION_STR=${PYTHON_VERSION_STR}" >> /etc/environment
 
 # Install Python and other dependencies
-RUN echo 'tzdata tzdata/Areas select America' | debconf-set-selections \
-    && echo 'tzdata tzdata/Zones/America select Los_Angeles' | debconf-set-selections \
-    && apt-get update -y \
+RUN apt-get update -y \
     && apt-get install -y ccache software-properties-common git curl wget sudo vim python3-pip \
     && apt-get install -y ffmpeg libsm6 libxext6 libgl1 \
-    && if [ ! -z ${DEADSNAKES_MIRROR_URL} ] ; then \
-        if [ ! -z "${DEADSNAKES_GPGKEY_URL}" ] ; then \
-            mkdir -p -m 0755 /etc/apt/keyrings ; \
-            curl -L ${DEADSNAKES_GPGKEY_URL} | gpg --dearmor > /etc/apt/keyrings/deadsnakes.gpg ; \
-            sudo chmod 644 /etc/apt/keyrings/deadsnakes.gpg ; \
-            echo "deb [signed-by=/etc/apt/keyrings/deadsnakes.gpg] ${DEADSNAKES_MIRROR_URL} $(lsb_release -cs) main" > /etc/apt/sources.list.d/deadsnakes.list ; \
-        fi ; \
-    else \
-        for i in 1 2 3; do \
-            add-apt-repository -y ppa:deadsnakes/ppa && break || \
-            { echo "Attempt $i failed, retrying in 5s..."; sleep 5; }; \
-        done ; \
-    fi \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
     && apt-get update -y \
     && apt-get install -y python${PYTHON_VERSION} python${PYTHON_VERSION}-dev python${PYTHON_VERSION}-venv libibverbs-dev \
     && update-alternatives --install /usr/bin/python3 python3 /usr/bin/python${PYTHON_VERSION} 1 \
     && update-alternatives --set python3 /usr/bin/python${PYTHON_VERSION} \
     && ln -sf /usr/bin/python${PYTHON_VERSION}-config /usr/bin/python3-config \
-    && curl -sS ${GET_PIP_URL} | python${PYTHON_VERSION} \
-    && python3 --version && python3 -m pip --version
-
-ARG PIP_INDEX_URL UV_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
-ARG PYTORCH_CUDA_INDEX_BASE_URL
-ARG PYTORCH_CUDA_NIGHTLY_INDEX_BASE_URL
-ARG PIP_KEYRING_PROVIDER UV_KEYRING_PROVIDER
-
-RUN ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python${PYTHON_VERSION} \
+    && ldconfig /usr/local/cuda-$(echo $CUDA_VERSION | cut -d. -f1,2)/compat/
 
 RUN python3 -m pip install -r https://raw.githubusercontent.com/vllm-project/vllm/v0.10.1.1/requirements/build.txt \
-    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+    --extra-index-url https://download.pytorch.org/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 # Install vllm wheel
 COPY --from=build /workspace/dist /vllm-workspace/dist
-RUN python3 -m pip install /vllm-workspace/dist/*.whl --verbose \
-    --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+COPY --from=build /workspace/wheels /vllm-workspace/wheels
 
-# Install FlashInfer
-ARG FLASHINFER_GIT_REPO="https://github.com/flashinfer-ai/flashinfer.git"
-ARG FLASHINFER_GIT_REF="v0.2.12"
-ARG FLASHINFER_AOT_COMPILE="true"
-
-RUN bash -c '. /etc/environment && \
-    git clone --depth 1 --recursive --shallow-submodules \
-        --branch ${FLASHINFER_GIT_REF} \
-        ${FLASHINFER_GIT_REPO} flashinfer && \
-    cd flashinfer && \
-    if [ "${FLASHINFER_AOT_COMPILE}" = "true" ]; then \
-        if [[ "${CUDA_VERSION}" == 11.* ]]; then \
-            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9"; \
-        elif [[ "${CUDA_VERSION}" == 12.[0-7]* ]]; then \
-            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a"; \
-        else \
-            FI_TORCH_CUDA_ARCH_LIST="7.5 8.0 8.9 9.0a 10.0a 12.0"; \
-        fi && \
-        echo "🏗️  Installing FlashInfer with AOT compilation for arches: ${FI_TORCH_CUDA_ARCH_LIST}" && \
-        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer.aot && \
-        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m pip install --no-build-isolation . \
-            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d ".") && \
-        TORCH_CUDA_ARCH_LIST="${FI_TORCH_CUDA_ARCH_LIST}" python3 -m flashinfer --download-cubin || \
-            echo "WARNING: Failed to download flashinfer cubins."; \
-    else \
-        echo "🏗️  Installing FlashInfer without AOT compilation in JIT mode" && \
-        python3 -m pip install . \
-            --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d "."); \
-    fi && \
-    cd .. && \
-    rm -rf flashinfer'
-
-# Install DeepGEMM from source
-ARG DEEPGEMM_GIT_REPO="https://github.com/deepseek-ai/DeepGEMM.git"
-ARG DEEPGEMM_GIT_REF="7b6b5563b9d4c1ae07ffbce7f78ad3ac9204827c"
-RUN bash -c ' \
-    . /etc/environment \
-    && CUDA_MAJOR="${CUDA_VERSION%%.*}" \
-    && CUDA_MINOR="${CUDA_VERSION#${CUDA_MAJOR}.}" \
-    && CUDA_MINOR="${CUDA_MINOR%%.*}" \
-    && if [ "$CUDA_MAJOR" -ge 12 ] && [ "$CUDA_MINOR" -ge 8 ]; then \
-        git clone --recursive --shallow-submodules ${DEEPGEMM_GIT_REPO} deepgemm \
-        && echo "🏗️  Building DeepGEMM" \
-        && cd deepgemm \
-        && git checkout ${DEEPGEMM_GIT_REF} \
-        && rm -rf build dist \
-        && rm -rf *.egg-info \
-        && python3 setup.py bdist_wheel \
-        && python3 -m pip install dist/*.whl \
-        && cd .. \
-        && rm -rf deepgemm; \
-    else \
-        echo "Skipping DeepGEMM installation (requires CUDA 12.8+ but got ${CUDA_VERSION})"; \
-    fi'
+RUN python3 -m pip install /vllm-workspace/wheels/*.whl \
+    && python3 -m pip install /vllm-workspace/dist/*.whl --verbose \
+    --extra-index-url https://download.pytorch.org/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
 
 #################### OPENAI API SERVER ####################
 FROM vllm-base AS vllm-openai-base
-ARG TARGETPLATFORM
-ARG INSTALL_KV_CONNECTORS=false
-ARG PIP_INDEX_URL UV_INDEX_URL
-ARG PIP_EXTRA_INDEX_URL UV_EXTRA_INDEX_URL
 
 # install additional dependencies for openai api server
-RUN if [ "$INSTALL_KV_CONNECTORS" = "true" ]; then \
-        python3 -m pip install lmcache; \
-    fi; \
-    python3 -m pip install accelerate hf_transfer modelscope "bitsandbytes>=0.42.0" 'timm==0.9.10' boto3 runai-model-streamer runai-model-streamer[s3]
+RUN python3 -m pip install accelerate hf_transfer modelscope "bitsandbytes>=0.42.0" 'timm==0.9.10' boto3 runai-model-streamer runai-model-streamer[s3]
 
 ENV VLLM_USAGE_SOURCE production-docker-image
 
 FROM vllm-openai-base AS final
-ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -255,7 +135,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
-    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/aarch64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
     PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -279,10 +159,8 @@ RUN apt-get update && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
-    # create symlink for python
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 && \
     ln -s /usr/bin/python3 /usr/bin/python && \
-    # clean up
     rm -rf ${HOME_DIR}/oss_compliance* && \
     rm -rf /tmp/tmp* && \
     rm -rf /tmp/uv* && \
