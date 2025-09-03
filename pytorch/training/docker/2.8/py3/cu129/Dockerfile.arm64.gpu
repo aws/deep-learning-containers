@@ -229,7 +229,7 @@ RUN cd /tmp \
 
 # Install NCCL
 RUN cd /tmp \
- && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
+ && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION} \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
