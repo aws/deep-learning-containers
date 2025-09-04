@@ -15,7 +15,7 @@ wait_for_api() {
     echo "Waiting for VLLM API to be ready..."
     while ! curl -s "http://localhost:8000/v1/health" > /dev/null; do
         sleep 5
-        echo "Still waiting for API..."
+        docker logs --tail 5 "vllm-arm64-dlc"
     done
     echo "API is ready!"
 }
@@ -85,7 +85,7 @@ pip install openai 'strands-agents[openai]' strands-agents-tools
 
 echo "Running agent tests..."
 
-# Run agent tests
+Run agent tests
 python3 test_agents.py
 
 echo "Testing completed successfully!"
