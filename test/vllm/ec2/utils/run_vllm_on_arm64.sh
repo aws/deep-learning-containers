@@ -9,73 +9,86 @@ if [ -z "$DLC_IMAGE" ] || [ -z "$HF_TOKEN" ]; then
     exit 1
 fi
 
-echo "🚀 Starting VLLM testing pipeline..."
+MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+CONTAINER_NAME="vllm-arm64-dlc"
+PORT=8000
+
+echo "Starting VLLM testing pipeline..."
 
 wait_for_api() {
+    local max_attempts=60
+    local attempt=1
+    
     echo "Waiting for VLLM API to be ready..."
-    while ! curl -s "http://localhost:8000/v1/health" > /dev/null; do
+    while ! curl -s "http://localhost:${PORT}/v1/health" > /dev/null; do
+        if [ $attempt -ge $max_attempts ]; then
+            echo "Error: API failed to start after $max_attempts attempts"
+            exit 1
+        fi
         sleep 5
-        docker logs --tail 5 "vllm-arm64-dlc"
+        docker logs --tail 5 "${CONTAINER_NAME}"
+        ((attempt++))
     done
     echo "API is ready!"
 }
 
-# Cleanup function
 cleanup() {
     echo "Cleaning up containers..."
-    docker stop vllm-arm64-dlc || true
-    docker rm vllm-arm64-dlc || true
+    docker stop ${CONTAINER_NAME} 2>/dev/null || true
+    docker rm ${CONTAINER_NAME} 2>/dev/null || true
+}
+
+handle_error() {
+    echo "Error occurred on line $1"
+    cleanup
+    exit 1
 }
 
 trap cleanup EXIT
+trap 'handle_error $LINENO' ERR
 
-echo "📝 Running initial inference check..."
-
-# Initial inference test
+echo "Running initial inference check..."
 docker run --rm -v /fsx/vllm-dlc/vllm:/vllm \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
-    -v $HOME/.cache/huggingface:/root/.cache/huggingface \
+    -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
     --gpus=all \
     --entrypoint="" \
-    $DLC_IMAGE \
-    bash -c 'python3 /vllm/examples/offline_inference/basic/generate.py \
-    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+    "$DLC_IMAGE" \
+    bash -c "python3 /vllm/examples/offline_inference/basic/generate.py \
+    --model ${MODEL_NAME} \
     --dtype half \
     --tensor-parallel-size 1 \
-    --max-model-len 2048'
+    --max-model-len 2048"
 
-echo "🤖 Starting VLLM server..."
-
+echo "Starting VLLM server..."
 docker run -d \
-    --name vllm-arm64-dlc \
+    --name ${CONTAINER_NAME} \
     --runtime nvidia \
     --gpus all \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
     -e "NCCL_DEBUG=TRACE" \
-    -p 8000:8000 \
+    -p ${PORT}:${PORT} \
     --ipc=host \
-    $DLC_IMAGE \
-    bash -c 'python3 -m vllm.entrypoints.openai.api_server \
-    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+    "$DLC_IMAGE" \
+    bash -c "python3 -m vllm.entrypoints.openai.api_server \
+    --model ${MODEL_NAME} \
     --tensor-parallel-size 2 \
-    --dtype half'
+    --dtype half"
 
 wait_for_api
 
 echo "Testing API endpoint..."
-
-curl -s http://localhost:8000/v1/completions \
+curl -s "http://localhost:${PORT}/v1/completions" \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+        "model": "'"${MODEL_NAME}"'",
         "prompt": "Hello",
         "max_tokens": 10
     }'
 
 echo "Installing Python dependencies..."
-
 python3 -m venv venv
 source venv/bin/activate
 
@@ -84,11 +97,7 @@ pip install --upgrade pip
 pip install openai 'strands-agents[openai]' strands-agents-tools
 
 echo "Running agent tests..."
-
-Run agent tests
 python3 test_agents.py
-
 echo "Testing completed successfully!"
 
 deactivate
-
