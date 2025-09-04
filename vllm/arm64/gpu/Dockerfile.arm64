@@ -49,8 +49,19 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 RUN apt-get update && apt install -y wget
 
 RUN uv pip install numpy==2.0.0
-# Install pytorch nightly
-RUN uv pip install torch==2.7.1+cu128 torchvision torchaudio pytorch_triton==3.3.0 --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
+
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torch-2.7.0%2Bcu128-cp312-cp312-manylinux_2_28_aarch64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchvision-0.22.0%2Bcu128-cp312-cp312-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchaudio-2.7.0%2Bcu128-cp312-cp312-linux_aarch64.whl
+
+RUN uv pip install --no-cache-dir -U \
+    ${TORCH_URL} \
+    ${TORCHVISION_URL} \
+    ${TORCHAUDIO_URL} 
+
+RUN uv pip install pytorch_triton==3.3.0 \
+    --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
+
 
 # Install from the wheel
 # RUN uv pip install ./torch-2.7.0.dev20250310+cu128-cp312-cp312-linux_aarch64.whl
