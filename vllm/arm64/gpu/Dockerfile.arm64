@@ -51,7 +51,7 @@ RUN apt-get update && apt install -y wget
 
 RUN uv pip install numpy==2.0.0
 # Install pytorch nightly
-RUN uv pip install torch==2.7.1+cu128 torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
+RUN uv pip install torch==2.7.1+cu128 torchvision torchaudio pytorch_triton==3.3.0 --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
 
 # Install from the wheel
 # RUN uv pip install ./torch-2.7.0.dev20250310+cu128-cp312-cp312-linux_aarch64.whl
@@ -62,17 +62,6 @@ RUN mkdir /wheels
 # Install build deps that aren't in project requirements files
 # Make sure to upgrade setuptools to avoid triton build bug
 RUN uv pip install -U build cmake ninja pybind11 setuptools wheel
-
-FROM build-base AS build-triton
-ARG TRITON_REF=release/3.3.x
-ARG TRITON_BUILD_SUFFIX=+cu128
-ENV TRITON_WHEEL_VERSION_SUFFIX=${TRITON_BUILD_SUFFIX:-}
-RUN git clone https://github.com/triton-lang/triton.git
-RUN cd triton && \
-    git checkout ${TRITON_REF} && \
-    git submodule sync && \
-    git submodule update --init --recursive -j 8 && \
-    uv build python --wheel --no-build-isolation -o /wheels
 
 RUN export MAX_JOBS=6
 FROM build-base AS build-xformers
