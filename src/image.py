@@ -14,6 +14,7 @@ language governing permissions and limitations under the License.
 """
 
 import logging
+import os
 import subprocess
 from datetime import datetime
 
@@ -24,6 +25,8 @@ import constants
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+
+build_context = os.getenv("BUILD_CONTEXT")
 
 class DockerImage:
     """
@@ -275,7 +278,7 @@ class DockerImage:
         # Use shortest tag from additional_tags as a suitable cache source
         latest_tag = min(self.additional_tags, key=len)
 
-        if latest_tag:
+        if latest_tag and build_context != "PR":
             latest_image_uri = f"{self.repository}:{latest_tag}"
             LOGGER.info(f"Using cache from registry: {latest_image_uri}")
             cmd.extend(["--cache-from", f"type=registry,ref={latest_image_uri}"])
