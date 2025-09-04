@@ -6,11 +6,10 @@ ARG PYTHON_VERSION=3.12
 FROM nvcr.io/nvidia/cuda:${CUDA_VERSION}-devel-${IMAGE_DISTRO} AS base
 
 # Set arch lists for all targets
-# 'a' suffix is not forward compatible but enables all optimizations
-ARG TORCH_CUDA_ARCH_LIST="9.0a"
+ARG TORCH_CUDA_ARCH_LIST="7.5"
 ENV TORCH_CUDA_ARCH_LIST=${TORCH_CUDA_ARCH_LIST}
 ENV UV_TORCH_BACKEND=cu128
-ARG VLLM_FA_CMAKE_GPU_ARCHES="90a-real"
+ARG VLLM_FA_CMAKE_GPU_ARCHES="75"
 ENV VLLM_FA_CMAKE_GPU_ARCHES=${VLLM_FA_CMAKE_GPU_ARCHES}
 
 # Update apt packages and install dependencies
@@ -63,7 +62,7 @@ RUN mkdir /wheels
 # Make sure to upgrade setuptools to avoid triton build bug
 RUN uv pip install -U build cmake ninja pybind11 setuptools wheel
 
-RUN export MAX_JOBS=6
+RUN export MAX_JOBS=10
 FROM build-base AS build-xformers
 ARG XFORMERS_REF=v0.0.30
 ARG XFORMERS_BUILD_VERSION=0.0.30+cu128
