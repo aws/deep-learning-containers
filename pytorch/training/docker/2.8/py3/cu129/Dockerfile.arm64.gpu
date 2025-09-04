@@ -8,7 +8,7 @@ ARG NCCL_VERSION=2.27.3-1
 ARG EFA_VERSION=1.43.1
 ARG GDRCOPY_VERSION=2.5.1
 ARG TE_VERSION=2.5
-ARG FLASH_ATTN_VERSION=2.8.3
+ARG FLASH_ATTN_VERSION=2.8.1
 
 # PyTorch Binaries
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.8.0/arm64/cu129/torch-2.8.0%2Bcu129-cp312-cp312-manylinux_2_28_aarch64.whl
@@ -233,8 +233,6 @@ RUN cd /tmp \
  && cd nccl \
  && make -j64 src.build BUILDDIR=/usr/local \
  && rm -rf /tmp/nccl
-# preload system nccl for PyTorch to use if it is dynamically linking NCCL
-ENV LD_PRELOAD="/usr/local/lib/libnccl.so"
 
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
