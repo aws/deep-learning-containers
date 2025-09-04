@@ -32,7 +32,7 @@ trap cleanup EXIT
 echo "📝 Running initial inference check..."
 
 # Initial inference test
-docker run --rm -v $(pwd):/vllm \
+docker run --rm -v /fsx/vllm-dlc/vllm:/vllm \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
     -v $HOME/.cache/huggingface:/root/.cache/huggingface \
