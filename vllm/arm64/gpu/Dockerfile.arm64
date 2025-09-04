@@ -106,8 +106,6 @@ RUN cd vllm && \
 
 
 FROM base AS vllm-openai
-# COPY --from=build-flashinfer /wheels/* wheels/
-COPY --from=build-triton /wheels/* wheels/
 COPY --from=build-vllm /wheels/* wheels/
 COPY --from=build-xformers /wheels/* wheels/
 
