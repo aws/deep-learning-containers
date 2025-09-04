@@ -18,14 +18,6 @@
     "version_specifier": "==0.2.4",
     "skip": "True"
   },
-    "s3torchconnector": {
-    "version_specifier": "==1.4.2",
-     "skip": "True"
-  },
-  "accelerate": {
-    "version_specifier": "==1.9.0",
-     "skip": "True"
-  },
   "thinc": {
     "version_specifier": "==8.3.4"
   },
@@ -41,7 +33,7 @@
   "sagemaker": {
     "version_specifier": ">=2,<3"
   },
-   "sagemaker-experiments": {
+  "sagemaker-experiments": {
     "version_specifier": "<1"
   },
   "sagemaker-training": {
@@ -59,13 +51,10 @@
   "urllib3": {
     "version_specifier": ">=2.5.0"
   },
-   "awscli": {
+  "awscli": {
     "version_specifier": "<2"
   },
   "opencv-python": {
     "version_specifier": "==4.11.0.86"
-  },
-  "sagemaker-pytorch-training": {
-    "version_specifier": ">=2.9.0,<3"
   }
 }

@@ -462,16 +462,20 @@ def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag
     :param tag_set: List[Dict], as described above
     :return: str, s3 file path
     """
-    s3_resource = boto3.resource("s3")
-    s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
-    s3_client = s3_resource.meta.client
-    s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
-    if tag_set:
-        s3_client.put_object_tagging(
-            Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
-            Key=s3_filepath,
-            Tagging={"TagSet": tag_set},
-        )
+    s3 = boto3.resource("s3")
+    bucket = constants.PR_CREATION_DATA_HELPER_BUCKET
+    obj = s3.Object(bucket, s3_filepath)
+    client = s3.meta.client
+    try:
+        obj.put(Body=upload_data.encode("utf-8"))
+        if tag_set:
+            client.put_object_tagging(
+                Bucket=bucket,
+                Key=s3_filepath,
+                Tagging={"TagSet": tag_set},
+            )
+    except ClientError as e:
+        LOGGER.info(f"Could not write to s3://{bucket}/{s3_filepath}: {e}")
 
 
 def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, file_name: str):

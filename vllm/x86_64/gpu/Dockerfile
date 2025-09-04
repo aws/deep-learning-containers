@@ -1,6 +1,6 @@
-FROM docker.io/vllm/vllm-openai:v0.10.0 as final
+FROM docker.io/vllm/vllm-openai:v0.10.1.1 as final
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.43.1"
+ARG EFA_VERSION="1.43.2"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
