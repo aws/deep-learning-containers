@@ -81,22 +81,13 @@ docker run -d \
 
 wait_for_api
 
-echo "Testing API endpoint..."
-curl -s "http://localhost:${PORT}/v1/completions" \
-    -H "Content-Type: application/json" \
-    -d '{
-        "model": "'"${MODEL_NAME}"'",
-        "prompt": "Hello",
-        "max_tokens": 10
-    }'
-
 echo "Installing Python dependencies..."
 python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-pip install --upgrade pip
-pip install openai 'strands-agents[openai]' strands-agents-tools
+pip install "openai==1.106.1" strands-agents strands-agents-tools strands-agents-builder 
+
 
 echo "Running agent tests..."
 python3 test_agents.py
