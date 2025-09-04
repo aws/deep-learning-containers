@@ -28,6 +28,7 @@ LOGGER.setLevel(logging.INFO)
 
 build_context = os.getenv("BUILD_CONTEXT")
 
+
 class DockerImage:
     """
     The DockerImage class has the functions and attributes for building the dockerimage
