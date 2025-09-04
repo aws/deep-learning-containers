@@ -135,12 +135,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 
 WORKDIR /
 
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
     chmod +x /usr/local/bin/dockerd_entrypoint.sh && \

@@ -48,21 +48,23 @@ trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
 echo "Running initial inference check..."
-docker run --rm -v /fsx/vllm-dlc/vllm:/vllm \
+docker run --rm \
+    -v /fsx/vllm-dlc/vllm:/vllm \
+    --entrypoint /bin/bash \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
     -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
     --gpus=all \
-    --entrypoint="" \
     "$DLC_IMAGE" \
-    bash -c "python3 /vllm/examples/offline_inference/basic/generate.py \
-    --model ${MODEL_NAME} \
-    --dtype half \
-    --tensor-parallel-size 1 \
-    --max-model-len 2048"
+    -c "python3 /vllm/examples/offline_inference/basic/generate.py \
+        --model ${MODEL_NAME} \
+        --dtype half \
+        --tensor-parallel-size 1 \
+        --max-model-len 2048"
 
 echo "Starting VLLM server..."
 docker run -d \
+    --entrypoint /bin/bash \
     --name ${CONTAINER_NAME} \
     --runtime nvidia \
     --gpus all \
@@ -72,7 +74,7 @@ docker run -d \
     -p ${PORT}:${PORT} \
     --ipc=host \
     "$DLC_IMAGE" \
-    bash -c "python3 -m vllm.entrypoints.openai.api_server \
+    -c "python3 -m vllm.entrypoints.openai.api_server \
     --model ${MODEL_NAME} \
     --tensor-parallel-size 2 \
     --dtype half"
