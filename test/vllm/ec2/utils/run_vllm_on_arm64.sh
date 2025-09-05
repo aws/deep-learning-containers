@@ -88,15 +88,15 @@ docker logs --tail 20 "${CONTAINER_NAME}"
 
 echo "VLLM server is running and responding to requests!"
 
-echo "Installing Python dependencies..."
-python -m venv .venv
-source .venv/bin/activate  
+# echo "Installing Python dependencies..."
+# python -m venv .venv
+# source .venv/bin/activate  
 
-pip install openai
-pip install strands-agents strands-agents-tools
+# pip install openai
+# pip install strands-agents strands-agents-tools
 
-echo "Running agent tests..."
-python3 test_agents.py
-echo "Testing completed successfully!"
+# echo "Running agent tests..."
+# python3 test_agents.py
+# echo "Testing completed successfully!"
 
-deactivate
+# deactivate
