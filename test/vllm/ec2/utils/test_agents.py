@@ -23,10 +23,10 @@ class AnalysisResult(BaseModel):
 
 
 class OpenAIClient:
-    def __init__(self, api_key, api_base):
+    def __init__(self, api_key, base_url):
         self.client = OpenAI(
             api_key=api_key,
-            base_url=api_base,
+            base_url=base_url,
         )
 
     def chat(self, model, messages, temperature, max_tokens):

@@ -305,7 +305,7 @@ def test_vllm_on_ec2(resources, image_uri):
     ec2_cli = None
     fsx = None
     ec2_connections = {}
-    test_results = {"efa": False, "single_node": False, "multi_node": False}
+    test_results = {"efa": None, "single_node": None, "multi_node": None}
 
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
@@ -392,7 +392,10 @@ def test_vllm_on_ec2(resources, image_uri):
             else:
                 print(f"{test_name.replace('_', ' ').title()} test: Not Run")
 
-        if not any(test_results.values()):
+        if is_arm64:
+            if not test_results["single_node"]:
+                raise Exception("Single node test failed for ARM64")
+        elif not any(result for result in test_results.values() if result is not None):
             raise Exception("All tests failed")
 
     except Exception as e:
