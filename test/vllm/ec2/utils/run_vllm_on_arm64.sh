@@ -82,11 +82,8 @@ docker run -d \
 wait_for_api
 
 echo "Installing Python dependencies..."
-python3 -m venv venv
-source venv/bin/activate
-
 # Install dependencies
-pip install "openai==1.106.1" strands-agents strands-agents-tools strands-agents-builder 
+pip install "openai==1.106.1" strands-agents-tools strands-agents-builder 
 
 
 echo "Running agent tests..."
