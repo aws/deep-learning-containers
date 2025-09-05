@@ -12,7 +12,9 @@ from test.test_utils.ec2 import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
     get_ec2_client,
+    install_python_in_instance,
 )
+
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources, TEST_ID
 from test.dlc_tests.ec2.test_efa import (
@@ -258,6 +260,10 @@ def run_single_node_test(head_conn, image_uri):
         hf_token = response.get("HF_TOKEN")
 
         setup_docker_image(head_conn, image_uri)
+
+        # to test agents
+        install_python_in_instance(head_conn, python_version="3.10")
+
         head_conn.put(
             "vllm/ec2/utils/run_vllm_on_arm64.sh",
             "/home/ec2-user/run_vllm_on_arm64.sh",

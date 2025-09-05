@@ -83,7 +83,11 @@ wait_for_api
 
 echo "Installing Python dependencies..."
 # Install dependencies
-pip install "openai==1.106.1"
+
+python -m venv .venv
+source .venv/bin/activate  
+
+pip install openai
 pip install strands-agents strands-agents-tools
 
 
