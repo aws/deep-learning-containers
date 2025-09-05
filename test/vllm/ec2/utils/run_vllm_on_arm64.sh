@@ -16,11 +16,17 @@ PORT=8000
 echo "Starting VLLM testing pipeline..."
 
 wait_for_api() {
-    local max_attempts=60
+    local max_attempts=30
     local attempt=1
     
     echo "Waiting for VLLM API to be ready..."
-    while ! curl -s "http://localhost:${PORT}/v1/health" > /dev/null; do
+    while ! curl -s "http://localhost:${PORT}/v1/completions" \
+        -H "Content-Type: application/json" \
+        -d '{
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+            "prompt": "Hi, What is vLLM?",
+            "max_tokens": 30
+        }' > /dev/null; do
         if [ $attempt -ge $max_attempts ]; then
             echo "Error: API failed to start after $max_attempts attempts"
             exit 1
@@ -69,7 +75,6 @@ docker run -d \
     --gpus all \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
-    -e "NCCL_DEBUG=TRACE" \
     -p ${PORT}:${PORT} \
     --ipc=host \
     "$DLC_IMAGE" \
@@ -81,13 +86,6 @@ docker run -d \
 wait_for_api
 docker logs --tail 20 "${CONTAINER_NAME}"
 
-curl http://localhost:8000/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-    "messages": [{"role": "user", "content": "Hello, what is vllm?"}]
-  }'
-
 echo "VLLM server is running and responding to requests!"
 
 echo "Installing Python dependencies..."
@@ -96,7 +94,6 @@ source .venv/bin/activate
 
 pip install openai
 pip install strands-agents strands-agents-tools
-
 
 echo "Running agent tests..."
 python3 test_agents.py

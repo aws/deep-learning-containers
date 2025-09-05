@@ -29,12 +29,12 @@ class OpenAIClient:
             base_url=base_url,
         )
 
-    def chat(self, model, messages, temperature, max_completion_tokens):
-        return self.client.chat.completions.create(
+    def chat(self, model, prompt, temperature, max_tokens):
+        return self.client.completions.create(
             model=model,
-            messages=messages,
+            prompt=prompt,
             temperature=temperature,
-            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
         )
 
 
@@ -47,7 +47,7 @@ def test_direct_completion():
 
     chat_response = client.chat(
         model=MODEL_NAME,
-        messages=[
+        prompt=[
             {
                 "role": "system",
                 "content": "You are a helpful assistant.",
@@ -58,11 +58,11 @@ def test_direct_completion():
             },
         ],
         temperature=0.7,
-        max_completion_tokens=512,
+        max_tokens=512,
     )
 
     print("\n API Response:")
-    print(chat_response.choices[0].message.content)
+    print(chat_response.choices[0].text)
     return client
 
 
