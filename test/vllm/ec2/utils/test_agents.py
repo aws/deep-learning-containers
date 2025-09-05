@@ -10,7 +10,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 OPENAI_API_KEY = "EMPTY"
-OPENAI_API_BASE = "http://localhost:8000/v1/completions"
+OPENAI_API_BASE = "http://localhost:8000/v1"
 MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 
 
