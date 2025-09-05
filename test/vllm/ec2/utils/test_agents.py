@@ -30,7 +30,7 @@ class OpenAIClient:
         )
 
     def chat(self, model, messages, temperature, max_completion_tokens):
-        return self.client.completions.create(
+        return self.client.chat.completions.create(
             model=model,
             messages=messages,
             temperature=temperature,
