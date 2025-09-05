@@ -26,7 +26,6 @@ wait_for_api() {
             exit 1
         fi
         sleep 5
-        docker logs --tail 5 "${CONTAINER_NAME}"
         ((attempt++))
     done
     echo "API is ready!"
@@ -47,20 +46,20 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
-# echo "Running initial inference check..."
-# docker run --rm \
-#     -v /fsx/vllm-dlc/vllm:/vllm \
-#     --entrypoint /bin/bash \
-#     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-#     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
-#     -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
-#     --gpus=all \
-#     "$DLC_IMAGE" \
-#     -c "python3 /vllm/examples/offline_inference/basic/generate.py \
-#         --model ${MODEL_NAME} \
-#         --dtype half \
-#         --tensor-parallel-size 1 \
-#         --max-model-len 2048"
+echo "Running initial inference check..."
+docker run --rm \
+    -v /fsx/vllm-dlc/vllm:/vllm \
+    --entrypoint /bin/bash \
+    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+    -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+    -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
+    --gpus=all \
+    "$DLC_IMAGE" \
+    -c "python3 /vllm/examples/offline_inference/basic/generate.py \
+        --model ${MODEL_NAME} \
+        --dtype half \
+        --tensor-parallel-size 1 \
+        --max-model-len 2048"
 
 echo "Starting VLLM server..."
 docker run -d \
@@ -80,10 +79,18 @@ docker run -d \
     --dtype half"
 
 wait_for_api
+docker logs --tail 20 "${CONTAINER_NAME}"
+
+curl http://localhost:8000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+    "messages": [{"role": "user", "content": "Hello, what is vllm?"}]
+  }'
+
+echo "VLLM server is running and responding to requests!"
 
 echo "Installing Python dependencies..."
-# Install dependencies
-
 python -m venv .venv
 source .venv/bin/activate  
 
