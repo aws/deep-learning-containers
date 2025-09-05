@@ -65,25 +65,25 @@ docker run --rm \
         --tensor-parallel-size 1 \
         --max-model-len 2048"
 
-# echo "Starting VLLM server..."
-# docker run -d \
-#     --entrypoint /bin/bash \
-#     --name ${CONTAINER_NAME} \
-#     --runtime nvidia \
-#     --gpus all \
-#     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-#     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
-#     -e "NCCL_DEBUG=TRACE" \
-#     -p ${PORT}:${PORT} \
-#     --ipc=host \
-#     "$DLC_IMAGE" \
-#     -c "python3 -m vllm.entrypoints.openai.api_server \
-#     --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
-#     --tensor-parallel-size 2 \
-#     --dtype float16"
+echo "Starting VLLM server..."
+docker run -d \
+    --entrypoint /bin/bash \
+    --name ${CONTAINER_NAME} \
+    --runtime nvidia \
+    --gpus all \
+    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+    -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
+    -e "NCCL_DEBUG=TRACE" \
+    -p ${PORT}:${PORT} \
+    --ipc=host \
+    "$DLC_IMAGE" \
+    -c "python3 -m vllm.entrypoints.openai.api_server \
+    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+    --tensor-parallel-size 2 \
+    --dtype float16"
 
-# wait_for_api
-# docker logs "${CONTAINER_NAME}"
+wait_for_api
+docker logs "${CONTAINER_NAME}"
 
 # echo "VLLM server is running and responding to requests!"
 

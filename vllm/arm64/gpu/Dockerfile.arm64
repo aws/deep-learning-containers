@@ -41,8 +41,6 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 RUN apt-get update && apt install -y wget
 
-#Numpy==2.0.0 is required for flashinfer
-RUN uv pip install numpy==2.0.0 
 ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torch-2.7.0%2Bcu128-cp312-cp312-manylinux_2_28_aarch64.whl
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchvision-0.22.0%2Bcu128-cp312-cp312-linux_aarch64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchaudio-2.7.0%2Bcu128-cp312-cp312-linux_aarch64.whl
@@ -63,6 +61,15 @@ RUN uv pip install -U build cmake ninja pybind11 setuptools wheel
 RUN export MAX_JOBS=10
 
 ###############################################################################
+FROM build-base AS build-triton
+RUN git clone https://github.com/triton-lang/triton.git
+RUN cd triton && \
+    git checkout v3.4.0 && \
+    git submodule sync && \
+    git submodule update --init --recursive -j 8 && \
+    uv build python --wheel --no-build-isolation -o /wheels
+
+###############################################################################
 FROM build-base AS build-xformers
 ARG XFORMERS_REF=v0.0.30
 ARG XFORMERS_BUILD_VERSION=0.0.30+cu128
@@ -76,7 +83,7 @@ RUN git clone https://github.com/facebookresearch/xformers.git && \
 
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
-    git checkout v0.2.8rc1 && \
+    git checkout v0.3.1 && \
     uv pip install ninja && \
     uv pip install --no-build-isolation --verbose .
 
@@ -94,6 +101,7 @@ RUN git clone https://github.com/vllm-project/vllm.git && \
 
 ###############################################################################
 FROM base AS vllm-openai
+COPY --from=build-triton /wheels/* wheels/
 COPY --from=build-vllm /wheels/* wheels/
 COPY --from=build-xformers /wheels/* wheels/
 
