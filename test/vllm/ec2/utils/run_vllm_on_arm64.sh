@@ -65,34 +65,37 @@ docker run --rm \
         --tensor-parallel-size 1 \
         --max-model-len 2048"
 
-echo "Starting VLLM server..."
+# echo "Starting VLLM server..."
+# docker run -d \
+#     --entrypoint /bin/bash \
+#     --name ${CONTAINER_NAME} \
+#     --runtime nvidia \
+#     --gpus all \
+#     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+#     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
+#     -e "NCCL_DEBUG=TRACE" \
+#     -p ${PORT}:${PORT} \
+#     --ipc=host \
+#     "$DLC_IMAGE" \
+#     -c "python3 -m vllm.entrypoints.openai.api_server \
+#     --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+#     --tensor-parallel-size 2 \
+#     --dtype float16"
 
-docker run -d \
-    --name ${CONTAINER_NAME} \
-    --runtime nvidia \
-    --gpus all \
-    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-    -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
-    -e "NCCL_DEBUG=TRACE" \
-    -p 8000:8000 \
-    --ipc=host \
-    $DLC_IMAGE \
-    /bin/bash
+# wait_for_api
+# docker logs "${CONTAINER_NAME}"
 
-wait_for_api
-docker logs "${CONTAINER_NAME}"
+# echo "VLLM server is running and responding to requests!"
 
-echo "VLLM server is running and responding to requests!"
+# echo "Installing Python dependencies..."
+# python -m venv .venv
+# source .venv/bin/activate  
 
-echo "Installing Python dependencies..."
-python -m venv .venv
-source .venv/bin/activate  
+# pip install openai
+# pip install strands-agents strands-agents-tools
 
-pip install openai
-pip install strands-agents strands-agents-tools
+# echo "Running agent tests..."
+# python3 test_agents.py
+# echo "Testing completed successfully!"
 
-echo "Running agent tests..."
-python3 test_agents.py
-echo "Testing completed successfully!"
-
-deactivate
+# deactivate
