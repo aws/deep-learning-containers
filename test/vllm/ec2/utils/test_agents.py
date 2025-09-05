@@ -22,30 +22,14 @@ class AnalysisResult(BaseModel):
     confidence: float = Field(description="Confidence score (0-1)", ge=0, le=1)
 
 
-class OpenAIClient:
-    def __init__(self, api_key, base_url):
-        self.client = OpenAI(
-            api_key=api_key,
-            base_url=base_url,
-        )
-
-    def chat(self, model, prompt, temperature, max_tokens):
-        return self.client.completions.create(
-            model=model,
-            prompt=prompt,
-            temperature=temperature,
-            max_tokens=max_tokens,
-        )
-
-
 def test_direct_completion():
     """Test direct API calls to VLLM"""
-    client = OpenAIClient(
+    client = OpenAI(
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_API_BASE,
     )
 
-    chat_response = client.chat(
+    chat_response = client.completions.create(
         model=MODEL_NAME,
         prompt=[
             {
@@ -69,10 +53,10 @@ def test_direct_completion():
 def main():
     try:
         # Test direct API first
-        model = test_direct_completion()
+        model_client = test_direct_completion()
 
         # Create agent with the model
-        agent = Agent(model=model, tools=[calculator, current_time])
+        agent = Agent(model=model_client, tools=[calculator, current_time])
 
         print("\nAgent initialized successfully!")
 

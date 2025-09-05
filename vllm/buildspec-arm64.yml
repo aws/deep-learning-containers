@@ -50,4 +50,3 @@ images:
         - sanity
         - security
         - ec2
-        - eks
