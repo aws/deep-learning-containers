@@ -52,7 +52,7 @@ RUN uv pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}
 
-RUN uv pip install pytorch_triton==3.3.0 \
+RUN uv pip install pytorch_triton==3.2.0 \
     --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
 
 ##############################################################################
@@ -127,24 +127,31 @@ RUN uv pip install ninja
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+ARG EFA_VERSION="1.43.2"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     DLC_CONTAINER_TYPE=general \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8
+    PYTHONIOENCODING=UTF-8 \
+    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/aarch64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 
 WORKDIR /
 
+COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
     chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
+    # Install EFA
+    bash install_efa.sh ${EFA_VERSION} && \
+    rm install_efa.sh
 
 RUN apt-get update && \
     apt-get upgrade -y && \
