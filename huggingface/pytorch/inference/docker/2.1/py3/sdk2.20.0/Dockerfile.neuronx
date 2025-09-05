@@ -59,9 +59,28 @@ RUN apt-get update \
     libcap-dev \
     gpg-agent \
     libexpat1 \
-    libxml2 \
     libgstreamer1.0-0 \
     libsoup2.4-1 \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+# Install latest version of libxml2 from source
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    make \
+    gcc \
+    automake \
+    libtool \
+    pkg-config \
+ && wget http://xmlsoft.org/sources/libxml2-latest.tar.gz \
+ && tar -xzf libxml2-latest.tar.gz \
+ && cd libxml2-* \
+ && ./configure --prefix=/usr --without-python \
+ && make -j$(nproc) \
+ && make install \
+ && cd .. \
+ && rm -rf libxml2-* \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
