@@ -261,9 +261,6 @@ def run_single_node_test(head_conn, image_uri):
 
         setup_docker_image(head_conn, image_uri)
 
-        # to test agents
-        install_python_in_instance(head_conn, python_version="3.10")
-
         head_conn.put(
             "vllm/ec2/utils/run_vllm_on_arm64.sh",
             "/home/ec2-user/run_vllm_on_arm64.sh",
@@ -306,6 +303,9 @@ def test_vllm_on_ec2(resources, image_uri):
     fsx = None
     ec2_connections = {}
     test_results = {"efa": None, "single_node": None, "multi_node": None}
+
+    # to test agents
+    install_python_in_instance(head_conn, python_version="3.10")
 
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
