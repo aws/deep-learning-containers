@@ -2,6 +2,7 @@
 from openai import OpenAI
 from strands import Agent
 from strands_tools import calculator, current_time
+
 from pydantic import BaseModel, Field
 import logging
 
@@ -73,20 +74,20 @@ def main():
         # Create agent with the model
         agent = Agent(model=model, tools=[calculator, current_time])
 
-        print("\n🤖 Agent initialized successfully!")
+        print("\nAgent initialized successfully!")
 
         # Test 1: Basic Agent Interaction
-        print("\n📝 Test 1: Basic Agent Interaction")
+        print("\nTest 1: Basic Agent Interaction")
         response = agent("What are the main benefits of using VLLM for inference?")
         print(f"Agent Response: {response}")
 
         # Test 2: Tool Usage
-        print("\n📝 Test 2: Tool Usage")
+        print("\nTest 2: Tool Usage")
         tool_response = agent("What's the square root of 144 and what's the current time?")
         print(f"Tool Response: {tool_response}")
 
         # Test 3: Structured Output
-        print("\n📝 Test 3: Structured Output")
+        print("\nTest 3: Structured Output")
         analysis_prompt = """
         Analyze this technical concept:
         VLLM is a high-performance library for LLM inference and serving,
@@ -101,10 +102,10 @@ def main():
         print(f"Confidence: {result.confidence}")
 
     except Exception as e:
-        print(f"❌ Error occurred: {str(e)}")
+        print(f"Error occurred: {str(e)}")
         logging.error(f"Detailed error: {e}", exc_info=True)
 
 
 if __name__ == "__main__":
-    print("🚀 Starting VLLM Agent Test...")
+    print("Starting VLLM Agent Test...")
     main()

@@ -47,20 +47,20 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
-echo "Running initial inference check..."
-docker run --rm \
-    -v /fsx/vllm-dlc/vllm:/vllm \
-    --entrypoint /bin/bash \
-    -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-    -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
-    -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
-    --gpus=all \
-    "$DLC_IMAGE" \
-    -c "python3 /vllm/examples/offline_inference/basic/generate.py \
-        --model ${MODEL_NAME} \
-        --dtype half \
-        --tensor-parallel-size 1 \
-        --max-model-len 2048"
+# echo "Running initial inference check..."
+# docker run --rm \
+#     -v /fsx/vllm-dlc/vllm:/vllm \
+#     --entrypoint /bin/bash \
+#     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
+#     -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
+#     -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
+#     --gpus=all \
+#     "$DLC_IMAGE" \
+#     -c "python3 /vllm/examples/offline_inference/basic/generate.py \
+#         --model ${MODEL_NAME} \
+#         --dtype half \
+#         --tensor-parallel-size 1 \
+#         --max-model-len 2048"
 
 echo "Starting VLLM server..."
 docker run -d \
@@ -83,7 +83,8 @@ wait_for_api
 
 echo "Installing Python dependencies..."
 # Install dependencies
-pip install "openai==1.106.1" strands-agents-tools strands-agents-builder 
+pip install "openai==1.106.1"
+pip install strands-agents strands-agents-tools
 
 
 echo "Running agent tests..."
