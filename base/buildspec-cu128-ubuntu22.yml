@@ -1,14 +1,14 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
-framework: &FRAMEWORK vllm
-version: &VERSION "0.10.1"
-short_version: &SHORT_VERSION "0.10"
+framework: &FRAMEWORK base
+version: &VERSION 12.8.0
+short_version: &SHORT_VERSION "12.8"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
 repository_info:
-  build_repository: &BUILD_REPOSITORY
+  base_repository: &BASE_REPOSITORY
     image_type: &IMAGE_TYPE gpu
     root: .
     repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
@@ -17,23 +17,26 @@ repository_info:
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
-  build_context: &BUILD_CONTEXT
+  base_context: &BASE_CONTEXT
     deep_learning_container:
       source: src/deep_learning_container.py
       target: deep_learning_container.py
+    install_python:
+      source: scripts/install_python.sh
+      target: install_python.sh
+    install_cuda:
+      source: scripts/install_cuda.sh
+      target: install_cuda.sh
     install_efa:
       source: scripts/install_efa.sh
       target: install_efa.sh
-    dockerd_entrypoint:
-      source: vllm/build_artifacts/dockerd_entrypoint.sh
-      target: dockerd_entrypoint.sh
 
 images:
-  vllm_x86_64:
-    <<: *BUILD_REPOSITORY
+  base_x86_64_gpu_cuda128:
+    <<: *BASE_REPOSITORY
     context:
-      <<: *BUILD_CONTEXT
-    image_size_baseline: 20000
+      <<: *BASE_CONTEXT
+    image_size_baseline: 11000
     device_type: &DEVICE_TYPE gpu
     cuda_version: &CUDA_VERSION cu128
     python_version: &DOCKER_PYTHON_VERSION py3
@@ -41,7 +44,7 @@ images:
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /, *CUDA_VERSION, /, *OS_VERSION, /Dockerfile ]
     target: final
     build: true
     enable_common_stage_build: false
@@ -49,5 +52,3 @@ images:
       test_platforms:
         - sanity
         - security
-        - ec2
-        - eks

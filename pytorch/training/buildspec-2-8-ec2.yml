@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK pytorch
-version: &VERSION 2.7.1
-short_version: &SHORT_VERSION "2.7"
+version: &VERSION 2.8.0
+short_version: &SHORT_VERSION "2.8"
 arch_type: x86
 # autopatch_build: "True"
 
@@ -36,7 +36,7 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-    oss_compliance:
+    setup_oss_compliance:
       source: ../../scripts/setup_oss_compliance.sh
       target: setup_oss_compliance.sh
 
@@ -44,7 +44,7 @@ images:
   BuildEC2CPUPTTrainPy3DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_CPU_TRAINING_PY3 false
-    image_size_baseline: 6500
+    image_size_baseline: 7200
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
@@ -56,14 +56,14 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  BuildEC2GPUPTTrainPy3cu128DockerImage:
+  BuildEC2GPUPTTrainPy3cu129DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
-    image_size_baseline: 24000
+    image_size_baseline: 28000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
-    cuda_version: &CUDA_VERSION cu128
+    cuda_version: &CUDA_VERSION cu129
     os_version: &OS_VERSION ubuntu22.04
     tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
     latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]

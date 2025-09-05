@@ -1,5 +1,5 @@
 {
- "torch": {
+  "torch": {
     "version_specifier": "==2.7.1"
   },
   "torchvision": {
@@ -22,14 +22,6 @@
     "version_specifier": "==2.3",
     "skip": "True"
   },
-    "s3torchconnector": {
-    "version_specifier": "==1.4.2",
-    "skip": "True"
-  },
-  "accelerate": {
-    "version_specifier": "==1.9.0",
-    "skip": "True"
-  },
   "thinc": {
     "version_specifier": "==8.3.4"
   },
@@ -45,13 +37,13 @@
   "tornado": {
     "version_specifier": ">=6.5.1"
   },
-   "sagemaker-training": {
+  "sagemaker-training": {
     "version_specifier": ">=4.8.3"
   },
-   "sagemaker": {
+  "sagemaker": {
     "version_specifier": ">=2,<3"
   },
-   "sagemaker-experiments": {
+  "sagemaker-experiments": {
     "version_specifier": "<1"
   },
   "idna": {
@@ -69,10 +61,7 @@
   "urllib3": {
     "version_specifier": ">=2.5.0"
   },
-   "awscli": {
+  "awscli": {
     "version_specifier": "<2"
-  },
-  "sagemaker-pytorch-training": {
-    "version_specifier": ">=2.9.0,<3"
   }
 }

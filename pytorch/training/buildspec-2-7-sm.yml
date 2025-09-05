@@ -5,7 +5,7 @@ framework: &FRAMEWORK pytorch
 version: &VERSION 2.7.1
 short_version: &SHORT_VERSION "2.7"
 arch_type: x86
-autopatch_build: "True"
+autopatch_build: "False"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -36,6 +36,9 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
+    oss_compliance:
+      source: ../../scripts/setup_oss_compliance.sh
+      target: setup_oss_compliance.sh
 
 images:
   BuildSageMakerCPUPTTrainPy3DockerImage:
