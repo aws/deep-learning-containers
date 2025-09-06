@@ -2,8 +2,22 @@
 
 set -ex
 
+ARCH=$(uname -m)
+case $ARCH in
+    x86_64)
+        ARCH_DIR="x86_64-linux-gnu"
+        ;;
+    aarch64)
+        ARCH_DIR="aarch64-linux-gnu"
+        ;;
+    *)
+        echo "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
+esac
+
 function check_libnccl_net_so {
-    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu"
+    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
     NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
 
     # Check if file exists
