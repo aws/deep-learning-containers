@@ -59,7 +59,7 @@ RUN export MAX_JOBS=15
 
 ###############################################################################
 FROM build-base AS build-triton
-ARG TRITON_REF=release/3.2.x
+ARG TRITON_REF=release/3.4.x
 ARG TRITON_BUILD_SUFFIX=+cu128
 ENV TRITON_WHEEL_VERSION_SUFFIX=${TRITON_BUILD_SUFFIX:-}
 RUN git clone https://github.com/triton-lang/triton.git && \
