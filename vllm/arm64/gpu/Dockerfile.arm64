@@ -59,7 +59,7 @@ RUN export MAX_JOBS=15
 
 ###############################################################################
 FROM build-base AS build-triton
-ARG TRITON_REF=release/3.2.x
+ARG TRITON_REF=release/3.4.x
 ARG TRITON_BUILD_SUFFIX=+cu128
 ENV TRITON_WHEEL_VERSION_SUFFIX=${TRITON_BUILD_SUFFIX:-}
 RUN git clone https://github.com/triton-lang/triton.git
@@ -89,10 +89,8 @@ RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
 
 ###############################################################################
 FROM build-base AS build-vllm
-ARG VLLM_REF=v0.10.1.1
 RUN git clone https://github.com/vllm-project/vllm.git && \
     cd vllm && \
-    git checkout ${VLLM_REF} && \
     git submodule sync && \
     git submodule update --init --recursive -j 8 && \
     python use_existing_torch.py && \
