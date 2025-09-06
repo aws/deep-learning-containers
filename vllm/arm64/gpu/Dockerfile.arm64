@@ -45,20 +45,19 @@ ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7
 ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchvision-0.22.0%2Bcu128-cp312-cp312-linux_aarch64.whl
 ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchaudio-2.7.0%2Bcu128-cp312-cp312-linux_aarch64.whl
 
+RUN uv pip install numpy==2.0.0
+
 RUN uv pip install --no-cache-dir -U \
     ${TORCH_URL} \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}
-
-RUN uv pip install pytorch_triton==3.3.0 \
-    --extra-index-url https://download.pytorch.org/whl/cu128 --torch-backend=cu128
 
 ##############################################################################
 FROM base AS build-base
 RUN mkdir /wheels
 
 RUN uv pip install -U build cmake ninja pybind11 setuptools wheel
-RUN export MAX_JOBS=10
+RUN export MAX_JOBS=15
 
 ###############################################################################
 FROM build-base AS build-triton
