@@ -64,7 +64,7 @@ RUN export MAX_JOBS=10
 FROM build-base AS build-triton
 RUN git clone https://github.com/triton-lang/triton.git
 RUN cd triton && \
-    git checkout v3.4.0 && \
+    git checkout release/v3.4.0 && \
     git submodule sync && \
     git submodule update --init --recursive -j 8 && \
     uv build python --wheel --no-build-isolation -o /wheels
