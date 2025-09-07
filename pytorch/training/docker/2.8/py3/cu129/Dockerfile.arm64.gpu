@@ -248,7 +248,7 @@ RUN cd /tmp \
     && FLASH_ATTN_CUDA_ARCHS="7.5;8.0;9.0;10.0;12.0" \
     TORCH_CUDA_ARCH_LIST="7.5;8.0;9.0;10.0;12.0" \
     FLASH_ATTENTION_FORCE_BUILD=TRUE \
-    MAX_JOBS=16 \
+    MAX_JOBS=4 \
     VERBOSE=1 \
     python setup.py install \
     && cd .. \
