@@ -50,6 +50,9 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
+cd /fsx/vllm-dlc/vllm
+git checkout main
+
 echo "Running initial inference check..."
 docker run --rm \
     -v /fsx/vllm-dlc/vllm:/vllm \
