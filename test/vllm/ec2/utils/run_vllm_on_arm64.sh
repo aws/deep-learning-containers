@@ -58,8 +58,8 @@ docker run --rm \
     -v /fsx/vllm-dlc/vllm:/vllm \
     --entrypoint /bin/bash \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
-    -e VLLM_WORKER_MULTIPROC_METHOD=spawn \
-    -e VLLM_FLASH_ATTN_VERSION=2 \
+    -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
+    -e "VLLM_USE_V1=0" \
     -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
     --gpus=all \
     "$DLC_IMAGE" \
@@ -78,6 +78,7 @@ docker run -d \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
     -e "NCCL_DEBUG=TRACE" \
+    -e "VLLM_USE_V1=0" \
     -p ${PORT}:${PORT} \
     --ipc=host \
     "$DLC_IMAGE" \
