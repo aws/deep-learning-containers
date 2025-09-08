@@ -60,9 +60,9 @@ docker run --rm \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
     -e "VLLM_USE_V1=0" \
-    -v "$HOME/.cache/huggingface:/root/.cache/huggingface" \
+    -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     --gpus=all \
-    "$DLC_IMAGE" \
+    $DLC_IMAGE \
     -c "python3 /vllm/examples/offline_inference/basic/generate.py \
         --model ${MODEL_NAME} \
         --dtype half \
@@ -72,25 +72,20 @@ docker run --rm \
 echo "Starting VLLM server..."
 docker run -d \
     --entrypoint /bin/bash \
-    --name ${CONTAINER_NAME} \
-    --runtime nvidia \
-    --gpus all \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
-    -e "NCCL_DEBUG=TRACE" \
     -e "VLLM_USE_V1=0" \
-    -p ${PORT}:${PORT} \
-    --ipc=host \
-    "$DLC_IMAGE" \
-    -c "python3 -m vllm.entrypoints.openai.api_server \
-    --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
-    --tensor-parallel-size 2 \
-    --dtype float16"
+    -v /fsx/.cache/huggingface:/root/.cache/huggingface \
+    --gpus=all \
+    $DLC_IMAGE \
+    -c "vllm serve ${MODEL_NAME} \
+     --tensor-parallel-size 2 \
+     --max-num-batched-tokens 16384"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
 
-# echo "VLLM server is running and responding to requests!"
+echo "VLLM server is running and responding to requests!"
 
 # echo "Installing Python dependencies..."
 # python -m venv .venv
