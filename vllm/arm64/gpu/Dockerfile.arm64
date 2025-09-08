@@ -57,7 +57,7 @@ RUN uv pip install pytorch_triton==3.4.0 \
 FROM base AS build-base
 RUN mkdir /wheels
 
-RUN uv pip install -U build cmake ninja pybind11 setuptools wheel
+RUN uv pip install -U build cmake ninja pybind11 setuptools wheel requests numpy
 RUN export MAX_JOBS=15
 
 ###############################################################################
@@ -88,7 +88,7 @@ RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
 FROM build-base AS build-vllm
 RUN git clone https://github.com/vllm-project/vllm.git && \
     cd vllm && \
-    git checkout main && \
+    git checkout v0.10.2rc1 && \
     git submodule sync && \
     git submodule update --init --recursive -j 8 && \
     python use_existing_torch.py && \

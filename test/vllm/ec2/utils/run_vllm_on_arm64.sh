@@ -51,9 +51,6 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
-cd /fsx/vllm-dlc/vllm
-git checkout main
-
 echo "Running initial inference check..."
 docker run --rm \
     -v /fsx/vllm-dlc/vllm:/vllm \
@@ -82,8 +79,8 @@ docker run -d \
     --gpus=all \
     $DLC_IMAGE \
     -c "vllm serve ${MODEL_NAME} \
-     --tensor-parallel-size 2 \
-     --max-num-batched-tokens 16384"
+     --dtype half
+     --tensor-parallel-size 1"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
