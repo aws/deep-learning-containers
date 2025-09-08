@@ -14,7 +14,7 @@ CONTAINER_NAME="vllm-arm64-dlc"
 PORT=8000
 
 wait_for_api() {
-    local max_attempts=30
+    local max_attempts=60
     local attempt=1
     
     echo "Waiting for VLLM API to be ready..."
