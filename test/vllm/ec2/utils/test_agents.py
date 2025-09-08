@@ -1,87 +1,21 @@
-# test_vllm_agent.py
-from openai import OpenAI
-from strands import Agent
-from strands_tools import calculator, current_time
+from autogen import UserProxyAgent, ConversableAgent
 
-from pydantic import BaseModel, Field
-import logging
+local_llm_config = {
+    "config_list": [
+        {
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",  # Same as in vLLM command
+            "api_key": "NotRequired",  # Not needed
+            "base_url": "http://localhost:8000/v1",  # Your vLLM URL, with '/v1' added
+        }
+    ],
+    "cache_seed": None,  # Turns off caching, useful for testing different models
+}
 
-# Enable logging
-logging.basicConfig(level=logging.INFO)
+# Create the agent that uses the LLM.
+assistant = ConversableAgent("agent", llm_config=local_llm_config, system_message="")
 
-OPENAI_API_KEY = "EMPTY"
-OPENAI_API_BASE = "http://localhost:8000/v1"
-MODEL_NAME = "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+# Create the agent that represents the user in the conversation.
+user_proxy = UserProxyAgent("user", code_execution_config=False, system_message="")
 
-
-class AnalysisResult(BaseModel):
-    """Analysis result structure"""
-
-    summary: str = Field(description="Main summary of the analysis")
-    key_points: list[str] = Field(description="Key points extracted")
-    confidence: float = Field(description="Confidence score (0-1)", ge=0, le=1)
-
-
-def test_direct_completion():
-    client = OpenAI(
-        api_key=OPENAI_API_KEY,
-        base_url=OPENAI_API_BASE,
-    )
-
-    prompt = "What are the main benefits of using VLLM for inference?"
-
-    chat_response = client.completions.create(
-        model=MODEL_NAME,
-        prompt=prompt,
-        temperature=0.7,
-        max_tokens=512,
-    )
-
-    print("\n API Response:")
-    print(chat_response.choices[0].text)
-    return client
-
-
-def main():
-    try:
-        # Test direct API first
-        model_client = test_direct_completion()
-
-        # Create agent with the model
-        agent = Agent(model=model_client, tools=[calculator, current_time])
-
-        print("\nAgent initialized successfully!")
-
-        # Test 1: Basic Agent Interaction
-        print("\nTest 1: Basic Agent Interaction")
-        response = agent("What are the main benefits of using VLLM for inference?")
-        print(f"Agent Response: {response}")
-
-        # Test 2: Tool Usage
-        print("\nTest 2: Tool Usage")
-        tool_response = agent("What's the square root of 144 and what's the current time?")
-        print(f"Tool Response: {tool_response}")
-
-        # Test 3: Structured Output
-        print("\nTest 3: Structured Output")
-        analysis_prompt = """
-        Analyze this technical concept:
-        VLLM is a high-performance library for LLM inference and serving,
-        featuring state-of-the-art scheduling and optimization techniques.
-        """
-
-        result = agent.structured_output(AnalysisResult, analysis_prompt)
-
-        print("Analysis Results:")
-        print(f"Summary: {result.summary}")
-        print(f"Key Points: {result.key_points}")
-        print(f"Confidence: {result.confidence}")
-
-    except Exception as e:
-        print(f"Error occurred: {str(e)}")
-        logging.error(f"Detailed error: {e}", exc_info=True)
-
-
-if __name__ == "__main__":
-    print("Starting VLLM Agent Test...")
-    main()
+# Let the assistant start the conversation.  It will end when the user types exit.
+assistant.initiate_chat(user_proxy, message="How can I help you today?")

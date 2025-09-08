@@ -69,6 +69,7 @@ docker run --rm \
 
 echo "Starting VLLM server..."
 docker run -d \
+    -v /fsx/vllm-dlc/vllm:/vllm \
     --name ${CONTAINER_NAME} \
     -p ${PORT}:8000 \
     --entrypoint /bin/bash \
@@ -82,7 +83,8 @@ docker run -d \
         --dtype float16 \
         --gpu-memory-utilization 0.7 \
         --max-model-len 6000 \
-        --enforce-eager"
+        --enforce-eager
+        --chat-template /vllm/examples/tool_chat_template_deepseekr1.jinja"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
@@ -93,8 +95,7 @@ echo "Installing Python dependencies..."
 python -m venv .venv
 source .venv/bin/activate  
 
-pip install openai
-pip install strands-agents strands-agents-tools
+pip install autogen-agentchat~=0.2
 
 echo "Running agent tests..."
 python3 test_agents.py
