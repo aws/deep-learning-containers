@@ -27,6 +27,7 @@ wait_for_api() {
             }' > /dev/null; do
         if [ $attempt -ge $max_attempts ]; then
             echo "Error: API failed to start after $max_attempts attempts"
+            docker logs ${CONTAINER_NAME}
             exit 1
         fi
         sleep 5
@@ -71,6 +72,8 @@ docker run --rm \
 
 echo "Starting VLLM server..."
 docker run -d \
+    --name ${CONTAINER_NAME} \
+    -p ${PORT}:8000 \
     --entrypoint /bin/bash \
     -e "HUGGING_FACE_HUB_TOKEN=$HF_TOKEN" \
     -e "VLLM_WORKER_MULTIPROC_METHOD=spawn" \
