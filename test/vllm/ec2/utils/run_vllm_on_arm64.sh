@@ -63,7 +63,7 @@ docker run --rm \
     $DLC_IMAGE \
     -c "python3 /vllm/examples/offline_inference/basic/generate.py \
         --model ${MODEL_NAME} \
-        --dtype float32 \
+        --dtype float16 \
         --tensor-parallel-size 1 \
         --max-model-len 2048"
 
@@ -89,15 +89,15 @@ docker logs "${CONTAINER_NAME}"
 
 echo "VLLM server is running and responding to requests!"
 
-# echo "Installing Python dependencies..."
-# python -m venv .venv
-# source .venv/bin/activate  
+echo "Installing Python dependencies..."
+python -m venv .venv
+source .venv/bin/activate  
 
-# pip install openai
-# pip install strands-agents strands-agents-tools
+pip install openai
+pip install strands-agents strands-agents-tools
 
-# echo "Running agent tests..."
-# python3 test_agents.py
-# echo "Testing completed successfully!"
+echo "Running agent tests..."
+python3 test_agents.py
+echo "Testing completed successfully!"
 
-# deactivate
+deactivate
