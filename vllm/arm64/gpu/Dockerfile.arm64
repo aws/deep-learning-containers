@@ -71,18 +71,6 @@ RUN git clone https://github.com/facebookresearch/xformers.git && \
     git submodule update --init --recursive -j 8 && \
     uv build --wheel --no-build-isolation -o /wheels
 
-
-###############################################################################
-FROM build-base AS build-flashinfer 
-
-RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
-    cd flashinfer && \
-    python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.2.6.post1 && \
-    export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
-    python -m flashinfer.aot && \
-    MAX_JOBS=16 uv build --wheel --no-build-isolation -o /wheels
-
 ###############################################################################
 FROM build-base AS build-vllm
 RUN git clone https://github.com/vllm-project/vllm.git && \
@@ -98,7 +86,16 @@ RUN git clone https://github.com/vllm-project/vllm.git && \
 FROM base AS vllm-openai
 COPY --from=build-vllm /wheels/* wheels/
 COPY --from=build-xformers /wheels/* wheels/
-COPY --from=build-flashinfer /wheels/* wheels/
+
+RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
+    cd flashinfer && \
+    python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
+    git checkout v0.2.6.post1 && \
+    export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
+    python -m flashinfer.aot && \
+    MAX_JOBS=16 uv pip install --system --no-build-isolation . && \
+    python3 -m flashinfer --download-cubin || echo "WARNING: Failed to download flashinfer cubins."
+
 
 RUN uv pip install wheels/* && \
     rm -r wheels
