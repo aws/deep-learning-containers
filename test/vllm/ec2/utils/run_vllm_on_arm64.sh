@@ -63,7 +63,7 @@ docker run --rm \
     $DLC_IMAGE \
     -c "python3 /vllm/examples/offline_inference/basic/generate.py \
         --model ${MODEL_NAME} \
-        --dtype half \
+        --dtype float32 \
         --tensor-parallel-size 1 \
         --max-model-len 2048"
 
@@ -79,7 +79,7 @@ docker run -d \
     --gpus=all \
     $DLC_IMAGE \
     -c "vllm serve ${MODEL_NAME} \
-     --dtype half
+     --dtype float32 \
      --tensor-parallel-size 1"
 
 wait_for_api
