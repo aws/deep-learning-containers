@@ -79,8 +79,10 @@ docker run -d \
     --gpus=all \
     $DLC_IMAGE \
     -c "vllm serve ${MODEL_NAME} \
-     --dtype float32 \
-     --tensor-parallel-size 1"
+        --dtype float16 \
+        --gpu-memory-utilization 0.7 \
+        --max-model-len 6000 \
+        --enforce-eager"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
