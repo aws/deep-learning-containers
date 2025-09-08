@@ -79,7 +79,7 @@ FROM build-base AS build-flashinfer
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.3.1 && \
+    git checkout v0.3.0 && \
     export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
     python -m flashinfer.aot && \
     MAX_JOBS=16 uv build --wheel --no-build-isolation -o /wheels
