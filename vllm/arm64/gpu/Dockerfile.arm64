@@ -50,7 +50,7 @@ RUN uv pip install --no-cache-dir -U \
     ${TORCHVISION_URL} \
     ${TORCHAUDIO_URL}
 
-RUN uv pip install pytorch_triton==3.4.0 \
+RUN uv pip install pytorch_triton==3.3.1 \
     --extra-index-url https://download.pytorch.org/whl/pytorch-triton/ 
 
 ##############################################################################
