@@ -23,24 +23,16 @@ class AnalysisResult(BaseModel):
 
 
 def test_direct_completion():
-    """Test direct API calls to VLLM"""
     client = OpenAI(
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_API_BASE,
     )
 
+    prompt = "What are the main benefits of using VLLM for inference?"
+
     chat_response = client.completions.create(
         model=MODEL_NAME,
-        prompt=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant.",
-            },
-            {
-                "role": "user",
-                "content": "What are the main benefits of using VLLM for inference?",
-            },
-        ],
+        prompt=prompt,
         temperature=0.7,
         max_tokens=512,
     )
