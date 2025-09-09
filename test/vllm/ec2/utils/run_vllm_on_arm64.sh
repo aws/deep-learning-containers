@@ -86,7 +86,8 @@ docker run -d \
         --gpu-memory-utilization 0.7 \
         --max-model-len 6000 \
         --enforce-eager
-        --chat-template /vllm/examples/tool_chat_template_deepseekr1.jinja"
+        --chat-template /vllm/examples/tool_chat_template_deepseekr1.jinja
+        --enable-auto-tool-choice --tool-call-parser deepseekr1"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
