@@ -1,21 +1,44 @@
-from autogen import UserProxyAgent, ConversableAgent
+from openai import OpenAI
+import json
 
-local_llm_config = {
-    "config_list": [
-        {
-            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",  # Same as in vLLM command
-            "api_key": "NotRequired",  # Not needed
-            "base_url": "http://localhost:8000/v1",  # Your vLLM URL, with '/v1' added
-        }
-    ],
-    "cache_seed": None,  # Turns off caching, useful for testing different models
-}
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
 
-# Create the agent that uses the LLM.
-assistant = ConversableAgent("agent", llm_config=local_llm_config, system_message="")
 
-# Create the agent that represents the user in the conversation.
-user_proxy = UserProxyAgent("user", code_execution_config=False, system_message="")
+def get_weather(location: str, unit: str):
+    return f"Getting the weather for {location} in {unit}..."
 
-# Let the assistant start the conversation.  It will end when the user types exit.
-assistant.initiate_chat(user_proxy, message="How can I help you today?")
+
+tool_functions = {"get_weather": get_weather}
+
+tools = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Get the current weather in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "City and state, e.g., 'San Francisco, CA'",
+                    },
+                    "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+                },
+                "required": ["location", "unit"],
+            },
+        },
+    }
+]
+
+response = client.chat.completions.create(
+    model=client.models.list().data[0].id,
+    messages=[{"role": "user", "content": "What's the weather like in San Francisco?"}],
+    tools=tools,
+    tool_choice="auto",
+)
+
+tool_call = response.choices[0].message.tool_calls[0].function
+print(f"Function called: {tool_call.name}")
+print(f"Arguments: {tool_call.arguments}")
+print(f"Result: {tool_functions[tool_call.name](**json.loads(tool_call.arguments))}")

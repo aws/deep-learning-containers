@@ -51,7 +51,8 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
-echo "Running initial inference check..."
+echo "####################### RUNNING INFERENCE CHECK ########################################"
+
 docker run --rm \
     -v /fsx/vllm-dlc/vllm:/vllm \
     --entrypoint /bin/bash \
@@ -67,7 +68,8 @@ docker run --rm \
         --tensor-parallel-size 1 \
         --max-model-len 2048"
 
-echo "Starting VLLM server..."
+echo "####################### Starting VLLM server ##########################################"
+
 docker run -d \
     -v /fsx/vllm-dlc/vllm:/vllm \
     --name ${CONTAINER_NAME} \
@@ -89,16 +91,27 @@ docker run -d \
 wait_for_api
 docker logs "${CONTAINER_NAME}"
 
-echo "VLLM server is running and responding to requests!"
+echo "####################### BENCHMARKING ################################################"
 
-echo "Installing Python dependencies..."
+python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
+    --backend vllm \
+    --base-url "http://localhost:8000" \
+    --endpoint '/v1/completions' \
+    --model $MODEL_NAME \
+    --dataset-name random \
+    --random-input-len 128 \
+    --random-output-len 128 \
+    --num-prompts 50 \
+    --max-concurrency 4 \
+    --temperature 0.7
+
+echo "####################### TESTING TOOL CALLS (OPEN AI API) ###########################"
+
 python -m venv .venv
 source .venv/bin/activate  
 
-pip install "openai>=1.0.0" autogen-agentchat~=0.2 autogen ag2[openai] pyautogen
-
-echo "Running agent tests..."
+pip install "openai>=1.0.0"
 python3 test_agents.py
-echo "Testing completed successfully!"
-
 deactivate
+
+echo "####################### Testing completed successfully ###########################"
