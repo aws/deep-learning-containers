@@ -62,7 +62,6 @@ RUN apt-get update \
     libxml2 \
     libgstreamer1.0-0 \
     libsoup2.4-1 \
- && apt-get upgrade -y linux-libc-dev libxml2 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -196,6 +195,21 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance* \
  # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
  && rm -rf ${HOME_DIR}/.cache/conda
+
+# Final security upgrade for vulnerable packages after all installations
+RUN apt-get update \
+ && apt-mark showhold \
+ && apt-mark unhold linux-libc-dev libxml2 libsqlite3-0 || true \
+ && echo "Checking available upgrades for vulnerable packages:" \
+ && apt list --upgradable 2>/dev/null | grep -E "(linux-libc-dev|libxml2|libsqlite3-0)" || echo "No upgrades found in apt list" \
+ && apt-cache policy linux-libc-dev libxml2 libsqlite3-0 \
+ && apt-get dist-upgrade -y \
+ && apt-get install -y --only-upgrade linux-libc-dev libxml2 libsqlite3-0 \
+ && echo "Final package versions after upgrade:" \
+ && dpkg -l | grep -E "(linux-libc-dev|libxml2|libsqlite3-0)" \
+ && apt-get autoremove -y \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
 
 EXPOSE 8080 8081
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
