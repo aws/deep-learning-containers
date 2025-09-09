@@ -32,7 +32,7 @@ DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
@@ -52,7 +52,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
