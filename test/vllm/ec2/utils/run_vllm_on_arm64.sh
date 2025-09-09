@@ -85,9 +85,10 @@ docker run -d \
         --dtype float16 \
         --gpu-memory-utilization 0.7 \
         --max-model-len 6000 \
-        --enforce-eager
-        --chat-template /vllm/examples/tool_chat_template_deepseekr1.jinja
-        --enable-auto-tool-choice --tool-call-parser hermes"
+        --enforce-eager \
+        --reasoning-parser deepseek_r1 \
+        --enable-auto-tool-choice \
+        --tool-call-parser hermes"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
@@ -108,7 +109,7 @@ python -m venv .venv
 source .venv/bin/activate  
 
 pip install "openai>=1.0.0"
-python3 /fsx/vllm-dlc/vllm/examples/online_serving/openai_chat_completion_client_with_tools.py
+python3 /fsx/vllm-dlc/vllm/examples/online_serving/openai_chat_completion_tool_calls_with_reasoning.py
 deactivate
 
 echo "####################### Testing completed successfully ###########################"
