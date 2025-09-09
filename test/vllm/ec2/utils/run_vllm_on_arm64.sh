@@ -10,7 +10,7 @@ if [ -z "$DLC_IMAGE" ] || [ -z "$HF_TOKEN" ]; then
 fi
 
 MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-QWEN_MODEL = "Qwen/Qwen3-4B-Instruct-2507"
+QWEN_MODEL="Qwen/Qwen3-4B-Instruct-2507"
 CONTAINER_NAME="vllm-arm64-dlc"
 PORT=8000
 
