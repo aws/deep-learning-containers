@@ -87,11 +87,20 @@ docker run -d \
         --max-model-len 6000 \
         --enforce-eager
         --chat-template /vllm/examples/tool_chat_template_deepseekr1.jinja
-        --enable-auto-tool-choice --tool-call-parser deepseekr1"
+        --enable-auto-tool-choice --tool-call-parser hermes"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
 
+echo "####################### API TESTING ###########################"
+
+curl -s http://localhost:8000/v1/completions \
+        -H "Content-Type: application/json" \
+        -d '{
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+            "prompt": "What is AWS Deep learning container?",
+            "max_tokens": 50
+            }'
 
 echo "####################### TESTING TOOL CALLS (OPEN AI API) ###########################"
 
@@ -99,7 +108,7 @@ python -m venv .venv
 source .venv/bin/activate  
 
 pip install "openai>=1.0.0"
-python3 test_agents.py
+python3 /fsx/vllm-dlc/vllm/online_inference/openai_chat_completion_client_with_tools.py
 deactivate
 
 echo "####################### Testing completed successfully ###########################"
