@@ -91,19 +91,6 @@ docker run -d \
 wait_for_api
 docker logs "${CONTAINER_NAME}"
 
-echo "####################### BENCHMARKING ################################################"
-
-python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
-    --backend vllm \
-    --base-url "http://localhost:8000" \
-    --endpoint '/v1/completions' \
-    --model $MODEL_NAME \
-    --dataset-name random \
-    --random-input-len 128 \
-    --random-output-len 128 \
-    --num-prompts 50 \
-    --max-concurrency 4 \
-    --temperature 0.7
 
 echo "####################### TESTING TOOL CALLS (OPEN AI API) ###########################"
 
