@@ -108,7 +108,7 @@ python -m venv .venv
 source .venv/bin/activate  
 
 pip install "openai>=1.0.0"
-python3 /fsx/vllm-dlc/vllm/online_inference/openai_chat_completion_client_with_tools.py
+python3 /fsx/vllm-dlc/vllm/examples/online_inference/openai_chat_completion_client_with_tools.py
 deactivate
 
 echo "####################### Testing completed successfully ###########################"
