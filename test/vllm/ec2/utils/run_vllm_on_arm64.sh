@@ -10,7 +10,6 @@ if [ -z "$DLC_IMAGE" ] || [ -z "$HF_TOKEN" ]; then
 fi
 
 MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-QWEN_MODEL="Qwen/Qwen3-4B-Instruct-2507"
 CONTAINER_NAME="vllm-arm64-dlc"
 PORT=8000
 
@@ -22,7 +21,7 @@ wait_for_api() {
     while ! curl -s http://localhost:8000/v1/completions \
         -H "Content-Type: application/json" \
         -d '{
-            "model": "Qwen/Qwen3-4B-Instruct-2507",
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
             "prompt": "What is vllm?",
             "max_tokens": 30
             }' > /dev/null; do
@@ -52,7 +51,7 @@ handle_error() {
 trap cleanup EXIT
 trap 'handle_error $LINENO' ERR
 
-echo "####################### RUNNING INFERENCE CHECK with Deepseek ########################################"
+echo "####################### RUNNING INFERENCE CHECK ########################################"
 
 docker run --rm \
     -v /fsx/vllm-dlc/vllm:/vllm \
@@ -82,13 +81,12 @@ docker run -d \
     -v /fsx/.cache/huggingface:/root/.cache/huggingface \
     --gpus=all \
     $DLC_IMAGE \
-    -c "vllm serve ${QWEN_MODEL} \
+    -c "vllm serve ${MODEL_NAME} \
         --dtype float16 \
         --gpu-memory-utilization 0.7 \
         --max-model-len 6000 \
         --enforce-eager \
-        --reasoning-parser deepseek_r1 \
-        --enable-auto-tool-choice --tool-call-parser hermes"
+        --reasoning-parser deepseek_r1"
 
 wait_for_api
 docker logs "${CONTAINER_NAME}"
@@ -98,7 +96,7 @@ echo "####################### API TESTING ###########################"
 curl -s http://localhost:8000/v1/completions \
         -H "Content-Type: application/json" \
         -d '{
-            "model": "Qwen/Qwen3-4B-Instruct-2507",
+            "model": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
             "prompt": "What is AWS Deep learning container?",
             "max_tokens": 50
             }'
@@ -109,7 +107,7 @@ python -m venv .venv
 source .venv/bin/activate  
 
 pip install "openai>=1.0.0"
-python3 /fsx/vllm-dlc/vllm/examples/online_serving/openai_chat_completion_tool_calls_with_reasoning.py
+python3 /fsx/vllm-dlc/vllm/examples/online_serving/openai_chat_completion_with_reasoning.py
 deactivate
 
 echo "####################### Testing completed successfully ###########################"
