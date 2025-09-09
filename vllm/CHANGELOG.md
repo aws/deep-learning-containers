@@ -2,16 +2,6 @@
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file.
 
-## [0.10.1] - 2025-08-04
-### Updated
-- vllm/vllm-openai version `v0.10.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.0) for details.
-- Architecture ARM64 
-### Sample ECR URI
-```
-763104351884.dkr.ecr.us-east-1.amazonaws.com/0.10-gpu-py312-arm64
-763104351884.dkr.ecr.us-east-1.amazonaws.com/0.10.1-gpu-py312-cu128-ubuntu22.04-arm64
-```
-
 ## [0.10.1] - 2025-08-25
 ### Updated
 - vllm/vllm-openai version `v0.10.1.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.1.1) for details.
