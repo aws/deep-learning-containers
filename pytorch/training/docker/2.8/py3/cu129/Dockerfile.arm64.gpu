@@ -240,7 +240,20 @@ ENV NVTE_FRAMEWORK=pytorch
 
 # Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
 # Set MAX_JOBS=4 to avoid OOM issues in installation process
-RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation --verbose
+# RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation --verbose
+# Install flash-attn from source
+RUN cd /tmp \
+    && git clone https://github.com/Dao-AILab/flash-attention.git \
+    && cd flash-attention \
+    && git checkout v${FLASH_ATTN_VERSION} \
+    && git submodule update --init --recursive \
+    && FLASH_ATTN_CUDA_ARCHS="75;80;90;100;120" \
+    FLASH_ATTENTION_FORCE_BUILD=TRUE \
+    MAX_JOBS=4 \
+    VERBOSE=1 \
+    python setup.py install \
+    && cd .. \
+    && rm -rf flash-attention
 
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
