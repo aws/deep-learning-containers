@@ -95,7 +95,7 @@ echo "Installing Python dependencies..."
 python -m venv .venv
 source .venv/bin/activate  
 
-pip install autogen-agentchat~=0.2 autogen pyautogen
+pip install "openai>=1.0.0" autogen-agentchat~=0.2 autogen ag2[openai] pyautogen
 
 echo "Running agent tests..."
 python3 test_agents.py
