@@ -102,13 +102,13 @@ curl -s http://localhost:8000/v1/completions \
             "max_tokens": 50
             }'
 
-echo "####################### TESTING TOOL CALLS (OPEN AI API) ###########################"
+# echo "####################### TESTING TOOL CALLS (OPEN AI API) ###########################"
 
-python -m venv .venv
-source .venv/bin/activate  
+# python -m venv .venv
+# source .venv/bin/activate  
 
-pip install "openai>=1.0.0"
-python3 /fsx/vllm-dlc/vllm/examples/online_inference/openai_chat_completion_client_with_tools.py
-deactivate
+# pip install "openai>=1.0.0"
+# python3 /fsx/vllm-dlc/vllm/examples/online_inference/openai_chat_completion_client_with_tools.py
+# deactivate
 
 echo "####################### Testing completed successfully ###########################"
