@@ -137,9 +137,19 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 
-RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
-    && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
-    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+# Install flash-attn from source
+RUN cd /tmp \
+    && git clone https://github.com/Dao-AILab/flash-attention.git \
+    && cd flash-attention \
+    && git checkout v${FLASH_ATTN_VERSION} \
+    && git submodule update --init --recursive \
+    && FLASH_ATTN_CUDA_ARCHS="75;80;90;100;120" \
+    FLASH_ATTENTION_FORCE_BUILD=TRUE \
+    MAX_JOBS=4 \
+    VERBOSE=1 \
+    python setup.py install \
+    && cd .. \
+    && rm -rf flash-attention
 
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
