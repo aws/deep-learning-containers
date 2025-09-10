@@ -12,7 +12,9 @@ from test.test_utils.ec2 import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
     get_ec2_client,
+    install_python_in_instance,
 )
+
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources, TEST_ID
 from test.dlc_tests.ec2.test_efa import (
@@ -120,6 +122,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             raise Exception("Failed to get HF token")
 
         for conn in [head_connection, worker_connection]:
+            install_python_in_instance(conn, "3.10")
             setup_docker_image(conn, image_uri)
             setup_env(conn)
 
@@ -242,12 +245,54 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
     return False
 
 
+def run_single_node_test(head_conn, image_uri):
+    """
+    Run single-node VLLM benchmark test
+
+    Args:
+        head_conn: Fabric connection object for head node
+        image_uri: ECR image URI
+    """
+    if not verify_gpu_setup(head_conn):
+        raise Exception(f"GPU setup verification failed for head node")
+
+    try:
+        install_python_in_instance(head_conn, python_version="3.10")
+
+        response = get_secret_hf_token()
+        hf_token = response.get("HF_TOKEN")
+
+        setup_docker_image(head_conn, image_uri)
+
+        head_conn.put(
+            "vllm/ec2/utils/run_vllm_on_arm64.sh",
+            "/home/ec2-user/run_vllm_on_arm64.sh",
+        )
+        commands = [
+            "chmod +x /home/ec2-user/run_vllm_on_arm64.sh",
+            f"/home/ec2-user/run_vllm_on_arm64.sh {image_uri} {hf_token}",
+        ]
+
+        result = head_conn.run(
+            "; ".join(commands),
+            hide=False,
+            timeout=7200,
+        )
+
+    except Exception as e:
+        print(f"Test execution failed: {str(e)}")
+        raise
+
+    if result.ok:
+        print("Single-node test completed successfully")
+        return True
+
+
 def test_vllm_on_ec2(resources, image_uri):
     """
-    Test VLLM on EC2 instances in the following order:
-    1. EFA testing
-    2. Single node test
-    3. Multi-node test
+    Test VLLM on EC2 instances:
+    - For non-arm64: EFA testing, Single node test, and Multi-node test
+    - For arm64: Single node test only
 
     Args:
         resources: Dictionary containing instance information and FSx config
@@ -256,10 +301,14 @@ def test_vllm_on_ec2(resources, image_uri):
     ec2_cli = None
     fsx = None
     ec2_connections = {}
-    test_results = {"efa": False, "single_node": False, "multi_node": False}
+    test_results = {"efa": None, "single_node": None, "multi_node": None}
+
+    # to test agents
+
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
+
         for instance_id, key_filename in resources["instances_info"]:
             try:
                 instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
@@ -284,32 +333,37 @@ def test_vllm_on_ec2(resources, image_uri):
                 print(f"Failed to connect to instance {instance_id}: {str(e)}")
                 raise
 
-        if len(ec2_connections) >= 2:
-            print("\n=== Starting EFA Tests ===")
-            instance_ids = list(ec2_connections.keys())
-            number_of_nodes = 2
-            head_conn = ec2_connections[instance_ids[0]]
+        is_arm64 = "arm64" in image_uri
+        instance_ids = list(ec2_connections.keys())
+        head_conn = ec2_connections[instance_ids[0]]
+
+        if is_arm64:
+            print("\n=== Starting ARM64 Single Node Test ===")
+            test_results["single_node"] = run_single_node_test(head_conn, image_uri)
+            print(
+                f"ARM64 Single node test: {'Passed' if test_results['single_node'] else 'Failed'}"
+            )
+
+        elif len(ec2_connections) >= 2:
             worker_conn = ec2_connections[instance_ids[1]]
 
+            print("\n=== Starting EFA Tests ===")
             _setup_multinode_efa_instances(
                 image_uri,
                 resources["instances_info"][:2],
-                [ec2_connections[instance_ids[0]], ec2_connections[instance_ids[1]]],
+                [head_conn, worker_conn],
                 "p4d.24xlarge",
                 DEFAULT_REGION,
             )
 
-            master_connection = ec2_connections[instance_ids[0]]
-
             # Run EFA sanity test
-            run_cmd_on_container(
-                MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False
-            )
+            run_cmd_on_container(MASTER_CONTAINER_NAME, head_conn, EFA_SANITY_TEST_CMD, hide=False)
 
+            # Run EFA integration test
             run_cmd_on_container(
                 MASTER_CONTAINER_NAME,
-                master_connection,
-                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes}",
+                head_conn,
+                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} 2",
                 hide=False,
                 timeout=DEFAULT_EFA_TIMEOUT,
             )
@@ -321,16 +375,25 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
+            # Run multi-node test
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
         else:
             print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
-        print(f"EFA tests: {'Passed' if test_results['efa'] else 'Not Run/Failed'}")
-        print(f"Multi-node test: {'Passed' if test_results['multi_node'] else 'Failed'}")
+        for test_name, result in test_results.items():
+            if result is not None:
+                print(
+                    f"{test_name.replace('_', ' ').title()} test: {'Passed' if result else 'Failed'}"
+                )
+            else:
+                print(f"{test_name.replace('_', ' ').title()} test: Not Run")
 
-        if not any(test_results.values()):
+        if is_arm64:
+            if not test_results["single_node"]:
+                raise Exception("Single node test failed for ARM64")
+        elif not any(result for result in test_results.values() if result is not None):
             raise Exception("All tests failed")
 
     except Exception as e:
@@ -345,11 +408,7 @@ def test_vllm_on_ec2(resources, image_uri):
             cleanup_timer.start()
 
             try:
-                cleanup_resources(
-                    ec2_cli,
-                    resources,
-                    fsx,
-                )
+                cleanup_resources(ec2_cli, resources, fsx)
                 cleanup_timer.cancel()
                 print("Resources cleaned up successfully")
             except Exception as e:

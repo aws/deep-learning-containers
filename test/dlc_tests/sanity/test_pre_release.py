@@ -160,18 +160,20 @@ def test_python_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-
+    command = ""
     py_version = ""
     for tag_split in image.split("-"):
         if tag_split.startswith("py"):
             if len(tag_split) > 3:
                 py_version = f"Python {tag_split[2]}.{tag_split[3]}"
+                command = f"python3 --version"
             else:
                 py_version = f"Python {tag_split[2]}"
+                command = f"python --version"
 
     container_name = get_container_name("py-version", image)
     start_container(container_name, image, ctx)
-    output = run_cmd_on_container(container_name, ctx, "python --version")
+    output = run_cmd_on_container(container_name, ctx, command)
 
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
     # stream to stderr (in some cases).
