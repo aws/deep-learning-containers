@@ -56,17 +56,3 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
-  5:
-    framework: "vllm"
-    version: "0.10.2rc1"
-    arch_type: "arm64"
-    customer_type: "ec2"
-    general:
-      device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu128"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: False
