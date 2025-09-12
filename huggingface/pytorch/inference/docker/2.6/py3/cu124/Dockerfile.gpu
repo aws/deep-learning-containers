@@ -119,6 +119,7 @@ RUN apt-get update \
     tk-dev \
     libffi-dev \
     ffmpeg \
+    libxml2 \
  && apt-get autoremove -y \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
