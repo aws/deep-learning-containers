@@ -442,10 +442,11 @@ def cleanup_resources(ec2_cli, resources, fsx):
                 if key_filename:
                     try:
                         ec2_cli.delete_key_pair(KeyName=key_filename)
-                        for ext in ["", ".pub"]:
+                        for ext in ["", ".pem"]:
                             file_path = f"{key_filename}{ext}"
                             if os.path.exists(file_path):
                                 os.remove(file_path)
+                                print(f"Deleted: {file_path}")
                     except Exception as e:
                         cleanup_errors.append(f"Failed to delete key file: {str(e)}")
         except Exception as e:

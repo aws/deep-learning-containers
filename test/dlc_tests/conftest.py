@@ -601,8 +601,7 @@ def ec2_instance(
 
     def delete_ssh_keypair():
         if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
+            # test_utils.destroy_ssh_keypair(ec2_client, key_filename)
             with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
                 destroy_keys.write(f"{key_filename}\n")
 
