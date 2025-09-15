@@ -266,7 +266,7 @@ def delete_key_pairs(keyfile):
     try:
         with open(keyfile) as key_destroy_file:
             for key_file in key_destroy_file:
-                LOGGER.info(key_file)
+                LOGGER.info(f"destroying {key_file} listed in {key_destroy_file}")
                 ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
                 if ".pem" in key_file:
                     _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
