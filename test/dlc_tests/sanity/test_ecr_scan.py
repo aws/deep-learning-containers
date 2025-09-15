@@ -435,6 +435,10 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
+    if "vllm" in image:
+        pytest.skip(
+            "vLLM images do not require test_ecr_enhanced_scan check as they are managed by vLLM devs. Skipping test."
+        )
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(
         image, ecr_client, sts_client, region

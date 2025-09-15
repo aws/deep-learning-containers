@@ -106,8 +106,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends --allow-unauthe
  && apt-get install -y --no-install-recommends --allow-unauthenticated --allow-change-held-packages \
    libcublas-dev-${CUDA_DASH} \
    libcublas-${CUDA_DASH} \
-   libnccl2 \
-   libnccl-dev \
+   libnccl2=2.27.7-1+cuda12.9 \
+   libnccl-dev=2.27.7-1+cuda12.9 \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean \
  && mkdir -p /var/run/sshd
@@ -219,10 +219,8 @@ RUN ${PIP} install --no-cache-dir -U \
    mpi4py \
    h5py \
    absl-py \
-   opencv-python \
    werkzeug \
-   urllib3 \
-   "protobuf<4"
+   urllib3
 
 # Install AWS OFI NCCL plug-in
 RUN apt-get update && apt-get install -y \
@@ -245,6 +243,20 @@ RUN mkdir /tmp/efa-ofi-nccl \
  && make -j $(nproc) \
  && make install \
  && rm -rf /tmp/efa-ofi-nccl
+
+# patch nvjpeg
+RUN mkdir -p /tmp/nvjpeg \
+&& cd /tmp/nvjpeg \
+&& wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+&& tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+&& rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+&& rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+&& cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+&& rm -rf /tmp/nvjpeg \
+# patch cuobjdump and nvdisasm
+&& rm -rf /usr/local/cuda/bin/cuobjdump* \
+&& rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # Allow OpenSSH to talk to containers without asking for confirmation
 RUN cat /etc/ssh/ssh_config | grep -v StrictHostKeyChecking > /etc/ssh/ssh_config.new \
@@ -282,7 +294,8 @@ ARG TF_URL
 RUN ${PIP} install --no-cache-dir -U \
    ${TF_URL} \
    "tensorflow-io==0.37.*" \
-   tensorflow-datasets
+   "tensorflow-datasets==4.9.7" \
+   opencv-python
 
 RUN HOME_DIR=/root \
    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -351,26 +364,40 @@ RUN ${PIP} install --no-cache-dir -U \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    tensorflow-datasets
+    "tensorflow-datasets==4.9.7"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    numba \
+    numba==0.61.0 \
     bokeh \
     imageio \
     opencv-python \
     plotly \
     seaborn \
-    shap
+    shap \
+    numpy
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker<3" \
-    sagemaker-experiments==0.* \
-    sagemaker-tensorflow-training \
-    sagemaker-training \
-    "sagemaker-studio-analytics-extension<1" \
-    "sparkmagic<1" \
-    "sagemaker-studio-sparkmagic-lib<1" \
+    "sagemaker<3"
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-experiments==0.1.45
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-training
+
+    RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-tensorflow-training==20.4.1
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-studio-analytics-extension==0.1.4
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker-studio-sparkmagic-lib==0.2.0
+
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sparkmagic==0.21.0 \
     smclarify
+
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"

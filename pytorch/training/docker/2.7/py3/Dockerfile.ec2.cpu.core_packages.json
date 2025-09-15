@@ -22,14 +22,6 @@
     "version_specifier": ">=6.5.1",
     "skip": "True"
   },
-  "s3torchconnector": {
-    "version_specifier": "==1.4.2",
-     "skip": "True"
-  },
-  "accelerate": {
-    "version_specifier": "==1.9.0",
-     "skip": "True"
-  },
    "thinc": {
     "version_specifier": "==8.3.4"
   },
@@ -56,5 +48,8 @@
   },
    "awscli": {
     "version_specifier": "<2"
+  },
+  "opencv-python": {
+    "version_specifier": "==4.11.0.86"
   }
 }

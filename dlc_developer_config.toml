@@ -118,6 +118,9 @@ use_scheduler = false
 
 ### TRAINING PR JOBS ###
 
+# Base
+dlc-pr-base = ""
+
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
 dlc-pr-tensorflow-2-training = ""
@@ -177,3 +180,6 @@ dlc-pr-stabilityai-pytorch-inference = ""
 # EIA Inference
 dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
+
+# vllm
+dlc-pr-vllm = ""

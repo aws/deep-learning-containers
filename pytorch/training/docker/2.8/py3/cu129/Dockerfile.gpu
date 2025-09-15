@@ -1,0 +1,285 @@
+ARG PYTHON=python3
+ARG PYTHON_VERSION=3.12.10
+ARG PYTHON_SHORT_VERSION=3.12
+ARG PYTORCH_VERSION=2.8.0
+ARG TORCHTNT_VERSION=0.2.4
+ARG TORCHAUDIO_VERSION=2.8.0
+ARG TORCHVISION_VERSION=0.23.0
+ARG TORCHDATA_VERSION=0.11.0
+
+ARG GDRCOPY_VERSION=2.5.1
+ARG TE_VERSION=2.5
+ARG FLASH_ATTN_VERSION=2.8.3
+
+#################################################################
+#   ____
+#  / ___| ___  _ __ ___  _ __ ___   ___  _ __
+# | |    / _ \| '_ ` _ \| '_ ` _ \ / _ \| '_ \
+# | |___  (_) | | | | | | | | | | | (_) | | | |
+#  \____|\___/|_| |_| |_|_| |_| |_|\___/|_| |_|
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS common
+# base has EFA, PYTHON and CUDA 12.9
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON
+ARG PYTORCH_VERSION
+ARG TORCHDATA_VERSION
+ARG TORCHAUDIO_VERSION
+ARG TORCHVISION_VERSION
+ARG TORCHTNT_VERSION
+ARG TE_VERSION
+ARG FLASH_ATTN_VERSION
+ARG GDRCOPY_VERSION
+
+ENV CUDA_HOME="/usr/local/cuda"
+ENV PATH="${CUDA_HOME}/bin:${PATH}"
+ENV EFA_PATH="/opt/amazon/efa"
+ENV OPEN_MPI_PATH="/opt/amazon/openmpi"
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
+ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
+
+ENV DLC_CONTAINER_TYPE=training
+WORKDIR /
+
+RUN apt-get update \
+ && apt-get -y upgrade --only-upgrade systemd \
+ && apt-get install -y --allow-change-held-packages --no-install-recommends \
+    libgl1-mesa-glx \
+    build-essential \
+    ca-certificates \
+    zlib1g-dev \
+    openssl \
+    python3-dev \
+    pkg-config \
+    check \
+    llvm \
+    xz-utils \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+# Python Path
+ENV PATH="/usr/local/bin:${PATH}"
+
+# Install common conda packages
+RUN pip install --no-cache-dir \
+    cython \
+    cryptography \
+    pyOpenSSL \
+    pybind11 \
+    mkl \
+    mkl-include \
+    parso \
+    typing \
+    charset-normalizer \
+    packaging \
+    PyYAML \
+    numpy \
+    scipy \
+    click \
+    psutil \
+    ipython \
+    ipykernel \
+    pillow \
+    h5py \
+    fsspec \
+    "idna>=3.7" \
+    "tqdm>=4.66.3" \
+    "requests>=2.32.0" \
+    "setuptools>=70.0.0" \
+    "urllib3>=2.5.0" \
+    ninja \
+    opencv-python==4.11.0.86 \
+    mpi4py \
+    jinja2>=3.1.6 \
+    tornado>=6.5.1
+
+# Install PyTorch
+RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url https://download.pytorch.org/whl/cu129 \
+    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    torchdata==${TORCHDATA_VERSION} \
+    triton \
+    s3torchconnector \
+    fastai \
+    accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thic, blis
+    spacy \
+    # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+    thinc==8.3.4 \
+    blis \
+    numpy \
+ && pip uninstall -y dataclasses
+
+# Install flash attn and NVIDIA transformer engine.
+# Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
+ENV NVTE_FRAMEWORK=pytorch
+
+RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
+    && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
+    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+
+# Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
+RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
+
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+RUN chmod +x /usr/local/bin/start_cuda_compat.sh
+
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+RUN chmod +x /usr/local/bin/bash_telemetry.sh
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
+
+# Install GDRCopy which is a dependency of SM Distributed DataParallel binary
+# The test binaries requires cuda driver library which could be found in conda
+# So update the linker path to point to it to avoid -Lcuda not found
+RUN cd /tmp \
+ && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
+ && cd gdrcopy \
+ && sed -ie '13s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && CUDA=${CUDA_HOME} make install \
+ && rm -rf /tmp/gdrcopy
+
+# Install common packages used by both EC2 and SageMaker
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+    curl \
+    wget \
+    git \
+    jq \
+    emacs \
+    vim \
+    unzip \
+ && rm -rf /var/lib/apt/lists/* \
+ && apt-get clean
+
+# Removing the cache as it is needed for security verification
+RUN rm -rf /root/.cache | true
+
+########################################################
+#  _____ ____ ____    ___
+# | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
+# |  _|| |     __) |  | || '_ ` _ \ / _` |/ _` |/ _ \
+# | |__| |___ / __/   | || | | | | | (_| | (_| |  __/
+# |_____\____|_____| |___|_| |_| |_|\__,_|\__, |\___|
+#                                         |___/
+#  ____           _
+# |  _ \ ___  ___(_)_ __   ___
+# | |_) / _ \/ __| | '_ \ / _ \
+# |  _ <  __/ (__| | |_) |  __/
+# |_| \_\___|\___|_| .__/ \___|
+#                  |_|
+########################################################
+
+FROM common AS ec2
+
+ARG PYTHON
+
+WORKDIR /
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["bash", "-m", "dockerd_entrypoint.sh"]
+CMD ["/bin/bash"]
+
+#################################################################
+#  ____                   __  __       _
+# / ___|  __ _  __ _  ___|  \/  | __ _| | _____ _ __
+# \___ \ / _` |/ _` |/ _ \ |\/| |/ _` | |/ / _ \ '__|
+#  ___) | (_| | (_| |  __/ |  | | (_| |   <  __/ |
+# |____/ \__,_|\__, |\___|_|  |_|\__,_|_|\_\___|_|
+#              |___/
+#  ___                              ____           _
+# |_ _|_ __ ___   __ _  __ _  ___  |  _ \ ___  ___(_)_ __   ___
+#  | || '_ ` _ \ / _` |/ _` |/ _ \ | |_) / _ \/ __| | '_ \ / _ \
+#  | || | | | | | (_| | (_| |  __/ |  _ <  __/ (__| | |_) |  __/
+# |___|_| |_| |_|\__,_|\__, |\___| |_| \_\___|\___|_| .__/ \___|
+#                      |___/                        |_|
+#################################################################
+
+FROM common AS sagemaker
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+
+ARG PYTHON
+
+WORKDIR /
+
+# Install SM packages
+RUN pip install --no-cache-dir -U \
+    smclarify \
+    "sagemaker>=2" \
+    sagemaker-experiments \
+    sagemaker-pytorch-training \
+    sagemaker-training
+
+# Install extra packages
+RUN pip install --no-cache-dir -U \
+    bokeh \
+    imageio \
+    numba \
+    pandas \
+    plotly \
+    shap \
+    scikit-learn \
+    seaborn \
+    cloudpickle
+
+COPY setup_oss_compliance.sh setup_oss_compliance.sh
+RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
+
+# Copy workaround script for incorrect hostname
+COPY changehostname.c /
+COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
+RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 20
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get autoremove -y \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]

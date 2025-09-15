@@ -55,6 +55,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__8",
     "pytorch_training___2__7",
     "pytorch_training___2__6",
     "pytorch_training___2__5",
@@ -928,51 +929,6 @@ def skip_torchdata_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_smdebug_v1_test(request):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-    }
-    if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
-        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_dgl_test(request):
-    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
-    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
-    when the binaries are added in.
-    """
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==2.0.*": ["cu121"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-    }
-    if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
-        pytest.skip(f"DGL binaries are removed, skipping test")
-
-
-@pytest.fixture(autouse=True)
 def skip_efa_tests(request):
     efa_tests = [mark for mark in request.node.iter_markers(name="efa")]
 
@@ -1015,30 +971,6 @@ def skip_p5_tests(request, ec2_instance_type):
         image_cuda_version = get_cuda_version_from_tag(image_uri)
         if image_processor != "gpu" or Version(image_cuda_version.strip("cu")) < Version("120"):
             pytest.skip("Images using less than CUDA 12.0 doesn't support P5 EC2 instance.")
-
-
-@pytest.fixture(autouse=True)
-def skip_serialized_release_pt_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {
-        "==1.13.*": ["cpu", "cu117"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.6": ["cpu", "cu124"],
-        ">=2.6,<2.7.1": ["cpu", "cu126"],
-        ">=2.7.1,<2.8": ["cpu", "cu128"],
-    }
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_serialized_release_pt_test", skip_dict
-    ):
-        pytest.skip(
-            f"Skip test for {image_uri} given that the image is being tested in serial execution."
-        )
 
 
 @pytest.fixture(autouse=True)
@@ -1614,20 +1546,11 @@ def pytest_configure(config):
         "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_smdebug_v1_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
     config.addinivalue_line("markers", "deep_canary(): explicitly mark to run as deep canary test")
     config.addinivalue_line("markers", "team(team_name): mark tests that belong to a team")
-    config.addinivalue_line(
-        "markers", "skip_serialized_release_pt_test(): mark to skip test included in serial testing"
-    )
 
 
 def pytest_runtest_setup(item):
@@ -1798,6 +1721,13 @@ def lookup_condition(lookup, image):
 
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
+
+    # Check for public registry canary first
+    if os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
+        # Only handle framework agnostic tests for public registry
+        if "image" in metafunc.fixturenames:
+            metafunc.parametrize("image", images)
+        return
 
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:

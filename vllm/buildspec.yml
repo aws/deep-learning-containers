@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK vllm
-version: &VERSION "0.9.2"
-short_version: &SHORT_VERSION "0.9"
+version: &VERSION "0.10.1"
+short_version: &SHORT_VERSION "0.10"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -25,7 +25,7 @@ context:
       source: scripts/install_efa.sh
       target: install_efa.sh
     dockerd_entrypoint:
-      source: vllm/x86_64/build_artifacts/dockerd_entrypoint.sh
+      source: vllm/build_artifacts/dockerd_entrypoint.sh
       target: dockerd_entrypoint.sh
 
 images:
@@ -49,3 +49,5 @@ images:
       test_platforms:
         - sanity
         - security
+        - ec2
+        - eks

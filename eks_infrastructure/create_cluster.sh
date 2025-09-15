@@ -6,6 +6,24 @@
 
 set -ex
 
+# Install gettext for envsubst command
+if ! command -v envsubst &> /dev/null; then
+  echo "Installing gettext for envsubst..."
+  LINUX_DIST_NAME=`cat /etc/*-release | grep "^NAME=" | sed 's#^.*=##' | tr -d '"'`
+  if [ -z "$LINUX_DIST_NAME" ]; then
+    echo "Unable to identify Linux distribution"
+    exit 1
+  elif [ "$LINUX_DIST_NAME" == "Ubuntu" ]; then
+    apt-get update
+    apt-get install -y gettext-base
+  elif [ "$LINUX_DIST_NAME" == "Amazon Linux" ]; then
+    yum install -y gettext
+  else
+    echo "Unknown Linux distribution: $LINUX_DIST_NAME"
+    exit 1
+  fi
+fi
+
 # Function to create EC2 key pair
 function create_ec2_key_pair() {
   aws ec2 create-key-pair \
@@ -14,26 +32,52 @@ function create_ec2_key_pair() {
     --output text >./${1}.pem
 }
 
+# Function to setup Helm
+function setup_helm() {
+  echo "Installing Helm..."
+  curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+  chmod 700 get_helm.sh
+  ./get_helm.sh
+  
+  # Verify Helm installation and add repos
+  helm version || exit 1
+  helm repo add aws-fsx-csi-driver https://kubernetes-sigs.github.io/aws-fsx-csi-driver/
+  helm repo add eks https://aws.github.io/eks-charts
+  helm repo update
+}
+
 # Function to create EKS cluster using eksctl.
 # The cluster name follows the dlc-{framework}-{build_context} convention
 function create_eks_cluster() {
-
-  if [ "${3}" = "us-east-1" ]; then
-    ZONE_LIST=(a b d)
+  # Check if cluster already exists
+  if eksctl get cluster --name ${1} --region ${3} &>/dev/null; then
+    echo "Cluster ${1} already exists, skipping creation..."
   else
-    ZONE_LIST=(a b c)
-  fi
+    if [[ ${1} == *"vllm"* ]]; then
+      echo "Creating cluster via vLLM path for cluster: ${1}"
+      CLUSTER_NAME=${1} AWS_REGION=${3} EKS_VERSION=${2} \
+      envsubst < ../test/vllm/eks/test_artifacts/eks-cluster.yaml | eksctl create cluster -f -
+      echo "Verifying cluster creation..."
+      eksctl get cluster --region ${3}
+    else
+      if [ "${3}" = "us-east-1" ]; then
+        ZONE_LIST=(a b d)
+      else
+        ZONE_LIST=(a b c)
+      fi
 
-  eksctl create cluster \
-    --name ${1} \
-    --version ${2} \
-    --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
-    --without-nodegroup
+      eksctl create cluster \
+        --name ${1} \
+        --version ${2} \
+        --zones=${3}${ZONE_LIST[0]},${3}${ZONE_LIST[1]},${3}${ZONE_LIST[2]} \
+        --without-nodegroup
+    fi
+  fi
 }
 
 # Function to create static and dynamic nodegroups in EKS cluster
 function create_node_group() {
-
+  # Nodegroup creation logic for all types
   STATIC_NODEGROUP_INSTANCE_TYPE="m5.large"
   GPU_NODEGROUP_INSTANCE_TYPE="g5.24xlarge"
   INF_NODEGROUP_INSTANCE_TYPE="inf1.xlarge"
@@ -50,6 +94,21 @@ function create_node_group() {
     --asg-access \
     --ssh-access \
     --ssh-public-key "${3}"
+
+
+  if [[ ${1} == *"vllm"* ]]; then
+    # Check if nodegroup already exists
+    if eksctl get nodegroup --cluster ${1} --name vllm-p4d-nodes-efa --region ${AWS_REGION} &>/dev/null; then
+      echo "Nodegroup vllm-p4d-nodes-efa already exists, skipping creation..."
+    else
+      PREFERRED_AZ="${AWS_REGION}a"
+      echo "Using AZ: ${PREFERRED_AZ} for P4D instances"
+      
+      # Create nodegroup with cluster name and preferred AZ
+      CLUSTER_NAME=${1} AWS_REGION=${AWS_REGION} PREFERRED_AZ="${PREFERRED_AZ}" envsubst < ../test/vllm/eks/test_artifacts/large-model-nodegroup.yaml | eksctl create nodegroup -f -
+    fi
+    return
+  fi
 
   # dynamic gpu nodegroup
   eksctl create nodegroup \
@@ -155,6 +214,249 @@ function add_iam_permissions_nodegroup() {
   fi
 }
 
+# Function to setup Load Balancer Controller
+function setup_load_balancer_controller() {
+  CLUSTER_NAME=${1}
+  ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+
+  if ! aws iam get-policy --policy-arn arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy 2>/dev/null; then
+    echo "Policy AWSLoadBalancerControllerIAMPolicy does not exist. Please create it manually first."
+    echo "See: https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json"
+    exit 1
+  else
+    echo "AWSLoadBalancerControllerIAMPolicy exists, proceeding with setup..."
+  fi
+
+  # Create an IAM OIDC provider for the cluster
+  eksctl utils associate-iam-oidc-provider \
+    --cluster=${CLUSTER_NAME} \
+    --approve
+
+  # Create IAM service account
+  if ! kubectl get serviceaccount -n kube-system aws-load-balancer-controller 2>/dev/null; then
+    echo "Creating IAM service account for cluster ${CLUSTER_NAME}"
+    eksctl create iamserviceaccount \
+      --cluster=${CLUSTER_NAME} \
+      --namespace=kube-system \
+      --name=aws-load-balancer-controller \
+      --role-name=AmazonEKSLoadBalancerControllerRole \
+      --attach-policy-arn=arn:aws:iam::${ACCOUNT_ID}:policy/AWSLoadBalancerControllerIAMPolicy \
+      --approve
+  else
+    echo "Service account aws-load-balancer-controller already exists in cluster ${CLUSTER_NAME}"
+  fi
+
+  # Check if AWS Load Balancer Controller is already installed
+  if ! helm list -n kube-system | grep -q aws-load-balancer-controller; then
+    echo "Installing AWS Load Balancer Controller..."
+    kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+
+    helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+      -n kube-system \
+      --set clusterName=${CLUSTER_NAME} \
+      --set serviceAccount.create=false \
+      --set serviceAccount.name=aws-load-balancer-controller \
+      --set enableServiceMutatorWebhook=false
+      
+    echo "Verifying AWS Load Balancer Controller installation..."
+    kubectl get pods -n kube-system | grep aws-load-balancer-controller
+  else
+    echo "AWS Load Balancer Controller already installed, skipping installation"
+  fi
+  
+  if ! helm list -n lws-system | grep -q lws; then
+    echo "Installing the LeaderWorkerSet controller..."
+    helm install lws oci://registry.k8s.io/lws/charts/lws \
+      --version=0.6.1 \
+      --namespace lws-system \
+      --create-namespace \
+      --wait --timeout 300s
+  else
+    echo "LWS already installed, skipping installation"
+  fi
+}
+
+# Function to setup ALB security groups
+function setup_alb_security_groups() {
+  CLUSTER_NAME=${1}
+  REGION=${2}
+  
+  USER_IP=$(curl -s https://checkip.amazonaws.com)
+  VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} \
+    --query "cluster.resourcesVpcConfig.vpcId" --output text)
+
+  ALB_SG_NAME="${CLUSTER_NAME}-alb-sg"
+  ALB_SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${ALB_SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
+  
+  if [ -z "${ALB_SG_EXISTS}" ] || [ "${ALB_SG_EXISTS}" = "None" ]; then
+    echo "Creating new ALB security group: ${ALB_SG_NAME}"
+    ALB_SG=$(aws ec2 create-security-group \
+      --group-name ${ALB_SG_NAME} \
+      --description "Security group for vLLM ALB" \
+      --vpc-id ${VPC_ID} \
+      --query "GroupId" --output text)
+      
+    echo "Created ALB security group: ${ALB_SG}"
+    
+    echo "Adding ingress rule for HTTP"
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${ALB_SG} \
+      --protocol tcp \
+      --port 80 \
+      --cidr ${USER_IP}/32
+  else
+    echo "ALB security group ${ALB_SG_NAME} already exists, using existing: ${ALB_SG_EXISTS}"
+    ALB_SG=${ALB_SG_EXISTS}
+    echo "ALB security group: ${ALB_SG}"
+  fi
+
+  CLUSTER_SG=$(aws eks describe-cluster --name ${CLUSTER_NAME} \
+    --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+  
+  echo "Cluster security group: ${CLUSTER_SG}"
+  
+  # Add rule to allow traffic from ALB to port 8000 on all nodes in the cluster
+  aws ec2 authorize-security-group-ingress \
+    --group-id ${CLUSTER_SG} \
+    --protocol tcp \
+    --port 8000 \
+    --source-group ${ALB_SG}
+}
+
+# Function to create FSx Lustre filesystem and setup storage
+function setup_fsx_storage() {
+  CLUSTER_NAME=${1}
+  REGION=${2}
+  
+  VPC_ID=$(aws eks describe-cluster --name ${CLUSTER_NAME} --region ${REGION} --query "cluster.resourcesVpcConfig.vpcId" --output text)
+  SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=${VPC_ID}" "Name=availability-zone,Values=${REGION}a" --query "Subnets[0].SubnetId" --output text)
+  SG_NAME="${CLUSTER_NAME}-fsx-lustre-sg"
+  SG_EXISTS=$(aws ec2 describe-security-groups --filters "Name=group-name,Values=${SG_NAME}" "Name=vpc-id,Values=${VPC_ID}" --query "SecurityGroups[0].GroupId" --output text 2>/dev/null || echo "")
+  
+  if [ -z "${SG_EXISTS}" ] || [ "${SG_EXISTS}" = "None" ]; then
+    echo "Creating new security group: ${SG_NAME}"
+    SG_ID=$(aws ec2 create-security-group \
+      --group-name ${SG_NAME} \
+      --description "Security group for FSx Lustre" \
+      --vpc-id ${VPC_ID} \
+      --query "GroupId" --output text)
+    
+    echo "Created security group: ${SG_ID}"
+    
+    echo "Adding ingress rules to security group"
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${SG_ID} \
+      --protocol tcp \
+      --port 988-1023 \
+      --source-group $(aws eks describe-cluster --name ${CLUSTER_NAME} \
+      --query "cluster.resourcesVpcConfig.clusterSecurityGroupId" --output text)
+
+    aws ec2 authorize-security-group-ingress \
+      --group-id ${SG_ID} \
+      --protocol tcp \
+      --port 988-1023 \
+      --source-group ${SG_ID}
+  else
+    echo "Security group ${SG_NAME} already exists, using existing: ${SG_EXISTS}"
+    SG_ID=${SG_EXISTS}
+  fi
+  
+  # Check if FSx filesystem already exists
+  FS_EXISTS=$(aws fsx describe-file-systems --region ${REGION} --query "FileSystems[?Tags[?Key=='Name' && Value=='${CLUSTER_NAME}-model-storage']].FileSystemId" --output text 2>/dev/null || echo "")
+  
+  if [ -z "${FS_EXISTS}" ] || [ "${FS_EXISTS}" = "None" ]; then
+    echo "Creating new FSx filesystem"
+    FS_ID=$(aws fsx create-file-system \
+      --file-system-type LUSTRE \
+      --file-system-type-version 2.15 \
+      --storage-capacity 1200 \
+      --subnet-ids ${SUBNET_ID} \
+      --security-group-ids ${SG_ID} \
+      --lustre-configuration DeploymentType=SCRATCH_2 \
+      --tags Key=Name,Value=${CLUSTER_NAME}-model-storage \
+      --region ${REGION} \
+      --query "FileSystem.FileSystemId" --output text)
+    
+    echo "Created FSx filesystem: ${FS_ID}"
+  else
+    echo "FSx filesystem for ${CLUSTER_NAME} already exists, using existing: ${FS_EXISTS}"
+    FS_ID=${FS_EXISTS}
+  fi
+  
+  echo "Waiting for filesystem to become available..."
+  while true; do
+    STATUS=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].Lifecycle" --output text)
+    if [ "$STATUS" = "AVAILABLE" ]; then
+      echo "Filesystem is now available"
+      break
+    fi
+    echo "Filesystem status: $STATUS, waiting..."
+    sleep 300
+  done
+  
+  DNS_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].DNSName" --output text)
+  MOUNT_NAME=$(aws fsx describe-file-systems --file-system-ids ${FS_ID} --region ${REGION} --query "FileSystems[0].LustreConfiguration.MountName" --output text)
+  
+  echo "FSx DNS: ${DNS_NAME}"
+  echo "FSx Mount Name: ${MOUNT_NAME}"
+  
+  setup_k8s_fsx_storage ${FS_ID} ${DNS_NAME} ${MOUNT_NAME} ${SUBNET_ID} ${SG_ID}
+}
+
+# Function to setup Kubernetes FSx storage resources
+function setup_k8s_fsx_storage() {
+  FS_ID=${1}
+  DNS_NAME=${2}
+  MOUNT_NAME=${3}
+  SUBNET_ID=${4}
+  SG_ID=${5}
+ 
+  if ! helm list -n kube-system | grep -q aws-fsx-csi-driver; then
+    echo "Installing AWS FSx CSI Driver..."
+    helm install aws-fsx-csi-driver aws-fsx-csi-driver/aws-fsx-csi-driver \
+      --namespace kube-system
+    
+    echo "Waiting for FSx CSI driver pods to be ready..."
+    kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=aws-fsx-csi-driver -n kube-system --timeout=90s
+
+    echo "Verifying FSx CSI driver installation..."
+    kubectl get pods -n kube-system | grep fsx
+  else
+    echo "AWS FSx CSI Driver already installed, skipping installation"
+  fi
+  
+  if ! kubectl get sc fsx-sc &>/dev/null; then
+    echo "Creating FSx storage class"
+    sed -e "s|<subnet-id>|${SUBNET_ID}|g" \
+        -e "s|<sg-id>|${SG_ID}|g" \
+        ../test/vllm/eks/test_artifacts/fsx-storage-class.yaml | kubectl apply -f -
+  else
+    echo "FSx storage class already exists, skipping creation"
+  fi
+  
+  if ! kubectl get pv fsx-lustre-pv &>/dev/null; then
+    echo "Creating FSx persistent volume"
+    sed -e "s|<fs-id>|${FS_ID}|g" \
+        -e "s|<dns-name>|${DNS_NAME}|g" \
+        -e "s|<mount-name>|${MOUNT_NAME}|g" \
+        ../test/vllm/eks/test_artifacts/fsx-lustre-pv.yaml | kubectl apply -f -
+  else
+    echo "FSx persistent volume already exists, skipping creation"
+  fi
+  
+  if ! kubectl get pvc fsx-lustre-pvc &>/dev/null; then
+    echo "Creating FSx persistent volume claim"
+    kubectl apply -f ../test/vllm/eks/test_artifacts/fsx-lustre-pvc.yaml -n vllm
+  else
+    echo "FSx persistent volume claim already exists, skipping creation"
+  fi
+  
+  echo "Verifying FSx Kubernetes resources..."
+  kubectl get sc fsx-sc
+  kubectl get pv fsx-lustre-pv
+  kubectl get pvc fsx-lustre-pvc -n vllm
+}
+
 #/ Tags added to the nodegroup do not propogate to the underlying Auto Scaling Group.
 #/ Hence adding the tags explicitly as it is required for cluster autoscalar functionality
 #/ See https://github.com/aws/containers-roadmap/issues/608
@@ -183,6 +485,14 @@ function add_tags_asg() {
       aws autoscaling create-or-update-tags \
         --tags ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/test_type,Value=graviton,PropagateAtLaunch=true
     fi
+
+    if [[ ${nodegroup_name} == *"vllm"* ]]; then
+      aws autoscaling create-or-update-tags \
+         --tags \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/role,Value=large-model-worker,PropagateAtLaunch=true" \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/resources/vpc.amazonaws.com/efa,Value=4,PropagateAtLaunch=true" \
+        "ResourceId=${asg_name},ResourceType=auto-scaling-group,Key=k8s.io/cluster-autoscaler/node-template/label/aws.amazon.com/efa,Value=true,PropagateAtLaunch=true"
+    fi
   done
 
 }
@@ -205,8 +515,17 @@ EKS_VERSION=${2}
 # Check for EC2 keypair environment variable. If empty, create a new key pair.
 if [ -z "${EC2_KEY_PAIR_NAME}" ]; then
   KEY_NAME=${CLUSTER}-KeyPair
-  echo "No EC2 key pair name configured. Creating keypair ${KEY_NAME}"
-  create_ec2_key_pair ${KEY_NAME}
+  echo "No EC2 key pair name configured. Using keypair name ${KEY_NAME}"
+  
+  # Check if key already exists
+  exist=$(aws ec2 describe-key-pairs --key-name ${KEY_NAME} --region ${AWS_REGION} 2>/dev/null | grep KeyName | wc -l)
+  if [ ${exist} -eq 0 ]; then
+    echo "Creating new keypair ${KEY_NAME}"
+    create_ec2_key_pair ${KEY_NAME}
+  else
+    echo "Key pair ${KEY_NAME} already exists, skipping creation"
+  fi
+  
   EC2_KEY_PAIR_NAME=${KEY_NAME}
 else
   exist=$(aws ec2 describe-key-pairs --key-name ${EC2_KEY_PAIR_NAME} --region ${AWS_REGION} | grep KeyName | wc -l)
@@ -216,9 +535,34 @@ else
   fi
 fi
 
+# Check prerequisites for vLLM clusters
+if [[ ${CLUSTER} == *"vllm"* ]]; then
+  setup_helm
+fi
+
+# Create cluster and nodegroups
 create_eks_cluster ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
 create_node_group ${CLUSTER} ${EKS_VERSION} ${EC2_KEY_PAIR_NAME}
+echo "Configuring kubectl for cluster ${CLUSTER}..."
+aws eks update-kubeconfig --name ${CLUSTER} --region ${AWS_REGION}
+create_namespaces
+
+# Configure kubectl and setup additional components for vLLM clusters
+if [[ ${CLUSTER} == *"vllm"* ]]; then
+  echo "Verifying nodes are ready..."
+  kubectl get nodes
+  
+  echo "Checking NVIDIA device plugin..."
+  kubectl get pods -n kube-system | grep nvidia
+  
+  echo "Verifying GPU availability..."
+  kubectl get nodes -o json -n vllm | jq '.items[].status.capacity."nvidia.com/gpu"'
+  
+  setup_fsx_storage ${CLUSTER} ${AWS_REGION}
+  setup_load_balancer_controller ${CLUSTER}
+  setup_alb_security_groups ${CLUSTER} ${AWS_REGION}
+fi
+
 add_tags_asg ${CLUSTER} ${AWS_REGION}
 add_iam_permissions_nodegroup ${CLUSTER} ${AWS_REGION}
-create_namespaces
 update_eksctl_utils ${CLUSTER} ${AWS_REGION}
