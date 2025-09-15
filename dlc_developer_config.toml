@@ -15,7 +15,7 @@ neuronx_mode = false
 graviton_mode = false
 # Please only set it to true if you are preparing a ARM64 related PR
 # Do remember to revert it back to false before merging any PR (including ARM64 dedicated PR)
-arm64_mode = true
+arm64_mode = false
 # Please only set it to True if you are preparing a HABANA related PR
 # Do remember to revert it back to False before merging any PR (including HABANA dedicated PR)
 habana_mode = false
