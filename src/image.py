@@ -124,7 +124,7 @@ class DockerImage:
         docker_client = DockerClient(base_url=constants.DOCKER_URL)
         command_responses = []
         commands = [
-            "pip3 list",
+            "pip list",
             "dpkg-query -Wf '${Installed-Size}\\t${Package}\\n'",
             "apt list --installed",
         ]

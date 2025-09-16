@@ -85,6 +85,8 @@ FROM base AS vllm-openai
 COPY --from=build-vllm /wheels/* wheels/
 COPY --from=build-xformers /wheels/* wheels/
 
+RUN uv pip install -U build cmake ninja pybind11 setuptools==79.0.1 wheel
+
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
@@ -103,8 +105,6 @@ RUN uv pip install accelerate hf_transfer modelscope bitsandbytes timm boto3 run
 RUN uv clean
 
 RUN export PATH="$(dirname $(realpath .venv/bin/python)):$PATH"
-
-RUN uv pip install -U build cmake ninja pybind11 setuptools==79.0.1 wheel
 
 # Enable hf-transfer for faster downloads
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
