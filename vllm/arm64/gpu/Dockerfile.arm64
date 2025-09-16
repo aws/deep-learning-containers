@@ -77,9 +77,10 @@ FROM build-base AS build-vllm
 RUN uv pip install \
     packaging>=24.2 \
     setuptools-scm>=8 \
+    torch==2.7.1 \
     jinja2>=3.1.6 \
     regex 
-    
+
 RUN git clone https://github.com/vllm-project/vllm.git && \
     cd vllm && \
     git checkout v0.10.2 && \
