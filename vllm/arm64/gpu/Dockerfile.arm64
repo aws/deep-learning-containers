@@ -1,4 +1,4 @@
-ARG CUDA_VERSION=12.8.1
+ARG CUDA_VERSION=12.9.0
 ARG IMAGE_DISTRO=ubuntu22.04
 ARG PYTHON_VERSION=3.12
 
@@ -41,9 +41,9 @@ ENV LD_LIBRARY_PATH=${CUDA_HOME}/lib64:${LD_LIBRARY_PATH}
 
 RUN apt-get update && apt install -y wget
 
-ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torch-2.7.0%2Bcu128-cp312-cp312-manylinux_2_28_aarch64.whl
-ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchvision-0.22.0%2Bcu128-cp312-cp312-linux_aarch64.whl
-ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.7.0/arm64/cu128/torchaudio-2.7.0%2Bcu128-cp312-cp312-linux_aarch64.whl
+ARG TORCH_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.8.0/arm64/cu129/torch-2.8.0%2Bcu129-cp312-cp312-manylinux_2_28_aarch64.whl
+ARG TORCHVISION_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.8.0/arm64/cu129/torchvision-0.23.0%2Bcu129-cp312-cp312-linux_aarch64.whl
+ARG TORCHAUDIO_URL=https://framework-binaries.s3.us-west-2.amazonaws.com/pytorch/v2.8.0/arm64/cu129/torchaudio-2.8.0%2Bcu129-cp312-cp312-linux_aarch64.whl
 
 RUN uv pip install --no-cache-dir -U \
     ${TORCH_URL} \
@@ -56,7 +56,7 @@ RUN uv pip install --extra-index-url https://download.pytorch.org/whl/nightly/py
 FROM base AS build-base
 RUN mkdir /wheels
 
-RUN uv pip install -U build cmake ninja pybind11 setuptools wheel requests numpy
+RUN uv pip install -U build cmake ninja pybind11 setuptools setuptools_scm wheel requests numpy torch==2.8.0
 RUN export MAX_JOBS=15
 
 ###############################################################################
@@ -73,14 +73,6 @@ RUN git clone https://github.com/facebookresearch/xformers.git && \
 
 ###############################################################################
 FROM build-base AS build-vllm
-
-RUN uv pip install \
-    packaging>=24.2 \
-    setuptools-scm>=8 \
-    torch==2.7.0 \
-    jinja2>=3.1.6 \
-    regex 
-
 RUN git clone https://github.com/vllm-project/vllm.git && \
     cd vllm && \
     git checkout v0.10.2 && \
@@ -96,7 +88,7 @@ COPY --from=build-xformers /wheels/* wheels/
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.2.14.post1 && \
+    git checkout v0.2.6.post1 && \
     export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
     python -m flashinfer.aot && \
     MAX_JOBS=16 uv pip install --system --no-build-isolation . && \
@@ -127,7 +119,6 @@ RUN wget ${NSYS_URL}${NSYS_PKG} && \
     rm $NSYS_PKG
 RUN apt install -y --no-install-recommends tmux cmake
 
-# Install required build tool
 RUN uv pip install ninja
 
 ARG PYTHON="python3"
