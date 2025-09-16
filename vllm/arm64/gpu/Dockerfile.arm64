@@ -96,7 +96,7 @@ COPY --from=build-xformers /wheels/* wheels/
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.2.6.post1 && \
+    git checkout v0.2.14.post1 && \
     export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
     python -m flashinfer.aot && \
     MAX_JOBS=16 uv pip install --system --no-build-isolation . && \
