@@ -190,8 +190,8 @@ RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-h
 
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
-    opencv-python \
-    "numpy>=2,<2.3.0" \
+    "opencv-python==4.11.0.86" \
+    numpy \
     scipy \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
@@ -267,7 +267,8 @@ RUN pip install --no-cache-dir \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     accelerate==${ACCELERATE_VERSION} \
-	sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION}
+    sagemaker-huggingface-inference-toolkit==${SAGEMAKER_HF_INFERENCE_VERSION} \
+    "opencv-python==4.11.0.86"
 
 # hf_transfer will be a built-in feature, remove the env variavle then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
