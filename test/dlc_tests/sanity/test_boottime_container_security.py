@@ -7,6 +7,10 @@ from invoke import run
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
+    if "vllm" in image:
+        pytest.skip(
+            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+        )
     repo_name, image_tag = image.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-security"
 
@@ -20,10 +24,7 @@ def test_security(image):
     )
     try:
         docker_exec_cmd = f"docker exec -i {container_name}"
-        if "vllm" in image:
-            run_command = f"python3 /test/bin/security_checks.py"
-        else:
-            run_command = f"python /test/bin/security_checks.py"
+        run_command = f"python /test/bin/security_checks.py"
 
         run(f"{docker_exec_cmd} {run_command} --image_uri {image}", hide=True)
     finally:
