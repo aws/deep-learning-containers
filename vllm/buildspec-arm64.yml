@@ -35,7 +35,7 @@ images:
       <<: *BUILD_CONTEXT
     image_size_baseline: 25000
     device_type: &DEVICE_TYPE gpu
-    cuda_version: &CUDA_VERSION cu128
+    cuda_version: &CUDA_VERSION cu129
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
