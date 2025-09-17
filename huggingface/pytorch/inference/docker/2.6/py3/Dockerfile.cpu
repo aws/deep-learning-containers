@@ -140,7 +140,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
     opencv-python \
-    "numpy<2.3.0,>=2" \
+    "numpy>=2,<2.3.0" \
     "pyopenssl>=24.0.0" \
     "cryptography>=42.0.5" \
     "ipython>=8.10.0,<9.0" \
