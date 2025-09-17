@@ -13,6 +13,8 @@ pytest-xdist
 PyYAML
 protobuf>=3.20,<=3.20.2
 sagemaker>=2,<3
+numpy<2.3.0,>=2
+python_version>=3.9
 six
 requests<2.32.0
 requests_mock
