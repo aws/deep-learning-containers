@@ -60,7 +60,6 @@ RUN apt-get update \
     gpg-agent \
     libexpat1 \
     libxml2 \
-    linux-libc-dev \
     libgstreamer1.0-0 \
     libsoup2.4-1 \
  && rm -rf /var/lib/apt/lists/* \
