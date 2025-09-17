@@ -35,32 +35,29 @@ ENV TEMP=/home/model-server/tmp
 
 RUN apt-get update \
  && apt-get upgrade -y \
- && apt-get install -y --no-install-recommends software-properties-common \
- && add-apt-repository ppa:openjdk-r/ppa \
- && apt-get update \
  && apt-get install -y --no-install-recommends \
-    build-essential \
     apt-transport-https \
+    build-essential \
     ca-certificates \
     cmake \
     curl \
     emacs \
     git \
+    gnupg2 \
+    gpg-agent \
     jq \
     libgl1-mesa-glx \
+    libglib2.0-0 \
     libsm6 \
     libxext6 \
     libxrender-dev \
-    libgssapi-krb5-2 \
+    libcap-dev \
+    libhwloc-dev \
     openjdk-11-jdk \
+    unzip \
     vim \
     wget \
-    unzip \
     zlib1g-dev \
-    libcap-dev \
-    gpg-agent \
-    libexpat1 \
-    libxml2 \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
  && apt-get clean
@@ -132,7 +129,6 @@ RUN pip install --extra-index-url https://pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
-    transformers-neuronx==$NEURONX_TRANSFORMERS_VERSION \
  && pip install "protobuf>=3.18.3,<4" \
  && pip install --no-deps --no-cache-dir -U torchvision==0.16.*
 
@@ -192,7 +188,7 @@ RUN HOME_DIR=/root \
  # conda leaves an empty /root/.cache/conda/notices.cache file which is not removed by conda clean -ya
  && rm -rf ${HOME_DIR}/.cache/conda
 
-ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:neuron:inference:regular"
-EXPOSE 8080 8081
-ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["serve"]
+# ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:neuron:inference:regular"
+# EXPOSE 8080 8081
+# ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
+# CMD ["serve"]
