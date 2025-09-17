@@ -191,7 +191,6 @@ RUN pip install --upgrade pip --no-cache-dir --trusted-host pypi.org --trusted-h
 # Install Common python packages
 RUN pip install --no-cache-dir -U \
     "opencv-python==4.11.0.86" \
-    numpy \
     scipy \
     # "nvgpu" is a dependency of TS but is disabled in SM DLC build,
     # via ENV Variable "TS_DISABLE_SYSTEM_METRICS=true" in the SM section of this file.
