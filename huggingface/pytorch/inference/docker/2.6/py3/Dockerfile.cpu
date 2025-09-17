@@ -139,7 +139,7 @@ RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pytho
 
 # Install Common python packages
 RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu -U \
-    opencv-python \
+    "opencv-python==4.11.0.86" \
     "pyopenssl>=24.0.0" \
     "cryptography>=42.0.5" \
     "ipython>=8.10.0,<9.0" \
@@ -231,7 +231,8 @@ ENV HF_HUB_USER_AGENT_ORIGIN="aws:sagemaker:cpu:inference:regular"
 
 # IPEx installation installs the numpy==1.25.1. That causes a pip check failure due to incompatibility with numba.
 # Re-installing numpy after IPEx installation to get the appropriate numpy version and fix pip checks.
-# RUN pip install --no-cache-dir \
+RUN pip install --no-cache-dir \
+  "opencv-python==4.11.0.86"
 #     "numpy<1.25" \
 #     "pyyaml>=5.4"
 
@@ -244,7 +245,7 @@ RUN HOME_DIR=/root \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.3/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
 ## Cleanup ##
 RUN pip cache purge \
