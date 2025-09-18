@@ -47,7 +47,7 @@ def setup_env(connection):
 def create_benchmark_command() -> str:
     """Create command for running benchmark"""
     return f"""
-    python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
+    vllm bench serve \
     --model deepseek-ai/DeepSeek-R1-Distill-Qwen-32B \
     --backend vllm \
     --base-url "http://localhost:8000" \
