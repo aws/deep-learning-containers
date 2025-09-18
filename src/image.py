@@ -14,6 +14,7 @@ language governing permissions and limitations under the License.
 """
 
 import logging
+import os
 import subprocess
 from datetime import datetime
 
@@ -23,6 +24,9 @@ import constants
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
+build_context = os.getenv("BUILD_CONTEXT")
 
 
 class DockerImage:
@@ -198,45 +202,6 @@ class DockerImage:
 
     def docker_build(self, context_path, custom_context=False):
         """
-        Uses Docker Buildx for vLLM images, falls back to legacy Docker API for others
-
-        :param context_path: str, Path to build context
-        :param custom_context: bool, Whether to use custom context from stdin (default: False)
-        :return: int, Build status
-        """
-        if self._is_vllm_image() or self._is_pytorch_training_image():
-            LOGGER.info(
-                f"Using Buildx for vLLM and PyTorch Training image: {self.repository}:{self.tag}"
-            )
-            return self._buildx_build(context_path, custom_context)
-        else:
-            LOGGER.info(
-                f"Using legacy Docker API for non-vLLM and non-PyTorch Training image: {self.repository}:{self.tag}"
-            )
-            return self._legacy_docker_build(context_path, custom_context)
-
-    def _is_vllm_image(self):
-        """
-        Determine if current image is a vLLM image
-
-        :return: bool, True if this is a vLLM image
-        """
-        return (
-            self.info.get("framework") == "vllm"
-            or "vllm" in self.repository.lower()
-            or "vllm" in str(self.info.get("name", "")).lower()
-        )
-
-    def _is_pytorch_training_image(self):
-        """
-        Determine if current image is a PyTorch Training image
-
-        :return: bool, True if this is a PyTorch Training image
-        """
-        return self.info.get("framework") == "pytorch" and self.info.get("image_type") == "training"
-
-    def _buildx_build(self, context_path, custom_context=False):
-        """
         Uses Docker Buildx CLI for building with real-time streaming and advanced caching.
 
 
@@ -275,7 +240,7 @@ class DockerImage:
         # Use shortest tag from additional_tags as a suitable cache source
         latest_tag = min(self.additional_tags, key=len)
 
-        if latest_tag:
+        if latest_tag and build_context == "PR":
             latest_image_uri = f"{self.repository}:{latest_tag}"
             LOGGER.info(f"Using cache from registry: {latest_image_uri}")
             cmd.extend(["--cache-from", f"type=registry,ref={latest_image_uri}"])
@@ -325,79 +290,6 @@ class DockerImage:
 
         self.log.append(response)
         return self.build_status
-
-    def _legacy_docker_build(self, context_path, custom_context=False):
-        """
-        Uses legacy Docker API Client to build the image (for non-vLLM images).
-
-        :param context_path: str, Path to build context
-        :param custom_context: bool, Whether to use custom context from stdin (default: False)
-        :return: int, Build Status
-        """
-        response = [f"Starting Legacy Docker Build Process for {self.repository}:{self.tag}"]
-        LOGGER.info(f"Starting Legacy Docker Build Process for {self.repository}:{self.tag}")
-
-        # Open context tarball for legacy API
-        fileobj = open(context_path, "rb") if custom_context else None
-
-        line_counter = 0
-        line_interval = 50
-
-        try:
-            for line in self.client.build(
-                fileobj=fileobj,
-                path=self.dockerfile if not custom_context else None,
-                custom_context=custom_context,
-                rm=True,
-                decode=True,
-                tag=self.ecr_url,
-                buildargs=self.build_args,
-                labels=self.labels,
-                target=self.target,
-            ):
-                # print the log line during build for every line_interval lines
-                if line_counter % line_interval == 0:
-                    LOGGER.info(line)
-                line_counter += 1
-
-                if line.get("error") is not None:
-                    response.append(line["error"])
-                    self.log.append(response)
-                    self.build_status = constants.FAIL
-                    self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                    self.summary["end_time"] = datetime.now()
-
-                    LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
-                    LOGGER.error("ERROR during Docker BUILD")
-                    LOGGER.error(
-                        f"Error message received for {self.dockerfile} while docker build: {line}"
-                    )
-
-                    return self.build_status
-
-                if line.get("stream") is not None:
-                    response.append(line["stream"])
-                elif line.get("status") is not None:
-                    response.append(line["status"])
-                else:
-                    response.append(str(line))
-
-            self.log.append(response)
-
-            LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
-            LOGGER.info(f"Completed Legacy Build for {self.repository}:{self.tag}")
-
-            self.build_status = constants.SUCCESS
-            return self.build_status
-
-        except Exception as e:
-            response.append(f"Legacy Docker build error: {str(e)}")
-            self.build_status = constants.FAIL
-            LOGGER.error(f"Legacy Docker build exception: {str(e)}")
-            return self.build_status
-        finally:
-            if fileobj:
-                fileobj.close()
 
     def image_size_check(self):
         """

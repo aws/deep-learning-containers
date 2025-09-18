@@ -9,31 +9,29 @@ from contextlib import contextmanager
 
 
 from test import test_utils
+from test.test_utils import DEFAULT_REGION, P4DE_REGION
 import test.test_utils.ec2 as ec2_utils
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
-from botocore.exceptions import WaiterError
+from botocore.exceptions import ClientError, WaiterError
 
 
-from test.test_utils import KEYS_TO_DESTROY_FILE
+from test.test_utils import KEYS_TO_DESTROY_FILE, AL2023_BASE_DLAMI_ARM64_US_WEST_2
 
 from test.test_utils.ec2 import (
     get_default_vpc_id,
     get_subnet_id_by_vpc,
+    get_efa_ec2_instance_type,
+    get_ec2_instance_type,
+    filter_efa_only_p4_instance_type,
 )
 
 # Constant to represent default region for boto3 commands
 DEFAULT_REGION = "us-west-2"
-# Constant to represent region where p4de tests can be run
-P4DE_REGION = "us-east-1"
-
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
-
-VLLM_INSTANCE_TYPE = ["p4d.24xlarge", "p5.48xlarge"]
-
 ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
 
 
@@ -47,8 +45,18 @@ def ec2_client(region):
     return boto3.client("ec2", region_name=region, config=Config(retries={"max_attempts": 10}))
 
 
-def ec2_instance_ami(region):
+def ec2_instance_ami(region, image):
+    if "arm64" in image:
+        return AL2023_BASE_DLAMI_ARM64_US_WEST_2
+
     return test_utils.get_dlami_id(region)
+
+
+def ec2_instance_type(image):
+    if "arm64" in image:
+        return "g5g.16xlarge"
+    else:
+        return "p4d.24xlarge"
 
 
 def availability_zone_options(ec2_client, ec2_instance_type, region):
@@ -126,6 +134,9 @@ def authorize_ingress(ec2_client, group_id, ip_address):
 
 
 def setup_test_artifacts(ec2_client, instances, key_filename, region):
+    """
+    Setup test artifacts on EC2 instances
+    """
     ec2_connections = {}
     master_connection = None
     worker_connection = None
@@ -168,29 +179,63 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     def delete_s3_artifact_copy():
         test_utils.delete_uploaded_tests_from_s3(s3_test_artifact_location)
 
-    # Setup master instance
-    master_connection.run("rm -rf $HOME/container_tests")
-    master_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
-    )
-    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
-    master_connection.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+    try:
+        # Setup master instance
+        if master_connection:
+            master_connection.run("rm -rf $HOME/container_tests")
+            master_connection.run(
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+            )
+            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
+            master_connection.run(
+                f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+            )
 
-    worker_connection.run("rm -rf $HOME/container_tests")
-    worker_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
-    )
-    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
-    worker_connection.run(
-        f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
-    )
+        if worker_connection:
+            worker_connection.run("rm -rf $HOME/container_tests")
+            worker_connection.run(
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+            )
+            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
+            worker_connection.run(
+                f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
+            )
 
-    # Cleanup S3 artifacts
-    delete_s3_artifact_copy()
+    finally:
+        delete_s3_artifact_copy()
 
-    return [master_connection, worker_connection]
+    if worker_connection:
+        return [master_connection, worker_connection]
+    return [master_connection]
+
+
+def launch_regular_instances_with_retry(
+    ec2_client,
+    ec2_instance_type,
+    availability_zone_options,
+    ec2_run_instances_definition,
+):
+    """
+    Launch regular (non-EFA) EC2 instances with retry capability
+    """
+    instances = None
+    error = None
+
+    for a_zone in availability_zone_options:
+        ec2_run_instances_definition["Placement"] = {"AvailabilityZone": a_zone}
+        try:
+            instances = ec2_client.run_instances(**ec2_run_instances_definition)["Instances"]
+            if instances:
+                break
+        except ClientError as e:
+            LOGGER.error(f"Failed to launch in {a_zone} due to {e}")
+            error = e
+            continue
+
+    if not instances:
+        raise error or Exception("Failed to launch instances in any availability zone")
+
+    return instances
 
 
 def efa_ec2_instances(
@@ -201,15 +246,17 @@ def efa_ec2_instances(
     ec2_instance_ami,
     region,
     availability_zone_options,
+    is_arm64,
 ):
     instances = None
     key_filename = None
     elastic_ip_allocation_ids = []
+    is_efa = not is_arm64
+
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
         print(f"Creating instance: CI-CD {ec2_key_name}")
         key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
-        print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
         volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
         instance_name_prefix = f"CI-CD {ec2_key_name}"
@@ -230,8 +277,8 @@ def efa_ec2_instances(
             "InstanceType": ec2_instance_type,
             "IamInstanceProfile": {"Name": ec2_instance_role_name},
             "KeyName": ec2_key_name,
-            "MaxCount": 2,
-            "MinCount": 2,
+            "MaxCount": 2 if is_efa else 1,
+            "MinCount": 2 if is_efa else 1,
             "TagSpecifications": [
                 {
                     "ResourceType": "instance",
@@ -239,12 +286,21 @@ def efa_ec2_instances(
                 }
             ],
         }
-        instances = ec2_utils.launch_efa_instances_with_retry(
-            ec2_client,
-            ec2_instance_type,
-            availability_zone_options,
-            ec2_run_instances_definition,
-        )
+
+        if is_efa:
+            instances = ec2_utils.launch_efa_instances_with_retry(
+                ec2_client,
+                ec2_instance_type,
+                availability_zone_options,
+                ec2_run_instances_definition,
+            )
+        else:
+            instances = launch_regular_instances_with_retry(
+                ec2_client,
+                ec2_instance_type,
+                availability_zone_options,
+                ec2_run_instances_definition,
+            )
 
         master_instance_id = instances[0]["InstanceId"]
         ec2_utils.check_instance_state(master_instance_id, state="running", region=region)
@@ -252,11 +308,10 @@ def efa_ec2_instances(
             master_instance_id, system_status="ok", instance_status="ok", region=region
         )
         print(f"Master instance {master_instance_id} is ready")
-
-        if len(instances) > 1:
-            ec2_utils.create_name_tags_for_instance(
-                master_instance_id, f"{instance_name_prefix}_master", region
-            )
+        ec2_utils.create_name_tags_for_instance(
+            master_instance_id, f"{instance_name_prefix}_master", region
+        )
+        if is_efa:
             for i in range(1, len(instances)):
                 worker_instance_id = instances[i]["InstanceId"]
                 ec2_utils.create_name_tags_for_instance(
@@ -268,24 +323,28 @@ def efa_ec2_instances(
                 )
                 print(f"Worker instance {worker_instance_id} is ready")
 
-        num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
-            ec2_instance_type, region=region
-        )
+            num_efa_interfaces = ec2_utils.get_num_efa_interfaces_for_instance_type(
+                ec2_instance_type, region=region
+            )
 
-        if num_efa_interfaces > 1:
-            for instance in instances:
-                try:
-                    instance_id = instance["InstanceId"]
+            print(num_efa_interfaces)
 
-                    network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
-                    elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
-                        network_interface_id, region, ENABLE_IPV6_TESTING
-                    )
-                    elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
-                except Exception as e:
-                    if elastic_ip_allocation_ids:
-                        ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
-                    raise Exception(f"Error allocating elastic IP: {str(e)}")
+            if num_efa_interfaces > 1:
+                for instance in instances:
+                    try:
+                        instance_id = instance["InstanceId"]
+
+                        network_interface_id = ec2_utils.get_network_interface_id(
+                            instance_id, region
+                        )
+                        elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                            network_interface_id, region, ENABLE_IPV6_TESTING
+                        )
+                        elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
+                    except Exception as e:
+                        if elastic_ip_allocation_ids:
+                            ec2_utils.delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
+                        raise Exception(f"Error allocating elastic IP: {str(e)}")
 
         connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
         return_val = {
@@ -329,48 +388,6 @@ def efa_ec2_instances(
                 print(f"Error cleaning up key files: {str(cleanup_error)}")
 
         raise
-
-
-@contextmanager
-def ec2_test_environment():
-    cleanup_functions = []
-    try:
-        # Setup code here
-        region = DEFAULT_REGION
-        ec2_cli = ec2_client(region)
-        instance_type = VLLM_INSTANCE_TYPE[0]
-        ami_id = ec2_instance_ami(region)
-        az_options = availability_zone_options(ec2_cli, instance_type, region)
-
-        instances_info = efa_ec2_instances(
-            ec2_client=ec2_cli,
-            ec2_instance_type=instance_type,
-            ec2_instance_role_name=EC2_INSTANCE_ROLE_NAME,
-            ec2_key_name="vllm-ec2-test",
-            ec2_instance_ami=ami_id,
-            region=region,
-            availability_zone_options=az_options,
-        )
-        # Register cleanup functions
-        cleanup_functions.extend(
-            [
-                lambda: ec2_cli.terminate_instances(
-                    InstanceIds=[instance_id for instance_id, _ in instances_info]
-                ),
-                lambda: test_utils.destroy_ssh_keypair(ec2_cli, instances_info[0][1]),
-            ]
-        )
-
-        yield instances_info
-
-    finally:
-        print("Running cleanup operations...")
-        for cleanup_func in cleanup_functions:
-            try:
-                if cleanup_func is not None:
-                    cleanup_func()
-            except Exception as cleanup_error:
-                LOGGER.error(f"Error during cleanup: {str(cleanup_error)}")
 
 
 def _setup_instance(connection, fsx_dns_name, mount_name):
@@ -463,11 +480,12 @@ def cleanup_resources(ec2_cli, resources, fsx):
         raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
 
 
-def launch_ec2_instances(ec2_cli):
+def launch_ec2_instances(ec2_cli, image):
     """Launch EC2 instances with EFA support"""
-    instance_type = VLLM_INSTANCE_TYPE[0]
-    ami_id = ec2_instance_ami(DEFAULT_REGION)
+    instance_type = ec2_instance_type(image)
+    ami_id = ec2_instance_ami(DEFAULT_REGION, image)
     az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
+    is_arm64 = True if "arm64" in image else False
 
     instances_info = efa_ec2_instances(
         ec2_client=ec2_cli,
@@ -477,6 +495,7 @@ def launch_ec2_instances(ec2_cli):
         ec2_instance_ami=ami_id,
         region=DEFAULT_REGION,
         availability_zone_options=az_options,
+        is_arm64=is_arm64,
     )
     print(f"Launched instances: {instances_info}")
     return instances_info
@@ -564,7 +583,7 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
         connection.run(cmd)
 
 
-def setup():
+def setup(image):
     """Main setup function for VLLM on EC2 with FSx"""
     print("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
@@ -575,14 +594,13 @@ def setup():
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        instance_result = launch_ec2_instances(ec2_cli)
+        instance_result = launch_ec2_instances(ec2_cli, image)
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
         resources["connections"] = instance_result["connections"]
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
-        # Configure single security group for both instances
         instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
         resources["sg_fsx"] = configure_security_groups(
             instance_ids[0], ec2_cli, fsx, vpc_id, resources["instances_info"]
@@ -608,16 +626,16 @@ def setup():
         )
         print(f"Setup completed for master instance {master_instance_id}")
 
-        # Mount FSx on worker node
-        worker_instance_id, worker_key_filename = resources["instances_info"][1]
-        mount_fsx_on_worker(
-            worker_instance_id,
-            worker_key_filename,
-            ec2_cli,
-            resources["fsx_config"]["dns_name"],
-            resources["fsx_config"]["mount_name"],
-        )
-        print(f"FSx mounted on worker instance {worker_instance_id}")
+        if len(resources["instances_info"]) > 1:
+            worker_instance_id, worker_key_filename = resources["instances_info"][1]
+            mount_fsx_on_worker(
+                worker_instance_id,
+                worker_key_filename,
+                ec2_cli,
+                resources["fsx_config"]["dns_name"],
+                resources["fsx_config"]["mount_name"],
+            )
+            print(f"FSx mounted on worker instance {worker_instance_id}")
 
         return resources
 
