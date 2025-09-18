@@ -51,7 +51,7 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
-      cuda_version: "cu128"
+      cuda_version: "cu129"
       example: False
       disable_sm_tag: False
       force_release: False
@@ -69,4 +69,4 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-      public_registry: False
+      public_registry: True
