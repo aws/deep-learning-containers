@@ -235,35 +235,6 @@
             "reason_to_ignore": "N/A"
         },
         {
-			"description": "In the Linux kernel, the following vulnerability has been resolved: of: module: add buffer overflow check in of_modalias(). In of_modalias(), if the buffer happens to be too small even for the 1st snprintf() call, the len parameter will become negative and str parameter (if not NULL initially) will point beyond the buffer's end. Add the buffer overflow check after the 1st snprintf() call and fix such check after the strlen() call (accounting for the terminating NUL char).",
-			"vulnerability_id": "CVE-2024-38541",
-			"name": "CVE-2024-38541",
-			"package_name": "linux-libc-dev",
-			"package_details": {
-				"file_path": null,
-				"name": "linux-libc-dev",
-				"package_manager": "OS",
-				"version": "5.4.0",
-				"release": "192.212"
-			},
-			"remediation": {
-				"recommendation": {
-					"text": "None Provided"
-				}
-			},
-			"cvss_v3_score": 7.8,
-			"cvss_v30_score": 0.0,
-			"cvss_v31_score": 7.8,
-			"cvss_v2_score": 0.0,
-			"cvss_v3_severity": "HIGH",
-			"source_url": "https://ubuntu.com/security/CVE-2024-38541",
-			"source": "UBUNTU_CVE",
-			"severity": "CRITICAL",
-			"status": "ACTIVE",
-			"title": "CVE-2024-38541 - linux-libc-dev",
-			"reason_to_ignore": "N/A"
-        },
-        {
             "description": " In the Linux kernel, the following vulnerability has been resolved:  tcp_metrics: validate source addr length  I don't see anything checking that TCP_METRICS_ATTR_SADDR_IPV4 is at least 4 bytes long, and the policy doesn't have an entry for this attribute at all (neither does it for IPv6 but v6 is manually validated).",
             "vulnerability_id": "CVE-2024-42154",
             "name": "CVE-2024-42154",
@@ -874,6 +845,35 @@
       }
     ],
     "linux-libc-dev": [
+	  {  
+		 "description": "In the Linux kernel, the following vulnerability has been resolved: of: module: add buffer overflow check in of_modalias(). In of_modalias(), if the buffer happens to be too small even for the 1st snprintf() call, the len parameter will become negative and str parameter (if not NULL initially) will point beyond the buffer's end. Add the buffer overflow check after the 1st snprintf() call and fix such check after the strlen() call (accounting for the terminating NUL char).",
+		 "vulnerability_id": "CVE-2024-38541",
+		 "name": "CVE-2024-38541",
+		 "package_name": "linux-libc-dev",
+		 "package_details": {
+			 "file_path": null,
+			 "name": "linux-libc-dev",
+			 "package_manager": "OS",
+			 "version": "5.4.0",
+			 "release": "192.212"
+		 },
+		 "remediation": {
+		 	 "recommendation": {
+				 "text": "None Provided"
+			 }
+		 },
+		 "cvss_v3_score": 7.8,
+		 "cvss_v30_score": 0.0,
+		 "cvss_v31_score": 7.8,
+		 "cvss_v2_score": 0.0,
+		 "cvss_v3_severity": "HIGH",
+		 "source_url": "https://ubuntu.com/security/CVE-2024-38541",
+		 "source": "UBUNTU_CVE",
+		 "severity": "CRITICAL",
+		 "status": "ACTIVE",
+		 "title": "CVE-2024-38541 - linux-libc-dev",
+		 "reason_to_ignore": "N/A"
+      },
       {
          "description":"In the Linux kernel, the following vulnerability has been resolved: greybus: Fix use-after-free bug in gb_interface_release due to race condition. In gb_interface_create, &intf->mode_switch_completion is bound with gb_interface_mode_switch_work. Then it will be started by gb_interface_request_mode_switch. Here is the relevant code. if (!queue_work(system_long_wq, &intf->mode_switch_work)) { ... } If we call gb_interface_release to make cleanup, there may be an unfinished work. This function will call kfree to free the object \"intf\". However, if gb_interface_mode_switch_work is scheduled to run after kfree, it may cause use-after-free error as gb_interface_mode_switch_work will use the object \"intf\". The possible execution flow that may lead to the issue is as follows: CPU0 CPU1 | gb_interface_create | gb_interface_request_mode_switch gb_interface_release | kfree(intf) (free) | | gb_interface_mode_switch_work | mutex_lock(&intf->mutex) (use) Fix it by canceling the work before kfree.",
          "vulnerability_id":"CVE-2024-39495",

@@ -1513,9 +1513,7 @@
                 "71587": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "71692": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "76170": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "76180": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "78828": "Pytorch version upgrade needs to be handled in a separate image",
-                "79595": "Upgrading transformers would change the image beyond its intended specifications"
+                "76180": "Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         }
     },
