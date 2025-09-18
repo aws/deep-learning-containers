@@ -129,6 +129,7 @@ RUN pip install --no-cache-dir -U \
 
 # Install Neuronx-cc and PyTorch
 RUN pip install --index-url https://pip.repos.neuron.amazonaws.com \
+    --extra-index-url https://pypi.org/simple \
     --trusted-host pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
