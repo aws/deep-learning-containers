@@ -122,7 +122,7 @@ use_scheduler = false
 dlc-pr-base = ""
 
 # Standard Framework Training
-dlc-pr-pytorch-training = "pytorch/inference/buildspec-arm64-2-6-sm.yml"
+dlc-pr-pytorch-training = "pytorch/inference/buildspec-arm64-2-5-sm.yml"
 dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
