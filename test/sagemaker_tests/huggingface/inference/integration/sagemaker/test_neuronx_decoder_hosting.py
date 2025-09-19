@@ -38,7 +38,7 @@ from ..... import invoke_sm_endpoint_helper_function
 # instances in the regions corresponding to their availability.
 # In future, we would like to configure the logic to run multiple `pytest` commands that can allow
 # us to test multiple instances in multiple regions for each image.
-@pytest.mark.model("tiny-gpt2")
+@pytest.mark.model("tiny-llama3")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
     "test_region,test_instance_type",
