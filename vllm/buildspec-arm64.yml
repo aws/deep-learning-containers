@@ -2,7 +2,7 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 framework: &FRAMEWORK vllm
-version: &VERSION "0.10.0"
+version: &VERSION "0.10.2"
 short_version: &SHORT_VERSION "0.10"
 arch_type: &ARCH_TYPE arm64
 autopatch_build: "False"
@@ -11,9 +11,9 @@ repository_info:
   build_repository: &BUILD_REPOSITORY
     image_type: &IMAGE_TYPE gpu
     root: .
-    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK, "-", *ARCH_TYPE ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK, "-", arm64 ]
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
@@ -33,20 +33,20 @@ images:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
-    image_size_baseline: 20000
+    image_size_baseline: 25000
     device_type: &DEVICE_TYPE gpu
-    cuda_version: &CUDA_VERSION cu128
+    cuda_version: &CUDA_VERSION cu129
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile ]
-    target: final
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-", "ec2" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION,"-" ,"ec2" ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile.arm64 ]
+    target: vllm-openai
     build: true
     enable_common_stage_build: false
     test_configs:
       test_platforms:
         - sanity
         - security
-        - eks
+        - ec2

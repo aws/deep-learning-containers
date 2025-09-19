@@ -601,11 +601,9 @@ def ec2_instance(
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
     def delete_ssh_keypair():
-        if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
-            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
-                destroy_keys.write(f"{key_filename}\n")
+        # test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
+            destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
     print(f"EC2 instance AMI-ID: {ec2_instance_ami}")
