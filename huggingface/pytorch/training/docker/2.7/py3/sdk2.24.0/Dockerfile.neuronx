@@ -1,0 +1,417 @@
+# Ususally we could use the latest pytorch-training-neuronx container, but optimum-neuron uses SDK 2.24, and that version
+# is not available in the latest pytorch-training-neuronx container (2.25 is available, but optimum neuron is not compatible
+# with it). Check images:
+# https://github.com/aws/deep-learning-containers/blob/master/available_images.md
+#
+# The following part is based on the unpublished dockerfile for inference, that used SDK 2.24.0, you can check it here:
+# https://github.com/aws-neuron/deep-learning-containers/blob/2.24.0/docker/pytorch/training/2.7.0/Dockerfile.neuronx
+
+FROM ubuntu:22.04 AS base
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON=python3.10
+ARG PYTHON_VERSION=3.10.12
+ARG PIP=pip3
+ARG OMPI_VERSION=4.1.5
+
+# This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 22
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONIOENCODING=UTF-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/aws/neuron/lib"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/efa/lib"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/efa/lib64"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/opt/amazon/openmpi/lib64"
+ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/usr/local/lib"
+ENV PATH="/opt/aws/neuron/bin:${PATH}"
+ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
+ENV DGLBACKEND=pytorch
+
+RUN apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y --no-install-recommends \
+    build-essential \
+    ca-certificates \
+    cmake \
+    curl \
+    emacs \
+    git \
+    gnupg2 \
+    gpg-agent \
+    jq \
+    libopencv-dev \
+    libglib2.0-0 \
+    libgl1-mesa-glx \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    libgdbm-dev \
+    libc6-dev \
+    libbz2-dev \
+    libncurses-dev \
+    libffi-dev \
+    libcap-dev \
+    libhwloc-dev \
+    openjdk-8-jdk-headless \
+    openjdk-8-jdk \
+    openjdk-8-jre \
+    openjdk-11-jdk \
+    openssl \
+    software-properties-common \
+    tk-dev \
+    unzip \
+    wget \
+    vim \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+# Install Open MPI
+RUN mkdir -p /tmp/openmpi \
+ && cd /tmp/openmpi \
+ && wget --quiet https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-${OMPI_VERSION}.tar.gz \
+ && tar zxf openmpi-${OMPI_VERSION}.tar.gz \
+ && cd openmpi-${OMPI_VERSION} \
+ && ./configure --enable-orterun-prefix-by-default \
+ && make -j $(nproc) all \
+ && make install \
+ && ldconfig \
+ && rm -rf /tmp/openmpi
+
+# Install packages and configure SSH for MPI operator in k8s
+RUN apt-get update && apt-get install -y openmpi-bin openssh-server \
+ && mkdir -p /var/run/sshd \
+ && echo "    UserKnownHostsFile /dev/null" >> /etc/ssh/ssh_config \
+ && echo "    StrictHostKeyChecking no" >> /etc/ssh/ssh_config \
+ && sed -i 's/#\(StrictModes \).*/\1no/g' /etc/ssh/sshd_config \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+# Install Python
+RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz \
+ && tar -xzf Python-$PYTHON_VERSION.tgz \
+ && cd Python-$PYTHON_VERSION \
+ && ./configure --enable-shared --prefix=/usr/local \
+ && make -j $(nproc) && make install \
+ && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
+ && ln -s /usr/local/bin/pip3 /usr/bin/pip \
+ && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
+ && ${PIP} --no-cache-dir install --upgrade \
+    pip \
+    setuptools \
+ && rm -rf ~/.cache/pip/*
+
+WORKDIR /
+
+# The ENV variables declared below are changed in the previous section
+# Grouping these ENV variables in the first section causes
+# ompi_info to fail. This is only observed in CPU containers
+ENV PATH="$PATH:/home/.openmpi/bin"
+ENV LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/home/.openmpi/lib/"
+RUN ompi_info --parsable --all | grep mpi_built_with_cuda_support:value
+
+RUN ${PIP} install --no-cache-dir -U \
+    "bokeh>=2.3,<3" \
+    "awscli<2" \
+    scipy \
+    click \
+    "cryptography" \
+    "sagemaker>=2,<2.184" \
+    "sagemaker-pytorch-training" \
+    psutil==5.6.7 \
+    dataset \
+    Pillow \
+ && rm -rf ~/.cache/pip/*
+
+RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
+
+# attrs, neuronx-cc required: >=19.2.0, sagemaker <24,>=23.1.0
+# protobuf neuronx-cc<4, sagemaker-training >=3.9.2,<=3.20.3
+# awscli 1.25.47 has requirement docutils<0.17,>=0.10
+# etcd for kubernetes installation
+# awscli 1.27.127 has requirement rsa<4.8,>=3.1.2, but you have rsa 4.9.
+# awscli 1.27.127 requires urllib3 < 1.27, python-etcd requires urllib3 >= 1.7, latest urllib3 release is 2.0.2
+RUN ${PIP} install --no-cache-dir -U \
+    "attrs<24,>=23.1.0" \
+    "protobuf>=3.18.3,<=3.20.3" \
+    "docutils>=0.10,<0.17" \
+    "rsa<4.8,>=3.1.2" \
+    "python-etcd" \
+    "urllib3>=1.26.0,<1.27" \
+ # Install extra packages needed by sagemaker (for passing test_utility_packages_using_import)
+ && ${PIP} install --no-cache-dir -U \
+    "bokeh>=3.0.1,<4" \
+    "imageio>=2.22,<3" \
+    "opencv-python>=4.8.1.78" \
+    "plotly>=5.11,<6" \
+    "seaborn>=0.12,<1" \
+    "shap>=0.41,<1" \
+ && rm -rf ~/.cache/pip/*
+
+# EFA Installer does apt get. Make sure to run apt update before that
+RUN apt-get update \
+ && cd $HOME \
+ && curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz \
+ && wget https://efa-installer.amazonaws.com/aws-efa-installer.key && gpg --import aws-efa-installer.key \
+ && cat aws-efa-installer.key | gpg --fingerprint \
+ && wget https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz.sig && gpg --verify ./aws-efa-installer-latest.tar.gz.sig \
+ && tar -xf aws-efa-installer-latest.tar.gz \
+ && cd aws-efa-installer \
+ && ./efa_installer.sh -y -g --skip-kmod --skip-limit-conf --no-verify \
+ && cd $HOME \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+# Install some common packages used by training scripts
+# torchvision needed for MLP. since it depends on torch and torch neuron/torch
+# is already installed install it with nodeps
+RUN pip3 install --no-cache-dir --no-deps -U \
+    torchvision \
+ # Needed for running bert training scripts
+ && pip3 install --no-cache-dir -U \
+    graphviz \
+    tensorboard==2.6 \
+    accelerate \
+    sentencepiece!=0.1.92 \
+    h5py \
+    requests \
+ # Install NxDT dependencies
+ && ${PIP} install --no-cache-dir \
+    Cython \
+    wheel \
+ && rm -rf ~/.cache/pip/*
+
+# Set up workaround script for incorrect hostname
+RUN curl -o /changehostname.c https://raw.githubusercontent.com/aws-neuron/deep-learning-containers/refs/tags/2.24.0/docker/common/changehostname.c
+RUN curl -o /start_with_right_hostname.sh https://raw.githubusercontent.com/aws-neuron/deep-learning-containers/refs/tags/2.24.0/docker/common/start_with_right_hostname.sh
+RUN curl -o /deep_learning_container.py https://raw.githubusercontent.com/aws-neuron/deep-learning-containers/refs/tags/2.24.0/docker/common/deep_learning_container.py
+RUN mv /start_with_right_hostname.sh /deep_learning_container.py /usr/local/bin/ && \
+    chmod 755 /usr/local/bin/start_with_right_hostname.sh /usr/local/bin/deep_learning_container.py
+
+RUN HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp*
+
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
+
+# Using modified instructions to be independent from args.
+# We use a 'heredoc' pattern to keep the Dockerfile self-contained
+ARG VERSION_CODENAME=jammy
+RUN tee /etc/apt/sources.list.d/neuron.list > /dev/null <<EOF
+deb https://apt.repos.neuron.amazonaws.com ${VERSION_CODENAME} main
+EOF
+RUN wget -qO - https://apt.repos.neuron.amazonaws.com/GPG-PUB-KEY-AMAZON-AWS-NEURON.PUB | apt-key add -
+RUN pip3 config set global.extra-index-url https://pip.repos.neuron.amazonaws.com
+
+# Neuron SDK components
+ARG NEURON_ARTIFACT_PATH=/root/neuron_artifacts
+ARG IGNORE_MISSING_NEURON_COMPONENTS=false
+RUN IGNORE_MISSING_NEURON_COMPONENTS=$(echo ${IGNORE_MISSING_NEURON_COMPONENTS} | tr '[:upper:]' '[:lower:]')
+
+ARG NEURONX_COLLECTIVES_LIB_VERSION=2.26.43.0-47cc904ea
+ARG NEURONX_RUNTIME_LIB_VERSION=2.26.42.0-2ff3b5c7d
+ARG NEURONX_TOOLS_VERSION=2.24.54.0
+
+ARG NEURONX_FRAMEWORK_VERSION=2.7.0.2.8.6734+ac864f72
+ARG NEURONX_CC_VERSION=2.19.8089.0
+ARG NEURONX_DISTRIBUTED_VERSION=0.13.14393+b8569585
+
+FROM base AS dev
+
+RUN --mount=type=bind,source=apt,target=${NEURON_ARTIFACT_PATH}/apt \
+    install_apt_package() { \
+        pkg_name=$1; \
+        version_arg=$2; \
+        if [ -f "${NEURON_ARTIFACT_PATH}/apt/${version_arg}" ]; then \
+            apt-get install -y ${NEURON_ARTIFACT_PATH}/apt/${version_arg}; \
+        elif [ "${IGNORE_MISSING_NEURON_COMPONENTS}" = "false" ]; then \
+            apt-get install -y ${pkg_name}=${version_arg}; \
+        else \
+            echo "Ignoring package ${pkg_name}"; \
+        fi; \
+    } \
+ && apt-get update \
+ && install_apt_package "aws-neuronx-collectives" "${NEURONX_COLLECTIVES_LIB_VERSION}" \
+ && install_apt_package "aws-neuronx-runtime-lib" "${NEURONX_RUNTIME_LIB_VERSION}" \
+ && install_apt_package "aws-neuronx-tools" "${NEURONX_TOOLS_VERSION}" \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+RUN --mount=type=bind,source=pip,target=${NEURON_ARTIFACT_PATH}/pip \
+    install_pip_package() { \
+        packages=""; \
+        flags=""; \
+        while [ "$#" -gt 0 ]; do \
+            pkg_name=$(echo $1 | cut -d: -f1); \
+            version_arg=$(echo $1 | cut -d: -f2); \
+            extra_flags=$(echo $1 | cut -d: -f3); \
+            if [ -f "${NEURON_ARTIFACT_PATH}/pip/${version_arg}" ]; then \
+                packages="${packages} ${NEURON_ARTIFACT_PATH}/pip/${version_arg}"; \
+            else \
+                if [ "${IGNORE_MISSING_NEURON_COMPONENTS}" = "false" ]; then \
+                    packages="${packages} ${pkg_name}==${version_arg}"; \
+                else \
+                    echo "Ignoring package ${pkg_name}"; \
+                fi; \
+            fi; \
+            # Store unique flags
+            if [ ! -z "${extra_flags}" ]; then \
+                for flag in $(echo "${extra_flags}" | tr ' ' '\n'); do \
+                    case " ${flags} " in \
+                        *" ${flag} "*) ;; \
+                        *) flags="${flags} ${flag}" ;; \
+                    esac \
+                done; \
+            fi; \
+            shift; \
+        done; \
+        if [ ! -z "${packages}" ]; then \
+            echo "Installing packages: ${packages} with flags ${flags}"; \
+            ${PIP} install --no-cache-dir --force-reinstall \
+                --extra-index-url="file:///${NEURON_ARTIFACT_PATH}/pip" \
+                ${packages} ${flags}; \
+        fi; \
+    } \
+ && install_pip_package "neuronx-cc:${NEURONX_CC_VERSION}:" "torch-neuronx:${NEURONX_FRAMEWORK_VERSION}:" \
+ && install_pip_package "neuronx_distributed:${NEURONX_DISTRIBUTED_VERSION}:--no-deps" \
+ && rm -rf ~/.cache/pip/*
+
+FROM base AS repo
+
+# Install Neuron components from the apt and pip repos 
+RUN apt-get update \
+ && apt-get install -y \
+    aws-neuronx-tools \
+    aws-neuronx-collectives \
+    aws-neuronx-runtime-lib \
+ && ${PIP} install --no-cache-dir --force-reinstall \
+    torch-neuronx \
+    neuronx-cc \
+ && ${PIP} install --no-cache-dir --no-deps \
+    neuronx_distributed \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && rm -rf ~/.cache/pip/* \
+ && apt-get clean
+
+FROM base AS prod
+
+RUN apt-get update \
+ && apt-get install -y \
+    aws-neuronx-tools=$NEURONX_TOOLS_VERSION \
+    aws-neuronx-collectives=$NEURONX_COLLECTIVES_LIB_VERSION \
+    aws-neuronx-runtime-lib=$NEURONX_RUNTIME_LIB_VERSION \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /tmp/tmp* \
+ && apt-get clean
+
+RUN ${PIP} install --force-reinstall \
+    torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
+    neuronx-cc==$NEURONX_CC_VERSION \
+ && ${PIP} install --force-reinstall --no-deps \
+    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
+ && rm -rf ~/.cache/pip/*
+
+FROM prod AS final
+
+# Starts framework
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]
+
+HEALTHCHECK CMD curl --fail http://localhost:8080/ping || exit 1
+
+# ------------------------------------------------------------
+# Hugging Face specific steps start here
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="2"
+
+# Version args
+ARG OPTIMUM_NEURON_VERSION=0.3.0
+ARG TRANSFORMERS_VERSION=4.51.0
+ARG DATASETS_VERSION=4.1.0
+ARG GEVENT_VERSION=24.10.3
+ARG PYTHON=python3
+
+RUN apt-get remove -y --purge emacs && \
+apt-get autoremove -y
+
+RUN pip install --upgrade pip
+
+# We need to set this environment variable to avoid the following error when building KenLM:
+# https://github.com/kpu/kenlm/issues/462
+ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
+
+# Install Hugging Face libraries and its dependencies
+# Install optimum-neuron with this exta starting from next release. \
+# "optimum-neuron[training]"==${OPTIMUM_NEURON_VERSION} \
+RUN pip install --no-cache-dir \
+	"sagemaker==2.232.2" \
+	evaluate \
+	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
+	datasets==${DATASETS_VERSION} \
+    optimum-neuron[training]==${OPTIMUM_NEURON_VERSION} \
+	gevent==${GEVENT_VERSION}
+
+# Pin numpy to version required by neuronx-cc
+# Update Pillow, urllib, wandb versions to fix high and critical vulnerabilities
+RUN pip install -U \
+	"tensorboard>=2.11.0" \
+	"numpy>=1.24.3,<=1.25.2" \
+	"numba==0.58.1" \
+	"Pillow==10.3.0" \
+	"requests<2.32.0" \
+        wandb \
+        pytorch-lightning \
+	Jinja2 \
+	mlflow \
+	tornado \
+	"awscli<2" \
+	boto3 \
+	botocore \
+	google-auth \
+	"urllib3>=1.26.17,<1.27"
+
+# pytorch-lightning has critical vulnerabilities and is not needed in the container.
+RUN rm -f /requirements.txt && \
+    pip uninstall pytorch-lightning -y
+
+# We have this error from `pip check`:
+# neuronx-cc 2.16.345.0+69131dd3 has requirement networkx~=2.6, but you have networkx 3.4.2.
+# To fix that, we are downgrading networkx to 2.6.3
+run pip install -U "networkx==2.6.3"
+
+RUN apt-get update \
+ && apt install -y --no-install-recommends \
+    git-lfs \
+	libgssapi-krb5-2 \
+	libexpat1 \
+	expat \
+	libarchive13 \
+	libgstreamer1.0-0 \
+	libgstreamer-plugins-base1.0-0 \
+ && apt-get upgrade -y apparmor \
+ && apt-get clean \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV WANDB_MODE=disabled
