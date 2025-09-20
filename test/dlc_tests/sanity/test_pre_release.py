@@ -291,7 +291,7 @@ def test_tf_serving_api_version(tensorflow_inference):
     elif "cpu" in image:
         cmd = "pip show tensorflow-serving-api | grep Version"
     else:
-        ValueError(
+        raise ValueError(
             "Test as of now only covers CPU and GPU type images. If required, please modify this test to accommodate the new image type!"
         )
 
