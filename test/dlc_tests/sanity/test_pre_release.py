@@ -112,6 +112,11 @@ def test_stray_files(image):
 
     :param image: ECR image URI
     """
+    if "vllm" in image:
+        pytest.skip(
+            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+        )
+
     ctx = Context()
     container_name = get_container_name("test_tmp_dirs", image)
     start_container(container_name, image, ctx)
