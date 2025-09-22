@@ -3459,35 +3459,5 @@
       "title": "CVE-2025-7783 - form-data",
       "reason_to_ignore": "N/A"
     }
-  ],
-   "linux-libc-dev": [
-    {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: iscsi_ibft: Fix UBSAN shift-out-of-bounds warning in ibft_attr_show_nic() When performing an iSCSI boot using IPv6, iscsistart still reads the /sys/firmware/ibft/ethernetX/subnet-mask entry. Since the IPv6 prefix length is 64, this causes the shift exponent to become negative, triggering a UBSAN warning. As the concept of a subnet mask does not apply to IPv6, the value is set to ~0 to suppress the warning message.",
-      "name": "CVE-2025-21993",
-      "package_name": "linux-libc-dev",
-      "package_details": {
-        "file_path": null,
-        "name": "linux-libc-dev",
-        "package_manager": "OS",
-        "version": "5.4.0",
-        "release": "216.236"
-      },
-      "remediation": {
-        "recommendation": {
-          "text": "None Provided"
-        }
-      },
-      "cvss_v3_score": 7.1,
-      "cvss_v30_score": 0.1,
-      "cvss_v31_score": 7.3,
-      "cvss_v2_score": 0.0,
-      "cvss_v3_severity": "HIGH",
-      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-21993.html",
-      "source": "UBUNTU_CVE",
-      "severity": "HIGH",
-      "status": "ACTIVE",
-      "title": "CVE-2025-21993 - linux-libc-dev",
-      "reason_to_ignore": "N/A"
-    }
   ]
 }
