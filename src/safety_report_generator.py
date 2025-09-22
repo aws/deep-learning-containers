@@ -209,6 +209,14 @@ class SafetyReportGenerator:
         :return: list[dict], the output follows the same format as mentioned in the description of the class
         """
         self.timestamp = datetime.now().strftime("%d-%m-%Y")
+        
+        safety_version_cmd = f"{self.docker_exec_cmd} safety --version"
+        try:
+            version_output = self.ctx.run(safety_version_cmd, hide=True, warn=True)
+            print(f"DEBUG: Safety version: {version_output.stdout.strip()}")
+        except:
+            print("DEBUG: Failed to get safety version")
+        
         if os.getenv("IS_CODEBUILD_IMAGE") is None:
             self.safety_check_output = self.run_safety_check_in_non_cb_context()
         elif os.getenv("IS_CODEBUILD_IMAGE").upper() == "TRUE":
