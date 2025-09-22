@@ -213,6 +213,11 @@ class SafetyReportGenerator:
             self.safety_check_output = self.run_safety_check_in_non_cb_context()
         elif os.getenv("IS_CODEBUILD_IMAGE").upper() == "TRUE":
             self.safety_check_output = self.run_safety_check_in_cb_context()
+        
+        print(f"DEBUG: safety_check_output is None: {self.safety_check_output is None}")
+        print(f"DEBUG: safety_check_output length: {len(self.safety_check_output) if self.safety_check_output else 0}")
+        print(f"DEBUG: safety_check_output content: {repr(self.safety_check_output)}")
+
         # In case of errors, json.loads command will fail. We want the failure to occur to ensure that
         # build process fails in case the safety report cannot be generated properly.
         scanned_vulnerabilities = json.loads(self.safety_check_output)
