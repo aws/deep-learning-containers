@@ -1,1 +1,3 @@
-{'78828': '[Package: torch] Conflicts for: torch'}
+{
+    "78828": "[Package: torch] Conflicts for: torch"
+}
