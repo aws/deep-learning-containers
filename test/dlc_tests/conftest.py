@@ -804,12 +804,11 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
 
     request.addfinalizer(delete_s3_artifact_copy)
 
-    python_version = "3.9"
     if is_neuron_image(request.fixturenames):
         # neuron still support tf1.15 and that is only there in py37 and less.
         # so use python3.7 for neuron
         python_version = "3.7"
-    ec2_utils.install_python_in_instance(conn, python_version=python_version)
+        ec2_utils.install_python_in_instance(conn, python_version=python_version)
 
     conn.run(
         f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
