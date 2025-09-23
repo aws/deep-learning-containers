@@ -29,16 +29,17 @@ distribution = {"torch_distributed": {"enabled": True}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "hf-internal-testing/tiny-random-BertModel",
+    "model_name_or_path": "Qwen/Qwen3-8B",
     "dataset_name": "imdb",
     "do_train": True,
     "bf16": True,
     "max_seq_length": 128,
     "max_train_samples": 10,
-    "per_device_train_batch_size": 4,
+    "per_device_train_batch_size": 1,
     "num_train_epochs": 1,
     "logging_steps": 1,
     "output_dir": "/opt/ml/model",
+    "report_to": "none",
 }
 
 
@@ -110,6 +111,7 @@ def test_neuronx_text_classification(ecr_image, sagemaker_regions, py_version, i
         "instance_count": 1,
         "num_neuron_cores": 2,
     }
+
     invoke_neuron_helper_function(
         ecr_image, sagemaker_regions, _test_neuronx_text_classification_function, function_args
     )
@@ -119,13 +121,13 @@ def _test_neuronx_text_classification_function(
     ecr_image,
     sagemaker_session,
     py_version,
-    instance_type="ml.trn1.2xlarge",
+    instance_type="ml.trn1.32xlarge",
     instance_count=1,
     num_neuron_cores=2,
 ):
     pytorch_version = get_pytorch_version(ecr_image)
-    if pytorch_version in SpecifierSet("==2.1.*"):
-        optimum_neuron_version = "0.0.24"
+    if pytorch_version in SpecifierSet("==2.7.*"):
+        optimum_neuron_version = "0.3.0"
     else:
         raise ValueError(
             f"`optimum_neuron_version` to be set for PyTorch version {pytorch_version}."
@@ -136,12 +138,12 @@ def _test_neuronx_text_classification_function(
         "branch": "v" + optimum_neuron_version,
     }
 
-    source_dir = "./examples/text-classification"
+    source_dir = "./examples/training/qwen3"
 
     role = get_execution_role()
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator = HuggingFace(
-            entry_point="run_glue.py",
+            entry_point="finetune_qwen3.py",
             source_dir=source_dir,
             git_config=git_config,
             role="SageMakerRole",
@@ -150,7 +152,7 @@ def _test_neuronx_text_classification_function(
             instance_type=instance_type,
             sagemaker_session=sagemaker_session,
             py_version=py_version,
-            # distribution=distribution,  # Uncomment when it is enabled by HuggingFace Estimator
+            distribution=distribution,
             hyperparameters=hyperparameters,
         )
-        estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-glue-neuronx"))
+        estimator.fit(job_name=sagemaker.utils.unique_name_from_base("test-hf-pt-qwen3-neuronx"))
