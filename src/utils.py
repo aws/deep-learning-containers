@@ -413,7 +413,7 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     install_safety_cmd = "pip install 'safety>=2.2.0,<3'"
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
-    
+
     # Check installed safety version
     safety_version_cmd = f"{docker_exec_cmd} safety --version"
     try:
