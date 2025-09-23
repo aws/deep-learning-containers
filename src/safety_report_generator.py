@@ -197,9 +197,16 @@ class SafetyReportGenerator:
 
         :return: string, A JSON formatted string containing vulnerabilities found in the container
         """
-        from dlc.safety_check import SafetyCheck
-
-        return SafetyCheck().run_safety_check_on_container(self.docker_exec_cmd)
+        try:
+            from dlc.safety_check import SafetyCheck
+            result = SafetyCheck().run_safety_check_on_container(self.docker_exec_cmd)
+            if not result or not result.strip():
+                print("DEBUG: SafetyCheck returned empty result, using fallback")
+                return self.run_safety_check_in_non_cb_context()
+            return result
+        except Exception as e:
+            print(f"DEBUG: SafetyCheck failed: {e}, using fallback")
+            return self.run_safety_check_in_non_cb_context()
 
     def generate(self):
         """
