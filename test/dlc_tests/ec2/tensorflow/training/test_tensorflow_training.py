@@ -480,12 +480,12 @@ def test_tensorflow_io_s3_plugin_cpu(
 # Helper function to test data service
 def run_data_service_test(ec2_connection, tensorflow_training, cmd):
     _, tensorflow_version = test_utils.get_framework_and_version_from_tag(tensorflow_training)
-    ec2_connection.run(f"python -m pip install --upgrade pip")
-    ec2_connection.run(f"python -m pip install tensorflow=={tensorflow_version}")
-    ec2_connection.run(f"python -m pip install 'protobuf<4'")
+    ec2_connection.run(f"python3 -m pip install --upgrade pip")
+    ec2_connection.run(f"python3 -m pip install tensorflow=={tensorflow_version}")
+    ec2_connection.run(f"python3 -m pip install 'protobuf<4'")
     container_test_local_dir = os.path.join("$HOME", "container_tests")
     ec2_connection.run(
-        f"cd {container_test_local_dir}/bin && screen -d -m python start_dataservice.py"
+        f"cd {container_test_local_dir}/bin && screen -d -m python3 start_dataservice.py"
     )
     execute_ec2_training_test(ec2_connection, tensorflow_training, cmd, host_network=True)
 
