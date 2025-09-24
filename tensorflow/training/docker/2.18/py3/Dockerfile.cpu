@@ -263,11 +263,12 @@ RUN ${PIP} install --no-cache-dir -U \
     "tensorflow-io==0.37.*" \
     "tensorflow-datasets==4.9.7"
 
+#numpy >2 is required for opencv>=4 but we use ==1.26 for numba
 RUN $PYTHON -m pip install --no-cache-dir -U \
     numba==0.61.0 \
     bokeh \
     imageio \
-    opencv-python \
+    "opencv-python==3.*" \
     plotly \
     seaborn \
     shap \
@@ -279,8 +280,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.45
    
+#pinning old version because of protobuf dependency with tensorflow-metadata
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training
+    sagemaker-training==4.8.4
 
     RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-tensorflow-training==20.4.1
