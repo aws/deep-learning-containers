@@ -127,7 +127,7 @@ dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # ARM64 Training
-dlc-pr-pytorch-arm64-training = "pytorch/inference/buildspec-2-5-sm.yml"
+dlc-pr-pytorch-arm64-training = ""
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
@@ -152,7 +152,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 ### INFERENCE PR JOBS ###
 
 # Standard Framework Inference
-dlc-pr-pytorch-inference = ""
+dlc-pr-pytorch-inference = "pytorch/inference/buildspec-2-5-sm.yml"
 dlc-pr-tensorflow-2-inference = ""
 dlc-pr-autogluon-inference = ""
 
