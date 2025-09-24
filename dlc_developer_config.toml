@@ -127,7 +127,7 @@ dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # ARM64 Training
-dlc-pr-pytorch-arm64-training = "pytorch/inference/buildspec-arm64-2-5-ec2.yml"
+dlc-pr-pytorch-arm64-training = "pytorch/inference/buildspec-arm64-2-5-sm.yml"
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
