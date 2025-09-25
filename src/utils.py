@@ -22,7 +22,7 @@ import boto3
 import constants
 
 from botocore.exceptions import ClientError
-from invoke.context import Context
+from invoke import Context
 
 from codebuild_environment import get_cloned_folder_path
 from config import is_build_enabled, is_autopatch_build_enabled
