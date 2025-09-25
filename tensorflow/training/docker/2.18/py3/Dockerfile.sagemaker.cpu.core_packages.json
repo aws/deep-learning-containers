@@ -18,8 +18,7 @@
     "version_specifier": "==20.4.1"
   },
   "sagemaker-training": {
-    "version_specifier": "==4.8.4",
-    "skip": "True"
+    "version_specifier": "==4.8.4"
   },
   "sagemaker-studio-analytics-extension": {
     "version_specifier": "<1"
