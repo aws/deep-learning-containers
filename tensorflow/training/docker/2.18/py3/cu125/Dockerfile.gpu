@@ -367,7 +367,7 @@ RUN ${PIP} install --no-cache-dir -U \
     "tensorflow-datasets==4.9.7"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    numba==0.61.0 \
+    numba \
     bokeh \
     imageio \
     opencv-python \
@@ -382,6 +382,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.45
 
+#pinning old version because of protobuf dependency with tensorflow-metadata
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-training==4.8.4
 
