@@ -10,7 +10,7 @@ phases:
       - docker_token=$(aws secretsmanager get-secret-value --secret-id /codebuild/docker/token | jq ".SecretString|fromjson")
       - username=$(echo ${docker_token} | jq ".[0]" | sed 's/"//g')
       - password=$(echo ${docker_token} | jq ".[1]" | sed 's/"//g')
-      - docker login --username ${username} --password ${password} > /dev/null 2>&1
+      - docker login --username ${username} --password ${password} 
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --no-include-email --region $AWS_DEFAULT_REGION)
       - pip install -r src/requirements.txt
