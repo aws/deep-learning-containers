@@ -153,7 +153,7 @@ dlc-pr-tensorflow-2-habana-training = ""
 
 # Standard Framework Inference
 dlc-pr-pytorch-inference = ""
-dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-arm64-2-5-sm.yml"
+dlc-pr-tensorflow-2-inference = "tensorflow/inference/buildspec-arm64-2-5-ec2.yml"
 dlc-pr-autogluon-inference = ""
 
 # Graviton Inference
