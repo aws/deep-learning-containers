@@ -8,7 +8,7 @@ RUN apt-get remove -y --purge emacs && \
 apt-get autoremove -y
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="2"
+LABEL dlc_major_version="1"
 
 # version args
 ARG TRANSFORMERS_VERSION=4.55.0
