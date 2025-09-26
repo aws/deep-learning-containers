@@ -166,38 +166,15 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=
         search_replace_dict,
     )
 
-    print(f"DEBUG: Image: {pytorch_inference}")
-    print(f"DEBUG: Selector: {selector_name}")
-    print(f"DEBUG: YAML: {yaml_path}")
-    print(f"DEBUG: Model: {model}")
-    print(f"DEBUG: Server type: {server_type}")
-    print(f"DEBUG: Test type: {test_type}")
-
     try:
         run("kubectl apply -f {}".format(yaml_path))
-        print(f"DEBUG: Applied YAML, waiting for pod...")
 
         port_to_forward = random.randint(49152, 65535)
-        print(f"DEBUG: Using port {port_to_forward}")
-
-        # Check pod status before service check
-        sleep(30)
-        run(f"kubectl get pods --selector=app={selector_name}", warn=True)
-        run(f"kubectl describe pod --selector=app={selector_name}", warn=True)
 
         if eks_utils.is_service_running(selector_name):
-            print(f"DEBUG: Service running, forwarding port {port_to_forward}")
             eks_utils.eks_forward_port_between_host_and_container(
                 selector_name, port_to_forward, "8080"
             )
-            
-            # Check if port forwarding is working
-            sleep(5)
-            run(f"netstat -tlnp | grep {port_to_forward}", warn=True)
-            run(f"kubectl logs --selector=app={selector_name} --tail=50", warn=True)
-        else:
-            print("DEBUG: Service not running, checking logs...")
-            run(f"kubectl logs --selector=app={selector_name} --tail=50", warn=True)
 
         assert test_utils.request_pytorch_inference_densenet(
             port=port_to_forward, server_type=server_type
