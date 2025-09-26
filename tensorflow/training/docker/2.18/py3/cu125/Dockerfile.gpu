@@ -383,7 +383,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-experiments==0.1.45
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training
+    sagemaker-training==4.8.4
 
     RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker-tensorflow-training==20.4.1
