@@ -92,8 +92,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    # protobuf version requirements in https://github.com/tensorflow/serving/blob/master/tensorflow_serving/tools/pip_package/setup.py#L66
-    "protobuf<5.0" \
+    "protobuf==5.29.5" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
