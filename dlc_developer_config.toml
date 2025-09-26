@@ -41,8 +41,8 @@ build_frameworks = ["pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = false
-build_inference = true
+build_training = false 
+build_inference = true 
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
 # Note: at least one build is required to set do_build to "false"
@@ -63,7 +63,7 @@ security_tests = true
   ecr_scan_allowlist_feature = false
 ecs_tests = true
 eks_tests = true
-ec2_tests = false
+ec2_tests = true
 # Set it to true if you are preparing a Benchmark related PR
 ec2_benchmark_tests = false
 
@@ -127,7 +127,7 @@ dlc-pr-tensorflow-2-training = ""
 dlc-pr-autogluon-training = ""
 
 # ARM64 Training
-dlc-pr-pytorch-arm64-training = "pytorch/inference/buildspec-arm64-2-5-sm.yml"
+dlc-pr-pytorch-arm64-training = "pytorch/inference/buildspec-arm64-2-5-sm.yml" 
 
 # HuggingFace Training
 dlc-pr-huggingface-tensorflow-training = ""
