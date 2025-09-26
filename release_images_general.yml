@@ -44,14 +44,14 @@ release_images:
       public_registry: True
   4:
     framework: "vllm"
-    version: "0.10.1"
+    version: "0.10.2"
     arch_type: "x86"
     customer_type: "ec2"
     general:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
-      cuda_version: "cu128"
+      cuda_version: "cu129"
       example: False
       disable_sm_tag: False
       force_release: False
@@ -69,4 +69,4 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-      public_registry: False
+      public_registry: True
