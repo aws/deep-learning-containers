@@ -8,12 +8,7 @@ from fabric import Connection
 from contextlib import contextmanager
 from typing import Optional, Tuple
 
-from test.test_utils.ec2 import (
-    get_account_id_from_image_uri,
-    login_to_ecr_registry,
-    get_ec2_client,
-    install_python_in_instance,
-)
+from test.test_utils.ec2 import get_account_id_from_image_uri, login_to_ecr_registry, get_ec2_client
 
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
 from test.vllm.ec2.infra.setup_ec2 import cleanup_resources, TEST_ID
@@ -122,7 +117,6 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             raise Exception("Failed to get HF token")
 
         for conn in [head_connection, worker_connection]:
-            install_python_in_instance(conn, "3.10")
             setup_docker_image(conn, image_uri)
             setup_env(conn)
 
@@ -257,8 +251,6 @@ def run_single_node_test(head_conn, image_uri):
         raise Exception(f"GPU setup verification failed for head node")
 
     try:
-        install_python_in_instance(head_conn, python_version="3.10")
-
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
 
