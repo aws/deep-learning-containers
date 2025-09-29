@@ -380,7 +380,7 @@
       "reason_to_ignore": "N/A"
     }
   ],
-  "linux-libc-dev": [
+ "linux-libc-dev": [
     {
     "description": "In the Linux kernel, the following vulnerability has been resolved: sunrpc: fix one UAF issue caused by sunrpc kernel tcp socket BUG: KASAN: slab-use-after-free in tcp_write_timer_handler+0x156/0x3e0 Read of size 1 at addr ffff888111f322cd by task swapper/0/0 CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 6.12.0-rc4-dirty #7 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 Call Trace: <IRQ> dump_stack_lvl+0x68/0xa0 print_address_description.constprop.0+0x2c/0x3d0 print_report+0xb4/0x270 kasan_report+0xbd/0xf0 tcp_write_timer_handler+0x156/0x3e0 tcp_write_timer+0x66/0x170 call_timer_fn+0xfb/0x1d0 __run_timers+0x3f8/0x480 run_timer_softirq+0x9b/0x100 handle_softirqs+0x153/0x390 __irq_exit_rcu+0x103/0x120 irq_exit_rcu+0xe/0x20 sysvec_apic_timer_interrupt+0x76/0x90 </IRQ> <TASK> asm_sysvec_apic_timer_interrupt+0x1a/0x20 RIP: 0010:default_idle+0xf/0x20 Code: 4c 01 c7 4c 29 c2 e9 72 ff ff ff 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 66 90 0f 00 2d 33 f8 25 00 fb f4 <fa> c3 cc",
     "vulnerability_id": "CVE-2024-53168",
@@ -557,7 +557,7 @@
     "reason_to_ignore": "N/A"
     },
     {
-    "description": "In the Linux kernel, the following vulnerability has been resolved: x86/microcode/AMD: Fix out-of-bounds on systems with CPU-less NUMA nodes Currently, load_microcode_amd() iterates over all NUMA nodes, retrieves their CPU masks and unconditionally accesses per-CPU data for the first CPU of each mask. According to Documentation/admin-guide/mm/numaperf.rst: "Some memory may share the same node as a CPU, and others are provided as memory only nodes." Therefore, some node CPU masks may be empty and wouldn't have a "first CPU". On a machine with far memory (and therefore CPU-less NUMA nodes): - cpumask_of_node(nid) is 0 - cpumask_first(0) is CONFIG_NR_CPUS - cpu_data(CONFIG_NR_CPUS) accesses the cpu_info per-CPU array at an index that is 1 out of bounds",
+    "description": "In the Linux kernel, the following vulnerability has been resolved: x86/microcode/AMD: Fix out-of-bounds on systems with CPU-less NUMA nodes Currently, load_microcode_amd() iterates over all NUMA nodes, retrieves their CPU masks and unconditionally accesses per-CPU data for the first CPU of each mask. According to Documentation/admin-guide/mm/numaperf.rst: ""Some memory may share the same node as a CPU, and others are provided as memory only nodes."" Therefore, some node CPU masks may be empty and wouldn't have a ""first CPU"". On a machine with far memory (and therefore CPU-less NUMA nodes): - cpumask_of_node(nid) is 0 - cpumask_first(0) is CONFIG_NR_CPUS - cpu_data(CONFIG_NR_CPUS) accesses the cpu_info per-CPU array at an index that is 1 out of bounds",
     "vulnerability_id": "CVE-2025-21991",
     "name": "CVE-2025-21991",
     "package_name": "linux-libc-dev",
@@ -582,7 +582,7 @@
     "reason_to_ignore": "N/A"
     },
     {
-    "description": "In the Linux kernel, the following vulnerability has been resolved: jfs: fix slab-out-of-bounds read in ea_get() During the "size_check" label in ea_get(), the code checks if the extended attribute list (xattr) size matches ea_size. If not, it logs "ea_get: invalid extended attribute" and calls print_hex_dump(). Here, EALIST_SIZE(ea_buf->xattr) returns 4110417968, which exceeds INT_MAX (2,147,483,647). Then ea_size is clamped: int size = clamp_t(int, ea_size, 0, EALIST_SIZE(ea_buf->xattr)); Although clamp_t aims to bound ea_size between 0 and 4110417968, the upper limit is treated as an int, causing an overflow above 2^31 - 1.",
+    "description": "In the Linux kernel, the following vulnerability has been resolved: jfs: fix slab-out-of-bounds read in ea_get() During the "size_check" label in ea_get(), the code checks if the extended attribute list (xattr) size matches ea_size. If not, it logs ""ea_get: invalid extended attribute"" and calls print_hex_dump(). Here, EALIST_SIZE(ea_buf->xattr) returns 4110417968, which exceeds INT_MAX (2,147,483,647). Then ea_size is clamped: int size = clamp_t(int, ea_size, 0, EALIST_SIZE(ea_buf->xattr)); Although clamp_t aims to bound ea_size between 0 and 4110417968, the upper limit is treated as an int, causing an overflow above 2^31 - 1.",
     "vulnerability_id": "CVE-2025-39735",
     "name": "CVE-2025-39735",
     "package_name": "linux-libc-dev",
