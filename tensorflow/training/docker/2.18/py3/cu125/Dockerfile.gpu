@@ -28,7 +28,8 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-
+ENV UV_VERSION=0.8.22 
+ENV UV_SYSTEM_PYTHON=1
 # Set environment variables for MKL
 # For more about MKL with TensorFlow see:
 # https://www.tensorflow.org/performance/performance_guide#tensorflow_with_intel%C2%AE_mkl_dnn
@@ -199,16 +200,18 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
    && make install \
    && rm -rf ../Python-$PYTHON_VERSION*
 
-RUN ${PIP} --no-cache-dir install --upgrade \
-   pip \
-   setuptools \
-   wheel
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- v${UV_VERSION} \
+    && uv --version \
+    && ln -s $(which uv) /usr/local/bin/uv \
+    && uv pip install --system \
+        setuptools \
+        wheel
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system \
    pybind11 \
    cmake \
    scipy \
@@ -352,21 +355,19 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # and this is fine since sagemaker is more important than the models and
 # the models still work on pyyaml 6 in this context.
 # Need to install wheel before we can fix the pyyaml issue below
-RUN pip install wheel \
- && pip install "cython<3" "pyyaml<6" --no-build-isolation
+RUN uv pip install --system \
+    "cython<3" "pyyaml<6" --no-build-isolation
 
-# https://github.com/tensorflow/models/issues/9267
-# tf-models does not respect existing installations of TF and always installs open source TF
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system \
     tf-models-official==2.18.0 \
     tensorflow-text==2.18.1 \
- && ${PIP} uninstall -y tensorflow tensorflow-gpu \
- && ${PIP} install --no-cache-dir -U \
+ && uv pip uninstall -y tensorflow tensorflow-gpu \
+ && uv pip install --system \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     "tensorflow-datasets==4.9.7"
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN uv pip install --system \
     numba \
     bokeh \
     imageio \
@@ -376,26 +377,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     shap \
     numpy
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    "sagemaker<3"
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-experiments==0.1.45
-
-#pinning old version because of protobuf dependency with tensorflow-metadata
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-training==4.8.4
-
-    RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-tensorflow-training==20.4.1
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-studio-analytics-extension==0.1.4
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker-studio-sparkmagic-lib==0.2.0
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN uv pip install --system \
+    "sagemaker<3" \
+    sagemaker-experiments==0.1.45 \
+    sagemaker-training==4.8.4 \
+    sagemaker-tensorflow-training==20.4.1 \
+    sagemaker-studio-analytics-extension==0.1.4 \
+    sagemaker-studio-sparkmagic-lib==0.2.0 \
     sparkmagic==0.21.0 \
     smclarify
 
