@@ -53,6 +53,8 @@ ENV PYTHONUNBUFFERED=1
 ENV PYTHONIOENCODING=UTF-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
+ENV UV_VERSION=0.8.22 
+ENV UV_SYSTEM_PYTHON=1
 
 ENV TORCH_NVCC_FLAGS="-Xfatbin -compress-all"
 
@@ -80,8 +82,15 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/o
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
 
+
+ENV UV_CACHE_DIR=/root/.cache/uv \
+    UV_SYSTEM_PYTHON=1
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && ln -s /root/.local/bin/uv /usr/local/bin/uv 
+
 # Install common conda packages
-RUN pip install --no-cache-dir \
+RUN uv pip install --no-cache-dir \
     cython \
     cryptography \
     pyOpenSSL \
@@ -114,11 +123,11 @@ RUN pip install --no-cache-dir \
     tornado>=6.5.1
 
 # Install PyTorch
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
+RUN uv pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
     --index-url https://download.pytorch.org/whl/cu129 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    && uv pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
@@ -131,18 +140,18 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     thinc==8.3.4 \
     blis \
     numpy \
- && pip uninstall -y dataclasses
+ && uv pip uninstall dataclasses
 
 # Install flash attn and NVIDIA transformer engine.
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 
 RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
-    && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
+    && uv pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
     && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
 
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
-RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
+RUN uv pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
@@ -245,7 +254,7 @@ ARG PYTHON
 WORKDIR /
 
 # Install SM packages
-RUN pip install --no-cache-dir -U \
+RUN uv pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2" \
     sagemaker-experiments \
@@ -253,7 +262,7 @@ RUN pip install --no-cache-dir -U \
     sagemaker-training
 
 # Install extra packages
-RUN pip install --no-cache-dir -U \
+RUN uv pip install --no-cache-dir -U \
     bokeh \
     imageio \
     numba \
