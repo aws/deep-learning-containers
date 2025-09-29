@@ -161,7 +161,7 @@ dlc-pr-pytorch-graviton-inference = ""
 dlc-pr-tensorflow-2-graviton-inference = ""
 
 # ARM64 Inference
-dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-5-ec2.yml"
+dlc-pr-pytorch-arm64-inference = "pytorch/inference/buildspec-arm64-2-6-sm.yml"
 dlc-pr-tensorflow-2-arm64-inference = ""
 
 # Neuron Inference
