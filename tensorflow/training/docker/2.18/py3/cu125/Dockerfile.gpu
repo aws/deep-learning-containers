@@ -200,9 +200,11 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
    && make install \
    && rm -rf ../Python-$PYTHON_VERSION*
 
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh -s -- v${UV_VERSION} \
-    && uv --version \
-    && ln -s $(which uv) /usr/local/bin/uv \
+ENV UV_CACHE_DIR=/root/.cache/uv \
+    UV_SYSTEM_PYTHON=1
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+    && ln -s /root/.local/bin/uv /usr/local/bin/uv \
     && uv pip install --system \
         setuptools \
         wheel
@@ -380,7 +382,9 @@ RUN uv pip install --system \
 RUN uv pip install --system \
     "sagemaker<3" \
     sagemaker-experiments==0.1.45 \
-    sagemaker-training==4.8.4 \
+    sagemaker-training==4.8.4 
+
+RUN uv pip install --system \
     sagemaker-tensorflow-training==20.4.1 \
     sagemaker-studio-analytics-extension==0.1.4 \
     sagemaker-studio-sparkmagic-lib==0.2.0 \
