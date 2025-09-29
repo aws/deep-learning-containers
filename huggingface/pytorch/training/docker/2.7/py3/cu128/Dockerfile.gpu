@@ -5,6 +5,7 @@
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker
 
 RUN apt-get remove -y --purge emacs && \
+
 apt-get autoremove -y
 
 LABEL maintainer="Amazon AI"
@@ -60,15 +61,16 @@ RUN apt-get update \
  && apt-get -y upgrade --only-upgrade \
      systemd openssl cryptsetup libkrb5-3 \
      libgdk-pixbuf-2.0-0 libgdk-pixbuf2.0-bin libgdk-pixbuf2.0-common libglib2.0-0 \
+     libxml2 libxml2-dev \
  && apt-get install -y git git-lfs wget tar \
  # Remove gdk-pixbuf packages entirely to mitigate outstanding CVEs until base image contains fixed builds
  && apt-get purge -y libgdk-pixbuf-2.0-0 libgdk-pixbuf2.0-bin libgdk-pixbuf2.0-common || true \
  && apt-get autoremove -y \
- && wget https://go.dev/dl/go1.22.3.linux-amd64.tar.gz \
+ && wget https://go.dev/dl/go1.24.2.linux-amd64.tar.gz \
  && rm -rf /usr/local/go \
- && tar -C /usr/local -xzf go1.22.3.linux-amd64.tar.gz \
+ && tar -C /usr/local -xzf go1.24.2.linux-amd64.tar.gz \
  && ln -s /usr/local/go/bin/go /usr/bin/go \
- && rm go1.22.3.linux-amd64.tar.gz \
+ && rm go1.24.2.linux-amd64.tar.gz \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
