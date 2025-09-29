@@ -363,7 +363,7 @@ RUN uv pip install --system \
 RUN uv pip install --system \
     tf-models-official==2.18.0 \
     tensorflow-text==2.18.1 \
- && uv pip uninstall -y tensorflow tensorflow-gpu \
+ && uv pip uninstall tensorflow tensorflow-gpu --no-confirm \
  && uv pip install --system \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
