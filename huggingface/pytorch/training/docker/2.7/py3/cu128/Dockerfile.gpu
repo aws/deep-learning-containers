@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir --no-build-isolation kenlm
 RUN pip install --no-cache-dir \
     huggingface_hub[hf_transfer]==${HUGGINGFACE_HUB_VERSION} \
     transformers[sklearn,sentencepiece,audio,vision,pipelines]==${TRANSFORMERS_VERSION} \
-    datasets==4.1.0 \
+    datasets==${DATASETS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     Jinja2 \
     tensorboard \
