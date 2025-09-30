@@ -30,7 +30,9 @@ RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
- && pip install --no-cache-dir -U "werkzeug==3.0.6" 
+ && pip install --no-cache-dir -U "werkzeug==3.0.6" \
+ && pip install --no-cache-dir -U "multiprocess>=0.70.18"\
+ && pip install --no-cache-dir -U "dill>=0.4.0"
 
 # Pre-install kenlm without build isolation so it uses system cmake
 RUN pip install --no-cache-dir --no-build-isolation kenlm
