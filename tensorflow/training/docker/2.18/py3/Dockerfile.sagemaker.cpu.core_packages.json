@@ -1,12 +1,12 @@
 {
   "awscli": {
-    "version_specifier": ">=1.33.13,<2"
+    "version_specifier": "==1.42.18"
   },
   "cython": {
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": ">=3.20.3"
+    "version_specifier": ">=3.20.3,<4.21"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -52,7 +52,7 @@
     "version_specifier": "==0.37.*"
   },
   "tensorflow-metadata": {
-    "version_specifier": ">=1.14.0"
+    "version_specifier": "==1.15.0"
   },
   "tensorflow-model-optimization": {
     "version_specifier": ">=0.4.1"
