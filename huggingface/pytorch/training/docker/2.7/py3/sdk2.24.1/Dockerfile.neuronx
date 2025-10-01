@@ -231,90 +231,10 @@ ARG NEURONX_COLLECTIVES_LIB_VERSION=2.26.43.0-47cc904ea
 ARG NEURONX_RUNTIME_LIB_VERSION=2.26.42.0-2ff3b5c7d
 ARG NEURONX_TOOLS_VERSION=2.24.54.0
 
-ARG NEURONX_FRAMEWORK_VERSION=2.7.0.2.8.6734+ac864f72
+ARG NEURONX_FRAMEWORK_VERSION=2.7.0.2.8.6734
+ARG NEURONX_DISTRIBUTED_VERSION=0.13.14393
 ARG NEURONX_CC_VERSION=2.19.8089.0
-ARG NEURONX_DISTRIBUTED_VERSION=0.13.14393+b8569585
 
-FROM base AS dev
-
-RUN --mount=type=bind,source=apt,target=${NEURON_ARTIFACT_PATH}/apt \
-    install_apt_package() { \
-        pkg_name=$1; \
-        version_arg=$2; \
-        if [ -f "${NEURON_ARTIFACT_PATH}/apt/${version_arg}" ]; then \
-            apt-get install -y ${NEURON_ARTIFACT_PATH}/apt/${version_arg}; \
-        elif [ "${IGNORE_MISSING_NEURON_COMPONENTS}" = "false" ]; then \
-            apt-get install -y ${pkg_name}=${version_arg}; \
-        else \
-            echo "Ignoring package ${pkg_name}"; \
-        fi; \
-    } \
- && apt-get update \
- && install_apt_package "aws-neuronx-collectives" "${NEURONX_COLLECTIVES_LIB_VERSION}" \
- && install_apt_package "aws-neuronx-runtime-lib" "${NEURONX_RUNTIME_LIB_VERSION}" \
- && install_apt_package "aws-neuronx-tools" "${NEURONX_TOOLS_VERSION}" \
- && rm -rf /var/lib/apt/lists/* \
- && rm -rf /tmp/tmp* \
- && apt-get clean
-
-RUN --mount=type=bind,source=pip,target=${NEURON_ARTIFACT_PATH}/pip \
-    install_pip_package() { \
-        packages=""; \
-        flags=""; \
-        while [ "$#" -gt 0 ]; do \
-            pkg_name=$(echo $1 | cut -d: -f1); \
-            version_arg=$(echo $1 | cut -d: -f2); \
-            extra_flags=$(echo $1 | cut -d: -f3); \
-            if [ -f "${NEURON_ARTIFACT_PATH}/pip/${version_arg}" ]; then \
-                packages="${packages} ${NEURON_ARTIFACT_PATH}/pip/${version_arg}"; \
-            else \
-                if [ "${IGNORE_MISSING_NEURON_COMPONENTS}" = "false" ]; then \
-                    packages="${packages} ${pkg_name}==${version_arg}"; \
-                else \
-                    echo "Ignoring package ${pkg_name}"; \
-                fi; \
-            fi; \
-            # Store unique flags
-            if [ ! -z "${extra_flags}" ]; then \
-                for flag in $(echo "${extra_flags}" | tr ' ' '\n'); do \
-                    case " ${flags} " in \
-                        *" ${flag} "*) ;; \
-                        *) flags="${flags} ${flag}" ;; \
-                    esac \
-                done; \
-            fi; \
-            shift; \
-        done; \
-        if [ ! -z "${packages}" ]; then \
-            echo "Installing packages: ${packages} with flags ${flags}"; \
-            ${PIP} install --no-cache-dir --force-reinstall \
-                --extra-index-url="file:///${NEURON_ARTIFACT_PATH}/pip" \
-                ${packages} ${flags}; \
-        fi; \
-    } \
- && install_pip_package "neuronx-cc:${NEURONX_CC_VERSION}:" "torch-neuronx:${NEURONX_FRAMEWORK_VERSION}:" \
- && install_pip_package "neuronx_distributed:${NEURONX_DISTRIBUTED_VERSION}:--no-deps" \
- && rm -rf ~/.cache/pip/*
-
-FROM base AS repo
-
-# Install Neuron components from the apt and pip repos 
-RUN apt-get update \
- && apt-get install -y \
-    aws-neuronx-tools \
-    aws-neuronx-collectives \
-    aws-neuronx-runtime-lib \
- && ${PIP} install --no-cache-dir --force-reinstall \
-    torch-neuronx \
-    neuronx-cc \
- && ${PIP} install --no-cache-dir --no-deps \
-    neuronx_distributed \
- && rm -rf /var/lib/apt/lists/* \
- && rm -rf /tmp/tmp* \
- && rm -rf ~/.cache/pip/* \
- && apt-get clean
-
-FROM base AS prod
 
 RUN apt-get update \
  && apt-get install -y \
@@ -332,13 +252,7 @@ RUN ${PIP} install --force-reinstall \
     neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
  && rm -rf ~/.cache/pip/*
 
-FROM prod AS final
 
-# Starts framework
-ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
-CMD ["/bin/bash"]
-
-HEALTHCHECK CMD curl --fail http://localhost:8080/ping || exit 1
 
 # ------------------------------------------------------------
 # Hugging Face specific steps start here
@@ -399,7 +313,7 @@ RUN rm -f /requirements.txt && \
 # We have this error from `pip check`:
 # neuronx-cc 2.16.345.0+69131dd3 has requirement networkx~=2.6, but you have networkx 3.4.2.
 # To fix that, we are downgrading networkx to 2.6.3
-run pip install -U "networkx==2.6.3"
+RUN pip install -U "networkx==2.6.3"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
@@ -415,3 +329,11 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 ENV WANDB_MODE=disabled
+
+
+# Starts framework
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]
+
+
+HEALTHCHECK CMD curl --fail http://localhost:8080/ping || exit 1
