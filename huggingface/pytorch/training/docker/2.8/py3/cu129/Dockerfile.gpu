@@ -38,7 +38,10 @@ RUN pip install --no-cache-dir --no-build-isolation kenlm
 # Install Hugging Face libraries and dependencies
 RUN pip install --no-cache-dir \
     huggingface_hub[hf_transfer,hf_xet]==${HUGGINGFACE_HUB_VERSION} \
-    transformers[torch,sentencepiece,tokenizers,torch-speech,vision,integrations,timm,torch-vision,video,codecarbon,accelerate,mistral-common,chat-template,hub-kernels,sklearn,speech,audio,tiktoken,hf_xet,sagemaker]==${TRANSFORMERS_VERSION} \
+    transformers[torch,sentencepiece,tokenizers,torch-speech,vision,integrations, \
+                 timm,torch-vision,video,codecarbon,accelerate,mistral-common, \
+                 chat-template,hub-kernels,sklearn,speech,audio,tiktoken, \
+                 hf_xet,sagemaker]==${TRANSFORMERS_VERSION} \
     datasets==${DATASETS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     Jinja2 \
