@@ -512,7 +512,7 @@ def test_framework_and_neuron_sdk_version(neuron):
             executable="python",
         )
 
-        installed_framework_version = output.stdout.strip().split('+')[0]
+        installed_framework_version = output.stdout.strip().split("+")[0]
         version_list = release_manifest[package_name]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
