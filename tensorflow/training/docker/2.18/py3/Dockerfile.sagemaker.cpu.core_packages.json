@@ -1,12 +1,14 @@
 {
   "awscli": {
-    "version_specifier": "==1.42.18"
+    "version_specifier": ">=1.33.13,<2",
+    "skip": "True"
   },
   "cython": {
     "version_specifier": "<3.0"
   },
   "protobuf": {
-    "version_specifier": ">=3.20.3,<4.21"
+    "version_specifier": ">=3.20.3,<4.21",
+    "skip": "True"
   },
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
@@ -39,7 +41,8 @@
     "version_specifier": "==2.18.0"
   },
   "tensorflow-datasets": {
-    "version_specifier": ">=4.9.4"
+    "version_specifier": ">=4.9.4",
+    "skip": "True"
   },
   "tensorflow-hub": {
     "version_specifier": ">=0.13.0",
@@ -52,7 +55,8 @@
     "version_specifier": "==0.37.*"
   },
   "tensorflow-metadata": {
-    "version_specifier": "==1.15.0"
+    "version_specifier": "==1.15.0",
+    "skip": "True"
   },
   "tensorflow-model-optimization": {
     "version_specifier": ">=0.4.1"
