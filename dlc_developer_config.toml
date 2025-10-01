@@ -9,7 +9,7 @@ ei_mode = false
 neuron_mode = false
 # Please only set it to true if you are preparing a NEURONX related PR
 # Do remember to revert it back to false before merging any PR (including NEURONX dedicated PR)
-neuronx_mode = true
+neuronx_mode = false
 # Please only set it to true if you are preparing a GRAVITON related PR
 # Do remember to revert it back to false before merging any PR (including GRAVITON dedicated PR)
 graviton_mode = false
@@ -41,7 +41,7 @@ build_frameworks = ["huggingface_pytorch"]
 
 
 # By default we build both training and inference containers. Set true/false values to determine which to build.
-build_training = true
+build_training = false
 build_inference = true
 
 # Set do_build to "false" to skip builds and test the latest image built by this PR
@@ -171,7 +171,7 @@ dlc-pr-tensorflow-2-neuron-inference = ""
 
 # HuggingFace Inference
 dlc-pr-huggingface-tensorflow-inference = ""
-dlc-pr-huggingface-pytorch-inference = ""
+dlc-pr-huggingface-pytorch-inference = "huggingface/pytorch/inference/buildspec.yml"
 dlc-pr-huggingface-pytorch-neuron-inference = ""
 
 # Stability AI Inference
@@ -183,5 +183,3 @@ dlc-pr-tensorflow-2-eia-inference = ""
 
 # vllm
 dlc-pr-vllm = ""
-
-dlc-pr-huggingface-pytorch-neuronx-training = "huggingface/pytorch/training/buildspec-neuronx.yml"
