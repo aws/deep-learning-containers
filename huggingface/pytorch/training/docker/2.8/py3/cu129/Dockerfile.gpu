@@ -83,6 +83,7 @@ RUN apt-get update \
     unzip \
     vim \
     wget \
+    libcrypt1 \
 && rm -rf /var/lib/apt/lists/*
 
 COPY cuda-compatibility-lib.sh /usr/local/bin/cuda-compatibility-lib.sh
