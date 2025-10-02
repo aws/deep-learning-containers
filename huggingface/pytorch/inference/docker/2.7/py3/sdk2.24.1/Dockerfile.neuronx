@@ -173,9 +173,9 @@ RUN pip install --no-cache-dir \
     hf_transfer \
     datasets==${DATASETS_VERSION} \
     optimum-neuron==${OPTIMUM_NEURON_VERSION} \
-    peft==${PEFT_VERSION} \
 	"sagemaker-huggingface-inference-toolkit>=2.4.1,<3" \
  && pip install --no-deps --no-cache-dir -U sentence_transformers==${SENTENCE_TRANSFORMERS} \
+	peft==${PEFT_VERSION} \
  && rm -rf ~/.cache/pip/*
 
 RUN HOME_DIR=/root \
