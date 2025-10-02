@@ -60,7 +60,9 @@ RUN pip install --no-cache-dir dill==0.3.8 multiprocess==0.70.16 \
  && sed -i 's/multiprocess.*/multiprocess/' $PATHOS_META
 
 # Fix CVE-77744: Upgrade urllib3 to version 2.5.0 or higher
-RUN pip install --no-cache-dir -U "urllib3>=2.5.0"
+# Remove sigopt to avoid dependency conflict (it's not essential for core functionality)
+RUN pip install --no-cache-dir -U "urllib3>=2.5.0" \
+ && pip uninstall -y sigopt || true
 
 # Fix CVE-2023-48022: Remove Ray to eliminate vulnerability
 RUN pip uninstall -y ray
