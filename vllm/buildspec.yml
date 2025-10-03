@@ -47,7 +47,19 @@ images:
     enable_common_stage_build: false
     test_configs:
       test_platforms:
-        - sanity
-        - security
-        - ec2
-        - eks
+        # - sanity
+        # - security
+        # - ec2
+        # - eks
+      tests:
+        # TODO: Add sanity and security tests to EC2 platform tests        
+        - platform: ec2-multi-node-efa
+          params:
+            instance_type: p4d.24xlarge
+            node_count: 2
+          run:
+            - bash tests/ec2/00_setup.sh
+            - bash tests/ec2/efa/testEFASanity
+            - bash tests/ec2/efa/testEFA
+            - bash tests/ec2/vllm/testVllmMultiNode.sh
+            - bash tests/ec2/99_cleanup.sh
