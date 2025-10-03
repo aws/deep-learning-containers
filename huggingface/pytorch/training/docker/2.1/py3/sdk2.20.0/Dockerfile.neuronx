@@ -48,6 +48,10 @@ RUN pip install -U \
 
 RUN pip install "peft==0.14.0"
 
+# Resolve CVE
+RUN apt-get install -y unattended-upgrades
+RUN unattended-upgrade
+
 RUN apt-get update \
  && apt install -y --no-install-recommends \
     git-lfs \
