@@ -60,7 +60,7 @@ def parse_buildspec():
 
     tests = image_config.get("test_configs", {}).get("tests", [])
     print(f"Found {len(tests)} test configuration(s)")
-    
+
     globals_data = {
         "region": config.get("region"),
         "arch_type": config.get("arch_type"),

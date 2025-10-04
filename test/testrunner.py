@@ -301,7 +301,7 @@ def main():
     # Enable new test structure path from environment variable
     new_test_structure_enabled = os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
     os.environ["USE_NEW_TEST_STRUCTURE"] = "true" if new_test_structure_enabled else "false"
-    
+
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
