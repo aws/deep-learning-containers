@@ -47,8 +47,8 @@ images:
     enable_common_stage_build: false
     test_configs:
       test_platforms:
-        # - sanity
-        # - security
+        - sanity
+        - security
         # - ec2
         # - eks
       tests:
