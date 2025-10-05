@@ -172,34 +172,31 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
 
                 # Check if new test structure is enabled
                 if is_new_test_structure_enabled():
-                    # For new test structure, skip test_platforms logic entirely
-                    test_platforms = []
+                    PLATFORM_MAPPING = {
+                        'ec2': 'ec2',
+                        'eks': 'eks',
+                        'sagemaker': 'sagemaker',
+                        'ecs': 'ecs',
+                    }
+                    if 'tests' in docker_image.test_configs:
+                        for test in docker_image.test_configs['tests']:
+                            platform = test['platform']
+                            base_platform = platform.split('-')[0]
+                            if base_platform in PLATFORM_MAPPING:
+                                category = PLATFORM_MAPPING[base_platform]
+                                DLC_IMAGES[category].append(ecr_url_to_test)
+                    continue
                 elif "test_platforms" in docker_image.test_configs:
-                    # Use existing test_platforms logic
                     test_platforms = docker_image.test_configs["test_platforms"]
+                    if test_platforms:
+                        for test_platform in test_platforms:
+                            assert test_platform in DLC_IMAGES, (
+                                f"Test platform {test_platform} is not supported, "
+                                f"supported test platforms are {DLC_IMAGES.keys()}"
+                            )
+                            DLC_IMAGES[test_platform].append(ecr_url_to_test)
                 else:
                     test_platforms = []
-
-                # If test_platforms is None, set to empty list
-                if test_platforms is None:
-                    test_platforms = []
-
-                # Validate test_platforms is a list
-                assert isinstance(
-                    test_platforms, list
-                ), f"Test platforms should be a list, but got {type(test_platforms)}"
-
-                # Add image to each specified test platform
-                for test_platform in test_platforms:
-                    assert test_platform in DLC_IMAGES, (
-                        f"Test platform {test_platform} is not supported, "
-                        f"supported test platforms are {DLC_IMAGES.keys()}"
-                    )
-                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
-            else:
-                # No specific test configs - add image to all test platforms
-                for test_platform in DLC_IMAGES:
-                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES:
         test_images = DLC_IMAGES[test_type]
