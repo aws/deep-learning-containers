@@ -25,7 +25,7 @@ from botocore.exceptions import ClientError
 from invoke.context import Context
 
 from codebuild_environment import get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
+from config import is_build_enabled, is_autopatch_build_enabled, is_new_test_structure_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -170,22 +170,32 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
             ):
                 LOGGER.info(f"Test Configs: {docker_image.test_configs}")
 
-                # If specific test platforms are configured
-                if "test_platforms" in docker_image.test_configs:
+                # Check if new test structure is enabled
+                if is_new_test_structure_enabled():
+                    # For new test structure, skip test_platforms logic entirely
+                    test_platforms = []
+                elif "test_platforms" in docker_image.test_configs:
+                    # Use existing test_platforms logic
                     test_platforms = docker_image.test_configs["test_platforms"]
+                else:
+                    test_platforms = []
 
-                    # Validate test_platforms is a list
-                    assert isinstance(
-                        test_platforms, list
-                    ), f"Test platforms should be a list, but got {type(test_platforms)}"
+                # If test_platforms is None, set to empty list
+                if test_platforms is None:
+                    test_platforms = []
 
-                    # Add image to each specified test platform
-                    for test_platform in test_platforms:
-                        assert test_platform in DLC_IMAGES, (
-                            f"Test platform {test_platform} is not supported, "
-                            f"supported test platforms are {DLC_IMAGES.keys()}"
-                        )
-                        DLC_IMAGES[test_platform].append(ecr_url_to_test)
+                # Validate test_platforms is a list
+                assert isinstance(
+                    test_platforms, list
+                ), f"Test platforms should be a list, but got {type(test_platforms)}"
+
+                # Add image to each specified test platform
+                for test_platform in test_platforms:
+                    assert test_platform in DLC_IMAGES, (
+                        f"Test platform {test_platform} is not supported, "
+                        f"supported test platforms are {DLC_IMAGES.keys()}"
+                    )
+                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
             else:
                 # No specific test configs - add image to all test platforms
                 for test_platform in DLC_IMAGES:
