@@ -51,6 +51,17 @@ def test():
     
     if new_structure_enabled:
         LOGGER.info("Using new buildspec-based test system")
+
+        executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
+        dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+
+        LOGGER.info(f"Executor mode: {executor_mode}")
+        LOGGER.info(f"DLC images: {dlc_images}")
+        
+        if not dlc_images:
+            LOGGER.error("No DLC images found")
+            return
+        
         from test.platforms.entrypoint import main as run_new_tests
         run_new_tests()
         return

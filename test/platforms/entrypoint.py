@@ -14,11 +14,19 @@ def get_buildspec_path():
     framework = get_framework_from_image_uri(image_uri)
     print(f"Entrypoint - Framework: {framework}")
 
+    # Get the repository root directory
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    repo_root = os.path.join(current_dir, "..", "..")
+    repo_root = os.path.abspath(repo_root)
+    print(f"Repository root: {repo_root}")
+
     if framework == "vllm":
         if "arm64" in image_uri:
-            return f"{framework}/buildspec-arm64.yml"
+            buildspec_path = os.path.join(repo_root, f"{framework}/buildspec-arm64.yml")
         else:
-            return f"{framework}/buildspec.yml"
+            buildspec_path = os.path.join(repo_root, f"{framework}/buildspec.yml")
+        print(f"Buildspec path: {buildspec_path}")
+        return buildspec_path
     # other frameworks do not have test_configs yet
     else:
         raise NotImplementedError(f"Buildspec parsing not yet implemented for {framework}")
@@ -44,6 +52,9 @@ def parse_buildspec():
     """
     buildspec_path = get_buildspec_path()
     print(f"Loading buildspec from: {buildspec_path}")
+    
+    if not os.path.exists(buildspec_path):
+        raise FileNotFoundError(f"Buildspec file not found: {buildspec_path}")
 
     with open(buildspec_path, "r") as f:
         config = yaml.safe_load(f)
@@ -76,6 +87,7 @@ def parse_buildspec():
 
 def main():
     print("=== New DLC Test System ===")
+    print(f"New test structure enabled: {is_new_test_structure_enabled()}")
 
     if not is_new_test_structure_enabled():
         print("New test structure not enabled")
@@ -83,30 +95,51 @@ def main():
 
     test_type = os.getenv("TEST_TYPE")
     image_uri = os.getenv("DLC_IMAGE")
+    
+    print(f"Environment variables:")
+    print(f"  TEST_TYPE: {test_type}")
+    print(f"  DLC_IMAGE: {image_uri}")
+    print(f"  REGION: {os.getenv('REGION')}")
+    print(f"  ACCOUNT_ID: {os.getenv('ACCOUNT_ID')}")
+    
+    if not image_uri:
+        print("ERROR: DLC_IMAGE environment variable not set")
+        return
+        
     framework = get_framework_from_image_uri(image_uri)
+    print(f"Detected framework: {framework}")
 
-    print(f"Test type: {test_type}")
-    print(f"Framework: {framework}")
-    print(f"Image: {image_uri}")
+    try:
+        buildspec_data = parse_buildspec()
+        print(f"Buildspec parsed successfully")
+    except Exception as e:
+        print(f"ERROR: Failed to parse buildspec: {e}")
+        raise
 
-    buildspec_data = parse_buildspec()
-
-    for test_config in buildspec_data["tests"]:
+    print(f"Found {len(buildspec_data['tests'])} test configurations")
+    
+    for i, test_config in enumerate(buildspec_data["tests"]):
         platform_name = test_config["platform"]
+        print(f"Test config {i+1}: platform={platform_name}")
 
         if test_type == "ec2" and platform_name.startswith("ec2"):
+            print(f"Executing EC2 test for platform: {platform_name}")
             platform = EC2Platform()
             try:
                 setup_params = {**test_config["params"], **buildspec_data["globals"]}
+                print(f"Setup parameters: {setup_params}")
                 resources = platform.setup(setup_params)
+                print(f"Platform setup completed")
 
-                print(f"Would execute {len(test_config['run'])} commands")
+                print(f"Executing {len(test_config['run'])} commands:")
                 for cmd in test_config["run"]:
                     print(f"  - {cmd}")
 
             except Exception as e:
                 print(f"Test failed: {e}")
                 raise
+        else:
+            print(f"Skipping test config {i+1}: test_type={test_type}, platform={platform_name}")
 
 
 if __name__ == "__main__":
