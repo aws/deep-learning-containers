@@ -46,11 +46,11 @@ images:
     build: true
     enable_common_stage_build: false
     test_configs:
-      # test_platforms:
-        # - sanity
-        # - security
-        # - ec2
-        # - eks
+      test_platforms:
+        - sanity
+        - security
+        - ec2
+        - eks
       tests:
         # TODO: Add sanity and security tests to EC2 platform tests        
         - platform: ec2-multi-node-efa
