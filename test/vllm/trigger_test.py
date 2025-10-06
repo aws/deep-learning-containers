@@ -62,6 +62,9 @@ def test():
             LOGGER.error("No DLC images found")
             return
         
+        # set DLC_IMAGE environment variable
+        os.environ["DLC_IMAGE"] = dlc_images
+        
         from test.platforms.entrypoint import main as run_new_tests
         run_new_tests()
         return
