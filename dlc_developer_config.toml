@@ -74,7 +74,7 @@ ec2_benchmark_tests = false
 ec2_tests_on_heavy_instances = false
 ### SM specific tests
 ### On by default
-sagemaker_local_tests = false
+sagemaker_local_tests = true
 ### Set enable_ipv6 = true to run tests with IPv6-enabled resources
 ### Off by default (set to false)
 enable_ipv6 = false
