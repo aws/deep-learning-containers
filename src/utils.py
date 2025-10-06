@@ -188,6 +188,11 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
                     continue
                 elif "test_platforms" in docker_image.test_configs:
                     test_platforms = docker_image.test_configs["test_platforms"]
+                    
+                    assert isinstance(
+                        test_platforms, list
+                    ), f"Test platforms should be a list, but got {type(test_platforms)}"
+
                     if test_platforms:
                         for test_platform in test_platforms:
                             assert test_platform in DLC_IMAGES, (
@@ -195,8 +200,10 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
                                 f"supported test platforms are {DLC_IMAGES.keys()}"
                             )
                             DLC_IMAGES[test_platform].append(ecr_url_to_test)
-                else:
-                    test_platforms = []
+            else:
+                # No specific test configs - add image to all test platforms
+                for test_platform in DLC_IMAGES:
+                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES:
         test_images = DLC_IMAGES[test_type]
