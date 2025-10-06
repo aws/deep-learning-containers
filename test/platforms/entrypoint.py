@@ -1,6 +1,7 @@
 import os
 import yaml
 from src.config import is_new_test_structure_enabled
+from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.test_utils import get_framework_from_image_uri
 
@@ -56,26 +57,24 @@ def parse_buildspec():
     if not os.path.exists(buildspec_path):
         raise FileNotFoundError(f"Buildspec file not found: {buildspec_path}")
 
-    with open(buildspec_path, "r") as f:
-        config = yaml.safe_load(f)
+    BUILDSPEC = Buildspec()
+    BUILDSPEC.load(buildspec_path)
     print(f"Buildspec loaded successfully")
 
-    config = resolve_buildspec_variables(config)
-    print(f"Environment variables resolved")
-
-    # extract test configs from buildspec
-    images = config.get("images", {})
+    # Extract test configs
+    images = BUILDSPEC.get("images", {})
     image_key = list(images.keys())[0]
     print(f"Using image config: {image_key}")
     image_config = images[image_key]
 
-    tests = image_config.get("test_configs", {}).get("tests", [])
-    print(f"Found {len(tests)} test configuration(s)")
+    test_configs = image_config.get("test_configs", {})
+    tests = test_configs.get("tests", [])
+    print(f"Found {len(tests)} test_configs")
 
     globals_data = {
-        "region": config.get("region"),
-        "arch_type": config.get("arch_type"),
-        "framework": config.get("framework"),
+        "region": BUILDSPEC.get("region"),
+        "arch_type": BUILDSPEC.get("arch_type"),
+        "framework": BUILDSPEC.get("framework"),
     }
     print(f"Globals extracted: {globals_data}")
 
