@@ -115,9 +115,16 @@ def main():
         print(f"ERROR: Failed to parse buildspec: {e}")
         raise
 
+    # Filter for applicable tests
+    if test_type == "ec2":
+        applicable_tests = [test for test in buildspec_data["tests"] if test["platform"].startswith("ec2")]
+    else:
+        applicable_tests = [test for test in buildspec_data["tests"] if test["platform"] == test_type]
+
     print(f"Found {len(buildspec_data['tests'])} test configurations")
+    print(f"Found {len(applicable_tests)} applicable test configurations for {test_type}")
     
-    for i, test_config in enumerate(buildspec_data["tests"]):
+    for i, test_config in enumerate(applicable_tests):
         platform_name = test_config["platform"]
         print(f"Test config {i+1}: platform={platform_name}")
 

@@ -63,3 +63,21 @@ images:
             - bash tests/ec2/efa/testEFA
             - bash tests/ec2/vllm/testVllmMultiNode.sh
             - bash tests/ec2/99_cleanup.sh
+
+        # Add some test configs (dummy for testing - to be removed)
+        - platform: ec2-single-node
+          params:
+            instance_type: g4dn.xlarge
+            node_count: 1
+          run:
+            - bash tests/ec2/00_setup.sh
+            - bash tests/ec2/dummy/test1.sh
+            - bash tests/ec2/dummy/test2.sh
+            - bash tests/ec2/99_cleanup.sh
+        
+        - platform: eks
+          params:
+            cluster: dlc-vllm-PR
+            namespace: vllm
+          run:
+            - bash tests/eks/vllmEksTest.sh
