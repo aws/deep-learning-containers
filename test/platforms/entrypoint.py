@@ -8,11 +8,10 @@ from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images
 from codebuild_environment import get_cloned_folder_path
 
 
-def get_buildspec_path():
+def get_buildspec_path(image_uri):
     """
     Determine buildspec path based on framework and architecture type
     """
-    image_uri = os.getenv("DLC_IMAGE", "")
     print(f"Entrypoint - Image URI: {image_uri}")
     framework = get_framework_from_image_uri(image_uri)
     print(f"Entrypoint - Framework: {framework}")
@@ -47,11 +46,11 @@ def resolve_buildspec_variables(config):
     return yaml.safe_load(config_str)
 
 
-def parse_buildspec():
+def parse_buildspec(image_uri):
     """
     Parse buildspec for test configurations
     """
-    buildspec_path = get_buildspec_path()
+    buildspec_path = get_buildspec_path(image_uri)
     print(f"Loading buildspec from: {buildspec_path}")
     
     if not os.path.exists(buildspec_path):
@@ -113,7 +112,7 @@ def main():
     print(f"Detected framework: {framework}")
 
     try:
-        buildspec_data = parse_buildspec()
+        buildspec_data = parse_buildspec(image_uri)
         print(f"Buildspec parsed successfully")
     except Exception as e:
         print(f"ERROR: Failed to parse buildspec: {e}")
