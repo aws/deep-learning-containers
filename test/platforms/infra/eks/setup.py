@@ -1,5 +1,5 @@
 import os
-from invoke import run
+from invoke.context import Context
 from test.test_utils import LOGGER
 from codebuild_environment import get_cloned_folder_path
 
@@ -10,6 +10,7 @@ class EKSPlatform:
         self.build_context = os.getenv("BUILD_CONTEXT")
         self.cluster_name = None
         self.namespace = None
+        self.ctx = Context()
 
     def setup(self, params):
         """
@@ -43,5 +44,6 @@ class EKSPlatform:
         
         repo_root = get_cloned_folder_path()
 
-        LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
-        run(cmd, env=env, cwd=repo_root)
+        with self.ctx.cd(repo_root):
+            LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
+            self.ctx.run(cmd, env=env)
