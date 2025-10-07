@@ -6,7 +6,6 @@ from test.test_utils import get_dlc_images, is_pr_context
 from test.vllm.eks.eks_test import test_vllm_on_eks
 from test.vllm.ec2.infra.setup_ec2 import setup
 from test.vllm.ec2.test_artifacts.test_ec2 import test_vllm_on_ec2
-from src.config import is_new_test_structure_enabled
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -45,31 +44,6 @@ def run_platform_tests(platform: str, images: List[str]):
 
 def test():
     LOGGER.info("Triggering test from vllm")
-
-    # if new test structure is enabled, reroute to using new test system path
-    new_structure_enabled = is_new_test_structure_enabled()
-    
-    if new_structure_enabled:
-        LOGGER.info("Using new buildspec-based test system")
-
-        executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
-        dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
-
-        LOGGER.info(f"Executor mode: {executor_mode}")
-        LOGGER.info(f"DLC images: {dlc_images}")
-        
-        if not dlc_images:
-            LOGGER.error("No DLC images found")
-            return
-        
-        # set DLC_IMAGE environment variable
-        os.environ["DLC_IMAGE"] = dlc_images
-        
-        from test.platforms.entrypoint import main as run_new_tests
-        run_new_tests()
-        return
-    
-    LOGGER.info("Using legacy test system")
     test_type = os.getenv("TEST_TYPE")
 
     LOGGER.info(f"TEST_TYPE: {test_type}")

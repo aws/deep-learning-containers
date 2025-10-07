@@ -33,6 +33,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 from test.vllm.trigger_test import test as test_vllm
+from test.platforms.entrypoint import main as run_new_tests
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -435,7 +436,12 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    test_vllm()
+                    if new_test_structure_enabled:
+                        LOGGER.info("Using new buildspec-based test system")
+                        run_new_tests()
+                    else:
+                        LOGGER.info("Using legacy test system")
+                        test_vllm()
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
