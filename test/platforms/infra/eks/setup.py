@@ -10,6 +10,7 @@ class EKSPlatform:
         self.build_context = os.getenv("BUILD_CONTEXT")
         self.cluster_name = None
         self.namespace = None
+        self.image_uri = None
         self.ctx = Context()
 
     def setup(self, params):
@@ -22,13 +23,11 @@ class EKSPlatform:
         cluster_prefix = params.get("cluster") 
         self.cluster_name = f"{cluster_prefix}-{self.build_context}"
         self.namespace = params.get("namespace")
+        self.image_uri = params.get("image_uri")
         
         LOGGER.info(f"EKS Platform - Framework: {framework}")
         LOGGER.info(f"EKS Platform - Cluster: {self.cluster_name}")
         LOGGER.info(f"EKS Platform - Namespace: {self.namespace}")
-
-        if not os.getenv("DLC_IMAGE"):
-            raise ValueError("DLC_IMAGE environment variable not set")
 
     def execute_command(self, cmd):
         """
@@ -39,7 +38,7 @@ class EKSPlatform:
             "CLUSTER_NAME": self.cluster_name,
             "NAMESPACE": self.namespace,
             "BUILD_CONTEXT": self.build_context,
-            "DLC_IMAGE": os.getenv("DLC_IMAGE"),
+            "DLC_IMAGE": self.image_uri,
         }
         
         repo_root = get_cloned_folder_path()

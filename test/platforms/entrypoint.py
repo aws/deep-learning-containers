@@ -148,7 +148,7 @@ def main():
             print(f"Executing EKS test for platform: {platform_name}")
             platform = EKSPlatform()
             try:
-                setup_params = {**test_config["params"], **buildspec_data["globals"]}
+                setup_params = {**test_config["params"], **buildspec_data["globals"], "image_uri": image_uri}
                 print(f"Setup parameters: {setup_params}")
                 platform.setup(setup_params)
                 print(f"Platform setup completed")
