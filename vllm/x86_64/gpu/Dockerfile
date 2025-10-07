@@ -17,6 +17,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
+RUN uv pip install --system ray[serve]==2.48.0 && \
+    uv cache clean
+
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
