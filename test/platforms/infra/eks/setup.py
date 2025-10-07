@@ -1,6 +1,7 @@
 import os
 from invoke import run
 from test.test_utils import LOGGER
+from codebuild_environment import get_cloned_folder_path
 
 class EKSPlatform:
     def __init__(self):
@@ -14,16 +15,16 @@ class EKSPlatform:
         """
         Setup EKS infrastructure and return any resources needed for tests
         """
-        print(f"Setting up EKS platform with params: {params}")
+        LOGGER.info(f"Setting up EKS platform with params: {params}")
 
         framework = params.get("framework")
         cluster_prefix = params.get("cluster") 
         self.cluster_name = f"{cluster_prefix}-{self.build_context}"
         self.namespace = params.get("namespace")
         
-        print(f"EKS Platform - Framework: {framework}")
-        print(f"EKS Platform - Cluster: {self.cluster_name}")
-        print(f"EKS Platform - Namespace: {self.namespace}")
+        LOGGER.info(f"EKS Platform - Framework: {framework}")
+        LOGGER.info(f"EKS Platform - Cluster: {self.cluster_name}")
+        LOGGER.info(f"EKS Platform - Namespace: {self.namespace}")
 
         if not os.getenv("DLC_IMAGE"):
             raise ValueError("DLC_IMAGE environment variable not set")
@@ -40,5 +41,7 @@ class EKSPlatform:
             "DLC_IMAGE": os.getenv("DLC_IMAGE"),
         }
         
-        LOGGER.info(f"Executing command with EKS environment: {cmd}")
-        run(cmd, env=env)
+        repo_root = get_cloned_folder_path()
+
+        LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
+        run(cmd, env=env, cwd=repo_root)
