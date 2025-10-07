@@ -1,8 +1,9 @@
 {
-  "77986": "In transformers, The vulnerability arises from insecure URL validation using the `startswith()` method, which can be bypassed through URL username injection. This allows attackers to craft URLs that appear to be from YouTube but resolve to malicious domains, potentially leading to phishing attacks, malware distribution, or data exfiltration. The issue is fixed in version 4.52.1. We cannot upgrade now, because it co dependent on Neuron SDK version and required by HF",
-  "78688": "also In transformers",
-  "79596": "also In transformers",
-  "79595": "also In transformers",
-  "79855": "also In transformers",
   "77740": "protobuf, required by Neuron SDK. Affected versions of this package are vulnerable to a potential Denial of Service (DoS) attack due to unbounded recursion when parsing untrusted Protocol Buffers data."
+  "77986": "In transformers, The vulnerability arises from insecure URL validation using the `startswith()` method, which can be bypassed through URL username injection. This allows attackers to craft URLs that appear to be from YouTube but resolve to malicious domains, potentially leading to phishing attacks, malware distribution, or data exfiltration. The issue is fixed in version 4.52.1. We cannot upgrade now, because it co dependent on Neuron SDK version and required by HF",
+  "78153": "A Regular Expression Denial of Service (ReDoS) vulnerability was discovered in the Hugging Face Transformers library. This vulnerability affects versions 4.51.3 and earlier, and is fixed in version 4.52.1.",
+  "78688": "also In transformers",
+  "79595": "also In transformers",
+  "79596": "also In transformers",
+  "79855": "also In transformers",
 }
