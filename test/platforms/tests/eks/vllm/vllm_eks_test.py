@@ -27,22 +27,10 @@ VLLM_NAMESPACE = os.getenv("NAMESPACE")
 
 REPO_ROOT = get_cloned_folder_path()
 LWS_YAML = os.path.join(
-    REPO_ROOT,
-    "test",
-    "platforms",
-    "infra",
-    "eks",
-    "vllm",
-    "vllm-deepseek-32b-lws.yaml"
+    REPO_ROOT, "test", "platforms", "infra", "eks", "vllm", "vllm-deepseek-32b-lws.yaml"
 )
 LWS_INGRESS_YAML = os.path.join(
-    REPO_ROOT,
-    "test",
-    "platforms",
-    "infra",
-    "eks",
-    "vllm",
-    "vllm-deepseek-32b-lws-ingress.yaml"
+    REPO_ROOT, "test", "platforms", "infra", "eks", "vllm", "vllm-deepseek-32b-lws-ingress.yaml"
 )
 
 
@@ -367,6 +355,7 @@ def test_vllm_on_eks(image):
         LOGGER.info("Cleaning up...")
         cleanup(ec2_client, alb_sg, user_ip)
 
+
 def main():
     """
     Main function to run vLLM EKS tests
@@ -376,13 +365,14 @@ def main():
         image = os.getenv("DLC_IMAGE")
         if not image:
             raise ValueError("No DLC_IMAGE environment variable found")
-        
+
         LOGGER.info(f"Running vLLM EKS tests with image: {image}")
         test_vllm_on_eks(image)
-        
+
     except Exception as e:
         LOGGER.error(f"vLLM EKS tests failed: {str(e)}")
         raise
+
 
 if __name__ == "__main__":
     main()

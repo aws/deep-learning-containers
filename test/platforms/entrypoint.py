@@ -52,7 +52,7 @@ def parse_buildspec(image_uri):
     """
     buildspec_path = get_buildspec_path(image_uri)
     print(f"Loading buildspec from: {buildspec_path}")
-    
+
     if not os.path.exists(buildspec_path):
         raise FileNotFoundError(f"Buildspec file not found: {buildspec_path}")
 
@@ -95,19 +95,19 @@ def main():
     all_image_list = dlc_images.split(" ")
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
-    
+
     if not standard_images_list:
         LOGGER.error("No standard images found")
         raise ValueError("No standard images found")
-    
+
     image_uri = standard_images_list[0]
-    
+
     print(f"Environment variables:")
     print(f"  TEST_TYPE: {test_type}")
     print(f"  DLC_IMAGE: {image_uri}")
     print(f"  REGION: {os.getenv('REGION')}")
     print(f"  ACCOUNT_ID: {os.getenv('ACCOUNT_ID')}")
-        
+
     framework = get_framework_from_image_uri(image_uri)
     print(f"Detected framework: {framework}")
 
@@ -119,11 +119,13 @@ def main():
         raise
 
     # Filter for applicable tests
-    applicable_tests = [test for test in buildspec_data["tests"] if test["platform"].startswith(test_type)]
+    applicable_tests = [
+        test for test in buildspec_data["tests"] if test["platform"].startswith(test_type)
+    ]
 
     print(f"Found {len(buildspec_data['tests'])} test configurations")
     print(f"Found {len(applicable_tests)} applicable test configurations for {test_type}")
-    
+
     for i, test_config in enumerate(applicable_tests):
         platform_name = test_config["platform"]
         print(f"Test config {i+1}: platform={platform_name}")
@@ -148,7 +150,11 @@ def main():
             print(f"Executing EKS test for platform: {platform_name}")
             platform = EKSPlatform()
             try:
-                setup_params = {**test_config["params"], **buildspec_data["globals"], "image_uri": image_uri}
+                setup_params = {
+                    **test_config["params"],
+                    **buildspec_data["globals"],
+                    "image_uri": image_uri,
+                }
                 print(f"Setup parameters: {setup_params}")
                 platform.setup(setup_params)
                 print(f"Platform setup completed")

@@ -3,6 +3,7 @@ from invoke.context import Context
 from test.test_utils import LOGGER
 from codebuild_environment import get_cloned_folder_path
 
+
 class EKSPlatform:
     def __init__(self):
         self.resources = None
@@ -20,11 +21,11 @@ class EKSPlatform:
         LOGGER.info(f"Setting up EKS platform with params: {params}")
 
         framework = params.get("framework")
-        cluster_prefix = params.get("cluster") 
+        cluster_prefix = params.get("cluster")
         self.cluster_name = f"{cluster_prefix}-{self.build_context}"
         self.namespace = params.get("namespace")
         self.image_uri = params.get("image_uri")
-        
+
         LOGGER.info(f"EKS Platform - Framework: {framework}")
         LOGGER.info(f"EKS Platform - Cluster: {self.cluster_name}")
         LOGGER.info(f"EKS Platform - Namespace: {self.namespace}")
@@ -40,7 +41,7 @@ class EKSPlatform:
             "BUILD_CONTEXT": self.build_context,
             "DLC_IMAGE": self.image_uri,
         }
-        
+
         repo_root = get_cloned_folder_path()
 
         with self.ctx.cd(repo_root):
