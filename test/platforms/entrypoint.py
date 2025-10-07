@@ -3,6 +3,7 @@ import yaml
 from src.config import is_new_test_structure_enabled
 from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
+from test.platforms.infra.eks.setup import EKSPlatform
 from test.test_utils import get_framework_from_image_uri
 
 
@@ -116,10 +117,7 @@ def main():
         raise
 
     # Filter for applicable tests
-    if test_type == "ec2":
-        applicable_tests = [test for test in buildspec_data["tests"] if test["platform"].startswith("ec2")]
-    else:
-        applicable_tests = [test for test in buildspec_data["tests"] if test["platform"] == test_type]
+    applicable_tests = [test for test in buildspec_data["tests"] if test["platform"].startswith(test_type)]
 
     print(f"Found {len(buildspec_data['tests'])} test configurations")
     print(f"Found {len(applicable_tests)} applicable test configurations for {test_type}")
@@ -141,6 +139,22 @@ def main():
                 for cmd in test_config["run"]:
                     print(f"  - {cmd}")
 
+            except Exception as e:
+                print(f"Test failed: {e}")
+                raise
+        elif test_type == "eks" and platform_name.startswith("eks"):
+            print(f"Executing EKS test for platform: {platform_name}")
+            platform = EKSPlatform()
+            try:
+                setup_params = {**test_config["params"], **buildspec_data["globals"]}
+                print(f"Setup parameters: {setup_params}")
+                platform.setup(setup_params)
+                print(f"Platform setup completed")
+
+                print(f"Executing {len(test_config['run'])} commands:")
+                for cmd in test_config["run"]:
+                    print(f"  - {cmd}")
+                    platform.execute_command(cmd)
             except Exception as e:
                 print(f"Test failed: {e}")
                 raise
