@@ -164,8 +164,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
 
 # install Hugging Face libraries and its dependencies
-RUN pip install --no-upgrade networkx \
- &&	pip install --no-cache-dir -U \
+RUN pip install --no-cache-dir -U \
+	networkx~=2.6 \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     compel \
