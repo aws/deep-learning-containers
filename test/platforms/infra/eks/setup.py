@@ -26,9 +26,9 @@ class EKSPlatform:
         self.namespace = params.get("namespace")
         self.image_uri = params.get("image_uri")
 
-        LOGGER.info(f"EKS Platform - Framework: {framework}")
-        LOGGER.info(f"EKS Platform - Cluster: {self.cluster_name}")
-        LOGGER.info(f"EKS Platform - Namespace: {self.namespace}")
+        LOGGER.info(
+            f"EKS Platform - Framework: {framework}, Cluster: {self.cluster_name}, Namespace: {self.namespace}"
+        )
 
     def execute_command(self, cmd):
         """
