@@ -5,6 +5,7 @@ from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.platforms.infra.eks.setup import EKSPlatform
 from test.test_utils import get_framework_from_image_uri
+from codebuild_environment import get_cloned_folder_path
 
 
 def get_buildspec_path():
@@ -17,9 +18,7 @@ def get_buildspec_path():
     print(f"Entrypoint - Framework: {framework}")
 
     # Get the repository root directory
-    current_dir = os.path.dirname(os.path.abspath(__file__))
-    repo_root = os.path.join(current_dir, "..", "..")
-    repo_root = os.path.abspath(repo_root)
+    repo_root = get_cloned_folder_path()
     print(f"Repository root: {repo_root}")
 
     if framework == "vllm":

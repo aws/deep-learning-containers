@@ -7,6 +7,7 @@ from invoke import run
 import requests
 import boto3
 from botocore.exceptions import ClientError
+from codebuild_environment import get_cloned_folder_path
 from retrying import retry
 from test.test_utils.ec2 import get_ec2_client
 from test.test_utils.eks import (
@@ -24,8 +25,7 @@ AWS_REGION = os.getenv("AWS_REGION")
 CLUSTER_NAME = os.getenv("CLUSTER_NAME")
 VLLM_NAMESPACE = os.getenv("NAMESPACE")
 
-REPO_ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "..", "..")
-REPO_ROOT = os.path.abspath(REPO_ROOT)
+REPO_ROOT = get_cloned_folder_path()
 LWS_YAML = os.path.join(
     REPO_ROOT,
     "test",
