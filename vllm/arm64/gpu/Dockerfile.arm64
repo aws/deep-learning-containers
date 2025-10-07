@@ -1,4 +1,4 @@
-ARG CUDA_VERSION=12.9.0
+ARG CUDA_VERSION=12.9.1
 ARG IMAGE_DISTRO=ubuntu22.04
 ARG PYTHON_VERSION=3.12
 
@@ -75,7 +75,7 @@ RUN git clone https://github.com/facebookresearch/xformers.git && \
 FROM build-base AS build-vllm
 RUN git clone https://github.com/vllm-project/vllm.git && \
     cd vllm && \
-    git checkout v0.10.2 && \
+    git checkout v0.11.0 && \
     git submodule sync && \
     git submodule update --init --recursive -j 8 && \
     MAX_JOBS=16 uv build --wheel --no-build-isolation -o /wheels
@@ -90,7 +90,7 @@ RUN uv pip install -U build cmake ninja pybind11 setuptools==79.0.1 wheel
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.2.6.post1 && \
+    git checkout v0.3.1 && \
     export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
     python -m flashinfer.aot && \
     MAX_JOBS=16 uv pip install --system --no-build-isolation . && \

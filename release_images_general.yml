@@ -58,7 +58,7 @@ release_images:
       public_registry: True
   5:
     framework: "vllm"
-    version: "0.10.2"
+    version: "0.11.0"
     arch_type: "arm64"
     customer_type: "ec2"
     general:
