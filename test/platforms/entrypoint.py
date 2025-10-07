@@ -4,7 +4,7 @@ from src.config import is_new_test_structure_enabled
 from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.platforms.infra.eks.setup import EKSPlatform
-from test.test_utils import get_framework_from_image_uri
+from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images
 from codebuild_environment import get_cloned_folder_path
 
 
@@ -88,22 +88,26 @@ def main():
     print("=== New DLC Test System ===")
     print(f"New test structure enabled: {is_new_test_structure_enabled()}")
 
-    if not is_new_test_structure_enabled():
-        print("New test structure not enabled")
-        return
-
     test_type = os.getenv("TEST_TYPE")
-    image_uri = os.getenv("DLC_IMAGE")
+    executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
+    dlc_images = os.getenv("DLC_IMAGE") if executor_mode else get_dlc_images()
+
+    LOGGER.info(f"Images tested: {dlc_images}")
+    all_image_list = dlc_images.split(" ")
+    standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
+    LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
+    
+    if not standard_images_list:
+        LOGGER.error("No standard images found")
+        raise ValueError("No standard images found")
+    
+    image_uri = standard_images_list[0]
     
     print(f"Environment variables:")
     print(f"  TEST_TYPE: {test_type}")
     print(f"  DLC_IMAGE: {image_uri}")
     print(f"  REGION: {os.getenv('REGION')}")
     print(f"  ACCOUNT_ID: {os.getenv('ACCOUNT_ID')}")
-    
-    if not image_uri:
-        print("ERROR: DLC_IMAGE environment variable not set")
-        return
         
     framework = get_framework_from_image_uri(image_uri)
     print(f"Detected framework: {framework}")
