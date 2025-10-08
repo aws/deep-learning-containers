@@ -36,6 +36,7 @@ RUN pip install --no-cache-dir \
 
 # Pin numpy to version required by neuronx-cc
 # Update Pillow, urllib, wandb versions to fix high and critical vulnerabilities
+# neuronx-cc has requirement networkx~=2.6
 RUN pip install -U \
 	"tensorboard>=2.11.0" \
 	"numpy>=1.24.3,<=1.25.2" \
@@ -51,16 +52,12 @@ RUN pip install -U \
 	boto3 \
 	botocore \
 	google-auth \
-	"urllib3>=1.26.17,<1.27"
+	"urllib3>=1.26.17,<1.27" \
+	"networkx==2.6.3"
 
 # pytorch-lightning has critical vulnerabilities and is not needed in the container.
 RUN rm -f /requirements.txt && \
     pip uninstall pytorch-lightning -y
-
-# We have this error from `pip check`:
-# neuronx-cc 2.16.345.0+69131dd3 has requirement networkx~=2.6, but you have networkx 3.4.2.
-# To fix that, we are downgrading networkx to 2.6.3
-RUN pip install -U "networkx==2.6.3"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
