@@ -29,7 +29,7 @@ context:
       target: sagemaker_entrypoint.sh
 
 images:
-  vllm_x86_64:
+  vllm_sm:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
