@@ -72,7 +72,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 FROM base AS vllm-sagemaker
 
-COPY sagemaker_entrypoint /usr/local/bin/sagemaker_entrypoint
+COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
