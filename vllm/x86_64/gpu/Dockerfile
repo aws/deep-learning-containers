@@ -63,14 +63,18 @@ RUN mkdir -p /tmp/nvjpeg \
 # ====================== ec2 =========================================
 FROM base as vllm-ec2 
 
+WORKDIR /
+
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN  chmod +x /usr/local/bin/dockerd_entrypoint.sh 
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # ====================== sagemaker =========================================
 
 FROM base AS vllm-sagemaker
+
+WORKDIR /
 
 COPY sagemaker-entrypoint.sh /usr/local/bin/sagemaker-entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker-entrypoint.sh
