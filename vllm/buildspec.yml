@@ -27,6 +27,9 @@ context:
     dockerd_entrypoint:
       source: vllm/build_artifacts/dockerd_entrypoint.sh
       target: dockerd_entrypoint.sh
+    sagemaker_entrypoint:
+      source: vllm/build_artifacts/sagemaker_entrypoint.sh
+      target: sagemaker_entrypoint.sh
 
 images:
   vllm_x86_64:
@@ -50,4 +53,26 @@ images:
         - sanity
         - security
         - ec2
+        - eks
+  vllm_sm:
+    <<: *BUILD_REPOSITORY
+    context:
+      <<: *BUILD_CONTEXT
+    image_size_baseline: 20000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu129
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu22.04
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sm" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sm" ]
+    docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile ]
+    target: vllm-sagemaker
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker
         - eks
