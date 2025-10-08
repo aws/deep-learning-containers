@@ -61,13 +61,13 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /usr/local/cuda/bin/nvdisasm*  
 
 # ====================== ec2 =========================================
-FROM base as vllm-ec2 
+FROM base AS vllm-ec2 
 
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-
+CMD ["/bin/bash"]
 # ====================== sagemaker =========================================
 
 FROM base AS vllm-sagemaker
@@ -76,3 +76,4 @@ COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+CMD ["/bin/bash"]
