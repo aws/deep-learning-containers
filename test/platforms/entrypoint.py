@@ -4,28 +4,8 @@ from src.config import is_new_test_structure_enabled
 from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.platforms.infra.eks.setup import EKSPlatform
-from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images
+from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images, get_buildspec_path
 from codebuild_environment import get_cloned_folder_path
-
-
-def get_buildspec_path(image_uri):
-    """
-    Determine buildspec path based on framework and architecture type
-    """
-    LOGGER.info(f"Entrypoint - Image URI: {image_uri}")
-    framework = get_framework_from_image_uri(image_uri)
-    LOGGER.info(f"Entrypoint - Framework: {framework}")
-    repo_root = get_cloned_folder_path()
-
-    if framework == "vllm":
-        if "arm64" in image_uri:
-            buildspec_path = os.path.join(repo_root, f"{framework}/buildspec-arm64.yml")
-        else:
-            buildspec_path = os.path.join(repo_root, f"{framework}/buildspec.yml")
-        return buildspec_path
-    # other frameworks do not have test_configs yet
-    else:
-        raise NotImplementedError(f"Buildspec parsing not yet implemented for {framework}")
 
 
 def resolve_buildspec_variables(config):
@@ -46,7 +26,8 @@ def parse_buildspec(image_uri):
     """
     Parse buildspec for test configurations
     """
-    buildspec_path = get_buildspec_path(image_uri)
+    repo_root = get_cloned_folder_path()
+    buildspec_path = get_buildspec_path(repo_root)
 
     if not os.path.exists(buildspec_path):
         raise FileNotFoundError(f"Buildspec file not found: {buildspec_path}")
