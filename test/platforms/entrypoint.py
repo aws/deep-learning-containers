@@ -112,7 +112,6 @@ def main():
     LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
 
     if not standard_images_list:
-        LOGGER.error("No standard images found")
         raise ValueError("No standard images found")
 
     image_uri = standard_images_list[0]

@@ -27,10 +27,10 @@ VLLM_NAMESPACE = os.getenv("NAMESPACE")
 
 REPO_ROOT = get_cloned_folder_path()
 LWS_YAML = os.path.join(
-    REPO_ROOT, "test", "platforms", "infra", "eks", "vllm", "vllm-deepseek-32b-lws.yaml"
+    REPO_ROOT, "test", "platforms", "tests", "eks", "vllm", "vllm-deepseek-32b-lws.yaml"
 )
 LWS_INGRESS_YAML = os.path.join(
-    REPO_ROOT, "test", "platforms", "infra", "eks", "vllm", "vllm-deepseek-32b-lws-ingress.yaml"
+    REPO_ROOT, "test", "platforms", "tests", "eks", "vllm", "vllm-deepseek-32b-lws-ingress.yaml"
 )
 
 
