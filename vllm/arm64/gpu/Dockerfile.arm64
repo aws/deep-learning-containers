@@ -90,7 +90,7 @@ RUN uv pip install -U build cmake ninja pybind11 setuptools==79.0.1 wheel
 RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     cd flashinfer && \
     python -c "import torch; print(torch.__version__, torch.version.cuda)" && \
-    git checkout v0.3.1 && \
+    git checkout v0.2.6.post1 && \
     export FLASHINFER_CUDA_ARCH_LIST="7.5" && \
     python -m flashinfer.aot && \
     MAX_JOBS=16 uv pip install --system --no-build-isolation . && \
@@ -124,7 +124,7 @@ RUN uv pip install ninja
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-ARG EFA_VERSION="1.43.2"
+ARG EFA_VERSION="1.43.3"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
