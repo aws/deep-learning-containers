@@ -171,20 +171,19 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
                 LOGGER.info(f"Test Configs: {docker_image.test_configs}")
 
                 # Check if new test structure is enabled
-                if is_new_test_structure_enabled():
+                if is_new_test_structure_enabled() and docker_image.tests:
                     PLATFORM_MAPPING = {
                         "ec2": "ec2",
                         "eks": "eks",
                         "sagemaker": "sagemaker",
                         "ecs": "ecs",
                     }
-                    if "tests" in docker_image.test_configs:
-                        for test in docker_image.test_configs["tests"]:
-                            platform = test["platform"]
-                            base_platform = platform.split("-")[0]
-                            if base_platform in PLATFORM_MAPPING:
-                                category = PLATFORM_MAPPING[base_platform]
-                                DLC_IMAGES[category].append(ecr_url_to_test)
+                    for test in docker_image.tests:
+                        platform = test["platform"]
+                        base_platform = platform.split("-")[0]
+                        if base_platform in PLATFORM_MAPPING:
+                            category = PLATFORM_MAPPING[base_platform]
+                            DLC_IMAGES[category].append(ecr_url_to_test)
                     continue
                 elif "test_platforms" in docker_image.test_configs:
                     test_platforms = docker_image.test_configs["test_platforms"]
