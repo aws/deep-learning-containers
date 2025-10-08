@@ -53,7 +53,8 @@ RUN pip install -U \
 	botocore \
 	google-auth \
 	"urllib3>=1.26.17,<1.27" \
-	"networkx==2.6.3"
+	"networkx==2.6.3" \
+	bokeh
 
 # pytorch-lightning has critical vulnerabilities and is not needed in the container.
 RUN rm -f /requirements.txt && \
