@@ -326,20 +326,13 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
+            "sagemaker",
             "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
             )
             return
-
-    # Skip SageMaker tests for vLLM images as they use different test structure
-    if all("vllm" in image_uri for image_uri in all_image_list) and test_type == "sagemaker":
-        LOGGER.info(
-            f"NOTE: SageMaker tests for vLLM images use different test structure. Skipping standard SageMaker tests..."
-        )
-        return
-
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
