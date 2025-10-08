@@ -302,7 +302,8 @@ def main():
             #     run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-            if test_type == "sagemaker" and config.is_sm_local_test_enabled():
+            # Skip SageMaker local tests for vLLM images as they use different test structure
+            if test_type == "sagemaker" and config.is_sm_local_test_enabled() and "vllm" not in images_str:
                 test_job = f"dlc-pr-{test_type}-local-test"
                 run_test_job(commit, test_job, images_str)
 
