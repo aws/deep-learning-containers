@@ -104,3 +104,16 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
+  9:
+    framework: "huggingface_pytorch"
+    version: "2.8.0"
+    hf_transformers: "4.56.2"
+    arch_type: "x86"
+    training:
+      device_types: ["gpu"]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
