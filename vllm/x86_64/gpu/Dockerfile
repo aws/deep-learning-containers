@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:v0.10.2 as final
+FROM docker.io/vllm/vllm-openai:v0.11.0 as base
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.2"
 LABEL maintainer="Amazon AI"
@@ -20,10 +20,8 @@ WORKDIR /
 COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
-    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
     echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
     # Install EFA
     bash install_efa.sh ${EFA_VERSION} && \
@@ -62,4 +60,19 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
     && rm -rf /usr/local/cuda/bin/nvdisasm*  
 
+# ====================== ec2 =========================================
+FROM base as vllm-ec2 
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN  chmod +x /usr/local/bin/dockerd_entrypoint.sh 
+
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+
+FROM base AS vllm-sagemaker
+
+COPY sagemaker-entrypoint.sh /usr/local/bin/sagemaker-entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker-entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker-entrypoint.sh"]

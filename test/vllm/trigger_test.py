@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def run_platform_tests(platform: str, images: List[str]):
+def run_platform_tests(platform: str, images: List[str], commit_id: str):
     """
     Run tests for a specific platform
     """
@@ -40,6 +40,31 @@ def run_platform_tests(platform: str, images: List[str]):
         except Exception as e:
             LOGGER.error(f"EKS vLLM tests failed: {str(e)}")
             raise
+    elif platform == "sagemaker":
+        LOGGER.info("Running sagemaker test")
+        try:
+            import subprocess
+
+            cmd = [
+                "python3",
+                "sagemaker/test_sm_endpoint.py",
+                "--name",
+                f"test-vllm-sm-endpoint-{commit_id}",
+                "--image-uri",
+                f"{images[0]}",
+                "--role",
+                "SageMakerRole",
+            ]
+
+            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+
+            LOGGER.info(result.stdout)
+
+        except Exception as e:
+            LOGGER.error(f"sagemaker vLLM test failed: {str(e)}")
+            if "result" in locals() and result.stderr:
+                LOGGER.error(f"Error output: {result.stderr}")
+            raise
 
 
 def test():
@@ -62,10 +87,7 @@ def test():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
 
-    run_platform_tests(
-        platform=test_type,
-        images=standard_images_list,
-    )
+    run_platform_tests(platform=test_type, images=standard_images_list, commit_id=commit_id)
 
 
 if __name__ == "__main__":
