@@ -60,8 +60,7 @@ def parse_buildspec(image_uri):
     LOGGER.info(f"Using image config: {image_key}")
     image_config = images[image_key]
 
-    test_configs = image_config.get("test_configs", {})
-    tests = test_configs.get("tests", [])
+    tests = image_config.get("tests", [])
 
     globals_data = {
         "region": BUILDSPEC.get("region"),
