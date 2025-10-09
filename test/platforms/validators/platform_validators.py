@@ -17,7 +17,16 @@ class EC2MultiNodeValidator(BasePlatformValidator):
                 errors.append("Multi-node EFA tests require node_count >= 2")
 
         except TypeError as e:
-            errors.append(f"Parameter type error: {str(e)}")
+            param_name = str(e).split("'")[1]
+            value = params.get(param_name)
+            param_types = {"instance_type": "string", "node_count": "integer"}
+            if value is None:
+                errors.append(f"Missing required parameter: {param_name}")
+            else:
+                expected_type = param_types.get(param_name, "unknown type")
+                errors.append(
+                    f"{param_name} must be a {expected_type}, got: {type(value).__name__}"
+                )
         except Exception as e:
             errors.append(f"Invalid parameters: {str(e)}")
 
@@ -34,9 +43,22 @@ class EKSValidator(BasePlatformValidator):
         params = test_config.get("params", {})
 
         try:
-            EKSConfig(cluster=params.get("cluster"), namespace=params.get("namespace"))
+            config = EKSConfig(cluster=params.get("cluster"), namespace=params.get("namespace"))
+            if config.namespace != test_config.get("globals", {}).get("framework"):
+                errors.append(
+                    f"namespace must match framework: expected '{test_config.get('globals', {}).get('framework')}', got '{config.namespace}'"
+                )
         except TypeError as e:
-            errors.append(f"Parameter type error: {str(e)}")
+            param_name = str(e).split("'")[1]
+            value = params.get(param_name)
+            param_types = {"cluster": "string", "namespace": "string"}
+            if value is None:
+                errors.append(f"Missing required parameter: {param_name}")
+            else:
+                expected_type = param_types.get(param_name, "string")
+                errors.append(
+                    f"{param_name} must be a {expected_type}, got: {type(value).__name__}"
+                )
         except Exception as e:
             errors.append(f"Invalid parameters: {str(e)}")
 
