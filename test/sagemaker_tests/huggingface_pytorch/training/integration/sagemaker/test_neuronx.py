@@ -29,8 +29,10 @@ distribution = {"torch_distributed": {"enabled": True}}
 
 # hyperparameters, which are passed into the training job
 hyperparameters = {
-    "model_name_or_path": "Qwen/Qwen3-8B",
-    "dataset_name": "imdb",
+    "model_id": "Qwen/Qwen3-8B",
+    "tensor_parallel_size": 8,
+    "gradient_accumulation_steps": 8,
+    "zero_1": True,
     "do_train": True,
     "bf16": True,
     "max_seq_length": 128,
