@@ -39,8 +39,8 @@ RUN pip install --no-cache-dir \
 # neuronx-cc has requirement networkx~=2.6
 RUN pip install -U \
 	"tensorboard>=2.11.0" \
-	"numpy<2.3.0,>=2" \
-	"numba==0.58.1" \
+	"numpy" \
+	"numba" \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
         wandb \
