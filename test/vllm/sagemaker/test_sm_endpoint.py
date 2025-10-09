@@ -29,14 +29,15 @@ def get_secret_hf_token():
 
 def deploy_endpoint(name, image_uri, role, instance_type):
     try:
-        hf_token_dict = get_secret_hf_token()
+        response = get_secret_hf_token()
+        hf_token = response.get("HF_TOKEN")
         model = Model(
             name=name,
             image_uri=image_uri,
             role=role,
             env={
                 "SM_VLLM_MODEL": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-                "SM_VLLM_HF-TOKEN": hf_token_dict.get("HF_TOKEN", ""),
+                "SM_VLLM_HF-TOKEN": hf_token,
             },
         )
 
