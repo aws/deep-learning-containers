@@ -116,6 +116,10 @@ def test_stray_files(image):
         pytest.skip(
             "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
         )
+    if "huggingface-pytorch" in image and "neuronx" in image:
+        pytest.skip(
+            "HuggingFace PyTorch images that use NeuronX do not require pip check. Skipping test."
+        )
 
     ctx = Context()
     container_name = get_container_name("test_tmp_dirs", image)
