@@ -58,11 +58,11 @@ images:
           instance_type: p4d.24xlarge
           node_count: 2
         run:
-          - bash tests/ec2/00_setup.sh
-          - bash tests/ec2/efa/testEFASanity
-          - bash tests/ec2/efa/testEFA
-          - bash tests/ec2/vllm/testVllmMultiNode.sh
-          - bash tests/ec2/99_cleanup.sh
+          - bash test/platforms/ec2/00_setup.sh
+          - bash test/platforms/ec2/efa/testEFASanity
+          - bash test/platforms/ec2/efa/testEFA
+          - bash test/platforms/ec2/vllm/testVllmMultiNode.sh
+          - bash test/platforms/ec2/99_cleanup.sh
         
       - platform: eks
         params:

@@ -1,9 +1,11 @@
 import os
 import yaml
+from typing import Dict, List
 from src.config import is_new_test_structure_enabled
 from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.platforms.infra.eks.setup import EKSPlatform
+from test.platforms.validators.platform_validator_utils import get_platform_validator
 from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images, get_buildspec_path
 from codebuild_environment import get_cloned_folder_path
 
@@ -53,6 +55,43 @@ def parse_buildspec(image_uri):
         "tests": tests,
         "globals": globals_data,
     }
+
+
+def validate_and_filter_tests(buildspec_data: Dict, test_type: str, base_path: str) -> List[Dict]:
+    applicable_tests = []
+    validation_errors = []
+
+    # Filter for applicable tests
+    all_tests = buildspec_data.get("tests", [])
+    LOGGER.info(f"Found {len(all_tests)} total test configurations")
+
+    platform_tests = [test for test in all_tests if test["platform"].startswith(test_type)]
+    LOGGER.info(f"Found {len(platform_tests)} applicable test configurations for {test_type}")
+
+    # Validate each applicable test
+    for test in platform_tests:
+        try:
+            validator = get_platform_validator(test["platform"], base_path)
+            errors = validator.validate(test)
+
+            if errors:
+                validation_errors.extend(
+                    [f"Test {test['platform']}:", *[f"  {error}" for error in errors], ""]
+                )
+            else:
+                applicable_tests.append(test)
+
+        except ValueError as e:
+            validation_errors.append(f"Test {test['platform']}: {str(e)}")
+
+    if validation_errors:
+        error_msg = "\n".join(validation_errors)
+        LOGGER.error("Test validation failed:")
+        LOGGER.error(error_msg)
+        raise ValueError("Test validation failed. See errors above.")
+
+    LOGGER.info(f"Validated {len(applicable_tests)} test configurations successfully")
+    return applicable_tests
 
 
 def execute_platform_tests(platform, test_config, buildspec_data, image_uri):
@@ -105,13 +144,15 @@ def main():
         LOGGER.info(f"ERROR: Failed to parse buildspec: {e}")
         raise
 
-    # Filter for applicable tests
-    applicable_tests = [
-        test for test in buildspec_data["tests"] if test["platform"].startswith(test_type)
-    ]
+    base_path = get_cloned_folder_path()
 
-    LOGGER.info(f"Found {len(buildspec_data['tests'])} test configurations")
-    LOGGER.info(f"Found {len(applicable_tests)} applicable test configurations for {test_type}")
+    try:
+        applicable_tests = validate_and_filter_tests(buildspec_data, test_type, base_path)
+        LOGGER.info(f"Found {len(applicable_tests)} valid test configurations for {test_type}")
+    except ValueError as e:
+        LOGGER.error("Validation failed:")
+        LOGGER.error(str(e))
+        raise SystemExit(1)
 
     for i, test_config in enumerate(applicable_tests):
         platform_name = test_config["platform"]
