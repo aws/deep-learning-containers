@@ -72,7 +72,8 @@ def validate_and_filter_tests(buildspec_data: Dict, test_type: str, base_path: s
     for test in platform_tests:
         try:
             validator = get_platform_validator(test["platform"], base_path)
-            errors = validator.validate(test)
+            test_config = {**test, "globals": buildspec_data.get("globals", {})}
+            errors = validator.validate(test_config)
 
             if errors:
                 validation_errors.extend(

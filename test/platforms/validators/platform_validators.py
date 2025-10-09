@@ -17,7 +17,15 @@ class EC2MultiNodeValidator(BasePlatformValidator):
                 errors.append("Multi-node EFA tests require node_count >= 2")
 
         except TypeError as e:
-            param_name = str(e).split("'")[1]
+            error_msg = str(e)
+            if "instance_type" in error_msg:
+                param_name = "instance_type"
+            elif "node_count" in error_msg:
+                param_name = "node_count"
+            else:
+                errors.append(f"Parameter error: {error_msg}")
+                return errors
+
             value = params.get(param_name)
             param_types = {"instance_type": "string", "node_count": "integer"}
             if value is None:
@@ -41,15 +49,25 @@ class EKSValidator(BasePlatformValidator):
     def validate(self, test_config: Dict) -> List[str]:
         errors = []
         params = test_config.get("params", {})
+        globals_data = test_config.get("globals", {})
+        framework = globals_data.get("framework", "unknown")
 
         try:
             config = EKSConfig(cluster=params.get("cluster"), namespace=params.get("namespace"))
-            if config.namespace != test_config.get("globals", {}).get("framework"):
+            if config.namespace != framework:
                 errors.append(
-                    f"namespace must match framework: expected '{test_config.get('globals', {}).get('framework')}', got '{config.namespace}'"
+                    f"namespace must match framework: expected '{framework}', got '{config.namespace}'"
                 )
         except TypeError as e:
-            param_name = str(e).split("'")[1]
+            error_msg = str(e)
+            if "cluster" in error_msg:
+                param_name = "cluster"
+            elif "namespace" in error_msg:
+                param_name = "namespace"
+            else:
+                errors.append(f"Parameter error: {error_msg}")
+                return errors
+
             value = params.get(param_name)
             param_types = {"cluster": "string", "namespace": "string"}
             if value is None:
