@@ -5,6 +5,7 @@ import boto3
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker import serializers
+from ec2.test_artifacts.test_ec2 import get_secret_hf_token
 
 # Fixed parameters
 AWS_REGION = "us-west-2"
@@ -20,6 +21,7 @@ def deploy_endpoint(name, image_uri, role, instance_type):
             role=role,
             env={
                 "SM_VLLM_MODEL": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
+                "SM_VLLM_HF-TOKEN": get_secret_hf_token(),
             },
         )
 
