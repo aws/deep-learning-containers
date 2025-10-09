@@ -6,6 +6,7 @@ from test.test_utils import get_dlc_images, is_pr_context
 from test.vllm.eks.eks_test import test_vllm_on_eks
 from test.vllm.ec2.infra.setup_ec2 import setup
 from test.vllm.ec2.test_artifacts.test_ec2 import test_vllm_on_ec2
+from test.vllm.sagemaker.test_sm_endpoint import test_vllm_on_sagemaker
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
@@ -46,27 +47,10 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str):
     elif platform == "sagemaker":
         LOGGER.info("Running sagemaker test")
         try:
-            import subprocess
-
-            cmd = [
-                "python3",
-                f"{SM_TEST}",
-                "--name",
-                f"test-vllm-sm-endpoint-{commit_id}",
-                "--image-uri",
-                f"{images[0]}",
-                "--role",
-                "SageMakerRole",
-            ]
-
-            result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-
-            LOGGER.info(result.stdout)
+            test_vllm_on_sagemaker(images[0], commit_id)
 
         except Exception as e:
             LOGGER.error(f"sagemaker vLLM test failed: {str(e)}")
-            if "result" in locals() and result.stderr:
-                LOGGER.error(f"Error output: {result.stderr}")
             raise
 
 

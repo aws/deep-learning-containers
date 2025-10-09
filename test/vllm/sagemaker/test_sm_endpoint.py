@@ -2,31 +2,14 @@ import json
 import sagemaker
 import time
 import boto3
-import argparse
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker import serializers
 
+# Fixed parameters
 AWS_REGION = "us-west-2"
 INSTANCE_TYPE = "ml.g5.12xlarge"
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Deploy and test SageMaker endpoint")
-    parser.add_argument(
-        "--name", type=str, required=True, help="Name for the endpoint, config, and model"
-    )
-    parser.add_argument(
-        "--image-uri", type=str, required=True, help="ECR image URI for the model container"
-    )
-    parser.add_argument(
-        "--role", type=str, default="SageMakerRole", help="SageMaker execution role"
-    )
-    parser.add_argument("--region", type=str, default=AWS_REGION, help="AWS region")
-    parser.add_argument(
-        "--instance-type", type=str, default=INSTANCE_TYPE, help="SageMaker instance type"
-    )
-    return parser.parse_args()
+ROLE = "SageMakerRole"
 
 
 def deploy_endpoint(name, image_uri, role, instance_type):
@@ -88,15 +71,12 @@ def delete_endpoint(endpoint_name):
     try:
         sagemaker_client = boto3.client("sagemaker", region_name=AWS_REGION)
 
-        # Delete the endpoint
         print(f"Deleting endpoint: {endpoint_name}")
         sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
 
-        # Delete the endpoint configuration
         print(f"Deleting endpoint configuration: {endpoint_name}")
         sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
 
-        # Delete the model
         print(f"Deleting model: {endpoint_name}")
         sagemaker_client.delete_model(ModelName=endpoint_name)
 
@@ -132,23 +112,21 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
     return False
 
 
-def main():
-    args = parse_args()
-
-    if not deploy_endpoint(args.name, args.image_uri, args.role, args.instance_type):
+def test_vllm_on_sagemaker(image_uri, endpoint_name):
+    if not deploy_endpoint(endpoint_name, image_uri, ROLE, INSTANCE_TYPE):
         print("Failed to deploy endpoint. Exiting.")
         return
 
-    if not wait_for_endpoint(args.name, args.region):
+    if not wait_for_endpoint(endpoint_name):
         print("Endpoint failed to become ready. Cleaning up...")
-        delete_endpoint(args.name, args.region)
+        delete_endpoint(endpoint_name)
         return
 
     test_prompt = "Write a python script to calculate square of n"
 
     print("Sending request to endpoint...")
     response = invoke_endpoint(
-        endpoint_name=args.name, prompt=test_prompt, max_tokens=2400, temperature=0.01
+        endpoint_name=endpoint_name, prompt=test_prompt, max_tokens=2400, temperature=0.01
     )
 
     if response:
@@ -159,15 +137,11 @@ def main():
             print(response)
 
         print("\nCleaning up resources...")
-        if delete_endpoint(args.name, args.region):
+        if delete_endpoint(endpoint_name):
             print("Cleanup completed successfully")
         else:
             print("Cleanup failed")
     else:
         print("No response received from the endpoint.")
         print("\nCleaning up resources due to failed inference...")
-        delete_endpoint(args.name, args.region)
-
-
-if __name__ == "__main__":
-    main()
+        delete_endpoint(endpoint_name)
