@@ -12,7 +12,7 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-SM_TEST = os.path.join("test", "vllm", "sagemaker", "test_sm_endpoint.py")
+SM_TEST = os.path.join("sagemaker", "test_sm_endpoint.py")
 
 
 def run_platform_tests(platform: str, images: List[str], commit_id: str):
