@@ -69,9 +69,8 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+ # The pytorch-training-neuronx base image comes with unneeded files for setting up apex
+ # In order to pass the sanity test in the deep-learning-containers workflow, we will remove it here
+ && rm -rf /root/apex_setup.py
 
 ENV WANDB_MODE=disabled
-
-# The pytorch-training-neuronx base image comes with unneeded files for setting up apex
-# In order to pass the sanity test in the deep-learning-containers workflow, we will remove it here
-rm -rf /root/apex_setup.py
