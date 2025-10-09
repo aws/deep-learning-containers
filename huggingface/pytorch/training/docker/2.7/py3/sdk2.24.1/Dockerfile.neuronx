@@ -39,7 +39,7 @@ RUN pip install --no-cache-dir \
 # neuronx-cc has requirement networkx~=2.6
 RUN pip install -U \
 	"tensorboard>=2.11.0" \
-	"numpy" \
+	"numpy>=1.24.3,<=1.25.2" \
 	"numba" \
 	"Pillow==10.3.0" \
 	"requests<2.32.0" \
@@ -55,7 +55,8 @@ RUN pip install -U \
 	"urllib3>=1.26.17,<1.27" \
 	"networkx==2.6.3" \
 	bokeh \
-	torchvision==0.22.0
+	torchvision==0.22.0 \
+    opencv-python<4.12.0
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
