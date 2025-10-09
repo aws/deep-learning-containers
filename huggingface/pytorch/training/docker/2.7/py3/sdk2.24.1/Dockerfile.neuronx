@@ -56,10 +56,6 @@ RUN pip install -U \
 	"networkx==2.6.3" \
 	bokeh
 
-# pytorch-lightning has critical vulnerabilities and is not needed in the container.
-RUN rm -f /requirements.txt && \
-    pip uninstall pytorch-lightning -y
-
 RUN apt-get update \
  && apt install -y --no-install-recommends \
     git-lfs \
@@ -75,3 +71,6 @@ RUN apt-get update \
 
 ENV WANDB_MODE=disabled
 
+# The pytorch-training-neuronx base image comes with unneeded files for setting up apex
+# In order to pass the sanity test in the deep-learning-containers workflow, we will remove it here
+rm -rf /root/apex_setup.py
