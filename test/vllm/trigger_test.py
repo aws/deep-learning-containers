@@ -12,6 +12,9 @@ LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
+SM_TEST = os.path.join("test", "vllm", "sagemaker", "test_sm_endpoint.py")
+
+
 def run_platform_tests(platform: str, images: List[str], commit_id: str):
     """
     Run tests for a specific platform
@@ -47,7 +50,7 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str):
 
             cmd = [
                 "python3",
-                "sagemaker/test_sm_endpoint.py",
+                f"{SM_TEST}",
                 "--name",
                 f"test-vllm-sm-endpoint-{commit_id}",
                 "--image-uri",
