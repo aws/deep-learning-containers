@@ -5,12 +5,26 @@ import boto3
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from sagemaker import serializers
-from ec2.test_artifacts.test_ec2 import get_secret_hf_token
 
 # Fixed parameters
 AWS_REGION = "us-west-2"
 INSTANCE_TYPE = "ml.g5.12xlarge"
 ROLE = "SageMakerRole"
+
+
+def get_secret_hf_token():
+    secret_name = "test/hf_token"
+    region_name = "us-west-2"
+
+    session = boto3.session.Session()
+    client = session.client(service_name="secretsmanager", region_name=region_name)
+    try:
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+    except ClientError as e:
+        raise e
+
+    response = json.loads(get_secret_value_response["SecretString"])
+    return response
 
 
 def deploy_endpoint(name, image_uri, role, instance_type):
