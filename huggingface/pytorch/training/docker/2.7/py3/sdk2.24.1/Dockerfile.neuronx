@@ -56,7 +56,7 @@ RUN pip install -U \
 	"networkx==2.6.3" \
 	bokeh \
 	torchvision==0.22.0 \
-    opencv-python<4.12.0
+    "opencv-python<4.12.0"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
