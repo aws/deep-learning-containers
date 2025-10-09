@@ -130,15 +130,10 @@ class DockerImage:
         ]
         for command in commands:
             command_responses.append(f"\n{command}")
-            # Override entrypoint for vLLM images to prevent server startup
-            if "vllm" in self.ecr_url.lower():
-                command_responses.append(
-                    bytes.decode(docker_client.containers.run(self.ecr_url, command, entrypoint=""))
-                )
-            else:
-                command_responses.append(
-                    bytes.decode(docker_client.containers.run(self.ecr_url, command))
-                )
+
+            command_responses.append(
+                bytes.decode(docker_client.containers.run(self.ecr_url, command, entrypoint=""))
+            )
         docker_client.containers.prune()
         return command_responses
 
