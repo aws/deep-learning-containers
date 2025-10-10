@@ -47,7 +47,8 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str):
     elif platform == "sagemaker":
         LOGGER.info("Running sagemaker test")
         try:
-            test_vllm_on_sagemaker(images[0], commit_id)
+            endpoint_name = f"test-sm-vllm-endpoint-{commit_id}"
+            test_vllm_on_sagemaker(images[0], endpoint_name)
 
         except Exception as e:
             LOGGER.error(f"sagemaker vLLM test failed: {str(e)}")
