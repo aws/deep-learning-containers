@@ -37,7 +37,7 @@ def deploy_endpoint(name, image_uri, role, instance_type):
             role=role,
             env={
                 "SM_VLLM_MODEL": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-                "SM_VLLM_HF-TOKEN": hf_token,
+                "SM_VLLM_HF_TOKEN": hf_token,
             },
         )
 
