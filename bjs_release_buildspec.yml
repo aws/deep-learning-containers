@@ -1,9 +1,35 @@
 version: 0.2
 
 phases:
+  install:
+    commands:
+      - echo "Installing Trivy"
+      - curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/master/contrib/install.sh | sh
+      - |
+        if [ -f ./bin/trivy ]; then
+          chmod +x ./bin/trivy
+          if command -v sudo >/dev/null 2>&1; then
+            sudo mv ./bin/trivy /usr/local/bin/trivy || true
+          else
+            mv ./bin/trivy /usr/local/bin/trivy || true
+          fi
+          if ! command -v trivy >/dev/null 2>&1; then
+            export PATH="$(pwd)/bin:${PATH}"
+          fi
+        fi
+      - echo "Trivy version: $(trivy --version 2>/dev/null || ./bin/trivy --version 2>/dev/null || true)"
   pre_build:
     commands:
       - start-dockerd
   build:
     commands:
+      - export VULN_SEVERITY=${VULN_SEVERITY:-CRITICAL}
+      - export VULN_FAIL_ON=${VULN_FAIL_ON:-true}
+      - export GENERATE_SBOM=${GENERATE_SBOM:-true}
+      - export SBOM_DIR=${SBOM_DIR:-sbom}
+      - export SKIP_VULN_SCAN=${SKIP_VULN_SCAN:-false}
       - publish_dlc_images_to_bjs
+artifacts:
+  files:
+    - sbom/*.sbom.json
+  discard-paths: no

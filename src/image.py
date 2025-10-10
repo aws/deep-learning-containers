@@ -189,6 +189,16 @@ class DockerImage:
             LOGGER.info(f"Exiting with image build status {self.build_status} without image check.")
             return self.build_status
 
+        scan_status = self._run_vulnerability_scan()
+        if scan_status != constants.SUCCESS:
+            self.build_status = scan_status
+            self.summary["status"] = constants.STATUS_MESSAGE.get(self.build_status, "Failed")
+            self.summary["end_time"] = datetime.now()
+            LOGGER.error(
+                f"Vulnerability scan failed for {self.repository}:{self.tag} with status {self.build_status}"
+            )
+            return self.build_status
+
         if not self.to_push:
             # If this image is not supposed to be pushed, in that case, we are already done
             # with building the image and do not need to conduct any further processing.
@@ -318,6 +328,64 @@ class DockerImage:
         LOGGER.info(f"{self.get_tail_logs_in_pretty_format()}")
 
         return self.build_status
+
+    def _run_vulnerability_scan(self):
+        """
+        Invoke the shared vulnerability scanning script unless explicitly skipped.
+
+        :return: int, Scan status aligned with constants.*
+        """
+
+        if os.getenv("SKIP_VULN_SCAN", "false").lower() == "true":
+            LOGGER.info(
+                f"Skipping vulnerability scan for {self.repository}:{self.tag} (SKIP_VULN_SCAN=true)"
+            )
+            return constants.SUCCESS
+
+        script_path = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__),
+                os.pardir,
+                "scripts",
+                "security",
+                "scan_image.sh",
+            )
+        )
+
+        response = [f"Starting vulnerability scan for {self.repository}:{self.tag}"]
+
+        if not os.path.exists(script_path):
+            response.append(f"Scan script not found at {script_path}")
+            self.log.append(response)
+            LOGGER.error(response[-1])
+            return constants.FAIL_VULNERABILITY_SCAN
+
+        env = os.environ.copy()
+        env.setdefault("SBOM_DIR", env.get("SBOM_DIR", "sbom"))
+        env.setdefault("VULN_SEVERITY", env.get("VULN_SEVERITY", "CRITICAL"))
+        env.setdefault("VULN_FAIL_ON", env.get("VULN_FAIL_ON", "true"))
+        env.setdefault("GENERATE_SBOM", env.get("GENERATE_SBOM", "true"))
+
+        try:
+            subprocess.run(
+                ["bash", script_path, self.ecr_url],
+                check=True,
+                env=env,
+            )
+            response.append("Vulnerability scan succeeded")
+            self.log.append(response)
+            LOGGER.info(response[-1])
+            return constants.SUCCESS
+        except subprocess.CalledProcessError as exc:
+            response.append(
+                f"Vulnerability scan failed (exit code {exc.returncode}) for {self.repository}:{self.tag}"
+            )
+        except Exception as exc:
+            response.append(f"Unexpected error during vulnerability scan: {exc}")
+
+        self.log.append(response)
+        LOGGER.error(self.get_tail_logs_in_pretty_format())
+        return constants.FAIL_VULNERABILITY_SCAN
 
     def push_image(self, tag_value=None):
         """

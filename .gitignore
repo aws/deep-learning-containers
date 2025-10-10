@@ -7,3 +7,4 @@ venv
 test/sagemaker_tests/huggingface/inference/resources/**/*[.json,.h5,.bin,.txt]
 build/
 dlc/
+sbom/
