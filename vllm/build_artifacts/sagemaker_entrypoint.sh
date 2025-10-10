@@ -17,4 +17,4 @@ while IFS='=' read -r key value; do
     fi
 done < <(env | grep "^${PREFIX}")
 
-python3 -m vllm.entrypoints.openai.api_server "${ARGS[@]}"
+exec python3 -m vllm.entrypoints.openai.api_server "${ARGS[@]}"
