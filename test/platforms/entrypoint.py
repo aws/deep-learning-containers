@@ -6,7 +6,7 @@ from src.buildspec import Buildspec
 from test.platforms.infra.ec2.setup import EC2Platform
 from test.platforms.infra.eks.setup import EKSPlatform
 from test.platforms.validators.platform_validator_utils import get_platform_validator
-from test.test_utils import LOGGER, get_framework_from_image_uri, get_dlc_images, get_buildspec_path
+from test.test_utils import LOGGER, get_dlc_images, get_buildspec_path
 from codebuild_environment import get_cloned_folder_path
 
 
@@ -135,12 +135,12 @@ def main():
         raise ValueError("No standard images found")
 
     image_uri = standard_images_list[0]
-    framework = get_framework_from_image_uri(image_uri)
-    LOGGER.info(f"Detected framework: {framework}")
 
     try:
         buildspec_data = parse_buildspec(image_uri)
         LOGGER.info(f"Buildspec parsed successfully")
+        framework = buildspec_data["globals"]["framework"]
+        LOGGER.info(f"Detected framework: {framework}")
     except Exception as e:
         LOGGER.info(f"ERROR: Failed to parse buildspec: {e}")
         raise
