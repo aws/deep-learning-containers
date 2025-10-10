@@ -161,8 +161,10 @@ def test_vllm_on_sagemaker(image_uri, endpoint_name):
 
     if not deploy_endpoint(endpoint_name, image_uri, ROLE, INSTANCE_TYPE):
         print("\n" + "=" * 80)
-        print("DEPLOYMENT FAILED - EXITING".center(80))
+        print("DEPLOYMENT FAILED - CLEANING UP".center(80))
         print("=" * 80)
+        # Cleanup any partially created resources
+        delete_endpoint(endpoint_name)
         return
 
     print("\n" + "-" * 80)
