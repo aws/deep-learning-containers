@@ -9,6 +9,7 @@
 - `SBOM_FORMAT` (default `spdx-json`): Passed to `trivy sbom -f`.
 - `SBOM_DIR` (default `sbom`): Directory where SBOM files are written.
 - `TRIVY_BIN` (optional): Override the scanner binary path if needed.
+- `DLC_VULN_POLICY` (default unset): if set to `warn`, the buildspecs export `VULN_FAIL_ON=false` so scans warn but do not fail.
 
 Invoke with a fully qualified image tag, for example:
 

@@ -41,6 +41,7 @@ phases:
       - export GENERATE_SBOM=${GENERATE_SBOM:-true}
       - export SBOM_DIR=${SBOM_DIR:-sbom}
       - export SKIP_VULN_SCAN=${SKIP_VULN_SCAN:-false}
+      - if [ "${DLC_VULN_POLICY:-}" = "warn" ]; then export VULN_FAIL_ON=false; fi
       - python src/main.py --buildspec $FRAMEWORK_BUILDSPEC_FILE --framework $FRAMEWORK
       - cp $FRAMEWORK_BUILDSPEC_FILE $HOME/framework-buildspec.yml
   post_build:

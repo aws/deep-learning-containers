@@ -28,6 +28,7 @@ phases:
       - export GENERATE_SBOM=${GENERATE_SBOM:-true}
       - export SBOM_DIR=${SBOM_DIR:-sbom}
       - export SKIP_VULN_SCAN=${SKIP_VULN_SCAN:-false}
+      - if [ "${DLC_VULN_POLICY:-}" = "warn" ]; then export VULN_FAIL_ON=false; fi
       - publish_dlc_images_to_bjs
 artifacts:
   files:
