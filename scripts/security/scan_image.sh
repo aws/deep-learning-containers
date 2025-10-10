@@ -60,7 +60,7 @@ is_true() {
 if is_true "$GENERATE_SBOM"; then
     SBOM_PATH="$SBOM_DIR/${SAFE_TAG}.sbom.json"
     echo "Generating SBOM (${SBOM_FORMAT}) at $SBOM_PATH"
-    if ! "$TRIVY_BIN" sbom -f "$SBOM_FORMAT" -o "$SBOM_PATH" "$IMAGE_TAG"; then
+    if ! "$TRIVY_BIN" image --format "$SBOM_FORMAT" -o "$SBOM_PATH" "$IMAGE_TAG"; then
         echo "error: SBOM generation failed for $IMAGE_TAG" >&2
         exit 1
     fi
