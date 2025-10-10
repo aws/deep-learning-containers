@@ -14,7 +14,6 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
-# COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 
@@ -30,7 +29,8 @@ ARG EFA_VERSION="1.43.3"
 ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
     PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
-    # Install EFA
+# Install EFA
+COPY install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} && \
     rm install_efa.sh && \
     # OSS compliance and software update
