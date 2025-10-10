@@ -19,20 +19,7 @@ COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
-
-# ====================== ec2 =========================================
-FROM base AS vllm-ec2 
-
-ARG EFA_VERSION="1.43.3"
-
-ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
-
-# Install EFA
-COPY install_efa.sh install_efa.sh
-RUN bash install_efa.sh ${EFA_VERSION} && \
-    rm install_efa.sh && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  && \
     # OSS compliance and software update
     apt-get update && \
     apt-get upgrade -y && \
@@ -54,11 +41,21 @@ RUN bash install_efa.sh ${EFA_VERSION} && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
 
+# ====================== ec2 =========================================
+FROM base AS vllm-ec2 
 
+ARG EFA_VERSION="1.43.3"
+ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+# Install EFA
+COPY install_efa.sh install_efa.sh
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
-RUN mkdir -p /tmp/nvjpeg \
+RUN bash install_efa.sh ${EFA_VERSION} && \
+    rm install_efa.sh && \
+    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
+    mkdir -p /tmp/nvjpeg \
     && cd /tmp/nvjpeg \
     && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
@@ -73,7 +70,6 @@ RUN mkdir -p /tmp/nvjpeg \
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== sagemaker =========================================
-
 FROM base AS vllm-sagemaker
 
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
