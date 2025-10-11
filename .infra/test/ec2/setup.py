@@ -23,7 +23,6 @@ class EC2Platform:
 
         if framework == "vllm":
             # vllm requires vLLM-specific setup (FSx + multi-node)
-            # from test.platforms.infra.ec2.vllm.setup import setup as vllm_setup
             LOGGER.info(f"Would call vLLM setup for image: {self.image_uri}")
         else:
             # standard EC2 setup for other frameworks

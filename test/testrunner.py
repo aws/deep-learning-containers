@@ -33,7 +33,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 from test.vllm.trigger_test import test as test_vllm
-from test.platforms.entrypoint import main as run_new_tests
+from .infra.test.entrypoint import main as run_new_tests
 
 from src.codebuild_environment import get_codebuild_project_name
 

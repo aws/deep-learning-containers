@@ -3,12 +3,11 @@ import yaml
 from typing import Dict, List
 from src.config import is_new_test_structure_enabled
 from src.buildspec import Buildspec
-from test.platforms.infra.ec2.setup import EC2Platform
-from test.platforms.infra.eks.setup import EKSPlatform
-from test.platforms.validators.platform_validator_utils import get_platform_validator
+from .infra.test.ec2.setup import EC2Platform
+from .infra.test.eks.setup import EKSPlatform
+from .infra.test.validators.platform_validator_utils import get_platform_validator
 from test.test_utils import LOGGER, get_dlc_images, get_buildspec_path
 from codebuild_environment import get_cloned_folder_path
-
 
 def resolve_buildspec_variables(config):
     """
