@@ -452,7 +452,7 @@ def main():
                         LOGGER.info(f"os.path.abspath(__file__): {os.path.abspath(__file__)}")
                         LOGGER.info(f"os.getcwd(): {os.getcwd()}")
                         
-                        project_root = os.path.dirname(__file__)
+                        project_root = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
                         LOGGER.info(f"Project root: {project_root}")
                         LOGGER.info(f"Final path trying to access: {os.path.join(project_root, '.infra', 'test', 'entrypoint.py')}")
                     else:
