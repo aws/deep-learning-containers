@@ -1,6 +1,6 @@
 from typing import List, Dict
-from .infra.test.validators.base_platform_validator import BasePlatformValidator
-from .infra.test.validators.base_platform_validator import EC2Config, EKSConfig
+from .base_platform_validator import BasePlatformValidator
+from .base_platform_validator import EC2Config, EKSConfig
 
 
 class EC2MultiNodeValidator(BasePlatformValidator):

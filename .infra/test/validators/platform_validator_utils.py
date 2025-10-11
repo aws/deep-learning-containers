@@ -1,5 +1,5 @@
-from .infra.test.validators.base_platform_validator import BasePlatformValidator
-from .infra.test.validators.platform_validators import EC2MultiNodeValidator, EKSValidator
+from .base_platform_validator import BasePlatformValidator
+from .platform_validators import EC2MultiNodeValidator, EKSValidator
 
 
 _VALIDATORS = {"ec2-multi-node": EC2MultiNodeValidator, "eks": EKSValidator}

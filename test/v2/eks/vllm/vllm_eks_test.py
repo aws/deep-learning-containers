@@ -26,9 +26,7 @@ CLUSTER_NAME = os.getenv("CLUSTER_NAME")
 VLLM_NAMESPACE = os.getenv("NAMESPACE")
 
 REPO_ROOT = get_cloned_folder_path()
-LWS_YAML = os.path.join(
-    REPO_ROOT, "test", "v2", "eks", "vllm", "vllm-deepseek-32b-lws.yaml"
-)
+LWS_YAML = os.path.join(REPO_ROOT, "test", "v2", "eks", "vllm", "vllm-deepseek-32b-lws.yaml")
 LWS_INGRESS_YAML = os.path.join(
     REPO_ROOT, "test", "v2", "eks", "vllm", "vllm-deepseek-32b-lws-ingress.yaml"
 )
