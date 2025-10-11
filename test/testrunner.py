@@ -437,26 +437,16 @@ def main():
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     if new_test_structure_enabled:
-                        # project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-                        # spec = importlib.util.spec_from_file_location(
-                        #     "entrypoint",
-                        #     os.path.join(project_root, ".infra", "test", "entrypoint.py"),
-                        # )
-                        # entrypoint_module = importlib.util.module_from_spec(spec)
-                        # spec.loader.exec_module(entrypoint_module)
-                        # run_new_tests = entrypoint_module.main
-                        # LOGGER.info("Using new buildspec-based test system")
-                        # run_new_tests()
-                        LOGGER.info("PRINT IMPORT PATH")
-                        LOGGER.info(f"__file__: {__file__}")
-                        LOGGER.info(f"os.path.abspath(__file__): {os.path.abspath(__file__)}")
-                        LOGGER.info(f"os.getcwd(): {os.getcwd()}")
-
                         project_root = os.path.dirname(os.path.dirname(os.getcwd()))
-                        LOGGER.info(f"Project root: {project_root}")
-                        LOGGER.info(
-                            f"Final path trying to access: {os.path.join(project_root, '.infra', 'test', 'entrypoint.py')}"
+                        spec = importlib.util.spec_from_file_location(
+                            "entrypoint",
+                            os.path.join(project_root, ".infra", "test", "entrypoint.py"),
                         )
+                        entrypoint_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(entrypoint_module)
+                        run_new_tests = entrypoint_module.main
+                        LOGGER.info("Using new buildspec-based test system")
+                        run_new_tests()
                     else:
                         LOGGER.info("Using legacy test system")
                         test_vllm()
