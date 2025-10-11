@@ -437,11 +437,10 @@ def main():
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
                     if new_test_structure_enabled:
+                        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
                         spec = importlib.util.spec_from_file_location(
                             "entrypoint",
-                            os.path.join(
-                                os.path.dirname(__file__), "..", ".infra", "test", "entrypoint.py"
-                            ),
+                            os.path.join(project_root, ".infra", "test", "entrypoint.py"),
                         )
                         entrypoint_module = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(entrypoint_module)
