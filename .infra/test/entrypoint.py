@@ -1,4 +1,7 @@
 import os
+import sys
+print(f"current dir: {os.getcwd()}")
+print(f"Python path: {sys.path}")
 from src.config import is_new_test_structure_enabled
 from ec2.setup import EC2Platform
 from eks.setup import EKSPlatform
