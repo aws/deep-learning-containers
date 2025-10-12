@@ -1,8 +1,8 @@
 import os
 from src.config import is_new_test_structure_enabled
-from .ec2.setup import EC2Platform
-from .eks.setup import EKSPlatform
-from .test_infra_utils import (
+from ec2.setup import EC2Platform
+from eks.setup import EKSPlatform
+from test_infra_utils import (
     create_logger,
     parse_buildspec,
     validate_and_filter_tests,
