@@ -142,7 +142,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-      public_registry: True
+      public_registry: False
   11:
     framework: "pytorch"
     version: "2.6.0"
