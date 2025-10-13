@@ -24,12 +24,12 @@ context:
     install_efa:
       source: scripts/install_efa.sh
       target: install_efa.sh
-    dockerd_entrypoint:
-      source: vllm/build_artifacts/dockerd_entrypoint.sh
-      target: dockerd_entrypoint.sh
+    sagemaker_entrypoint:
+      source: vllm/build_artifacts/sagemaker_entrypoint.sh
+      target: sagemaker_entrypoint.sh
 
 images:
-  vllm_x86_64:
+  vllm_sm:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
@@ -39,15 +39,15 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sm" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sm" ]
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile ]
-    target: vllm-ec2
+    target: vllm-sagemaker
     build: true
     enable_common_stage_build: false
     test_configs:
       test_platforms:
         - sanity
         - security
-        - ec2
+        - sagemaker
         - eks
