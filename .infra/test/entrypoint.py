@@ -1,13 +1,19 @@
 import os
-from src.config import is_new_test_structure_enabled
-from .ec2.setup import EC2Platform
-from .eks.setup import EKSPlatform
-from .test_infra_utils import (
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+
+
+from ec2.setup import EC2Platform
+from eks.setup import EKSPlatform
+from test_infra_utils import (
     create_logger,
     parse_buildspec,
     validate_and_filter_tests,
     execute_platform_tests,
 )
+from src.config import is_new_test_structure_enabled
 from test.test_utils import get_dlc_images
 from codebuild_environment import get_cloned_folder_path
 
