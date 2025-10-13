@@ -52,9 +52,35 @@ images:
         - ec2
         - eks
     tests:
+      - platform: ec2-multi-node-efa
+        params:
+          instance_type: 123
+          node_count: "2"
+        run:
+          - bash test/platforms/ec2/00_setup.sh
+
+      - platform: ec2-multi-node-efa
+        params:
+          instance_type: "p4d.24xlarge"
+          node_count: 1
+        run:
+          - bash test/platforms/ec2/00_setup.sh
+
       - platform: eks
         params:
-          cluster: dlc-vllm
-          namespace: vllm
         run:
-          - python test/v2/eks/vllm/vllm_eks_test.py
+          - python test/platforms/tests/eks/vllm/random_test.py
+
+      - platform: eks
+        params:
+          cluster: "dlc-vllm"
+          namespace: "pytorch"
+        run:
+          - python test/platforms/tests/eks/vllm/random_test.py
+
+      - platform: eks
+        params:
+          cluster: 123 
+          namespace: true
+        run:
+          - python test/platforms/tests/eks/vllm/random_test.py
