@@ -1,13 +1,16 @@
-import logging
-import sys
-import datetime
 import os
+import sys
+import logging
+import datetime
 import yaml
 from typing import Dict, List
 from src.buildspec import Buildspec
 from test.test_utils import get_buildspec_path
 from codebuild_environment import get_cloned_folder_path
-from .validators.platform_validator_utils import get_platform_validator
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(current_dir)
+from validators.platform_validator_utils import get_platform_validator
 
 
 def create_logger(name, level=logging.INFO):

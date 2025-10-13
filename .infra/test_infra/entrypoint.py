@@ -1,5 +1,8 @@
 import os
 import sys
+from src.config import is_new_test_structure_enabled
+from test.test_utils import get_dlc_images
+from codebuild_environment import get_cloned_folder_path
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(current_dir)
@@ -13,9 +16,6 @@ from test_infra_utils import (
     validate_and_filter_tests,
     execute_platform_tests,
 )
-from src.config import is_new_test_structure_enabled
-from test.test_utils import get_dlc_images
-from codebuild_environment import get_cloned_folder_path
 
 LOGGER = create_logger(__name__)
 
