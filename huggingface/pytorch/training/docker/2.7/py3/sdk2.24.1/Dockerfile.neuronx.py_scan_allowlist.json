@@ -1,0 +1,17 @@
+{
+    "76839": "[pkg: gevent] [installed: 24.10.3]",
+    "79077": "[pkg: h2] [installed: 4.2.0]",
+    "71691": "[pkg: mlflow] [installed: 3.4.0]",
+    "77740": "[pkg: protobuf] [installed: 3.20.3]",
+    "78558": "[pkg: regex] [installed: 2024.11.6]",
+    "77680": "[pkg: requests] [installed: 2.31.0]",
+    "71064": "[pkg: requests] [installed: 2.31.0]",
+    "77986": "[pkg: transformers] [installed: 4.51.0]",
+    "78153": "[pkg: transformers] [installed: 4.51.0]",
+    "79596": "[pkg: transformers] [installed: 4.51.0]",
+    "79595": "[pkg: transformers] [installed: 4.51.0]",
+    "79855": "[pkg: transformers] [installed: 4.51.0]",
+    "78688": "[pkg: transformers] [installed: 4.51.0]",
+    "77744": "[pkg: urllib3] [installed: 1.26.20]",
+    "78828": "[pkg: torch] [installed: 2.7.0]"
+}
