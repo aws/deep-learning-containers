@@ -1,6 +1,7 @@
 import os, sys
 import logging
 from typing import List
+import uuid
 
 from test.test_utils import get_dlc_images, is_pr_context
 from test.vllm.eks.eks_test import test_vllm_on_eks
@@ -16,7 +17,7 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 SM_TEST = os.path.join("sagemaker", "test_sm_endpoint.py")
 
 
-def run_platform_tests(platform: str, images: List[str], commit_id: str):
+def run_platform_tests(platform: str, images: List[str]):
     """
     Run tests for a specific platform
     """
@@ -47,7 +48,8 @@ def run_platform_tests(platform: str, images: List[str], commit_id: str):
     elif platform == "sagemaker":
         LOGGER.info("Running sagemaker test")
         try:
-            endpoint_name = f"test-sm-vllm-endpoint-{commit_id}"
+            TEST_ID = str(uuid.uuid4())
+            endpoint_name = f"test-sm-vllm-endpoint-{TEST_ID}"
             test_vllm_on_sagemaker(images[0], endpoint_name)
 
         except Exception as e:
@@ -75,7 +77,7 @@ def test():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
 
-    run_platform_tests(platform=test_type, images=standard_images_list, commit_id=commit_id)
+    run_platform_tests(platform=test_type, images=standard_images_list)
 
 
 if __name__ == "__main__":
