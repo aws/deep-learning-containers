@@ -39,11 +39,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     # create symlink for python
     ln -s /usr/bin/python3 /usr/bin/python && \
     # clean up
-    rm -rf ${HOME_DIR}/oss_compliance* && \
-    rm -rf /tmp/tmp* && \
-    rm -rf /tmp/uv* && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache | true
+    # rm -rf ${HOME_DIR}/oss_compliance* && \
+    # rm -rf /tmp/tmp* && \
+    # rm -rf /tmp/uv* && \
+    # rm -rf /var/lib/apt/lists/* && \
+    # rm -rf /root/.cache | true
 
 
 RUN bash install_efa.sh ${EFA_VERSION} && \

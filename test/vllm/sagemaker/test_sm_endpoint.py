@@ -165,7 +165,7 @@ def test_vllm_on_sagemaker(image_uri, endpoint_name):
         print("=" * 80)
         # Cleanup any partially created resources
         delete_endpoint(endpoint_name)
-        return
+        raise Exception("SageMaker endpoint deployment failed")
 
     print("\n" + "-" * 80)
     print("PHASE 2: WAITING FOR ENDPOINT READINESS".center(80))
@@ -176,7 +176,7 @@ def test_vllm_on_sagemaker(image_uri, endpoint_name):
         print("\n" + "=" * 80)
         print("ENDPOINT READINESS FAILED".center(80))
         print("=" * 80)
-        return
+        raise Exception("SageMaker endpoint failed to become ready")
 
     print("\nEndpoint is ready for inference!")
     print("\n" + "-" * 80)
@@ -216,3 +216,4 @@ def test_vllm_on_sagemaker(image_uri, endpoint_name):
         print("\n" + "=" * 80)
         print(" TEST FAILED ".center(80))
         print("=" * 80)
+        raise Exception("SageMaker endpoint inference test failed")
