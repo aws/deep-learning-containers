@@ -51,3 +51,10 @@ images:
         - security
         - ec2
         - eks
+    tests:
+      - platform: eks
+        params:
+          cluster: dlc-vllm
+          namespace: vllm
+        run:
+          - python test/v2/eks/vllm/vllm_eks_test.py

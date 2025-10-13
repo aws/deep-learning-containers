@@ -802,6 +802,10 @@ def is_security_test_enabled():
     return config.is_security_test_enabled()
 
 
+def is_new_test_structure_enabled():
+    return os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+
+
 def is_huggingface_image():
     if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
         return False

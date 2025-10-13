@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 import re
+import importlib.util
 
 from multiprocessing import Pool, Manager
 from datetime import datetime
@@ -297,6 +298,11 @@ def main():
     # Enable IPv6 testing from environment variable
     ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
+
+    # Enable new test structure path from environment variable
+    new_test_structure_enabled = os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+    os.environ["USE_NEW_TEST_STRUCTURE"] = "true" if new_test_structure_enabled else "false"
+
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -431,7 +437,20 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    test_vllm()
+                    if new_test_structure_enabled:
+                        project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+                        spec = importlib.util.spec_from_file_location(
+                            "entrypoint",
+                            os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
+                        )
+                        entrypoint_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(entrypoint_module)
+                        run_new_tests = entrypoint_module.main
+                        LOGGER.info("Using new buildspec-based test system")
+                        run_new_tests()
+                    else:
+                        LOGGER.info("Using legacy test system")
+                        test_vllm()
                     # Exit function after vLLM tests
                     return
                 except Exception as e:
