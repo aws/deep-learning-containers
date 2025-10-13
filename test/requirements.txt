@@ -21,5 +21,5 @@ lxml==5.3.1
 crochet
 tenacity
 requests
-botocore==1.37.9
+botocore==1.40.50
 s3transfer<0.12.0,>=0.11.0
