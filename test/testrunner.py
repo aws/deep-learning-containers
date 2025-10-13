@@ -332,13 +332,13 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
+            "sagemaker",
             "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
             )
             return
-
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -402,6 +402,7 @@ def main():
         "bai",
         "quick_checks",
         "release_candidate_integration",
+        "sagemaker",
     ):
         pytest_rerun_arg = "--reruns=1"
         pytest_rerun_delay_arg = "--reruns-delay=10"
@@ -420,7 +421,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2", "sagemaker"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
