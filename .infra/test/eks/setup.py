@@ -1,6 +1,6 @@
 import os
 from invoke.context import Context
-from .test_infra_utils import create_logger
+from ..test_infra_utils import create_logger
 from codebuild_environment import get_cloned_folder_path
 
 LOGGER = create_logger(__name__)
