@@ -2,11 +2,7 @@ import os
 import sys
 from invoke.context import Context
 from codebuild_environment import get_cloned_folder_path
-
-current_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(current_dir)
-
-from test_infra_utils import create_logger
+from infra.test_infra.test_infra_utils import create_logger
 
 LOGGER = create_logger(__name__)
 
