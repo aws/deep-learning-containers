@@ -440,7 +440,7 @@ def main():
                         project_root = os.path.dirname(os.path.dirname(os.getcwd()))
                         spec = importlib.util.spec_from_file_location(
                             "entrypoint",
-                            os.path.join(project_root, ".infra", "test", "entrypoint.py"),
+                            os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
                         )
                         entrypoint_module = importlib.util.module_from_spec(spec)
                         spec.loader.exec_module(entrypoint_module)
