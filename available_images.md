@@ -104,18 +104,12 @@ You can pin your version by adding the version tag to your URL as follows:
 
 Base Containers 
 ============================
-
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
-|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| CUDA 12.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/base:12.8.1-gpu-py312-cu128-ubuntu24.04-ec2        |
+Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/base
 
 
-EC2 vLLM Containers (EC2, ECS, and EKS support only)
+vLLM Containers
 ============================
-
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
-|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| vLLM 0.9 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.9-gpu-py312-ec2        |
+Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/vllm
 
 
 EC2 Framework Containers (EC2, ECS, and EKS support only)
