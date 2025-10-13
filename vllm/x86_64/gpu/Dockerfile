@@ -69,6 +69,10 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
+RUN apt-get upgrade && \
+    apt-get upgrade -y && \
+    apt-get clean
+
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
