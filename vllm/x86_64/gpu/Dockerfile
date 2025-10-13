@@ -61,6 +61,10 @@ RUN bash install_efa.sh ${EFA_VERSION} && \
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
 
+RUN apt-get upgrade && \
+    apt-get upgrade -y && \
+    apt-get clean
+
 # Install EFA
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
