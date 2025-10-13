@@ -24,11 +24,10 @@ COPY install_efa.sh install_efa.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
     echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  && \
-    # OSS compliance - install unzip only
-    apt-get install -y unzip && \
+    # OSS compliance - use Python zipfile instead of unzip
     HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
+    python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
