@@ -57,4 +57,4 @@ images:
           cluster: dlc-vllm
           namespace: vllm
         run:
-          - python test/platforms/tests/eks/vllm/vllm_eks_test.py
+          - python test/v2/eks/vllm/vllm_eks_test.py
