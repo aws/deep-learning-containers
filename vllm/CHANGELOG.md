@@ -7,6 +7,7 @@ All notable changes to vLLM Deep Learning Containers will be documented in this 
 ## [0.11.0] - 2025-10-14
 ### Added
 - SageMaker support for vLLM 0.11.0
+- NIXL 0.6.0 and LMCache 0.3.7 libraries included for faster model inference performance
 
 ### Sample ECR URI
 ```
