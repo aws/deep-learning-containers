@@ -1272,11 +1272,12 @@ def generate_ssh_keypair(ec2_client, key_name):
 def destroy_ssh_keypair(ec2_client, key_file):
     if not key_file.endswith(".pem"):
         LOGGER.error(f"Invalid key pair file name {key_file}. Unable to delete")
+        return
     run(f"rm -f {key_file}")
     key_name = os.path.basename(key_file).split(".pem")[0]
     response = ec2_client.delete_key_pair(KeyName=key_name)
     if response["Return"] == True:
-        LOGGER.info(f"Deleted {key_name}")
+        LOGGER.info(f"Deleted key pair {key_name}")
     else:
         LOGGER.error(f"Failed to delete key pair {key_name}")
 

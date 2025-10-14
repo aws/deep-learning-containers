@@ -257,16 +257,17 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_mx_train_env(resources_location)
 
 
-def delete_key_pairs(keyfile):
+def delete_key_pairs(keys_to_delete_file):
     """
     Function to delete key pairs from a file in mainline context
 
-    :param keyfile: file with all of the keys to delete
+    :param keys_to_delete_file: file with all of the keys to delete
     """
-    with open(keyfile) as key_destroy_file:
-        ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
-        for key_file in key_destroy_file:
-            LOGGER.info(f"Destroying {key_file} listed in {key_destroy_file}")
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
+    with open(keys_to_delete_file) as f:
+        for key_file in f:
+            key_file = key_file.strip()
+            LOGGER.info(f"Destroying {key_file} listed in {keys_to_delete_file}")
             destroy_ssh_keypair(ec2_client, key_file)
 
 
