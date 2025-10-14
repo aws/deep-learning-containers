@@ -54,6 +54,9 @@ def run_test_job(commit, codebuild_project, images_str=""):
     # For EC2 tests, enable IPv6 testing when config is enabled
     is_ipv6_test_enabled = config.is_ipv6_test_enabled() and "ec2" in codebuild_project
 
+    # Enable new test structure path when config is enabled
+    is_new_test_structure_enabled = config.is_new_test_structure_enabled()
+
     if config.is_deep_canary_mode_enabled():
         env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
 
@@ -108,6 +111,11 @@ def run_test_job(commit, codebuild_project, images_str=""):
             {
                 "name": "ENABLE_IPV6_TESTING",
                 "value": str(is_ipv6_test_enabled),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "USE_NEW_TEST_STRUCTURE",
+                "value": str(is_new_test_structure_enabled),
                 "type": "PLAINTEXT",
             },
             {
@@ -302,7 +310,12 @@ def main():
             #     run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
-            if test_type == "sagemaker" and config.is_sm_local_test_enabled():
+            # Skip SageMaker local tests for vLLM images as they use different test structure
+            if (
+                test_type == "sagemaker"
+                and config.is_sm_local_test_enabled()
+                and "vllm" not in images_str
+            ):
                 test_job = f"dlc-pr-{test_type}-local-test"
                 run_test_job(commit, test_job, images_str)
 

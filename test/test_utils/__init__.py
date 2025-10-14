@@ -244,7 +244,7 @@ DLC_PUBLIC_REGISTRY_ALIAS = "public.ecr.aws/deep-learning-containers"
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
 SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
-SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
+SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-west-2"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
@@ -800,6 +800,10 @@ def is_sanity_test_enabled():
 
 def is_security_test_enabled():
     return config.is_security_test_enabled()
+
+
+def is_new_test_structure_enabled():
+    return os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
 
 
 def is_huggingface_image():
