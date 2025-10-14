@@ -271,7 +271,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     plotly \
     seaborn \
     shap \
-    numpy
+    "numpy<2"
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     "sagemaker<3"
