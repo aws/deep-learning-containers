@@ -4,7 +4,7 @@ Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-co
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file. 
 
-## [0.11.0] - 2025-01-15
+## [0.11.0] - 2025-10-14
 ### Added
 - SageMaker support for vLLM 0.11.0
 
