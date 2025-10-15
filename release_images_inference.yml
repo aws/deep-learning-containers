@@ -85,19 +85,6 @@ release_images:
     framework: "huggingface_pytorch"
     version: "1.13.1"
     arch_type: "x86"
-    hf_transformers: "4.36.2"
-    inference:
-      device_types: [ "neuronx" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.16.1"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  8:
-    framework: "huggingface_pytorch"
-    version: "1.13.1"
-    arch_type: "x86"
     hf_transformers: "4.26.0"
     inference:
       device_types: [ "cpu", "gpu" ]
@@ -107,20 +94,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  9:
-    framework: "huggingface_pytorch"
-    version: "2.1.2"
-    arch_type: "x86"
-    hf_transformers: "4.43.2"
-    inference:
-      device_types: [ "neuronx" ]
-      python_versions: [ "py310" ]
-      os_version: "ubuntu20.04"
-      neuron_sdk_version: "sdk2.20.0"
-      example: False
-      disable_sm_tag: True
-      force_release: False
-  10:
+  8:
     framework: "djl"
     version: "0.32.0"
     arch_type: "x86"
@@ -133,7 +107,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  11:
+  9:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -146,7 +120,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  12:
+  10:
     framework: "huggingface_pytorch"
     version: "2.3.0"
     arch_type: "x86"
@@ -158,7 +132,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  13:
+  11:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -171,7 +145,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  14:
+  12:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -183,7 +157,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  15:
+  13:
     framework: "djl"
     version: "0.0.0.dev1"
     arch_type: "x86"
@@ -196,7 +170,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  16:
+  14:
     framework: "huggingface_pytorch"
     version: "2.6.0"
     arch_type: "x86"
@@ -210,7 +184,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
 
-  17:
+  15:
     framework: "lmi"
     version: "2.0.0"
     arch_type: "x86"
@@ -223,7 +197,7 @@ release_images:
       example: False
       disable_sm_tag: False
       force_release: False
-  18:
+  16:
     framework: "djl"
     version: "0.32.0"
     arch_type: "x86"
@@ -236,7 +210,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  19:
+  17:
     framework: "djl"
     version: "0.0.0.dev1"
     arch_type: "x86"
@@ -249,7 +223,7 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  20:
+  18:
     framework: "djl"
     version: "0.34.0"
     arch_type: "x86"
@@ -262,3 +236,16 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: True
+  19:
+    framework: "huggingface_pytorch"
+    version: "2.7.1"
+    arch_type: "x86"
+    hf_transformers: "4.51.3"
+    inference:
+      device_types: [ "neuronx" ]
+      python_versions: [ "py310" ]
+      os_version: "ubuntu22.04"
+      neuron_sdk_version: "sdk2.24.1"
+      example: False
+      disable_sm_tag: True
+      force_release: False

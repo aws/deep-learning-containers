@@ -57,7 +57,9 @@ def is_test_job_efa_dedicated():
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image or "arm64" in image:
         return "ml.c6g.2xlarge"
-    elif "neuronx" in image or "training-neuron" in image:
+    elif "training-neuronx" in image:
+        return "ml.trn1.32xlarge"
+    elif "neuronx" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"

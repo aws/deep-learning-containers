@@ -244,7 +244,7 @@ DLC_PUBLIC_REGISTRY_ALIAS = "public.ecr.aws/deep-learning-containers"
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
 SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
-SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
+SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-west-2"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
@@ -802,6 +802,10 @@ def is_security_test_enabled():
     return config.is_security_test_enabled()
 
 
+def is_new_test_structure_enabled():
+    return os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+
+
 def is_huggingface_image():
     if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
         return False
@@ -1269,11 +1273,17 @@ def generate_ssh_keypair(ec2_client, key_name):
     return key_filename
 
 
-def destroy_ssh_keypair(ec2_client, key_filename):
-    key_name = os.path.basename(key_filename).split(".pem")[0]
+def destroy_ssh_keypair(ec2_client, key_file):
+    if not key_file.endswith(".pem"):
+        LOGGER.error(f"Invalid key pair file name {key_file}. Unable to delete")
+        return
+    run(f"rm -f {key_file}")
+    key_name = os.path.basename(key_file).split(".pem")[0]
     response = ec2_client.delete_key_pair(KeyName=key_name)
-    run(f"rm -f {key_filename}")
-    return response, key_name
+    if response["Return"] == True:
+        LOGGER.info(f"Deleted key pair {key_name}")
+    else:
+        LOGGER.error(f"Failed to delete key pair {key_name}")
 
 
 def upload_tests_to_s3(testname_datetime_suffix):

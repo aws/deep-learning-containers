@@ -5,28 +5,23 @@ import logging
 import sys
 import uuid
 import boto3
-from contextlib import contextmanager
 
 
 from test import test_utils
-from test.test_utils import DEFAULT_REGION, P4DE_REGION
+from test.test_utils import DEFAULT_REGION
 import test.test_utils.ec2 as ec2_utils
 from test.vllm.ec2.utils.fsx_utils import FsxSetup
-from concurrent.futures import ThreadPoolExecutor
 
 from botocore.config import Config
 from fabric import Connection
 from botocore.exceptions import ClientError, WaiterError
 
 
-from test.test_utils import KEYS_TO_DESTROY_FILE, AL2023_BASE_DLAMI_ARM64_US_WEST_2
+from test.test_utils import AL2023_BASE_DLAMI_ARM64_US_WEST_2
 
 from test.test_utils.ec2 import (
     get_default_vpc_id,
     get_subnet_id_by_vpc,
-    get_efa_ec2_instance_type,
-    get_ec2_instance_type,
-    filter_efa_only_p4_instance_type,
 )
 
 # Constant to represent default region for boto3 commands
