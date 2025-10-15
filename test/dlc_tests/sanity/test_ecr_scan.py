@@ -343,6 +343,7 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
     allowlist_for_daily_scans = image_scan_allowlist
 
     if remove_non_patchable_vulns:
+        LOGGER.info(f"Removing non-patchable vulnerability for image: {image}")
         non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
             minimum_severity=CVESeverity[minimum_sev_threshold]
         )
@@ -417,6 +418,10 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         upload_json_to_image_data_storage_s3_bucket(
             ecr_client_for_enhanced_scanning_repo, ecr_enhanced_repo_uri, upload_list
         )
+
+    LOGGER.info(
+        f"[RemainingVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(remaining_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+    )
 
     return remaining_vulnerabilities, ecr_enhanced_repo_uri
 
