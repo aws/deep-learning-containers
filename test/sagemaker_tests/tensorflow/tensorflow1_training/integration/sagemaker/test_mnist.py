@@ -18,7 +18,7 @@ import boto3
 import pytest
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 
 from ..... import invoke_sm_helper_function
 from test.test_utils import is_pr_context, SKIP_PR_REASON

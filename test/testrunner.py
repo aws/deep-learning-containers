@@ -258,22 +258,18 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_mx_train_env(resources_location)
 
 
-def delete_key_pairs(keyfile):
+def delete_key_pairs(keys_to_delete_file):
     """
     Function to delete key pairs from a file in mainline context
 
-    :param keyfile: file with all of the keys to delete
+    :param keys_to_delete_file: file with all of the keys to delete
     """
-    try:
-        with open(keyfile) as key_destroy_file:
-            for key_file in key_destroy_file:
-                LOGGER.info(f"destroying {key_file} listed in {key_destroy_file}")
-                ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
-                if ".pem" in key_file:
-                    _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
-                    LOGGER.info(f"Deleted {keyname}")
-    except Exception as e:
-        LOGGER.error(f"Failed to delete key pair with exception: {e}")
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
+    with open(keys_to_delete_file) as f:
+        for key_file in f:
+            key_file = key_file.strip()
+            LOGGER.info(f"Destroying {key_file} listed in {keys_to_delete_file}")
+            destroy_ssh_keypair(ec2_client, key_file)
 
 
 def build_bai_docker_container():
@@ -332,7 +328,6 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
-            "sagemaker",
             "ec2",
         }:
             LOGGER.info(
@@ -402,7 +397,6 @@ def main():
         "bai",
         "quick_checks",
         "release_candidate_integration",
-        "sagemaker",
     ):
         pytest_rerun_arg = "--reruns=1"
         pytest_rerun_delay_arg = "--reruns-delay=10"
@@ -421,7 +415,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type in ["eks", "ec2", "sagemaker"] and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
