@@ -328,9 +328,15 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         and not is_generic_image()
     ):
         common_allowlist.construct_allowlist_from_file(common_allowlist_path)
+        LOGGER.info(
+            f"[ImageScan Allowlist] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(image_scan_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
+        )
         image_scan_allowlist = image_scan_allowlist + common_allowlist
         LOGGER.info(
             f"[Common Allowlist] Extracted common allowlist from {common_allowlist_path} with vulns: {common_allowlist.get_summarized_info()}"
+        )
+        LOGGER.info(
+            f"[FullImageScan Allowlist] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(image_scan_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
     remaining_vulnerabilities = ecr_image_vulnerability_list
@@ -341,60 +347,6 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
         )
     LOGGER.info(f"ECR Enhanced Scanning test completed for image: {image}")
     allowlist_for_daily_scans = image_scan_allowlist
-
-    if remove_non_patchable_vulns:
-        LOGGER.info(f"Removing non-patchable vulnerability for image: {image}")
-        non_patchable_vulnerabilities = ECREnhancedScanVulnerabilityList(
-            minimum_severity=CVESeverity[minimum_sev_threshold]
-        )
-
-        ## non_patchable_vulnerabilities is a subset of remaining_vulnerabilities that cannot be patched.
-        ## Thus, if remaining_vulnerabilities exists, we need to find the non_patchable_vulnerabilities from it.
-        if remaining_vulnerabilities:
-            non_patchable_vulnerabilities = extract_non_patchable_vulnerabilities(
-                remaining_vulnerabilities, ecr_enhanced_repo_uri
-            )
-
-        future_allowlist = generate_future_allowlist(
-            ecr_image_vulnerability_list=ecr_image_vulnerability_list,
-            image_scan_allowlist=image_scan_allowlist,
-            non_patchable_vulnerabilities=non_patchable_vulnerabilities,
-        )
-        allowlist_for_daily_scans = future_allowlist
-
-        # Note that ecr_enhanced_repo_uri will point to enhanced scan repo, thus we use image in the unique_s3 function below
-        # as we want to upload the allowlist to the location that has repo of the actual image.
-        future_allowlist_upload_path = (
-            src_utils.get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(
-                image_uri=image, file_name="future_os_scan_allowlist.json"
-            )
-        )
-        upload_tag_set = [
-            {
-                "Key": "upload_path",
-                "Value": src_utils.remove_repo_root_folder_path_from_the_given_path(
-                    given_path=image_scan_allowlist_path
-                ),
-            },
-            {"Key": "image_uri", "Value": image},
-        ]
-        src_utils.upload_data_to_pr_creation_s3_bucket(
-            upload_data=json.dumps(
-                future_allowlist.vulnerability_list, indent=4, cls=test_utils.EnhancedJSONEncoder
-            ),
-            s3_filepath=future_allowlist_upload_path,
-            tag_set=upload_tag_set,
-        )
-
-        if remaining_vulnerabilities:
-            remaining_vulnerabilities = remaining_vulnerabilities - non_patchable_vulnerabilities
-
-        LOGGER.info(
-            f"[FutureAllowlist][image_uri:{ecr_enhanced_repo_uri}] {json.dumps(future_allowlist.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
-        )
-        LOGGER.info(
-            f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
-        )
 
     def skip_upload(image):
         return "base" in image or "vllm" in image
