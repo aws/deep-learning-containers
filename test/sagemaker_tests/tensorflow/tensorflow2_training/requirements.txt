@@ -19,7 +19,6 @@ pytest-rerunfailures
 pytest-xdist
 requests
 mock
-six
 python-dateutil>=2.1,<2.8.1
 requests-mock
 # test pipemode fails for 2.x containers with module 'tensorflow' has no attribute 'train'
