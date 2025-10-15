@@ -14,6 +14,8 @@ class EKSPlatform:
         self.cluster_name = None
         self.namespace = None
         self.image_uri = None
+        self.framework = None
+        self.arch_type = None
         self.ctx = Context()
 
     def setup(self, params):
@@ -22,14 +24,15 @@ class EKSPlatform:
         """
         LOGGER.info(f"Setting up EKS platform with params: {params}")
 
-        framework = params.get("framework")
+        self.framework = params.get("framework")
+        self.arch_type = params.get("arch_type", "x86_64")
         cluster_prefix = params.get("cluster")
         self.cluster_name = f"{cluster_prefix}-{self.build_context}"
         self.namespace = params.get("namespace")
         self.image_uri = params.get("image_uri")
 
         LOGGER.info(
-            f"EKS Platform - Framework: {framework}, Cluster: {self.cluster_name}, Namespace: {self.namespace}"
+            f"EKS Platform - Framework: {self.framework}, Cluster: {self.cluster_name}, Namespace: {self.namespace}"
         )
 
     def execute_command(self, cmd):
@@ -44,6 +47,8 @@ class EKSPlatform:
                 "NAMESPACE": self.namespace,
                 "BUILD_CONTEXT": self.build_context,
                 "DLC_IMAGE": self.image_uri,
+                "ARCH_TYPE": self.arch_type,
+                "FRAMEWORK": self.framework,
             }
 
             repo_root = get_cloned_folder_path()
