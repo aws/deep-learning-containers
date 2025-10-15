@@ -283,6 +283,31 @@ def build_bai_docker_container():
         ctx.run("docker build -t bai_env_container -f Dockerfile .")
 
 
+def run_vllm_tests(test_type, all_image_list, new_test_structure_enabled):
+    """
+    Helper function to run vLLM tests for different test types
+    """
+    try:
+        LOGGER.info(f"Running vLLM {test_type.upper()} tests with image: {all_image_list[0]}")
+        if new_test_structure_enabled:
+            project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+            spec = importlib.util.spec_from_file_location(
+                "entrypoint",
+                os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
+            )
+            entrypoint_module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(entrypoint_module)
+            run_new_tests = entrypoint_module.main
+            LOGGER.info("Using new buildspec-based test system")
+            run_new_tests()
+        else:
+            LOGGER.info("Using legacy test system")
+            test_vllm()
+    except Exception as e:
+        LOGGER.error(f"vLLM {test_type.upper()} tests failed: {str(e)}")
+        raise
+
+
 def main():
     # Define constants
     start_time = datetime.now()
@@ -429,19 +454,8 @@ def main():
             framework = frameworks_in_images[0]
 
             if framework == "vllm":
-                try:
-                    LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    if new_test_structure_enabled:
-                        LOGGER.info("Using new buildspec-based test system")
-                        run_new_tests()
-                    else:
-                        LOGGER.info("Using legacy test system")
-                        test_vllm()
-                    # Exit function after vLLM tests
-                    return
-                except Exception as e:
-                    LOGGER.error(f"vLLM EKS EC2 tests failed: {str(e)}")
-                    raise
+                run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
+                return
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
@@ -542,6 +556,10 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
+        if "vllm" in dlc_images:
+            run_vllm_tests("sagemaker", all_image_list, new_test_structure_enabled)
+            return
+
         if "habana" in dlc_images:
             LOGGER.info(f"Skipping SM tests for Habana. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
@@ -596,6 +614,7 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
+            "vllm": "Skipping - there are no local mode tests for VLLM",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
