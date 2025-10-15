@@ -19,7 +19,7 @@ import pytest
 from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from packaging.version import Version
 
 from ..... import invoke_sm_helper_function
