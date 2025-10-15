@@ -52,6 +52,13 @@ images:
         - ec2
         - eks
     tests:
+      - platform: ec2-multi-node-efa
+        params:
+          instance_type: p4d.24xlarge
+          node_count: 2
+        run:
+          - python test/v2/ec2/vllm/test_ec2.py
+        
       - platform: eks
         params:
           cluster: dlc-vllm
