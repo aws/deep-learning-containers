@@ -19,7 +19,6 @@ requests_mock
 retrying==1.3.3
 sagemaker>=2,<3
 sagemaker-inference
-six
 tenacity
 toml
 torch<2.5.0
