@@ -215,6 +215,9 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
 
+# Used for referencing test scripts in the new v2 test structure
+CONTAINER_TESTS_PREFIX_V2 = os.path.join(os.sep, "test", "v2", "ec2")
+
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
 

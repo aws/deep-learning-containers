@@ -284,7 +284,7 @@ def run_single_node_test(head_conn, image_uri):
         return True
 
 
-def test_vllm_on_ec2(resources, image_uri, test_config=None):
+def test_vllm_on_ec2(resources, image_uri):
     """
     Test VLLM on EC2 instances:
     - For non-arm64: EFA testing, Single node test, and Multi-node test
@@ -293,13 +293,15 @@ def test_vllm_on_ec2(resources, image_uri, test_config=None):
     Args:
         resources: Dictionary containing instance information and FSx config
         image_uri: Docker image URI to test
-        test_config: Dictionary containing test configuration (arch_type, framework, etc.)
+    
+    Environment Variables:
+        ARCH_TYPE: Architecture type (x86_64 or arm64)
+        AWS_REGION: AWS region
+        FRAMEWORK: Framework being tested (vllm)
     """
-    # Extract arch_type from test_config, fallback to parsing from image_uri if not provided
-    if test_config and "arch_type" in test_config:
-        arch_type = test_config["arch_type"]
-    else:
-        arch_type = "arm64" if "arm64" in image_uri else "x86_64"
+    # Read arch_type from environment variable
+    import os
+    arch_type = os.getenv("ARCH_TYPE", "x86_64")
     ec2_cli = None
     fsx = None
     ec2_connections = {}

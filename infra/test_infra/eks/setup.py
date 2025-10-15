@@ -1,5 +1,4 @@
 import os
-import sys
 from invoke.context import Context
 from codebuild_environment import get_cloned_folder_path
 from infra.test_infra.test_infra_utils import create_logger
@@ -35,18 +34,24 @@ class EKSPlatform:
 
     def execute_command(self, cmd):
         """
-        Execute a test command with proper environment setup
+        Execute a test command with proper environment setup.
+        Raises exception immediately if command fails.
         """
-        env = {
-            "AWS_REGION": self.region,
-            "CLUSTER_NAME": self.cluster_name,
-            "NAMESPACE": self.namespace,
-            "BUILD_CONTEXT": self.build_context,
-            "DLC_IMAGE": self.image_uri,
-        }
+        try:
+            env = {
+                "AWS_REGION": self.region,
+                "CLUSTER_NAME": self.cluster_name,
+                "NAMESPACE": self.namespace,
+                "BUILD_CONTEXT": self.build_context,
+                "DLC_IMAGE": self.image_uri,
+            }
 
-        repo_root = get_cloned_folder_path()
+            repo_root = get_cloned_folder_path()
 
-        with self.ctx.cd(repo_root):
-            LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
-            self.ctx.run(cmd, env=env)
+            with self.ctx.cd(repo_root):
+                LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
+                self.ctx.run(cmd, env=env)
+                LOGGER.info(f"Command completed successfully: {cmd}")
+                
+        except Exception as e:
+            raise RuntimeError(f"Failed to execute command: {cmd}\nError: {str(e)}") from e

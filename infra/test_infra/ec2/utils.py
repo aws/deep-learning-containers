@@ -1,7 +1,6 @@
 import os
 import time
 import re
-import logging
 import sys
 import uuid
 import copy
