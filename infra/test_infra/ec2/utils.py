@@ -36,8 +36,10 @@ from test.test_utils import (
     login_to_ecr_registry,
     get_account_id_from_image_uri,
     UL_AMI_LIST,
+    DEFAULT_REGION,
+    P4DE_REGION,
+    BENCHMARK_RESULTS_S3_BUCKET,
 )
-from . import DEFAULT_REGION, P4DE_REGION, UL_AMI_LIST, BENCHMARK_RESULTS_S3_BUCKET
 from infra.test_infra.test_infra_utils import create_logger
 
 EC2_INSTANCE_ROLE_NAME = "ec2TestInstanceRole"
