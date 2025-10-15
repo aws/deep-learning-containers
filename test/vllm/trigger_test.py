@@ -6,13 +6,17 @@ from test.test_utils import get_dlc_images, is_pr_context
 from test.vllm.eks.eks_test import test_vllm_on_eks
 from test.vllm.ec2.infra.setup_ec2 import setup
 from test.vllm.ec2.test_artifacts.test_ec2 import test_vllm_on_ec2
+from test.vllm.sagemaker.test_sm_endpoint import test_vllm_on_sagemaker
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
-def run_platform_tests(platform: str, images: List[str]):
+SM_TEST = os.path.join("sagemaker", "test_sm_endpoint.py")
+
+
+def run_platform_tests(platform: str, images: List[str], commit_id: str):
     """
     Run tests for a specific platform
     """
@@ -40,6 +44,15 @@ def run_platform_tests(platform: str, images: List[str]):
         except Exception as e:
             LOGGER.error(f"EKS vLLM tests failed: {str(e)}")
             raise
+    elif platform == "sagemaker":
+        LOGGER.info("Running sagemaker test")
+        try:
+            endpoint_name = f"test-sm-vllm-endpoint-{commit_id}"
+            test_vllm_on_sagemaker(images[0], endpoint_name)
+
+        except Exception as e:
+            LOGGER.error(f"sagemaker vLLM test failed: {str(e)}")
+            raise
 
 
 def test():
@@ -62,10 +75,7 @@ def test():
     standard_images_list = [image_uri for image_uri in all_image_list if "example" not in image_uri]
     LOGGER.info(f"\nImages URIs:\n{standard_images_list}")
 
-    run_platform_tests(
-        platform=test_type,
-        images=standard_images_list,
-    )
+    run_platform_tests(platform=test_type, images=standard_images_list, commit_id=commit_id)
 
 
 if __name__ == "__main__":

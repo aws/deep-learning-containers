@@ -45,6 +45,7 @@ def test_developer_configuration():
     assert config.parse_dlc_developer_configs("test", "sagemaker_benchmark_tests") is False
     assert config.parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances") is False
     assert config.parse_dlc_developer_configs("test", "enable_ipv6") is False
+    assert config.parse_dlc_developer_configs("test", "use_new_test_structure") is False
     assert config.parse_dlc_developer_configs("test", "ipv6_vpc_name") == ""
     assert config.parse_dlc_developer_configs("test", "nightly_pr_test_mode") is False
     assert config.parse_dlc_developer_configs("test", "use_scheduler") is False

@@ -3,6 +3,7 @@ import os
 import sys
 import logging
 import re
+import importlib.util
 
 from multiprocessing import Pool, Manager
 from datetime import datetime
@@ -257,22 +258,18 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_mx_train_env(resources_location)
 
 
-def delete_key_pairs(keyfile):
+def delete_key_pairs(keys_to_delete_file):
     """
     Function to delete key pairs from a file in mainline context
 
-    :param keyfile: file with all of the keys to delete
+    :param keys_to_delete_file: file with all of the keys to delete
     """
-    try:
-        with open(keyfile) as key_destroy_file:
-            for key_file in key_destroy_file:
-                LOGGER.info(f"destroying {key_file} listed in {key_destroy_file}")
-                ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
-                if ".pem" in key_file:
-                    _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
-                    LOGGER.info(f"Deleted {keyname}")
-    except Exception as e:
-        LOGGER.error(f"Failed to delete key pair with exception: {e}")
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
+    with open(keys_to_delete_file) as f:
+        for key_file in f:
+            key_file = key_file.strip()
+            LOGGER.info(f"Destroying {key_file} listed in {keys_to_delete_file}")
+            destroy_ssh_keypair(ec2_client, key_file)
 
 
 def build_bai_docker_container():
@@ -297,6 +294,11 @@ def main():
     # Enable IPv6 testing from environment variable
     ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
+
+    # Enable new test structure path from environment variable
+    new_test_structure_enabled = os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+    os.environ["USE_NEW_TEST_STRUCTURE"] = "true" if new_test_structure_enabled else "false"
+
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -326,13 +328,13 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "eks",
+            "sagemaker",
             "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
             )
             return
-
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -396,6 +398,7 @@ def main():
         "bai",
         "quick_checks",
         "release_candidate_integration",
+        "sagemaker",
     ):
         pytest_rerun_arg = "--reruns=1"
         pytest_rerun_delay_arg = "--reruns-delay=10"
@@ -414,7 +417,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2", "sagemaker"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
@@ -430,7 +433,20 @@ def main():
             if framework == "vllm":
                 try:
                     LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    test_vllm()
+                    if new_test_structure_enabled:
+                        project_root = os.path.dirname(os.path.dirname(os.getcwd()))
+                        spec = importlib.util.spec_from_file_location(
+                            "entrypoint",
+                            os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
+                        )
+                        entrypoint_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(entrypoint_module)
+                        run_new_tests = entrypoint_module.main
+                        LOGGER.info("Using new buildspec-based test system")
+                        run_new_tests()
+                    else:
+                        LOGGER.info("Using legacy test system")
+                        test_vllm()
                     # Exit function after vLLM tests
                     return
                 except Exception as e:

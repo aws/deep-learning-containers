@@ -104,18 +104,12 @@ You can pin your version by adding the version tag to your URL as follows:
 
 Base Containers 
 ============================
-
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
-|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| CUDA 12.8 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/base:12.8.1-gpu-py312-cu128-ubuntu24.04-ec2        |
+Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/base
 
 
-EC2 vLLM Containers (EC2, ECS, and EKS support only)
+vLLM Containers
 ============================
-
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	| Example URL																						                                                                         |
-|-------------------|-----------|---------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| vLLM 0.9 + EFA   |General	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.9-gpu-py312-ec2        |
+Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/vllm
 
 
 EC2 Framework Containers (EC2, ECS, and EKS support only)
@@ -215,7 +209,8 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 
 | Framework                                                                                                                   | Job Type  | Accelerator | Python Version Options | Example URL                                                                               |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|-------------------------------------------------------------------------------------------|
-| DJLServing 0.33.0 with LMI Dist 15.0.0, vLLM 0.8.4, Transformers 4.51.3, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-lmi15.0.0-cu128 |
+| DJLServing 0.34.0 with vLLM 0.10.2, Transformers 4.55.2, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.34.0-lmi16.0.0-cu128 |
+| DJLServing 0.33.0 with vLLM 0.8.4, Transformers 4.51.3, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-lmi15.0.0-cu128 |
 | DJLServing 0.33.0 with TensorRT-LLM 0.21.0rc1, Transformers 4.51.3, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-tensorrtllm0.21.0-cu128 |
 | DJLServing 0.32.0 with LMI Dist 13.0.0, vLLM 0.7.1, Transformers 4.45.2, and Accelerate 1.0.1 | inference | GPU         | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.32.0-lmi14.0.0-cu126         |
 | DJLServing 0.32.0 with TensorRT-LLM 0.12.0, Transformers 4.44.2, and Accelerate 0.32.1              | inference | GPU         | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.32.0-tensorrtllm0.12.0-cu125 |

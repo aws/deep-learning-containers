@@ -79,6 +79,10 @@ def is_ipv6_test_enabled():
     return parse_dlc_developer_configs("test", "enable_ipv6")
 
 
+def is_new_test_structure_enabled():
+    return parse_dlc_developer_configs("test", "use_new_test_structure")
+
+
 def is_ecs_test_enabled():
     return parse_dlc_developer_configs("test", "ecs_tests")
 
