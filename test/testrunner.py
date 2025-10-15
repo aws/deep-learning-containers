@@ -550,6 +550,11 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
+        if "vllm" in dlc_images:
+            LOGGER.info(f"VLLM SM tests for. Images: {dlc_images}")
+            test_vllm()
+            return
+
         if "habana" in dlc_images:
             LOGGER.info(f"Skipping SM tests for Habana. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
@@ -604,6 +609,7 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
+            "vllm": "Skipping - there are no local mode tests for VLLM",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
