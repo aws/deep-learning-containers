@@ -788,6 +788,122 @@
       "status": "ACTIVE",
       "title": "CVE-2025-22035 - linux-libc-dev",
       "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: jfs: fix slab-out-of-bounds read in ea_get() During the \"size_check\" label in ea_get(), the code checks if the extended attribute list (xattr) size matches ea_size. If not, it logs \"ea_get: invalid extended attribute\" and calls print_hex_dump(). Here, EALIST_SIZE(ea_buf->xattr) returns 4110417968, which exceeds INT_MAX (2,147,483,647). Then ea_size is clamped: int size = clamp_t(int, ea_size, 0, EALIST_SIZE(ea_buf->xattr)); Although clamp_t aims to bound ea_size between 0 and 4110417968, the upper limit is treated as an int, causing an overflow above 2^31 - 1. This leads \"size\" to wrap around and become negative (-184549328). The \"size\" is then passed to print_hex_dump() (called \"len\" in print_hex_dump()), it is passed as type size_t (an unsigned type), this is then stored inside a variable called \"int remaining\", which is then assigned to \"int linelen\" which is then passed to hex_dump_to_buffer(). In print_hex_dump() the for loop, iterates t",
+      "vulnerability_id": "CVE-2025-39735",
+      "name": "CVE-2025-39735",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "216.236"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-39735.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-39735 - linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: Bluetooth: L2CAP: Fix uaf in l2cap_connect [Syzbot reported] BUG: KASAN: slab-use-after-free in l2cap_connect.constprop.0+0x10d8/0x1270 net/bluetooth/l2cap_core.c:3949 Read of size 8 at addr ffff8880241e9800 by task kworker/u9:0/54 CPU: 0 UID: 0 PID: 54 Comm: kworker/u9:0 Not tainted 6.11.0-rc6-syzkaller-00268-g788220eee30d #0 Hardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 08/06/2024 Workqueue: hci2 hci_rx_work Call Trace: <TASK> __dump_stack lib/dump_stack.c:93 [inline] dump_stack_lvl+0x116/0x1f0 lib/dump_stack.c:119 print_address_description mm/kasan/report.c:377 [inline] print_report+0xc3/0x620 mm/kasan/report.c:488 kasan_report+0xd9/0x110 mm/kasan/report.c:601 l2cap_connect.constprop.0+0x10d8/0x1270 net/bluetooth/l2cap_core.c:3949 l2cap_connect_req net/bluetooth/l2cap_core.c:4080 [inline] l2cap_bredr_sig_cmd net/bluetooth/l2cap_core.c:4772 [inline] l2cap_sig_channel net/bluetooth/l2cap_core.c:5543 [inline] ",
+      "vulnerability_id": "CVE-2024-49950",
+      "name": "CVE-2024-49950",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "216.236"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-49950.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-49950 - linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: sunrpc: fix one UAF issue caused by sunrpc kernel tcp socket BUG: KASAN: slab-use-after-free in tcp_write_timer_handler+0x156/0x3e0 Read of size 1 at addr ffff888111f322cd by task swapper/0/0 CPU: 0 UID: 0 PID: 0 Comm: swapper/0 Not tainted 6.12.0-rc4-dirty #7 Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 Call Trace: <IRQ> dump_stack_lvl+0x68/0xa0 print_address_description.constprop.0+0x2c/0x3d0 print_report+0xb4/0x270 kasan_report+0xbd/0xf0 tcp_write_timer_handler+0x156/0x3e0 tcp_write_timer+0x66/0x170 call_timer_fn+0xfb/0x1d0 __run_timers+0x3f8/0x480 run_timer_softirq+0x9b/0x100 handle_softirqs+0x153/0x390 __irq_exit_rcu+0x103/0x120 irq_exit_rcu+0xe/0x20 sysvec_apic_timer_interrupt+0x76/0x90 </IRQ> <TASK> asm_sysvec_apic_timer_interrupt+0x1a/0x20 RIP: 0010:default_idle+0xf/0x20 Code: 4c 01 c7 4c 29 c2 e9 72 ff ff ff 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 f3 0f 1e fa 66 90 0f 00 2d 33 f8 25 00 fb f4 <fa> c3 cc",
+      "vulnerability_id": "CVE-2024-53168",
+      "name": "CVE-2024-53168",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "216.236"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2024/CVE-2024-53168.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2024-53168 - linux-libc-dev",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "In the Linux kernel, the following vulnerability has been resolved: memstick: rtsx_usb_ms: Fix slab-use-after-free in rtsx_usb_ms_drv_remove This fixes the following crash: ================================================================== BUG: KASAN: slab-use-after-free in rtsx_usb_ms_poll_card+0x159/0x200 [rtsx_usb_ms] Read of size 8 at addr ffff888136335380 by task kworker/6:0/140241 CPU: 6 UID: 0 PID: 140241 Comm: kworker/6:0 Kdump: loaded Tainted: G E 6.14.0-rc6+ #1 Tainted: [E]=UNSIGNED_MODULE Hardware name: LENOVO 30FNA1V7CW/1057, BIOS S0EKT54A 07/01/2024 Workqueue: events rtsx_usb_ms_poll_card [rtsx_usb_ms] Call Trace: <TASK> dump_stack_lvl+0x51/0x70 print_address_description.constprop.0+0x27/0x320 ? rtsx_usb_ms_poll_card+0x159/0x200 [rtsx_usb_ms] print_report+0x3e/0x70 kasan_report+0xab/0xe0 ? rtsx_usb_ms_poll_card+0x159/0x200 [rtsx_usb_ms] rtsx_usb_ms_poll_card+0x159/0x200 [rtsx_usb_ms] ? __pfx_rtsx_usb_ms_poll_card+0x10/0x10 [rtsx_usb_ms] ? __pfx___schedule+0x10/0x10 ? kick_pool+0x3b/0x270 process_",
+      "vulnerability_id": "CVE-2025-22020",
+      "name": "CVE-2025-22020",
+      "package_name": "linux-libc-dev",
+      "package_details": {
+        "file_path": null,
+        "name": "linux-libc-dev",
+        "package_manager": "OS",
+        "version": "5.4.0",
+        "release": "216.236"
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://people.canonical.com/~ubuntu-security/cve/2025/CVE-2025-22020.html",
+      "source": "UBUNTU_CVE",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-22020 - linux-libc-dev",
+      "reason_to_ignore": "N/A"
     }
   ]
 }
