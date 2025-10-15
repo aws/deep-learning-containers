@@ -58,7 +58,7 @@ notify_test_failures = false
 [test]
 # Set to true to use the new test structure path for frameworks
 # Off by default (set to false)
-use_new_test_structure = true
+use_new_test_structure = true 
 
 ### On by default
 sanity_tests = true
