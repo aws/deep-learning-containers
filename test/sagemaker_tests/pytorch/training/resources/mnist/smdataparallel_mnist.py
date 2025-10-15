@@ -9,7 +9,7 @@
 from __future__ import print_function
 
 # Hack to add mnist dataset download https://github.com/pytorch/vision/issues/3497
-from six.moves import urllib
+import urllib.request
 
 opener = urllib.request.build_opener()
 opener.addheaders = [("User-agent", "Mozilla/5.0")]
