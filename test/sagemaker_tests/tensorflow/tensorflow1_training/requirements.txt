@@ -13,7 +13,6 @@ pytest-xdist
 requests==2.24
 mock
 sagemaker>=2,<3
-docker-compose
 boto3
 six==1.13.0
 python-dateutil>=2.1,<2.8.1
