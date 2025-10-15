@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 import os
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 

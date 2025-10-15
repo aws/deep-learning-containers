@@ -38,7 +38,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     mnist_dataset_download_config = """
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
-      echo "from six.moves import urllib" >> $FILE &&
+      echo "import urllib.request" >> $FILE &&
       echo "from packaging.version import Version" >> $FILE &&
       echo "opener = urllib.request.build_opener()" >> $FILE &&
       echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
