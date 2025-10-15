@@ -23,7 +23,7 @@ import gzip
 import os
 
 import numpy
-from six.moves import urllib
+import urllib.request
 
 # CVDF mirror of http://yann.lecun.com/exdb/mnist/
 SOURCE_URL = "https://storage.googleapis.com/cvdf-datasets/mnist/"
