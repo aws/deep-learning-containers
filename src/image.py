@@ -130,9 +130,8 @@ class DockerImage:
         ]
         for command in commands:
             command_responses.append(f"\n{command}")
-
             command_responses.append(
-                bytes.decode(docker_client.containers.run(self.ecr_url, command, entrypoint=""))
+                bytes.decode(docker_client.containers.run(self.ecr_url, command))
             )
         docker_client.containers.prune()
         return command_responses
