@@ -100,7 +100,7 @@ class DLCReleaseInformation:
     @property
     def image_digest(self):
         return self._image_details["imageDigest"]
-    
+
     @property
     def soci_image(self):
         if self.dlc_soci_tag is None:
