@@ -17,7 +17,7 @@ LOGGER.setLevel(logging.INFO)
 
 
 class DLCReleaseInformation:
-    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag):
+    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=None):
         if not all([dlc_account_id, dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
                 "One or multiple environment variables TARGET_ACCOUNT_ID_CLASSIC, TAG_WITH_DLC_VERSION, "
@@ -28,6 +28,7 @@ class DLCReleaseInformation:
         self.dlc_region = dlc_region
         self.dlc_repository = dlc_repository
         self.dlc_tag = dlc_tag
+        self.dlc_soci_tag = dlc_soci_tag
 
         self.container_name = self.run_container()
 
@@ -37,7 +38,8 @@ class DLCReleaseInformation:
         self.imp_packages_to_record = Buildspec()
         self.imp_packages_to_record.load(imp_package_list_path)
 
-        self._image_details = self.get_image_details_from_ecr()
+        self._image_details = self.get_image_details_from_ecr(self.dlc_tag)
+        self._soci_image_details = self.get_image_details_from_ecr(self.dlc_soci_tag)
 
     def get_boto3_ecr_client(self):
         return boto3.Session(region_name=self.dlc_region).client("ecr")
@@ -71,14 +73,16 @@ class DLCReleaseInformation:
 
         return run_stdout
 
-    def get_image_details_from_ecr(self):
+    def get_image_details_from_ecr(self, tag):
+        if tag is None:
+            return None
         _ecr = self.get_boto3_ecr_client()
 
         try:
             response = _ecr.describe_images(
                 registryId=self.dlc_account_id,
                 repositoryName=self.dlc_repository,
-                imageIds=[{"imageTag": self.dlc_tag}],
+                imageIds=[{"imageTag": tag}],
             )
         except ClientError as e:
             LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
@@ -96,6 +100,24 @@ class DLCReleaseInformation:
     @property
     def image_digest(self):
         return self._image_details["imageDigest"]
+    
+    @property
+    def soci_image(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
+
+    @property
+    def soci_image_tags(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return self._soci_image_details["imageTags"]
+
+    @property
+    def soci_image_digest(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return self._soci_image_details["imageDigest"]
 
     @property
     def bom_pip_packages(self):
