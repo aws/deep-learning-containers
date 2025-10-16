@@ -305,12 +305,12 @@ def _setup_container(connection, docker_image, container_name):
     if "vllm" in docker_image:
         connection.run(
             f"docker run --entrypoint=/bin/bash -e CUDA_HOME=/usr/local/cuda --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
-            f"{docker_all_devices_arg} -v $HOME/test_v2:/test -v /dev/shm:/dev/shm {docker_image}"
+            f"{docker_all_devices_arg} -v $HOME/test/v2:/test/v2 -v /dev/shm:/dev/shm {docker_image}"
         )
     else:
         connection.run(
             f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
-            f"{docker_all_devices_arg} -v $HOME/test_v2:/test -v /dev/shm:/dev/shm {docker_image} bash"
+            f"{docker_all_devices_arg} -v $HOME/test/v2:/test/v2 -v /dev/shm:/dev/shm {docker_image} bash"
         )
 
 

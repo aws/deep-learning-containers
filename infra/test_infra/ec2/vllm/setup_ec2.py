@@ -39,8 +39,8 @@ ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true
 
 # V2 test path constants
 V2_LOCAL_TEST_PATH = "test/v2"
-V2_INSTANCE_PATH = "$HOME/test_v2"
-V2_CONTAINER_PATH = "/test_v2"
+V2_INSTANCE_PATH = "$HOME/test/v2"
+V2_CONTAINER_PATH = "/test/v2"
 
 TEST_ID = str(uuid.uuid4())
 
