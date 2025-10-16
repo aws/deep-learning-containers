@@ -21,7 +21,7 @@ from test.v2.ec2.efa.test_efa import (
     HOSTS_FILE_LOCATION,
     EFA_INTEGRATION_TEST_CMD,
     DEFAULT_EFA_TIMEOUT,
-    get_vllm_container_name,
+    get_efa_container_name,
 )
 from test.test_utils import run_cmd_on_container
 
@@ -361,8 +361,8 @@ def test_vllm_on_ec2(resources, image_uri):
                 arch_type,
             )
 
-            # Determine the master container name - vLLM uses unique names
-            master_container_name = get_vllm_container_name("efa", arch_type, "master")
+            # Determine the master container name
+            master_container_name = get_efa_container_name("vllm", "efa", arch_type, "master")
 
             # Run EFA sanity test
             run_cmd_on_container(master_container_name, head_conn, EFA_SANITY_TEST_CMD, hide=False)

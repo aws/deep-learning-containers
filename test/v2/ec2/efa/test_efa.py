@@ -42,19 +42,25 @@ HOSTS_FILE_LOCATION = "/root/hosts"
 DEFAULT_EFA_TIMEOUT = 300
 
 
-def get_vllm_container_name(test_scenario, arch_type, node_role=None):
+def get_efa_container_name(framework, test_scenario, arch_type, node_role=None):
     """
-    Generate unique container name for vLLM v2 EC2 tests
+    Generate unique container name for EC2 EFA tests
 
     Args:
-        test_scenario: Test scenario (e.g., "efa", "single-node")
+        framework: Framework name (e.g., "vllm", "pytorch", "tensorflow")
+        test_scenario: Test scenario - "efa"
         arch_type: Architecture from buildspec (e.g., "x86_64", "arm64")
-        node_role: For multi-node: "master", "worker-0", etc. (optional)
+        node_role: For multi-node: "master", "worker-0", etc.
 
     Returns:
-        Container name like "vllm-ec2-efa-x86_64-master" or "vllm-ec2-single-node-arm64"
+        Container name like "vllm-ec2-efa-x86_64-master"
     """
-    base_name = f"vllm-ec2-{test_scenario}-{arch_type}"
+    # Try to get framework from environment variable first
+    detected_framework = os.environ.get("FRAMEWORK")
+    if not detected_framework:
+        detected_framework = framework
+    
+    base_name = f"{detected_framework}-ec2-{test_scenario}-{arch_type}"
     return f"{base_name}-{node_role}" if node_role else base_name
 
 
@@ -196,7 +202,7 @@ def _setup_multinode_efa_instances(
         # Use provided arch_type or infer from image as fallback
         if arch_type is None:
             arch_type = "arm64" if "arm64" in image else "x86_64"
-        master_container_name = get_vllm_container_name("efa", arch_type, "master")
+        master_container_name = get_efa_container_name("vllm", "efa", arch_type, "master")
     else:
         master_container_name = MASTER_CONTAINER_NAME
 
@@ -216,7 +222,7 @@ def _setup_multinode_efa_instances(
     for idx, worker_connection in enumerate(efa_ec2_connections[1:]):
         # Determine worker container name
         if "vllm" in image:
-            worker_container_name = get_vllm_container_name("efa", arch_type, f"worker-{idx}")
+            worker_container_name = get_efa_container_name("vllm", "efa", arch_type, f"worker-{idx}")
         else:
             worker_container_name = WORKER_CONTAINER_NAME
 
@@ -233,22 +239,28 @@ def _setup_multinode_efa_instances(
         build_all_reduce_perf_promises.append(promise)
 
     # Configure master node SSH client-side configurations
-    _setup_master_efa_ssh_config(master_connection)
+    _setup_master_efa_ssh_config(master_connection, master_container_name)
     # Create a hosts file that provides mpi with IP addresses and no. of GPUs in each node
     worker_instance_ids = [instance_id for instance_id, _ in efa_ec2_instances[1:]]
     _create_master_mpi_hosts_file(
-        efa_ec2_connections, worker_instance_ids, ec2_instance_type, region
+        efa_ec2_connections, worker_instance_ids, ec2_instance_type, region, master_container_name
     )
     # Obtain master node SSH public key for future use
     master_pub_key = run_cmd_on_container(
-        MASTER_CONTAINER_NAME, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
+        master_container_name, master_connection, f"cat $HOME/.ssh/{MASTER_SSH_KEY_NAME}.pub"
     ).stdout.strip("\n")
 
     # Configure worker node containers
-    for worker_connection in efa_ec2_connections[1:]:
+    for idx, worker_connection in enumerate(efa_ec2_connections[1:]):
+        # Determine worker container name
+        if "vllm" in image:
+            worker_container_name = get_efa_container_name("vllm", "efa", arch_type, f"worker-{idx}")
+        else:
+            worker_container_name = WORKER_CONTAINER_NAME
+        
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
-        _setup_worker_efa_ssh_config(worker_connection, master_pub_key)
+        _setup_worker_efa_ssh_config(worker_connection, master_pub_key, worker_container_name)
 
     # Wait for all_reduce_perf binaries to be built in all containers
     for promise in build_all_reduce_perf_promises:
@@ -302,18 +314,19 @@ def _setup_container(connection, docker_image, container_name):
         )
 
 
-def _setup_master_efa_ssh_config(connection):
+def _setup_master_efa_ssh_config(connection, master_container_name):
     """
     Set up SSH client config on master container to connect to worker
     :param connection: Fabric Connection object
+    :param master_container_name: str master container name
     """
     run_cmd_on_container(
-        MASTER_CONTAINER_NAME, connection, f"rm -rf $HOME/.ssh/{MASTER_SSH_KEY_NAME}*"
+        master_container_name, connection, f"rm -rf $HOME/.ssh/{MASTER_SSH_KEY_NAME}*"
     )
     # When running container in --network=host, the container hostname changes, requiring
     # a new SSH key to be generated.
     run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
+        master_container_name,
         connection,
         f"""ssh-keygen -t rsa -f $HOME/.ssh/{MASTER_SSH_KEY_NAME} -N "" """,
     )
@@ -327,20 +340,21 @@ def _setup_master_efa_ssh_config(connection):
         " Port 2022"
     )
     run_cmd_on_container(
-        MASTER_CONTAINER_NAME,
+        master_container_name,
         connection,
         f"""echo -e "{master_container_ssh_config}" > $HOME/.ssh/config""",
     )
-    run_cmd_on_container(MASTER_CONTAINER_NAME, connection, "chmod -R 600 $HOME/.ssh/*")
+    run_cmd_on_container(master_container_name, connection, "chmod -R 600 $HOME/.ssh/*")
 
 
-def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, instance_type, region):
+def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, instance_type, region, master_container_name):
     """
     Create MPI Hosts file that contains private IP addresses of all hosts used in training job.
     :param efa_ec2_connections: List of Fabric Connection objects [master_connection, *worker_connections]
     :param worker_instance_ids: list of str worker instance IDs
     :param instance_type: str EC2 Instance Type being used
     :param region: str region name in which test is run
+    :param master_container_name: str master container name
     """
     master_connection = efa_ec2_connections[0]
     slots = ec2_utils.get_instance_num_gpus(instance_type=instance_type)
@@ -368,11 +382,11 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             compute_counter += 1
 
         run_cmd_on_container(
-            MASTER_CONTAINER_NAME, master_connection, f"""echo "{etc_string}" > /etc/hosts"""
+            master_container_name, master_connection, f"""echo "{etc_string}" > /etc/hosts"""
         )
 
         run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
+            master_container_name,
             master_connection,
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
@@ -383,55 +397,56 @@ def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, inst
             hosts_string += f"\n{worker_ip} slots={slots} "
 
         run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
+            master_container_name,
             master_connection,
             f"""echo -e "{hosts_string}" > {HOSTS_FILE_LOCATION}""",
         )
 
 
-def _setup_worker_efa_ssh_config(connection, master_pub_key):
+def _setup_worker_efa_ssh_config(connection, master_pub_key, worker_container_name):
     """
     Set up SSH server config on worker container to allow connections from master.
     :param connection: Fabric Connection object
     :param master_pub_key: str Master node public SSH key to allow password-less SSH access
+    :param worker_container_name: str worker container name
     """
     # Force SSH Daemon to use port 2022, since port 22 is already in use by the host instance
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME, connection, """echo "Port 2022" >> /etc/ssh/sshd_config"""
+        worker_container_name, connection, """echo "Port 2022" >> /etc/ssh/sshd_config"""
     )
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME, connection, f"rm -rf $HOME/.ssh/{WORKER_SSH_KEY_NAME}*"
+        worker_container_name, connection, f"rm -rf $HOME/.ssh/{WORKER_SSH_KEY_NAME}*"
     )
     # When running container in --network=host, the container hostname changes, requiring
     # a new SSH key to be generated.
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME,
+        worker_container_name,
         connection,
         f"""ssh-keygen -t rsa -f $HOME/.ssh/{WORKER_SSH_KEY_NAME} -N "" """,
     )
     # Add both self and master public keys to authorized keys to allow password-less access to
     # this container from authorized hosts.
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME,
+        worker_container_name,
         connection,
         f"cp $HOME/.ssh/{WORKER_SSH_KEY_NAME}.pub $HOME/.ssh/authorized_keys",
     )
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME,
+        worker_container_name,
         connection,
         f"""echo "{master_pub_key}" >> $HOME/.ssh/authorized_keys""",
     )
     # Check if ssh agent is running or not, and if not, run it.
     run_cmd_on_container(
-        WORKER_CONTAINER_NAME,
+        worker_container_name,
         connection,
         f"eval `ssh-agent -s` && ssh-add $HOME/.ssh/{WORKER_SSH_KEY_NAME}",
     )
     # Start SSH service which uses configurations from /etc/ssh/sshd_config
-    run_cmd_on_container(WORKER_CONTAINER_NAME, connection, "service ssh start")
+    run_cmd_on_container(worker_container_name, connection, "service ssh start")
     # Check status of SSH service, and fail test-setup if service doesn't run correctly.
     ssh_status = run_cmd_on_container(
-        WORKER_CONTAINER_NAME, connection, "service ssh status", warn=True
+        worker_container_name, connection, "service ssh status", warn=True
     )
     if ssh_status.failed:
         raise RuntimeError("Failed to setup SSH Daemon on worker node")
