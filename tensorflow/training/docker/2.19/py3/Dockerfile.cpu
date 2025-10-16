@@ -264,7 +264,7 @@ RUN pip install --no-cache-dir -U \
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install \
-    --default-timeout=300 \ 
+    --default-timeout=300 \
     --retries 5 \
     --no-cache-dir -U \
     "tf-models-official==${TF_VERSION}.1" \
@@ -301,6 +301,9 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+
+# Remove ipykernel
+RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
 # remove tmp files
 RUN rm -rf /tmp/*
