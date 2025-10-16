@@ -290,14 +290,6 @@ def run_vllm_tests(test_type, all_image_list, new_test_structure_enabled):
     try:
         LOGGER.info(f"Running vLLM {test_type.upper()} tests with image: {all_image_list[0]}")
         if new_test_structure_enabled:
-            project_root = os.path.dirname(os.path.dirname(os.getcwd()))
-            spec = importlib.util.spec_from_file_location(
-                "entrypoint",
-                os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
-            )
-            entrypoint_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(entrypoint_module)
-            run_new_tests = entrypoint_module.main
             LOGGER.info("Using new buildspec-based test system")
             run_new_tests()
         else:
