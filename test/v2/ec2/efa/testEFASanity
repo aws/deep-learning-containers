@@ -18,7 +18,7 @@ apt-get update && apt-get install -y kmod
 lsmod | grep ib_uverbs
 
 # ensure that the security group created is configured correctly
-/test/bin/efa/efa_test.sh
+/test/v2/ec2/efa/efa_test.sh
 
 # Queries local RDMA devices
 ibv_devinfo
