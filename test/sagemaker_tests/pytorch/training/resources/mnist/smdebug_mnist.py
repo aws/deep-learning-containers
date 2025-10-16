@@ -13,7 +13,7 @@
 
 # Workaround for https://github.com/pytorch/vision/issues/1938
 from __future__ import print_function, absolute_import
-from six.moves import urllib
+import urllib.request
 
 opener = urllib.request.build_opener()
 opener.addheaders = [("User-agent", "Mozilla/5.0")]
