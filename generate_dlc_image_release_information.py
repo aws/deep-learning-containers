@@ -70,6 +70,7 @@ if __name__ == "__main__":
 
     dlc_account_id = github_publishing_metadata.get("target_account_id_classic")
     dlc_tag = github_publishing_metadata.get("tag_with_dlc_version")
+    dlc_soci_tag = github_publishing_metadata.get("tag_with_dlc_version_soci", None)
     dlc_repository = github_publishing_metadata.get("target_ecr_repository")
     dlc_release_successful = github_publishing_metadata.get("release_successful")
     dlc_region = os.getenv("REGION")
@@ -88,7 +89,7 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dlc_release_information = DLCReleaseInformation(
-        dlc_account_id, dlc_region, dlc_repository, dlc_tag
+        dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=dlc_soci_tag
     )
 
     # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information
@@ -99,9 +100,12 @@ if __name__ == "__main__":
         "imp_pip_packages": dlc_release_information.imp_pip_packages,
         "imp_apt_packages": dlc_release_information.imp_apt_packages,
         "image_digest": dlc_release_information.image_digest,
+        "soci_image_digest": dlc_release_information.soci_image_digest,
         "image_uri_with_dlc_version": dlc_release_information.image,
+        "soci_image_uri_with_dlc_version": dlc_release_information.soci_image,
         "public_registry_image_uri_with_dlc_version": public_registry_image_uri_with_dlc_version,
         "image_tags": dlc_release_information.image_tags,
+        "soci_image_tags": dlc_release_information.soci_image_tags,
         "dlc_release_successful": dlc_release_successful,
     }
 
