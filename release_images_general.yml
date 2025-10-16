@@ -84,3 +84,4 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+      enable_soci: True
