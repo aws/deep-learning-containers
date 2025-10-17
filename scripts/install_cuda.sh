@@ -166,6 +166,45 @@ function install_cuda129_stack_ul22 {
     ldconfig
 }
 
+function install_cuda130_stack_ul22 {
+    CUDNN_VERSION="9.13.0.50"
+    NCCL_VERSION="v2.27.7-1"
+    CUDA_HOME="/usr/local/cuda"
+    
+    # move cuda-compt and remove existing cuda dir from nvidia/cuda:**.*.*-base-*
+    rm -rf /usr/local/cuda-*
+    rm -rf /usr/local/cuda
+
+    # install CUDA
+    wget -q https://developer.download.nvidia.com/compute/cuda/12.9.1/local_installers/cuda_12.9.1_575.57.08_linux.run
+    chmod +x cuda_12.9.1_575.57.08_linux.run
+    ./cuda_12.9.1_575.57.08_linux.run --toolkit --silent
+    rm -f cuda_12.9.1_575.57.08_linux.run
+    ln -s /usr/local/cuda-12.9 /usr/local/cuda
+    # bring back cuda-compat
+    mv /usr/local/compat /usr/local/cuda/compat
+
+    # install cudnn
+    mkdir -p /tmp/cudnn
+    cd /tmp/cudnn
+    wget -q https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz -O cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz
+    tar xf cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive/include/* /usr/local/cuda/include/
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive/lib/* /usr/local/cuda/lib64/
+
+    # install nccl
+    mkdir -p /tmp/nccl
+    cd /tmp/nccl
+    git clone -b $NCCL_VERSION --depth 1 https://github.com/NVIDIA/nccl.git
+    cd nccl 
+    make -j src.build
+    cp -a build/include/* /usr/local/cuda/include/
+    cp -a build/lib/* /usr/local/cuda/lib64/
+
+    prune_cuda
+    ldconfig
+}
+
 # idiomatic parameter and option handling in sh
 while test $# -gt 0
 do
