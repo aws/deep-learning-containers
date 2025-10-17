@@ -57,6 +57,7 @@ IPV6_VPC_NAME = os.getenv("IPV6_VPC_NAME")
 
 LOGGER = create_logger(__name__)
 
+
 def filter_only_multi_gpu(instance_type_list):
     filtered_list = [
         instance_type

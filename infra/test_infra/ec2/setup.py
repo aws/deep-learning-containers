@@ -55,6 +55,7 @@ class EC2Platform:
             }
 
             # Check if this is a vLLM test command
+            # TODO: check if there is a better way to handle this
             if self.framework == "vllm" and "test/v2/ec2/vllm/test_ec2.py" in cmd:
                 LOGGER.info(f"Executing vLLM test via direct call: {cmd}")
                 from test.v2.ec2.vllm.test_ec2 import test_vllm_on_ec2
@@ -70,7 +71,7 @@ class EC2Platform:
                     LOGGER.info(f"Executing command from {repo_root} with EC2 environment: {cmd}")
                     self.ctx.run(cmd, env=env)
                     LOGGER.info(f"Command completed successfully: {cmd}")
-                    
+
         except Exception as e:
             raise RuntimeError(f"Failed to execute command: {cmd}\nError: {str(e)}") from e
 
@@ -84,13 +85,15 @@ class EC2Platform:
 
         if self.framework == "vllm":
             LOGGER.info("Cleaning up vLLM resources")
-            
+
             cleanup_timer = threading.Timer(
-                1000, 
-                lambda: LOGGER.warning("Cleanup timed out, some resources might need manual cleanup")
+                1000,
+                lambda: LOGGER.warning(
+                    "Cleanup timed out, some resources might need manual cleanup"
+                ),
             )
             cleanup_timer.start()
-            
+
             try:
                 from infra.test_infra.ec2.vllm.setup_ec2 import cleanup_resources
                 from infra.test_infra.ec2.vllm.fsx_utils import FsxSetup

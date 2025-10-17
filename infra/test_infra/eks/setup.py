@@ -57,6 +57,6 @@ class EKSPlatform:
                 LOGGER.info(f"Executing command from {repo_root} with EKS environment: {cmd}")
                 self.ctx.run(cmd, env=env)
                 LOGGER.info(f"Command completed successfully: {cmd}")
-                
+
         except Exception as e:
             raise RuntimeError(f"Failed to execute command: {cmd}\nError: {str(e)}") from e

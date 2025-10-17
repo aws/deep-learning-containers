@@ -292,7 +292,7 @@ def test_vllm_on_ec2(resources, image_uri):
     Args:
         resources: Dictionary containing instance information and FSx config
         image_uri: Docker image URI to test
-    
+
     Environment Variables:
         ARCH_TYPE: Architecture type (x86_64 or arm64)
         AWS_REGION: AWS region
@@ -300,6 +300,7 @@ def test_vllm_on_ec2(resources, image_uri):
     """
     # Read arch_type from environment variable
     import os
+
     arch_type = os.getenv("ARCH_TYPE", "x86_64")
     ec2_cli = None
     fsx = None
@@ -312,28 +313,47 @@ def test_vllm_on_ec2(resources, image_uri):
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
 
-        for instance_id, key_filename in resources["instances_info"]:
-            try:
-                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
-                    "Reservations"
-                ][0]["Instances"][0]
-                public_ip = instance_details.get("PublicIpAddress")
-
-                if not public_ip:
-                    raise Exception(f"No public IP found for instance {instance_id}")
-
-                connection = Connection(
-                    host=public_ip,
-                    user="ec2-user",
-                    connect_kwargs={"key_filename": key_filename},
+        # Use existing connections from resources if available, otherwise create new ones
+        if "connections" in resources and resources["connections"]:
+            print("Using existing connections from setup phase")
+            # Use connections that were created during setup_test_artifacts()
+            ec2_connections = {
+                instance_id: conn
+                for (instance_id, _), conn in zip(
+                    resources["instances_info"], resources["connections"]
                 )
+            }
+        else:
+            print("Creating new connections to instances")
+            for instance_id, key_filename in resources["instances_info"]:
+                try:
+                    instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
+                        "Reservations"
+                    ][0]["Instances"][0]
+                    public_ip = instance_details.get("PublicIpAddress")
 
-                connection.run('echo "Connection test"', hide=True)
-                ec2_connections[instance_id] = connection
-                print(f"Successfully connected to instance {instance_id}")
+                    if not public_ip:
+                        raise Exception(f"No public IP found for instance {instance_id}")
 
+                    connection = Connection(
+                        host=public_ip,
+                        user="ec2-user",
+                        connect_kwargs={"key_filename": key_filename},
+                    )
+
+                    ec2_connections[instance_id] = connection
+
+                except Exception as e:
+                    print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                    raise
+
+        # Verify all connections are working
+        for instance_id, conn in ec2_connections.items():
+            try:
+                conn.run('echo "Connection test"', hide=True)
+                print(f"Successfully verified connection to instance {instance_id}")
             except Exception as e:
-                print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                print(f"Connection test failed for instance {instance_id}: {str(e)}")
                 raise
 
         is_arm64 = "arm64" in image_uri
@@ -349,6 +369,17 @@ def test_vllm_on_ec2(resources, image_uri):
 
         elif len(ec2_connections) >= 2:
             worker_conn = ec2_connections[instance_ids[1]]
+
+            # Verify test files exist before starting containers
+            print("\n=== Verifying test files on EC2 instances ===")
+            for conn_id, conn in ec2_connections.items():
+                result = conn.run("ls -la $HOME/test/v2/ec2/efa/", warn=True)
+                if result.failed:
+                    raise Exception(
+                        f"Test files not found at $HOME/test/v2/ec2/efa/ on instance {conn_id}"
+                    )
+                print(f"Instance {conn_id} test files:")
+                print(result.stdout)
 
             print("\n=== Starting EFA Tests ===")
             _setup_multinode_efa_instances(

@@ -59,7 +59,7 @@ def get_efa_container_name(framework, test_scenario, arch_type, node_role=None):
     detected_framework = os.environ.get("FRAMEWORK")
     if not detected_framework:
         detected_framework = framework
-    
+
     base_name = f"{detected_framework}-ec2-{test_scenario}-{arch_type}"
     return f"{base_name}-{node_role}" if node_role else base_name
 
@@ -209,6 +209,16 @@ def _setup_multinode_efa_instances(
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, master_container_name)
+
+    # Verify files are visible inside container
+    print(f"Verifying files inside {master_container_name} container...")
+    run_cmd_on_container(
+        master_container_name,
+        master_connection,
+        "ls -la /test/v2/ec2/efa/",
+        hide=False,
+    )
+
     # Build all_reduce_perf binary using nccl-tests
     promise = run_cmd_on_container(
         master_container_name,
@@ -222,7 +232,9 @@ def _setup_multinode_efa_instances(
     for idx, worker_connection in enumerate(efa_ec2_connections[1:]):
         # Determine worker container name
         if "vllm" in image:
-            worker_container_name = get_efa_container_name("vllm", "efa", arch_type, f"worker-{idx}")
+            worker_container_name = get_efa_container_name(
+                "vllm", "efa", arch_type, f"worker-{idx}"
+            )
         else:
             worker_container_name = WORKER_CONTAINER_NAME
 
@@ -254,10 +266,12 @@ def _setup_multinode_efa_instances(
     for idx, worker_connection in enumerate(efa_ec2_connections[1:]):
         # Determine worker container name
         if "vllm" in image:
-            worker_container_name = get_efa_container_name("vllm", "efa", arch_type, f"worker-{idx}")
+            worker_container_name = get_efa_container_name(
+                "vllm", "efa", arch_type, f"worker-{idx}"
+            )
         else:
             worker_container_name = WORKER_CONTAINER_NAME
-        
+
         # Configure worker node SSH server-side configurations, launch SSH daemon, and allow
         # password-less SSH access from master to worker nodes.
         _setup_worker_efa_ssh_config(worker_connection, master_pub_key, worker_container_name)
@@ -347,7 +361,9 @@ def _setup_master_efa_ssh_config(connection, master_container_name):
     run_cmd_on_container(master_container_name, connection, "chmod -R 600 $HOME/.ssh/*")
 
 
-def _create_master_mpi_hosts_file(efa_ec2_connections, worker_instance_ids, instance_type, region, master_container_name):
+def _create_master_mpi_hosts_file(
+    efa_ec2_connections, worker_instance_ids, instance_type, region, master_container_name
+):
     """
     Create MPI Hosts file that contains private IP addresses of all hosts used in training job.
     :param efa_ec2_connections: List of Fabric Connection objects [master_connection, *worker_connections]
