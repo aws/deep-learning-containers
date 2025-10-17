@@ -181,7 +181,7 @@ instance_type="ml.g5.12xlarge"
 available_versions = list(image_uris.config_for_framework(triton_framework)['versions'].keys())
 image_uri = image_uris.retrieve(framework=triton_framework, region=region, instance_type=instance_type, version=available_versions[0])
 ```
-3. Available versions: `25.04`, `24.09`, `24.05`, `24.03`, `24.01`, `23.12`
+3. Available versions: `25.09`, `25.04`, `24.09`, `24.05`, `24.03`, `24.01`, `23.12`
 
 The Sagemaker Triton inference containers are built on top of the NGC containers with SageMaker support. To identify the python version and versions for other packages please refer to the corresponding official release notes for the specific version here: https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/index.html
 
