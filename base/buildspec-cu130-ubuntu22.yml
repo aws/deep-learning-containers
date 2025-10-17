@@ -32,7 +32,7 @@ context:
       target: install_efa.sh
 
 images:
-  base_x86_64_gpu_cuda129_ubuntu22:
+  base_x86_64_gpu_cuda130_ubuntu22:
     <<: *BASE_REPOSITORY
     context:
       <<: *BASE_CONTEXT
