@@ -1,4 +1,5 @@
 import os
+import threading
 from invoke.context import Context
 from codebuild_environment import get_cloned_folder_path
 from infra.test_infra.test_infra_utils import create_logger
@@ -83,6 +84,13 @@ class EC2Platform:
 
         if self.framework == "vllm":
             LOGGER.info("Cleaning up vLLM resources")
+            
+            cleanup_timer = threading.Timer(
+                1000, 
+                lambda: LOGGER.warning("Cleanup timed out, some resources might need manual cleanup")
+            )
+            cleanup_timer.start()
+            
             try:
                 from infra.test_infra.ec2.vllm.setup_ec2 import cleanup_resources
                 from infra.test_infra.ec2.vllm.fsx_utils import FsxSetup
@@ -91,10 +99,13 @@ class EC2Platform:
                 ec2_client = get_ec2_client(self.region)
                 fsx = FsxSetup(self.region)
                 cleanup_resources(ec2_client, self.resources, fsx)
+                cleanup_timer.cancel()
                 LOGGER.info("vLLM cleanup completed successfully")
             except Exception as e:
                 LOGGER.error(f"Error during vLLM cleanup: {e}")
                 raise
+            finally:
+                cleanup_timer.cancel()
         else:
             LOGGER.info("Standard EC2 cleanup not yet implemented")
 

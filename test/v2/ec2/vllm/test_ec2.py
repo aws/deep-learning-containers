@@ -1,4 +1,3 @@
-import threading
 import boto3
 import time, json
 from botocore.exceptions import ClientError
@@ -7,13 +6,13 @@ from fabric import Connection
 from infra.test_infra.ec2.utils import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
-    get_ec2_client,
     install_python_in_instance,
+    get_ec2_client,
 )
 
 from infra.test_infra.test_infra_utils import create_logger
 from infra.test_infra.ec2.vllm.fsx_utils import FsxSetup
-from infra.test_infra.ec2.vllm.setup_ec2 import cleanup_resources, TEST_ID
+from infra.test_infra.ec2.vllm.setup_ec2 import TEST_ID
 from test.v2.ec2.efa.test_efa import (
     _setup_multinode_efa_instances,
     EFA_SANITY_TEST_CMD,
@@ -407,19 +406,3 @@ def test_vllm_on_ec2(resources, image_uri):
     except Exception as e:
         print(f"Test execution failed: {str(e)}")
         raise
-
-    finally:
-        if ec2_cli and fsx:
-            cleanup_timer = threading.Timer(
-                1000, lambda: print("Cleanup timed out, some resources might need manual cleanup")
-            )
-            cleanup_timer.start()
-
-            try:
-                cleanup_resources(ec2_cli, resources, fsx)
-                cleanup_timer.cancel()
-                print("Resources cleaned up successfully")
-            except Exception as e:
-                print(f"Cleanup failed: {str(e)}")
-            finally:
-                cleanup_timer.cancel()
