@@ -36,6 +36,7 @@ SUCCESS = 0
 FAIL = 1
 NOT_BUILT = -1
 FAIL_IMAGE_SIZE_LIMIT = 2
+FAIL_VULNERABILITY_SCAN = 3
 
 # Left and right padding between text and margins in output
 PADDING = 1
@@ -52,6 +53,7 @@ STATUS_MESSAGE = {
     FAIL: "Failed",
     NOT_BUILT: "Not Built",
     FAIL_IMAGE_SIZE_LIMIT: "Build with invalid image size",
+    FAIL_VULNERABILITY_SCAN: "Build failed vulnerability scan",
 }
 
 BUILD_CONTEXT = os.environ.get("BUILD_CONTEXT", "DEV")
