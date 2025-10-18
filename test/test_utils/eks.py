@@ -13,7 +13,9 @@ import boto3
 
 from botocore.exceptions import ClientError
 from retrying import retry
-from invoke import run, Context
+
+from invoke import run
+from invoke.context import Context
 
 DEFAULT_REGION = "us-west-2"
 
