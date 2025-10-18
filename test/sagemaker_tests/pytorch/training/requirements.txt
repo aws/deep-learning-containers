@@ -5,7 +5,7 @@ protobuf
 sagemaker>=2.180.0
 coverage
 flake8==3.7.7
-Flask==1.1.1
+Flask==2.2.5
 mock==2.0.0
 # Preserve pytest caching behavior in earlier versions
 pytest<8.1
