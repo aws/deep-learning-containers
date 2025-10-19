@@ -140,6 +140,7 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     ec2_connections = {}
     master_connection = None
     worker_connection = None
+    connection_params = []
 
     for instance in instances:
         instance_id = instance["InstanceId"]
@@ -161,6 +162,14 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
             # Test connection
             connection.run('echo "Connection test"', hide=True)
             ec2_connections[instance_id] = connection
+
+            # Store connection parameters for later recreation
+            connection_params.append({
+                "instance_id": instance_id,
+                "host": public_ip,
+                "user": "ec2-user",
+                "key_filename": key_filename
+            })
 
             if not master_connection:
                 master_connection = connection
@@ -204,9 +213,8 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     finally:
         delete_s3_artifact_copy()
 
-    if worker_connection:
-        return [master_connection, worker_connection]
-    return [master_connection]
+    # Return connection parameters
+    return connection_params
 
 
 def launch_regular_instances_with_retry(
@@ -342,13 +350,13 @@ def efa_ec2_instances(
                             delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
                         raise Exception(f"Error allocating elastic IP: {str(e)}")
 
-        connections = setup_test_artifacts(ec2_client, instances, key_filename, region)
+        connection_params = setup_test_artifacts(ec2_client, instances, key_filename, region)
         return_val = {
             "instances": [
                 (instance_info["InstanceId"], key_filename) for instance_info in instances
             ],
             "elastic_ips": elastic_ip_allocation_ids,
-            "connections": connections,
+            "connection_params": connection_params,
         }
         print("Launched EFA Test instances")
         return return_val

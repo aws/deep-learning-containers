@@ -313,16 +313,22 @@ def test_vllm_on_ec2(resources, image_uri):
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
 
-        # Use existing connections from resources if available, otherwise create new ones
-        if "connections" in resources and resources["connections"]:
-            print("Using existing connections from setup phase")
-            # Use connections that were created during setup_test_artifacts()
-            ec2_connections = {
-                instance_id: conn
-                for (instance_id, _), conn in zip(
-                    resources["instances_info"], resources["connections"]
-                )
-            }
+        # Recreate connections from stored parameters if available, otherwise create new ones
+        if "connection_params" in resources and resources["connection_params"]:
+            print("Recreating connections from stored parameters")
+            # Recreate fresh Connection objects from parameters stored during setup_test_artifacts()
+            for params in resources["connection_params"]:
+                try:
+                    connection = Connection(
+                        host=params["host"],
+                        user=params["user"],
+                        connect_kwargs={"key_filename": params["key_filename"]},
+                    )
+                    ec2_connections[params["instance_id"]] = connection
+                    print(f"Recreated connection to instance {params['instance_id']}")
+                except Exception as e:
+                    print(f"Failed to recreate connection to instance {params['instance_id']}: {str(e)}")
+                    raise
         else:
             print("Creating new connections to instances")
             for instance_id, key_filename in resources["instances_info"]:
