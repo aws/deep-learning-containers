@@ -92,10 +92,10 @@ def wait_for_container_ready(connection, container_name, timeout: int = 1000) ->
                 """
                 result = connection.run(curl_cmd, hide=False)
                 if result.ok:
-                    print("Model endpoint is responding")
-                    print("\n=== Complete vLLM Server Log ===")
+                    LOGGER.info("Model endpoint is responding")
+                    LOGGER.info("\n=== Complete vLLM Server Log ===")
                     connection.run(f"docker exec {container_name} cat vllm.log", hide=False)
-                    print("=== End of Log ===\n")
+                    LOGGER.info("=== End of Log ===\n")
                     model_ready = True
                     return True
             except Exception:
@@ -106,7 +106,7 @@ def wait_for_container_ready(connection, container_name, timeout: int = 1000) ->
 def setup_docker_image(conn, image_uri):
     account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(conn, account_id, DEFAULT_REGION)
-    print(f"Pulling image: {image_uri}")
+    LOGGER.info(f"Pulling image: {image_uri}")
     conn.run(f"docker pull {image_uri}", hide="out")
 
 
@@ -135,7 +135,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_ip = worker_connection.run("hostname -i").stdout.strip()
 
         container_name = "ray_head-" + TEST_ID
-        print("Starting head node...")
+        LOGGER.info("Starting head node...")
         head_connection.run(
             f"./head_node_setup.sh {image_uri} {hf_token} {head_ip} {container_name}"
         )
@@ -154,11 +154,11 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
         )
 
-        print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
+        LOGGER.info("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
 
-        print("Running benchmark...")
+        LOGGER.info("Running benchmark...")
         benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
 
@@ -182,19 +182,19 @@ def verify_gpu_setup(connection):
         # Check nvidia-smi
         result = connection.run("nvidia-smi", hide=True)
         if result.failed:
-            print("nvidia-smi check failed")
+            LOGGER.info("nvidia-smi check failed")
             return False
 
         # Check CUDA availability
         cuda_check = connection.run("nvidia-smi -L", hide=True)
         if cuda_check.failed or "GPU" not in cuda_check.stdout:
-            print("No GPUs found")
+            LOGGER.info("No GPUs found")
             return False
 
         return True
 
     except Exception as e:
-        print(f"GPU verification failed: {str(e)}")
+        LOGGER.info(f"GPU verification failed: {str(e)}")
         return False
 
 
@@ -206,7 +206,7 @@ def cleanup_containers(connection):
         connection: Fabric connection object
     """
     try:
-        print("Cleaning up containers and images...")
+        LOGGER.info("Cleaning up containers and images...")
         commands = [
             "docker ps -aq | xargs -r docker stop",
             "docker ps -aq | xargs -r docker rm",
@@ -214,7 +214,7 @@ def cleanup_containers(connection):
         for cmd in commands:
             connection.run(cmd, hide=True, warn=True)
     except Exception as e:
-        print(f"Cleanup warning: {str(e)}")
+        LOGGER.error(f"Cleanup warning: {str(e)}")
 
 
 def run_multi_node_test(head_conn, worker_conn, image_uri):
@@ -227,7 +227,7 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
         image_uri: ECR image URI
     """
 
-    print("\n=== Starting Multi-Node Test ===")
+    LOGGER.info("\n=== Starting Multi-Node Test ===")
     verification_tasks = [(head_conn, "head"), (worker_conn, "worker")]
     for conn, node_type in verification_tasks:
         if not verify_gpu_setup(conn):
@@ -235,7 +235,7 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
 
     result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
     if result.ok:
-        print("Multi-node test completed successfully")
+        LOGGER.info("Multi-node test completed successfully")
         return True
     return False
 
@@ -275,11 +275,11 @@ def run_single_node_test(head_conn, image_uri):
         )
 
     except Exception as e:
-        print(f"Test execution failed: {str(e)}")
+        LOGGER.error(f"Test execution failed: {str(e)}")
         raise
 
     if result.ok:
-        print("Single-node test completed successfully")
+        LOGGER.info("Single-node test completed successfully")
         return True
 
 
@@ -315,7 +315,7 @@ def test_vllm_on_ec2(resources, image_uri):
 
         # Recreate connections from stored parameters if available, otherwise create new ones
         if "connection_params" in resources and resources["connection_params"]:
-            print("Recreating connections from stored parameters")
+            LOGGER.info("Recreating connections from stored parameters")
             # Recreate fresh Connection objects from parameters stored during setup_test_artifacts()
             for params in resources["connection_params"]:
                 try:
@@ -325,12 +325,12 @@ def test_vllm_on_ec2(resources, image_uri):
                         connect_kwargs={"key_filename": params["key_filename"]},
                     )
                     ec2_connections[params["instance_id"]] = connection
-                    print(f"Recreated connection to instance {params['instance_id']}")
+                    LOGGER.info(f"Recreated connection to instance {params['instance_id']}")
                 except Exception as e:
-                    print(f"Failed to recreate connection to instance {params['instance_id']}: {str(e)}")
+                    LOGGER.error(f"Failed to recreate connection to instance {params['instance_id']}: {str(e)}")
                     raise
         else:
-            print("Creating new connections to instances")
+            LOGGER.info("Creating new connections to instances")
             for instance_id, key_filename in resources["instances_info"]:
                 try:
                     instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
@@ -350,16 +350,16 @@ def test_vllm_on_ec2(resources, image_uri):
                     ec2_connections[instance_id] = connection
 
                 except Exception as e:
-                    print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                    LOGGER.error(f"Failed to connect to instance {instance_id}: {str(e)}")
                     raise
 
         # Verify all connections are working
         for instance_id, conn in ec2_connections.items():
             try:
                 conn.run('echo "Connection test"', hide=True)
-                print(f"Successfully verified connection to instance {instance_id}")
+                LOGGER.info(f"Successfully verified connection to instance {instance_id}")
             except Exception as e:
-                print(f"Connection test failed for instance {instance_id}: {str(e)}")
+                LOGGER.error(f"Connection test failed for instance {instance_id}: {str(e)}")
                 raise
 
         is_arm64 = "arm64" in image_uri
@@ -367,27 +367,16 @@ def test_vllm_on_ec2(resources, image_uri):
         head_conn = ec2_connections[instance_ids[0]]
 
         if is_arm64:
-            print("\n=== Starting ARM64 Single Node Test ===")
+            LOGGER.info("\n=== Starting ARM64 Single Node Test ===")
             test_results["single_node"] = run_single_node_test(head_conn, image_uri)
-            print(
+            LOGGER.info(
                 f"ARM64 Single node test: {'Passed' if test_results['single_node'] else 'Failed'}"
             )
 
         elif len(ec2_connections) >= 2:
             worker_conn = ec2_connections[instance_ids[1]]
 
-            # Verify test files exist before starting containers
-            print("\n=== Verifying test files on EC2 instances ===")
-            for conn_id, conn in ec2_connections.items():
-                result = conn.run("ls -la $HOME/test/v2/ec2/efa/", warn=True)
-                if result.failed:
-                    raise Exception(
-                        f"Test files not found at $HOME/test/v2/ec2/efa/ on instance {conn_id}"
-                    )
-                print(f"Instance {conn_id} test files:")
-                print(result.stdout)
-
-            print("\n=== Starting EFA Tests ===")
+            LOGGER.info("\n=== Starting EFA Tests ===")
             _setup_multinode_efa_instances(
                 image_uri,
                 resources["instances_info"][:2],
@@ -417,22 +406,22 @@ def test_vllm_on_ec2(resources, image_uri):
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
 
-            print("EFA tests completed successfully")
+            LOGGER.info("EFA tests completed successfully")
 
             # Run multi-node test
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
         else:
-            print("\nSkipping multi-node test: insufficient instances")
+            LOGGER.info("\nSkipping multi-node test: insufficient instances")
 
-        print("\n=== Test Summary ===")
+        LOGGER.info("\n=== Test Summary ===")
         for test_name, result in test_results.items():
             if result is not None:
-                print(
+                LOGGER.info(
                     f"{test_name.replace('_', ' ').title()} test: {'Passed' if result else 'Failed'}"
                 )
             else:
-                print(f"{test_name.replace('_', ' ').title()} test: Not Run")
+                LOGGER.info(f"{test_name.replace('_', ' ').title()} test: Not Run")
 
         if is_arm64:
             if not test_results["single_node"]:
@@ -441,5 +430,5 @@ def test_vllm_on_ec2(resources, image_uri):
             raise Exception("All tests failed")
 
     except Exception as e:
-        print(f"Test execution failed: {str(e)}")
+        LOGGER.error(f"Test execution failed: {str(e)}")
         raise

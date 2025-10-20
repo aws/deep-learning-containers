@@ -72,7 +72,7 @@ class FsxSetup:
                 f" --output text"
             ).stdout.strip()
 
-            print(f"Deleted FSx filesystem: {fsx_id}")
+            LOGGER.info(f"Deleted FSx filesystem: {fsx_id}")
 
         except Exception as e:
             LOGGER.error(f"Failed to create FSx filesystem: {e}")
@@ -85,7 +85,7 @@ class FsxSetup:
         : return: dictionary containing filesystem details (filesystem_id, dns_name, mount_name)
         : raises: Exception if filesystem enters FAILED, DELETING, or DELETED state
         """
-        print(f"Waiting for FSx filesystem {filesystem_id} to be available...")
+        LOGGER.info(f"Waiting for FSx filesystem {filesystem_id} to be available...")
         while True:
             status = run(
                 f"aws fsx describe-file-systems --file-system-id {filesystem_id} "
@@ -97,7 +97,7 @@ class FsxSetup:
             elif status in ["FAILED", "DELETING", "DELETED"]:
                 raise Exception(f"FSx filesystem entered {status} state")
 
-            print(f"FSx status: {status}, waiting...")
+            LOGGER.info(f"FSx status: {status}, waiting...")
             time.sleep(30)
 
         # get fs DNS and mount name
@@ -130,12 +130,12 @@ class FsxSetup:
                 VpcId=vpc_id,
             )
             sg_id = response["GroupId"]
-            print(f"Created security group: {sg_id}")
+            LOGGER.info(f"Created security group: {sg_id}")
 
             return sg_id
 
         except ClientError as e:
-            print(f"An error occurred: {e}")
+            LOGGER.info(f"An error occurred: {e}")
             return None
 
     def add_ingress_rules_sg(self, ec2_cli, sg_id, instance_ids):
@@ -173,12 +173,12 @@ class FsxSetup:
                     }
                 ],
             )
-            print(
+            LOGGER.info(
                 f"Added inbound rules to FSx security group {sg_id} for instance security groups: {instance_sg_ids}"
             )
 
         except Exception as e:
-            print(f"Error adding ingress rules: {str(e)}")
+            LOGGER.info(f"Error adding ingress rules: {str(e)}")
             raise
 
     def delete_security_group(self, ec2_cli, group_id: str):
@@ -195,7 +195,7 @@ class FsxSetup:
                 GroupId=group_id,
             )
             sg_id = response["GroupId"]
-            print(f"Deleted security group: {sg_id}")
+            LOGGER.info(f"Deleted security group: {sg_id}")
 
         except Exception as e:
             LOGGER.error(f"Failed to delete security group: {e}")

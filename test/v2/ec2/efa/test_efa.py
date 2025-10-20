@@ -214,15 +214,15 @@ def _setup_multinode_efa_instances(
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, master_container_name)
-
-    # Verify files are visible inside container
-    print(f"Verifying files inside {master_container_name} container...")
-    run_cmd_on_container(
-        master_container_name,
-        master_connection,
-        "ls -la /test/v2/ec2/efa/",
-        hide=False,
-    )
+    
+    # Uncomment to verify container file structure in case of path issues
+    # LOGGER.info(f"Verifying files inside {master_container_name} container")
+    # run_cmd_on_container(
+    #     master_container_name,
+    #     master_connection,
+    #     "ls -la /test/v2/ec2/efa/",
+    #     hide=False,
+    # )
 
     # Build all_reduce_perf binary using nccl-tests
     promise = run_cmd_on_container(

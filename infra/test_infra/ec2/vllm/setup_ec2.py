@@ -176,10 +176,10 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
             else:
                 worker_connection = connection
 
-            print(f"Successfully connected to instance {instance_id}")
+            LOGGER.info(f"Successfully connected to instance {instance_id}")
 
         except Exception as e:
-            print(f"Failed to connect to instance {instance_id}: {str(e)}")
+            LOGGER.error(f"Failed to connect to instance {instance_id}: {str(e)}")
             raise
 
     artifact_folder = f"vllm-{TEST_ID}-folder"
@@ -195,13 +195,7 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
             master_connection.run(
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
-            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
-            
-            # Debug: check dir structure
-            print("=== DEBUG: Master instance dir structure ===")
-            print(f"Contents of {INSTANCE_TEST_BASE_PATH}/v2/:")
-            master_connection.run(f"ls -la {INSTANCE_TEST_BASE_PATH}/v2/")
-            print("=== END DEBUG ===\n")
+            LOGGER.info(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
             
             master_connection.run(
                 f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
@@ -212,13 +206,7 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
             worker_connection.run(
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
-            print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
-            
-            # Debug: Check directory structure
-            print("=== DEBUG: Worker instance directory structure ===")
-            print(f"Contents of {INSTANCE_TEST_BASE_PATH}/v2/:")
-            worker_connection.run(f"ls -la {INSTANCE_TEST_BASE_PATH}/v2/")
-            print("=== END DEBUG ===\n")
+            LOGGER.info(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
             
             worker_connection.run(
                 f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
@@ -277,7 +265,7 @@ def efa_ec2_instances(
 
     try:
         ec2_key_name = f"{ec2_key_name}-{TEST_ID}"
-        print(f"Creating instance: CI-CD {ec2_key_name}")
+        LOGGER.info(f"Creating instance: CI-CD {ec2_key_name}")
         key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
         volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
@@ -329,7 +317,7 @@ def efa_ec2_instances(
         check_system_state(
             master_instance_id, system_status="ok", instance_status="ok", region=region
         )
-        print(f"Master instance {master_instance_id} is ready")
+        LOGGER.info(f"Master instance {master_instance_id} is ready")
         create_name_tags_for_instance(master_instance_id, f"{instance_name_prefix}_master", region)
         if is_efa:
             for i in range(1, len(instances)):
@@ -341,13 +329,13 @@ def efa_ec2_instances(
                 check_system_state(
                     worker_instance_id, system_status="ok", instance_status="ok", region=region
                 )
-                print(f"Worker instance {worker_instance_id} is ready")
+                LOGGER.info(f"Worker instance {worker_instance_id} is ready")
 
             num_efa_interfaces = get_num_efa_interfaces_for_instance_type(
                 ec2_instance_type, region=region
             )
 
-            print(num_efa_interfaces)
+            LOGGER.info(num_efa_interfaces)
 
             if num_efa_interfaces > 1:
                 for instance in instances:
@@ -372,17 +360,17 @@ def efa_ec2_instances(
             "elastic_ips": elastic_ip_allocation_ids,
             "connection_params": connection_params,
         }
-        print("Launched EFA Test instances")
+        LOGGER.info("Launched EFA Test instances")
         return return_val
 
     except Exception as e:
-        print(f"Error in efa_ec2_instances: {str(e)}")
+        LOGGER.error(f"Error in efa_ec2_instances: {str(e)}")
         # Clean up elastic IPs
         if elastic_ip_allocation_ids:
             try:
                 delete_elastic_ips(elastic_ip_allocation_ids, ec2_client)
             except Exception as cleanup_error:
-                print(f"Error cleaning up elastic IPs: {str(cleanup_error)}")
+                LOGGER.error(f"Error cleaning up elastic IPs: {str(cleanup_error)}")
 
         # Clean up instances
         if instances:
@@ -393,7 +381,7 @@ def efa_ec2_instances(
                 waiter = ec2_client.get_waiter("instance_terminated")
                 waiter.wait(InstanceIds=instance_ids)
             except Exception as cleanup_error:
-                print(f"Error terminating instances: {str(cleanup_error)}")
+                LOGGER.error(f"Error terminating instances: {str(cleanup_error)}")
 
         # Clean up key pair
         if key_filename:
@@ -403,7 +391,7 @@ def efa_ec2_instances(
                 if os.path.exists(f"{key_filename}.pub"):
                     os.remove(f"{key_filename}.pub")
             except Exception as cleanup_error:
-                print(f"Error cleaning up key files: {str(cleanup_error)}")
+                LOGGER.error(f"Error cleaning up key files: {str(cleanup_error)}")
 
         raise
 
@@ -437,13 +425,13 @@ def cleanup_resources(ec2_cli, resources, fsx):
             waiter.wait(InstanceIds=instance_ids, WaiterConfig={"Delay": 60, "MaxAttempts": 100})
             return True
         except WaiterError as e:
-            print(f"Warning: Instance termination waiter timed out: {str(e)}")
+            LOGGER.error(f"Warning: Instance termination waiter timed out: {str(e)}")
             return False
 
     if resources.get("elastic_ips"):
         try:
             delete_elastic_ips(resources["elastic_ips"], ec2_cli)
-            print(f"Deleted elastic IPs: {resources['elastic_ips']}")
+            LOGGER.error(f"Deleted elastic IPs: {resources['elastic_ips']}")
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup Elastic IPs: {str(e)}")
 
@@ -451,7 +439,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
         try:
             instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
             ec2_cli.terminate_instances(InstanceIds=instance_ids)
-            print(f"Terminating instances: {instance_ids}")
+            LOGGER.info(f"Terminating instances: {instance_ids}")
 
             if not wait_for_instances(instance_ids):
                 cleanup_errors.append("Instances did not terminate within expected timeframe")
@@ -472,7 +460,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
     if resources.get("fsx_config"):
         try:
             fsx.delete_fsx_filesystem(resources["fsx_config"]["filesystem_id"])
-            print(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
+            LOGGER.info(f"Deleted FSx filesystem: {resources['fsx_config']['filesystem_id']}")
         except Exception as e:
             cleanup_errors.append(f"Failed to delete FSx filesystem: {str(e)}")
 
@@ -483,7 +471,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
         for attempt in range(max_attempts):
             try:
                 ec2_cli.delete_security_group(GroupId=resources["sg_fsx"])
-                print(f"Deleted security group: {resources['sg_fsx']}")
+                LOGGER.info(f"Deleted security group: {resources['sg_fsx']}")
                 break
             except Exception as e:
                 if attempt == max_attempts - 1:
@@ -491,7 +479,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
                         f"Failed to delete security group after {max_attempts} attempts: {str(e)}"
                     )
                 else:
-                    print(f"Retry {attempt + 1}/{max_attempts} to delete security group")
+                    LOGGER.info(f"Retry {attempt + 1}/{max_attempts} to delete security group")
                     time.sleep(30)
 
     if cleanup_errors:
@@ -515,7 +503,7 @@ def launch_ec2_instances(ec2_cli, image):
         availability_zone_options=az_options,
         is_arm64=is_arm64,
     )
-    print(f"Launched instances: {instances_info}")
+    LOGGER.info(f"Launched instances: {instances_info}")
     return instances_info
 
 
@@ -541,7 +529,7 @@ def configure_security_groups(instance_id, ec2_cli, fsx, vpc_id, instances_info)
             fsx_name,
             "Security group for FSx Lustre VLLM EC2 Tests",
         )
-        print(f"Created FSx security group: {sg_fsx}")
+        LOGGER.info(f"Created FSx security group: {sg_fsx}")
 
         # Get instance IDs from instances_info
         instance_ids = [instance_id for instance_id, _ in instances_info]
@@ -552,7 +540,7 @@ def configure_security_groups(instance_id, ec2_cli, fsx, vpc_id, instances_info)
         return sg_fsx
 
     except Exception as e:
-        print(f"Error configuring security groups: {str(e)}")
+        LOGGER.error(f"Error configuring security groups: {str(e)}")
         raise
 
 
@@ -603,7 +591,7 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
 
 def setup(image):
     """Main setup function for VLLM on EC2 with FSx"""
-    print("Testing vllm on ec2........")
+    LOGGER.info("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
     ec2_cli = get_ec2_client(DEFAULT_REGION)
     resources = {"instances_info": None, "fsx_config": None, "sg_fsx": None}
@@ -616,7 +604,7 @@ def setup(image):
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
         resources["connection_params"] = instance_result["connection_params"]
-        print("Waiting 60 seconds for instances to initialize...")
+        LOGGER.info("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
         instance_ids = [instance_id for instance_id, _ in resources["instances_info"]]
@@ -632,7 +620,7 @@ def setup(image):
             "SCRATCH_2",
             {"Name": f"fsx-lustre-vllm-ec2-test-{instance_ids[0]}-{TEST_ID}"},
         )
-        print("Created FSx filesystem")
+        LOGGER.info("Created FSx filesystem")
 
         master_instance_id, master_key_filename = resources["instances_info"][0]
         setup_instance(
@@ -642,7 +630,7 @@ def setup(image):
             resources["fsx_config"]["dns_name"],
             resources["fsx_config"]["mount_name"],
         )
-        print(f"Setup completed for master instance {master_instance_id}")
+        LOGGER.info(f"Setup completed for master instance {master_instance_id}")
 
         if len(resources["instances_info"]) > 1:
             worker_instance_id, worker_key_filename = resources["instances_info"][1]
@@ -653,12 +641,12 @@ def setup(image):
                 resources["fsx_config"]["dns_name"],
                 resources["fsx_config"]["mount_name"],
             )
-            print(f"FSx mounted on worker instance {worker_instance_id}")
+            LOGGER.info(f"FSx mounted on worker instance {worker_instance_id}")
 
         return resources
 
     except Exception as e:
-        print(f"Error during setup: {str(e)}")
+        LOGGER.error(f"Error during setup: {str(e)}")
         cleanup_resources(ec2_cli, resources, fsx)
         raise
 
