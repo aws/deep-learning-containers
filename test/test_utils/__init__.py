@@ -1309,7 +1309,7 @@ def upload_tests_to_s3(testname_datetime_suffix):
         raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
-    
+
     # If if new test structure is enabled, upload only v2 directory for new test structure
     if is_new_test_structure_enabled():
         v2_path = os.path.join(os.path.dirname(path), "v2")

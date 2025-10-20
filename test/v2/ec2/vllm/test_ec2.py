@@ -154,7 +154,9 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
         )
 
-        LOGGER.info("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
+        LOGGER.info(
+            "Waiting for model to be ready, approx estimated time to complete is 15 mins..."
+        )
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
 
@@ -327,7 +329,9 @@ def test_vllm_on_ec2(resources, image_uri):
                     ec2_connections[params["instance_id"]] = connection
                     LOGGER.info(f"Recreated connection to instance {params['instance_id']}")
                 except Exception as e:
-                    LOGGER.error(f"Failed to recreate connection to instance {params['instance_id']}: {str(e)}")
+                    LOGGER.error(
+                        f"Failed to recreate connection to instance {params['instance_id']}: {str(e)}"
+                    )
                     raise
         else:
             LOGGER.info("Creating new connections to instances")

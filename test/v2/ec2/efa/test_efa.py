@@ -214,7 +214,7 @@ def _setup_multinode_efa_instances(
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, master_container_name)
-    
+
     # Uncomment to verify container file structure in case of path issues
     # LOGGER.info(f"Verifying files inside {master_container_name} container")
     # run_cmd_on_container(
@@ -333,7 +333,7 @@ def _setup_container(connection, docker_image, container_name):
             f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
             f"{docker_all_devices_arg} -v $HOME/test/v2:/test/v2 -v /dev/shm:/dev/shm {docker_image} bash"
         )
-    
+
     LOGGER.info(f"Container {container_name} started successfully")
 
 

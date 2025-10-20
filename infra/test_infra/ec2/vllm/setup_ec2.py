@@ -164,12 +164,14 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
             ec2_connections[instance_id] = connection
 
             # Store connection parameters for later recreation
-            connection_params.append({
-                "instance_id": instance_id,
-                "host": public_ip,
-                "user": "ec2-user",
-                "key_filename": key_filename
-            })
+            connection_params.append(
+                {
+                    "instance_id": instance_id,
+                    "host": public_ip,
+                    "user": "ec2-user",
+                    "key_filename": key_filename,
+                }
+            )
 
             if not master_connection:
                 master_connection = connection
@@ -196,7 +198,7 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             LOGGER.info(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
-            
+
             master_connection.run(
                 f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
             )
@@ -207,7 +209,7 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             LOGGER.info(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
-            
+
             worker_connection.run(
                 f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
             )
