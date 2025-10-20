@@ -196,6 +196,13 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {V2_INSTANCE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
+            
+            # Debug: check dir structure
+            print("=== DEBUG: Master instance dir structure ===")
+            print(f"Contents of {V2_INSTANCE_PATH}:")
+            master_connection.run(f"ls -la {V2_INSTANCE_PATH}/")
+            print("=== END DEBUG ===\n")
+            
             master_connection.run(
                 f"mkdir -p {V2_INSTANCE_PATH}/logs && chmod -R +x {V2_INSTANCE_PATH}/*"
             )
@@ -206,6 +213,13 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
                 f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {V2_INSTANCE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
+            
+            # Debug: Check directory structure
+            print("=== DEBUG: Worker instance directory structure ===")
+            print(f"Contents of {V2_INSTANCE_PATH}:")
+            worker_connection.run(f"ls -la {V2_INSTANCE_PATH}/")
+            print("=== END DEBUG ===\n")
+            
             worker_connection.run(
                 f"mkdir -p {V2_INSTANCE_PATH}/logs && chmod -R +x {V2_INSTANCE_PATH}/*"
             )
