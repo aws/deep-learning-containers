@@ -601,7 +601,7 @@ def setup(image):
         instance_result = launch_ec2_instances(ec2_cli, image)
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
-        resources["connections"] = instance_result["connections"]
+        resources["connection_params"] = instance_result["connection_params"]
         print("Waiting 60 seconds for instances to initialize...")
         time.sleep(60)
 
