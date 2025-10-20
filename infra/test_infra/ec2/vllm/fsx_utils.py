@@ -1,7 +1,6 @@
 import time
 from invoke import run
-from typing import Dict, List, Any
-import boto3
+from typing import Dict, List
 from botocore.exceptions import ClientError
 
 from infra.test_infra.test_infra_utils import create_logger

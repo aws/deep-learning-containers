@@ -16,7 +16,6 @@ from infra.test_infra.ec2.vllm.setup_ec2 import TEST_ID
 from test.v2.ec2.efa.test_efa import (
     _setup_multinode_efa_instances,
     EFA_SANITY_TEST_CMD,
-    MASTER_CONTAINER_NAME,
     HOSTS_FILE_LOCATION,
     EFA_INTEGRATION_TEST_CMD,
     DEFAULT_EFA_TIMEOUT,
