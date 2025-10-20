@@ -1,21 +1,12 @@
 import os
-
-import pytest
-
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
     CONTAINER_TESTS_PREFIX_V2,
     get_account_id_from_image_uri,
     get_region_from_image_uri,
-    is_pr_context,
-    is_efa_dedicated,
-    are_heavy_instance_ec2_tests_enabled,
     login_to_ecr_registry,
     run_cmd_on_container,
 )
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
 from infra.test_infra.ec2.utils import (
     get_efa_ec2_instance_type,
     filter_efa_instance_type,
@@ -76,109 +67,6 @@ EC2_EFA_GPU_ONLY_P4_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=filter_efa_only_p4_instance_type,
 )
-
-
-# TODO: decide on whether to keep this commented out or left out until actual implementation of each framework
-# def test_pytorch_efa(
-#     pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
-# ):
-#     """
-#     Run EFA Sanity tests on DLC, and then run NCCL Message Transfer and All Reduce tests using EFA
-#     on multiple nodes using DLC images. The test scripts are agnostic to the framework and version
-#     installed in the DLC image. The test also builds nccl-tests to create the all_reduce_perf
-#     binary necessary for multinode tests, on each node.
-#     Note: This test must be explicitly enabled on CI, and will only run on EFA-capable instances
-#     on pipelines.
-#     :param pytorch_training: str PyTorch Training DLC image URI
-#     :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
-#     :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
-#     :param ec2_instance_type: str Instance Type being tested
-#     :param region: str Region in which EFA-enabled instances are launched
-#     :param gpu_only: pytest fixture to limit test only to GPU DLCs
-#     """
-#     number_of_nodes = 2
-#     _setup_multinode_efa_instances(
-#         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-#     )
-#     master_connection = efa_ec2_connections[0]
-#     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-
-#     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
-
-#     run_cmd_on_container(
-#         MASTER_CONTAINER_NAME,
-#         master_connection,
-#         f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
-#         hide=False,
-#         timeout=DEFAULT_EFA_TIMEOUT,
-#     )
-
-
-# def test_efa_tensorflow(
-#     tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region, gpu_only
-# ):
-#     """
-#     Run EFA Sanity tests on DLC, and then run NCCL Message Transfer and All Reduce tests using EFA
-#     on multiple nodes using DLC images. The test scripts are agnostic to the framework and version
-#     installed in the DLC image. The test also builds nccl-tests to create the all_reduce_perf
-#     binary necessary for multinode tests, on each node.
-#     Note: This test must be explicitly enabled on CI, and will only run on EFA-capable instances
-#     on pipelines.
-#     :param tensorflow_training: str PyTorch Training DLC image URI
-#     :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
-#     :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
-#     :param ec2_instance_type: str Instance Type being tested
-#     :param region: str Region in which EFA-enabled instances are launched
-#     :param gpu_only: pytest fixture to limit test only to GPU DLCs
-#     """
-#     number_of_nodes = 2
-#     _setup_multinode_efa_instances(
-#         tensorflow_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-#     )
-#     master_connection = efa_ec2_connections[0]
-#     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-
-#     # pass IPv6 flag if enabled
-#     ipv6_arg = "True" if ENABLE_IPV6_TESTING else ""
-
-#     run_cmd_on_container(
-#         MASTER_CONTAINER_NAME,
-#         master_connection,
-#         f"export CUDA_HOME='/usr/local/cuda'; {EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} {number_of_nodes} {ipv6_arg}",
-#         hide=False,
-#         timeout=DEFAULT_EFA_TIMEOUT,
-#     )
-
-
-# def test_pytorch_efa_healthcheck(
-#     pytorch_training,
-#     efa_ec2_instances,
-#     efa_ec2_connections,
-#     ec2_instance_type,
-#     region,
-#     gpu_only,
-# ):
-#     """
-#     Run EFA Health Check tests on DLC.
-#     :param pytorch_training: str PyTorch Training DLC image URI
-#     :param efa_ec2_instances: list of tuples of instance-ids and SSH-keys for EFA-enabled instances
-#     :param efa_ec2_connections: list of Fabric Connection objects for EFA-enabled instances
-#     :param ec2_instance_type: str Instance Type being tested
-#     :param region: str Region in which EFA-enabled instances are launched
-#     :param gpu_only: pytest fixture to limit test only to GPU DLCs
-#     """
-#     _setup_multinode_efa_instances(
-#         pytorch_training, efa_ec2_instances, efa_ec2_connections, ec2_instance_type, region
-#     )
-#     master_connection = efa_ec2_connections[0]
-#     run_cmd_on_container(MASTER_CONTAINER_NAME, master_connection, EFA_SANITY_TEST_CMD, hide=False)
-#     run_cmd_on_container(
-#         MASTER_CONTAINER_NAME,
-#         master_connection,
-#         f"{EFA_PYTORCH_HEALTHCHECK_TEST_CMD}",
-#         hide=False,
-#         timeout=DEFAULT_EFA_TIMEOUT,
-#     )
 
 
 def _setup_multinode_efa_instances(
