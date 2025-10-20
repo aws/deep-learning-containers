@@ -21,6 +21,9 @@ from infra.test_infra.ec2.utils import (
     filter_efa_instance_type,
     filter_efa_only_p4_instance_type,
 )
+from infra.test_infra.test_infra_utils import create_logger
+
+LOGGER = create_logger(__name__)
 
 BUILD_ALL_REDUCE_PERF_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX_V2, "efa", "build_all_reduce_perf.sh"
@@ -206,6 +209,8 @@ def _setup_multinode_efa_instances(
     else:
         master_container_name = MASTER_CONTAINER_NAME
 
+    LOGGER.info(f"Master container name: {master_container_name}")
+
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, master_container_name)
@@ -237,6 +242,8 @@ def _setup_multinode_efa_instances(
             )
         else:
             worker_container_name = WORKER_CONTAINER_NAME
+
+        LOGGER.info(f"Worker container name: {worker_container_name}")
 
         # Run container
         _setup_container(worker_connection, image, worker_container_name)
@@ -326,6 +333,8 @@ def _setup_container(connection, docker_image, container_name):
             f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
             f"{docker_all_devices_arg} -v $HOME/test/v2:/test/v2 -v /dev/shm:/dev/shm {docker_image} bash"
         )
+    
+    LOGGER.info(f"Container {container_name} started successfully")
 
 
 def _setup_master_efa_ssh_config(connection, master_container_name):
