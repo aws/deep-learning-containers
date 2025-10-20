@@ -20,7 +20,7 @@ NODES=$(($GPU_COUNT * $NUM_HOSTS))
 
 
 PRETTY_NAME=$(cat /etc/os-release | grep PRETTY_NAME)
-TRAINING_LOG="/test/logs/testEFA.log"
+TRAINING_LOG="/test/v2/logs/testEFA.log"
 
 USE_DEVICE_RDMA_ARG=""
 
