@@ -1309,9 +1309,14 @@ def upload_tests_to_s3(testname_datetime_suffix):
         raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
-    container_tests_path = os.path.join(path, "container_tests")
-
-    run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
+    
+    # If if new test structure is enabled, upload only v2 directory for new test structure
+    if is_new_test_structure_enabled():
+        v2_path = os.path.join(os.path.dirname(path), "v2")
+        run(f"aws s3 cp --recursive {v2_path}/ {s3_test_location}/v2/")
+    else:
+        container_tests_path = os.path.join(path, "container_tests")
+        run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
     return s3_test_location
 
 

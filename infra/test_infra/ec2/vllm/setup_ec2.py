@@ -39,7 +39,7 @@ ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true
 
 # V2 test path constants
 V2_LOCAL_TEST_PATH = "test/v2"
-V2_INSTANCE_PATH = "$HOME/test/v2"
+INSTANCE_TEST_BASE_PATH = "$HOME/test"
 V2_CONTAINER_PATH = "/test/v2"
 
 TEST_ID = str(uuid.uuid4())
@@ -191,37 +191,37 @@ def setup_test_artifacts(ec2_client, instances, key_filename, region):
     try:
         # Setup master instance
         if master_connection:
-            master_connection.run(f"rm -rf {V2_INSTANCE_PATH}")
+            master_connection.run(f"rm -rf {INSTANCE_TEST_BASE_PATH}")
             master_connection.run(
-                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {V2_INSTANCE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
             
             # Debug: check dir structure
             print("=== DEBUG: Master instance dir structure ===")
-            print(f"Contents of {V2_INSTANCE_PATH}:")
-            master_connection.run(f"ls -la {V2_INSTANCE_PATH}/")
+            print(f"Contents of {INSTANCE_TEST_BASE_PATH}/v2/:")
+            master_connection.run(f"ls -la {INSTANCE_TEST_BASE_PATH}/v2/")
             print("=== END DEBUG ===\n")
             
             master_connection.run(
-                f"mkdir -p {V2_INSTANCE_PATH}/logs && chmod -R +x {V2_INSTANCE_PATH}/*"
+                f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
             )
 
         if worker_connection:
-            worker_connection.run(f"rm -rf {V2_INSTANCE_PATH}")
+            worker_connection.run(f"rm -rf {INSTANCE_TEST_BASE_PATH}")
             worker_connection.run(
-                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {V2_INSTANCE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
+                f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} {INSTANCE_TEST_BASE_PATH} --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
             )
             print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
             
             # Debug: Check directory structure
             print("=== DEBUG: Worker instance directory structure ===")
-            print(f"Contents of {V2_INSTANCE_PATH}:")
-            worker_connection.run(f"ls -la {V2_INSTANCE_PATH}/")
+            print(f"Contents of {INSTANCE_TEST_BASE_PATH}/v2/:")
+            worker_connection.run(f"ls -la {INSTANCE_TEST_BASE_PATH}/v2/")
             print("=== END DEBUG ===\n")
             
             worker_connection.run(
-                f"mkdir -p {V2_INSTANCE_PATH}/logs && chmod -R +x {V2_INSTANCE_PATH}/*"
+                f"mkdir -p {INSTANCE_TEST_BASE_PATH}/v2/logs && chmod -R +x {INSTANCE_TEST_BASE_PATH}/v2/*"
             )
 
     finally:
