@@ -37,8 +37,29 @@ class EC2Platform:
         self.framework = params.get("framework")
         self.arch_type = params.get("arch_type", "x86_64")
         self.image_uri = params.get("image_uri")
+        self.instance_type = params.get("instance_type")
+        self.node_count = params.get("node_count")
 
         if self.framework == "vllm":
+            # Validate buildspec params match hardcoded logic for vLLM
+            is_arm64 = "arm64" in self.image_uri
+            expected_instance_type = "g5g.16xlarge" if is_arm64 else "p4d.24xlarge"
+            expected_node_count = 1 if is_arm64 else 2
+            
+            if self.instance_type and self.instance_type != expected_instance_type:
+                LOGGER.warning(
+                    f"Buildspec instance_type '{self.instance_type}' differs from "
+                    f"hardcoded value '{expected_instance_type}'. Using hardcoded value."
+                )
+            
+            # Note: The platform validator already enforces node_count == 2 for multi-node EFA tests,
+            # so the node_count check below would only trigger if the validator is bypassed or modified
+            if self.node_count and self.node_count != expected_node_count:
+                LOGGER.warning(
+                    f"Buildspec node_count '{self.node_count}' differs from "
+                    f"hardcoded value '{expected_node_count}'. Using hardcoded value."
+                )
+            
             # vLLM requires vLLM-specific setup (FSx + multi-node)
             LOGGER.info(f"Setting up vLLM infrastructure for image: {self.image_uri}")
             from infra.test_infra.ec2.vllm.setup_ec2 import setup as vllm_setup
