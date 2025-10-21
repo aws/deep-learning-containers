@@ -42,16 +42,16 @@ class EC2Platform:
 
         if self.framework == "vllm":
             # Validate buildspec params match hardcoded logic for vLLM
-            is_arm64 = "arm64" in self.image_uri
+            is_arm64 = self.arch_type == "arm64"
             expected_instance_type = "g5g.16xlarge" if is_arm64 else "p4d.24xlarge"
             expected_node_count = 1 if is_arm64 else 2
-            
+
             if self.instance_type and self.instance_type != expected_instance_type:
                 LOGGER.warning(
                     f"Buildspec instance_type '{self.instance_type}' differs from "
                     f"hardcoded value '{expected_instance_type}'. Using hardcoded value."
                 )
-            
+
             # Note: The platform validator already enforces node_count == 2 for multi-node EFA tests,
             # so the node_count check below would only trigger if the validator is bypassed or modified
             if self.node_count and self.node_count != expected_node_count:
@@ -59,12 +59,12 @@ class EC2Platform:
                     f"Buildspec node_count '{self.node_count}' differs from "
                     f"hardcoded value '{expected_node_count}'. Using hardcoded value."
                 )
-            
+
             # vLLM requires vLLM-specific setup (FSx + multi-node)
             LOGGER.info(f"Setting up vLLM infrastructure for image: {self.image_uri}")
             from infra.test_infra.ec2.vllm.setup_ec2 import setup as vllm_setup
 
-            self.resources = vllm_setup(self.image_uri)
+            self.resources = vllm_setup(self.image_uri, self.arch_type)
             LOGGER.info("vLLM setup completed successfully")
         else:
             # standard EC2 setup for other frameworks
@@ -88,18 +88,18 @@ class EC2Platform:
 
             # Check registry for framework-specific handling
             test_config = TEST_REGISTRY.get(self.framework)
-            
+
             if test_config and test_config.get("requires_resources"):
                 # Direct Python function call for tests requiring resource access
                 LOGGER.info(f"Executing {self.framework} test via direct call: {cmd}")
-                
+
                 module_path = test_config["module"]
                 function_name = test_config["function"]
-                
+
                 # Dynamically import and call the test function
                 module = __import__(module_path, fromlist=[function_name])
                 test_function = getattr(module, function_name)
-                
+
                 # Pass resources and image_uri directly
                 test_function(self.resources, self.image_uri)
                 LOGGER.info(f"Command completed successfully: {cmd}")

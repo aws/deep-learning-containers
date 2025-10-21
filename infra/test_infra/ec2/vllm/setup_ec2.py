@@ -45,15 +45,15 @@ V2_CONTAINER_PATH = "/test/v2"
 TEST_ID = str(uuid.uuid4())
 
 
-def ec2_instance_ami(region, image):
-    if "arm64" in image:
+def ec2_instance_ami(region, arch_type):
+    if arch_type == "arm64":
         return AL2023_BASE_DLAMI_ARM64_US_WEST_2
 
     return test_utils.get_dlami_id(region)
 
 
-def ec2_instance_type(image):
-    if "arm64" in image:
+def ec2_instance_type(arch_type):
+    if arch_type == "arm64":
         return "g5g.16xlarge"
     else:
         return "p4d.24xlarge"
@@ -488,12 +488,12 @@ def cleanup_resources(ec2_cli, resources, fsx):
         raise Exception("Cleanup errors occurred:\n" + "\n".join(cleanup_errors))
 
 
-def launch_ec2_instances(ec2_cli, image):
+def launch_ec2_instances(ec2_cli, arch_type):
     """Launch EC2 instances with EFA support"""
-    instance_type = ec2_instance_type(image)
-    ami_id = ec2_instance_ami(DEFAULT_REGION, image)
+    instance_type = ec2_instance_type(arch_type)
+    ami_id = ec2_instance_ami(DEFAULT_REGION, arch_type)
     az_options = availability_zone_options(ec2_cli, instance_type, DEFAULT_REGION)
-    is_arm64 = True if "arm64" in image else False
+    is_arm64 = arch_type == "arm64"
 
     instances_info = efa_ec2_instances(
         ec2_client=ec2_cli,
@@ -591,7 +591,7 @@ def mount_fsx_on_worker(instance_id, key_filename, ec2_cli, fsx_dns_name, mount_
         connection.run(cmd)
 
 
-def setup(image):
+def setup(image, arch_type):
     """Main setup function for VLLM on EC2 with FSx"""
     LOGGER.info("Testing vllm on ec2........")
     fsx = FsxSetup(DEFAULT_REGION)
@@ -602,7 +602,7 @@ def setup(image):
         vpc_id = get_default_vpc_id(ec2_cli)
         subnet_ids = get_subnet_id_by_vpc(ec2_cli, vpc_id)
 
-        instance_result = launch_ec2_instances(ec2_cli, image)
+        instance_result = launch_ec2_instances(ec2_cli, arch_type)
         resources["instances_info"] = instance_result["instances"]
         resources["elastic_ips"] = instance_result["elastic_ips"]
         resources["connection_params"] = instance_result["connection_params"]

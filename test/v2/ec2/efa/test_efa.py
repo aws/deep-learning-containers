@@ -211,7 +211,7 @@ def _setup_container(connection, docker_image, container_name):
             f"docker run --runtime=nvidia --gpus all -id --name {container_name} --network host --ulimit memlock=-1:-1 "
             f"{docker_all_devices_arg} -v $HOME/test/v2:/test/v2 -v /dev/shm:/dev/shm {docker_image} bash"
         )
-    
+
     LOGGER.info(f"Container {container_name} started successfully")
 
 
