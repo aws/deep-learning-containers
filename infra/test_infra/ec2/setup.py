@@ -6,6 +6,17 @@ from infra.test_infra.test_infra_utils import create_logger
 
 LOGGER = create_logger(__name__)
 
+# Registry for framework-specific test execution
+# Frameworks requiring direct Python function calls with resources should be registered here
+TEST_REGISTRY = {
+    "vllm": {
+        "module": "test.v2.ec2.vllm.test_ec2",
+        "function": "test_vllm_on_ec2",
+        "requires_resources": True,
+    },
+    # Future frameworks to be added here
+}
+
 
 class EC2Platform:
     def __init__(self):
@@ -54,17 +65,25 @@ class EC2Platform:
                 "FRAMEWORK": self.framework,
             }
 
-            # Check if this is a vLLM test command
-            # TODO: check if there is a better way to handle this
-            if self.framework == "vllm" and "test/v2/ec2/vllm/test_ec2.py" in cmd:
-                LOGGER.info(f"Executing vLLM test via direct call: {cmd}")
-                from test.v2.ec2.vllm.test_ec2 import test_vllm_on_ec2
-
-                # Pass resources and image_uri; test reads config from env vars
-                test_vllm_on_ec2(self.resources, self.image_uri)
+            # Check registry for framework-specific handling
+            test_config = TEST_REGISTRY.get(self.framework)
+            
+            if test_config and test_config.get("requires_resources"):
+                # Direct Python function call for tests requiring resource access
+                LOGGER.info(f"Executing {self.framework} test via direct call: {cmd}")
+                
+                module_path = test_config["module"]
+                function_name = test_config["function"]
+                
+                # Dynamically import and call the test function
+                module = __import__(module_path, fromlist=[function_name])
+                test_function = getattr(module, function_name)
+                
+                # Pass resources and image_uri directly
+                test_function(self.resources, self.image_uri)
                 LOGGER.info(f"Command completed successfully: {cmd}")
             else:
-                # Standard shell command execution for other cases
+                # Standard shell command execution
                 repo_root = get_cloned_folder_path()
 
                 with self.ctx.cd(repo_root):
