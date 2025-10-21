@@ -70,20 +70,6 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
-# ====================== ray serve =========================================
-FROM base AS vllm-rayserve-ec2
-
-RUN uv pip install --system ray[serve]==2.49.0 && \
-    uv cache clean \
-    apt-get upgrade && \
-    apt-get upgrade -y && \
-    apt-get clean
-
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
-
-ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
