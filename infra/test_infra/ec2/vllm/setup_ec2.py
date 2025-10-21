@@ -433,7 +433,7 @@ def cleanup_resources(ec2_cli, resources, fsx):
     if resources.get("elastic_ips"):
         try:
             delete_elastic_ips(resources["elastic_ips"], ec2_cli)
-            LOGGER.error(f"Deleted elastic IPs: {resources['elastic_ips']}")
+            LOGGER.info(f"Deleted elastic IPs: {resources['elastic_ips']}")
         except Exception as e:
             cleanup_errors.append(f"Failed to cleanup Elastic IPs: {str(e)}")
 
