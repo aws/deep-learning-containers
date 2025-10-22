@@ -189,7 +189,7 @@ RUN pip install --no-cache-dir \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
     "awscli" \
-    opencv-python==4.11.0.86 \
+    opencv-python \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
@@ -208,7 +208,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     # requires explicit declaration of spacy, thic, blis
     spacy \
     # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4  \
+    thinc \
     blis \
     numpy \
  && pip uninstall -y dataclasses
