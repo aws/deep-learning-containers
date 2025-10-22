@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:v0.11.0 as base
+FROM docker.io/vllm/vllm-openai:v0.10.2 as base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
@@ -57,11 +57,12 @@ RUN bash install_efa.sh ${EFA_VERSION} && \
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
     && rm -rf /usr/local/cuda/bin/nvdisasm*  
 
+# ====================== ray serve =========================================
+FROM base AS vllm-rayserve-ec2
 
-# ====================== ec2 =========================================
-FROM base AS vllm-ec2 
-
-RUN apt-get upgrade && \
+RUN uv pip install --system ray[serve]==2.49.0 && \
+    uv cache clean \
+    apt-get upgrade && \
     apt-get upgrade -y && \
     apt-get clean
 
@@ -69,15 +70,3 @@ COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
-
-# ====================== sagemaker =========================================
-FROM base AS vllm-sagemaker
-
-RUN apt-get upgrade && \
-    apt-get upgrade -y && \
-    apt-get clean
-
-COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
