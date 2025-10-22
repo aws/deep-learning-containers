@@ -16,18 +16,26 @@ LOGGER.setLevel(logging.INFO)
 
 
 class DLCReleaseInformation:
-    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=None):
-        if not all([dlc_account_id, dlc_tag, dlc_repository, dlc_region]):
+    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=None, is_private_release=True, public_registry=None):
+        if not all([dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
-                "One or multiple environment variables TARGET_ACCOUNT_ID_CLASSIC, TAG_WITH_DLC_VERSION, "
-                "TARGET_ECR_REPOSITORY, REGION  not set. This environment variable is expected to be set by the promoter stage."
+                "One or multiple environment variables TAG_WITH_DLC_VERSION, "
+                "TARGET_ECR_REPOSITORY, REGION not set. This environment variable is expected to be set by the promoter stage."
             )
+        
+        if is_private_release and not dlc_account_id:
+            raise ValueError("dlc_account_id is required for private releases")
+        
+        if not is_private_release and not public_registry:
+            raise ValueError("public_registry is required for public releases only")
 
         self.dlc_account_id = dlc_account_id
         self.dlc_region = dlc_region
         self.dlc_repository = dlc_repository
         self.dlc_tag = dlc_tag
         self.dlc_soci_tag = dlc_soci_tag
+        self.is_private_release = is_private_release
+        self.public_registry = public_registry
 
         self.container_name = self.run_container()
 
@@ -42,6 +50,9 @@ class DLCReleaseInformation:
 
     def get_boto3_ecr_client(self):
         return boto3.Session(region_name=self.dlc_region).client("ecr")
+
+    def get_boto3_ecr_public_client(self):
+        return boto3.Session(region_name="us-east-1").client("ecr-public")
 
     def run_container(self):
         """
@@ -75,22 +86,35 @@ class DLCReleaseInformation:
     def get_image_details_from_ecr(self, tag):
         if tag is None:
             return None
-        _ecr = self.get_boto3_ecr_client()
-
-        try:
-            response = _ecr.describe_images(
-                registryId=self.dlc_account_id,
-                repositoryName=self.dlc_repository,
-                imageIds=[{"imageTag": tag}],
-            )
-        except ClientError as e:
-            LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
-
-        return response["imageDetails"][0]
+        
+        if self.is_private_release:
+            _ecr = self.get_boto3_ecr_client()
+            try:
+                response = _ecr.describe_images(
+                    registryId=self.dlc_account_id,
+                    repositoryName=self.dlc_repository,
+                    imageIds=[{"imageTag": tag}],
+                )
+            except ClientError as e:
+                LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
+            return response["imageDetails"][0]
+        else:
+            _ecr_public = self.get_boto3_ecr_public_client()
+            try:
+                response = _ecr_public.describe_images(
+                    repositoryName=self.dlc_repository,
+                    imageIds=[{"imageTag": tag}],
+                )
+            except ClientError as e:
+                LOGGER.error("ClientError when performing ECR Public operation. Exception: {}".format(e))
+            return response["imageDetails"][0]
 
     @property
     def image(self):
-        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
+        if self.is_private_release:
+            return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
+        else:
+            return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_tag}"
 
     @property
     def image_tags(self):
@@ -104,7 +128,10 @@ class DLCReleaseInformation:
     def soci_image(self):
         if self.dlc_soci_tag is None:
             return None
-        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
+        if self.is_private_release:
+            return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
+        else:
+            return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_soci_tag}"
 
     @property
     def soci_image_tags(self):
