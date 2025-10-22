@@ -70,6 +70,8 @@ if __name__ == "__main__":
 
     dlc_account_id = github_publishing_metadata.get("target_account_id_classic")
     dlc_tag = github_publishing_metadata.get("tag_with_dlc_version")
+    is_public_release = github_publishing_metadata.get("public_registry_release")
+    is_private_release = github_publishing_metadata.get("private_registry_release")
     dlc_soci_tag = github_publishing_metadata.get("tag_with_dlc_version_soci", None)
     dlc_repository = github_publishing_metadata.get("target_ecr_repository")
     dlc_release_successful = github_publishing_metadata.get("release_successful")
@@ -77,7 +79,7 @@ if __name__ == "__main__":
 
     dlc_public_registry = github_publishing_metadata.get("target_ecr_public_registry")
     public_registry_image_uri_with_dlc_version = None
-    if dlc_public_registry is not None:
+    if is_public_release:
         public_registry_image_uri_with_dlc_version = (
             f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
         )
@@ -89,7 +91,8 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dlc_release_information = DLCReleaseInformation(
-        dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=dlc_soci_tag
+        dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=dlc_soci_tag, 
+        is_private_release=is_private_release, public_registry=dlc_public_registry
     )
 
     # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information
