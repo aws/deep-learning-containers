@@ -1,16 +1,12 @@
 import os
-import sys
 from src.config import is_new_test_structure_enabled
 from test.test_utils import get_dlc_images
 from codebuild_environment import get_cloned_folder_path
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(current_dir)
 
-
-from ec2.setup import EC2Platform
-from eks.setup import EKSPlatform
-from test_infra_utils import (
+from infra.test_infra.ec2.setup import EC2Platform
+from infra.test_infra.eks.setup import EKSPlatform
+from infra.test_infra.test_infra_utils import (
     create_logger,
     parse_buildspec,
     validate_and_filter_tests,
@@ -61,16 +57,28 @@ def main():
         platform_name = test_config["platform"]
         LOGGER.info(f"Test config {i+1}: platform={platform_name}")
 
-        if test_type == "ec2" and platform_name.startswith("ec2"):
-            LOGGER.info(f"Executing EC2 test for platform: {platform_name}")
-            execute_platform_tests(EC2Platform(), test_config, buildspec_data, image_uri)
-        elif test_type == "eks" and platform_name.startswith("eks"):
-            LOGGER.info(f"Executing EKS test for platform: {platform_name}")
-            execute_platform_tests(EKSPlatform(), test_config, buildspec_data, image_uri)
-        else:
-            LOGGER.info(
-                f"Skipping test config {i+1}: test_type={test_type}, platform={platform_name}"
-            )
+        platform = None
+        try:
+            if test_type == "ec2" and platform_name.startswith("ec2"):
+                LOGGER.info(f"Executing EC2 test for platform: {platform_name}")
+                platform = EC2Platform()
+                execute_platform_tests(platform, test_config, buildspec_data, image_uri)
+            elif test_type == "eks" and platform_name.startswith("eks"):
+                LOGGER.info(f"Executing EKS test for platform: {platform_name}")
+                platform = EKSPlatform()
+                execute_platform_tests(platform, test_config, buildspec_data, image_uri)
+            else:
+                LOGGER.info(
+                    f"Skipping test config {i+1}: test_type={test_type}, platform={platform_name}"
+                )
+        finally:
+            # Cleanup resources if platform supports it
+            if platform is not None and hasattr(platform, "cleanup"):
+                LOGGER.info(f"Cleaning up platform resources for {platform_name}")
+                try:
+                    platform.cleanup()
+                except Exception as e:
+                    LOGGER.error(f"Cleanup failed for {platform_name}: {e}")
 
 
 if __name__ == "__main__":
