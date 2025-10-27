@@ -124,7 +124,7 @@ RUN pip install --no-cache-dir -U \
     boto3 \
     "cryptography<46,>=41.0.5" \
     "protobuf>=3.20.3, <4" \
-    "networkx~=2.6" \
+    "networkx==2.8.8" \
  && pip install --no-deps --no-cache-dir -U torchvision==0.22.* \
  && rm -rf ~/.cache/pip/*
 
