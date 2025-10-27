@@ -134,7 +134,8 @@ RUN pip install --index-url https://pip.repos.neuron.amazonaws.com \
     --trusted-host pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
-    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION
+    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
+    torch==2.8.*
 
 WORKDIR /
 
