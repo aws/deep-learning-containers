@@ -39,6 +39,7 @@ RUN pip install --no-cache-dir \
 RUN pip install -U \
 	"sagemaker>=2.237.0" \
 	sagemaker-training \
+	"sagemaker-pytorch-training<3.0.0" \
 	"tensorboard>=2.11.0" \
 	"numpy" \
 	"numba" \
