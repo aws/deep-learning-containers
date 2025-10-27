@@ -38,6 +38,7 @@ RUN pip install --no-cache-dir \
 # neuronx-cc has requirement networkx~=2.6
 RUN pip install -U \
 	"sagemaker>=2.237.0" \
+	sagemaker-training \
 	"tensorboard>=2.11.0" \
 	"numpy" \
 	"numba" \
@@ -58,7 +59,8 @@ RUN pip install -U \
 	torchvision==0.23.0 \
     "opencv-python<4.12.0" \
     "fsspec==2024.6.1.*" \
-    "protobuf<4"
+    "protobuf<4" \
+    "multiprocess<0.70.17"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
