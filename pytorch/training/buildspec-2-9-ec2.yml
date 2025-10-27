@@ -56,7 +56,7 @@ images:
     target: ec2
     context:
       <<: *TRAINING_CONTEXT
-  BuildEC2GPUPTTrainPy3cu129DockerImage:
+  BuildEC2GPUPTTrainPy3cu130DockerImage:
     <<: *TRAINING_REPOSITORY
     build: &PYTORCH_GPU_TRAINING_PY3 false
     image_size_baseline: 28000

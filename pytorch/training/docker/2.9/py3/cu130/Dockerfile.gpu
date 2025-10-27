@@ -25,7 +25,7 @@ ARG FLASH_ATTN_VERSION=2.8.3
 #                      |___/                        |_|
 #################################################################
 
-FROM public.ecr.aws/deep-learning-containers/base:13.0.0-gpu-py312-cu130-ubuntu22.04-ec2-v1.0 AS common
+FROM public.ecr.aws/deep-learning-containers/base:13.0.0-gpu-py312-ubuntu22.04-ec2 AS common
 # base has EFA, PYTHON and CUDA 13.0
 
 LABEL maintainer="Amazon AI"
@@ -117,7 +117,7 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu129 \
+    --index-url https://download.pytorch.org/whl/cu130 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
