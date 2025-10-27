@@ -140,6 +140,8 @@ RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${F
     && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
     && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
 
+RUN pip install --no-cache-dir nvidia-mathdx
+    
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
