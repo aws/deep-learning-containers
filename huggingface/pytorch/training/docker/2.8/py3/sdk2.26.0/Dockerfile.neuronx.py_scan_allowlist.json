@@ -1,1 +1,6 @@
-{}
+{
+    "76839": "[pkg: gevent] [installed: 24.10.3]",
+    "71691": "[pkg: mlflow] [installed: 3.4.0]",
+    "77740": "[pkg: protobuf] [installed: 3.20.3]",
+    "77744": "[pkg: urllib3] [installed: 1.26.20]"
+}
