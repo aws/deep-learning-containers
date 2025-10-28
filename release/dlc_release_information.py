@@ -19,6 +19,7 @@ class DLCReleaseInformation:
     def __init__(
         self,
         dlc_account_id,
+        dlc_public_account_id,
         dlc_region,
         dlc_repository,
         dlc_tag,
@@ -35,10 +36,11 @@ class DLCReleaseInformation:
         if is_private_release and not dlc_account_id:
             raise ValueError("dlc_account_id is required for private releases")
 
-        if not is_private_release and not public_registry:
-            raise ValueError("public_registry is required for public releases only")
+        if not is_private_release and not dlc_public_account_id:
+            raise ValueError("dlc_public_account_id is required for public releases only")
 
         self.dlc_account_id = dlc_account_id
+        self.dlc_public_account_id = dlc_public_account_id
         self.dlc_region = dlc_region
         self.dlc_repository = dlc_repository
         self.dlc_tag = dlc_tag
@@ -111,6 +113,7 @@ class DLCReleaseInformation:
             _ecr_public = self.get_boto3_ecr_public_client()
             try:
                 response = _ecr_public.describe_images(
+                    registryId=self.dlc_public_account_id,
                     repositoryName=self.dlc_repository,
                     imageIds=[{"imageTag": tag}],
                 )

@@ -69,6 +69,7 @@ if __name__ == "__main__":
         github_publishing_metadata = json.loads(f.read())
 
     dlc_account_id = github_publishing_metadata.get("target_account_id_classic")
+    dlc_public_account_id = github_publishing_metadata.get("target_account_id_public")
     dlc_tag = github_publishing_metadata.get("tag_with_dlc_version")
     is_public_release = github_publishing_metadata.get("public_registry_release")
     is_private_release = github_publishing_metadata.get("private_registry_release")
@@ -92,6 +93,7 @@ if __name__ == "__main__":
 
     dlc_release_information = DLCReleaseInformation(
         dlc_account_id,
+        dlc_public_account_id,
         dlc_region,
         dlc_repository,
         dlc_tag,
