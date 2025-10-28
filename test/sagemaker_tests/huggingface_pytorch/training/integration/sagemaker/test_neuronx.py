@@ -122,7 +122,7 @@ def _test_neuronx_text_classification_function(
     ecr_image,
     sagemaker_session,
     py_version,
-    instance_type="ml.trn1.2xlarge",
+    instance_type="ml.trn1.32xlarge",
     instance_count=1,
     num_neuron_cores=2,
 ):
