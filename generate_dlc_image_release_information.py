@@ -91,8 +91,13 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dlc_release_information = DLCReleaseInformation(
-        dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=dlc_soci_tag, 
-        is_private_release=is_private_release, public_registry=dlc_public_registry
+        dlc_account_id,
+        dlc_region,
+        dlc_repository,
+        dlc_tag,
+        dlc_soci_tag=dlc_soci_tag,
+        is_private_release=is_private_release,
+        public_registry=dlc_public_registry,
     )
 
     # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information

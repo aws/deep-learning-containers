@@ -104,3 +104,20 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+  9:
+    framework: "pytorch"
+    version: "2.4.0"
+    customer_type: "rayserve-ec2"
+    arch_type: "x86"
+    training:
+      device_types: ["cpu", "gpu"]
+      python_versions: ["py311"]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu124"
+      example: false
+      disable_sm_tag: false
+      force_release: false
+      public_registry: true
+      enable_soci: true
+      private_registry: false
+

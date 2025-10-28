@@ -16,16 +16,25 @@ LOGGER.setLevel(logging.INFO)
 
 
 class DLCReleaseInformation:
-    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=None, is_private_release=True, public_registry=None):
+    def __init__(
+        self,
+        dlc_account_id,
+        dlc_region,
+        dlc_repository,
+        dlc_tag,
+        dlc_soci_tag=None,
+        is_private_release=True,
+        public_registry=None,
+    ):
         if not all([dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
                 "One or multiple environment variables TAG_WITH_DLC_VERSION, "
                 "TARGET_ECR_REPOSITORY, REGION not set. This environment variable is expected to be set by the promoter stage."
             )
-        
+
         if is_private_release and not dlc_account_id:
             raise ValueError("dlc_account_id is required for private releases")
-        
+
         if not is_private_release and not public_registry:
             raise ValueError("public_registry is required for public releases only")
 
@@ -86,7 +95,7 @@ class DLCReleaseInformation:
     def get_image_details_from_ecr(self, tag):
         if tag is None:
             return None
-        
+
         if self.is_private_release:
             _ecr = self.get_boto3_ecr_client()
             try:
@@ -106,7 +115,9 @@ class DLCReleaseInformation:
                     imageIds=[{"imageTag": tag}],
                 )
             except ClientError as e:
-                LOGGER.error("ClientError when performing ECR Public operation. Exception: {}".format(e))
+                LOGGER.error(
+                    "ClientError when performing ECR Public operation. Exception: {}".format(e)
+                )
             return response["imageDetails"][0]
 
     @property
