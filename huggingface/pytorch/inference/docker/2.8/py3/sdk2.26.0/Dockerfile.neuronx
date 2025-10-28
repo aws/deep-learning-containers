@@ -134,8 +134,7 @@ RUN pip install --index-url https://pip.repos.neuron.amazonaws.com \
     --trusted-host pip.repos.neuron.amazonaws.com \
     neuronx-cc==$NEURONX_CC_VERSION \
     torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
-    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
-    torch==2.8.*
+    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION
 
 WORKDIR /
 
@@ -162,10 +161,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py
 # Hugging Face specific section #
 #################################
 
-RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.7/license.txt
+RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir -U \
+    "torch==2.8.0" \
 	networkx==2.8.8 \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
