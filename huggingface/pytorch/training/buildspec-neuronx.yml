@@ -25,6 +25,15 @@ context:
     deep_learning_container:
       source: ../../../src/deep_learning_container.py
       target: deep_learning_container.py
+    apex_setup:
+      source: docker/build_artifacts/apex_setup.py
+      target: apex_setup.py
+    nxdt_install_setup:
+      source: docker/build_artifacts/nxdt_install_setup.sh
+      target: nxdt_install_setup.sh
+    nxdt_requirements:
+      source: docker/build_artifacts/nxdt_requirements.txt
+      target: nxdt_requirements.txt
 
 images:
   BuildNeuronHFPytorchPy310TrainingDockerImage:
