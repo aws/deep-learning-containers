@@ -166,7 +166,7 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir -U \
     "torch==2.8.0" \
-	networkx==2.8.8 \
+	"networkx==2.8.8" \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     compel \
