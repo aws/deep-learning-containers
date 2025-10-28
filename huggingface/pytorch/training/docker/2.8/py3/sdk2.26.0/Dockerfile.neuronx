@@ -129,7 +129,32 @@ RUN ${PIP} install --no-cache-dir -U \
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
 # Copy the NxDT Installation files
-COPY --chmod=755 apex_setup.py nxdt_install_setup.sh nxdt_requirements.txt /root/
+RUN cat << 'EOF' > /root/apex_setup.py
+import sys
+import warnings
+import os
+from packaging.version import parse, Version
+
+from setuptools import setup, find_packages
+import subprocess
+
+import torch
+from torch.utils.cpp_extension import BuildExtension, CppExtension, CUDAExtension, CUDA_HOME, load
+
+setup(
+    name="apex",
+    version="0.1",
+    packages=find_packages(
+        exclude=("build", "csrc", "include", "tests", "dist", "docs", "tests", "examples", "apex.egg-info",)
+    ),
+    install_requires=["packaging>20.6",],
+    description="PyTorch Extensions written by NVIDIA",
+)
+EOF
+ && chmod +x /root/apex_setup.py \
+ && wget https://raw.githubusercontent.com/aws-neuron/neuronx-distributed-training/master/requirements.txt -O /root/nxdt_requirements.txt \
+ && wget https://raw.githubusercontent.com/aws-neuron/neuronx-distributed-training/master/install_setup.sh -O /root/nxdt_install_setup.sh \
+ && chmod +x /root/nxdt_install_setup.sh
 
 # attrs, neuronx-cc required: >=19.2.0, sagemaker <24,>=23.1.0
 # protobuf neuronx-cc<4, sagemaker-training >=3.9.2,<=3.20.3
