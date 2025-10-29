@@ -171,10 +171,10 @@ RUN apt-get update \
 # Install some common packages used by training scripts
 # torchvision needed for MLP. since it depends on torch and torch neuron/torch
 # is already installed install it with nodeps
-RUN pip3 install --no-cache-dir --no-deps -U \
+RUN ${PIP} install --no-cache-dir --no-deps -U \
     torchvision \
  # Needed for running bert training scripts
- && pip3 install --no-cache-dir -U \
+ && ${PIP} install --no-cache-dir -U \
     graphviz \
     tensorboard==2.6 \
     accelerate \
@@ -263,6 +263,7 @@ RUN git clone https://github.com/NVIDIA/apex.git /root/apex \
  && cp /root/apex_setup.py setup.py \
  && python3 setup.py bdist_wheel \
  # Install dependencies from requirements and extras for SageMaker usecase
+ && ${PIP} install --no-cache-dir Cython wheel \
  && ${PIP} install --no-cache-dir -r /root/nxdt_requirements.txt /root/apex/dist/apex-0.1-py3-none-any.whl \
  && /root/nxdt_install_setup.sh \
  && ${PIP} install --force-reinstall "torch==2.8.0" \
@@ -283,8 +284,6 @@ ARG GEVENT_VERSION=24.10.3
 RUN apt-get remove -y --purge emacs && \
 apt-get autoremove -y
 
-RUN pip install --upgrade pip
-
 # We need to set this environment variable to avoid the following error when building KenLM:
 # https://github.com/kpu/kenlm/issues/462
 ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
@@ -292,7 +291,7 @@ ENV CMAKE_POLICY_VERSION_MINIMUM=3.5
 # Install Hugging Face libraries and its dependencies
 # Install optimum-neuron with this exta starting from next release. \
 # "optimum-neuron[training]"==${OPTIMUM_NEURON_VERSION} \
-RUN pip install --no-cache-dir \
+RUN ${PIP} install --no-cache-dir \
 	evaluate \
 	transformers[sklearn,sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
 	datasets==${DATASETS_VERSION} \
@@ -302,7 +301,7 @@ RUN pip install --no-cache-dir \
 # Pin numpy to version required by neuronx-cc
 # Update Pillow, urllib, wandb versions to fix high and critical vulnerabilities
 # neuronx-cc has requirement networkx~=2.6
-RUN pip install -U \
+RUN ${PIP} install -U \
 	"sagemaker>=2.237.0" \
 	sagemaker-training \
 	"sagemaker-pytorch-training<3.0.0" \
