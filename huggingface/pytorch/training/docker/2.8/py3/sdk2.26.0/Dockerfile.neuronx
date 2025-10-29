@@ -100,8 +100,7 @@ RUN wget -q https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VER
  && cd .. && rm -rf ../Python-$PYTHON_VERSION* \
  && ln -s /usr/local/bin/pip3 /usr/bin/pip \
  && ln -s /usr/local/bin/$PYTHON /usr/local/bin/python \
- && ${PIP} --no-cache-dir install --upgrade \
-    pip \
+ && ${PIP} --no-cache-dir install --upgrade pip \
  && rm -rf ~/.cache/pip/*
 
 WORKDIR /
@@ -261,10 +260,8 @@ RUN git clone https://github.com/NVIDIA/apex.git /root/apex \
  && cd /root/apex \
  && git checkout 23.05 \
  && cp /root/apex_setup.py setup.py \
- && python3 setup.py bdist_wheel \
  # Install dependencies from requirements and extras for SageMaker usecase
- && ${PIP} install --no-cache-dir Cython wheel \
- && ${PIP} install --no-cache-dir -r /root/nxdt_requirements.txt /root/apex/dist/apex-0.1-py3-none-any.whl \
+ && ${PIP} install --no-cache-dir --no-build-isolation -r /root/nxdt_requirements.txt /root/apex \
  && /root/nxdt_install_setup.sh \
  && ${PIP} install --force-reinstall "torch==2.8.0" \
  && rm -rf ~/.cache/pip/*
