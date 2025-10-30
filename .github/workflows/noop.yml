@@ -1,9 +1,15 @@
 name: noop
-on: [push]
+on:
+  push:
+    branches:
+      - gha
+  pull_request:
+    branches:
+      - gha
 jobs:
   noop:
     runs-on:
-      - codebuild-test1-${{ github.run_id }}-${{ github.run_attempt }}
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: checkout github code
         uses: actions/checkout@v4
