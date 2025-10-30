@@ -7,13 +7,40 @@ on:
     branches:
       - gha
 jobs:
-  noop:
+  noop1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: checkout github code
         uses: actions/checkout@v4
+      - name: runner setup
+        run: .github/scripts/runner_setup.sh
       - name: check github files
-        shell: bash
         run: |
           cat README.md
+  noop2:
+    needs: [noop1]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - name: checkout github code
+        uses: actions/checkout@v4
+      - name: runner setup
+        run: .github/scripts/runner_setup.sh
+      - name: check github files
+        run: |
+          cat README.md
+  # noop3:
+  #   needs: [noop2]
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:x86-1-nvidia-l4-runner
+  #   steps:
+  #     - name: checkout github code
+  #       uses: actions/checkout@v4
+  #     - name: runner setup
+  #       run: .github/scripts/runner_setup.sh
+  #     - name: check github files
+  #       run: |
+  #         cat README.md
