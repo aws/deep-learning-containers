@@ -79,11 +79,6 @@ if __name__ == "__main__":
     dlc_region = os.getenv("REGION")
 
     dlc_public_registry = github_publishing_metadata.get("target_ecr_public_registry")
-    public_registry_image_uri_with_dlc_version = None
-    if is_public_release:
-        public_registry_image_uri_with_dlc_version = (
-            f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
-        )
 
     if dlc_release_successful != "1":
         LOGGER.error(
@@ -112,8 +107,10 @@ if __name__ == "__main__":
         "image_digest": dlc_release_information.image_digest,
         "soci_image_digest": dlc_release_information.soci_image_digest,
         "image_uri_with_dlc_version": dlc_release_information.image,
+        "is_private_registry_release": is_private_release,
         "soci_image_uri_with_dlc_version": dlc_release_information.soci_image,
-        "public_registry_image_uri_with_dlc_version": public_registry_image_uri_with_dlc_version,
+        "public_image_uri_with_dlc_version": dlc_release_information.public_image,
+        "public_soci_image_uri_with_dlc_version": dlc_release_information.public_soci_image,
         "image_tags": dlc_release_information.image_tags,
         "soci_image_tags": dlc_release_information.soci_image_tags,
         "dlc_release_successful": dlc_release_successful,
@@ -171,5 +168,10 @@ if __name__ == "__main__":
     os.remove(tarfile_name)
     shutil.rmtree(directory)
 
-    LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
+    if is_private_release:
+        LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
+    else:
+        LOGGER.info(
+            f"Release Information collected for public image: {dlc_release_information.public_image}"
+        )
     LOGGER.info(f"Release information and BOM uploaded to: {s3BucketURI}")

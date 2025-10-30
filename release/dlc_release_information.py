@@ -75,8 +75,12 @@ class DLCReleaseInformation:
 
         run(f"docker rm -f {container_name}", warn=True, hide=True)
 
+        if self.is_private_release:
+            image_uri = self.image
+        else:
+            image_uri = self.public_image
         run(
-            f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}",
+            f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {image_uri}",
             hide=True,
         )
 
@@ -125,10 +129,13 @@ class DLCReleaseInformation:
 
     @property
     def image(self):
-        if self.is_private_release:
-            return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
-        else:
-            return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_tag}"
+        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
+    
+    @property   
+    def public_image(self):
+        if self.public_registry is None:
+            return None
+        return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_tag}"
 
     @property
     def image_tags(self):
@@ -142,10 +149,13 @@ class DLCReleaseInformation:
     def soci_image(self):
         if self.dlc_soci_tag is None:
             return None
-        if self.is_private_release:
-            return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
-        else:
-            return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_soci_tag}"
+        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
+        
+    @property
+    def public_soci_image(self):
+        if self.dlc_soci_tag is None or self.public_registry is None:
+            return None
+        return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_soci_tag}"
 
     @property
     def soci_image_tags(self):
