@@ -50,3 +50,17 @@ jobs:
       - run: .github/scripts/runner_setup.sh
       - run: |
           nvidia-smi
+  
+  job4:
+    needs: [job2]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pr-permission-gate 
+        with:
+          required-level: admin
+      - run: .github/scripts/runner_setup.sh
+      - run: |
+          nvidia-smi
