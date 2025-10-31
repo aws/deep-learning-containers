@@ -19,6 +19,7 @@ jobs:
       - uses: ./.github/actions/pr-permission-gate
   
   job1:
+    needs: [gatekeeper]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
