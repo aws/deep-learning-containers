@@ -1,0 +1,44 @@
+name: Mark and Remove Stale Issues and PRs
+on:
+  schedule:
+    - cron: '0 19 * * 0'  # every Sunday at 19:00 UTC
+  workflow_dispatch:
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+
+    steps:
+      - name: Mark and Close Stale Issues and PRs
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+          # === PR settings ===
+          stale-pr-message: >
+            This PR has been marked stale due to 30 days of inactivity.
+            Please comment or remove the stale label to keep it open.
+            It will be closed in 5 days if no further activity occurs.
+          close-pr-message: >
+            Closing this PR after 5 additional days of inactivity since being marked stale.
+          stale-pr-label: 'no-pr-activity'
+          days-before-pr-stale: 30
+          days-before-pr-close: 5
+
+          # === Issue settings ===
+          stale-issue-message: >
+            This issue has been automatically marked as stale due to 60 days of inactivity.
+            Please comment or remove the stale label to keep it open.
+            It will be closed in 7 days if no further activity occurs.
+          close-issue-message: >
+            Closing this issue after 7 additional days of inactivity since being marked stale.
+          stale-issue-label: 'no-issue-activity'
+          days-before-issue-stale: 60
+          days-before-issue-close: 7
+
+          # === General ===
+          operations-per-run: 200
+          remove-stale-when-updated: true
