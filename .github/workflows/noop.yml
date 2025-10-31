@@ -4,23 +4,25 @@ on:
   push:
     branches:
       - gha
-  pull_request:
+  pull_request_target:
     branches:
       - gha
 
-jobs:
-  gatekeeper:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/pr-permission-gate
-  
+permissions:
+  contents: read
+
+jobs:  
   noop1:
-    needs: [gatekeeper]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
+      - uses: ./.github/actions/pr-permission-gate
+        with:
+          required-level: write
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - run: .github/scripts/runner_setup.sh
       - run: |
           cat README.md
@@ -31,7 +33,11 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     steps:
+      - uses: ./.github/actions/pr-permission-gate 
+        with:
+          required-level: admin
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - run: .github/scripts/runner_setup.sh
-      - run: |
-          cat README.md
