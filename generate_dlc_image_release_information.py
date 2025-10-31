@@ -69,18 +69,15 @@ if __name__ == "__main__":
         github_publishing_metadata = json.loads(f.read())
 
     dlc_account_id = github_publishing_metadata.get("target_account_id_classic")
+    dlc_public_account_id = github_publishing_metadata.get("target_account_id_public")
     dlc_tag = github_publishing_metadata.get("tag_with_dlc_version")
+    is_private_release = github_publishing_metadata.get("private_registry_release", True)
     dlc_soci_tag = github_publishing_metadata.get("tag_with_dlc_version_soci", None)
     dlc_repository = github_publishing_metadata.get("target_ecr_repository")
     dlc_release_successful = github_publishing_metadata.get("release_successful")
     dlc_region = os.getenv("REGION")
 
     dlc_public_registry = github_publishing_metadata.get("target_ecr_public_registry")
-    public_registry_image_uri_with_dlc_version = None
-    if dlc_public_registry is not None:
-        public_registry_image_uri_with_dlc_version = (
-            f"{dlc_public_registry}/{dlc_repository}:{dlc_tag}"
-        )
 
     if dlc_release_successful != "1":
         LOGGER.error(
@@ -89,7 +86,14 @@ if __name__ == "__main__":
         sys.exit(0)
 
     dlc_release_information = DLCReleaseInformation(
-        dlc_account_id, dlc_region, dlc_repository, dlc_tag, dlc_soci_tag=dlc_soci_tag
+        dlc_account_id,
+        dlc_public_account_id,
+        dlc_region,
+        dlc_repository,
+        dlc_tag,
+        dlc_soci_tag=dlc_soci_tag,
+        is_private_release=is_private_release,
+        public_registry=dlc_public_registry,
     )
 
     # bom objects below are used to create .tar.gz file to be uploaded as an asset, 'imp' objects are used as release information
@@ -102,8 +106,10 @@ if __name__ == "__main__":
         "image_digest": dlc_release_information.image_digest,
         "soci_image_digest": dlc_release_information.soci_image_digest,
         "image_uri_with_dlc_version": dlc_release_information.image,
+        "is_private_registry_release": is_private_release,
         "soci_image_uri_with_dlc_version": dlc_release_information.soci_image,
-        "public_registry_image_uri_with_dlc_version": public_registry_image_uri_with_dlc_version,
+        "public_image_uri_with_dlc_version": dlc_release_information.public_image,
+        "public_soci_image_uri_with_dlc_version": dlc_release_information.public_soci_image,
         "image_tags": dlc_release_information.image_tags,
         "soci_image_tags": dlc_release_information.soci_image_tags,
         "dlc_release_successful": dlc_release_successful,
@@ -161,5 +167,10 @@ if __name__ == "__main__":
     os.remove(tarfile_name)
     shutil.rmtree(directory)
 
-    LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
+    if is_private_release:
+        LOGGER.info(f"Release Information collected for image: {dlc_release_information.image}")
+    else:
+        LOGGER.info(
+            f"Release Information collected for public image: {dlc_release_information.public_image}"
+        )
     LOGGER.info(f"Release information and BOM uploaded to: {s3BucketURI}")
