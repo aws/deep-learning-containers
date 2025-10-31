@@ -2,8 +2,8 @@ account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK pytorch
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION 2.7.0
-short_version: &SHORT_VERSION "2.7"
+version: &VERSION 2.8.0
+short_version: &SHORT_VERSION "2.8"
 contributor: huggingface
 arch_type: x86
 
@@ -25,19 +25,28 @@ context:
     deep_learning_container:
       source: ../../../src/deep_learning_container.py
       target: deep_learning_container.py
+    apex_setup:
+      source: docker/build_artifacts/apex_setup.py
+      target: apex_setup.py
+    nxdt_install_setup:
+      source: docker/build_artifacts/nxdt_install_setup.sh
+      target: nxdt_install_setup.sh
+    nxdt_requirements:
+      source: docker/build_artifacts/nxdt_requirements.txt
+      target: nxdt_requirements.txt
 
 images:
   BuildNeuronHFPytorchPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &HUGGINGFACE_PYTORCH_INF_TRAINING_PY3 false
-    image_size_baseline: 28000
+    image_size_baseline: 40000
     device_type: &DEVICE_TYPE neuronx
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py310
-    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.24.1
+    neuron_sdk_version: &NEURON_SDK_VERSION sdk2.26.0
     os_version: &OS_VERSION ubuntu22.04
-    transformers_version: &TRANSFORMERS_VERSION 4.51.0
-    datasets_version: &DATASETS_VERSION 2.18.0
+    transformers_version: &TRANSFORMERS_VERSION 4.55.4
+    datasets_version: &DATASETS_VERSION 4.1.1
     tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION,"-", *NEURON_SDK_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *DOCKER_PYTHON_VERSION, /, *NEURON_SDK_VERSION, /Dockerfile., *DEVICE_TYPE ]
     context:
