@@ -1,5 +1,9 @@
 name: PR Permission Gate
-description: Fails the workflow if the PR sender lacks write access to the repository
+description: Fails the workflow if the PR sender lacks the required repository permission
+inputs:
+  required-level:
+    description: Minimum permission level required (read|triage|write|maintain|admin)
+    default: write
 runs:
   using: "composite"
   steps:
@@ -10,6 +14,8 @@ runs:
           const username = context.payload.sender.login;
           const owner = context.repo.owner;
           const repo = context.repo.repo;
+          const required = '${{ inputs.required-level }}';
+          const levels = ['none', 'read', 'triage', 'write', 'maintain', 'admin'];
 
           try {
             const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
@@ -20,9 +26,7 @@ runs:
 
             const perm = data.permission;
             core.info(`${username} has ${perm} permission`);
-
-            const levels = ['none', 'read', 'triage', 'write', 'maintain', 'admin'];
-            const required = 'write';
+            core.info(`Required level: ${required}`);
 
             if (levels.indexOf(perm) < levels.indexOf(required)) {
               core.setFailed(`❌ User ${username} has ${perm}, but ${required} permission is required.`);
@@ -30,7 +34,6 @@ runs:
               core.info(`✅ User ${username} passes permission check (${perm} >= ${required})`);
             }
           } catch (error) {
-            // Handle case where user isn't a collaborator at all
             if (error.status === 404) {
               core.setFailed(`❌ User ${username} is not a collaborator on ${owner}/${repo}.`);
             } else {
