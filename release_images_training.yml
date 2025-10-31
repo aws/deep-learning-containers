@@ -104,4 +104,3 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-
