@@ -130,8 +130,8 @@ class DLCReleaseInformation:
     @property
     def image(self):
         return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
-    
-    @property   
+
+    @property
     def public_image(self):
         if self.public_registry is None:
             return None
@@ -150,7 +150,7 @@ class DLCReleaseInformation:
         if self.dlc_soci_tag is None:
             return None
         return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
-        
+
     @property
     def public_soci_image(self):
         if self.dlc_soci_tag is None or self.public_registry is None:
