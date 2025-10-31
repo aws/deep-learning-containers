@@ -3,7 +3,6 @@ import os
 import sys
 import logging
 import re
-import importlib.util
 
 from multiprocessing import Pool, Manager
 from datetime import datetime
@@ -34,6 +33,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 from test.vllm.trigger_test import test as test_vllm
+from infra.test_infra.entrypoint import main as run_new_tests
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -290,14 +290,6 @@ def run_vllm_tests(test_type, all_image_list, new_test_structure_enabled):
     try:
         LOGGER.info(f"Running vLLM {test_type.upper()} tests with image: {all_image_list[0]}")
         if new_test_structure_enabled:
-            project_root = os.path.dirname(os.path.dirname(os.getcwd()))
-            spec = importlib.util.spec_from_file_location(
-                "entrypoint",
-                os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
-            )
-            entrypoint_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(entrypoint_module)
-            run_new_tests = entrypoint_module.main
             LOGGER.info("Using new buildspec-based test system")
             run_new_tests()
         else:

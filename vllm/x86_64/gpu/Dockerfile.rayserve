@@ -62,7 +62,7 @@ FROM base AS vllm-rayserve-ec2
 
 RUN uv pip install --system ray[serve]==2.49.0 && \
     uv cache clean \
-    apt-get upgrade && \
+    apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 

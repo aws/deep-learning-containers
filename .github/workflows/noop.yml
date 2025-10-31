@@ -1,0 +1,19 @@
+name: noop
+on:
+  push:
+    branches:
+      - gha
+  pull_request:
+    branches:
+      - gha
+jobs:
+  noop:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: checkout github code
+        uses: actions/checkout@v4
+      - name: check github files
+        shell: bash
+        run: |
+          cat README.md
