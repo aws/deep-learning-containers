@@ -1,4 +1,5 @@
 name: noop
+
 on:
   push:
     branches:
@@ -6,41 +7,31 @@ on:
   pull_request:
     branches:
       - gha
+
 jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pr-permission-gate
+  
   noop1:
+    needs: [gatekeeper]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: checkout github code
-        uses: actions/checkout@v4
-      - name: runner setup
-        run: .github/scripts/runner_setup.sh
-      - name: check github files
-        run: |
+      - uses: actions/checkout@v4
+      - run: .github/scripts/runner_setup.sh
+      - run: |
           cat README.md
+  
   noop2:
     needs: [noop1]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     steps:
-      - name: checkout github code
-        uses: actions/checkout@v4
-      - name: runner setup
-        run: .github/scripts/runner_setup.sh
-      - name: check github files
-        run: |
+      - uses: actions/checkout@v4
+      - run: .github/scripts/runner_setup.sh
+      - run: |
           cat README.md
-  # noop3:
-  #   needs: [noop2]
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:x86-1-nvidia-l4-runner
-  #   steps:
-  #     - name: checkout github code
-  #       uses: actions/checkout@v4
-  #     - name: runner setup
-  #       run: .github/scripts/runner_setup.sh
-  #     - name: check github files
-  #       run: |
-  #         cat README.md
