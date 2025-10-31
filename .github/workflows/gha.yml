@@ -1,4 +1,4 @@
-name: noop
+name: GHA Development
 
 on:
   push:
@@ -12,20 +12,21 @@ permissions:
   contents: read
 
 jobs:  
-  noop1:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/pr-permission-gate
+  
+  job1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/pr-permission-gate
-        with:
-          required-level: write
       - run: .github/scripts/runner_setup.sh
-      - run: |
-          cat README.md
   
-  noop2:
-    needs: [noop1]
+  job2:
+    needs: [job1]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -35,3 +36,5 @@ jobs:
         with:
           required-level: admin
       - run: .github/scripts/runner_setup.sh
+      - run: |
+          cat README.md

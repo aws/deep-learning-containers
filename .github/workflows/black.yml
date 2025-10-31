@@ -1,4 +1,4 @@
-name: dlc-format-check
+name: Format Check
 
 on: [pull_request]
 
