@@ -2,10 +2,15 @@ name: noop
 
 on:
   push:
-    branches: [gha]
+    branches: 
+      - gha
   pull_request_target:
-    types: [opened, reopened, synchronize]
-    branches: [gha]
+    types: 
+      - opened
+      - reopened
+      - synchronize
+    branches: 
+      - gha
 
 permissions:
   contents: read
@@ -15,13 +20,13 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - uses: ./.github/actions/pr-permission-gate
-        with:
-          required-level: write
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+      - uses: ./.github/actions/pr-permission-gate
+        with:
+          required-level: write
       - run: .github/scripts/runner_setup.sh
       - run: |
           cat README.md
@@ -32,11 +37,11 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     steps:
-      - uses: ./.github/actions/pr-permission-gate 
-        with:
-          required-level: admin
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event_name == 'pull_request_target' && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
+      - uses: ./.github/actions/pr-permission-gate 
+        with:
+          required-level: admin
       - run: .github/scripts/runner_setup.sh
