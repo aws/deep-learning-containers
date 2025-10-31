@@ -12,6 +12,7 @@ jobs:
   gatekeeper:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - uses: ./.github/actions/pr-permission-gate
   
   noop1:
