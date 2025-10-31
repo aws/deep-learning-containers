@@ -2,11 +2,10 @@ name: noop
 
 on:
   push:
-    branches:
-      - gha
+    branches: [gha]
   pull_request_target:
-    branches:
-      - gha
+    types: [opened, reopened, synchronize]
+    branches: [gha]
 
 permissions:
   contents: read
