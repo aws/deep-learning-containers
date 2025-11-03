@@ -111,8 +111,6 @@ sagemaker_remote_efa_instance_type = ""
 # false by default
 nightly_pr_test_mode = false
 
-use_scheduler = false
-
 [buildspec_override]
 # Assign the path to the required buildspec file from the deep-learning-containers folder
 # For example:
