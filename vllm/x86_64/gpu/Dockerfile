@@ -77,6 +77,10 @@ RUN apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
+ARG MEMBRAIN_WHL_SRC=https://framework-binaries.s3.us-west-2.amazonaws.com/membrain-hp/amzn_sagemaker_hyperpod_inference_toolkit-1.0-py3-none-any.whl
+
+RUN pip install --no-cache-dir -U ${MEMBRAIN_WHL_SRC}
+
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
 
