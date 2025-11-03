@@ -221,6 +221,7 @@ DJL CPU Full Inference Containers
 
 | Framework         | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                |
 |-------------------|-----------|---------|------------------------|----------------------------------------------------------------------------|
+| DJLServing 0.35.0 | inference | CPU     | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.35.0-cpu-full |
 | DJLServing 0.29.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.29.0-cpu-full |
 | DJLServing 0.28.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-cpu-full |
 | DJLServing 0.27.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-cpu-full |
