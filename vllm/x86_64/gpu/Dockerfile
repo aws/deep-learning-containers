@@ -65,7 +65,6 @@ RUN pip3 install --no-cache-dir -U ${KV_WHEEL}
 FROM base AS vllm-ec2 
 
 RUN apt-get update && \
-    apt-mark hold cuda-* nvidia-* && \
     apt-get upgrade -y && \
     apt-get clean
 
@@ -77,8 +76,8 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
-RUN apt-get update && \
-    apt-mark hold cuda-* nvidia-* && \
+RUN apt-mark hold cuda* libcuda* libnv* nvidia* && \
+    apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
