@@ -76,7 +76,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
-RUN apt-mark hold cuda* libcuda* libnv* nvidia* && \
+RUN apt-mark hold cuda-* libnv* nvidia* && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
