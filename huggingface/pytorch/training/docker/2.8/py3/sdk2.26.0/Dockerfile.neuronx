@@ -320,8 +320,8 @@ RUN ${PIP} install -U \
 	"networkx==2.8.8" \
 	bokeh \
     "opencv-python<4.12.0" \
-    "fsspec" \
-    "protobuf<4" \
+    "fsspec==2025.9.0" \
+    "protobuf<4" \f
     "multiprocess<0.70.17"
 
 RUN apt-get update \
