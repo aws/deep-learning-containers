@@ -127,9 +127,6 @@ RUN ${PIP} install --no-cache-dir -U \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# Copy the NxDT Installation files
-# COPY --chmod=755 apex_setup.py nxdt_install_setup.sh nxdt_requirements.txt /root/
-
 # attrs, neuronx-cc required: >=19.2.0, sagemaker <24,>=23.1.0
 # protobuf neuronx-cc<4, sagemaker-training >=3.9.2,<=3.20.3
 # awscli 1.25.47 has requirement docutils<0.17,>=0.10
@@ -184,8 +181,8 @@ RUN ${PIP} install --no-cache-dir --no-deps -U \
  && rm -rf ~/.cache/pip/*
 
 # Copy workaround script for incorrect hostname
-# COPY changehostname.c /
-# COPY --chmod=755 start_with_right_hostname.sh deep_learning_container.py /usr/local/bin/
+COPY changehostname.c /
+COPY --chmod=755 start_with_right_hostname.sh deep_learning_container.py /usr/local/bin/
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
