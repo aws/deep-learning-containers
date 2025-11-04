@@ -61,7 +61,8 @@ RUN bash install_efa.sh ${EFA_VERSION} && \
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
 
-RUN apt-get update && \
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
+    apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
@@ -73,7 +74,8 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
-RUN apt-get update && \
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
+    apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
 
