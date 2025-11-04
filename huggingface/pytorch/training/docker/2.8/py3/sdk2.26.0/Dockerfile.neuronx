@@ -171,7 +171,7 @@ RUN apt-get update \
 # torchvision needed for MLP. since it depends on torch and torch neuron/torch
 # is already installed install it with nodeps
 RUN ${PIP} install --no-cache-dir --no-deps -U \
-    torchvision \
+    torchvision==0.23.0 \
  # Needed for running bert training scripts
  && ${PIP} install --no-cache-dir -U \
     graphviz \
@@ -320,7 +320,7 @@ RUN ${PIP} install -U \
 	"networkx==2.8.8" \
 	bokeh \
     "opencv-python<4.12.0" \
-    "fsspec==2024.6.1.*" \
+    "fsspec" \
     "protobuf<4" \
     "multiprocess<0.70.17"
 
