@@ -184,4 +184,4 @@ dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
 
 # vllm
-dlc-pr-vllm = "vllm/buildspec-sm.yml"
+dlc-pr-vllm = "vllm/buildspec-rayserve.yml"
