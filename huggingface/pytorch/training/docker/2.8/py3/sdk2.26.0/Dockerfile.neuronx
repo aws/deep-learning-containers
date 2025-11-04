@@ -321,7 +321,7 @@ RUN ${PIP} install -U \
 	bokeh \
     "opencv-python<4.12.0" \
     "fsspec==2025.9.0" \
-    "protobuf<4" \f
+    "protobuf<4" \
     "multiprocess<0.70.17"
 
 RUN apt-get update \
