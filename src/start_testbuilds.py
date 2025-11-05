@@ -85,13 +85,6 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "value": str(config.is_nightly_pr_test_mode_enabled()),
                 "type": "PLAINTEXT",
             },
-            # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
-            # dlc_developer_config, compared to having another config file under dlc/tests/.
-            {
-                "name": "USE_SCHEDULER",
-                "value": str(config.is_scheduler_enabled()),
-                "type": "PLAINTEXT",
-            },
             # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",

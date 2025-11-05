@@ -3,7 +3,6 @@ import os
 import sys
 import logging
 import re
-import importlib.util
 
 from multiprocessing import Pool, Manager
 from datetime import datetime
@@ -34,6 +33,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 from test.vllm.trigger_test import test as test_vllm
+from infra.test_infra.entrypoint import main as run_new_tests
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -121,57 +121,11 @@ def print_log_stream(logs):
     LOGGER.info("Print log stream complete.")
 
 
-def send_scheduler_requests(requester, image):
-    """
-    Send a PR test request through the requester, and wait for the response.
-    If test completed or encountered runtime error, create local XML reports.
-    Otherwise the test failed, print the failure reason.
-
-    :param requester: JobRequester object
-    :param image: <string> ECR URI
-    """
-    # Note: 3 is the max number of instances required for any tests. Here we schedule tests conservatively.
-    identifier = requester.send_request(image, "PR", 3)
-    image_tag = image.split(":")[-1]
-    report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
-    while True:
-        query_status_response = requester.query_status(identifier)
-        test_status = query_status_response["status"]
-        if test_status == "completed":
-            LOGGER.info(f"Test for image {image} completed.")
-            logs_response = requester.receive_logs(identifier)
-            LOGGER.info(
-                f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}"
-            )
-            print_log_stream(logs_response)
-            metrics_utils.send_test_result_metrics(0)
-            with open(report_path, "w") as xml_report:
-                xml_report.write(logs_response["XML_REPORT"])
-            break
-
-        elif test_status == "runtimeError":
-            logs_response = requester.receive_logs(identifier)
-            with open(report_path, "w") as xml_report:
-                xml_report.write(logs_response["XML_REPORT"])
-            print_log_stream(logs_response)
-            metrics_utils.send_test_result_metrics(1)
-            raise Exception(f"Test for image {image} ran into runtime error.")
-            break
-
-        elif test_status == "failed":
-            metrics_utils.send_test_result_metrics(1)
-            raise Exception(
-                f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}"
-            )
-            break
-
-
 def run_sagemaker_remote_tests(images, pytest_cache_params):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
 
     if executor_mode:
@@ -197,19 +151,6 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
                 "runtimeError", instance_type, num_of_instances, job_type, test_report
             )
         return
-
-    elif use_scheduler:
-        LOGGER.info("entered scheduler mode.")
-        import concurrent.futures
-        from job_requester import JobRequester
-
-        job_requester = JobRequester()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            futures = [
-                executor.submit(send_scheduler_requests, job_requester, image) for image in images
-            ]
-            for future in futures:
-                future.result()
     else:
         if not images:
             return
@@ -290,14 +231,6 @@ def run_vllm_tests(test_type, all_image_list, new_test_structure_enabled):
     try:
         LOGGER.info(f"Running vLLM {test_type.upper()} tests with image: {all_image_list[0]}")
         if new_test_structure_enabled:
-            project_root = os.path.dirname(os.path.dirname(os.getcwd()))
-            spec = importlib.util.spec_from_file_location(
-                "entrypoint",
-                os.path.join(project_root, ".infra", "test_infra", "entrypoint.py"),
-            )
-            entrypoint_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(entrypoint_module)
-            run_new_tests = entrypoint_module.main
             LOGGER.info("Using new buildspec-based test system")
             run_new_tests()
         else:
@@ -354,6 +287,7 @@ def main():
             "security_sanity",
             "eks",
             "ec2",
+            "sagemaker",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."

@@ -58,7 +58,7 @@ notify_test_failures = false
 [test]
 # Set to true to use the new test structure path for frameworks
 # Off by default (set to false)
-use_new_test_structure = false
+use_new_test_structure = false 
 
 ### On by default
 sanity_tests = true
@@ -110,8 +110,6 @@ sagemaker_remote_efa_instance_type = ""
 # Run CI tests for nightly images
 # false by default
 nightly_pr_test_mode = false
-
-use_scheduler = false
 
 [buildspec_override]
 # Assign the path to the required buildspec file from the deep-learning-containers folder
