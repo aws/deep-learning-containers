@@ -1,4 +1,4 @@
-FROM lmsysorg/sglang:v0.5.4-cu129-amd64
+FROM lmsysorg/sglang:v0.5.4-cu129-amd64 AS base
 
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.3"
@@ -24,50 +24,51 @@ COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 COPY install_efa.sh install_efa.sh
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py && \
-    chmod +x /usr/local/bin/bash_telemetry.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  && \
-    # OSS compliance - use Python zipfile instead of unzip
-    HOME_DIR=/root && \
-    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
-    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
-    chmod +x /usr/local/bin/testOSSCompliance && \
-    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
-    # create symlink for python
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    # clean up
-    rm -rf ${HOME_DIR}/oss_compliance* && \
-    rm -rf /tmp/tmp* && \
-    rm -rf /tmp/uv* && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache | true
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+ && chmod +x /usr/local/bin/bash_telemetry.sh \
+ && echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  \
+ # OSS compliance - use Python zipfile instead of unzip
+ && HOME_DIR=/root \
+ && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+ && python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" \
+ && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+ && chmod +x /usr/local/bin/testOSSCompliance \
+ && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+ && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+ # create symlink for python
+ && rm -rf /usr/bin/python \
+ && ln -s /usr/bin/python3 /usr/bin/python \
+ # clean up
+ && rm -rf ${HOME_DIR}/oss_compliance* \
+ && rm -rf /tmp/tmp* \
+ && rm -rf /tmp/uv* \
+ && rm -rf /var/lib/apt/lists/* \
+ && rm -rf /root/.cache | true
 
 
-RUN bash install_efa.sh ${EFA_VERSION} && \
-    rm install_efa.sh && \
-    mkdir -p /tmp/nvjpeg \
-    && cd /tmp/nvjpeg \
-    && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-    && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-    && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
-    && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
-    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
-    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
-    && rm -rf /tmp/nvjpeg \
-      # remove cuobjdump and nvdisasm
-    && rm -rf /usr/local/cuda/bin/cuobjdump* \
-    && rm -rf /usr/local/cuda/bin/nvdisasm*
+RUN bash install_efa.sh ${EFA_VERSION} \
+ && rm install_efa.sh \
+ && mkdir -p /tmp/nvjpeg \
+ && cd /tmp/nvjpeg \
+ && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+ && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+ && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+ && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+ && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+ && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+ && rm -rf /tmp/nvjpeg \
+ # remove cuobjdump and nvdisasm
+ && rm -rf /usr/local/cuda/bin/cuobjdump* \
+ && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
-RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get clean
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get clean
 
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
