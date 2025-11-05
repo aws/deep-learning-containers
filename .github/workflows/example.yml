@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: astral-sh/ruff-action@v3
+      - run: ruff check --line-length 100 .
       - uses: ./.github/actions/pr-permission-gate
   
   job1:
