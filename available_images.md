@@ -221,6 +221,7 @@ DJL CPU Full Inference Containers
 
 | Framework         | Job Type  | CPU/GPU | Python Version Options | Example URL                                                                |
 |-------------------|-----------|---------|------------------------|----------------------------------------------------------------------------|
+| DJLServing 0.35.0 | inference | CPU     | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.35.0-cpu-full |
 | DJLServing 0.29.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.29.0-cpu-full |
 | DJLServing 0.28.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.28.0-cpu-full |
 | DJLServing 0.27.0 | inference | CPU     | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.27.0-cpu-full |
@@ -352,8 +353,8 @@ Note: Starting from Neuron SDK 2.17.0, Dockerfiles for PyTorch Neuron Containers
 
 | Framework                                                                                                                                          | Neuron Package                                           | Neuron SDK Version | Job Type  | Supported EC2 Instance Types | Python Version Options | Example URL                                                                                                          |
 |----------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|--------------------|-----------|------------------------------|------------------------|----------------------------------------------------------------------------------------------------------------------|
-| [PyTorch 2.8.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.26.0/docker/pytorch/inference/2.8.0/Dockerfile.neuronx)              | torch-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.26.0      | inference | trn1,trn2,inf2                    | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.8.0-neuronx-py311-sdk2.26.0-ubuntu22.04     |
-| [PyTorch 2.8.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.26.0/docker/pytorch/training/2.8.0/Dockerfile.neuronx)              | torch-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.26.0      | training | trn1,trn2,inf2                    | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.8.0-neuronx-py311-sdk2.26.0-ubuntu22.04     |
+| [PyTorch 2.8.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.26.1/pytorch/inference/2.8.0/Dockerfile.neuronx)              | torch-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.26.1      | inference | trn1,trn2,inf2                    | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04     |
+| [PyTorch 2.8.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.26.1/pytorch/training/2.8.0/Dockerfile.neuronx)              | torch-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.26.1      | training | trn1,trn2,inf2                    | 3.11 (py311)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04     |
 | [PyTorch 2.7.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.25.0/docker/pytorch/inference/2.7.0/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.25.0      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04     |
 | [PyTorch 2.7.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.25.0/docker/pytorch/training/2.7.0/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_training | Neuron 2.25.0      | training | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training-neuronx:2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04     |
 | [PyTorch 2.7.0](https://github.com/aws-neuron/deep-learning-containers/blob/2.24.1/docker/pytorch/inference/2.7.0/Dockerfile.neuronx)              | torch-neuronx, transformers-neuronx, neuronx_distributed, neuronx_distributed_inference | Neuron 2.24.1      | inference | trn1,trn2,inf2                    | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-inference-neuronx:2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04     |
@@ -386,10 +387,6 @@ Prior EC2 Framework Container Versions
 | PyTorch 2.7.1     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-ec2       |
 | PyTorch 2.6.0     |training	|No			|CPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-ec2             |
 | PyTorch 2.6.0     |training	|No			|GPU 		| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-ec2       |
-| PyTorch 2.5.1     |training	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-ec2             |
-| PyTorch 2.5.1     |training	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2       |
-| PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-ec2            |
-| PyTorch 2.5.1     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2     |
 
 Prior SageMaker Framework Container Versions
 ==============
@@ -399,23 +396,6 @@ Prior SageMaker Framework Container Versions
 | PyTorch 2.7.1     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker     |
 | PyTorch 2.6.0     | training	| No			  | CPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-cpu-py312-ubuntu22.04-sagemaker           |
 | PyTorch 2.6.0     | training	| No			  | GPU 	  | 3.12 (py312)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker     |
-| PyTorch 2.5.1     | training	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-cpu-py311-ubuntu22.04-sagemaker           |
-| PyTorch 2.5.1     | training	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker     |
-| PyTorch 2.5.1     | inference	| No			  | CPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-cpu-py311-ubuntu22.04-sagemaker           |
-| PyTorch 2.5.1     | inference	| No			  | GPU 	  | 3.11 (py311)			   | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference:2.5.1-gpu-py311-cu124-ubuntu22.04-sagemaker     |
-
-Prior EC2 Framework ARM64/Graviton Containers
-============================
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-| PyTorch 2.5.1     |inference	|No			|CPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-ec2		     |
-| PyTorch 2.5.1     |inference	|No			|GPU 		| 3.11 (py311)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-gpu-py311-cu124-ubuntu22.04-ec2		     |
-
-Prior SageMaker Framework ARM64/Graviton Containers
-============================
-| Framework         |Job Type	|Horovod Options|CPU/GPU 	|Python Version Options	|Example URL																						|
-|-------------------|-----------|---------------|-----------|-----------------------|---------------------------------------------------------------------------------------------------|
-| PyTorch 2.5.1     | inference | No			 | CPU 	   | 3.11 (py311)			    | 763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-inference-arm64:2.5.1-cpu-py311-ubuntu22.04-sagemaker     |
 
 Prior AutoGluon Training Containers
 ===============================
