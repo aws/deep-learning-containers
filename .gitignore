@@ -1,0 +1,9 @@
+__pycache__
+logs
+venv
+.idea
+.DS_Store
+*.pyc
+test/sagemaker_tests/huggingface/inference/resources/**/*[.json,.h5,.bin,.txt]
+build/
+dlc/
