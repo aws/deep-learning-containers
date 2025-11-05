@@ -1,0 +1,68 @@
+name: Example Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:  
+  gatekeeper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/ruff-action@v3
+      - run: ruff check --line-length 100 .
+      - uses: ./.github/actions/pr-permission-gate
+  
+  job1:
+    needs: [gatekeeper]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - uses: actions/checkout@v5
+      - run: .github/scripts/runner_setup.sh
+  
+  job2:
+    needs: [job1]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: .github/scripts/runner_setup.sh
+      - run: |
+          cat README.md
+  
+  job3:
+    needs: [job2]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/pr-permission-gate 
+        with:
+          required-level: admin
+      - run: .github/scripts/runner_setup.sh
+      - run: |
+          nvidia-smi
+  
+  job4:
+    needs: [job2]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/pr-permission-gate 
+        with:
+          required-level: admin
+      - run: .github/scripts/runner_setup.sh
+      - run: |
+          nvidia-smi
