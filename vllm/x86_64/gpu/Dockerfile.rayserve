@@ -61,7 +61,9 @@ RUN bash install_efa.sh ${EFA_VERSION} && \
 FROM base AS vllm-rayserve-ec2
 
 RUN uv pip install --system ray[serve]==2.49.0 && \
-    uv cache clean \
+    uv cache clean 
+    
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
     apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
