@@ -70,6 +70,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+      enable_soci: True
   6:
     framework: "vllm"
     version: "0.10.2"
@@ -99,3 +100,20 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+      enable_soci: True
+  8:
+    framework: "vllm"
+    version: "0.10.2"
+    arch_type: "x86"
+    customer_type: "rayserve-ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+      private_registry: False
