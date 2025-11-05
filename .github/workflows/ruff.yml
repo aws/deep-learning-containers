@@ -1,0 +1,13 @@
+name: ruff
+
+on: 
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  python-formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: astral-sh/ruff-action@v3
+      - run: ruff check --line-length 100 .

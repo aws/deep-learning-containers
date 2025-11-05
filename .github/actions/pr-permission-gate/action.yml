@@ -1,0 +1,42 @@
+name: PR Permission Gate
+description: Fails the workflow if the PR sender lacks the required repository permission
+inputs:
+  required-level:
+    description: Minimum permission level required (read|triage|write|maintain|admin)
+    default: write
+runs:
+  using: "composite"
+  steps:
+    - name: Check PR sender permission
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const username = context.payload.sender.login;
+          const owner = context.repo.owner;
+          const repo = context.repo.repo;
+          const required = '${{ inputs.required-level }}';
+          const levels = ['none', 'read', 'triage', 'write', 'maintain', 'admin'];
+
+          try {
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner,
+              repo,
+              username
+            });
+
+            const perm = data.permission;
+            core.info(`${username} has ${perm} permission`);
+            core.info(`Required level: ${required}`);
+
+            if (levels.indexOf(perm) < levels.indexOf(required)) {
+              core.setFailed(`❌ User ${username} has ${perm}, but ${required} permission is required.`);
+            } else {
+              core.info(`✅ User ${username} passes permission check (${perm} >= ${required})`);
+            }
+          } catch (error) {
+            if (error.status === 404) {
+              core.setFailed(`❌ User ${username} is not a collaborator on ${owner}/${repo}.`);
+            } else {
+              core.setFailed(`Unexpected error while checking permission: ${error.message}`);
+            }
+          }
