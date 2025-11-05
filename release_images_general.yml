@@ -70,6 +70,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+      enable_soci: True
   6:
     framework: "vllm"
     version: "0.10.2"
@@ -99,3 +100,4 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
+      enable_soci: True
