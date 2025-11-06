@@ -349,8 +349,10 @@ def execute_local_tests(image, pytest_cache_params):
         result = ec2_conn.run("docker-compose --version")
         print(f"Docker Compose installed successfully: {result.stdout.strip()}")
         if result.failed:
-            raise DLCSageMakerLocalTestFailure(f"Docker Compose installation failed: {result.stderr}")
-        
+            raise DLCSageMakerLocalTestFailure(
+                f"Docker Compose installation failed: {result.stderr}"
+            )
+
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
