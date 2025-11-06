@@ -1,7 +1,7 @@
 hydra-core>=1.3.0
 omegaconf>=2.2,<2.3
 pyyaml==6.0.1
-torchmetrics>=0.4.1rc0,<=0.10.3
+torchmetrics
 transformers==4.55.4
 wandb
 webdataset>=0.1.48,<=0.1.62
