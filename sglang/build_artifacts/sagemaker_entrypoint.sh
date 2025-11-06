@@ -31,4 +31,5 @@ if [ -n "$CHUNKED_PREFILL_SIZE" ]; then
     SERVER_ARGS="${SERVER_ARGS} --chunked-prefill-size ${CHUNKED_PREFILL_SIZE}"
 fi
 
-python3 -m sglang.launch_server --model-path /opt/ml/model $SERVER_ARGS
+# python3 -m sglang.launch_server --model-path /opt/ml/model $SERVER_ARGS
+python3 -m sgland.launch_server --model-path Qwen/Qwen3-0.6B --reasoning-parser qwen3
