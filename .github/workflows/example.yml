@@ -36,8 +36,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
-      - run: .github/scripts/buildkitd.sh
-  
+      - run: .github/scripts/install_buildkit.sh
+      - run: .github/scripts/setup_buildkitd.sh
+
   example-on-g6xl-runner-1:
     needs: [example-on-build-runner]
     runs-on:
