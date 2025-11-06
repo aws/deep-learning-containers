@@ -345,8 +345,13 @@ def execute_local_tests(image, pytest_cache_params):
             "sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose"
         )
         ec2_conn.run("sudo chmod +x /usr/local/bin/docker-compose")
+
         with ec2_conn.cd(path):
-            ec2_conn.run(f"pip install -r requirements.txt")
+            if "pytorch-inference" in image:
+                ec2_conn.run(f"pip install -r pytorch-inference-requirements.txt")
+            else:
+                ec2_conn.run(f"pip install -r requirements.txt")
+
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
                 ec2_conn, path, **pytest_cache_params
             )

@@ -115,6 +115,7 @@ AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
+
 AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
