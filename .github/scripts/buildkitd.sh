@@ -52,6 +52,7 @@ if [ ${#lines[@]} -eq 0 ]; then
 fi
 
 read -r mount avail fstype <<<"${lines[0]}"
+
 avail_h=$(numfmt --to=iec <<<"$avail" 2>/dev/null || echo "$avail bytes")
 echo "📦 Largest volume: $mount (Free: $avail_h, Type: $fstype)"
 
@@ -64,6 +65,12 @@ fi
 sudo mkdir -p "$BUILD_ROOT"
 sudo chown root:root "$BUILD_ROOT"
 echo "🧱 Using BuildKit root at: $BUILD_ROOT"
+
+# Compute keepBytes as 80% of available space
+KEEP_BYTES=$(awk -v avail="$avail" 'BEGIN {printf "%.0f", avail * 0.8}')
+KEEP_HUMAN=$(numfmt --to=iec <<<"$KEEP_BYTES")
+
+echo "🧮 Setting BuildKit GC limit to ~80% of free space: $KEEP_HUMAN"
 
 # -----------------------------
 # Step 3. Write configuration
@@ -78,14 +85,14 @@ cat <<EOF | sudo tee /etc/buildkit/buildkitd.toml >/dev/null
 
 [gc]
   enabled = true
-  defaultKeepStorage = "9TB"
+  defaultKeepStorage = "$KEEP_HUMAN"
   [[gc.policy]]
-    keepDuration = "720h"    # 30 days
-    keepBytes = "9TB"
+    keepDuration = "168h"    # 7 days
+    keepBytes = "$KEEP_BYTES"
     filters = ["type==regular"]
 EOF
 
-echo "✅ Wrote /etc/buildkit/buildkitd.toml"
+echo "✅ Wrote /etc/buildkit/buildkitd.toml (keepBytes=$KEEP_HUMAN)"
 
 # -----------------------------
 # Step 4. Install systemd service
@@ -97,7 +104,7 @@ Description=BuildKit Daemon
 After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/buildkitd --config /etc/buildkit/buildkitd.toml --addr tcp://127.0.0.1:1234
+ExecStart=/usr/local/bin/buildkitd --config /etc/buildkit/buildkitd.toml
 Restart=always
 LimitNOFILE=1048576
 OOMScoreAdjust=-500
@@ -108,6 +115,7 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now buildkitd
+sudo systemctl restart buildkitd
 
 # -----------------------------
 # Step 5. Verify daemon
