@@ -11,7 +11,7 @@ pytest-rerunfailures<=15.1
 pytest-timeout
 pytest-json-report
 pytest-xdist
-sagemaker>=2,<3
+sagemaker>=2.155.0,<2.200.0
 xmltodict
 retrying
 gitpython
