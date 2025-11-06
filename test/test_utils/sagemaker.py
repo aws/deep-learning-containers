@@ -347,13 +347,13 @@ def execute_local_tests(image, pytest_cache_params):
         ec2_conn.run("sudo chmod +x /usr/local/bin/docker-compose")
 
         with ec2_conn.cd(path):
+            if "pytorch-inference" in image:
+                ec2_conn.run(f"pip install docker==6.1.3")
+                ec2_conn.run(f"pip install docker-compose")
             ec2_conn.run(f"pip install -r requirements.txt")
             # SageMaker PyTorch Inference Toolkit still use docker compose v1
             # https://github.com/aws/sagemaker-pytorch-inference-toolkit/blob/v2.0.25/setup.py#L58
             # Docker v7.0.0 breaks compatibility with Docker Compose v1 (SageMaker Local)
-            if "pytorch-inference" in image:
-                ec2_conn.run(f"pip install docker==6.1.3")
-                ec2_conn.run(f"pip install docker-compose")
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
                 ec2_conn, path, **pytest_cache_params
             )
