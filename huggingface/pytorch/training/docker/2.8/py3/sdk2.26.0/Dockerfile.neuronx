@@ -1,4 +1,6 @@
-FROM public.ecr.aws/docker/library/ubuntu:22.04
+ARG BUILD_STAGE=prod
+
+FROM public.ecr.aws/docker/library/ubuntu:22.04 AS base
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="2"
@@ -11,7 +13,7 @@ ARG OMPI_VERSION=4.1.5
 # This arg required to stop docker build waiting for region configuration while installing tz data from ubuntu 22
 ARG DEBIAN_FRONTEND=noninteractive
 
-# Python won’t try to write .pyc or .pyo files on the import of source modules
+# Python won't try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
@@ -215,10 +217,12 @@ RUN mkdir -p /etc/apt/keyrings \
 ARG NEURONX_COLLECTIVES_LIB_VERSION=2.28.27.0-bc30ece58
 ARG NEURONX_RUNTIME_LIB_VERSION=2.28.23.0-dd5879008
 ARG NEURONX_TOOLS_VERSION=2.26.14.0
-ARG NEURONX_FRAMEWORK_VERSION=2.8.0.2.10.13553+1e4dd6ca
-ARG NEURONX_CC_VERSION=2.21.18209.0+043b1bf7
+ARG NEURONX_FRAMEWORK_VERSION=2.8.0.2.10.16998+e9bf8a50
+ARG NEURONX_CC_VERSION=2.21.33363.0+82129205
 ARG NEURONX_DISTRIBUTED_VERSION=0.15.22404+1f27bddf
 ARG NEURONX_DISTRIBUTED_TRAINING_VERSION=1.6.0
+
+FROM base AS repo
 
 # Install Neuron components from the apt and pip repos (latest versions)
 RUN apt-get update \
@@ -237,6 +241,8 @@ RUN ${PIP} install --no-cache-dir --force-reinstall \
     neuronx_distributed_training \
  && rm -rf ~/.cache/pip/*
 
+FROM base AS prod
+
 # Install Neuron components with specific versions
 RUN apt-get update \
  && apt-get install -y \
@@ -254,6 +260,8 @@ RUN ${PIP} install --force-reinstall \
    neuronx_distributed_training==$NEURONX_DISTRIBUTED_TRAINING_VERSION \
  && rm -rf ~/.cache/pip/*
 
+FROM ${BUILD_STAGE} AS neuronx
+
 ## Installation for Neuronx Distributed Training framework
 # Clone and build Apex
 RUN git clone https://github.com/NVIDIA/apex.git /root/apex \
@@ -266,11 +274,7 @@ RUN git clone https://github.com/NVIDIA/apex.git /root/apex \
  && ${PIP} install --force-reinstall "torch==2.8.0" \
  && rm -rf ~/.cache/pip/*
 
-# Starts framework
-ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
-CMD ["/bin/bash"]
-
-HEALTHCHECK CMD curl --fail http://localhost:8080/ping || exit 1
+FROM neuronx AS final
 
 # Hugging Face version args
 ARG OPTIMUM_NEURON_VERSION=0.4.1
@@ -322,8 +326,7 @@ RUN ${PIP} install -U \
     "opencv-python<4.12.0" \
     "fsspec==2025.9.0" \
     "protobuf<4" \
-    "multiprocess<0.70.17" \
-    "optimum>1.24.0"
+    "multiprocess<0.70.17"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
@@ -342,3 +345,9 @@ RUN apt-get update \
  && rm -rf /root/apex_setup.py
 
 ENV WANDB_MODE=disabled
+
+# Starts framework
+ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
+CMD ["/bin/bash"]
+
+HEALTHCHECK CMD curl --fail http://localhost:8080/ping || exit 1
