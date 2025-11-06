@@ -1,0 +1,5 @@
+{
+  "MD013": false, // disable line-length limit
+  "MD033": false, // allow inline HTML
+  "MD041": false  // allow first line not being top level
+}
