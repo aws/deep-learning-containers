@@ -36,8 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
-      - run: |
-          cat README.md
+      - run: .github/scripts/buildkitd.sh
   
   job3:
     needs: [job2]
