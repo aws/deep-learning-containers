@@ -35,9 +35,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
  && chmod +x /usr/local/bin/testOSSCompliance \
  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
- # create symlink for python
- && rm -rf /usr/bin/python \
- && ln -s /usr/bin/python3 /usr/bin/python \
  # clean up
  && rm -rf ${HOME_DIR}/oss_compliance* \
  && rm -rf /tmp/tmp* \
@@ -50,6 +47,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
  && rm install_efa.sh \
  && mkdir -p /tmp/nvjpeg \
  && cd /tmp/nvjpeg \
+ # latest cu12 libnvjpeg available is cu124
  && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
  && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
  && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
