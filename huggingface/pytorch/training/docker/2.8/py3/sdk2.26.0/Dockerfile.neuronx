@@ -129,9 +129,6 @@ RUN ${PIP} install --no-cache-dir -U \
 
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
 
-# Copy the NxDT Installation files
-COPY --chmod=755 apex_setup.py nxdt_install_setup.sh nxdt_requirements.txt /root/
-
 # attrs, neuronx-cc required: >=19.2.0, sagemaker <24,>=23.1.0
 # protobuf neuronx-cc<4, sagemaker-training >=3.9.2,<=3.20.3
 # awscli 1.25.47 has requirement docutils<0.17,>=0.10
@@ -220,7 +217,6 @@ ARG NEURONX_TOOLS_VERSION=2.26.14.0
 ARG NEURONX_FRAMEWORK_VERSION=2.8.0.2.10.13553+1e4dd6ca
 ARG NEURONX_CC_VERSION=2.21.18209.0+043b1bf7
 ARG NEURONX_DISTRIBUTED_VERSION=0.15.22404+1f27bddf
-ARG NEURONX_DISTRIBUTED_TRAINING_VERSION=1.6.0
 
 FROM base AS repo
 
@@ -238,7 +234,6 @@ RUN ${PIP} install --no-cache-dir --force-reinstall \
     torch-neuronx \
     neuronx-cc \
     neuronx_distributed \
-    neuronx_distributed_training \
  && rm -rf ~/.cache/pip/*
 
 FROM base AS prod
@@ -257,24 +252,9 @@ RUN ${PIP} install --force-reinstall \
    torch-neuronx==$NEURONX_FRAMEWORK_VERSION \
    neuronx-cc==$NEURONX_CC_VERSION \
    neuronx_distributed==$NEURONX_DISTRIBUTED_VERSION \
-   neuronx_distributed_training==$NEURONX_DISTRIBUTED_TRAINING_VERSION \
  && rm -rf ~/.cache/pip/*
 
-FROM ${BUILD_STAGE} AS neuronx
-
-## Installation for Neuronx Distributed Training framework
-# Clone and build Apex
-RUN git clone https://github.com/NVIDIA/apex.git /root/apex \
- && cd /root/apex \
- && git checkout 23.05 \
- && cp /root/apex_setup.py setup.py \
- # Install dependencies from requirements and extras for SageMaker usecase
- && ${PIP} install --no-cache-dir --no-build-isolation -r /root/nxdt_requirements.txt /root/apex \
- && /root/nxdt_install_setup.sh \
- && ${PIP} install --force-reinstall "torch==2.8.0" \
- && rm -rf ~/.cache/pip/*
-
-FROM neuronx AS final
+FROM ${BUILD_STAGE} AS final
 
 # Hugging Face version args
 ARG OPTIMUM_NEURON_VERSION=0.4.1
@@ -342,10 +322,7 @@ RUN apt-get update \
  && apt-get upgrade -y apparmor \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /tmp/tmp* \
- && apt-get clean \
- # The pytorch-training-neuronx base image comes with unneeded files for setting up apex
- # In order to pass the sanity test in the deep-learning-containers workflow, we will remove it here
- && rm -rf /root/apex_setup.py
+ && apt-get clean
 
 ENV WANDB_MODE=disabled
 
