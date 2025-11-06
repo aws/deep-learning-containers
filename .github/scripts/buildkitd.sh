@@ -77,7 +77,10 @@ echo "🧮 Setting BuildKit GC limit to ~80% of free space: $KEEP_HUMAN"
 # -----------------------------
 sudo mkdir -p /etc/buildkit
 
-cat <<EOF | sudo tee /etc/buildkit/buildkitd.toml >/dev/null
+CONFIG_PATH="/etc/buildkit/buildkitd.toml"
+CONFIG_HASH_PATH="/etc/buildkit/buildkitd.toml.sha256"
+
+cat <<EOF | sudo tee "$CONFIG_PATH" >/dev/null
 [worker.oci]
   enabled = true
   gc = true
@@ -87,18 +90,34 @@ cat <<EOF | sudo tee /etc/buildkit/buildkitd.toml >/dev/null
   enabled = true
   defaultKeepStorage = "$KEEP_HUMAN"
   [[gc.policy]]
-    keepDuration = "168h"    # 7 days
+    keepDuration = "720h"    # 30 days
     keepBytes = "$KEEP_BYTES"
     filters = ["type==regular"]
 EOF
 
-echo "✅ Wrote /etc/buildkit/buildkitd.toml (keepBytes=$KEEP_HUMAN)"
+echo "✅ Wrote $CONFIG_PATH (keepBytes=$KEEP_HUMAN)"
+
+# Compute new hash and check drift
+NEW_HASH=$(sudo sha256sum "$CONFIG_PATH" | awk '{print $1}')
+OLD_HASH=$(sudo cat "$CONFIG_HASH_PATH" 2>/dev/null || true)
+
+if [ "$NEW_HASH" != "$OLD_HASH" ]; then
+  echo "⚠️ Config drift detected or first-time setup."
+  echo "$NEW_HASH" | sudo tee "$CONFIG_HASH_PATH" >/dev/null
+  CONFIG_CHANGED=true
+else
+  CONFIG_CHANGED=false
+  echo "✅ Config unchanged."
+fi
 
 # -----------------------------
-# Step 4. Install systemd service
+# Step 4. Ensure systemd service exists
 # -----------------------------
 SERVICE_FILE="/etc/systemd/system/buildkitd.service"
-sudo tee "$SERVICE_FILE" >/dev/null <<'EOF'
+
+if [ ! -f "$SERVICE_FILE" ]; then
+  echo "🧾 Installing BuildKit systemd service..."
+  sudo tee "$SERVICE_FILE" >/dev/null <<'EOF'
 [Unit]
 Description=BuildKit Daemon
 After=network.target
@@ -113,18 +132,37 @@ OOMScoreAdjust=-500
 WantedBy=multi-user.target
 EOF
 
-sudo systemctl daemon-reload
-sudo systemctl enable --now buildkitd
-sudo systemctl restart buildkitd
+  sudo systemctl daemon-reload
+  sudo systemctl enable buildkitd
+else
+  echo "✅ Systemd unit already exists."
+fi
 
 # -----------------------------
-# Step 5. Verify daemon
+# Step 5. Check daemon health and config drift
 # -----------------------------
-echo "🩺 Checking BuildKit daemon status..."
+echo "🩺 Checking BuildKit daemon health..."
+
+if systemctl is-active --quiet buildkitd; then
+  if [ "$CONFIG_CHANGED" = true ]; then
+    echo "🔄 buildkitd active but config changed — reloading..."
+    sudo systemctl daemon-reload
+    sudo systemctl restart buildkitd
+  else
+    echo "✅ buildkitd active and config unchanged. Skipping restart."
+  fi
+else
+  echo "🔄 buildkitd not running or inactive — starting..."
+  sudo systemctl daemon-reload
+  sudo systemctl restart buildkitd
+fi
+
+# -----------------------------
+# Step 6. Verify status
+# -----------------------------
 sleep 3
-sudo systemctl --no-pager status buildkitd || true
-
+sudo systemctl --no-pager status buildkitd | head -n 15
 echo "🔍 Verifying workers..."
-buildctl debug workers
+buildctl debug workers || (echo "⚠️ buildctl failed to connect" && exit 1)
 
 echo "✅ BuildKit daemon setup complete!"
