@@ -328,7 +328,7 @@ def execute_local_tests(image, pytest_cache_params):
         )
         ec2_conn = ec2_utils.get_ec2_fabric_connection(instance_id, key_file, region)
         ec2_conn.put(sm_tests_tar_name, f"{AL2023_HOME_DIR}")
-        ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
+        # ec2_utils.install_python_in_instance(ec2_conn, python_version="3.9")
         login_to_ecr_registry(ec2_conn, account_id, region)
         try:
             ec2_conn.run(f"docker pull {image}", timeout=600)
