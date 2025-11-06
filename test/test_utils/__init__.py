@@ -111,10 +111,12 @@ UBUNTU_20_BASE_PROPRIETARY_DLAMI_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
     ami_name_pattern="Deep Learning Base Proprietary Nvidia Driver GPU AMI (Ubuntu 20.04) ????????",
 )
-AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
-    region_name="us-west-2",
-    parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
-)
+# AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
+#     region_name="us-west-2",
+#     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
+# )
+AL2023_BASE_DLAMI_US_WEST_2 = "ami-04864586635537982"
+
 AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
