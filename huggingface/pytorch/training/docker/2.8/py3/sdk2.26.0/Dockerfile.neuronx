@@ -322,7 +322,8 @@ RUN ${PIP} install -U \
     "opencv-python<4.12.0" \
     "fsspec==2025.9.0" \
     "protobuf<4" \
-    "multiprocess<0.70.17"
+    "multiprocess<0.70.17" \
+    "optimum>1.24.0"
 
 RUN apt-get update \
  && apt install -y --no-install-recommends \
