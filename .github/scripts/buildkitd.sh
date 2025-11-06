@@ -73,14 +73,13 @@ KEEP_HUMAN=$(numfmt --to=iec <<<"$KEEP_BYTES")
 echo "🧮 Setting BuildKit GC limit to ~80% of free space: $KEEP_HUMAN"
 
 # -----------------------------
-# Step 3. Write configuration
+# Step 3. Generate and write configuration (diff-based drift detection)
 # -----------------------------
 sudo mkdir -p /etc/buildkit
-
 CONFIG_PATH="/etc/buildkit/buildkitd.toml"
-CONFIG_HASH_PATH="/etc/buildkit/buildkitd.toml.sha256"
 
-cat <<EOF | sudo tee "$CONFIG_PATH" >/dev/null
+TMP_CONFIG=$(mktemp)
+cat <<EOF > "$TMP_CONFIG"
 [worker.oci]
   enabled = true
   gc = true
@@ -95,20 +94,22 @@ cat <<EOF | sudo tee "$CONFIG_PATH" >/dev/null
     filters = ["type==regular"]
 EOF
 
-echo "✅ Wrote $CONFIG_PATH (keepBytes=$KEEP_HUMAN)"
-
-# Compute new hash and check drift
-NEW_HASH=$(sudo sha256sum "$CONFIG_PATH" | awk '{print $1}')
-OLD_HASH=$(sudo cat "$CONFIG_HASH_PATH" 2>/dev/null || true)
-
-if [ "$NEW_HASH" != "$OLD_HASH" ]; then
-  echo "⚠️ Config drift detected or first-time setup."
-  echo "$NEW_HASH" | sudo tee "$CONFIG_HASH_PATH" >/dev/null
+if [ ! -f "$CONFIG_PATH" ]; then
+  echo "🆕 No existing config found — creating $CONFIG_PATH"
+  sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
   CONFIG_CHANGED=true
 else
-  CONFIG_CHANGED=false
-  echo "✅ Config unchanged."
+  if ! sudo diff -qwB "$TMP_CONFIG" "$CONFIG_PATH" >/dev/null 2>&1; then
+    echo "⚠️ Config drift detected — updating $CONFIG_PATH"
+    sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
+    CONFIG_CHANGED=true
+  else
+    echo "✅ Config unchanged."
+    CONFIG_CHANGED=false
+  fi
 fi
+
+rm -f "$TMP_CONFIG"
 
 # -----------------------------
 # Step 4. Ensure systemd service exists
