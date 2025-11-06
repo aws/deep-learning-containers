@@ -25,7 +25,7 @@ context:
       source: scripts/install_efa.sh
       target: install_efa.sh
     sagemaker_entrypoint:
-      source: sglang/build_artifacts/sagemaker_entrypoint.sh
+      source: vllm/build_artifacts/sagemaker_entrypoint.sh
       target: sagemaker_entrypoint.sh
 
 images:
@@ -45,9 +45,9 @@ images:
     target: vllm-sagemaker
     build: true
     enable_common_stage_build: false
-    # test_configs:
-    #   test_platforms:
-    #     - sanity
-    #     - security
-    #     - sagemaker
-    #     - eks
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker
+        - eks
