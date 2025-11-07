@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           DATE=$(date +"%Y-%m-%d")
-          COMMIT_REF=$(git rev-parse --short HEAD)
+          COMMIT_REF=$(git rev-parse HEAD)
           DOCKER_BUILDKIT=1 docker build --progress plain \
             --build-arg CACHE_REFRESH="${DATE}" \
             --tag vllm:0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-"${COMMIT_REF}" \
