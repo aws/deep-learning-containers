@@ -94,12 +94,13 @@ cat <<EOF > "$TMP_CONFIG"
     filters = ["type==regular"]
 EOF
 
-if [ ! -f "$CONFIG_PATH" ]; then
+if ! sudo test -f "$CONFIG_PATH"; then
   echo "🆕 No existing config found — creating $CONFIG_PATH"
   sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
   CONFIG_CHANGED=true
 else
-  if ! sudo diff -qwB "$TMP_CONFIG" "$CONFIG_PATH" >/dev/null 2>&1; then
+  # normalize permissions and compare cleanly
+  if ! sudo diff -q --strip-trailing-cr --ignore-all-space "$TMP_CONFIG" "$CONFIG_PATH" >/dev/null 2>&1; then
     echo "⚠️ Config drift detected — updating $CONFIG_PATH"
     sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
     CONFIG_CHANGED=true
@@ -109,7 +110,7 @@ else
   fi
 fi
 
-rm -f "$TMP_CONFIG"
+sudo rm -f "$TMP_CONFIG"
 
 # -----------------------------
 # Step 4. Ensure systemd service exists
