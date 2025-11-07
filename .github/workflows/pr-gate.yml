@@ -20,9 +20,7 @@ jobs:
       - name: Checkout base branch (safe)
         uses: actions/checkout@v5
         with:
-          # checkout the workflow's commit (base branch), not the PR head
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
-
       - name: Run permission gate (from base)
         uses: ./.github/actions/pr-permission-gate
