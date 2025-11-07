@@ -78,7 +78,7 @@ echo "🧮 Setting BuildKit GC limit to ~80% of free space: $KEEP_HUMAN"
 sudo mkdir -p /etc/buildkit
 CONFIG_PATH="/etc/buildkit/buildkitd.toml"
 
-TMP_CONFIG=$(mktemp /tmp/buildkitd.toml.XXXXXX)
+TMP_CONFIG=$(mktemp)
 sudo chmod 644 "$TMP_CONFIG"
 cat <<EOF > "$TMP_CONFIG"
 [worker.oci]
@@ -91,14 +91,8 @@ cat <<EOF > "$TMP_CONFIG"
   defaultKeepStorage = "$KEEP_HUMAN"
   [[gc.policy]]
     keepDuration = "720h"    # 30 days
-    keepBytes = "$KEEP_BYTES"
     filters = ["type==regular"]
 EOF
-
-echo "New Config: "
-cat $TMP_CONFIG
-echo "Old Config: "
-cat $CONFIG_PATH
 
 if [ ! -f "$CONFIG_PATH" ]; then
   echo "🆕 No existing config found — creating $CONFIG_PATH"

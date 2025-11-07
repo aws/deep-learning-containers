@@ -7,19 +7,21 @@ default_stages:
   - manual
 
 repos:
-  # - repo: https://github.com/reteps/dockerfmt
-  #   # run `pre-commit autoupdate` to pin the version
-  #   rev: main
-  #   hooks:
-  #     - id: dockerfmt
-  #       args:
-  #         # optional: add additional arguments here
-  #         - --indent=2
-  #         - --write
-  # - repo: https://github.com/rhysd/actionlint
-  #   rev: v1.7.7
-  #   hooks:
-  #   - id: actionlint
+  - repo: https://github.com/reteps/dockerfmt
+    # run `pre-commit autoupdate` to pin the version
+    rev: main
+    hooks:
+      - id: dockerfmt
+        args:
+          # optional: add additional arguments here
+          - --indent=2
+          - --write
+        stages: [manual] # run in CI
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+    - id: actionlint
+      stages: [manual] # run in CI
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.12.0-2 # Use the latest stable revision
     hooks:
