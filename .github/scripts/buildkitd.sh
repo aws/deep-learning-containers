@@ -79,6 +79,7 @@ sudo mkdir -p /etc/buildkit
 CONFIG_PATH="/etc/buildkit/buildkitd.toml"
 
 TMP_CONFIG=$(mktemp)
+sudo chmod 644 "$TMP_CONFIG"
 cat <<EOF > "$TMP_CONFIG"
 [worker.oci]
   enabled = true
@@ -90,7 +91,6 @@ cat <<EOF > "$TMP_CONFIG"
   defaultKeepStorage = "$KEEP_HUMAN"
   [[gc.policy]]
     keepDuration = "720h"    # 30 days
-    keepBytes = "$KEEP_BYTES"
     filters = ["type==regular"]
 EOF
 

@@ -1,27 +1,29 @@
 name: Example Workflow
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["PR Permission Gate"]
+    types:
+      - completed
 
 permissions:
   contents: read
 
 jobs:  
-  gatekeeper:
+  pre-commit:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: astral-sh/ruff-action@v3
-      - run: ruff check --line-length 100 .
-      - uses: ./.github/actions/pr-permission-gate
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
   
   example-on-default-runner:
-    needs: [gatekeeper]
+    needs: [pre-commit]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
@@ -45,9 +47,6 @@ jobs:
         fleet:x86-g6xl-runner
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/pr-permission-gate 
-        with:
-          required-level: admin
       - run: .github/scripts/runner_setup.sh
       - run: |
           nvidia-smi
@@ -59,9 +58,6 @@ jobs:
         fleet:x86-g6xl-runner
     steps:
       - uses: actions/checkout@v5
-      - uses: ./.github/actions/pr-permission-gate 
-        with:
-          required-level: admin
       - run: .github/scripts/runner_setup.sh
       - run: |
           nvidia-smi
