@@ -1,7 +1,6 @@
 name: Example Workflow
 
 on:
-  on:
   pull_request:
     branches: 
       - main
