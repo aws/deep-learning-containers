@@ -7,11 +7,38 @@ default_stages:
   - manual
 
 repos:
+  # - repo: https://github.com/reteps/dockerfmt
+  #   # run `pre-commit autoupdate` to pin the version
+  #   rev: main
+  #   hooks:
+  #     - id: dockerfmt
+  #       args:
+  #         # optional: add additional arguments here
+  #         - --indent=2
+  #         - --write
+  # - repo: https://github.com/rhysd/actionlint
+  #   rev: v1.7.7
+  #   hooks:
+  #   - id: actionlint
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2 # Use the latest stable revision
+    hooks:
+      - id: shfmt
+        # Optional: Add arguments to shfmt if needed, e.g., to enable "simplify" mode
+        args: ["-s"]
   - repo: https://github.com/crate-ci/typos
     rev: v1.38.1
     hooks:
     - id: typos
       args: [--force-exclude]
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0  # Use the ref you want to point at
+    hooks:
+    - id: mdformat
+      # Optionally add plugins
+      additional_dependencies:
+      - mdformat-gfm
+      - mdformat-black
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:

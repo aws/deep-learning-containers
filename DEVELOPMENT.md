@@ -4,7 +4,7 @@ This document describes how to set up a local development environment, run check
 
 > 💡 All commands below assume a Unix-like environment (macOS or Linux).
 
----
+______________________________________________________________________
 
 ## 1. Environment Setup
 
@@ -15,7 +15,7 @@ uv venv --python 3.12
 source .venv/bin/activate
 ```
 
----
+______________________________________________________________________
 
 ## 2. Linting and Code Style
 
