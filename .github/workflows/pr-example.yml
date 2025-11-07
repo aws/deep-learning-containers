@@ -1,17 +1,19 @@
 name: Example Workflow
 
 on:
-  workflow_run:
-    workflows: ["PR Permission Gate"]
-    types:
-      - completed
+  pull_request:
+    branches: 
+      - main
 
 permissions:
   contents: read
 
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:  
   pre-commit:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

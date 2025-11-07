@@ -8,8 +8,7 @@ default_stages:
 
 repos:
   - repo: https://github.com/reteps/dockerfmt
-    # run `pre-commit autoupdate` to pin the version
-    rev: main
+    rev: v0.3.9
     hooks:
       - id: dockerfmt
         args:
