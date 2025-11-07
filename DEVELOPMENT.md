@@ -28,6 +28,13 @@ uv pip install pre-commit
 pre-commit install
 ```
 
+Install go using [homebrew](https://brew.sh/), below example assume on Mac.
+
+```bash
+brew install go
+go env -w GOPROXY=direct
+```
+
 To manually run all linters:
 
 ```bash
