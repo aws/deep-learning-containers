@@ -288,7 +288,11 @@ def pytorch_mpi(
     """
     test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 0"  # input: backend, inductor flags
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, test_cmd, container_name="pytorch_mpi_gloo", host_network=True
+        ec2_connection, 
+        pytorch_training, 
+        test_cmd, 
+        container_name="pytorch_mpi_gloo", 
+        host_network=True
     )
 
 
@@ -298,7 +302,11 @@ def pytorch_mpi_inductor_gpu(pytorch_training, ec2_connection):
     """
     test_cmd = f"{PT_COMMON_GLOO_MPI_CMD} mpi 1"  # input: backend, inductor flags
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, test_cmd, container_name="pytorch_mpi_gloo_inductor", host_network=True
+        ec2_connection, 
+        pytorch_training, 
+        test_cmd, 
+        container_name="pytorch_mpi_gloo_inductor", 
+        host_network=True
     )
 
 
@@ -308,7 +316,12 @@ def pytorch_nccl(pytorch_training, ec2_connection):
     """
     test_cmd = f"{PT_COMMON_NCCL_CMD} 0"  # input: inductor flags
     execute_ec2_training_test(
-        ec2_connection, pytorch_training, test_cmd, container_name="pytorch_nccl", large_shm=True, host_network=True
+        ec2_connection, 
+        pytorch_training, 
+        test_cmd, 
+        container_name="pytorch_nccl", 
+        large_shm=True, 
+        host_network=True
     )
 
 
