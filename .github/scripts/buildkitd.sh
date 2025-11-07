@@ -78,7 +78,8 @@ echo "🧮 Setting BuildKit GC limit to ~80% of free space: $KEEP_HUMAN"
 sudo mkdir -p /etc/buildkit
 CONFIG_PATH="/etc/buildkit/buildkitd.toml"
 
-TMP_CONFIG=$(mktemp)
+TMP_CONFIG=$(mktemp /tmp/buildkitd.toml.XXXXXX)
+sudo chmod 644 "$TMP_CONFIG"
 cat <<EOF > "$TMP_CONFIG"
 [worker.oci]
   enabled = true
@@ -94,13 +95,17 @@ cat <<EOF > "$TMP_CONFIG"
     filters = ["type==regular"]
 EOF
 
-if ! sudo test -f "$CONFIG_PATH"; then
+echo "New Config: "
+cat $TMP_CONFIG
+echo "Old Config: "
+cat $CONFIG_PATH
+
+if [ ! -f "$CONFIG_PATH" ]; then
   echo "🆕 No existing config found — creating $CONFIG_PATH"
   sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
   CONFIG_CHANGED=true
 else
-  # normalize permissions and compare cleanly
-  if ! sudo diff -q --strip-trailing-cr --ignore-all-space "$TMP_CONFIG" "$CONFIG_PATH" >/dev/null 2>&1; then
+  if ! sudo diff -qwB "$TMP_CONFIG" "$CONFIG_PATH" >/dev/null 2>&1; then
     echo "⚠️ Config drift detected — updating $CONFIG_PATH"
     sudo cp "$TMP_CONFIG" "$CONFIG_PATH"
     CONFIG_CHANGED=true
@@ -110,7 +115,7 @@ else
   fi
 fi
 
-sudo rm -f "$TMP_CONFIG"
+rm -f "$TMP_CONFIG"
 
 # -----------------------------
 # Step 4. Ensure systemd service exists
