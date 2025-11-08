@@ -47,7 +47,6 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           IMAGE_TAG=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
           DOCKER_BUILDKIT=1 docker build --progress plain \
-            --build-arg BUILDKIT_INLINE_CACHE=1 \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d_%H")" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref="$IMAGE_TAG" \
