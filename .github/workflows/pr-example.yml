@@ -46,12 +46,17 @@ jobs:
         run: |
           DATE=$(date +"%Y-%m-%d")
           COMMIT_REF=$(git rev-parse HEAD)
+          REPO=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci
+          TAG=vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}-"${COMMIT_REF}"
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           DOCKER_BUILDKIT=1 docker build --progress plain \
             --build-arg CACHE_REFRESH="${DATE}" \
-            --tag vllm:0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-"${COMMIT_REF}" \
+            --tag "${REPO}":"${TAG}" \
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
-          docker image ls
+          docker push "${REPO}":"${TAG}"
+          docker rmi "${REPO}":"${TAG}"
+          yes | docker system prune
 
   example-on-g6xl-runner-1:
     needs: [example-on-build-runner]
