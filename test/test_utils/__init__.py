@@ -203,9 +203,6 @@ ECS_AML2_ARM64_CPU_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
-NEURON_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
-)
 
 # Account ID of test executor
 ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
