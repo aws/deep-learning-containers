@@ -112,7 +112,7 @@ jobs:
           
           docker exec ${CONTAINER_NAME} nvidia-smi
           docker exec ${CONTAINER_NAME} uv pip list
-          docker exec uv pip install --system -r requirements/dev.txt
+          docker exec ${CONTAINER_NAME} uv pip install --system -r requirements/dev.txt
           docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
           docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
 
