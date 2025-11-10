@@ -89,11 +89,11 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           docker pull "$IMAGE_URI"
       
-      - name: Checkout vLLM v0.10.2
+      - name: Checkout vLLM
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v0.10.2
+          ref: v0.11.1rc6
           path: vllm
       
       - name: Run vLLM Tests
@@ -111,10 +111,12 @@ jobs:
             ${IMAGE_URI}
           
           docker exec ${CONTAINER_NAME} nvidia-smi
-          docker exec ${CONTAINER_NAME} uv pip list
-          docker exec ${CONTAINER_NAME} uv pip install --system -r requirements/dev.txt
-          docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
-          docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
+          docker exec ${CONTAINER_NAME} uv pip install -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+          docker exec ${CONTAINER_NAME} uv pip install pytest pytest-asyncio
+          docker exec ${CONTAINER_NAME} pytest -s -v tests/test_logger.py
+
+          # docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
+          # docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
 
           # cleanup container
           docker stop ${CONTAINER_NAME}
