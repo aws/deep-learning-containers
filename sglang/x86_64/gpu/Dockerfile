@@ -87,7 +87,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  \
 # ====================== sagemaker ======================
 # =======================================================
 
-FROM base AS vllm-sagemaker
+FROM base AS sglang-sagemaker
 
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
  && apt-get update \
