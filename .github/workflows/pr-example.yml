@@ -89,8 +89,7 @@ jobs:
           mkdir -p ${HOME}/dataset
           if [ ! -f ${HOME}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
               echo "Downloading ShareGPT dataset..."
-              wget -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
-          else
+              wget -q -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json          else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
           
@@ -104,7 +103,7 @@ jobs:
               -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
               -v ${HOME}/.cache/vllm:/root/.cache/vllm \
               -v ${HOME}/dataset:/dataset \
-              -e "HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+              -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
               ${IMAGE_URI} \
               -c "vllm serve Qwen/Qwen3-0.6B --reasoning-parser qwen3"
           sleep 60
