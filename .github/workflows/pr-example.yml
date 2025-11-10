@@ -60,7 +60,7 @@ jobs:
             -f docker/vllm/Dockerfile.rayserve .
           docker push "$IMAGE_TAG"
           docker rmi "$IMAGE_TAG"
-          echo "image_uri="$IMAGE_TAG"" >> $GITHUB_OUTPUT
+          echo "image_uri=$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
   test-vllm-rayserve-ec2-image:
     needs: [build-vllm-rayserve-ec2-image]
