@@ -133,7 +133,7 @@ release_images:
       cuda_version: "cu128"
       example: False
       disable_sm_tag: True
-      force_release: True
+      force_release: False
   11:
     framework: "djl"
     version: "0.35.0"
@@ -155,6 +155,19 @@ release_images:
       python_versions: [ "py310" ]
       os_version: "ubuntu22.04"
       neuron_sdk_version: "sdk2.26.0"
+      example: False
+      disable_sm_tag: True
+      force_release: False
+  13:
+    framework: "djl"
+    version: "0.35.0"
+    arch_type: "x86"
+    inference:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      lmi_version: "17.0.0rc4"
+      cuda_version: "cu128"
       example: False
       disable_sm_tag: True
       force_release: False
