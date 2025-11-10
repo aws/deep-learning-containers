@@ -121,4 +121,18 @@ jobs:
           # cleanup container
           docker stop ${CONTAINER_NAME}
           docker rm -f ${CONTAINER_NAME}
-
+      
+      - name: Checkout vLLM v0.10.2
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.10.2
+          path: vllm
+      
+      - name: Verify vLLM repository is cloned
+        run: |
+          echo "Checking vLLM working directory..."
+          ls -la vllm
+          test -d vllm || (echo "❌ vllm directory not found!" && exit 1)
+          test -f vllm/pyproject.toml || (echo "❌ Expected file pyproject.toml missing — clone may have failed." && exit 1)
+          echo "✅ vLLM repository cloned successfully."
