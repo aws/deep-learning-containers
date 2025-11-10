@@ -1,9 +1,11 @@
-name: Example Workflow
+name: PR - vLLM RayServe
 
 on:
   pull_request:
     branches: 
       - main
+    paths:
+      - "docker/**"
 
 permissions:
   contents: read
@@ -33,7 +35,7 @@ jobs:
             vllm-rayserve-ec2:
               - "docker/vllm/Dockerfile.rayserve"
   
-  build-vllm-rayserve-ec2-image:
+  build-vllm-rayserve-ec2:
     needs: [check-changes]
     if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
     runs-on:
@@ -65,9 +67,9 @@ jobs:
           name: vllm-rayserve-ec2-image-uri
           path: image_uri.txt
 
-  test-vllm-rayserve-ec2-image:
-    needs: [build-vllm-rayserve-ec2-image]
-    if: needs.build-vllm-rayserve-ec2-image.result == 'success'
+  test-vllm-rayserve-ec2:
+    needs: [build-vllm-rayserve-ec2]
+    if: needs.build-vllm-rayserve-ec2.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -77,13 +79,44 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: vllm-rayserve-ec2-image-uri
-      - name: Read image URI
+      
+      - name: Pull image URI
         id: read
         run: |
           IMAGE_URI=$(cat image_uri.txt)
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "Resolved image URI: $IMAGE_URI"
-      - name: Test image
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          docker pull "$IMAGE_URI"
+      
+      - name: Checkout vLLM v0.10.2
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.10.2
+          path: vllm
+      
+      - name: Run vLLM Tests
+        run: |
+          CONTAINER_NAME=vllm-rayserve-test
+          docker stop ${CONTAINER_NAME} || true
+          docker rm -f ${CONTAINER_NAME} || true
+
+          docker run --name ${CONTAINER_NAME} \
+            -d --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            ${IMAGE_URI} \
+            -c "nvidia-smi"
+          
+          docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
+          docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
+
+          # cleanup container
+          docker stop ${CONTAINER_NAME}
+          docker rm -f ${CONTAINER_NAME}
+                
+      - name: Run qwen3 benchmark
         run: |
           # Download ShareGPT dataset if it doesn't exist
           mkdir -p ${HOME}/dataset
@@ -92,9 +125,6 @@ jobs:
               wget -q -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json          else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
-          
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-          docker pull "$IMAGE_URI"
           CONTAINER_NAME=vllm-rayserve
           docker stop ${CONTAINER_NAME} || true
           docker rm -f ${CONTAINER_NAME} || true
@@ -121,18 +151,3 @@ jobs:
           # cleanup container
           docker stop ${CONTAINER_NAME}
           docker rm -f ${CONTAINER_NAME}
-      
-      - name: Checkout vLLM v0.10.2
-        uses: actions/checkout@v5
-        with:
-          repository: vllm-project/vllm
-          ref: v0.10.2
-          path: vllm
-      
-      - name: Verify vLLM repository is cloned
-        run: |
-          echo "Checking vLLM working directory..."
-          ls -la vllm
-          test -d vllm || (echo "❌ vllm directory not found!" && exit 1)
-          test -f vllm/pyproject.toml || (echo "❌ Expected file pyproject.toml missing — clone may have failed." && exit 1)
-          echo "✅ vLLM repository cloned successfully."
