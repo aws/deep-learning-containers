@@ -39,8 +39,6 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
-    outputs:
-      image_uri: ${{ steps.export.outputs.image_uri }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -60,60 +58,33 @@ jobs:
             -f docker/vllm/Dockerfile.rayserve .
           docker push "$IMAGE_TAG"
           docker rmi "$IMAGE_TAG"
-          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
-      - name: Export output
-        id: export
-        run: echo "image_uri=$IMAGE_TAG" >> $GITHUB_OUTPUT
-      - name: Debug local
-        run: |
-          echo "Local GITHUB_OUTPUT contents:"
-          cat $GITHUB_OUTPUT || echo "No output file found"
-          echo "Local step output: ${{ steps.export.outputs.image_uri }}"
+          echo "$IMAGE_TAG" > image_uri.txt
+      - name: Upload image URI
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+          path: image_uri.txt
 
-  test-job1:
+  test-vllm-rayserve-ec2-image:
     needs: [build-vllm-rayserve-ec2-image]
-    runs-on: 
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
-    if: always()
-    steps:
-      - name: Check received output
-        run: |
-          echo "Received job output: ${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}"
-          if [ -z "${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}" ]; then
-            echo "❌ Output is missing!"
-          else
-            echo "✅ Output received successfully."
-          fi
-
-  test-job2:
-    needs: [build-vllm-rayserve-ec2-image]
-    runs-on: 
+    if: needs.build-vllm-rayserve-ec2-image.result == 'success'
+    runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
-    if: always()
     steps:
-      - name: Check received output
+      - uses: actions/checkout@v5
+      - name: Download image URI
+        uses: actions/download-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+      - name: Read image URI
+        id: read
         run: |
-          echo "Received job output: ${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}"
-          if [ -z "${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}" ]; then
-            echo "❌ Output is missing!"
-          else
-            echo "✅ Output received successfully."
-          fi
-
-  # test-vllm-rayserve-ec2-image:
-  #   needs: [build-vllm-rayserve-ec2-image]
-  #   if: needs.build-vllm-rayserve-ec2-image.result == 'success'
-  #   runs-on:
-  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-  #       fleet:x86-g6xl-runner
-  #   steps:
-  #     - uses: actions/checkout@v5
-  #     - name: Use built image
-  #       run: |
-  #         IMAGE_URI=${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}
-  #         echo "Testing image: $IMAGE_URI"
-  #         aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-  #         docker pull "$IMAGE_URI"
-  #         docker run --rm "$IMAGE_URI" python -c "import torch; import ray; import vllm; print('Test OK')"
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Resolved image URI: $IMAGE_URI"
+      - name: Test image
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          docker pull "$IMAGE_URI"
+          docker run --rm "$IMAGE_URI" python -c "import torch; import ray; import vllm; print('Test OK')"
