@@ -103,12 +103,13 @@ jobs:
           docker rm -f ${CONTAINER_NAME} || true
 
           docker run --name ${CONTAINER_NAME} \
-            -d --rm --gpus=all --entrypoint /bin/bash \
+            -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             ${IMAGE_URI} \
             -c "nvidia-smi"
           
+          docker exec ${CONTAINER_NAME} uv pip list
           docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
           docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
 
