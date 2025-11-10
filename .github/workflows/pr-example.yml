@@ -85,9 +85,41 @@ jobs:
           echo "Resolved image URI: $IMAGE_URI"
       - name: Test image
         run: |
+          # Download ShareGPT dataset if it doesn't exist
+          mkdir -p ${HOME}/dataset
+          if [ ! -f ${HOME}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+              echo "Downloading ShareGPT dataset..."
+              wget -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+          else
+              echo "ShareGPT dataset already exists. Skipping download."
+          fi
+          
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           docker pull "$IMAGE_URI"
-          docker run --rm --gpus=all \
-            --entrypoint /bin/bash \
-            "$IMAGE_URI" \
-            -c "python -c 'import vllm; print(vllm.__version__)'"
+          CONTAINER_NAME=vllm-rayserve
+          docker stop ${CONTAINER_NAME} || true
+          docker rm -f ${CONTAINER_NAME} || true
+          docker run --name ${CONTAINER_NAME} \
+              -d --gpus=all --entrypoint /bin/bash \
+              -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+              -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+              -v ${HOME}/dataset:/dataset \
+              -e "HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+              ${IMAGE_URI} \
+              -c "vllm serve Qwen/Qwen3-0.6B --reasoning-parser qwen3"
+          sleep 60
+          docker logs ${CONTAINER_NAME}
+          
+          # run serving benchmark
+          echo "start running serving benchmark workflow..."
+          docker exec ${CONTAINER_NAME} vllm bench serve \
+              --backend vllm \
+              --model Qwen/Qwen3-0.6B \
+              --dataset-name sharegpt \
+              --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json \
+              --num-prompts 1000
+
+          # cleanup container
+          docker stop ${CONTAINER_NAME}
+          docker rm -f ${CONTAINER_NAME}
+
