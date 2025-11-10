@@ -679,17 +679,20 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
     return "/".join(repo_uri_values)
 
 
-def get_job_type(uri):
-    general_types = {"base", "vllm"}
+def get_job_type(image_repo_uri):
+    job_type_mapping = {
+        "training": "training",
+        "inference": "inference",
+        "base": "general",
+        "vllm": "general",
+        # "sglang": "general",
+    }
 
-    if "training" in uri:
-        return "training"
-    if "inference" in uri:
-        return "inference"
-    if any(t in uri for t in general_types):
-        return "general"
+    for key, job_type in job_type_mapping.items():
+        if key in image_repo_uri:
+            return job_type
 
     raise RuntimeError(
-        f"Cannot determine job type from {uri}. "
-        f"Expected training, inference, or one of: {', '.join(general_types)}"
+        f"Cannot determine job type from {image_repo_uri}. "
+        f"Expected one of: {', '.join(job_type_mapping.keys())}"
     )
