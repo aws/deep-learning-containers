@@ -15,27 +15,24 @@ language governing permissions and limitations under the License.
 
 import concurrent.futures
 import datetime
+import itertools
 import os
 import re
 import tempfile
-
 from copy import deepcopy
 
 import constants
-import utils
-import itertools
 import patch_helper
-
-from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
-from context import Context
-from metrics import Metrics
-from image import DockerImage
-from common_stage_image import CommonStageImage
+import utils
 from buildspec import Buildspec
+from codebuild_environment import get_cloned_folder_path, get_codebuild_project_name
+from common_stage_image import CommonStageImage
+from config import is_autopatch_build_enabled, is_build_enabled
+from context import Context
+from image import DockerImage
+from metrics import Metrics
 from output import OutputFormatter
 from utils import get_dummy_boto_client
-
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -241,17 +238,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         )
         # Determine job_type (inference, training, or base) based on the image repository URI.
         # This is used to set the job_type label on the container image.
-        if "training" in image_repo_uri:
-            label_job_type = "training"
-        elif "inference" in image_repo_uri:
-            label_job_type = "inference"
-        elif "base" in image_repo_uri or "vllm" in image_repo_uri:
-            label_job_type = "general"
-        else:
-            raise RuntimeError(
-                f"Cannot find inference, training or base job type in {image_repo_uri}. "
-                f"This is required to set job_type label."
-            )
+        label_job_type = get_job_type(image_repo_uri)
 
         bash_template_file = os.path.join(
             os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "bash_telemetry.sh"
@@ -690,3 +677,19 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
             constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
         )
     return "/".join(repo_uri_values)
+
+
+def get_job_type(uri):
+    general_types = {"base", "vllm"}
+
+    if "training" in uri:
+        return "training"
+    if "inference" in uri:
+        return "inference"
+    if any(t in uri for t in general_types):
+        return "general"
+
+    raise RuntimeError(
+        f"Cannot determine job type from {uri}. "
+        f"Expected training, inference, or one of: {', '.join(general_types)}"
+    )
