@@ -107,10 +107,12 @@ jobs:
             -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ./vllm:/workdir --workdir /workdir \
             ${IMAGE_URI}
           
           docker exec ${CONTAINER_NAME} nvidia-smi
           docker exec ${CONTAINER_NAME} uv pip list
+          docker exec uv pip install --system -r requirements/dev.txt
           docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
           docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
 
