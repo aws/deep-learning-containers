@@ -12,9 +12,11 @@ concurrency:
   group: pr-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-jobs:  
-  pre-commit:
+jobs:    
+  check-changes:
     runs-on: ubuntu-latest
+    outputs:
+      vllm-rayserve-ec2: ${{ steps.changes.outputs.vllm-rayserve-ec2 }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -23,25 +25,28 @@ jobs:
       - uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            vllm-rayserve-ec2:
+              - "docker/vllm/Dockerfile.rayserve"
   
-  example-on-default-runner:
-    needs: [pre-commit]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-    steps:
-      - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
-  
-  example-on-build-runner:
-    needs: [example-on-default-runner]
+  build-vllm-rayserve-ec2-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    outputs:
+      image_uri: ${{ steps.build.outputs.image_uri }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
-      - name: build vllm-rayserve-ec2 image
+      - name: Build vllm-rayserve-ec2 image
+        id: build
         shell: bash
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
@@ -55,25 +60,20 @@ jobs:
             -f docker/vllm/Dockerfile.rayserve .
           docker push "$IMAGE_TAG"
           docker rmi "$IMAGE_TAG"
-          
-  example-on-g6xl-runner-1:
-    needs: [example-on-build-runner]
+          echo "image_uri="$IMAGE_TAG"" >> $GITHUB_OUTPUT
+
+  test-vllm-rayserve-ec2-image:
+    needs: [build-vllm-rayserve-ec2-image]
+    if: needs.build-vllm-rayserve-ec2-image.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
-      - run: |
-          nvidia-smi
-  
-  example-on-g6xl-runner-2:
-    needs: [example-on-build-runner]
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
-    steps:
-      - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
-      - run: |
-          nvidia-smi
+      - name: Use built image
+        run: |
+          IMAGE_URI=${{ needs.build-vllm-rayserve-ec2-image.outputs.image_uri }}
+          echo "Testing image: $IMAGE_URI"
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          docker pull "$IMAGE_URI"
+          docker run --rm "$IMAGE_URI" python -c "import torch; import ray; import vllm; print('Test OK')"
