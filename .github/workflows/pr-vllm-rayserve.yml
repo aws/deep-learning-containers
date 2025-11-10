@@ -101,14 +101,15 @@ jobs:
           CONTAINER_NAME=vllm-rayserve-test
           docker stop ${CONTAINER_NAME} || true
           docker rm -f ${CONTAINER_NAME} || true
+          echo "${IMAGE_URI}"
 
           docker run --name ${CONTAINER_NAME} \
             -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            ${IMAGE_URI} \
-            -c "nvidia-smi"
+            ${IMAGE_URI}
           
+          docker exec ${CONTAINER_NAME} nvidia-smi
           docker exec ${CONTAINER_NAME} uv pip list
           docker exec ${CONTAINER_NAME} pytest -v -s v1/e2e
           docker exec ${CONTAINER_NAME} pytest -v -s v1/engine
