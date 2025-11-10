@@ -1,4 +1,8 @@
-FROM lmsysorg/sglang:v0.5.4-cu129-amd64 AS base
+FROM lmsysorg/sglang:v0.5.5-cu129-amd64 AS base
+
+# ====================================================
+# ====================== common ======================
+# ====================================================
 
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.3"
@@ -20,13 +24,50 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
+# Copy artifacts
+# ===============
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
 COPY install_efa.sh install_efa.sh
+COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
  && chmod +x /usr/local/bin/bash_telemetry.sh \
- && echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  \
+ && chmod +x /usr/local/bin/start_cuda_compat.sh
+
+# Install cuda compat
+# ====================
+# RUN apt-get update \
+#  && apt-get -y upgrade --only-upgrade systemd \
+#  && apt-get install -y --allow-change-held-packages --no-install-recommends \
+#     cuda-compat-12-9 \
+#  && rm -rf /var/lib/apt/lists/* \
+#  && apt-get clean
+
+# Install EFA and remove vulnerable nvjpeg
+# =========================================
+RUN bash install_efa.sh ${EFA_VERSION} \
+ && rm install_efa.sh \
+ && mkdir -p /tmp/nvjpeg \
+ && cd /tmp/nvjpeg \
+ # latest cu12 libnvjpeg available is cu124
+ && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+ && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+ && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+ && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+ && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+ && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+ && rm -rf /tmp/nvjpeg \
+ # create symlink for python
+ && rm -rf /usr/bin/python \
+ && ln -s /usr/bin/python3 /usr/bin/python \
+ # remove cuobjdump and nvdisasm
+ && rm -rf /usr/local/cuda/bin/cuobjdump* \
+ && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# Run OSS compliance script
+# ==========================
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  \
  # OSS compliance - use Python zipfile instead of unzip
  && HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -42,25 +83,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
  && rm -rf /var/lib/apt/lists/* \
  && rm -rf /root/.cache | true
 
+# =======================================================
+# ====================== sagemaker ======================
+# =======================================================
 
-RUN bash install_efa.sh ${EFA_VERSION} \
- && rm install_efa.sh \
- && mkdir -p /tmp/nvjpeg \
- && cd /tmp/nvjpeg \
- # latest cu12 libnvjpeg available is cu124
- && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
- && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
- && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
- && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
- && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
- && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
- && rm -rf /tmp/nvjpeg \
- # remove cuobjdump and nvdisasm
- && rm -rf /usr/local/cuda/bin/cuobjdump* \
- && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-
-# ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
