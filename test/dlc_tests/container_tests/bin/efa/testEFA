@@ -67,6 +67,8 @@ check_efa_nccl_all_reduce_performance(){
 check_efa_nccl_all_reduce(){
     echo "Running all_reduce_perf test"
 
+    export NCCL_SOCKET_IFNAME="ens*,eth*,eno*"
+
     if [[ ${IS_IPV6} == "True" ]]; then
         echo "Running all_reduce_perf test with IPv6: using IPv6 mode with NCCL_SOCKET_FAMILY=AF_INET6"
         mpirun -x FI_PROVIDER="efa" -n $NODES -N $GPU_COUNT --hostfile $NUM_HOSTS_FILE \
