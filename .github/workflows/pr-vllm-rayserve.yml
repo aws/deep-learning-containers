@@ -106,6 +106,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ${HOME}/dataset:/root/dataset \
             -v ./vllm_tests:/workdir --workdir /workdir \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -153,5 +154,3 @@ jobs:
           docker stop ${CONTAINER_ID} || true
           docker rm -f ${CONTAINER_ID} || true
           docker rmi ${IMAGE_URI} || true
-          docker image ls || true
-          docker system prune -af
