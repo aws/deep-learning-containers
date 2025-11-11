@@ -16,7 +16,11 @@ import logging
 import os
 import sys
 
+import boto3
 import pytest
+from sagemaker import LocalSession, Session
+
+from . import get_ecr_registry, get_efa_test_instance_type
 
 logger = logging.getLogger(__name__)
 
@@ -81,3 +85,86 @@ def pytest_collection_modifyitems(session, config, items):
 
         report_generator = TestReportGenerator(items, is_sagemaker=True)
         report_generator.generate_coverage_doc(framework="pytorch", job_type="training")
+
+
+@pytest.fixture(scope="session", name="docker_base_name")
+def fixture_docker_base_name(request):
+    return request.config.getoption("--docker-base-name")
+
+
+@pytest.fixture(scope="session", name="region")
+def fixture_region(request):
+    return request.config.getoption("--region")
+
+
+@pytest.fixture(scope="session", name="framework_version")
+def fixture_framework_version(request):
+    return request.config.getoption("--framework-version")
+
+
+@pytest.fixture(scope="session", name="py_version")
+def fixture_py_version(request):
+    return "py{}".format(int(request.config.getoption("--py-version")))
+
+
+@pytest.fixture(scope="session", name="processor")
+def fixture_processor(request):
+    return request.config.getoption("--processor")
+
+
+@pytest.fixture(scope="session", name="sagemaker_regions")
+def fixture_sagemaker_regions(request):
+    sagemaker_regions = request.config.getoption("--sagemaker-regions")
+    return sagemaker_regions.split(",")
+
+
+@pytest.fixture(scope="session", name="tag")
+def fixture_tag(request, framework_version, processor, py_version):
+    provided_tag = request.config.getoption("--tag")
+    default_tag = "{}-{}-{}".format(framework_version, processor, py_version)
+    return provided_tag if provided_tag else default_tag
+
+
+@pytest.fixture(scope="session", name="docker_image")
+def fixture_docker_image(docker_base_name, tag):
+    return "{}:{}".format(docker_base_name, tag)
+
+
+@pytest.fixture(scope="session", name="sagemaker_session")
+def fixture_sagemaker_session(region):
+    return Session(boto_session=boto3.Session(region_name=region))
+
+
+@pytest.fixture(name="efa_instance_type")
+def fixture_efa_instance_type(request):
+    try:
+        return request.param
+    except AttributeError:
+        return get_efa_test_instance_type(default=["ml.p4d.24xlarge"])[0]
+
+
+@pytest.fixture(scope="session", name="sagemaker_local_session")
+def fixture_sagemaker_local_session(region):
+    return LocalSession(boto_session=boto3.Session(region_name=region))
+
+
+@pytest.fixture(name="aws_id", scope="session")
+def fixture_aws_id(request):
+    return request.config.getoption("--aws-id")
+
+
+@pytest.fixture(name="instance_type", scope="session")
+def fixture_instance_type(request, processor):
+    provided_instance_type = request.config.getoption("--instance-type")
+    default_instance_type = "local" if processor == "cpu" else "local_gpu"
+    return provided_instance_type or default_instance_type
+
+
+@pytest.fixture(name="docker_registry", scope="session")
+def fixture_docker_registry(aws_id, region):
+    return get_ecr_registry(aws_id, region)
+
+
+@pytest.fixture(name="ecr_image", scope="session")
+def fixture_ecr_image(docker_registry, docker_base_name, tag):
+    return "{}/{}:{}".format(docker_registry, docker_base_name, tag)
