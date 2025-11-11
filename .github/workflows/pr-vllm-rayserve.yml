@@ -35,7 +35,7 @@ jobs:
             vllm-rayserve-ec2:
               - "docker/vllm/Dockerfile.rayserve"
   
-  build:
+  build-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
     runs-on:
@@ -45,31 +45,41 @@ jobs:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
-      - name: Build vllm-rayserve-ec2 image
-        id: build
-        shell: bash
+      - name: ECR login
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-          IMAGE_TAG=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+      
+      - name: Resolve image URI for build
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Build image
+        run: |
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=$IMAGE_TAG \
-            --tag $IMAGE_TAG \
+            --cache-from=type=registry,ref=$IMAGE_URI \
+            --tag $IMAGE_URI \
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
-          docker push $IMAGE_TAG
-          docker rmi $IMAGE_TAG
-          echo $IMAGE_TAG > image_uri.txt
+          
+      - name: Docker Push and save IMAGE_URI
+        run: |
+          docker push $IMAGE_URI
+          docker rmi $IMAGE_URI
+          echo $IMAGE_URI > image_uri.txt
+
       - name: Upload image URI
         uses: actions/upload-artifact@v4
         with:
           name: vllm-rayserve-ec2-image-uri
           path: image_uri.txt
 
-  test:
-    needs: [build]
-    if: needs.build.result == 'success'
+  test-image:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -98,9 +108,12 @@ jobs:
           echo "Resolved image URI: $IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
       
-      - name: Pull image
+      - name: ECR login
         run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      
+      - name: Pull image
+        run: |
           docker pull $IMAGE_URI
       
       - name: Start container
@@ -144,4 +157,4 @@ jobs:
         run: |
           docker rm -f ${CONTAINER_ID} || true
           docker image prune -a --force --filter "until=24h"
-          docker system df -v
+          docker system df
