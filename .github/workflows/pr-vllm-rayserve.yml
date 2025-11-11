@@ -65,13 +65,13 @@ jobs:
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
           
-      - name: Docker Push and save IMAGE_URI
+      - name: Docker Push and save image URI artifact
         run: |
           docker push $IMAGE_URI
           docker rmi $IMAGE_URI
           echo $IMAGE_URI > image_uri.txt
 
-      - name: Upload image URI
+      - name: Upload image URI artifact
         uses: actions/upload-artifact@v4
         with:
           name: vllm-rayserve-ec2-image-uri
@@ -86,6 +86,7 @@ jobs:
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
+      
       - name: Checkout vLLM Tests
         uses: actions/checkout@v5
         with:
@@ -97,20 +98,20 @@ jobs:
             tests
           sparse-checkout-cone-mode: false
       
-      - name: Download image URI
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+ 
+      - name: Download image URI artifact
         uses: actions/download-artifact@v4
         with:
           name: vllm-rayserve-ec2-image-uri
 
-      - name: Resolve image URI
+      - name: Resolve image URI for test
         run: |
           IMAGE_URI=$(cat image_uri.txt)
           echo "Resolved image URI: $IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-      
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
       
       - name: Pull image
         run: |
