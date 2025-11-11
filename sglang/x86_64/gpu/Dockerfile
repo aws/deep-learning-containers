@@ -13,7 +13,7 @@ LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    DLC_CONTAINER_TYPE=base \
+    DLC_CONTAINER_TYPE=general \
     # Python won’t try to write .pyc or .pyo files on the import of source modules
     # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
     PYTHONDONTWRITEBYTECODE=1 \
