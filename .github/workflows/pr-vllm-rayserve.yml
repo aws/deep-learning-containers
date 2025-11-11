@@ -76,29 +76,36 @@ jobs:
     steps:
       - name: Checkout DLC Source
         uses: actions/checkout@v5
+      
       - name: Checkout vLLM Tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
           ref: v0.10.2
+          path: vllm_tests
           sparse-checkout: |
             requirements
             tests
-          path: vllm_tests
+          sparse-checkout-cone-mode: false
       
       - name: Download image URI
         uses: actions/download-artifact@v4
         with:
           name: vllm-rayserve-ec2-image-uri
-      
-      - name: Start container
-        id: start
+
+      - name: Resolve image URI
         run: |
           IMAGE_URI=$(cat image_uri.txt)
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "Resolved image URI: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Pull image
+        run: |
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-          docker pull "$IMAGE_URI"
+          docker pull $IMAGE_URI
+      
+      - name: Start container
+        run: |
           CONTAINER_NAME=vllm-rayserve-test
           echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
           docker run --name ${CONTAINER_NAME} \
