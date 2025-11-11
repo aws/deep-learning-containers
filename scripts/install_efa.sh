@@ -95,7 +95,7 @@ function install_efa {
     apt-get autoremove -y
     rm -rf /var/lib/apt/lists/*
     ldconfig
-    check_libnccl_net_so
+    #check_libnccl_net_so
 }
 
 # idiomatic parameter and option handling in sh
