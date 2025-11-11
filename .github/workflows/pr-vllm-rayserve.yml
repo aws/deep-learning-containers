@@ -145,12 +145,12 @@ jobs:
           pytest -s -v test_logger.py
 
           # Core Test # 22min
-          # pytest -v -s core
+          pytest -v -s core
           
           # Entrypoints Unit Tests # 5min
-          # HF_HUB_ENABLE_HF_TRANSFER=1
-          # pytest -v -s entrypoints/openai/tool_parsers
-          # pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
+          HF_HUB_ENABLE_HF_TRANSFER=1
+          pytest -v -s entrypoints/openai/tool_parsers
+          pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
           '
       
       - name: Cleanup container and images
