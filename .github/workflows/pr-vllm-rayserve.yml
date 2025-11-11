@@ -106,13 +106,15 @@ jobs:
       
       - name: Start container
         run: |
+          pwd
+          ls -la
           CONTAINER_NAME=vllm-rayserve-test
           echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
           docker run --name ${CONTAINER_NAME} \
             -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v vllm_tests:/workdir --workdir /workdir \
+            -v ./vllm_tests:/workdir --workdir /workdir \
             ${IMAGE_URI}
       
       - name: Run vLLM Tests
@@ -121,9 +123,7 @@ jobs:
           set -eux
           nvidia-smi
           pwd
-          cd /workdir
           ls -la
-          cd vllm_tests
           uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
           uv pip install --system pytest pytest-asyncio
           pytest -s -v tests/test_logger.py
