@@ -134,6 +134,5 @@ jobs:
       - name: Cleanup container and image
         if: always()
         run: |
-          docker stop ${CONTAINER_ID} || true
           docker rm -f ${CONTAINER_ID} || true
-          - run: .github/scripts/cleanup_old_image.sh
+          docker system prune -af
