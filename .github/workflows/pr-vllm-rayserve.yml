@@ -35,7 +35,7 @@ jobs:
             vllm-rayserve-ec2:
               - "docker/vllm/Dockerfile.rayserve"
   
-  build-vllm-rayserve-ec2:
+  build:
     needs: [check-changes]
     if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
     runs-on:
@@ -67,9 +67,9 @@ jobs:
           name: vllm-rayserve-ec2-image-uri
           path: image_uri.txt
 
-  test-vllm-rayserve-ec2:
-    needs: [build-vllm-rayserve-ec2]
-    if: needs.build-vllm-rayserve-ec2.result == 'success'
+  test:
+    needs: [build]
+    if: needs.build.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -121,7 +121,7 @@ jobs:
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
           '
-
+      
       - name: Run vLLM Tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
@@ -138,9 +138,10 @@ jobs:
           # pytest -v -s entrypoints/openai/tool_parsers
           # pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
           '
-
+      
       - name: Cleanup container and images
         if: always()
         run: |
           docker rm -f ${CONTAINER_ID} || true
           docker image prune -a --force --filter "until=24h"
+          docker system df -v
