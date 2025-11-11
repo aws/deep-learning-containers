@@ -54,13 +54,13 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref="$IMAGE_TAG" \
-            --tag "$IMAGE_TAG" \
+            --cache-from=type=registry,ref=$IMAGE_TAG \
+            --tag $IMAGE_TAG \
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
-          docker push "$IMAGE_TAG"
-          docker rmi "$IMAGE_TAG"
-          echo "$IMAGE_TAG" > image_uri.txt
+          docker push $IMAGE_TAG
+          docker rmi $IMAGE_TAG
+          echo $IMAGE_TAG > image_uri.txt
       - name: Upload image URI
         uses: actions/upload-artifact@v4
         with:
@@ -80,15 +80,6 @@ jobs:
         with:
           name: vllm-rayserve-ec2-image-uri
       
-      - name: Pull image URI
-        id: read
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          echo "Resolved image URI: $IMAGE_URI"
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-          docker pull "$IMAGE_URI"
-      
       - name: Checkout vLLM
         uses: actions/checkout@v5
         with:
@@ -99,29 +90,39 @@ jobs:
             tests
           path: vllm_tests
       
-      - name: Run vLLM Tests
+      - name: Pull image URI
+        id: read
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          echo "Resolved image URI: $IMAGE_URI"
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          docker pull "$IMAGE_URI"
+      
+      - name: Start container
+        id: start
         run: |
           CONTAINER_NAME=vllm-rayserve-test
-          docker stop ${CONTAINER_NAME} || true
-          docker rm -f ${CONTAINER_NAME} || true
-          echo "${IMAGE_URI}"
-
+          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
           docker run --name ${CONTAINER_NAME} \
             -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v vllm_tests:/workdir --workdir /workdir \
             ${IMAGE_URI}
-          
-          docker exec ${CONTAINER_NAME} nvidia-smi
-          docker exec ${CONTAINER_NAME} cd vllm_tests && uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-          docker exec ${CONTAINER_NAME} cd vllm_tests && uv pip install --system pytest pytest-asyncio
-          docker exec ${CONTAINER_NAME} cd vllm_tests && pytest -s -v tests/test_logger.py
-
-          # cleanup container
-          docker stop ${CONTAINER_NAME}
-          docker rm -f ${CONTAINER_NAME}
-                
+      
+      - name: Run vLLM Tests
+        run: |
+          docker exec ${CONTAINER_NAME} sh -c '
+          set -eux
+          nvidia-smi
+          ls -la
+          cd vllm_tests
+          uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+          uv pip install --system pytest pytest-asyncio
+          pytest -s -v tests/test_logger.py
+          '
+      
       - name: Run qwen3 benchmark
         run: |
           # Download ShareGPT dataset if it doesn't exist
@@ -131,19 +132,9 @@ jobs:
               wget -q -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json          else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
-          CONTAINER_NAME=vllm-rayserve
-          docker stop ${CONTAINER_NAME} || true
-          docker rm -f ${CONTAINER_NAME} || true
-          docker run --name ${CONTAINER_NAME} \
-              -d --gpus=all --entrypoint /bin/bash \
-              -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-              -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-              -v ${HOME}/dataset:/dataset \
-              -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-              ${IMAGE_URI} \
-              -c "vllm serve Qwen/Qwen3-0.6B --reasoning-parser qwen3"
+    
           sleep 60
-          docker logs ${CONTAINER_NAME}
+          # docker logs ${CONTAINER_NAME}
           
           # run serving benchmark
           echo "start running serving benchmark workflow..."
@@ -153,7 +144,9 @@ jobs:
               --dataset-name sharegpt \
               --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json \
               --num-prompts 1000
-
-          # cleanup container
-          docker stop ${CONTAINER_NAME}
-          docker rm -f ${CONTAINER_NAME}
+      
+      - name: Cleanup container
+        if: always()
+        run: |
+          docker stop ${CONTAINER_NAME} || true
+          docker rm -f ${CONTAINER_NAME} || true
