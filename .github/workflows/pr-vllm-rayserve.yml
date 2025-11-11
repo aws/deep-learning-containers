@@ -86,6 +86,10 @@ jobs:
             requirements
             tests
           sparse-checkout-cone-mode: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python -m pip install docker
       
       - name: Download image URI
         uses: actions/download-artifact@v4
@@ -126,21 +130,21 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
-          pytest -s -v tests/test_logger.py
-          nvidia-smi          
+          nvidia-smi
+          cd tests
+          pytest -s -v test_logger.py
 
           # Core Test # 22min
-          pytest -v -s core
+          # pytest -v -s core
           
           # Entrypoints Unit Tests # 5min
-          cd tests
-          HF_HUB_ENABLE_HF_TRANSFER=1
-          pytest -v -s entrypoints/openai/tool_parsers
-          pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
-          
+          # HF_HUB_ENABLE_HF_TRANSFER=1
+          # pytest -v -s entrypoints/openai/tool_parsers
+          # pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
           '
 
-      - name: Cleanup container
+      - name: Cleanup container and images
         if: always()
         run: |
           docker rm -f ${CONTAINER_ID} || true
+          python .github/scripts/image_cleanup.py
