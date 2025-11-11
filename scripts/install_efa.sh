@@ -18,13 +18,22 @@ esac
 
 function check_libnccl_net_so {
     OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
-    NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
+    #NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
 
-    # Check if file exists
-    if [ ! -f "$NCCL_NET_SO" ]; then
-        echo "ERROR: $NCCL_NET_SO does not exist"
+    # Check for either the new or old filename
+    if [ -f "$OFI_LIB_DIR/libnccl-net-ofi.so" ] || [ -f "$OFI_LIB_DIR/libnccl-net.so" ]; then
+        echo "NCCL OFI plugin found"
+        return 0
+    else
+        echo "ERROR: NCCL OFI plugin not found"
         return 1
     fi
+
+    # Check if file exists
+    #if [ ! -f "$NCCL_NET_SO" ]; then
+    #    echo "ERROR: $NCCL_NET_SO does not exist"
+    #    return 1
+    #fi
 }
 
 function install_efa {
