@@ -1,7 +1,23 @@
+# Copyright 2018-2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+#     http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+from __future__ import absolute_import
+
 import json
+import os
 import time
 
 import boto3
+import pytest
 import sagemaker
 from sagemaker import serializers
 from sagemaker.config.config_schema import MODEL
@@ -152,6 +168,8 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
     return False
 
 
+@pytest.mark.processor("gpu")
+@pytest.mark.team("conda")
 def test_sglang_on_sagemaker(image_uri, endpoint_name):
     print("\n" + "=" * 80)
     print("STARTING SGLang SAGEMAKER ENDPOINT TEST".center(80))

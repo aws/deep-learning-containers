@@ -1250,7 +1250,9 @@ def test_package_version_regression_in_image(image):
     """
     general_types = ["base", "vllm", "sglang"]
     if any(t in image for t in general_types):
-        pytest.skip(f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test.")
+        pytest.skip(
+            f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test."
+        )
 
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
