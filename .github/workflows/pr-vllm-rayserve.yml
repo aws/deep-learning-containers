@@ -74,13 +74,9 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     steps:
-      - uses: actions/checkout@v5
-      - name: Download image URI
-        uses: actions/download-artifact@v4
-        with:
-          name: vllm-rayserve-ec2-image-uri
-      
-      - name: Checkout vLLM
+      - name: Checkout DLC Source
+        uses: actions/checkout@v5
+      - name: Checkout vLLM Tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -90,18 +86,19 @@ jobs:
             tests
           path: vllm_tests
       
-      - name: Pull image URI
-        id: read
+      - name: Download image URI
+        uses: actions/download-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+      
+      - name: Start container
+        id: start
         run: |
           IMAGE_URI=$(cat image_uri.txt)
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
           echo "Resolved image URI: $IMAGE_URI"
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
           docker pull "$IMAGE_URI"
-      
-      - name: Start container
-        id: start
-        run: |
           CONTAINER_NAME=vllm-rayserve-test
           echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
           docker run --name ${CONTAINER_NAME} \
@@ -116,6 +113,8 @@ jobs:
           docker exec ${CONTAINER_NAME} sh -c '
           set -eux
           nvidia-smi
+          pwd
+          cd /workdir
           ls -la
           cd vllm_tests
           uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
@@ -145,8 +144,10 @@ jobs:
               --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json \
               --num-prompts 1000
       
-      - name: Cleanup container
+      - name: Cleanup container and image
         if: always()
         run: |
           docker stop ${CONTAINER_NAME} || true
           docker rm -f ${CONTAINER_NAME} || true
+          docker rmi ${IMAGE_URI} || true
+          docker image ls || true
