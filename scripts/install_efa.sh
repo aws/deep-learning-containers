@@ -17,7 +17,7 @@ case $ARCH in
 esac
 
 function check_libnccl_net_so {
-    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
+    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
     #NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
 
     # Check for either the new or old filename
@@ -95,7 +95,7 @@ function install_efa {
     apt-get autoremove -y
     rm -rf /var/lib/apt/lists/*
     ldconfig
-    #check_libnccl_net_so
+    check_libnccl_net_so
 }
 
 # idiomatic parameter and option handling in sh
