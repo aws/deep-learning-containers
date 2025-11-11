@@ -86,7 +86,6 @@ jobs:
             requirements
             tests
           sparse-checkout-cone-mode: false
-      - run: .github/scripts/runner_setup.sh
       
       - name: Download image URI
         uses: actions/download-artifact@v4
@@ -144,4 +143,4 @@ jobs:
         if: always()
         run: |
           docker rm -f ${CONTAINER_ID} || true
-          python .github/scripts/image_cleanup.py
+          docker image prune -a --force --filter "until=24h"
