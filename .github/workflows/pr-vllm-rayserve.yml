@@ -106,7 +106,6 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ${HOME}/dataset:/root/dataset \
             -v ./vllm_tests:/workdir --workdir /workdir \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -123,34 +122,18 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
-          nvidia-smi
+          nvidia-smi          
           pytest -s -v tests/test_logger.py
+          # Entrypoints Integration Test (LLM) # 30min
+          # export VLLM_WORKER_MULTIPROC_METHOD=spawn
+          # pytest -v -s entrypoints/llm --ignore=entrypoints/llm/test_generate.py --ignore=entrypoints/llm/test_collective_rpc.py
+          # pytest -v -s entrypoints/llm/test_generate.py # it needs a clean process
+          # pytest -v -s entrypoints/offline_mode # Needs to avoid interference with other tests
           '
-      
-      - name: Run qwen3 benchmark
-        run: |
-          # Download ShareGPT dataset if it doesn't exist
-          mkdir -p ${HOME}/dataset
-          if [ ! -f ${HOME}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
-              echo "Downloading ShareGPT dataset..."
-              wget -q -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json          else
-              echo "ShareGPT dataset already exists. Skipping download."
-          fi
-    
-          sleep 60
-          
-          # run serving benchmark
-          echo "start running serving benchmark workflow..."
-          docker exec ${CONTAINER_ID} vllm bench serve \
-              --backend vllm \
-              --model Qwen/Qwen3-0.6B \
-              --dataset-name sharegpt \
-              --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json \
-              --num-prompts 1000
-      
+
       - name: Cleanup container and image
         if: always()
         run: |
           docker stop ${CONTAINER_ID} || true
           docker rm -f ${CONTAINER_ID} || true
-          docker rmi ${IMAGE_URI} || true
+          - run: .github/scripts/cleanup_old_image.sh
