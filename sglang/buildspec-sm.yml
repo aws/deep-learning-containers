@@ -48,9 +48,8 @@ images:
     target: sglang-sagemaker
     build: true
     enable_common_stage_build: false
-    # test_configs:
-    #   test_platforms:
-    #     - sanity
-    #     - security
-    #     - sagemaker
-    #     - eks
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker
