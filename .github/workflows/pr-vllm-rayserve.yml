@@ -74,8 +74,10 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/checkout@v5
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      - name: Checkout vLLM Tests
+        uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
           ref: v0.10.2
