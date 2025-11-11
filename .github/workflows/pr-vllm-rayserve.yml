@@ -131,8 +131,11 @@ jobs:
           # pytest -v -s entrypoints/offline_mode # Needs to avoid interference with other tests
           '
 
-      - name: Cleanup container and image
+      - name: Cleanup container
         if: always()
         run: |
           docker rm -f ${CONTAINER_ID} || true
-          docker system prune -af
+      
+      - name: Cleanup old images
+        if: always()
+        run: cleanup_old_image.sh
