@@ -74,11 +74,8 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     steps:
-      - name: Checkout DLC Source
-        uses: actions/checkout@v5
-      
-      - name: Checkout vLLM Tests
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
           ref: v0.10.2
@@ -106,26 +103,26 @@ jobs:
       
       - name: Start container
         run: |
-          pwd
-          ls -la
-          CONTAINER_NAME=vllm-rayserve-test
-          echo "CONTAINER_NAME=$CONTAINER_NAME" >> $GITHUB_ENV
-          docker run --name ${CONTAINER_NAME} \
-            -d -it --rm --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_tests:/workdir --workdir /workdir \
-            ${IMAGE_URI}
+            ${IMAGE_URI})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
       
+      - name: Install Test dependencies
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system pytest pytest-asyncio
+          '
+
       - name: Run vLLM Tests
         run: |
-          docker exec ${CONTAINER_NAME} sh -c '
+          docker exec ${CONTAINER_ID} sh -c '
           set -eux
           nvidia-smi
-          pwd
-          ls -la
-          uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-          uv pip install --system pytest pytest-asyncio
           pytest -s -v tests/test_logger.py
           '
       
@@ -140,11 +137,10 @@ jobs:
           fi
     
           sleep 60
-          # docker logs ${CONTAINER_NAME}
           
           # run serving benchmark
           echo "start running serving benchmark workflow..."
-          docker exec ${CONTAINER_NAME} vllm bench serve \
+          docker exec ${CONTAINER_ID} vllm bench serve \
               --backend vllm \
               --model Qwen/Qwen3-0.6B \
               --dataset-name sharegpt \
@@ -154,7 +150,8 @@ jobs:
       - name: Cleanup container and image
         if: always()
         run: |
-          docker stop ${CONTAINER_NAME} || true
-          docker rm -f ${CONTAINER_NAME} || true
+          docker stop ${CONTAINER_ID} || true
+          docker rm -f ${CONTAINER_ID} || true
           docker rmi ${IMAGE_URI} || true
           docker image ls || true
+          docker system prune -af
