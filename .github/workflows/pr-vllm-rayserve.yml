@@ -110,7 +110,8 @@ jobs:
             -v ./vllm:/workdir --workdir /workdir \
             ${IMAGE_URI}
           
-          docker exec ${CONTAINER_NAME} nvidia-smi
+          docker exec ${CONTAINER_NAME} nvidia-smi && ls -l
+
           docker exec ${CONTAINER_NAME} uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
           docker exec ${CONTAINER_NAME} uv pip install --system pytest pytest-asyncio
           docker exec ${CONTAINER_NAME} pytest -s -v tests/test_logger.py
