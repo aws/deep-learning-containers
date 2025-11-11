@@ -4,7 +4,7 @@ verlte() {
   [ "$1" = "$2" ] && return 1 || [ "$1" = "$(echo -e "$1\n$2" | sort -V | head -n1)" ]
 }
 
-COMPAT_FILE=/usr/local/cuda/compat/lib.real/libcuda.so.1
+COMPAT_FILE=/usr/local/cuda/compat/libcuda.so.1
 if [ -f $COMPAT_FILE ]; then
   CUDA_COMPAT_MAX_DRIVER_VERSION=$(readlink $COMPAT_FILE | cut -d'.' -f 3-)
   echo "CUDA compat package should be installed for NVIDIA driver smaller than ${CUDA_COMPAT_MAX_DRIVER_VERSION}"
