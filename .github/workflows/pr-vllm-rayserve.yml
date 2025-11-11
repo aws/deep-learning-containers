@@ -86,10 +86,7 @@ jobs:
             requirements
             tests
           sparse-checkout-cone-mode: false
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12.12"
-      - run: python -m pip install docker
+      - run: .github/scripts/runner_setup.sh
       
       - name: Download image URI
         uses: actions/download-artifact@v4
