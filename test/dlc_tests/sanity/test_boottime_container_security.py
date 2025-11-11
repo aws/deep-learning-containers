@@ -1,5 +1,4 @@
 import pytest
-
 from invoke import run
 
 
@@ -7,9 +6,10 @@ from invoke import run
 @pytest.mark.model("N/A")
 @pytest.mark.canary("Run security test regularly on production images")
 def test_security(image):
-    if "vllm" in image:
+    upstream_types = ["vllm"]
+    if any(t in image for t in upstream_types):
         pytest.skip(
-            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+            f"{', '.join(upstream_types)} images do not require boot time security check as they are managed by upstream devs. Skipping test."
         )
     repo_name, image_tag = image.split("/")[-1].split(":")
     container_name = f"{repo_name}-{image_tag}-security"
