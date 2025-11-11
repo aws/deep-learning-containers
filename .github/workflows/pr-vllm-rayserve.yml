@@ -2,6 +2,8 @@ name: PR - vLLM RayServe
 
 on:
   pull_request:
+    branches: 
+      - main
     paths:
       - "docker/**"
 
