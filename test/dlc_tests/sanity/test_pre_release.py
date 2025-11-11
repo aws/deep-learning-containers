@@ -878,7 +878,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     general_types = ["base", "vllm", "sglang"]
     if any(t in image for t in general_types):
         pytest.skip(
-            f"{', '.join(upstream_t_typesypes)} images do not follow the assumptions made by inference/training. Skipping test."
+            f"{', '.join(general_types)} images do not follow the assumptions made by inference/training. Skipping test."
         )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
