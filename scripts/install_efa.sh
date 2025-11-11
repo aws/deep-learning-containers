@@ -18,7 +18,7 @@ esac
 
 function check_libnccl_net_so {
     OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
-    NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
+    NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
 
     # Check if file exists
     if [ ! -f "$NCCL_NET_SO" ]; then
