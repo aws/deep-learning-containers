@@ -391,6 +391,10 @@ def main():
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
 
+            if framework == "sglang":
+                run_new_tests()
+                return
+
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
@@ -492,6 +496,10 @@ def main():
     elif specific_test_type == "sagemaker":
         if "vllm" in dlc_images:
             run_vllm_tests("sagemaker", all_image_list, new_test_structure_enabled)
+            return
+
+        if "sglang" in dlc_images:
+            run_new_tests()
             return
 
         if "habana" in dlc_images:

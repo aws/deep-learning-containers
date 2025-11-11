@@ -1940,6 +1940,7 @@ def get_framework_from_image_uri(image_uri):
         "autogluon": "autogluon",
         "base": "base",
         "vllm": "vllm",
+        "sglang": "sglang",
     }
 
     for image_pattern, framework in framework_map.items():
