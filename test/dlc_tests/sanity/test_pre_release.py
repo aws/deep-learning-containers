@@ -875,9 +875,10 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    if "base" in image or "vllm" in image:
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
         pytest.skip(
-            "Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test."
+            f"{', '.join(upstream_t_typesypes)} images do not follow the assumptions made by inference/training. Skipping test."
         )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
@@ -1247,10 +1248,10 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
-    if "base" in image or "vllm" in image:
-        pytest.skip(
-            "Base/vLLM images don't have python packages that needs to be checked. Skipping test."
-        )
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test.")
+
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
         image_uri=image, dlc_folder_path=dlc_path
