@@ -126,22 +126,21 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
-          HF_HUB_ENABLE_HF_TRANSFER=1
-          nvidia-smi          
           pytest -s -v tests/test_logger.py
-          # Entrypoints Integration Test (LLM) # 30min
+          nvidia-smi          
+
+          # Core Test # 22min
+          pytest -v -s core
+          
+          # Entrypoints Unit Tests # 5min
           cd tests
-          export VLLM_WORKER_MULTIPROC_METHOD=spawn
-          pytest -v -s entrypoints/llm --ignore=entrypoints/llm/test_generate.py --ignore=entrypoints/llm/test_collective_rpc.py
-          pytest -v -s entrypoints/llm/test_generate.py # it needs a clean process
-          pytest -v -s entrypoints/offline_mode # Needs to avoid interference with other tests
+          HF_HUB_ENABLE_HF_TRANSFER=1
+          pytest -v -s entrypoints/openai/tool_parsers
+          pytest -v -s entrypoints/ --ignore=entrypoints/llm --ignore=entrypoints/openai --ignore=entrypoints/offline_mode --ignore=entrypoints/test_chat_utils.py  --ignore=entrypoints/pooling
+          
           '
 
       - name: Cleanup container
         if: always()
         run: |
           docker rm -f ${CONTAINER_ID} || true
-      
-      - name: Cleanup old images
-        if: always()
-        run: .github/scripts/cleanup_old_image.sh
