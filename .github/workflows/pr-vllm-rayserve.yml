@@ -118,12 +118,15 @@ jobs:
             set -eux
             uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
+            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system hf_transfer
           '
 
       - name: Run vLLM Tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
+          HF_HUB_ENABLE_HF_TRANSFER=1
           nvidia-smi          
           pytest -s -v tests/test_logger.py
           # Entrypoints Integration Test (LLM) # 30min
