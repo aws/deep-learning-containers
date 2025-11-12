@@ -94,11 +94,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
  && apt-get upgrade -y \
  && apt-get clean
 
-RUN pip install --no-cache-dir -U \
-    boto3 \
-    awscli \
-    sagemaker
-
 RUN rm -rf /tmp/*
 
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
