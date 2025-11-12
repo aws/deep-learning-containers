@@ -95,13 +95,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
  && apt-get clean
 
 RUN pip install --no-cache-dir -U \
-    pandas \
-    plotly \
-    scikit-learn \
-    numpy \
-    pyyaml \
-    numpy \
-    scipy \
     boto3 \
     awscli \
     sagemaker
