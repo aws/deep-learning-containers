@@ -17,69 +17,52 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY install_efa.sh install_efa.sh
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY ./scripts/setup_oss_compliance.sh setup_oss_compliance.sh
 
-RUN chmod +x /usr/local/bin/deep_learning_container.py && \
-    chmod +x /usr/local/bin/bash_telemetry.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  && \
-    # OSS compliance - use Python zipfile instead of unzip
-    HOME_DIR=/root && \
-    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
-    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
-    chmod +x /usr/local/bin/testOSSCompliance && \
-    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
-    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
-    # create symlink for python
-    ln -s /usr/bin/python3 /usr/bin/python && \
-    # clean up
-    rm -rf ${HOME_DIR}/oss_compliance* && \
-    rm -rf /tmp/tmp* && \
-    rm -rf /tmp/uv* && \
-    rm -rf /var/lib/apt/lists/* && \
-    rm -rf /root/.cache | true
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+  # create symlink for python
+  && ln -s /usr/bin/python3 /usr/bin/python \
+  # clean up
+  && rm -rf ${HOME_DIR}/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /root/.cache | true
 
-
-RUN bash install_efa.sh ${EFA_VERSION} && \
-    rm install_efa.sh && \
-    mkdir -p /tmp/nvjpeg \
-    && cd /tmp/nvjpeg \
-    && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-    && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
-    && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
-    && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
-    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
-    && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
-    && rm -rf /tmp/nvjpeg \ 
-      # remove cuobjdump and nvdisasm
-    && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
-    && rm -rf /usr/local/cuda/bin/nvdisasm*  
-
+COPY ./scripts/install_efa.sh install_efa.sh
+RUN bash install_efa.sh ${EFA_VERSION} \
+  && rm install_efa.sh \
+  && mkdir -p /tmp/nvjpeg \
+  && cd /tmp/nvjpeg \
+  && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+  && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+  && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
+  && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
+  && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
+  && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
+  && rm -rf /tmp/nvjpeg \
+  # remove cuobjdump and nvdisasm
+  && rm -rf /usr/local/cuda/bin/cuobjdump* \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
 
-RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get clean
+ARG CACHE_REFRESH=0
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean
 
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
-RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
+COPY ./scripts/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
+# TODO: add later
 # ====================== sagemaker =========================================
-FROM base AS vllm-sagemaker
-
-RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get clean
-
-COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
-RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
-
-ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
