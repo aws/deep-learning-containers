@@ -25,6 +25,8 @@ FRAMEWORKS = {
     "autogluon",
     "stabilityai_pytorch",
     "base",
+    "vllm",
+    "sglang",
 }
 DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf", "neuron", "neuronx"}
 IMAGE_TYPES = {"training", "inference"}

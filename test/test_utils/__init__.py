@@ -1940,6 +1940,7 @@ def get_framework_from_image_uri(image_uri):
         "autogluon": "autogluon",
         "base": "base",
         "vllm": "vllm",
+        "sglang": "sglang",
     }
 
     for image_pattern, framework in framework_map.items():
@@ -2067,19 +2068,25 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference", "base", "vllm")
-    for job_type in allowed_job_types:
-        if job_type in image_uri:
+    job_type_mapping = {
+        "training": "training",
+        "inference": "inference",
+        "base": "general",
+        "vllm": "general",
+        "sglang": "general",
+    }
+
+    for key, job_type in job_type_mapping.items():
+        if key in image_uri:
             tested_job_type = job_type
-            break
 
     if not tested_job_type and "eia" in image_uri:
         tested_job_type = "inference"
 
     if not tested_job_type:
         raise RuntimeError(
-            f"Cannot find Job Type in image uri {image_uri} "
-            f"from allowed frameworks {allowed_job_types}"
+            f"Cannot determine job type from {image_uri}. "
+            f"Expected one of: {', '.join(job_type_mapping.keys())}"
         )
 
     return tested_job_type
