@@ -307,7 +307,7 @@ def execute_local_tests(image, pytest_cache_params):
         image, SAGEMAKER_LOCAL_TEST_TYPE
     )
     pytest_command += " --last-failed --last-failed-no-failures all "
-    print(pytest_command)
+    print(f"Running local sm test with command: {pytest_command}")
     framework, _ = get_framework_and_version_from_tag(image)
     framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -435,6 +435,7 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(
         image, SAGEMAKER_REMOTE_TEST_TYPE
     )
+    print(f"Running remote sm test with command: {pytest_command}")
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")
