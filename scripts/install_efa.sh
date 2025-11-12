@@ -18,7 +18,7 @@ esac
 
 function check_libnccl_net_so {
     
-    if [[ "$EFA_VERSION" >= "1.44.0" ]]; then  # version threshold
+    if [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then  # version threshold
         # Newer EFA version - no ARCH_DIR, different filename
         OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
         NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
