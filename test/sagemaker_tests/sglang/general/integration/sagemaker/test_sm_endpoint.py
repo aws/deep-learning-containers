@@ -31,6 +31,38 @@ INSTANCE_TYPE = "ml.g5.12xlarge"
 ROLE = "SageMakerRole"
 
 
+def print_section(title, char="=", width=80):
+    """Print a section header with specified character and width."""
+    print(f"\n{char * width}")
+    print(f"{title:^{width}}")
+    print(f"{char * width}")
+
+
+def print_phase(phase_name, width=80):
+    """Print a phase header."""
+    print(f"\n{'-' * width}")
+    print(f"{phase_name:^{width}}")
+    print(f"{'-' * width}")
+
+
+def print_config(config_dict):
+    """Print configuration details."""
+    print("Test Configuration:")
+    for key, value in config_dict.items():
+        print(f"     {key}: {value}")
+
+
+def print_response(response):
+    """Print formatted response."""
+    print("\n Response from endpoint:")
+    print("-" * 40)
+    if isinstance(response, (dict, list)):
+        print(json.dumps(response, indent=2))
+    else:
+        print(response)
+    print("-" * 40)
+
+
 def get_secret_hf_token():
     print("Retrieving HuggingFace token from AWS Secrets Manager...")
     secret_name = "test/hf_token"
@@ -171,75 +203,54 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
 @pytest.mark.processor("gpu")
 @pytest.mark.team("conda")
 def test_sglang_on_sagemaker(ecr_image):
-    endpoint_name = f"test-{ecr_image}-{MODEL_ID.replace('/', '-')}-sglang-{INSTANCE_TYPE.replace('.', '-')}"
+    endpoint_name = f"test-sglang-{MODEL_ID.replace('/', '-')}-{INSTANCE_TYPE.replace('.', '-')}"
 
-    print("\n" + "=" * 80)
-    print("STARTING SGLang SAGEMAKER ENDPOINT TEST".center(80))
-    print("=" * 80)
-    print(f"Test Configuration:")
-    print(f"     Image URI: {ecr_image}")
-    print(f"     Endpoint name: {endpoint_name}")
-    print(f"     Region: {AWS_REGION}")
-    print(f"     Instance type: {INSTANCE_TYPE}")
-    print("\n" + "-" * 80)
-    print("PHASE 1: ENDPOINT DEPLOYMENT".center(80))
-    print("-" * 80)
+    print_section("STARTING SGLang SAGEMAKER ENDPOINT TEST")
+    config = {
+        "Image URI": ecr_image,
+        "Endpoint name": endpoint_name,
+        "Region": AWS_REGION,
+        "Instance type": INSTANCE_TYPE,
+    }
+    print_config(config)
 
+    # Phase 1: Deployment
+    print_phase("PHASE 1: ENDPOINT DEPLOYMENT")
     if not deploy_endpoint(endpoint_name, ecr_image, ROLE, INSTANCE_TYPE):
-        print("\n" + "=" * 80)
-        print("DEPLOYMENT FAILED - CLEANING UP".center(80))
-        print("=" * 80)
-        # Cleanup any partially created resources
+        print_section("DEPLOYMENT FAILED - CLEANING UP")
         delete_endpoint(endpoint_name)
         raise Exception("SageMaker endpoint deployment failed")
 
-    print("\n" + "-" * 80)
-    print("PHASE 2: WAITING FOR ENDPOINT READINESS".center(80))
-    print("-" * 80)
+    # Phase 2: Endpoint Readiness
+    print_phase("PHASE 2: WAITING FOR ENDPOINT READINESS")
     if not wait_for_endpoint(endpoint_name):
         print("\nEndpoint failed to become ready. Initiating cleanup...")
         delete_endpoint(endpoint_name)
-        print("\n" + "=" * 80)
-        print("ENDPOINT READINESS FAILED".center(80))
-        print("=" * 80)
+        print_section("ENDPOINT READINESS FAILED")
         raise Exception("SageMaker endpoint failed to become ready")
 
     print("\nEndpoint is ready for inference!")
-    print("\n" + "-" * 80)
-    print("PHASE 3: TESTING INFERENCE".center(80))
-    print("-" * 80)
-    test_prompt = "Write a python script to calculate square of n"
 
+    # Phase 3: Testing Inference
+    print_phase("PHASE 3: TESTING INFERENCE")
+    test_prompt = "Write a python script to calculate square of n"
     response = invoke_endpoint(
         endpoint_name=endpoint_name, prompt=test_prompt, max_tokens=2400, temperature=0.01
     )
 
-    if response:
-        print("\n Inference test successful!")
-        print("\n Response from endpoint:")
-        print("-" * 40)
-        if isinstance(response, (dict, list)):
-            print(json.dumps(response, indent=2))
-        else:
-            print(response)
-        print("-" * 40)
-
-        print("\n" + "-" * 80)
-        print(" PHASE 4: CLEANUP".center(80))
-        print("-" * 80)
-        if delete_endpoint(endpoint_name):
-            print("\n" + "=" * 80)
-            print(" TEST COMPLETED SUCCESSFULLY! ".center(80))
-            print("=" * 80)
-        else:
-            print("\n Cleanup failed")
-    else:
-        print("\n No response received from the endpoint.")
-        print("\n" + "-" * 80)
-        print(" PHASE 4: CLEANUP (FAILED INFERENCE)".center(80))
-        print("-" * 80)
+    if not response:
+        print("\nNo response received from the endpoint.")
+        print_phase("PHASE 4: CLEANUP (FAILED INFERENCE)")
         delete_endpoint(endpoint_name)
-        print("\n" + "=" * 80)
-        print(" TEST FAILED ".center(80))
-        print("=" * 80)
+        print_section("TEST FAILED")
         raise Exception("SageMaker endpoint inference test failed")
+
+    print("\nInference test successful!")
+    print_response(response)
+
+    # Phase 4: Cleanup
+    print_phase("PHASE 4: CLEANUP")
+    if delete_endpoint(endpoint_name):
+        print_section("TEST COMPLETED SUCCESSFULLY!")
+    else:
+        print("\nCleanup failed")
