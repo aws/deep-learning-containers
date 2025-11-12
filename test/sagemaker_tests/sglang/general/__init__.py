@@ -37,6 +37,7 @@ def get_ecr_registry(account, region):
     endpoint_data = _botocore_resolver().construct_endpoint("ecr", region)
     return "{}.dkr.{}".format(account, endpoint_data["hostname"])
 
+
 def get_efa_test_instance_type(default: list):
     """
     Get the instance type to be used for EFA tests from the environment, or default to a given value if the type

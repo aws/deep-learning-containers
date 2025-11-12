@@ -170,12 +170,14 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
 
 @pytest.mark.processor("gpu")
 @pytest.mark.team("conda")
-def test_sglang_on_sagemaker(image_uri, endpoint_name):
+def test_sglang_on_sagemaker(ecr_image):
+    endpoint_name = f"test-{ecr_image}-{MODEL_ID.replace('/', '-')}-sglang-{INSTANCE_TYPE.replace('.', '-')}"
+
     print("\n" + "=" * 80)
     print("STARTING SGLang SAGEMAKER ENDPOINT TEST".center(80))
     print("=" * 80)
     print(f"Test Configuration:")
-    print(f"     Image URI: {image_uri}")
+    print(f"     Image URI: {ecr_image}")
     print(f"     Endpoint name: {endpoint_name}")
     print(f"     Region: {AWS_REGION}")
     print(f"     Instance type: {INSTANCE_TYPE}")
@@ -183,7 +185,7 @@ def test_sglang_on_sagemaker(image_uri, endpoint_name):
     print("PHASE 1: ENDPOINT DEPLOYMENT".center(80))
     print("-" * 80)
 
-    if not deploy_endpoint(endpoint_name, image_uri, ROLE, INSTANCE_TYPE):
+    if not deploy_endpoint(endpoint_name, ecr_image, ROLE, INSTANCE_TYPE):
         print("\n" + "=" * 80)
         print("DEPLOYMENT FAILED - CLEANING UP".center(80))
         print("=" * 80)
