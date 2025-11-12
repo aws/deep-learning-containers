@@ -293,6 +293,15 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
             )
             return
+        elif all("sglang" in image_uri for image_uri in all_image_list) and test_type not in {
+            "functionality_sanity",
+            "security_sanity",
+            "sagemaker",
+        }:
+            LOGGER.info(
+                f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
+            )
+            return
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -549,6 +558,7 @@ def main():
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
             "vllm": "Skipping - there are no local mode tests for VLLM",
+            "sglang": "Skipping - there are no local mode tests for sglang",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
