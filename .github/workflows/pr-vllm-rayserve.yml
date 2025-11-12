@@ -1,0 +1,322 @@
+name: PR - vLLM RayServe
+
+on:
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - "docker/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:    
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      vllm-rayserve-ec2: ${{ steps.changes.outputs.vllm-rayserve-ec2 }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            vllm-rayserve-ec2:
+              - "docker/vllm/Dockerfile.rayserve"
+  
+  build-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: .github/scripts/runner_setup.sh
+      - run: .github/scripts/buildkitd.sh
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      
+      - name: Resolve image URI for build
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Build image
+        run: |
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=$IMAGE_URI \
+            --tag $IMAGE_URI \
+            --target vllm-rayserve-ec2 \
+            -f docker/vllm/Dockerfile.rayserve .
+          
+      - name: Docker Push and save image URI artifact
+        run: |
+          docker push $IMAGE_URI
+          docker rmi $IMAGE_URI
+          echo $IMAGE_URI > image_uri.txt
+
+      - name: Upload image URI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+          path: image_uri.txt
+
+  regression-test:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+ 
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+
+      - name: Resolve image URI for test
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "Resolved image URI: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Pull image
+        run: |
+          docker pull $IMAGE_URI
+      
+      - name: Checkout vLLM Tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.10.2
+          path: vllm_source
+      
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ./vllm_source:/workdir --workdir /workdir \
+            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${IMAGE_URI})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      
+      - name: Setup for vLLM Test 
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system pytest pytest-asyncio
+            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system hf_transfer
+            mkdir src
+            mv vllm src/vllm
+          '
+      
+      - name: Run vLLM Tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+          set -eux
+          nvidia-smi
+
+          # Regression Test # 7min
+          cd /workdir/tests
+          uv pip install --system modelscope
+          pytest -v -s test_regression.py
+          '
+      
+      - name: Cleanup container and images
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
+  
+  cuda-test:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+ 
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+
+      - name: Resolve image URI for test
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "Resolved image URI: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Pull image
+        run: |
+          docker pull $IMAGE_URI
+      
+      - name: Checkout vLLM Tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.10.2
+          path: vllm_source
+      
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ./vllm_source:/workdir --workdir /workdir \
+            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${IMAGE_URI})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      
+      - name: Setup for vLLM Test 
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system pytest pytest-asyncio
+            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system hf_transfer
+            mkdir src
+            mv vllm src/vllm
+          '
+      
+      - name: Run vLLM Tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+          set -eux
+          nvidia-smi
+
+          # Platform Tests (CUDA) # 4min
+          cd /workdir/tests
+          pytest -v -s cuda/test_cuda_context.py
+          '
+      
+      - name: Cleanup container and images
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
+  
+  example-test:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+      
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+ 
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vllm-rayserve-ec2-image-uri
+
+      - name: Resolve image URI for test
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "Resolved image URI: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Pull image
+        run: |
+          docker pull $IMAGE_URI
+      
+      - name: Checkout vLLM Tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.10.2
+          path: vllm_source
+      
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ./vllm_source:/workdir --workdir /workdir \
+            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${IMAGE_URI})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+      
+      - name: Setup for vLLM Test 
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system pytest pytest-asyncio
+            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system hf_transfer
+            mkdir src
+            mv vllm src/vllm
+          '
+      
+      - name: Run vLLM Tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+          set -eux
+          nvidia-smi
+
+          # Examples Test # 30min
+          cd /workdir/examples
+          pip install tensorizer # for tensorizer test
+          python3 offline_inference/basic/generate.py --model facebook/opt-125m
+          # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
+          python3 offline_inference/basic/chat.py
+          python3 offline_inference/prefix_caching.py
+          python3 offline_inference/llm_engine_example.py
+          python3 offline_inference/audio_language.py --seed 0
+          python3 offline_inference/vision_language.py --seed 0
+          python3 offline_inference/vision_language_pooling.py --seed 0
+          python3 offline_inference/vision_language_multi_image.py --seed 0
+          VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+          python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
+          python3 offline_inference/basic/classify.py
+          python3 offline_inference/basic/embed.py
+          python3 offline_inference/basic/score.py
+          VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
+          '
+      
+      - name: Cleanup container and images
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df

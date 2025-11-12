@@ -15,23 +15,14 @@ repos:
           # optional: add additional arguments here
           - --indent=2
           - --write
-        stages: [manual] # run in CI
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
-    hooks:
-    - id: actionlint
-      stages: [manual] # run in CI
+        stages: [pre-commit]
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.12.0-2 # Use the latest stable revision
     hooks:
       - id: shfmt
         # Optional: Add arguments to shfmt if needed, e.g., to enable "simplify" mode
         args: ["-s"]
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.38.1
-    hooks:
-    - id: typos
-      args: [--force-exclude]
+        stages: [pre-commit]
   - repo: https://github.com/hukkin/mdformat
     rev: 1.0.0  # Use the ref you want to point at
     hooks:
@@ -40,17 +31,29 @@ repos:
       additional_dependencies:
       - mdformat-gfm
       - mdformat-black
+      stages: [pre-commit]
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.45.0
     hooks:
       - id: markdownlint
         args: [--fix]
+        stages: [pre-commit]
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.3
     hooks:
-      - id: ruff-check
-        args: [ --fix, --output-format=github ]
       - id: ruff-format
+        stages: [pre-commit]
+      - id: ruff-check
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+    - id: actionlint
+      args: ["-shellcheck=enable=all"]
+  - repo: https://github.com/crate-ci/typos
+    rev: v1.38.1
+    hooks:
+    - id: typos
+      args: [--force-exclude]
   - repo: local
     hooks:
       - id: signoff-commit
