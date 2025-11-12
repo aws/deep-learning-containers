@@ -8,12 +8,13 @@ jobs:
   stale:
     runs-on: ubuntu-latest
     permissions:
+      actions: write
       issues: write
       pull-requests: write
 
     steps:
       - name: Mark and Close Stale Issues and PRs
-        uses: actions/stale@v9
+        uses: actions/stale@v10.1.0
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
