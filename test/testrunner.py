@@ -557,6 +557,7 @@ def main():
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
             "vllm": "Skipping - there are no local mode tests for VLLM",
+            "sglang": "Skipping - there are no local mode tests for sgland",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():
