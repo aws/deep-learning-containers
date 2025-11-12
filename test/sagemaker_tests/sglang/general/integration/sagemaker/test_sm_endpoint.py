@@ -15,6 +15,7 @@ from __future__ import absolute_import
 import json
 import os
 import time
+from datetime import datetime
 
 import boto3
 import pytest
@@ -203,7 +204,8 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
 @pytest.mark.processor("gpu")
 @pytest.mark.team("conda")
 def test_sglang_on_sagemaker(ecr_image):
-    endpoint_name = f"test-sglang-{MODEL_ID.replace('/', '-')}-{INSTANCE_TYPE.replace('.', '-')}"
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    endpoint_name = f"test-sglang-{MODEL_ID.replace('/', '-').replace('.','')}-{INSTANCE_TYPE.replace('.', '-')}-{timestamp}"
 
     print_section("STARTING SGLang SAGEMAKER ENDPOINT TEST")
     config = {
