@@ -1,57 +1,54 @@
+import filecmp
+import json
 import os
 import re
 import subprocess
-import botocore
-import boto3
-import json
 import time
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
-import pytest
-import requests
-import filecmp
-
-from urllib3.util.retry import Retry
-from invoke.context import Context
-from botocore.exceptions import ClientError
-
-from src.buildspec import Buildspec
-import src.utils as src_utils
 from test.test_utils import (
-    LOGGER,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     CONTAINER_TESTS_PREFIX,
+    LOGGER,
+    DockerImagePullException,
     ec2,
+    execute_env_variables_test,
+    get_account_id_from_image_uri,
+    get_all_the_tags_of_an_image_from_ecr,
+    get_buildspec_path,
     get_container_name,
+    get_cuda_version_from_tag,
     get_framework_and_version_from_tag,
-    get_neuron_sdk_version_from_tag,
+    get_image_spec_from_buildspec,
+    get_installed_python_packages_using_image_uri,
+    get_installed_python_packages_with_version,
+    get_labels_from_ecr_image,
     get_neuron_release_manifest,
+    get_neuron_sdk_version_from_tag,
+    get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
+    get_region_from_image_uri,
+    get_repository_and_tag_from_image_uri,
+    get_repository_local_path,
     is_canary_context,
     is_dlc_cicd_context,
+    is_nightly_context,
+    login_to_ecr_registry,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    get_repository_local_path,
-    get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri,
-    get_pytorch_version_from_autogluon_image,
-    get_cuda_version_from_tag,
-    get_labels_from_ecr_image,
-    get_buildspec_path,
-    get_all_the_tags_of_an_image_from_ecr,
-    is_nightly_context,
-    execute_env_variables_test,
-    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
-    get_installed_python_packages_with_version,
-    login_to_ecr_registry,
-    get_account_id_from_image_uri,
-    get_region_from_image_uri,
-    DockerImagePullException,
-    get_installed_python_packages_with_version,
-    get_installed_python_packages_using_image_uri,
-    get_image_spec_from_buildspec,
 )
+
+import boto3
+import botocore
+import pytest
+import requests
+from botocore.exceptions import ClientError
+from invoke.context import Context
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from urllib3.util.retry import Retry
+
+import src.utils as src_utils
+from src.buildspec import Buildspec
 
 
 def tail_n_lines(fname, n):
@@ -112,9 +109,10 @@ def test_stray_files(image):
 
     :param image: ECR image URI
     """
-    if "vllm" in image:
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
         pytest.skip(
-            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+            f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
         )
 
     ctx = Context()
@@ -585,9 +583,10 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
-    if "vllm" in image:
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
         pytest.skip(
-            "vLLM images do not require pip check as they are managed by vLLM devs. Skipping test."
+            f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
         )
 
     allowed_exceptions = []
@@ -733,9 +732,10 @@ def test_cuda_paths(gpu):
     :param gpu: gpu image uris
     """
     image = gpu
-    if "base" in image or "vllm" in image:
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
         pytest.skip(
-            "Base/vLLM DLC doesn't have the same directory structure and buildspec as other images"
+            f"{', '.join(general_types)} DLC doesn't have the same directory structure and buildspec as other images"
         )
     if "example" in image:
         pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
@@ -875,9 +875,10 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
-    if "base" in image or "vllm" in image:
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
         pytest.skip(
-            "Base/vLLM DLC has doesn't follow the assumptions made by inference/training. Skipping test."
+            f"{', '.join(general_types)} images do not follow the assumptions made by inference/training. Skipping test."
         )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
@@ -1070,8 +1071,9 @@ def test_license_file(image):
     """
     Check that license file within the container is readable and valid
     """
-    if "base" in image or "vllm" in image:
-        pytest.skip("Base DLC has doesn't embed license.txt. Skipping test.")
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(f"{', '.join(general_types)} DLC doesn't embed license.txt. Skipping test.")
 
     framework, version = get_framework_and_version_from_tag(image)
 
@@ -1194,8 +1196,10 @@ def test_core_package_version(image):
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
     satisfy the version constraints specified in the core_packages.json file.
     """
-    if "base" in image or "vllm" in image:
-        pytest.skip("Base/vLLM images do not have core packages. Skipping test.")
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(f"{', '.join(general_types)} images do not have core packages. Skipping test.")
+
     core_packages_path = src_utils.get_core_packages_path(image)
     if not os.path.exists(core_packages_path):
         pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
@@ -1244,10 +1248,12 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
-    if "base" in image or "vllm" in image:
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
         pytest.skip(
-            "Base/vLLM images don't have python packages that needs to be checked. Skipping test."
+            f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test."
         )
+
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
         image_uri=image, dlc_folder_path=dlc_path

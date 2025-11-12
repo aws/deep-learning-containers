@@ -1,0 +1,5 @@
+botocore
+boto3
+awscli
+protobuf
+sagemaker
