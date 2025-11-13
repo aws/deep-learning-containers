@@ -4,16 +4,16 @@ LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
-    LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    DLC_CONTAINER_TYPE=base \
-    # Python won’t try to write .pyc or .pyo files on the import of source modules
-    # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
-    PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PYTHONIOENCODING=UTF-8 \
-    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
-    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+  LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  DLC_CONTAINER_TYPE=base \
+  # Python won't try to write .pyc or .pyo files on the import of source modules
+  # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
 
@@ -51,7 +51,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
-FROM base AS vllm-ec2 
+FROM base AS vllm-ec2
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
