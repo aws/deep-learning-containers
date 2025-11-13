@@ -1,0 +1,36 @@
+name: PR - vLLM
+
+on:
+  pull_request:
+    branches: 
+      - main
+    paths:
+      - "docker/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:    
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      vllm-ec2: ${{ steps.changes.outputs.vllm-ec2 }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            vllm-ec2:
+              - "docker/vllm/Dockerfile"
