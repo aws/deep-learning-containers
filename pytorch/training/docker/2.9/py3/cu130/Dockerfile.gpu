@@ -8,7 +8,7 @@ ARG TORCHVISION_VERSION=0.24.0
 ARG TORCHDATA_VERSION=0.11.0
 
 ARG GDRCOPY_VERSION=2.5.1
-ARG TE_VERSION=2.8
+ARG TE_VERSION=2.9
 ARG FLASH_ATTN_VERSION=2.8.3
 
 #################################################################
@@ -122,6 +122,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
+    fastai \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
