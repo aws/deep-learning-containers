@@ -195,6 +195,9 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
+    # address package regression caused by smclarify depedency s3fs"
+    "awscli<=1.42.60" \
+    "boto3<=1.40.60" \
     smclarify \
     "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
