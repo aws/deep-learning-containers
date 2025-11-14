@@ -311,7 +311,7 @@ jobs:
           python3 offline_inference/basic/classify.py
           python3 offline_inference/basic/embed.py
           python3 offline_inference/basic/score.py
-          VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
+          python3 offline_inference/simple_profiling.py
           '
       
       - name: Cleanup container and images
