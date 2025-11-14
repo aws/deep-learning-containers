@@ -34,3 +34,45 @@ jobs:
           filters: |
             vllm-ec2:
               - "docker/vllm/Dockerfile"
+
+  build-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.vllm-ec2 == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: .github/scripts/runner_setup.sh
+      - run: .github/scripts/buildkitd.sh
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      
+      - name: Resolve image URI for build
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.11.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      
+      - name: Build image
+        run: |
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=$IMAGE_URI \
+            --tag $IMAGE_URI \
+            --target vllm-ec2 \
+            -f docker/vllm/Dockerfile .
+          
+      - name: Docker Push and save image URI artifact
+        run: |
+          docker push $IMAGE_URI
+          docker rmi $IMAGE_URI
+          echo $IMAGE_URI > image_uri.txt
+
+      - name: Upload image URI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vllm-ec2-image-uri
+          path: image_uri.txt
