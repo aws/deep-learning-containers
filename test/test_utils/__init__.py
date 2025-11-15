@@ -142,7 +142,7 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
 )
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
 )
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
