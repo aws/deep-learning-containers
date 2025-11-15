@@ -55,6 +55,7 @@ FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__9",
     "pytorch_training___2__8",
     "pytorch_training___2__7",
     "pytorch_training___2__6",
