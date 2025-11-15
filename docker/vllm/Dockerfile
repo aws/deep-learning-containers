@@ -66,3 +66,4 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # TODO: add later
 # ====================== sagemaker =========================================
+# test vllm
