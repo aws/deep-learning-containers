@@ -66,3 +66,5 @@ COPY ./scripts/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# test rayserve
