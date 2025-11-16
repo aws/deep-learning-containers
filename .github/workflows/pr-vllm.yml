@@ -1,4 +1,4 @@
-name: PR - vLLM v2
+name: PR - vLLM
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: pr-vllm-2-${{ github.event.pull_request.number }}
+  group: pr-vllm-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:    
