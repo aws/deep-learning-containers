@@ -5,7 +5,7 @@ on:
     branches: 
       - main
     paths:
-      - "docker/**"
+      - "docker/vllm/**"
 
 permissions:
   contents: read
