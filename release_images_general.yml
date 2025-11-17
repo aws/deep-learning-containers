@@ -117,18 +117,3 @@ release_images:
       public_registry: True
       enable_soci: True
       private_registry: False
-  9:
-    framework: "sglang"
-    version: "0.5.5"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    general:
-      device_types: [ "gpu" ]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu129"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-      enable_soci: True
