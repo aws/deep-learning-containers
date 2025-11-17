@@ -1,0 +1,147 @@
+name: PR - SGLang
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "docker/sglang/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-sglang-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      sglang-sagemaker: ${{ steps.changes.outputs.sglang-sagemaker }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            sglang-sagemaker:
+              - "docker/sglang/Dockerfile"
+
+  build-sglang-image:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.sglang-sagemaker == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: .github/scripts/runner_setup.sh
+      - run: .github/scripts/buildkitd.sh
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} |
+          docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Resolve image URI for build
+        run: |
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:sglang-0.5.5-gpu-py312-cu129-ubuntu22.04-sagemaker-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Build image
+        run: |
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=$IMAGE_URI \
+            --tag $IMAGE_URI \
+            --target sglang-sagemaker \
+            -f docker/sglang/Dockerfile .
+
+      - name: Docker Push and save image URI artifact
+        run: |
+          docker push $IMAGE_URI
+          docker rmi $IMAGE_URI
+          echo $IMAGE_URI > image_uri.txt
+
+      - name: Upload image URI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sglang-sagemaker-image-uri
+          path: image_uri.txt
+
+  sglang-regression-test:
+    needs: [build-sglang-image]
+    if: needs.build-sglang-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} |
+          docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+
+      - name: Download image URI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sglang-sagemaker-image-uri
+
+      - name: Resolve image URI for test
+        run: |
+          IMAGE_URI=$(cat image_uri.txt)
+          echo "Resolved image URI: $IMAGE_URI"
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Pull image
+        run: |
+          docker pull $IMAGE_URI
+
+      - name: Checkout SGLang Tests
+        uses: actions/checkout@v5
+        with:
+          repository: sgl-project/sglang
+          ref: v0.5.5
+          path: sglang_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ./sglang_source:/workdir --workdir /workdir \
+            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${IMAGE_URI})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run SGLang Tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+          set -eux
+          nvidia-smi
+
+          # Regression Backend Runtime Test
+          cd /workdir/test/srt
+          python3 run_suite.py --suite per-commit-1-gpu
+
+          # Regression Frontend Language Test
+          cd /workdir/test/lang
+          python3 run_suite.py --suite per-commit
+          '
+
+      - name: Cleanup container and images
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
