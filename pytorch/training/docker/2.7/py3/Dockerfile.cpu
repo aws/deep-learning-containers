@@ -241,11 +241,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
+    # requires explicit declaration of spacy, thic, blis, typer, langcodes, language_data
     spacy \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4  \
     blis \
+    typer \ 
+    langcodes \
+    language_data \
     numpy \
  && pip uninstall -y dataclasses
 
