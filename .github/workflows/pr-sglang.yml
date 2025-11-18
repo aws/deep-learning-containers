@@ -93,7 +93,7 @@ jobs:
 
       - name: echo container
         run: |
-          echo "image_uri: ${{ needs.build-sglang-image.outputs.IMAGE_URI }}"
+          echo "image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}"
 
       - name: Container pull
         uses: ./.github/actions/container-pull
