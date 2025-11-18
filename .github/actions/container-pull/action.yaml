@@ -8,13 +8,13 @@ inputs:
   aws_account_id:
     description: AWS Account ID for docker image registry
     required: true
-  image_uri:
+  image_uri_file:
+    description: File where image URI is stored
+    required: true
+  artifact_name:
     description: Docker image URI that is built and saved as artifact within workflows
     required: true
-  # artifact_name:
-  #   description: Docker image URI that is built and saved as artifact within workflows
-  #   required: true
-  #   type: string
+    type: string
 
 runs:
   using: composite
@@ -25,17 +25,17 @@ runs:
       run: |
         aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
-    # - name: Download image URI artifact
-    #   uses: actions/download-artifact@v4
-    #   with:
-    #     name: ${{ inputs.artifact_name }}
-    #
-    # - name: Resolve image URI for test
-    #   shell: bash
-    #   run: |
-    #     IMAGE_URI=$(cat image_uri.txt)
-    #     echo "Resolved image URI: $IMAGE_URI"
-    #     echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+    - name: Download image URI artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+
+    - name: Resolve image URI for test
+      shell: bash
+      run: |
+        IMAGE_URI=$(cat ${{ input.image_uri_file }})
+        echo "Resolved image URI: $IMAGE_URI"
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
     - name: Pull image
       shell: bash
