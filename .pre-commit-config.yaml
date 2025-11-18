@@ -49,7 +49,7 @@ repos:
       args:
         - --allow-missing-credentials
     - id: detect-private-key
-      name: "🔒 security · Detect private kayes"
+      name: "🔒 security · Detect private keys"
 
 
   - repo: https://github.com/gitleaks/gitleaks
