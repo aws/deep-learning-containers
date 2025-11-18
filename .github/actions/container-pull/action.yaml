@@ -18,6 +18,7 @@ runs:
   steps:
 
     - name: ECR login
+      shell: bash
       run: |
         aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
@@ -27,11 +28,13 @@ runs:
         name: ${{ inputs.artifact_name }}
 
     - name: Resolve image URI for test
+      shell: bash
       run: |
         IMAGE_URI=$(cat image_uri.txt)
         echo "Resolved image URI: $IMAGE_URI"
         echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
     - name: Pull image
+      shell: bash
       run: |
         docker pull $IMAGE_URI
