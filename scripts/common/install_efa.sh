@@ -30,7 +30,7 @@ function check_libnccl_net_so {
 function install_efa {
     EFA_VERSION=$1
     OPEN_MPI_PATH="/opt/amazon/openmpi"
-    
+
     # Install build time tools
     apt-get update
     apt-get install -y --allow-change-held-packages --no-install-recommends \
@@ -73,14 +73,14 @@ function install_efa {
     ssh-keygen -q -t rsa -N '' -f /root/.ssh/id_rsa
     cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
-        
+
     # Remove build time tools
     # apt-get remove -y
     #     curl
     #     build-essential
     #     cmake
     #     git
-    
+
     # Cleanup
     apt-get clean
     apt-get autoremove -y
@@ -93,7 +93,7 @@ function install_efa {
 while test $# -gt 0
 do
     case "$1" in
-    [0-9].[0-9]*.[0-9]*) install_efa $1; 
+    [0-9].[0-9]*.[0-9]*) install_efa $1;
         ;;
     *) echo "bad argument $1"; exit 1
         ;;
