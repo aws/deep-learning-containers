@@ -40,4 +40,4 @@ runs:
     - name: Pull image
       shell: bash
       run: |
-        docker pull $IMAGE_URI
+        docker pull ${{ inputs.image_uri }}
