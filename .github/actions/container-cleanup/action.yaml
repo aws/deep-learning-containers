@@ -1,5 +1,10 @@
 name: Container Cleanup
-description: Remove container and clean up image caches.
+description: Remove container via container ID and clean up image caches.
+
+inputs:
+  container_id:
+    description: Container ID to be removed
+    required: true
 
 runs:
   using: composite
@@ -7,6 +12,6 @@ runs:
     - name: Cleanup container and images
       shell: bash
       run: |
-        docker rm -f ${CONTAINER_ID} || true
+        docker rm -f ${{ container_id }} || true
         docker image prune -a --force --filter "until=24h"
         docker system df

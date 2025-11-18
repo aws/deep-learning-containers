@@ -16,13 +16,13 @@ repos:
     rev: v6.0.0
     hooks:
   # ------------------------------- 🌳 Git Tools ------------------------------- #
-    - id: check-merge-conflict
-      name: "🌳 git · Detect conflict markers"
-    - id: forbid-new-submodules
-      name: "🌳 git · Prevent submodule creation"
-    - id: no-commit-to-branch
-      name: "🌳 git · Protect main branches"
-      args: ["--branch", "main", "--branch", "master"]
+      - id: check-merge-conflict
+        name: "🌳 git · Detect conflict markers"
+      - id: forbid-new-submodules
+        name: "🌳 git · Prevent submodule creation"
+      - id: no-commit-to-branch
+        name: "🌳 git · Protect main branches"
+        args: ["--branch", "main", "--branch", "master"]
   # ---------------------------- 📁 Filesystem Tools --------------------------- #
       - id: check-executables-have-shebangs
         name: "📁 filesystem/⚙️ exec · Verify shebang presence"
@@ -37,16 +37,16 @@ repos:
       - id: trailing-whitespace
         name: "📁 filesystem/📝 file · Validate empty whitespaces"
   # ----------------------------- 🔒 Security Tools ---------------------------- #
-    - id: check-json
-      name: "📁 filesystem/🔧 config · Validate JSON file"
-    - id: check-yaml
-      name: "📁 filesystem/🔧 config · Validate YAML file"
-    - id: detect-aws-credentials
-      name: "🔒 security · Detect aws credentials"
-      args:
-        - --allow-missing-credentials
-    - id: detect-private-key
-      name: "🔒 security · Detect private keys"
+      - id: check-json
+        name: "📁 filesystem/🔧 config · Validate JSON file"
+      - id: check-yaml
+        name: "📁 filesystem/🔧 config · Validate YAML file"
+      - id: detect-aws-credentials
+        name: "🔒 security · Detect aws credentials"
+        args:
+          - --allow-missing-credentials
+      - id: detect-private-key
+        name: "🔒 security · Detect private keys"
 
 
   - repo: https://github.com/gitleaks/gitleaks

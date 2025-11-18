@@ -139,3 +139,12 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
+
+      - name: Cleanup container and images failsafe
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
