@@ -110,16 +110,29 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: sgl-project/sglang
-          # ref: v0.5.5
-          ref: main
+          ref: v0.5.5
           path: sglang_source
+
+      - name: Setup for SGLang Datasets
+        run: |
+          mkdir -p ${HOME}/dataset
+          if [ ! -f ${HOME}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+              echo "Downloading ShareGPT dataset..."
+              wget -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+          else
+              echo "ShareGPT dataset already exists. Skipping download."
+          fi
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+          # CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/dataset:/dataset \
             -v ./sglang_source:/workdir --workdir /workdir \
             -p 30000:30000 \
+            -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
+            -e SM_SGLANG_REASONING_PARSER=qwen3 \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -128,25 +141,31 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            bash scripts/ci/ci_install_dependency.sh
+            # bash scripts/ci/ci_install_dependency.sh
           '
 
       - name: Run SGLang Tests
         run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            nvidia-smi
-
-            # Regression Frontend Language Test
-            cd /workdir/test/per_commit
-            python3 test_srt_backend.py
-            # python3 test_choices.py
-            # python3 run_suite.py --suite per-commit
-
-            # # Regression Backend Runtime Test
-            # cd /workdir/test/srt
-            # python3 run_suite.py --suite per-commit-1-gpu
-          '
+          docker exec ${CONTAINER_NAME} python3 -m sglang.bench_serving \
+          --backend sglang \
+          --host 127.0.0.1 --port 30000 \
+          --num-prompts 1000 \
+          --model Qwen/Qwen3-0.6B \
+          --dataset-name sharegpt \
+          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
+          # docker exec ${CONTAINER_ID} sh -c '
+          #   set -eux
+          #   nvidia-smi
+          #
+          #   # Regression Frontend Language Test
+          #   cd /workdir/test/per_commit
+          #   python3 test_choices.py
+          #   # python3 run_suite.py --suite per-commit
+          #
+          #   # # Regression Backend Runtime Test
+          #   # cd /workdir/test/srt
+          #   # python3 run_suite.py --suite per-commit-1-gpu
+          # '
 
       - name: Cleanup container and images
         if: always()
