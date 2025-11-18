@@ -127,6 +127,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           echo "Printing container startup logs ..."
+          sleep 300s
           docker logs --tail 200 ${CONTAINER_ID}
 
       - name: Setup for SGLang Test
