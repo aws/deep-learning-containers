@@ -65,7 +65,7 @@ jobs:
             --target sglang-sagemaker \
             -f docker/sglang/Dockerfile .
 
-      - name: Docker Push and save image URI artifact
+      - name: Docker push and save image URI artifact
         run: |
           docker push $IMAGE_URI
           docker rmi $IMAGE_URI
@@ -77,7 +77,7 @@ jobs:
           name: sglang-sagemaker-image-uri
           path: image_uri.txt
 
-  sglang-regression-test:
+  sglang-local-benchmark-test:
     needs: [build-sglang-image]
     if: needs.build-sglang-image.result == 'success'
     runs-on:
@@ -87,36 +87,28 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: sglang-sagemaker-image-uri
 
-      - name: Checkout SGLang Tests
-        uses: actions/checkout@v5
-        with:
-          repository: sgl-project/sglang
-          ref: v0.5.5
-          path: sglang_source
-
-      - name: Setup for SGLang Datasets
+      - name: Setup for SGLang datasets
         run: |
-          mkdir -p ${HOME}/dataset
-          if [ ! -f ${HOME}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+          mkdir -p /tmp/sglang/dataset
+          if [ ! -f /tmp/sglang/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
               echo "Downloading ShareGPT dataset..."
-              wget -P ${HOME}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+              wget -P /tmp/sglang/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
           else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
 
       - name: Start container
         run: |
-          # CONTAINER_ID=$(docker run -d --rm --gpus=all --entrypoint /bin/bash \
           CONTAINER_ID=$(docker run -d --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ${HOME}/dataset:/dataset \
+            -v /tmp/sglang/dataset:/dataset \
             -v ./sglang_source:/workdir --workdir /workdir \
             -p 30000:30000 \
             -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
@@ -130,14 +122,14 @@ jobs:
           sleep 300s
           docker logs --tail 200 ${CONTAINER_ID}
 
-      - name: Setup for SGLang Test
+      - name: Setup for SGLang tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             # bash scripts/ci/ci_install_dependency.sh
           '
 
-      - name: Run SGLang Tests
+      - name: Run SGLang tests
         run: |
           docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
           --backend sglang \
@@ -147,9 +139,9 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-      - name: Cleanup for SGLang Datasets
+      - name: Cleanup SGLang datasets
         run: |
-          rm -rf ${HOME}/dataset
+          rm -rf /tmp/sglang/dataset
 
       - name: Cleanup container and images
         if: always()
