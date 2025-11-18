@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:nightly-f849ee739cdb3d82fce1660a6fd91806e8ae9bff as base
+FROM docker.io/vllm/vllm-openai:nightly-6965ef436fb398bfbbdce5b6f88dd842c5944771 as base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
