@@ -11,10 +11,10 @@ inputs:
   image_uri:
     description: Docker image URI that is built and saved as artifact within workflows
     required: true
-  artifact_name:
-    description: Docker image URI that is built and saved as artifact within workflows
-    required: true
-    type: string
+  # artifact_name:
+  #   description: Docker image URI that is built and saved as artifact within workflows
+  #   required: true
+  #   type: string
 
 runs:
   using: composite

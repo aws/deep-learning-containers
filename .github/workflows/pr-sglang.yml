@@ -101,7 +101,7 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           image_uri: ${{ needs.vars.outputs.image_uri }}
-          artifact_name: sglang-sagemaker-image-uri
+          # artifact_name: sglang-sagemaker-image-uri
 
       - name: Setup for SGLang datasets
         run: |
