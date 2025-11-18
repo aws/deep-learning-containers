@@ -41,6 +41,8 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    outputs:
+      image_uri: ${{ env.IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -92,6 +94,7 @@ jobs:
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}
           artifact_name: sglang-sagemaker-image-uri
 
       - name: Setup for SGLang datasets
@@ -141,10 +144,3 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${{ env.CONTAINER_ID }}
-
-      - name: Cleanup container and images failsafe
-        if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
