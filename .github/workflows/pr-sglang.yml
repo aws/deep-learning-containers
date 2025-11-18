@@ -138,7 +138,7 @@ jobs:
             nvidia-smi
 
             # Regression Frontend Language Test
-            cd /workdir/test/per-commit
+            cd /workdir/test/per_commit
             python3 test_srt_backend.py
             # python3 test_choices.py
             # python3 run_suite.py --suite per-commit
