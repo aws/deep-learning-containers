@@ -94,25 +94,6 @@ jobs:
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: sglang-sagemaker-image-uri
 
-      # - name: ECR login
-      #   run: |
-      #     aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-      #
-      # - name: Download image URI artifact
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: sglang-sagemaker-image-uri
-      #
-      # - name: Resolve image URI for test
-      #   run: |
-      #     IMAGE_URI=$(cat image_uri.txt)
-      #     echo "Resolved image URI: $IMAGE_URI"
-      #     echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-      #
-      # - name: Pull image
-      #   run: |
-      #     docker pull $IMAGE_URI
-
       - name: Checkout SGLang Tests
         uses: actions/checkout@v5
         with:
@@ -133,7 +114,7 @@ jobs:
       - name: Start container
         run: |
           # CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
+          CONTAINER_ID=$(docker run -d --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/dataset:/dataset \
             -v ./sglang_source:/workdir --workdir /workdir \
