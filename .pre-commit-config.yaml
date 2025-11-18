@@ -143,13 +143,6 @@ repos:
   # --------------------------- ✍️ Git Commit Quality -------------------------- #
 
   ### Commit Message Standards ###
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.1.0
-    hooks:
-      - id: commitizen
-        name: "🌳 git · Validate commit message"
-        additional_dependencies: [cz-conventional-gitmoji]
-
   - repo: local
     hooks:
       - id: signoff-commit
