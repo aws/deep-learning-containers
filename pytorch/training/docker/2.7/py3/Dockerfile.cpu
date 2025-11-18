@@ -327,7 +327,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
-     # address package regression caused by smclarify depedency s3fs"
+    # address package regression caused by smclarify depedency s3fs"
     "awscli<=1.42.61" \
     "boto3<=1.40.61" \
     smclarify \
