@@ -110,7 +110,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: sgl-project/sglang
-          ref: v0.5.5
+          # ref: v0.5.5
+          ref: main
           path: sglang_source
 
       - name: Start container
@@ -137,8 +138,9 @@ jobs:
             nvidia-smi
 
             # Regression Frontend Language Test
-            cd /workdir/test/lang
-            python3 test_choices.py
+            cd /workdir/test/per-commit
+            python3 test_srt_backend.py
+            # python3 test_choices.py
             # python3 run_suite.py --suite per-commit
 
             # # Regression Backend Runtime Test
