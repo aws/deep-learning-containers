@@ -113,7 +113,7 @@ jobs:
 
       - name: Start container
         run: |
-          # CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+          # CONTAINER_ID=$(docker run -d --rm --gpus=all --entrypoint /bin/bash \
           CONTAINER_ID=$(docker run -d --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/dataset:/dataset \
