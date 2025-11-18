@@ -118,7 +118,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ./sglang_source:/workdir --workdir /workdir \
-            -p 127.0.0.1:30000 \
+            -p 30000:30000 \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
