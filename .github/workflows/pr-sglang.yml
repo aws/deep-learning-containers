@@ -96,7 +96,10 @@ jobs:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           image_uri: ${{ needs.build-sglang-image.outputs.IMAGE_URI }}
-          # artifact_name: sglang-sagemaker-image-uri
+
+      - name: Container pull
+        run: |
+          echo "image_uri: ${{ needs.build-sglang-image.outputs.IMAGE_URI }}"
 
       - name: Setup for SGLang datasets
         run: |
