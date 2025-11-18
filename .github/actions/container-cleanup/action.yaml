@@ -12,6 +12,6 @@ runs:
     - name: Cleanup container and images
       shell: bash
       run: |
-        docker rm -f ${{ container_id }} || true
+        docker rm -f ${{ inputs.container_id }} || true
         docker image prune -a --force --filter "until=24h"
         docker system df
