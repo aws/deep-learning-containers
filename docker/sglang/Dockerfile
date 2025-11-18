@@ -58,21 +58,21 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 
 # Run OSS compliance script
 # ==========================
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
- # OSS compliance - use Python zipfile instead of unzip
- HOME_DIR=/root && \
- curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
- python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
- cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
- chmod +x /usr/local/bin/testOSSCompliance && \
- chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
- ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} && \
- # clean up
- rm -rf ${HOME_DIR}/oss_compliance* && \
- rm -rf /tmp/tmp* && \
- rm -rf /tmp/uv* && \
- rm -rf /var/lib/apt/lists/* && \
- rm -rf /root/.cache | true
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
+  # OSS compliance - use Python zipfile instead of unzip
+  && HOME_DIR=/root \
+  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+  && python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" \
+  && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+  && chmod +x /usr/local/bin/testOSSCompliance \
+  && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+  && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+  # clean
+  && rm -rf ${HOME_DIR}/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /root/.cache | true
 
 # =======================================================
 # ====================== sagemaker ======================
