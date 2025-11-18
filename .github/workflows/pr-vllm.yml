@@ -142,6 +142,8 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   vllm-cuda-test:
     needs: [build-vllm-image]
@@ -203,6 +205,8 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   vllm-example-test:
     needs: [build-vllm-image]
@@ -279,6 +283,8 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   # vLLM RayServe jobs
   build-rayserve-image:
@@ -384,6 +390,8 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   rayserve-cuda-test:
     needs: [build-rayserve-image]
@@ -445,6 +453,8 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   rayserve-example-test:
     needs: [build-rayserve-image]
@@ -521,3 +531,5 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
