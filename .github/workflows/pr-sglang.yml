@@ -118,9 +118,9 @@ jobs:
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          echo "Printing container startup logs ..."
           sleep 300s
-          docker logs --tail 200 ${CONTAINER_ID}
+          echo "Printing container startup logs ..."
+          docker logs ${CONTAINER_ID}
 
       - name: Setup for SGLang tests
         run: |
@@ -145,7 +145,4 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
