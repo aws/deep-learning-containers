@@ -7,64 +7,154 @@ default_stages:
   - manual
 
 repos:
-  - repo: https://github.com/reteps/dockerfmt
-    rev: v0.3.9
+  # ---------------------------------------------------------------------------- #
+  #                              🔄 Pre-Commit Hooks                             #
+  # ---------------------------------------------------------------------------- #
+
+  ### Pre-commit First-Party Tools
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
     hooks:
-      - id: dockerfmt
-        args:
-          # optional: add additional arguments here
-          - --indent=2
-          - --write
-        stages: [pre-commit]
-  - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.12.0-2 # Use the latest stable revision
+  # ------------------------------- 🌳 Git Tools ------------------------------- #
+    - id: check-merge-conflict
+      name: "🌳 git · Detect conflict markers"
+    - id: forbid-new-submodules
+      name: "🌳 git · Prevent submodule creation"
+    - id: no-commit-to-branch
+      name: "🌳 git · Protect main branches"
+      args: ["--branch", "main", "--branch", "master"]
+    - id: check-added-large-files
+      name: "🌳 git · Block large file commits"
+      args: ["--maxkb=5000"]
+  # ---------------------------- 📁 Filesystem Tools --------------------------- #
+    - id: check-executables-have-shebangs
+      name: "📁 filesystem/⚙️ exec · Verify shebang presence"
+    - id: check-shebang-scripts-are-executable
+      name: "📁 filesystem/⚙️ exec · Verify script permissions"
+    - id: check-symlinks
+      name: "📁 filesystem/🔗 symlink · Check symlink validity"
+    - id: destroyed-symlinks
+      name: "📁 filesystem/🔗 symlink · Detect broken symlinks"
+    - id: requirements-txt-fixer
+      name: "📁 filesystem/📝 file · Validate requirements.txt"
+    - id: trailing-whitespace
+      name: "📁 filesystem/📝 file · Validate empty whitespaces"
+  # ----------------------------- 🔒 Security Tools ---------------------------- #
+    - id: check-json
+      name: "📁 filesystem/🔧 config · Validate JSON file"
+    - id: check-yaml
+      name: "📁 filesystem/🔧 config · Validate YAML file"
+    - id: detect-aws-credentials
+      name: "🔒 security · Detect aws credentials"
+      args:
+        - --allow-missing-credentials
+    - id: detect-private-key
+      name: "🔒 security · Detect private kayes"
+
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.29.0
     hooks:
-      - id: shfmt
-        # Optional: Add arguments to shfmt if needed, e.g., to enable "simplify" mode
-        args: ["-s"]
-        stages: [pre-commit]
-  - repo: https://github.com/hukkin/mdformat
-    rev: 1.0.0  # Use the ref you want to point at
-    hooks:
-    - id: mdformat
-      # Optionally add plugins
-      additional_dependencies:
-      - mdformat-gfm
-      - mdformat-black
-      stages: [pre-commit]
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
-    hooks:
-      - id: markdownlint
-        args: [--fix]
-        stages: [pre-commit]
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.3
-    hooks:
-      - id: ruff-format
-        stages: [pre-commit]
-      - id: ruff-check
-  - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.7
-    hooks:
-    - id: actionlint
-      args: ["-shellcheck=enable=all"]
+    - id: gitleaks
+      name: "🔒 security · Detect hardcoded secrets"
+
+  # --------------------------- 🔍 Code Quality Tools -------------------------- #
+
+  ### Writing Tools ###
   - repo: https://github.com/crate-ci/typos
     rev: v1.38.1
     hooks:
     - id: typos
+      name: "✏️ typos · Checking typos"
       args: [--force-exclude]
+
+
+  ### Python Tools ###
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.3
+    hooks:
+    - id: ruff-format
+      name: "🐍 python · Format python"
+    - id: ruff-check
+      name: "🐍 python · Lint python"
+
+
+  ### Workflow Validation ###
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.35.0
+    hooks:
+    - id: check-github-workflows
+      name: "🐙 github-actions · Validate gh workflow files"
+      args: ["--verbose"]
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.8
+    hooks:
+    - id: actionlint
+      name: "🐙 github-actions · Lint gh workflow files"
+      args: ["-shellcheck=enable=all"]
+
+
+  ### Markdown ###
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+    - id: mdformat
+      name: "📝 markdown · Format markdown"
+      additional_dependencies:
+      - mdformat-gfm
+      - mdformat-ruff
+      - ruff
+
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.45.0
+    hooks:
+    - id: markdownlint
+      name: "📝 markdown · Lint markdown"
+      args: [--fix]
+
+
+  ### Docker Tools ###
+  - repo: https://github.com/reteps/dockerfmt
+    rev: v0.3.9
+    hooks:
+    - id: dockerfmt
+      name: "🐳 docker · Format docker"
+      args:
+        - --indent=2
+        - --write
+
+
+  ### Shell ###
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.12.0-2 # Use the latest stable revision
+    hooks:
+    - id: shfmt
+      name: "🐚 shell · Format shell scripts"
+      args: ["-s"]
+
+
+  # --------------------------- ✍️ Git Commit Quality -------------------------- #
+
+  ### Commit Message Standards ###
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.1.0
+    hooks:
+    - id: commitizen
+      name: "🌳 git · Validate commit message"
+      additional_dependencies: [cz-conventional-gitmoji]
+
   - repo: local
     hooks:
-      - id: signoff-commit
-        name: Sign-off Commit
-        entry: bash
-        args:
-          - -c
-          - |
-            if ! grep -q "^Signed-off-by: $(git config user.name) <$(git config user.email)>" "$(git rev-parse --git-path COMMIT_EDITMSG)"; then
-              printf "\nSigned-off-by: $(git config user.name) <$(git config user.email)>\n" >> "$(git rev-parse --git-path COMMIT_EDITMSG)"
-            fi
-        language: system
-        verbose: true
-        stages: [commit-msg]
+    - id: signoff-commit
+      name: Sign-off Commit
+      entry: bash
+      args:
+        - -c
+        - |
+          if ! grep -q "^Signed-off-by: $(git config user.name) <$(git config user.email)>" "$(git rev-parse --git-path COMMIT_EDITMSG)"; then
+            printf "\nSigned-off-by: $(git config user.name) <$(git config user.email)>\n" >> "$(git rev-parse --git-path COMMIT_EDITMSG)"
+          fi
+      language: system
+      verbose: true
+      stages: [commit-msg]
