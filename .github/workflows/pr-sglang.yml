@@ -146,7 +146,7 @@ jobs:
 
       - name: Run SGLang Tests
         run: |
-          docker exec ${CONTAINER_NAME} python3 -m sglang.bench_serving \
+          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
           --backend sglang \
           --host 127.0.0.1 --port 30000 \
           --num-prompts 1000 \
