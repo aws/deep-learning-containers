@@ -146,19 +146,10 @@ jobs:
           --model Qwen/Qwen3-0.6B \
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
-          # docker exec ${CONTAINER_ID} sh -c '
-          #   set -eux
-          #   nvidia-smi
-          #
-          #   # Regression Frontend Language Test
-          #   cd /workdir/test/per_commit
-          #   python3 test_choices.py
-          #   # python3 run_suite.py --suite per-commit
-          #
-          #   # # Regression Backend Runtime Test
-          #   # cd /workdir/test/srt
-          #   # python3 run_suite.py --suite per-commit-1-gpu
-          # '
+
+      - name: Cleanup for SGLang Datasets
+        run: |
+          rm -rf ${HOME}/dataset
 
       - name: Cleanup container and images
         if: always()
