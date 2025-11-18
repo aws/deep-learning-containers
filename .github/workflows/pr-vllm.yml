@@ -69,7 +69,7 @@ jobs:
             --target vllm-ec2 \
             -f docker/vllm/Dockerfile .
 
-      - name: Docker Push and save image URI artifact
+      - name: Docker push and save image URI artifact
         run: |
           docker push $IMAGE_URI
           docker rmi $IMAGE_URI
@@ -91,14 +91,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -115,7 +115,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -127,7 +127,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -141,10 +141,7 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
 
   vllm-cuda-test:
     needs: [build-vllm-image]
@@ -156,14 +153,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -180,7 +177,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -192,7 +189,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -205,10 +202,7 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
 
   vllm-example-test:
     needs: [build-vllm-image]
@@ -220,14 +214,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -244,7 +238,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -256,7 +250,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -284,10 +278,7 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
 
   # vLLM RayServe jobs
   build-rayserve-image:
@@ -320,7 +311,7 @@ jobs:
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
 
-      - name: Docker Push and save image URI artifact
+      - name: Docker push and save image URI artifact
         run: |
           docker push $IMAGE_URI
           docker rmi $IMAGE_URI
@@ -342,14 +333,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-rayserve-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -366,7 +357,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -378,7 +369,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -392,10 +383,7 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
 
   rayserve-cuda-test:
     needs: [build-rayserve-image]
@@ -407,14 +395,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-rayserve-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -431,7 +419,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -443,7 +431,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -456,10 +444,7 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
 
   rayserve-example-test:
     needs: [build-rayserve-image]
@@ -471,14 +456,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container Pull
+      - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
           artifact_name: vllm-rayserve-ec2-image-uri
 
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -495,7 +480,7 @@ jobs:
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -507,7 +492,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -535,7 +520,4 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
