@@ -135,13 +135,13 @@ jobs:
             set -eux
             nvidia-smi
 
-            # Regression Backend Runtime Test
-            cd /workdir/test/srt
-            python3 run_suite.py --suite per-commit-1-gpu
-
             # Regression Frontend Language Test
             cd /workdir/test/lang
             python3 run_suite.py --suite per-commit
+
+            # Regression Backend Runtime Test
+            cd /workdir/test/srt
+            python3 run_suite.py --suite per-commit-1-gpu
           '
 
       - name: Cleanup container and images
