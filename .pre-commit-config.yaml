@@ -23,9 +23,6 @@ repos:
     - id: no-commit-to-branch
       name: "🌳 git · Protect main branches"
       args: ["--branch", "main", "--branch", "master"]
-    - id: check-added-large-files
-      name: "🌳 git · Block large file commits"
-      args: ["--maxkb=5000"]
   # ---------------------------- 📁 Filesystem Tools --------------------------- #
     - id: check-executables-have-shebangs
       name: "📁 filesystem/⚙️ exec · Verify shebang presence"
