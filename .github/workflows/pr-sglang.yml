@@ -106,7 +106,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d --rm --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v /tmp/sglang/dataset:/dataset \
             -v ./sglang_source:/workdir --workdir /workdir \
