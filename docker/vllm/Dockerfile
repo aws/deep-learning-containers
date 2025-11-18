@@ -19,7 +19,7 @@ WORKDIR /
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY ./scripts/setup_oss_compliance.sh setup_oss_compliance.sh
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
@@ -34,7 +34,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
-COPY ./scripts/install_efa.sh install_efa.sh
+COPY ./scripts/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
   && mkdir -p /tmp/nvjpeg \
@@ -59,7 +59,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean
 
-COPY ./docker/vllm/build_artifacts/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
