@@ -1,0 +1,37 @@
+name: Container Pull
+description: Login to ECR, get image URI from current workflow artifacts, then pull the image onto host runner.
+
+inputs:
+  aws_region:
+    required: true
+    default: ${{ secrets.AWS_REGION }}
+  aws_account_id:
+    required: true
+    default: ${{ secrets.AWS_ACCOUNT_ID }}
+  artifact_name:
+    description: Docker image URI that is built and saved as artifact within workflows
+    required: true
+    type: string
+
+runs:
+  using: composite
+  steps:
+
+    - name: ECR login
+      run: |
+        aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+
+    - name: Download image URI artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+
+    - name: Resolve image URI for test
+      run: |
+        IMAGE_URI=$(cat image_uri.txt)
+        echo "Resolved image URI: $IMAGE_URI"
+        echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+    - name: Pull image
+      run: |
+        docker pull $IMAGE_URI

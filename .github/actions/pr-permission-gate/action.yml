@@ -1,11 +1,13 @@
 name: PR Permission Gate
 description: Fails the workflow if the PR sender lacks the required repository permission
+
 inputs:
   required-level:
     description: Minimum permission level required (read|triage|write|maintain|admin)
     default: write
+
 runs:
-  using: "composite"
+  using: composite
   steps:
     - name: Check PR sender permission
       uses: actions/github-script@v7

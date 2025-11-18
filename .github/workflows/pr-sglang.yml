@@ -87,24 +87,29 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/container-pull
         with:
-          name: sglang-sagemaker-image-uri
+          artifact_name: sglang-sagemaker-image-uri
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
+      # - name: ECR login
+      #   run: |
+      #     aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+      #
+      # - name: Download image URI artifact
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: sglang-sagemaker-image-uri
+      #
+      # - name: Resolve image URI for test
+      #   run: |
+      #     IMAGE_URI=$(cat image_uri.txt)
+      #     echo "Resolved image URI: $IMAGE_URI"
+      #     echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+      #
+      # - name: Pull image
+      #   run: |
+      #     docker pull $IMAGE_URI
 
       - name: Checkout SGLang Tests
         uses: actions/checkout@v5
@@ -138,6 +143,8 @@ jobs:
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "Printing container startup logs ..."
+          docker logs ${CONTAINER_ID}
 
       - name: Setup for SGLang Test
         run: |
