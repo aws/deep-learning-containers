@@ -57,7 +57,7 @@ jobs:
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:sglang-0.5.5-gpu-py312-cu129-ubuntu22.04-sagemaker-pr-${{ github.event.pull_request.number }}
           echo "Image URI to build: $IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          echo "IMAGE_URI=some_image_uri" >> $GITHUB_OUTPUT
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
 
       - name: Build image
         run: |
@@ -93,14 +93,14 @@ jobs:
 
       - name: echo container
         run: |
-          echo "image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}"
+          echo ${{ needs.build-sglang-image.outputs.image_uri }}
 
       - name: Container pull
         uses: ./.github/actions/container-pull
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-sglang-image.outputs.IMAGE_URI }}
+          image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}
 
       - name: Setup for SGLang datasets
         run: |
