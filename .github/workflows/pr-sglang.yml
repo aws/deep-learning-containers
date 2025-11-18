@@ -41,8 +41,6 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
-    outputs:
-      image_uri: ${{ env.IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -79,8 +77,16 @@ jobs:
           name: sglang-sagemaker-image-uri
           path: image_uri.txt
 
-  sglang-local-benchmark-test:
+  vars:
     needs: [build-sglang-image]
+    runs-on: ubuntu-latest
+    outputs:
+      image_uri: ${{ env.IMAGE_URI }}
+    steps:
+      - run: echo "Exposing env vars"
+
+  sglang-local-benchmark-test:
+    needs: [build-sglang-image, vars]
     if: needs.build-sglang-image.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -94,7 +100,7 @@ jobs:
         with:
           aws_region: ${{ secrets.AWS_REGION }}
           aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}
+          image_uri: ${{ needs.vars.outputs.image_uri }}
           artifact_name: sglang-sagemaker-image-uri
 
       - name: Setup for SGLang datasets
