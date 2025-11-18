@@ -118,16 +118,9 @@ jobs:
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${IMAGE_URI})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "Waiting for container startup ..."
           sleep 300s
-          echo "Printing container startup logs ..."
           docker logs ${CONTAINER_ID}
-
-      - name: Setup for SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            # bash scripts/ci/ci_install_dependency.sh
-          '
 
       - name: Run SGLang tests
         run: |
