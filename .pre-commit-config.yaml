@@ -23,9 +23,6 @@ repos:
     - id: no-commit-to-branch
       name: "🌳 git · Protect main branches"
       args: ["--branch", "main", "--branch", "master"]
-    - id: check-added-large-files
-      name: "🌳 git · Block large file commits"
-      args: ["--maxkb=5000"]
   # ---------------------------- 📁 Filesystem Tools --------------------------- #
     - id: check-executables-have-shebangs
       name: "📁 filesystem/⚙️ exec · Verify shebang presence"
@@ -49,7 +46,7 @@ repos:
       args:
         - --allow-missing-credentials
     - id: detect-private-key
-      name: "🔒 security · Detect private kayes"
+      name: "🔒 security · Detect private keys"
 
 
   - repo: https://github.com/gitleaks/gitleaks
@@ -86,6 +83,12 @@ repos:
     - id: check-github-workflows
       name: "🐙 github-actions · Validate gh workflow files"
       args: ["--verbose"]
+
+  - repo: https://github.com/pycqa/isort
+    rev: 7.0.0
+    hooks:
+      - id: isort
+        name: "🐍 python · Sort python packages"
 
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.8
@@ -137,13 +140,6 @@ repos:
   # --------------------------- ✍️ Git Commit Quality -------------------------- #
 
   ### Commit Message Standards ###
-  - repo: https://github.com/commitizen-tools/commitizen
-    rev: v4.1.0
-    hooks:
-    - id: commitizen
-      name: "🌳 git · Validate commit message"
-      additional_dependencies: [cz-conventional-gitmoji]
-
   - repo: local
     hooks:
     - id: signoff-commit
