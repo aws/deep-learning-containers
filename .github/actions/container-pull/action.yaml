@@ -3,11 +3,11 @@ description: Login to ECR, get image URI from current workflow artifacts, then p
 
 inputs:
   aws_region:
+    description: AWS Region for docker image repository
     required: true
-    default: ${{ secrets.AWS_REGION }}
   aws_account_id:
+    description: AWS Account ID for docker image registry
     required: true
-    default: ${{ secrets.AWS_ACCOUNT_ID }}
   artifact_name:
     description: Docker image URI that is built and saved as artifact within workflows
     required: true
