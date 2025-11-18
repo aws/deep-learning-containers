@@ -57,7 +57,7 @@ jobs:
           IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:sglang-0.5.5-gpu-py312-cu129-ubuntu22.04-sagemaker-pr-${{ github.event.pull_request.number }}
           echo "Image URI to build: $IMAGE_URI"
           echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_OUTPUT
+          echo "IMAGE_URI=some_image_uri" >> $GITHUB_OUTPUT
 
       - name: Build image
         run: |
