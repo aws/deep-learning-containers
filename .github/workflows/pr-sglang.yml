@@ -194,3 +194,17 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${{ env.CONTAINER_ID }}
+
+  sglang-sagemaker-endpoint-test:
+    needs: [build-sglang-image]
+    if: needs.build-sglang-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:general-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Run example tests
+        run: |
+          python3 -m pytest -vs test/test_example.py

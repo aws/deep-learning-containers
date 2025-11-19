@@ -12,7 +12,13 @@
 # language governing permissions and limitations under the License.
 """Common pytest fixtures for all tests under module test/"""
 
+import logging
+
 import pytest
+from rich.console import Console
+from rich.logging import RichHandler
+from rich.theme import Theme
+from rich.traceback import install
 
 
 def pytest_addoption(parser):
@@ -22,3 +28,52 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="session")
 def image_uri(request):
     return request.config.getoption("--image-uri")
+
+
+def pytest_configure():
+    """Set up rich logging for all tests"""
+    # Install rich traceback handling
+    install(show_locals=True)
+
+    # Custom theme for log levels
+    custom_theme = Theme(
+        {
+            "logging.debug": "grey70",
+            "logging.info": "cyan",
+            "logging.warning": "yellow",
+            "logging.error": "red bold",
+            "logging.critical": "red bold reverse",
+            "pytest.passed": "green bold",
+            "pytest.failed": "red bold",
+            "pytest.skipped": "yellow bold",
+        }
+    )
+
+    # Create console with theme
+    console = Console(theme=custom_theme)
+
+    # Configure Rich handler
+    rich_handler = RichHandler(
+        console=console,
+        rich_tracebacks=True,
+        tracebacks_show_locals=True,
+        show_time=True,
+        show_path=True,
+        enable_link_path=True,
+        markup=True,
+    )
+
+    # Set formatter
+    rich_handler.setFormatter(logging.Formatter("%(message)s"))
+    rich_handler.setLevel(logging.DEBUG)
+
+    # Get the root logger and add rich handler
+    root_logger = logging.getLogger()
+    root_logger.addHandler(rich_handler)
+    root_logger.setLevel(logging.DEBUG)
+
+
+@pytest.fixture(scope="session")
+def logger():
+    """Fixture to provide logger for tests"""
+    return logging.getLogger()

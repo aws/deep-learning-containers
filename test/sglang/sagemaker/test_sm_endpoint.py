@@ -13,12 +13,14 @@
 """Integration test for serving endpoint with SGLang DLC"""
 
 import logging
+import sys
 
 import pytest
 from test_utils import random_suffix_name
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel("INFO")
+LOGGER.setLevel(logging.INFO)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 # Test configuration
 MODEL_ID = "Qwen/Qwen3-0.6B"
