@@ -1,0 +1,28 @@
+name: ECR Authentication
+description: Login to ECR, if image_uri is provided pull the image onto host runner.
+
+inputs:
+  aws_region:
+    description: AWS Region for docker image repository
+    required: true
+  aws_account_id:
+    description: AWS Account ID for docker image registry
+    required: true
+  image_uri:
+    description: Docker image URI to pull from ECR
+    required: false
+
+runs:
+  using: composite
+  steps:
+
+    - name: ECR login
+      shell: bash
+      run: |
+        aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
+
+    - name: Pull image
+      if: inputs.image_uri != ''
+      shell: bash
+      run: |
+        docker pull ${{ inputs.image_uri }}
