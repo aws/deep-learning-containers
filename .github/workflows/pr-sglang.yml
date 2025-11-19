@@ -142,7 +142,7 @@ jobs:
     if: needs.build-sglang-image.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
