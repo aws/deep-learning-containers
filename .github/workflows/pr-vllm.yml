@@ -37,6 +37,77 @@ jobs:
               - "docker/vllm/Dockerfile"
             vllm-rayserve-ec2:
               - "docker/vllm/Dockerfile.rayserve"
+  
+  # test upstream image
+  vllm-upstream-regression-test:
+    needs: [check-changes]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Pull image
+        run: |
+          docker pull docker.io/vllm/vllm-openai:v0.11.1
+
+      - name: Checkout vLLM Tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v0.11.1
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v ./vllm_source:/workdir --workdir /workdir \
+            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            docker.io/vllm/vllm-openai:v0.11.1)
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Setup for vLLM Test
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
+            mkdir src
+            mv vllm src/vllm
+          '
+
+      - name: Run vLLM Tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
+
+            # Examples Test # 30min
+            cd /workdir/examples
+            pip install tensorizer # for tensorizer test
+            python3 offline_inference/basic/generate.py --model facebook/opt-125m
+            python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
+            python3 offline_inference/basic/chat.py
+            python3 offline_inference/prefix_caching.py
+            python3 offline_inference/llm_engine_example.py
+            python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/vision_language.py --seed 0
+            python3 offline_inference/vision_language_pooling.py --seed 0
+            python3 offline_inference/vision_language_multi_image.py --seed 0
+          '
+
+      - name: Cleanup container and images
+        if: always()
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
+
 
   # vLLM jobs
   build-vllm-image:
@@ -102,7 +173,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v0.11.0
+          ref: v0.11.1
           path: vllm_source
 
       - name: Start container
@@ -166,7 +237,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v0.11.0
+          ref: v0.11.1
           path: vllm_source
 
       - name: Start container
@@ -229,7 +300,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v0.11.0
+          ref: v0.11.1
           path: vllm_source
 
       - name: Start container
@@ -263,7 +334,7 @@ jobs:
             # Examples Test # 30min
             cd /workdir/examples
             pip install tensorizer # for tensorizer test
-            # python3 offline_inference/basic/generate.py --model facebook/opt-125m
+            python3 offline_inference/basic/generate.py --model facebook/opt-125m
             python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
