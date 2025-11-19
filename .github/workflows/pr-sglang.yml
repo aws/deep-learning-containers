@@ -118,7 +118,7 @@ jobs:
             ${{ needs.build-sglang-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           echo "Waiting for container startup ..."
-          sleep 300s
+          sleep 60s
           docker logs ${CONTAINER_ID}
 
       - name: Run SGLang tests
