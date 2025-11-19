@@ -231,7 +231,7 @@ jobs:
         with:
           container_id: ${{ env.CONTAINER_ID }}
 
-  vllm-cuda-test:
+  vllm-cuda-and-example-test:
     needs: [build-vllm-image]
     if: needs.build-vllm-image.result == 'success'
     runs-on:
@@ -286,6 +286,25 @@ jobs:
             # Platform Tests (CUDA) # 4min
             cd /workdir/tests
             pytest -v -s cuda/test_cuda_context.py
+
+            # Examples Test # 30min
+            cd /workdir/examples
+            pip install tensorizer # for tensorizer test
+            python3 offline_inference/basic/generate.py --model facebook/opt-125m
+            # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
+            python3 offline_inference/basic/chat.py
+            python3 offline_inference/prefix_caching.py
+            python3 offline_inference/llm_engine_example.py
+            python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/vision_language.py --seed 0
+            python3 offline_inference/vision_language_pooling.py --seed 0
+            python3 offline_inference/vision_language_multi_image.py --seed 0
+            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
+            python3 offline_inference/basic/classify.py
+            python3 offline_inference/basic/embed.py
+            python3 offline_inference/basic/score.py
+            python3 offline_inference/simple_profiling.py
           '
 
       - name: Cleanup container and images
