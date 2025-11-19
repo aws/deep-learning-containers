@@ -50,4 +50,4 @@ images:
         - sanity
         - security
         - sagemaker
-        - eks
+        # - eks
