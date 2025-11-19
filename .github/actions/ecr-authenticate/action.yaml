@@ -22,7 +22,7 @@ runs:
         aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
     - name: Pull image
-      if: ${{ inputs.image_uri != '' }}
+      if: inputs.image_uri != ''
       shell: bash
       run: |
         docker pull ${{ inputs.image_uri }}
