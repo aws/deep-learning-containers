@@ -99,8 +99,6 @@ jobs:
             # Test sagemaker endpoint overrides
             pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
 
-            Then run related OpenAI entrypoint tests:
-
             # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
             pytest tests/entrypoints/openai/test_lora_adapters.py -v
 
@@ -356,8 +354,6 @@ jobs:
 
             # Test sagemaker endpoint overrides
             pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
-
-            Then run related OpenAI entrypoint tests:
 
             # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
             pytest tests/entrypoints/openai/test_lora_adapters.py -v
