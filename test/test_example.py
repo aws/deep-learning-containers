@@ -1,9 +1,14 @@
-import time
+import logging
+import sys
 
 import pytest
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
 
-def test_basic_logging(logger):
+
+def test_basic_logging():
     """Test basic logging functionality"""
     logger.info("Starting basic logging test")
 
@@ -18,7 +23,7 @@ def test_basic_logging(logger):
 
 
 @pytest.mark.parametrize("input,expected", [(2, 4), (3, 9), (4, 16)])
-def test_parametrized(logger, input, expected):
+def test_parametrized(input, expected):
     """Parametrized test with logging"""
     logger.info(f"Testing square of {input}")
     result = input * input
@@ -27,7 +32,7 @@ def test_parametrized(logger, input, expected):
     logger.info(f"Square test passed: {input}² = {expected}")
 
 
-def test_error_handling(logger):
+def test_error_handling():
     """Test error handling and logging"""
     logger.info("Starting error handling test")
 
