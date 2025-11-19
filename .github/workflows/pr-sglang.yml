@@ -170,9 +170,6 @@ jobs:
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.build-sglang-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-          echo "Waiting for container startup ..."
-          sleep 300s
-          docker logs ${CONTAINER_ID}
 
       - name: Setup for SGLang tests
         run: |
