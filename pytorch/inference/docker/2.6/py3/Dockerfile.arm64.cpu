@@ -173,8 +173,6 @@ RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/s
 # Patches
 # py-vuln: 71064
 RUN pip install --no-cache-dir -U "requests>=2.32.3"
-# CVE-2025-47278
-RUN pip install --no-cache-dir -U "Flask>=3.1.1"
 
 # add necessary certificate for aws sdk cpp download
 RUN mkdir -p /etc/pki/tls/certs && cp /etc/ssl/certs/ca-certificates.crt /etc/pki/tls/certs/ca-bundle.crt
