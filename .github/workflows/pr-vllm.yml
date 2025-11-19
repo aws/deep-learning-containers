@@ -87,6 +87,9 @@ jobs:
             set -eux
             nvidia-smi
 
+            SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
+            SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
+
             # Test LoRA adapter loading/unloading via SageMaker endpoints
             pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
 
@@ -342,6 +345,9 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+
+            SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
+            SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
 
             # Test LoRA adapter loading/unloading via SageMaker endpoints
             pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v

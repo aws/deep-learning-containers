@@ -59,7 +59,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean
 
-RUN uv pip install --system model-hosting-container-standards==0.1.8 \
+RUN uv pip install --system model-hosting-container-standards==0.1.9 \
   && uv cache clean
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
