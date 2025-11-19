@@ -53,7 +53,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
 
-ARG CACHE_REFRESH=0
+ARG CACHE_REFRESH=1
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
@@ -61,7 +61,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
-RUN rm -rf /tmp/*
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
