@@ -59,6 +59,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean
 
+ARG CACHE_REFRESH=0
 RUN uv pip install --system model-hosting-container-standards==0.1.9 \
   && uv cache clean
 
