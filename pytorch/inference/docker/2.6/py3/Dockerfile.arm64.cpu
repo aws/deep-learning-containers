@@ -26,7 +26,7 @@ ARG SM_TOOLKIT_VERSION
 # |_| \_\___|\___|_| .__/ \___|
 #                  |_|
 ########################################################
-FROM arm64v8/ubuntu:24.04 as ec2
+FROM arm64v8/ubuntu:22.04 as ec2
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
