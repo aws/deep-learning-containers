@@ -215,5 +215,6 @@ jobs:
 
       - name: Run example tests
         run: |
+          source .venv/bin/activate
           cd test/
           python3 -m pytest -vs sglang/sagemaker
