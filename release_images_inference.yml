@@ -166,7 +166,7 @@ release_images:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu24.04"
-      lmi_version: "17.0.0rc4"
+      lmi_version: "17.0.0"
       cuda_version: "cu128"
       example: False
       disable_sm_tag: True
