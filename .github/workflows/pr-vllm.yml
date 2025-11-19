@@ -88,16 +88,16 @@ jobs:
             nvidia-smi
 
             # Test LoRA adapter loading/unloading via SageMaker endpoints
-            pytest tests/sagemaker/test_sagemaker_lora_adapters.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
 
             # Test stateful session management
-            pytest tests/sagemaker/test_sagemaker_stateful_sessions.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_stateful_sessions.py -v
 
             # Test sagemaker custom middleware
-            pytest tests/sagemaker/test_sagemaker_middleware_integration.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_middleware_integration.py -v
 
             # Test sagemaker endpoint overrides
-            pytest tests/sagemaker/test_sagemaker_handler_overrides.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
 
             Then run related OpenAI entrypoint tests:
 
@@ -346,16 +346,16 @@ jobs:
             nvidia-smi
 
             # Test LoRA adapter loading/unloading via SageMaker endpoints
-            pytest tests/sagemaker/test_sagemaker_lora_adapters.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
 
             # Test stateful session management
-            pytest tests/sagemaker/test_sagemaker_stateful_sessions.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_stateful_sessions.py -v
 
             # Test sagemaker custom middleware
-            pytest tests/sagemaker/test_sagemaker_middleware_integration.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_middleware_integration.py -v
 
             # Test sagemaker endpoint overrides
-            pytest tests/sagemaker/test_sagemaker_handler_overrides.py -v
+            pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
 
             Then run related OpenAI entrypoint tests:
 
