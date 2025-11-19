@@ -281,6 +281,8 @@ WORKDIR /
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
+    "awscli<=1.42.61" \
+    "boto3<=1.40.61" \
     smclarify \
     "sagemaker>=2" \
     sagemaker-experiments \
