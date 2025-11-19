@@ -42,7 +42,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     outputs:
-      image_uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -89,7 +89,7 @@ jobs:
         with:
           aws_region: ${{ vars.AWS_REGION }}
           aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-sglang-image.outputs.image_uri }}
+          image_uri: ${{ needs.build-sglang-image.outputs.image-uri }}
 
       - name: Setup for SGLang datasets
         run: |
@@ -113,7 +113,7 @@ jobs:
             -e SM_SGLANG_HOST=127.0.0.1 \
             -e SM_SGLANG_PORT=30000 \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-sglang-image.outputs.image_uri }})
+            ${{ needs.build-sglang-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           echo "Waiting for container startup ..."
           sleep 300s
