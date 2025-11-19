@@ -61,6 +61,7 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+RUN rm -rf /tmp/*
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
