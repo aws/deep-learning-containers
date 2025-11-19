@@ -45,41 +45,41 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    outputs:
+      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
+
       - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
 
       - name: Resolve image URI for build
+        id: image-uri-build
         run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.11.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-0.11.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=$IMAGE_URI \
-            --tag $IMAGE_URI \
+            --cache-from=type=registry,ref=${IMAGE_URI} \
+            --tag ${IMAGE_URI} \
             --target vllm-ec2 \
             -f docker/vllm/Dockerfile .
 
-      - name: Docker Push and save image URI artifact
+      - name: Container push
         run: |
-          docker push $IMAGE_URI
-          docker rmi $IMAGE_URI
-          echo $IMAGE_URI > image_uri.txt
-
-      - name: Upload image URI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: vllm-ec2-image-uri
-          path: image_uri.txt
+          docker push ${IMAGE_URI}
+          docker rmi ${IMAGE_URI}
 
   vllm-regression-test:
     needs: [build-vllm-image]
@@ -91,26 +91,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-vllm-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -123,11 +111,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-vllm-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -139,7 +127,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -153,10 +141,9 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   vllm-cuda-test:
     needs: [build-vllm-image]
@@ -168,26 +155,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-vllm-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -200,11 +175,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-vllm-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -216,7 +191,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -229,10 +204,9 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   vllm-example-test:
     needs: [build-vllm-image]
@@ -244,26 +218,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-vllm-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -276,11 +238,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-vllm-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -292,7 +254,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -320,10 +282,9 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   # vLLM RayServe jobs
   build-rayserve-image:
@@ -332,41 +293,38 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    outputs:
+      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
       - name: ECR login
         run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
 
       - name: Resolve image URI for build
+        id: image-uri-build
         run: |
-          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=$IMAGE_URI \
-            --tag $IMAGE_URI \
+            --cache-from=type=registry,ref=${IMAGE_URI} \
+            --tag ${IMAGE_URI} \
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile.rayserve .
 
-      - name: Docker Push and save image URI artifact
+      - name: Container push
         run: |
-          docker push $IMAGE_URI
-          docker rmi $IMAGE_URI
-          echo $IMAGE_URI > image_uri.txt
-
-      - name: Upload image URI artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: vllm-rayserve-ec2-image-uri
-          path: image_uri.txt
+          docker push ${IMAGE_URI}
+          docker rmi ${IMAGE_URI}
 
   rayserve-regression-test:
     needs: [build-rayserve-image]
@@ -378,26 +336,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-rayserve-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-rayserve-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -410,11 +356,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-rayserve-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -426,7 +372,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -440,10 +386,9 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   rayserve-cuda-test:
     needs: [build-rayserve-image]
@@ -455,26 +400,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-rayserve-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-rayserve-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -487,11 +420,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-rayserve-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -503,7 +436,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -516,10 +449,9 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
 
   rayserve-example-test:
     needs: [build-rayserve-image]
@@ -531,26 +463,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
-
-      - name: Download image URI artifact
-        uses: actions/download-artifact@v4
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
         with:
-          name: vllm-rayserve-ec2-image-uri
+          aws_region: ${{ vars.AWS_REGION }}
+          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          image_uri: ${{ needs.build-rayserve-image.outputs.image-uri }}
 
-      - name: Resolve image URI for test
-        run: |
-          IMAGE_URI=$(cat image_uri.txt)
-          echo "Resolved image URI: $IMAGE_URI"
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
-
-      - name: Pull image
-        run: |
-          docker pull $IMAGE_URI
-
-      - name: Checkout vLLM Tests
+      - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
@@ -563,11 +483,11 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
-            -e HUGGING_FACE_HUB_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${IMAGE_URI})
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-rayserve-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Setup for vLLM Test
+      - name: Setup for vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
@@ -579,7 +499,7 @@ jobs:
             mv vllm src/vllm
           '
 
-      - name: Run vLLM Tests
+      - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
           set -eux
@@ -607,7 +527,6 @@ jobs:
 
       - name: Cleanup container and images
         if: always()
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
