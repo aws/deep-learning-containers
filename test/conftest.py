@@ -50,7 +50,7 @@ def pytest_configure():
     )
 
     # Create console with theme
-    console = Console(theme=custom_theme)
+    console = Console(theme=custom_theme, force_terminal=True)
 
     # Configure Rich handler
     rich_handler = RichHandler(
