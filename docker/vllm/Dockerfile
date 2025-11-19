@@ -1,8 +1,8 @@
 FROM docker.io/vllm/vllm-openai:v0.11.1 as base
-ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
-ARG EFA_VERSION="1.43.3"
 LABEL dlc_major_version="1"
+ARG PYTHON="python3"
+ARG EFA_VERSION="1.43.3"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
