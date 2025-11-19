@@ -119,10 +119,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-            uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
-            uv pip install --system hf_transfer
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
             mkdir src
             mv vllm src/vllm
           '
@@ -183,10 +183,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-            uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
-            uv pip install --system hf_transfer
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
             mkdir src
             mv vllm src/vllm
           '
@@ -364,10 +364,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-            uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
-            uv pip install --system hf_transfer
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
             mkdir src
             mv vllm src/vllm
           '
@@ -428,10 +428,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-            uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
-            uv pip install --system hf_transfer
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
             mkdir src
             mv vllm src/vllm
           '
@@ -491,10 +491,10 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
-            uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
-            uv pip install --system hf_transfer
+            uv pip install --no-upgrade --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --no-upgrade --system pytest pytest-asyncio
+            uv pip install --no-upgrade --system -e tests/vllm_test_utils
+            uv pip install --no-upgrade --system hf_transfer
             mkdir src
             mv vllm src/vllm
           '
