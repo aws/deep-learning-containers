@@ -31,7 +31,11 @@ def image_uri(request):
 
 
 def pytest_configure():
-    """Set up rich logging for all tests"""
+    """
+    Set up rich logging for all tests
+    To use rich logging in each tests,
+    include `logger` fixture in the test argument.
+    """
     # Install rich traceback handling
     install(show_locals=True)
 
@@ -50,12 +54,13 @@ def pytest_configure():
     )
 
     # Create console with theme
-    console = Console(theme=custom_theme, force_terminal=True)
+    console = Console(theme=custom_theme, force_terminal=True, tab_size=2)
 
     # Configure Rich handler
     rich_handler = RichHandler(
         console=console,
         rich_tracebacks=True,
+        tracebacks_code_width=None,
         tracebacks_show_locals=True,
         show_time=True,
         show_path=True,
@@ -75,5 +80,4 @@ def pytest_configure():
 
 @pytest.fixture(scope="session")
 def logger():
-    """Fixture to provide logger for tests"""
     return logging.getLogger()
