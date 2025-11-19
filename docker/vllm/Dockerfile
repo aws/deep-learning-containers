@@ -53,7 +53,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
 
-ARG CACHE_REFRESH=1
+ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
