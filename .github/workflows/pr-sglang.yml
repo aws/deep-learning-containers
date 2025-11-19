@@ -14,10 +14,6 @@ concurrency:
   group: pr-sglang-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
-env:
-  COLUMNS: 120
-
-
 jobs:
   check-changes:
     runs-on: ubuntu-latest
@@ -199,7 +195,7 @@ jobs:
         with:
           container_id: ${{ env.CONTAINER_ID }}
 
-  sglang-sagemaker-endpoint-test:
+  sglang-sagemaker-test:
     needs: [build-sglang-image]
     if: needs.build-sglang-image.result == 'success'
     runs-on:
@@ -211,4 +207,5 @@ jobs:
 
       - name: Run example tests
         run: |
-          python3 -m pytest -vs test/test_example.py
+          cd test/
+          python3 -m pytest -vs sglang/sagemaker

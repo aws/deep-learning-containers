@@ -14,7 +14,7 @@
 import logging
 import sys
 
-from .test_utils.logger import ColoredFormatter
+from test_utils.logger import ColoredFormatter
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
