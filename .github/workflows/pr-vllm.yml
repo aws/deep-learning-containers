@@ -37,7 +37,7 @@ jobs:
               - "docker/vllm/Dockerfile"
             vllm-rayserve-ec2:
               - "docker/vllm/Dockerfile.rayserve"
-  
+
   # test upstream image
   vllm-upstream-regression-test:
     needs: [check-changes]
