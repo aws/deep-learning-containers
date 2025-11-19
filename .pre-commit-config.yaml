@@ -91,12 +91,6 @@ repos:
         name: "🐙 github-actions · Validate gh workflow files"
         args: ["--verbose"]
 
-  - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
-    hooks:
-      - id: isort
-        name: "🐍 python · Sort python packages"
-
   - repo: https://github.com/rhysd/actionlint
     rev: v1.7.8
     hooks:
