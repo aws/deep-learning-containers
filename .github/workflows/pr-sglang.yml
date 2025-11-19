@@ -205,6 +205,14 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - name: Install test dependencies
+        run: |
+          uv venv
+          source .venv/bin/activate
+
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/sglang/sagemakerrequirements.txt
+
       - name: Run example tests
         run: |
           cd test/
