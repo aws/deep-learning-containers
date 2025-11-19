@@ -5,7 +5,7 @@ One stop shop for running AI/ML on AWS.
 </h3>
 
 <p align="center">
-<a href="https://github.com/aws-samples/sample-aws-deep-learning-containers"><b>Examples</b></a> | <a href="https://github.com/aws/deep-learning-containers/blob/master/available_images.md"><b>Available Images</b></a> | <a href="https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/what-is-dlc.html"><b>AWS Doc</b></a>
+<a href="https://github.com/aws-samples/sample-aws-deep-learning-containers"><b>Examples</b></a> | <a href="https://github.com/aws/deep-learning-containers/blob/master/available_images.md"><b>Available Images</b></a> | <a href="https://aws.amazon.com/ai/machine-learning/containers/"><b>AWS Doc</b></a>
 </p>
 
 # 🔥 What's New
