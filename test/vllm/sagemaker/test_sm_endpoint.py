@@ -56,6 +56,7 @@ def deploy_endpoint(name, image_uri, role, instance_type):
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=name,
+            inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
             wait=True,
         )
         print("Endpoint deployment completed successfully")
