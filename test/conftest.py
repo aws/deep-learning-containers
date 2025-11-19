@@ -36,9 +36,6 @@ def pytest_configure():
     To use rich logging in each tests,
     include `logger` fixture in the test argument.
     """
-    # Install rich traceback handling
-    install(show_locals=True)
-
     # Custom theme for log levels
     custom_theme = Theme(
         {
@@ -59,7 +56,6 @@ def pytest_configure():
     # Configure Rich handler
     rich_handler = RichHandler(
         console=console,
-        rich_tracebacks=True,
         tracebacks_code_width=None,
         tracebacks_show_locals=True,
         show_time=True,
