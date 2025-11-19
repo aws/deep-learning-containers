@@ -64,5 +64,15 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
-# TODO: add later
 # ====================== sagemaker =========================================
+FROM base AS vllm-sagemaker
+
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean
+
+COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
