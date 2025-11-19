@@ -87,6 +87,7 @@ jobs:
             set -eux
             nvidia-smi
 
+            pip list | grep model-hosting-container-standards
             SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
             SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
 
@@ -365,6 +366,7 @@ jobs:
             set -eux
             nvidia-smi
 
+            pip list | grep model-hosting-container-standards
             SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
             SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto
 
