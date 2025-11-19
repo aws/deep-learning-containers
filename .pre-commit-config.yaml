@@ -74,6 +74,7 @@ repos:
         name: "🐍 python · Format python"
       - id: ruff-check
         name: "🐍 python · Lint python"
+        stages: [pre-push]
 
   - repo: https://github.com/pycqa/isort
     rev: 7.0.0

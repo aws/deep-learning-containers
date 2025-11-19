@@ -10,15 +10,15 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-"""Common pytest fixtures for all tests under module test/"""
+"""Common utility functions for all tests under module test/"""
 
-import pytest
-
-
-def pytest_addoption(parser):
-    parser.addoption("--image-uri", action="store", help="Image URI to be tested")
+import random
+import string
 
 
-@pytest.fixture(scope="session")
-def image_uri(request):
-    return request.config.getoption("--image-uri")
+def random_suffix_name(resource_name, max_length, delimiter="-") -> str:
+    rand_length = max_length - len(resource_name) - len(delimiter)
+    rand = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(rand_length)
+    )
+    return f"{resource_name}{delimiter}{rand}"
