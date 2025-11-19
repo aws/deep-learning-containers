@@ -1,5 +1,5 @@
-name: Container Pull
-description: Login to ECR, get image URI from current workflow artifacts, then pull the image onto host runner.
+name: ECR Authentication
+description: Login to ECR, if image_uri is provided pull the image onto host runner.
 
 inputs:
   aws_region:
@@ -10,7 +10,7 @@ inputs:
     required: true
   image_uri:
     description: Docker image URI to pull from ECR
-    required: true
+    required: false
 
 runs:
   using: composite
@@ -22,6 +22,7 @@ runs:
         aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
 
     - name: Pull image
+      if: inputs.image_uri != ''
       shell: bash
       run: |
         docker pull ${{ inputs.image_uri }}
