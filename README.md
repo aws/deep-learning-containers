@@ -27,11 +27,31 @@ One stop shop for running AI/ML on AWS.
 
 -  Learn how to deploy and optimize Large Language Models (LLMs) on Amazon EKS using vLLM Deep Learning Containers for high-performance inference at scale. Checkout the [Workshop Guide](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US) and [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc) for details 🚀
 
----
+## About
 
-## Security
+AWS Deep Learning Containers (DLCs) are a suite of Docker images that streamline the deployment of AI/ML workloads on Amazon SageMaker, Amazon EKS, and Amazon EC2. 
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+### 🎯 What We Offer
+- **Pre-optimized Environments:** Production-ready containers with optimized deep learning frameworks
+- **Latest AI/ML Tools:** Quick access to cutting-edge frameworks like vLLM, SGLang, and PyTorch
+- **Multi-Platform Support:** Run seamlessly on SageMaker, EKS, or EC2
+- **Enterprise-Ready:** Built with security, performance, and scalability in mind
+
+### 💪 Key Benefits
+- **Rapid Deployment:** Get started in minutes with pre-configured environments
+- **Framework Flexibility:** Support for popular frameworks like PyTorch, TensorFlow, and more
+- **Performance Optimized:** Containers tuned for AWS infrastructure
+- **Regular Updates:** Quick access to latest framework releases and security patches
+- **AWS Integration:** Seamless compatibility with AWS AI/ML services
+
+### 🎮 Perfect For
+- Data Scientists building and training models
+- ML Engineers deploying production workloads
+- DevOps teams managing ML infrastructure
+- Researchers exploring cutting-edge AI capabilities
+
+### 🔒 Security & Compliance
+Our containers undergo rigorous security scanning and are regularly updated to address vulnerabilities, ensuring your ML workloads run on a secure foundation.
 
 ## License
 
