@@ -3,7 +3,6 @@ import time
 from datetime import datetime
 
 import boto3
-import pytest
 from botocore.exceptions import ClientError
 from sagemaker import serializers
 from sagemaker.model import Model
@@ -185,15 +184,13 @@ def wait_for_endpoint(endpoint_name, timeout=1800):
     return False
 
 
-@pytest.mark.processor("gpu")
-@pytest.mark.team("conda")
-def test_sglang_on_sagemaker(ecr_image):
+def test_sglang_on_sagemaker(image_uri):
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     endpoint_name = f"test-sglang-{MODEL_ID.replace('/', '-').replace('.', '')}-{INSTANCE_TYPE.replace('.', '-')}-{timestamp}"
 
     print_section("STARTING SGLang SAGEMAKER ENDPOINT TEST")
     config = {
-        "Image URI": ecr_image,
+        "Image URI": image_uri,
         "Endpoint name": endpoint_name,
         "Region": AWS_REGION,
         "Instance type": INSTANCE_TYPE,
@@ -202,7 +199,7 @@ def test_sglang_on_sagemaker(ecr_image):
 
     # Phase 1: Deployment
     print_phase("PHASE 1: ENDPOINT DEPLOYMENT")
-    if not deploy_endpoint(endpoint_name, ecr_image, ROLE, INSTANCE_TYPE):
+    if not deploy_endpoint(endpoint_name, image_uri, ROLE, INSTANCE_TYPE):
         print_section("DEPLOYMENT FAILED - CLEANING UP")
         delete_endpoint(endpoint_name)
         raise Exception("SageMaker endpoint deployment failed")
