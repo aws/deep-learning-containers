@@ -73,7 +73,7 @@ def get_secret_hf_token():
     return response
 
 
-def wait_for_container_ready(connection, container_name, timeout: int = 2000) -> bool:
+def wait_for_container_ready(connection, container_name, timeout: int = 1000) -> bool:
     """
     Wait for container and model to be ready by checking logs and endpoint
     Returns True if container and model are ready, False if timeout
