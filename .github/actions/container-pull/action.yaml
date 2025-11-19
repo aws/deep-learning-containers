@@ -11,9 +11,6 @@ inputs:
   image_uri:
     description: Docker image URI to pull from ECR
     required: true
-  # artifact_name:
-  #   required: true
-  #   type: string
 
 runs:
   using: composite
@@ -23,18 +20,6 @@ runs:
       shell: bash
       run: |
         aws ecr get-login-password --region ${{ inputs.aws_region }} | docker login --username AWS --password-stdin ${{ inputs.aws_account_id }}.dkr.ecr.${{ inputs.aws_region }}.amazonaws.com
-
-    # - name: Download image URI artifact
-    #   uses: actions/download-artifact@v4
-    #   with:
-    #     name: ${{ inputs.artifact_name }}
-    #
-    # - name: Resolve image URI for test
-    #   shell: bash
-    #   run: |
-    #     IMAGE_URI=$(cat ${{ inputs.image_uri_file }})
-    #     echo "Resolved image URI: $IMAGE_URI"
-    #     echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
     - name: Pull image
       shell: bash
