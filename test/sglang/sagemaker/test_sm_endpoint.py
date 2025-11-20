@@ -121,10 +121,6 @@ class TestEndpoint:
                 except json.JSONDecodeError:
                     LOGGER.warning("Response is not valid JSON. Returning as string.")
 
-            if not response:
-                LOGGER.error("No response received from the endpoint.")
-                raise
-
             return response
 
         except Exception as e:
@@ -183,6 +179,9 @@ class TestEndpoint:
                 model_id=model_id,
                 prompt=test_prompt,
             )
+
+            assert response, f"Model response is empty, failing endpoint test!"
+
             LOGGER.info(f"Model response: {pformat(response)}")
             LOGGER.info("Inference test successful!")
 
