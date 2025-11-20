@@ -219,4 +219,4 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs --image-uri ${{ needs.build-sglang-image.outputs.image-uri }} sglang/sagemaker
+          python3 -m pytest -vsrP --image-uri ${{ needs.build-sglang-image.outputs.image-uri }} sglang/sagemaker
