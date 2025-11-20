@@ -143,10 +143,8 @@ def model_endpoint(aws_session, model_package, instance_type):
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"])
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
-def test_sglang_sagemaker_endpoint(
-    self, model_endpoint, model_id, max_tokens=2400, temperature=0.01
-):
-    predictor, endpoint_name = model_endpoint
+def test_sglang_sagemaker_endpoint(model_endpoint, model_id, max_tokens=2400, temperature=0.01):
+    predictor = model_endpoint
     prompt = "Write a python script to calculate square of n"
 
     payload = {
