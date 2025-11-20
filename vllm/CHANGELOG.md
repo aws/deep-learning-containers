@@ -4,6 +4,18 @@ Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-co
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file. 
 
+## [0.11.2] - 2025-11-20
+### Added
+- SageMaker and EC2 support for vLLM 0.11.2
+- CUDA 12.9 and Python 3.12 compatibility
+- Latest ML performance optimizations inherited from vLLM 0.11.2
+
+### Sample ECR URI
+```
+public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312
+public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312-ec2
+```
+
 ## [0.11.1] - 2025-11-19
 ### Added
 - SageMaker and EC2 support for vLLM 0.11.1
