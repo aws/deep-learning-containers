@@ -71,9 +71,9 @@ jobs:
 
       - name: Build image
         run: |
+          # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            # base image should follow https://hub.docker.com/r/lmsysorg/sglang/tags
             --build-arg BASE_IMAGE="lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${IMAGE_URI} \
