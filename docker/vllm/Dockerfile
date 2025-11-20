@@ -1,4 +1,5 @@
-FROM docker.io/vllm/vllm-openai:v0.11.0 as base
+ARG VLLM_VERSION="0.11.0"
+FROM docker.io/vllm/vllm-openai:v${VLLM_VERSION} AS base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
@@ -64,9 +65,27 @@ RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
+# ====================== ray serve =========================================
+FROM base AS vllm-rayserve-ec2
+
+RUN uv pip install --system ray[serve]==2.49.0 \
+  && uv cache clean
+
+ARG CACHE_REFRESH=0
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean
+
+COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
 
+ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
