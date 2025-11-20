@@ -223,8 +223,6 @@ jobs:
           uv pip install -r test/sglang/sagemaker/requirements.txt
 
       - name: Run sagemaker tests
-        env:
-          FORCE_COLOR: "1"
         run: |
           source .venv/bin/activate
           cd test/
