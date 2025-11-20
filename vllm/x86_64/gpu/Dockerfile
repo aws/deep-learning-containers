@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:v0.11.1 as base
+FROM docker.io/vllm/vllm-openai:v0.11.2 as base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
@@ -66,10 +66,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     apt-get upgrade -y && \
     apt-get clean
 
-RUN uv pip install --system model-hosting-container-standards==0.1.9 \
-  && uv pip freeze | grep model-hosting-container-standards | grep "0.1.9" \
-  && uv cache clean
-
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
@@ -82,10 +78,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     apt-get update && \
     apt-get upgrade -y && \
     apt-get clean
-
-RUN uv pip install --system model-hosting-container-standards==0.1.9 \
-  && uv pip freeze | grep model-hosting-container-standards | grep "0.1.9" \
-  && uv cache clean
 
 COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
