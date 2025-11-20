@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:v0.11.1 as base
+FROM docker.io/vllm/vllm-openai:v0.11.2 as base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.43.3"
