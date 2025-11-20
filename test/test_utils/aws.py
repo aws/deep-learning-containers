@@ -13,10 +13,11 @@
 """AWS Session Manager for all AWS boto3 API resources"""
 
 import boto3
+from test_utils.constants import DEFAULT_REGION
 
 
 class AWSSessionManager:
-    def __init__(self, region, profile_name=None):
+    def __init__(self, region=DEFAULT_REGION, profile_name=None):
         if profile_name:
             self.session = boto3.Session(profile_name=profile_name, region_name=region)
         else:
