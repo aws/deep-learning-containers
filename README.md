@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="AWS Logo" src="https://raw.githubusercontent.com/aws/deep-learning-containers/master/.github/assets/aws-logo.png" width=30%>
+  <img alt="AWS Logo" src="https://raw.githubusercontent.com/aws/deep-learning-containers/master/.github/assets/aws-logo.png" width=25%>
 <h3 align="center">
 One stop shop for running AI/ML on AWS.
 </h3>
