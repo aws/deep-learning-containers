@@ -26,7 +26,7 @@ from test_utils.aws import AWSSessionManager
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 
 class TestEndpoint:
@@ -35,6 +35,7 @@ class TestEndpoint:
             LOGGER.debug(f"Starting deployment of endpoint: {endpoint_name}")
             LOGGER.debug(f"Using image: {image_uri}")
             LOGGER.debug(f"Instance type: {instance_type}")
+            LOGGER.debug(f"Model ID: {model_id}")
 
             LOGGER.info("Creating SageMaker model...")
             hf_token = get_hf_token(aws_session)
