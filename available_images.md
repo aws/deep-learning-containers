@@ -112,6 +112,11 @@ vLLM Containers
 Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/vllm
 
 
+SGLang Containers
+============================
+Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/sglang
+
+
 EC2 Framework Containers (EC2, ECS, and EKS support only)
 ============================
 
@@ -200,6 +205,7 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 
 | Framework                                                                                                                   | Job Type  | Accelerator | Python Version Options | Example URL                                                                               |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|-------------------------------------------------------------------------------------------|
+| DJLServing 0.35.0 with vLLM 0.11.1, Transformers 4.57.1, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.35.0-lmi17.0.0-cu128 |
 | DJLServing 0.34.0 with vLLM 0.10.2, Transformers 4.55.2, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.34.0-lmi16.0.0-cu128 |
 | DJLServing 0.33.0 with vLLM 0.8.4, Transformers 4.51.3, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-lmi15.0.0-cu128 |
 | DJLServing 0.33.0 with TensorRT-LLM 0.21.0rc1, Transformers 4.51.3, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.33.0-tensorrtllm0.21.0-cu128 |

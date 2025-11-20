@@ -1,14 +1,14 @@
 ARG PYTHON=python3
 ARG PYTHON_VERSION=3.12.10
 ARG PYTHON_SHORT_VERSION=3.12
-ARG PYTORCH_VERSION=2.8.0
+ARG PYTORCH_VERSION=2.9.0
 ARG TORCHTNT_VERSION=0.2.4
-ARG TORCHAUDIO_VERSION=2.8.0
-ARG TORCHVISION_VERSION=0.23.0
+ARG TORCHAUDIO_VERSION=2.9.0
+ARG TORCHVISION_VERSION=0.24.0
 ARG TORCHDATA_VERSION=0.11.0
 
 ARG GDRCOPY_VERSION=2.5.1
-ARG TE_VERSION=2.5
+ARG TE_VERSION=2.9
 ARG FLASH_ATTN_VERSION=2.8.3
 
 #################################################################
@@ -25,8 +25,8 @@ ARG FLASH_ATTN_VERSION=2.8.3
 #                      |___/                        |_|
 #################################################################
 
-FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS common
-# base has EFA, PYTHON and CUDA 12.9
+FROM public.ecr.aws/deep-learning-containers/base:13.0.0-gpu-py312-ubuntu22.04-ec2 AS common
+# base has EFA, PYTHON and CUDA 13.0
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -76,7 +76,7 @@ RUN apt-get update \
  && apt-get clean
 
 ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
 # Python Path
 ENV PATH="/usr/local/bin:${PATH}"
 
@@ -117,7 +117,7 @@ RUN pip install --no-cache-dir \
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu129 \
+    --index-url https://download.pytorch.org/whl/cu130 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
@@ -126,9 +126,9 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
-    spacy==3.8.7 \
+    spacy \
     # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
-    thinc==8.3.4 \
+    thinc \
     blis \
     numpy \
  && pip uninstall -y dataclasses
@@ -137,14 +137,16 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Optionally set NVTE_FRAMEWORK to avoid bringing in additional frameworks during TE install
 ENV NVTE_FRAMEWORK=pytorch
 
-RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${FLASH_ATTN_VERSION}/flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl \
-    && pip install flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl --no-build-isolation \
-    && rm flash_attn-${FLASH_ATTN_VERSION}+cu12torch2.8cxx11abiTRUE-cp312-cp312-linux_x86_64.whl
+# Install flash-attn using instructions from https://github.com/Dao-AILab/flash-attention#installation-and-features
+# Set MAX_JOBS=4 to avoid OOM issues in installation process
+RUN MAX_JOBS=4 pip install --no-cache-dir flash-attn==${FLASH_ATTN_VERSION} --no-build-isolation
 
+RUN pip install --no-cache-dir nvidia-mathdx
+    
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
-RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
+RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.9/license.txt
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/start_cuda_compat.sh
@@ -246,9 +248,6 @@ WORKDIR /
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
-    # address package regression caused by smclarify depedency s3fs"
-    "awscli<1.42.50" \
-    "boto3<1.40.50" \
     smclarify \
     "sagemaker>=2" \
     sagemaker-experiments \
