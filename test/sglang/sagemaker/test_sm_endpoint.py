@@ -26,7 +26,7 @@ from test_utils.aws import AWSSessionManager
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 ENDPOINT_WAIT_PERIOD = 60
 ENDPOINT_WAIT_LENGTH = 30
