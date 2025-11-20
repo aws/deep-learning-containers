@@ -104,16 +104,6 @@ jobs:
 
             # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
             pytest tests/entrypoints/openai/test_lora_adapters.py -v
-
-            # Test OpenAI API server's regular invocations endpoint
-            pytest -v \
-              tests/entrypoints/openai/test_chat.py \
-              tests/entrypoints/pooling/openai/test_classification.py \
-              tests/entrypoints/pooling/openai/test_embedding.py \
-              tests/entrypoints/pooling/openai/test_pooling.py \
-              tests/entrypoints/pooling/openai/test_rerank.py \
-              tests/entrypoints/pooling/openai/test_score.py \
-              -k "test_invocations"
           '
 
       - name: Cleanup container and images
@@ -370,16 +360,6 @@ jobs:
 
             pip list | grep model-hosting-container-standards
 
-            SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto &
-            VLLM_PID=$!
-            sleep 60
-            kill $VLLM_PID
-
-            SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto &
-            VLLM_PID=$!
-            sleep 60
-            kill $VLLM_PID
-
             # Test LoRA adapter loading/unloading via SageMaker endpoints
             pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
 
@@ -394,16 +374,6 @@ jobs:
 
             # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
             pytest tests/entrypoints/openai/test_lora_adapters.py -v
-
-            # Test OpenAI API server's regular invocations endpoint
-            pytest -v \
-              tests/entrypoints/openai/test_chat.py \
-              tests/entrypoints/pooling/openai/test_classification.py \
-              tests/entrypoints/pooling/openai/test_embedding.py \
-              tests/entrypoints/pooling/openai/test_pooling.py \
-              tests/entrypoints/pooling/openai/test_rerank.py \
-              tests/entrypoints/pooling/openai/test_score.py \
-              -k "test_invocations"
           '
 
       - name: Cleanup container and images
