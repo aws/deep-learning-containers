@@ -20,6 +20,7 @@ from pprint import pformat
 import pytest
 from sagemaker import serializers
 from sagemaker.model import Model
+from sagemaker.predictor import Predictor
 from test_utils import clean_string, get_hf_token, random_suffix_name
 from test_utils.aws import AWSSessionManager
 
@@ -117,8 +118,9 @@ def model_endpoint(aws_session, model_package, instance_type):
         instance_type=instance_type,
         initial_instance_count=1,
         endpoint_name=endpoint_name,
-        serializer=serializers.JSONSerializer(),
         inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
+        predictor_cls=Predictor,
+        serializer=serializers.JSONSerializer(),
         wait=True,
     )
     LOGGER.info("Endpoint deployment completed successfully")
