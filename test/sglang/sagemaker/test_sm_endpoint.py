@@ -180,7 +180,7 @@ class TestEndpoint:
                 prompt=test_prompt,
             )
 
-            assert response, f"Model response is empty, failing endpoint test!"
+            assert response, "Model response is empty, failing endpoint test!"
 
             LOGGER.info(f"Model response: {pformat(response)}")
             LOGGER.info("Inference test successful!")
