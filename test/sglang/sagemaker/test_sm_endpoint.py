@@ -14,14 +14,14 @@
 
 import json
 import logging
-import time
 from pprint import pformat
 
 import pytest
+from botocore.exceptions import ClientError
 from sagemaker import serializers
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from test_utils import clean_string, get_hf_token, random_suffix_name
+from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.aws import AWSSessionManager
 
 # To enable debugging, change logging.INFO to logging.DEBUG
@@ -33,29 +33,26 @@ ENDPOINT_WAIT_LENGTH = 30
 ENDPOINT_INSERVICE = "InService"
 
 
-def wait_for_status(
-    expected_status,
-    wait_periods,
-    period_length,
-    get_status_method,
-    *method_args,
-):
-    actual_status = None
-    for i in range(wait_periods):
-        time.sleep(period_length)
-        LOGGER.debug(f"Time passed while waiting: {period_length * (i + 1)}s.")
-        actual_status = get_status_method(*method_args)
-        if actual_status == expected_status:
-            return True
-
-    LOGGER.error(f"Wait for status: {expected_status} timed out. Actual status: {actual_status}")
-    return False
-
-
 def get_endpoint_status(sagemaker_client, endpoint_name):
     response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
     LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
     return response["EndpointStatus"]
+
+
+def get_hf_token(aws_session):
+    LOGGER.info("Retrieving HuggingFace token from AWS Secrets Manager...")
+    token_path = "test/hf_token"
+
+    try:
+        get_secret_value_response = aws_session.secretsmanager.get_secret_value(SecretId=token_path)
+        LOGGER.info("Successfully retrieved HuggingFace token")
+    except ClientError as e:
+        LOGGER.error(f"Failed to retrieve HuggingFace token: {e}")
+        raise e
+
+    response = json.loads(get_secret_value_response["SecretString"])
+    token = response.get("HF_TOKEN")
+    return token
 
 
 @pytest.fixture(scope="module")
@@ -148,8 +145,8 @@ def model_endpoint(aws_session, model_package, instance_type):
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
 def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
     predictor = model_endpoint
-    prompt = "Write a python script to calculate square of n"
 
+    prompt = "Write a python script to calculate square of n"
     payload = {
         "model": model_id,
         "messages": [{"role": "user", "content": prompt}],

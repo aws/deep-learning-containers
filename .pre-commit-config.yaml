@@ -76,12 +76,9 @@ repos:
       - id: ruff-check
         name: "🐍 python · Lint python"
         stages: [pre-push]
-
-  - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
-    hooks:
-      - id: isort
-        name: "🐍 python · Sort python packages"
+      - id: ruff-check
+        name: "🐍 python · Sort python imports"
+        args: ["check", "--select", "I", "--fix"]
 
 
   ### Workflow Validation ###
