@@ -20,7 +20,6 @@ from pprint import pformat
 import pytest
 from sagemaker import serializers
 from sagemaker.model import Model
-from sagemaker.predictor import Predictor
 from test_utils import clean_string, get_hf_token, random_suffix_name
 from test_utils.aws import AWSSessionManager
 
