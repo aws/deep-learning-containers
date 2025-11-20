@@ -1,7 +1,6 @@
 default_install_hook_types:
   - commit-msg
   - pre-commit
-  - pre-push
 
 default_stages:
   - pre-commit
@@ -75,7 +74,7 @@ repos:
         name: "🐍 python · Format python"
       - id: ruff-check
         name: "🐍 python · Lint python"
-        stages: [pre-push]
+        args: ["--fix"]
       - id: ruff-check
         name: "🐍 python · Sort python imports"
         args: ["check", "--select", "I", "--fix"]

@@ -22,7 +22,6 @@ from sagemaker import serializers
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
 from test_utils import clean_string, random_suffix_name, wait_for_status
-from test_utils.aws import AWSSessionManager
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)
@@ -50,14 +49,10 @@ def get_hf_token(aws_session):
         LOGGER.error(f"Failed to retrieve HuggingFace token: {e}")
         raise e
 
+    # Do not print secrets token in logs
     response = json.loads(get_secret_value_response["SecretString"])
     token = response.get("HF_TOKEN")
     return token
-
-
-@pytest.fixture(scope="module")
-def aws_session():
-    return AWSSessionManager()
 
 
 @pytest.fixture(scope="function")
