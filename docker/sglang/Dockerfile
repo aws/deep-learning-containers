@@ -1,7 +1,7 @@
-# Declare the argument before the first FROM instruction
+# Declare the argument as default to use as input
 ARG BASE_IMAGE=lmsysorg/sglang:v0.5.5-cu129-amd64
 
-# Use the argument in the FROM instruction
+# Use input argument as base image
 FROM $BASE_IMAGE AS base
 
 # ====================================================
