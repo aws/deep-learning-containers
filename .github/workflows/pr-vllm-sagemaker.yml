@@ -44,7 +44,7 @@ jobs:
       - name: Build image
         run: |
           docker buildx build --progress plain \
-            --build-arg VLLM_VERSION=${{ env.VLLM_VERSION }}
+            --build-arg VLLM_VERSION=${{ env.VLLM_VERSION }} \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${IMAGE_URI} \
