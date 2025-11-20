@@ -97,7 +97,7 @@ def model_package(aws_session, image_uri, model_id):
     )
     LOGGER.info("Model created successfully")
 
-    yield model, model_id
+    yield model
 
     LOGGER.info(f"Deleting model: {model_name}")
     sagemaker_client.delete_model(ModelName=model_name)
@@ -106,7 +106,7 @@ def model_package(aws_session, image_uri, model_id):
 @pytest.fixture(scope="function")
 def model_endpoint(aws_session, model_package, instance_type):
     sagemaker_client = aws_session.sagemaker
-    model, model_id = model_package
+    model = model_package
     cleaned_instance = clean_string(instance_type, "_./")
     endpoint_name = random_suffix_name(f"sglang-{cleaned_instance}-endpoint", 50)
 
@@ -132,7 +132,7 @@ def model_endpoint(aws_session, model_package, instance_type):
         endpoint_name,
     )
 
-    yield predictor, model_id
+    yield predictor
 
     LOGGER.info(f"Deleting endpoint: {endpoint_name}")
     sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
@@ -143,8 +143,8 @@ def model_endpoint(aws_session, model_package, instance_type):
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("model_id", ["Qwen/Qwen3-0.6B"], indirect=True)
-def test_sglang_sagemaker_endpoint(model_endpoint):
-    predictor, model_id = model_endpoint
+def test_sglang_sagemaker_endpoint(model_endpoint, model_id):
+    predictor = model_endpoint
     prompt = "Write a python script to calculate square of n"
 
     payload = {
