@@ -128,7 +128,8 @@ def model_endpoint(aws_session, model_package, instance_type):
         ENDPOINT_INSERVICE,
         ENDPOINT_WAIT_PERIOD,
         ENDPOINT_WAIT_LENGTH,
-        sagemaker_client.describe_endpoint,
+        get_endpoint_status,
+        sagemaker_client,
         endpoint_name,
     )
 
