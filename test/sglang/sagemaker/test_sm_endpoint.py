@@ -91,6 +91,7 @@ def model_package(aws_session, image_uri, model_id):
         name=model_name,
         image_uri=image_uri,
         role=sagemaker_role,
+        predictor_cls=Predictor,
         env={
             "SM_SGLANG_MODEL_PATH": model_id,
             "HF_TOKEN": hf_token,
@@ -119,7 +120,6 @@ def model_endpoint(aws_session, model_package, instance_type):
         initial_instance_count=1,
         endpoint_name=endpoint_name,
         inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
-        predictor_cls=Predictor,
         serializer=serializers.JSONSerializer(),
         wait=True,
     )
