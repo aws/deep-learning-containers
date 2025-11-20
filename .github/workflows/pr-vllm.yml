@@ -90,16 +90,6 @@ jobs:
 
             pip list | grep model-hosting-container-standards
 
-            SAGEMAKER_CONTAINER_LOG_LEVEL=20 vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto &
-            VLLM_PID=$!
-            sleep 60
-            kill $VLLM_PID
-
-            SAGEMAKER_CONTAINER_LOG_LEVEL=INFO vllm serve TinyLlama/TinyLlama-1.1B-Chat-v1.0 --dtype auto &
-            VLLM_PID=$!
-            sleep 60
-            kill $VLLM_PID
-
             # Test LoRA adapter loading/unloading via SageMaker endpoints
             pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
 
@@ -302,9 +292,9 @@ jobs:
             # Examples Test # 30min
             cd /workdir/examples
             pip install tensorizer # for tensorizer test
-            python3 offline_inference/basic/generate.py --model facebook/opt-125m
+            SAGEMAKER_CONTAINER_LOG_LEVEL=20 python3 offline_inference/basic/generate.py --model facebook/opt-125m
             # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
-            python3 offline_inference/basic/chat.py
+            SAGEMAKER_CONTAINER_LOG_LEVEL=INFO python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
             python3 offline_inference/audio_language.py --seed 0
@@ -647,9 +637,9 @@ jobs:
           # Examples Test # 30min
           cd /workdir/examples
           pip install tensorizer # for tensorizer test
-          python3 offline_inference/basic/generate.py --model facebook/opt-125m
+          SAGEMAKER_CONTAINER_LOG_LEVEL=20 python3 offline_inference/basic/generate.py --model facebook/opt-125m
           # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
-          python3 offline_inference/basic/chat.py
+          SAGEMAKER_CONTAINER_LOG_LEVEL=INFO python3 offline_inference/basic/chat.py
           python3 offline_inference/prefix_caching.py
           python3 offline_inference/llm_engine_example.py
           python3 offline_inference/audio_language.py --seed 0
