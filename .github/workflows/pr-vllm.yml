@@ -148,7 +148,7 @@ jobs:
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-0.11.0-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
+          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-0.11.1-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
           echo "Image URI to build: ${IMAGE_URI}"
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
