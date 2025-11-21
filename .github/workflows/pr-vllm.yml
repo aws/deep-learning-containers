@@ -801,9 +801,12 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
+      - name: Install test dependencies
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/vllm/sagemaker/requirements.txt
 
       - name: Run sagemaker endpoint test
         run: |
