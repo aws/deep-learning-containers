@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "**sglang**"
 
 permissions:
   contents: read
@@ -218,14 +220,14 @@ jobs:
       - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
-          uv venv
-          source .venv/bin/activate
+          uv venv sglang-sagemaker-test
+          source sglang-sagemaker-test/bin/activate
 
           uv pip install -r test/requirements.txt
           uv pip install -r test/sglang/sagemaker/requirements.txt
 
       - name: Run sagemaker tests
         run: |
-          source .venv/bin/activate
+          source sglang-sagemaker-test/bin/activate
           cd test/
           python3 -m pytest -vs -rA --image-uri ${{ needs.build-sglang-image.outputs.image-uri }} sglang/sagemaker
