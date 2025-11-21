@@ -330,7 +330,7 @@ jobs:
             --cache-from=type=registry,ref=${IMAGE_URI} \
             --tag ${IMAGE_URI} \
             --target vllm-rayserve-ec2 \
-            -f docker/vllm/Dockerfile.rayserve .
+            -f docker/vllm/Dockerfile .
 
       - name: Container push
         run: |
@@ -790,3 +790,17 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${{ env.CONTAINER_ID }}
+
+  vllm-sagemaker-endpoint-test:
+    needs: [build-vllm-sagemaker-image]
+    if: needs.build-vllm-sagemaker-image.result == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Run sagemaker endpoint test
+        run: |
+          python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
