@@ -20,6 +20,7 @@ env:
 
 jobs:
   check-changes:
+    name: check-changes
     runs-on: ubuntu-latest
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
@@ -53,13 +54,14 @@ jobs:
               - "test/sglang/**"
 
   build-sglang-image:
+    name: build-sglang-image
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     concurrency:
-      group: pr-sglang-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
@@ -100,6 +102,7 @@ jobs:
           docker rmi ${CI_IMAGE_URI}
 
   set-test-environment:
+    name: set-test-environment
     needs: [check-changes, build-sglang-image]
     if: |
       always() && !failure() && !cancelled() &&
@@ -107,7 +110,7 @@ jobs:
       (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-sglang-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
@@ -134,6 +137,7 @@ jobs:
           echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
+    name: sglang-local-benchmark-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -142,7 +146,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     concurrency:
-      group: pr-sglang-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -199,6 +203,7 @@ jobs:
           container_id: ${{ env.CONTAINER_ID }}
 
   sglang-lang-test:
+    name: sglang-lang-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -207,7 +212,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
     concurrency:
-      group: pr-sglang-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -262,6 +267,7 @@ jobs:
           container_id: ${{ env.CONTAINER_ID }}
 
   sglang-sagemaker-endpoint-test:
+    name: sglang-sagemaker-endpoint-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -270,7 +276,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
     concurrency:
-      group: pr-sglang-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
