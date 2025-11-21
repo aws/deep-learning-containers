@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "docker/sglang/**"
-      - ".github/workflows/pr-sglang.yml"
 
 permissions:
   contents: read

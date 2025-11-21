@@ -4,8 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "docker/vllm/**"
 
 permissions:
   contents: read
