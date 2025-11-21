@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "docker/sglang/**"
+      - ".github/workflows/pr-sglang.yml"
 
 permissions:
   contents: read
