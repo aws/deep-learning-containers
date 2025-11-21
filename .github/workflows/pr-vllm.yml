@@ -801,6 +801,7 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
           uv venv
