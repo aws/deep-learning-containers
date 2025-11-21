@@ -112,8 +112,8 @@ jobs:
     needs: [check-changes, build-vllm-ec2-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-ec2-image.result  == 'success' ||
-      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.build-vllm-ec2-image.result == 'success' ||
+      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-ec2-test-environment-${{ github.event.pull_request.number }}
@@ -144,7 +144,7 @@ jobs:
     needs: [set-ec2-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result  == 'success'
+      needs.set-ec2-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -213,7 +213,7 @@ jobs:
     needs: [set-ec2-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result  == 'success'
+      needs.set-ec2-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -281,7 +281,7 @@ jobs:
     needs: [set-ec2-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result  == 'success'
+      needs.set-ec2-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -414,8 +414,8 @@ jobs:
     needs: [check-changes, build-vllm-rayserve-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-rayserve-image.result  == 'success' ||
-      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.build-vllm-rayserve-image.result == 'success' ||
+      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-rayserve-test-environment-${{ github.event.pull_request.number }}
@@ -446,7 +446,7 @@ jobs:
     needs: [set-rayserve-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result  == 'success'
+      needs.set-rayserve-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -515,7 +515,7 @@ jobs:
     needs: [set-rayserve-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result  == 'success'
+      needs.set-rayserve-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -583,7 +583,7 @@ jobs:
     needs: [set-rayserve-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result  == 'success'
+      needs.set-rayserve-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -716,8 +716,8 @@ jobs:
     needs: [check-changes, build-vllm-sagemaker-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-sagemaker-image.result  == 'success' ||
-      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.build-vllm-sagemaker-image.result == 'success' ||
+      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-sagemaker-test-environment-${{ github.event.pull_request.number }}
@@ -748,7 +748,7 @@ jobs:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result  == 'success'
+      needs.set-sagemaker-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -817,7 +817,7 @@ jobs:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result  == 'success'
+      needs.set-sagemaker-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -885,7 +885,7 @@ jobs:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result  == 'success'
+      needs.set-sagemaker-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -968,7 +968,7 @@ jobs:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result  == 'success'
+      needs.set-sagemaker-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
