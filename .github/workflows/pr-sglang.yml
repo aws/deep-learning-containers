@@ -117,13 +117,13 @@ jobs:
           if [ "${{ needs.build-sglang-image.result }}" == "success"]; then
             AWS_ACCOUNT_ID=${{ vars.AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ needs.build-sglang-image.outputs.ci-image }}
-          elif [ "${{ needs.build-sglang-image.result }}" != "success"]; then
+          elif [ "${{ needs.check-changes.outputs.build-change }}" == "true" && "${{ needs.build-sglang-image.result }}" != "success"]; then
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
-          echo IMAGE_URI=${IMAGE_URI} >> ${GITHUB_OUTPUT}
           echo AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} >> ${GITHUB_OUTPUT}
           echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
+          echo IMAGE_URI=${IMAGE_URI} >> ${GITHUB_OUTPUT}
 
   test-sglang-image:
     needs: [set-test-environment]
