@@ -63,7 +63,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     outputs:
-      ci-image: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+      ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -78,10 +78,10 @@ jobs:
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: ${IMAGE_URI}"
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          CI_IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${CI_IMAGE_URI}"
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
@@ -90,15 +90,15 @@ jobs:
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=${IMAGE_URI} \
-            --tag ${IMAGE_URI} \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
             --target sglang-sagemaker \
             -f docker/sglang/Dockerfile .
 
       - name: Container push
         run: |
-          docker push ${IMAGE_URI}
-          docker rmi ${IMAGE_URI}
+          docker push ${CI_IMAGE_URI}
+          docker rmi ${CI_IMAGE_URI}
 
   set-test-environment:
     needs: [check-changes, build-sglang-image]
