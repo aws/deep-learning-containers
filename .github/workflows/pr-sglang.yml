@@ -123,9 +123,6 @@ jobs:
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
-          echo ${AWS_ACCOUNT_ID}
-          echo ${IMAGE_URI}
-          echo ${SGLANG_VERSION}
           echo AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} >> ${GITHUB_OUTPUT}
           echo IMAGE_URI=${IMAGE_URI} >> ${GITHUB_OUTPUT}
           echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
