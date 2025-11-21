@@ -48,8 +48,8 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-            test-change:
               - ".github/workflows/pr-sglang*"
+            test-change:
               - "test/sglang/**"
 
   build-sglang-image:
