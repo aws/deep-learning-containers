@@ -20,7 +20,6 @@ env:
 
 jobs:
   check-changes:
-    name: check-changes
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
@@ -57,7 +56,6 @@ jobs:
               - "test/sglang/**"
 
   build-sglang-image:
-    name: build-sglang-image
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
@@ -105,7 +103,6 @@ jobs:
           docker rmi ${CI_IMAGE_URI}
 
   set-test-environment:
-    name: set-test-environment
     needs: [check-changes, build-sglang-image]
     if: |
       always() && !failure() && !cancelled() &&
@@ -138,7 +135,6 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
-    name: sglang-local-benchmark-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -204,7 +200,6 @@ jobs:
           container_id: ${{ env.CONTAINER_ID }}
 
   sglang-lang-test:
-    name: sglang-lang-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -268,7 +263,6 @@ jobs:
           container_id: ${{ env.CONTAINER_ID }}
 
   sglang-sagemaker-endpoint-test:
-    name: sglang-sagemaker-endpoint-test
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
