@@ -18,9 +18,9 @@ from pprint import pformat
 
 import pytest
 from botocore.exceptions import ClientError
-from sagemaker import serializers
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
 from test_utils import clean_string, random_suffix_name, wait_for_status
 
 # To enable debugging, change logging.INFO to logging.DEBUG
@@ -112,7 +112,7 @@ def model_endpoint(aws_session, model_package, instance_type):
         initial_instance_count=1,
         endpoint_name=endpoint_name,
         inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
-        serializer=serializers.JSONSerializer(),
+        serializer=JSONSerializer(),
         wait=True,
     )
     LOGGER.info("Endpoint deployment completed successfully")

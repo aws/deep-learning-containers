@@ -204,7 +204,7 @@ jobs:
         with:
           container_id: ${{ env.CONTAINER_ID }}
 
-  sglang-sagemaker-test:
+  sglang-sagemaker-endpoint-test:
     needs: [build-sglang-image]
     if: needs.build-sglang-image.result == 'success'
     runs-on:
