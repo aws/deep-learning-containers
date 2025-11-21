@@ -7,7 +7,7 @@ on:
       - main
     paths:
       - "docker/vllm/**"
-      - ".github/workflows/pr-vllm.yml"
+      # - ".github/workflows/pr-vllm.yml"
 
 permissions:
   contents: read
@@ -64,8 +64,8 @@ jobs:
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
 
       - name: Resolve image URI for build
         id: image-uri-build
@@ -104,9 +104,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -168,9 +168,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -231,9 +231,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -350,9 +350,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -414,9 +414,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -477,9 +477,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -559,8 +559,8 @@ jobs:
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
 
       - name: Resolve image URI for build
         id: image-uri-build
@@ -599,9 +599,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -663,9 +663,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -726,9 +726,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-region: ${{ vars.AWS_REGION }}
+          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          image-uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
