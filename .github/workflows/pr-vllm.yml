@@ -811,4 +811,5 @@ jobs:
 
       - name: Run sagemaker endpoint test
         run: |
+          source .venv/bin/activate
           python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
