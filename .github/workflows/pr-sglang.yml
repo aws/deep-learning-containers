@@ -15,7 +15,7 @@ env:
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
-  PROD_SAGEMAKER_IMAGE: sglang:0.5.5-gpu-py312-cu129-ubuntu22.04-sagemaker
+  PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
   FORCE_COLOR: "1"
 
 jobs:
@@ -55,6 +55,9 @@ jobs:
             test-change:
               - "test/sglang/**"
 
+  # ======================================================
+  # =============== SGLang SageMaker jobs ================
+  # ======================================================
   build-sglang-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
@@ -179,7 +182,7 @@ jobs:
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-          echo "Waiting for container startup ..."
+          echo "Waiting for serving endpoint startup ..."
           sleep 60s
           docker logs ${CONTAINER_ID}
 
@@ -198,12 +201,6 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${CONTAINER_ID}
-
-      - name: Failsafe cleanup
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
 
   sglang-lang-test:
     needs: [set-test-environment]
@@ -267,12 +264,6 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${CONTAINER_ID}
-
-      - name: Failsafe cleanup
-        run: |
-          docker rm -f ${CONTAINER_ID} || true
-          docker image prune -a --force --filter "until=24h"
-          docker system df
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
