@@ -208,10 +208,14 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
+    concurrency:
+      group: pr-sglang-sagemaker-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
           uv venv
