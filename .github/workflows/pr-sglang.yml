@@ -22,6 +22,9 @@ jobs:
   check-changes:
     name: check-changes
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
       test-change: ${{ steps.changes.outputs.test-change }}
@@ -61,7 +64,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-sglang-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
@@ -110,7 +113,7 @@ jobs:
       (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-set-test-environment-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
@@ -146,7 +149,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-local-benchmark-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -212,7 +215,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-lang-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -276,7 +279,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
     concurrency:
-      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
