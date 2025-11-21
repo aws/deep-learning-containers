@@ -136,67 +136,6 @@ jobs:
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
-  sglang-frontend-test:
-    needs: [build-sglang-image, set-test-environment]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
-    concurrency:
-      group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
-
-      - name: Checkout SGLang tests
-        uses: actions/checkout@v5
-        with:
-          repository: sgl-project/sglang
-          ref: v${{ env.SGLANG_VERSION }}
-          path: sglang_source
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ./sglang_source:/workdir --workdir /workdir \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.set-test-environment.outputs.image-uri }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-
-      - name: Setup for SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-
-            bash scripts/ci/ci_install_dependency.sh
-          '
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            nvidia-smi
-
-            # Frontend Test
-            cd /workdir/test/lang
-            python3 run_suite.py --suite per-commit
-          '
-
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-        with:
-          container_id: ${CONTAINER_ID}
-
   sglang-local-benchmark-test:
     needs: [set-test-environment, build-sglang-image]
     if: success()
@@ -253,6 +192,67 @@ jobs:
           --model Qwen/Qwen3-0.6B \
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
+
+      - name: Cleanup container and images
+        if: always()
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${CONTAINER_ID}
+
+  sglang-frontend-test:
+    needs: [build-sglang-image, set-test-environment]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+    concurrency:
+      group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+
+      - name: Checkout SGLang tests
+        uses: actions/checkout@v5
+        with:
+          repository: sgl-project/sglang
+          ref: v${{ env.SGLANG_VERSION }}
+          path: sglang_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ./sglang_source:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.set-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+
+      - name: Setup for SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+
+            bash scripts/ci/ci_install_dependency.sh
+          '
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
+
+            # Frontend Test
+            cd /workdir/test/lang
+            python3 run_suite.py --suite per-commit
+          '
 
       - name: Cleanup container and images
         if: always()
