@@ -51,9 +51,9 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
+              - ".github/workflows/pr-sglang*"
 
   # ======================================================
   # =============== SGLang SageMaker jobs ================
