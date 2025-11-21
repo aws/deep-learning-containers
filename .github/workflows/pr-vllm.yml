@@ -1,4 +1,3 @@
-
 name: PR - vLLM
 
 on:
@@ -6,56 +5,73 @@ on:
     branches:
       - main
     paths:
-      - "docker/vllm/**"
-      - ".github/workflows/pr-vllm.yml"
+      - "**vllm**"
 
 permissions:
   contents: read
 
-concurrency:
-  group: pr-vllm-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 env:
   VLLM_VERSION: 0.11.2
   VLLM_RAYSERVE_VERSION: 0.10.2
+  PYTHON_VERSION: "py312"
+  CUDA_VERSION: "cu129"
+  OS_VERSION: "ubuntu22.04"
+  PROD_EC2_IMAGE: vllm:0.11-gpu-py312-ec2
+  PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
+  PROD_SAGEMAKER_IMAGE: vllm:0.11-gpu-py312
+  FORCE_COLOR: "1"
 
 jobs:
   check-changes:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     outputs:
-      vllm-ec2: ${{ steps.changes.outputs.vllm-ec2 }}
-      vllm-rayserve-ec2: ${{ steps.changes.outputs.vllm-rayserve-ec2 }}
-      vllm-sagemaker: ${{ steps.changes.outputs.vllm-sagemaker }}
+      build-change: ${{ steps.changes.outputs.build-change }}
+      test-change: ${{ steps.changes.outputs.test-change }}
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-      - uses: pre-commit/action@v3.0.1
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
+
       - name: Detect file changes
         id: changes
         uses: dorny/paths-filter@v3
         with:
           filters: |
-            vllm-ec2:
-              - "docker/vllm/Dockerfile"
-            vllm-rayserve-ec2:
-              - "docker/vllm/Dockerfile"
-            vllm-sagemaker:
-              - "docker/vllm/Dockerfile"
+            build-change:
+              - "docker/vllm/**"
+              - "scripts/vllm/**"
+              - "scripts/common/**"
+              - "scripts/telemetry/**"
+              - ".github/workflows/pr-vllm*"
+            test-change:
+              - "test/vllm/**"
 
-  # vLLM EC2 jobs
+  # ==============================================
+  # =============== vLLM EC2 jobs ================
+  # ==============================================
   build-vllm-ec2-image:
     needs: [check-changes]
-    if: needs.check-changes.outputs.vllm-ec2 == 'true'
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    concurrency:
+      group: ${{ github.workflow }}-build-vllm-ec2-image-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     outputs:
-      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+      ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -64,39 +80,77 @@ jobs:
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-py312-cu128-ubuntu22.04-ec2-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: ${IMAGE_URI}"
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          CI_IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${CI_IMAGE_URI}"
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
+          # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
           docker buildx build --progress plain \
-            --build-arg VLLM_VERSION=${{ env.VLLM_VERSION }} \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=${IMAGE_URI} \
-            --tag ${IMAGE_URI} \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
             --target vllm-ec2 \
             -f docker/vllm/Dockerfile .
 
       - name: Container push
         run: |
-          docker push ${IMAGE_URI}
-          docker rmi ${IMAGE_URI}
+          docker push ${CI_IMAGE_URI}
+          docker rmi ${CI_IMAGE_URI}
+
+  set-ec2-test-environment:
+    needs: [check-changes, build-vllm-ec2-image]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-vllm-ec2-image.result  == 'success' ||
+      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-set-ec2-test-environment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
+      image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set test environment
+        id: set-env
+        run: |
+          if [[ "${{ needs.build-vllm-ec2-image.result }}" == "success" ]]; then
+            AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ needs.build-vllm-ec2-image.outputs.ci-image }}
+          else
+            AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
+          fi
+
+          echo "Image URI to test: ${IMAGE_URI}"
+          echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-ec2-regression-test:
-    needs: [build-vllm-ec2-image]
-    if: needs.build-vllm-ec2-image.result == 'success'
+    needs: [set-ec2-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-ec2-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-ec2-regression-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -104,9 +158,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -122,7 +176,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.outputs.image-uri }})
+            ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -153,14 +207,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-ec2-cuda-test:
-    needs: [build-vllm-ec2-image]
-    if: needs.build-vllm-ec2-image.result == 'success'
+    needs: [set-ec2-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-ec2-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-ec2-cuda-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -168,9 +227,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -186,7 +245,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.outputs.image-uri }})
+            ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -216,14 +275,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-ec2-example-test:
-    needs: [build-vllm-ec2-image]
-    if: needs.build-vllm-ec2-image.result == 'success'
+    needs: [set-ec2-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-ec2-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-ec2-example-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -231,9 +295,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-ec2-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -249,7 +313,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.outputs.image-uri }})
+            ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -294,55 +358,101 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
-  # vLLM RayServe jobs
+  # ===================================================
+  # =============== vLLM RayServe jobs ================
+  # ===================================================
   build-vllm-rayserve-image:
     needs: [check-changes]
-    if: needs.check-changes.outputs.vllm-rayserve-ec2 == 'true'
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    concurrency:
+      group: ${{ github.workflow }}-build-vllm-rayserve-image-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     outputs:
-      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+      ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
+
       - name: ECR login
-        run: |
-          aws ecr get-login-password --region ${{ vars.AWS_REGION }} | docker login --username AWS --password-stdin ${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_RAYSERVE_VERSION }}-gpu-py312-cu128-ubuntu22.04-rayserve-ec2-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: ${IMAGE_URI}"
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          CI_IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${CI_IMAGE_URI}"
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
+          # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
           docker buildx build --progress plain \
-            --build-arg VLLM_VERSION=${{ env.VLLM_RAYSERVE_VERSION }} \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_RAYSERVE_VERSION }}" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=${IMAGE_URI} \
-            --tag ${IMAGE_URI} \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
             --target vllm-rayserve-ec2 \
             -f docker/vllm/Dockerfile .
 
       - name: Container push
         run: |
-          docker push ${IMAGE_URI}
-          docker rmi ${IMAGE_URI}
+          docker push ${CI_IMAGE_URI}
+          docker rmi ${CI_IMAGE_URI}
+
+  set-rayserve-test-environment:
+    needs: [check-changes, build-vllm-rayserve-image]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-vllm-rayserve-image.result  == 'success' ||
+      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-set-rayserve-test-environment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
+      image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set test environment
+        id: set-env
+        run: |
+          if [[ "${{ needs.build-vllm-rayserve-image.result }}" == "success" ]]; then
+            AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+          else
+            AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_RAYSERVE_IMAGE }}
+          fi
+
+          echo "Image URI to test: ${IMAGE_URI}"
+          echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-rayserve-regression-test:
-    needs: [build-vllm-rayserve-image]
-    if: needs.build-vllm-rayserve-image.result == 'success'
+    needs: [set-rayserve-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-rayserve-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-rayserve-regression-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -350,9 +460,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -368,7 +478,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.outputs.image-uri }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -399,14 +509,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-rayserve-cuda-test:
-    needs: [build-vllm-rayserve-image]
-    if: needs.build-vllm-rayserve-image.result == 'success'
+    needs: [set-rayserve-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-rayserve-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-rayserve-cuda-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -414,9 +529,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -432,7 +547,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.outputs.image-uri }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -462,14 +577,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-rayserve-example-test:
-    needs: [build-vllm-rayserve-image]
-    if: needs.build-vllm-rayserve-image.result == 'success'
+    needs: [set-rayserve-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-rayserve-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -477,9 +597,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-rayserve-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -495,7 +615,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.outputs.image-uri }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -540,17 +660,22 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
-  # vLLM SageMaker jobs
+  # ====================================================
+  # =============== vLLM SageMaker jobs ================
+  # ====================================================
   build-vllm-sagemaker-image:
     needs: [check-changes]
-    if: needs.check-changes.outputs.vllm-sagemaker == 'true'
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+    concurrency:
+      group: ${{ github.workflow }}-build-vllm-sagemaker-image-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     outputs:
-      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+      ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
       - run: .github/scripts/runner_setup.sh
@@ -559,39 +684,77 @@ jobs:
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-py312-cu128-ubuntu22.04-sagemaker-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: ${IMAGE_URI}"
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          CI_IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${CI_IMAGE_URI}"
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
         run: |
+          # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
           docker buildx build --progress plain \
-            --build-arg VLLM_VERSION=${{ env.VLLM_VERSION }} \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
-            --cache-from=type=registry,ref=${IMAGE_URI} \
-            --tag ${IMAGE_URI} \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
             --target vllm-sagemaker \
             -f docker/vllm/Dockerfile .
 
       - name: Container push
         run: |
-          docker push ${IMAGE_URI}
-          docker rmi ${IMAGE_URI}
+          docker push ${CI_IMAGE_URI}
+          docker rmi ${CI_IMAGE_URI}
+
+  set-sagemaker-test-environment:
+    needs: [check-changes, build-vllm-sagemaker-image]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.build-vllm-sagemaker-image.result  == 'success' ||
+      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-set-sagemaker-test-environment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
+      image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set test environment
+        id: set-env
+        run: |
+          if [[ "${{ needs.build-vllm-sagemaker-image.result }}" == "success" ]]; then
+            AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ needs.build-vllm-sagemaker-image.outputs.ci-image }}
+          else
+            AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
+          fi
+
+          echo "Image URI to test: ${IMAGE_URI}"
+          echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-sagemaker-regression-test:
-    needs: [build-vllm-sagemaker-image]
-    if: needs.build-vllm-sagemaker-image.result == 'success'
+    needs: [set-sagemaker-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-sagemaker-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-sagemaker-regression-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -599,9 +762,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -617,7 +780,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }})
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -648,14 +811,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-sagemaker-cuda-test:
-    needs: [build-vllm-sagemaker-image]
-    if: needs.build-vllm-sagemaker-image.result == 'success'
+    needs: [set-sagemaker-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-sagemaker-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-sagemaker-cuda-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -663,9 +831,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -681,7 +849,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }})
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -711,14 +879,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-sagemaker-example-test:
-    needs: [build-vllm-sagemaker-image]
-    if: needs.build-vllm-sagemaker-image.result == 'success'
+    needs: [set-sagemaker-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-sagemaker-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-sagemaker-example-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -726,9 +899,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws_region: ${{ vars.AWS_REGION }}
-          aws_account_id: ${{ vars.AWS_ACCOUNT_ID }}
-          image_uri: ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }}
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
@@ -744,7 +917,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }})
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -789,14 +962,19 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   vllm-sagemaker-endpoint-test:
-    needs: [build-vllm-sagemaker-image]
-    if: needs.build-vllm-sagemaker-image.result == 'success'
+    needs: [set-sagemaker-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-sagemaker-test-environment.result  == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
+    concurrency:
+      group: ${{ github.workflow }}-vllm-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -812,4 +990,4 @@ jobs:
       - name: Run sagemaker endpoint test
         run: |
           source .venv/bin/activate
-          python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
+          python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.set-sagemaker-test-environment.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
