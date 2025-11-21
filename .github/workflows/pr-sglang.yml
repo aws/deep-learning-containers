@@ -199,6 +199,12 @@ jobs:
         with:
           container_id: ${CONTAINER_ID}
 
+      - name: Failsafe cleanup
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
+
   sglang-lang-test:
     needs: [set-test-environment]
     if: |
@@ -261,6 +267,12 @@ jobs:
         uses: ./.github/actions/container-cleanup
         with:
           container_id: ${CONTAINER_ID}
+
+      - name: Failsafe cleanup
+        run: |
+          docker rm -f ${CONTAINER_ID} || true
+          docker image prune -a --force --filter "until=24h"
+          docker system df
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
