@@ -801,6 +801,10 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - name: Run sagemaker endpoint test
         run: |
           python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.build-vllm-sagemaker-image.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
