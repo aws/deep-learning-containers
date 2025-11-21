@@ -118,7 +118,6 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
-      sglang-version: ${{ steps.set-env.outputs.SGLANG_VERSION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -134,10 +133,9 @@ jobs:
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
 
-          echo $IMAGE_URI
-          echo AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} >> ${GITHUB_OUTPUT}
-          echo IMAGE_URI=${IMAGE_URI} >> ${GITHUB_OUTPUT}
-          echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
+          echo "Image URI to test: ${IMAGE_URI}"
+          echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
     name: sglang-local-benchmark-test
@@ -232,7 +230,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: sgl-project/sglang
-          ref: v${{ needs.set-test-environment.outputs.sglang-version }}
+          ref: v${{ vars.SGLANG_VERSION }}
           path: sglang_source
 
       - name: Start container
