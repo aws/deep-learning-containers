@@ -704,7 +704,7 @@ jobs:
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
-            --target vllm-sagemaker
+            --target vllm-sagemaker \
             -f docker/vllm/Dockerfile .
 
       - name: Container push
