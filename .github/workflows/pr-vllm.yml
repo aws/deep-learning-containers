@@ -56,7 +56,7 @@ jobs:
               - "scripts/telemetry/**"
             test-change:
               - "test/vllm/**"
-              - ".github/workflows/pr-vllm*"
+              # - ".github/workflows/pr-vllm*"
 
   # ==============================================
   # =============== vLLM EC2 jobs ================
