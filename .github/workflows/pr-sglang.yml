@@ -102,6 +102,7 @@ jobs:
 
   set-test-environment:
     needs: [check-changes, build-sglang-image]
+    if: (needs.check-changes.result  == 'success' && needs.build-sglang-image.result  == 'skipped') || needs.build-sglang-image.result  == 'success'
     runs-on: ubuntu-latest
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
@@ -114,6 +115,7 @@ jobs:
       - name: Set test environment
         id: set-env
         run: |
+
           if [[ "${{ needs.build-sglang-image.result }}" == "success" ]]; then
             AWS_ACCOUNT_ID=${{ vars.AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ needs.build-sglang-image.outputs.ci-image }}
@@ -121,16 +123,152 @@ jobs:
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
+          echo ${AWS_ACCOUNT_ID}
+          echo ${IMAGE_URI}
+          echo ${SGLANG_VERSION}
           echo AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID} >> ${GITHUB_OUTPUT}
-          echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
           echo IMAGE_URI=${IMAGE_URI} >> ${GITHUB_OUTPUT}
+          echo SGLANG_VERSION=${SGLANG_VERSION} >> ${GITHUB_OUTPUT}
 
-  test-sglang-image:
+  sglang-local-benchmark-test:
     needs: [set-test-environment]
-    if: needs.set-test-environment.result == 'success'
-    uses: ./.github/workflows/test-sglang.yml
-    with:
-      aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
-      aws-region: ${{ vars.AWS_REGION }}
-      image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
-      sglang-version: ${{ needs.set-test-environment.outputs.sglang-version }}
+    if: needs.set-test-environment.result  == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+
+      - name: Setup for SGLang datasets
+        run: |
+          mkdir -p /tmp/sglang/dataset
+          if [ ! -f /tmp/sglang/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+              echo "Downloading ShareGPT dataset..."
+              wget -P /tmp/sglang/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+          else
+              echo "ShareGPT dataset already exists. Skipping download."
+          fi
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v /tmp/sglang/dataset:/dataset \
+            -p 30000:30000 \
+            -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
+            -e SM_SGLANG_REASONING_PARSER=qwen3 \
+            -e SM_SGLANG_HOST=127.0.0.1 \
+            -e SM_SGLANG_PORT=30000 \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.set-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          echo "Waiting for container startup ..."
+          sleep 60s
+          docker logs ${CONTAINER_ID}
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
+          --backend sglang \
+          --host 127.0.0.1 --port 30000 \
+          --num-prompts 1000 \
+          --model Qwen/Qwen3-0.6B \
+          --dataset-name sharegpt \
+          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
+
+      - name: Cleanup container and images
+        if: always()
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
+
+  sglang-lang-test:
+    needs: [set-test-environment]
+    if: needs.set-test-environment.result  == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+
+      - name: Checkout SGLang tests
+        uses: actions/checkout@v5
+        with:
+          repository: sgl-project/sglang
+          ref: v${{ needs.set-test-environment.outputs.sglang-version }}
+          path: sglang_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ./sglang_source:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.set-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+
+      - name: Setup for SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+
+            bash scripts/ci/ci_install_dependency.sh
+          '
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
+
+            # Frontend Test
+            cd /workdir/test/lang
+            python3 run_suite.py --suite per-commit
+          '
+
+      - name: Cleanup container and images
+        if: always()
+        uses: ./.github/actions/container-cleanup
+        with:
+          container_id: ${{ env.CONTAINER_ID }}
+
+  sglang-sagemaker-endpoint-test:
+    needs: [set-test-environment]
+    if: needs.set-test-environment.result  == 'success'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - run: .github/scripts/runner_setup.sh
+      - name: Install test dependencies
+        run: |
+          uv venv
+          source .venv/bin/activate
+
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/sglang/sagemaker/requirements.txt
+
+      - name: Run sagemaker tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.set-test-environment.outputs.image-uri }} sglang/sagemaker
