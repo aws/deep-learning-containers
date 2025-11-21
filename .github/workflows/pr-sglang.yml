@@ -197,7 +197,7 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   sglang-lang-test:
     needs: [set-test-environment]
@@ -225,7 +225,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: sgl-project/sglang
-          ref: v${{ vars.SGLANG_VERSION }}
+          ref: v${{ env.SGLANG_VERSION }}
           path: sglang_source
 
       - name: Start container
@@ -260,7 +260,7 @@ jobs:
         if: always()
         uses: ./.github/actions/container-cleanup
         with:
-          container_id: ${{ env.CONTAINER_ID }}
+          container_id: ${CONTAINER_ID}
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
