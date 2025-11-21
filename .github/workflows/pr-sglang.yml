@@ -102,7 +102,7 @@ jobs:
 
   set-test-environment:
     needs: [check-changes, build-sglang-image]
-    if: needs.build-sglang-image.result  == 'success' || ((needs.build-sglang-image.result  == 'skipped') && (needs.check-changes.outputs.test-change == 'true'))
+    if: needs.build-sglang-image.result  == 'success' || ((needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
