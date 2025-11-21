@@ -59,7 +59,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
     concurrency:
-      group: pr-sglang-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
@@ -107,7 +107,7 @@ jobs:
       (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
     runs-on: ubuntu-latest
     concurrency:
-      group: pr-sglang-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
@@ -141,7 +141,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
     concurrency:
-      group: pr-sglang-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -206,7 +206,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
     concurrency:
-      group: pr-sglang-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -269,7 +269,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
     concurrency:
-      group: pr-sglang-${{ github.event.pull_request.number }}-sagemaker-test
+      group: ${{ github.workflow }}-${{ github.job }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
