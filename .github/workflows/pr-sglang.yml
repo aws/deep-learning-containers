@@ -122,7 +122,7 @@ jobs:
           if [[ "${{ needs.build-sglang-image.result }}" == "success" ]]; then
             AWS_ACCOUNT_ID=${{ vars.AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ needs.build-sglang-image.outputs.ci-image }}
-          elif [[ "${{ needs.check-changes.outputs.build-change }}" == "true" && "${{ needs.build-sglang-image.result }}" != "success" ]]; then
+          else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
