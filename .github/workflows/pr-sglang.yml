@@ -138,9 +138,7 @@ jobs:
 
   sglang-frontend-test:
     needs: [set-test-environment, build-sglang-image]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.set-test-environment.result == 'success' && needs.build-sglang-image.result == 'success')
+    if: always() && !failure() && !cancelled()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
@@ -201,9 +199,7 @@ jobs:
 
   sglang-local-benchmark-test:
     needs: [set-test-environment, build-sglang-image]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.set-test-environment.result == 'success' && needs.build-sglang-image.result == 'success')
+    if: always() && !failure() && !cancelled()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -266,9 +262,7 @@ jobs:
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-test-environment.result == 'success'
+    if: needs.set-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

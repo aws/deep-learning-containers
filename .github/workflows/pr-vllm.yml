@@ -4,8 +4,8 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - "**vllm**"
+    # paths:
+    #   - "**vllm**"
 
 permissions:
   contents: read
