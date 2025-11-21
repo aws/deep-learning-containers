@@ -4,8 +4,8 @@ on:
   pull_request:
     branches:
       - main
-    # paths:
-    #   - "**vllm**"
+    paths:
+      - "**vllm**"
 
 permissions:
   contents: read
@@ -56,8 +56,8 @@ jobs:
               - "scripts/telemetry/**"
             test-change:
               - "test/vllm/**"
-              # - ".github/workflows/pr-vllm*"
 
+  # - ".github/workflows/pr-vllm*"
   # ==============================================
   # =============== vLLM EC2 jobs ================
   # ==============================================
@@ -112,8 +112,7 @@ jobs:
     needs: [check-changes, build-vllm-ec2-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-ec2-image.result == 'success' ||
-      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-ec2-test-environment-${{ github.event.pull_request.number }}
@@ -141,10 +140,8 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-ec2-regression-test:
-    needs: [set-ec2-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result == 'success'
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -210,10 +207,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-ec2-cuda-test:
-    needs: [set-ec2-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result == 'success'
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -278,10 +273,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-ec2-example-test:
-    needs: [set-ec2-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result == 'success'
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -414,8 +407,7 @@ jobs:
     needs: [check-changes, build-vllm-rayserve-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-rayserve-image.result == 'success' ||
-      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-rayserve-test-environment-${{ github.event.pull_request.number }}
@@ -443,10 +435,8 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-rayserve-regression-test:
-    needs: [set-rayserve-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result == 'success'
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -512,10 +502,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-rayserve-cuda-test:
-    needs: [set-rayserve-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result == 'success'
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -580,10 +568,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-rayserve-example-test:
-    needs: [set-rayserve-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-rayserve-test-environment.result == 'success'
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -716,8 +702,7 @@ jobs:
     needs: [check-changes, build-vllm-sagemaker-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-vllm-sagemaker-image.result == 'success' ||
-      (needs.check-changes.outputs.build-change == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-sagemaker-test-environment-${{ github.event.pull_request.number }}
@@ -745,10 +730,8 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-sagemaker-regression-test:
-    needs: [set-sagemaker-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result == 'success'
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -814,10 +797,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-sagemaker-cuda-test:
-    needs: [set-sagemaker-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result == 'success'
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -882,10 +863,8 @@ jobs:
           container_id: ${CONTAINER_ID}
 
   vllm-sagemaker-example-test:
-    needs: [set-sagemaker-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-sagemaker-test-environment.result == 'success'
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
