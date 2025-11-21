@@ -74,13 +74,13 @@ jobs:
       - name: ECR login
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ vars.AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
       - name: Resolve image URI for build
         id: image-uri-build
         run: |
-          CI_IMAGE_URI=${{ vars.AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          CI_IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
           echo "Image URI to build: ${CI_IMAGE_URI}"
           echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
           echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
@@ -123,7 +123,7 @@ jobs:
         id: set-env
         run: |
           if [[ "${{ needs.build-sglang-image.result }}" == "success" ]]; then
-            AWS_ACCOUNT_ID=${{ vars.AWS_ACCOUNT_ID }}
+            AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ needs.build-sglang-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
