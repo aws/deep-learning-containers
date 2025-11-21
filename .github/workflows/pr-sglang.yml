@@ -211,7 +211,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
     concurrency:
-      group: pr-sglang-sagemaker-test-${{ github.event.pull_request.number }}
+      group: pr-sglang-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
