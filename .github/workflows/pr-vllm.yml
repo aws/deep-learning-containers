@@ -979,6 +979,8 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
   space-check-g6-2:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -987,6 +989,8 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
   space-check-g6-3:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -995,6 +999,8 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
   space-check-g6-4:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1003,6 +1009,57 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
+  space-check-g6-5:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-g6-6:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-g6-7:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-g6-8:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-g6-9:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
 
   space-check-g6e-1:
     runs-on:
@@ -1012,6 +1069,27 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
+  space-check-g6e-2:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-g6e-3:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
 
   space-check-def-1:
     runs-on:
@@ -1021,6 +1099,7 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
 
   space-check-def-2:
     runs-on:
@@ -1030,7 +1109,37 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
 
+  space-check-def-3:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-def-4:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-def-5:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
   space-check-bld-1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1039,6 +1148,7 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
 
   space-check-bld-2:
     runs-on:
@@ -1048,3 +1158,34 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
+  space-check-bld-3:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-bld-4:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
+
+  space-check-bld-5:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+          docker system df
