@@ -12,7 +12,6 @@
 # language governing permissions and limitations under the License.
 """Integration test for serving endpoint with SGLang DLC"""
 
-# TEST TRIGGER
 import json
 import logging
 from pprint import pformat
