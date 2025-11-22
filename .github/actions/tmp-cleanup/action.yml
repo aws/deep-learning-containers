@@ -1,0 +1,14 @@
+name: Disk Cleanup
+description: Disk cleanup
+
+runs:
+  using: composite
+  steps:
+    - name: Cleanup container and images
+      shell: bash
+      run: |
+        echo ${{ github.workspace }}
+        echo $GITHUB_WORKSPACE
+        echo $RUNNER_TEMP
+        df -h /tmp
+        df -h /

@@ -15,10 +15,8 @@ jobs:
         fleet:x86-build-runner
     steps:
       - uses: actions/checkout@v5
-      - run: |
-          echo ${{ github.workspace }}
-          echo $GITHUB_WORKSPACE
-          echo $RUNNER_TEMP
+      - name: Disk Cleanup
+        uses: ./.github/actions/tmp-cleanup
 
   test-def:
     runs-on:
@@ -26,10 +24,8 @@ jobs:
         fleet:default-runner
     steps:
       - uses: actions/checkout@v5
-      - run: |
-          echo ${{ github.workspace }}
-          echo $GITHUB_WORKSPACE
-          echo $RUNNER_TEMP
+      - name: Disk Cleanup
+        uses: ./.github/actions/tmp-cleanup
 
   test-g6:
     runs-on:
@@ -37,10 +33,8 @@ jobs:
         fleet:x86-g6xl-runner
     steps:
       - uses: actions/checkout@v5
-      - run: |
-          echo ${{ github.workspace }}
-          echo $GITHUB_WORKSPACE
-          echo $RUNNER_TEMP
+      - name: Disk Cleanup
+        uses: ./.github/actions/tmp-cleanup
 
   test-g6e:
     runs-on:
@@ -48,7 +42,5 @@ jobs:
         fleet:x86-g6exl-runner
     steps:
       - uses: actions/checkout@v5
-      - run: |
-          echo ${{ github.workspace }}
-          echo $GITHUB_WORKSPACE
-          echo $RUNNER_TEMP
+      - name: Disk Cleanup
+        uses: ./.github/actions/tmp-cleanup
