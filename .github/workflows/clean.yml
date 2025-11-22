@@ -1,4 +1,4 @@
-name: PR - SGLang
+name: Runner Cleanup
 
 on:
   pull_request:
