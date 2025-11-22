@@ -10,4 +10,3 @@ runs:
         docker rm -f $(docker ps -aq) || true
         docker image prune -a --force --filter "until=24h"
         docker system df
-        df -h

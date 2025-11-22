@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "**nochange**"
+      - "**sglang**"
 
 permissions:
   contents: read
