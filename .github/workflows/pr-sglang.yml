@@ -54,6 +54,7 @@ jobs:
               - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
+              - ".github/workflows/pr-sglang*"
 
   # ======================================================
   # =============== SGLang SageMaker jobs ================
