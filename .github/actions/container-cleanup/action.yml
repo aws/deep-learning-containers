@@ -15,4 +15,3 @@ runs:
         docker rm -f ${{ inputs.container_id }} || true
         docker image prune -a --force --filter "until=24h"
         docker system df
-        sleep 60s

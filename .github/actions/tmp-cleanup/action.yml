@@ -10,7 +10,7 @@ runs:
         echo ${{ github.workspace }}
         echo $GITHUB_WORKSPACE
         echo $RUNNER_TEMP
-        df -h /tmp
-        du -sh /tmp
         df -h /
-        du -sh /
+        df -h /tmp
+        du -sh /tmp/*
+        sleep 60s
