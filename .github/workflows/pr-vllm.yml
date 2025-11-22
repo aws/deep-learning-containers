@@ -980,6 +980,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6-2:
     runs-on:
@@ -989,6 +994,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-g6-3:
@@ -1000,6 +1010,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6-4:
     runs-on:
@@ -1009,6 +1024,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-g6-5:
@@ -1020,6 +1040,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6-6:
     runs-on:
@@ -1029,6 +1054,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-g6-7:
@@ -1040,6 +1070,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6-8:
     runs-on:
@@ -1049,6 +1084,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-g6-9:
@@ -1060,6 +1100,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6e-1:
     runs-on:
@@ -1069,6 +1114,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-g6e-2:
@@ -1080,6 +1130,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-g6e-3:
     runs-on:
@@ -1089,6 +1144,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-def-1:
@@ -1100,6 +1160,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-def-2:
     runs-on:
@@ -1109,6 +1174,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-def-3:
@@ -1120,6 +1190,11 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
 
   space-check-def-4:
     runs-on:
@@ -1129,6 +1204,11 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-def-5:
@@ -1140,6 +1220,12 @@ jobs:
         run: |
           df -h
           docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
+
   space-check-bld-1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1148,6 +1234,12 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-bld-2:
@@ -1160,6 +1252,12 @@ jobs:
           df -h
           docker system df
 
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
+
   space-check-bld-3:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1168,6 +1266,12 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
 
   space-check-bld-4:
@@ -1180,6 +1284,12 @@ jobs:
           df -h
           docker system df
 
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
+          docker system df
+
   space-check-bld-5:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -1188,4 +1298,9 @@ jobs:
       - name: space
         run: |
           df -h
+          docker system df
+          docker container prune -f
+          docker network prune -f
+          docker volume prune -f
+          docker image prune -f
           docker system df
