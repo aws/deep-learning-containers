@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - "**sglang**"
+      - "**nochange**"
 
 permissions:
   contents: read
@@ -54,7 +54,6 @@ jobs:
               - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
-              - ".github/workflows/pr-sglang*"
 
   # ======================================================
   # =============== SGLang SageMaker jobs ================
