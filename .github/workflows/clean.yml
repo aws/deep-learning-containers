@@ -1,0 +1,50 @@
+name: PR - SGLang
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  test-bld:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          echo ${{ github.workspace }}
+          echo $GITHUB_WORKSPACE
+
+  test-def:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          echo ${{ github.workspace }}
+          echo $GITHUB_WORKSPACE
+
+  test-g6:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          echo ${{ github.workspace }}
+          echo $GITHUB_WORKSPACE
+
+  test-g6e:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+    steps:
+      - uses: actions/checkout@v5
+      - run: |
+          echo ${{ github.workspace }}
+          echo $GITHUB_WORKSPACE
