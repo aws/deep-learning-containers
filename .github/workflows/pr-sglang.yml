@@ -196,8 +196,6 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
-        with:
-          container_id: ${CONTAINER_ID}
 
   sglang-frontend-test:
     needs: [build-sglang-image, set-test-environment]
@@ -257,8 +255,6 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
-        with:
-          container_id: ${CONTAINER_ID}
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
