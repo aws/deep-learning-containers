@@ -971,7 +971,31 @@ jobs:
   #         source .venv/bin/activate
   #         python test/vllm/sagemaker/test_sm_endpoint.py --image-uri ${{ needs.set-sagemaker-test-environment.outputs.image-uri }} --endpoint-name test-sm-vllm-endpoint-${{ github.sha }}
 
-  space-check:
+  space-check-g6-1:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+  space-check-g6-2:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+  space-check-g6-3:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+  space-check-g6-4:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -980,7 +1004,7 @@ jobs:
         run: |
           df -h
 
-  space-check-2:
+  space-check-g6e-1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
@@ -989,10 +1013,37 @@ jobs:
         run: |
           df -h
 
-  space-check-3:
+  space-check-def-1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+
+  space-check-def-2:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+
+  space-check-bld-1:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+    steps:
+      - name: space
+        run: |
+          df -h
+
+  space-check-bld-2:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
     steps:
       - name: space
         run: |
