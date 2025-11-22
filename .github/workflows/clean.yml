@@ -18,6 +18,7 @@ jobs:
       - run: |
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
+          echo $RUNNER_TEMP
 
   test-def:
     runs-on:
@@ -28,6 +29,7 @@ jobs:
       - run: |
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
+          echo $RUNNER_TEMP
 
   test-g6:
     runs-on:
@@ -38,6 +40,7 @@ jobs:
       - run: |
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
+          echo $RUNNER_TEMP
 
   test-g6e:
     runs-on:
@@ -48,3 +51,4 @@ jobs:
       - run: |
           echo ${{ github.workspace }}
           echo $GITHUB_WORKSPACE
+          echo $RUNNER_TEMP
