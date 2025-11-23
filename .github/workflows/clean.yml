@@ -178,6 +178,7 @@ jobs:
   test-g6e-1:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        buildspec-override:true
         fleet:x86-g6exl-runner
     steps:
       - uses: actions/checkout@v5
