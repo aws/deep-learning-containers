@@ -7,9 +7,9 @@ runs:
     - name: Cleanup container and images
       shell: bash
       run: |
-        echo "echo \${{ github.workspace }} / \${GITHUB_WORKSPACE}: ${GITHUB_WORKSPACE}"
-        echo "echo \$}RUNNER_TEMP}: ${RUNNER_TEMP}"
+        echo "echo \${GITHUB_WORKSPACE}: ${GITHUB_WORKSPACE}"
+        echo "echo \${RUNNER_TEMP}: ${RUNNER_TEMP}"
         df -h
         du -sh /tmp/*
-        du -sh --exluce /tmp/* /* 2> >(grep -v '^du: cannot \(access\|read\)' >&2)
+        du -sh --exclude /tmp/* /* 2> >(grep -v '^du: cannot \(access\|read\)' >&2)
         sleep 60s
