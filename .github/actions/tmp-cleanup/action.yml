@@ -11,3 +11,4 @@ runs:
         echo "echo \${RUNNER_TEMP}: ${RUNNER_TEMP}"
         df -h
         du -sh /tmp/* 2> >(grep -v '^du: cannot \(access\|read\)' >&2) || true
+        sleep 1s
