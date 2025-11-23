@@ -11,5 +11,4 @@ runs:
         echo "echo \${RUNNER_TEMP}: ${RUNNER_TEMP}"
         df -h
         du -sh /tmp/*
-        du -sh --exclude /tmp/* /* 2> >(grep -v '^du: cannot \(access\|read\)' >&2)
         sleep 60s
