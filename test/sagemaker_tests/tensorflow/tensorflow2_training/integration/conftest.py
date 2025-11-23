@@ -22,8 +22,7 @@ from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
 from botocore.exceptions import ClientError
-from sagemaker.core.local.local_session import LocalSession
-from sagemaker import Session
+from sagemaker import LocalSession, Session
 from sagemaker.tensorflow import TensorFlow
 from ..integration import (
     get_ecr_registry,
