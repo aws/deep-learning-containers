@@ -109,8 +109,7 @@ jobs:
     needs: [check-changes, build-sglang-image]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.build-sglang-image.result  == 'success' ||
-      (needs.check-changes.outputs.build-change  == 'false') && (needs.check-changes.outputs.test-change == 'true'))
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-set-test-environment-${{ github.event.pull_request.number }}
@@ -138,10 +137,8 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
-    needs: [set-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-test-environment.result  == 'success'
+    needs: [set-test-environment, build-sglang-image]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -199,19 +196,15 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
-        with:
-          container_id: ${CONTAINER_ID}
 
-  sglang-lang-test:
-    needs: [set-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-test-environment.result  == 'success'
+  sglang-frontend-test:
+    needs: [build-sglang-image, set-test-environment]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
     concurrency:
-      group: ${{ github.workflow }}-sglang-lang-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -262,14 +255,12 @@ jobs:
       - name: Cleanup container and images
         if: always()
         uses: ./.github/actions/container-cleanup
-        with:
-          container_id: ${CONTAINER_ID}
 
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-test-environment.result  == 'success'
+      needs.set-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
