@@ -7,8 +7,7 @@ phases:
 
       # Install uv and other common dependencies across all runner fleets
       - echo "Installing runner dependencies ..."
-      - echo "${CODEBUILD_SRC_DIR}"
-      - bash ./.github/scripts/runner_setup.sh
+      - bash ${CODEBUILD_SRC_DIR}/.github/scripts/runner_setup.sh
 
       # Install and setup clean up daemon
       - echo "Installing runner systemd services ..."
