@@ -4,3 +4,4 @@ awscli
 protobuf
 sagemaker
 tenacity
+retrying
