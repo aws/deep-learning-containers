@@ -2,7 +2,7 @@ botocore
 boto3
 awscli
 protobuf
-sagemaker
+sagemaker>=2,<3
 coverage
 flake8
 Flask
