@@ -2,4 +2,23 @@ botocore
 boto3
 awscli
 protobuf
-sagemaker
+sagemaker>=2,<3
+coverage
+flake8
+Flask
+mock
+# Preserve pytest caching behavior in earlier versions
+pytest<8.1
+pytest-cov
+pytest-rerunfailures
+pytest-xdist
+PyYAML
+requests
+tox
+requests_mock
+fabric
+invoke
+retrying
+tenacity
+gitpython
+toml
