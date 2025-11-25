@@ -35,6 +35,7 @@ ENDPOINT_INSERVICE = "InService"
 def get_endpoint_status(sagemaker_client, endpoint_name):
     response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
     LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
+    LOGGER.info("test")
     return response["EndpointStatus"]
 
 
