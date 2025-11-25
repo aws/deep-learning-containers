@@ -1,0 +1,26 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Setting up CodeBuild fleet runner infrastructure ..."
+
+      # Install uv and other common dependencies across all runner fleets
+      - echo "Installing runner dependencies ...""
+      - bash .github/scripts/runner_setup.sh
+
+      # Install and setup clean up daemon
+      - echo "Installing runner systemd services ...""
+
+  pre_build:
+    commands:
+      - echo "Creating lock file GHA runtime environment ..."
+
+  build:
+    commands:
+      - echo "BuildSpec will be overloaded for GHA self-hosted runner builds."
+
+  post_build:
+    commands:
+      - echo "Deleting GHA runtime environment lock file ..."
+      - echo "Build completed on $(date)"
