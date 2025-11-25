@@ -933,6 +933,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
