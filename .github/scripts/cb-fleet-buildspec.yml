@@ -4,13 +4,21 @@ phases:
   install:
     commands:
       - echo "Setting up CodeBuild fleet runner infrastructure ..."
+      - ls -la /tmp
 
       # Install uv and other common dependencies across all runner fleets
       - echo "Installing runner dependencies ..."
-      - bash ${CODEBUILD_SRC_DIR}/.github/scripts/runner_setup.sh
+      - ls -la ${CODEBUILD_SRC_DIR}
+      - ls -la ${CODEBUILD_SRC_DIR}/.github
+      - ls -la ${CODEBUILD_SRC_DIR}/.github/scripts
+      # - bash ${CODEBUILD_SRC_DIR}/.github/scripts/runner_setup.sh
 
       # Install and setup clean up daemon
       - echo "Installing runner systemd services ..."
+
+      - CURRENT_CODEBUILD_DIR=$(echo "$CODEBUILD_SRC_DIR" | grep -o '/tmp/codebuild-[^/]*')
+      - find /tmp -maxdepth 1 -type d -name 'codebuild-*' ! -path "$CURRENT_CODEBUILD_DIR" -exec rm -rf {} +
+      - ls -la /tmp
 
   pre_build:
     commands:
