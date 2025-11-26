@@ -51,10 +51,10 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
+              - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
 
-  # - ".github/workflows/pr-sglang*"
   # ======================================================
   # =============== SGLang SageMaker jobs ================
   # ======================================================
@@ -64,6 +64,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-sglang-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -71,7 +72,6 @@ jobs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
 
       - name: ECR login
@@ -142,6 +142,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-sglang-local-benchmark-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -193,16 +194,13 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   sglang-frontend-test:
     needs: [build-sglang-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -252,10 +250,6 @@ jobs:
             python3 run_suite.py --suite per-commit
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
     if: |
@@ -272,7 +266,6 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
           uv venv

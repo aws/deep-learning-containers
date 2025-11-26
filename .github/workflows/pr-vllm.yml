@@ -54,10 +54,10 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
+              - ".github/workflows/pr-vllm*"
             test-change:
               - "test/vllm/**"
 
-  # - ".github/workflows/pr-vllm*"
   # ==============================================
   # =============== vLLM EC2 jobs ================
   # ==============================================
@@ -67,6 +67,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-vllm-ec2-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -74,7 +75,6 @@ jobs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
 
       - name: ECR login
@@ -145,6 +145,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-regression-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -200,16 +201,13 @@ jobs:
             pytest -v -s test_regression.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-ec2-cuda-test:
     needs: [build-vllm-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-cuda-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -264,16 +262,13 @@ jobs:
             pytest -v -s cuda/test_cuda_context.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-ec2-example-test:
     needs: [build-vllm-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-example-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -343,10 +338,6 @@ jobs:
             python3 offline_inference/simple_profiling.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   # ===================================================
   # =============== vLLM RayServe jobs ================
   # ===================================================
@@ -356,6 +347,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-vllm-rayserve-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -363,7 +355,6 @@ jobs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
 
       - name: ECR login
@@ -434,6 +425,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-regression-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -489,16 +481,13 @@ jobs:
           pytest -v -s test_regression.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-rayserve-cuda-test:
     needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-cuda-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -553,16 +542,13 @@ jobs:
           pytest -v -s cuda/test_cuda_context.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-rayserve-example-test:
     needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -632,10 +618,6 @@ jobs:
           VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   # ====================================================
   # =============== vLLM SageMaker jobs ================
   # ====================================================
@@ -645,6 +627,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-vllm-sagemaker-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -652,7 +635,6 @@ jobs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
 
       - name: ECR login
@@ -723,6 +705,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-regression-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -778,16 +761,13 @@ jobs:
             pytest -v -s test_regression.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-sagemaker-cuda-test:
     needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-cuda-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -842,16 +822,13 @@ jobs:
             pytest -v -s cuda/test_cuda_context.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-sagemaker-example-test:
     needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-example-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -921,10 +898,6 @@ jobs:
             python3 offline_inference/simple_profiling.py
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   vllm-sagemaker-endpoint-test:
     needs: [set-sagemaker-test-environment]
     if: |
@@ -941,7 +914,6 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
           uv venv
