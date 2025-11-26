@@ -40,7 +40,7 @@ phases:
       # Clean up docker containers and images
       # Each runner tasks are expected to stop and remove all docker containers
       # All running containers at this stage are considered dangling
-      - echo "Cleaning up dangling docker containers and pruning unused docker images ..."
+      - echo "Cleaning up dangling docker containers and unused docker images ..."
       - |
         docker rm -f $(docker ps -aq) || true
         docker image prune -a --force --filter "until=24h"
