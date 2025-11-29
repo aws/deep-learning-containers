@@ -87,6 +87,15 @@ def invoke_pytorch_estimator(
             estimator_parameter["environment"] = {"AWS_REGION": test_region}
         else:
             estimator_parameter["environment"]["AWS_REGION"] = test_region
+
+        # Update profiler S3 output path to match the test region
+        if "profiler_config" in estimator_parameter:
+            profiler_config = estimator_parameter["profiler_config"]
+            if profiler_config is not None and hasattr(profiler_config, "s3_output_path"):
+                # default_bucket() is always in the same region as this sagemaker_session
+                default_bucket = sagemaker_session.default_bucket()
+                profiler_config.s3_output_path = f"s3://{default_bucket}/"
+                
         try:
             pytorch = PyTorch(
                 image_uri=tested_ecr_image,
