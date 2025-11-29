@@ -248,6 +248,7 @@ RUN pip install --no-cache-dir \
     ninja \
     opencv-python==4.11.0.86 \
     mpi4py
+    "fonttools>=4.61.0"
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
