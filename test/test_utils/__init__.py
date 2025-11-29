@@ -16,12 +16,16 @@ and their output types for readability and reusability.
 When necessary, use docstrings to explain the functions' mechanisms.
 """
 
+import json
 import logging
 import random
 import string
 import time
 from collections.abc import Callable
 from typing import Any
+
+from aws import AWSSessionManager
+from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -58,3 +62,20 @@ def wait_for_status(
 
     LOGGER.error(f"Wait for status: {expected_status} timed out. Actual status: {actual_status}")
     return False
+
+
+def get_hf_token(aws_session: AWSSessionManager) -> str:
+    LOGGER.info("Retrieving HuggingFace token from AWS Secrets Manager...")
+    token_path = "test/hf_token"
+
+    try:
+        get_secret_value_response = aws_session.secretsmanager.get_secret_value(SecretId=token_path)
+        LOGGER.info("Successfully retrieved HuggingFace token")
+    except ClientError as e:
+        LOGGER.error(f"Failed to retrieve HuggingFace token: {e}")
+        raise e
+
+    # Do not print secrets token in logs
+    response = json.loads(get_secret_value_response["SecretString"])
+    token = response.get("HF_TOKEN")
+    return token
