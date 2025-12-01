@@ -19,7 +19,7 @@ env:
   PROD_EC2_IMAGE: vllm:0.11-gpu-py312-ec2
   PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
   PROD_SAGEMAKER_IMAGE: vllm:0.11-gpu-py312
-  FORCE_COLOR: "1"
+  # FORCE_COLOR: "1"
 
 jobs:
   check-changes:
