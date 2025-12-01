@@ -16,8 +16,7 @@ env:
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
   PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
-  # FORCE_COLOR: "1"
-
+  FORCE_COLOR: "1"
 
 jobs:
   check-changes:
