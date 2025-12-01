@@ -254,11 +254,7 @@ RUN pip install --no-cache-dir -U \
     "sagemaker-training>=5.1.1" \
     "protobuf>=6.31.1" \
     "rich>=14.2.0" \
-    "sniffio>=1.3.0" \
-    "wrapt>=2.0.1" \
-    "s3fs>=2025.10.0" \
-    "aiobotocore>=2.15.0" \
-    "aiohttp>=3.10.0"
+    "sniffio>=1.3.0" 
 
 # Install AWS CLI and boto3 separately to get compatible versions
 RUN pip install --no-cache-dir -U awscli boto3
