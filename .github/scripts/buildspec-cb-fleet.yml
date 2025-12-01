@@ -24,11 +24,13 @@ phases:
       - |
         RUNTIME_ROOT_VOLUME="/tmp"
         RUNTIME_PATTERN="codebuild-[^/]*"
+        echo "Listing all runtime environments before clean up ..."
         ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
 
         CURRENT_CODEBUILD_DIR=$(echo "${CODEBUILD_SRC_DIR}" | grep -o "${RUNTIME_ROOT_VOLUME}/${RUNTIME_PATTERN}")
         find ${RUNTIME_ROOT_VOLUME} -maxdepth 1 -type d -name 'codebuild-*' ! -path "${CURRENT_CODEBUILD_DIR}" -exec rm -rf {} +
 
+        echo "Listing all runtime environments after clean up ..."
         ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
 
   build:
