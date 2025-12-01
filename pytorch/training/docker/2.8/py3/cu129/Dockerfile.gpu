@@ -247,6 +247,7 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
+    "s3fs>=2025.10.0" \
     smclarify \
     "sagemaker>=2.200.0" \
     sagemaker-experiments \
