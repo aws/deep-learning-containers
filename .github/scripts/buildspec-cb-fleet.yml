@@ -10,8 +10,8 @@ phases:
       - |
         if ! command -v uv &> /dev/null; then
           curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/usr/local/bin" sh
-          uv self update
         fi
+        uv self update
 
   pre_build:
     commands:
