@@ -173,7 +173,7 @@ RUN pip install --no-cache-dir \
     typing \
     charset-normalizer \
     packaging \
-    "boto3>=1.41.0" \
+    boto3 \
     PyYAML \
     numpy \
     scipy \
@@ -189,7 +189,7 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    "awscli>=1.43.0" \
+    awscli \
     opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
@@ -281,20 +281,14 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 WORKDIR /
 
 # Install SM packages
-# Version pins to prevent package regressions and fix protobuf CVE vulnerabilities
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2.200.0" \
+    "sagemaker>=2.254.1" \
     sagemaker-experiments \
-    "sagemaker-pytorch-training>=3.0.0" \
-    "sagemaker-training>=5.1.1" \
-    "protobuf>=6.31.1" \
-    "rich>=14.2.0" \
-    "sniffio>=1.3.0" \
-    "wrapt>=2.0.1"
+    sagemaker-pytorch-training \
+    sagemaker-training 
 
 # Install extra packages
-# Required packages missing from earlier builds to match production baseline
 RUN pip install --no-cache-dir -U \
     bokeh \
     imageio \
@@ -304,12 +298,7 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle \
-    google-pasta \
-    multiprocess \
-    pathos \
-    pox \
-    ppft
+    cloudpickle 
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
