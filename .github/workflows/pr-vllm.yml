@@ -134,8 +134,6 @@ jobs:
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
           fi
-          AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-          IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
 
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
@@ -146,7 +144,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-regression-test-${{ github.event.pull_request.number }}
@@ -208,7 +206,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-cuda-test-${{ github.event.pull_request.number }}
@@ -269,7 +267,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-example-test-${{ github.event.pull_request.number }}
@@ -416,8 +414,6 @@ jobs:
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_RAYSERVE_IMAGE }}
           fi
-          AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-          IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
 
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
@@ -428,7 +424,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-regression-test-${{ github.event.pull_request.number }}
@@ -490,7 +486,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-cuda-test-${{ github.event.pull_request.number }}
@@ -551,7 +547,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
@@ -698,8 +694,6 @@ jobs:
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
           fi
-          AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-          IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
 
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
@@ -710,7 +704,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-regression-test-${{ github.event.pull_request.number }}
@@ -772,7 +766,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-cuda-test-${{ github.event.pull_request.number }}
@@ -833,7 +827,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-example-test-${{ github.event.pull_request.number }}

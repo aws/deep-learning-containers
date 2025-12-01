@@ -181,7 +181,7 @@ jobs:
             ${{ needs.set-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
-          sleep 60s
+          sleep 120s
           docker logs ${CONTAINER_ID}
 
       - name: Run SGLang tests
