@@ -153,6 +153,7 @@ RUN pip install --no-cache-dir \
     language_data \
     "jinja2>=3.1.6"\
     "typing-extensions>=4.14.1" \
+    sniffio \
  && pip uninstall -y dataclasses
 
 # Removing the cache as it is needed for security verification
