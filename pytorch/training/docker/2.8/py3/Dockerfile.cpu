@@ -161,7 +161,6 @@ ENV PATH="/usr/local/bin:${PATH}"
 RUN python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
 # Install common packages
-# Updated boto3 and awscli versions to match production baseline
 RUN pip install --no-cache-dir \
     cython \
     cryptography \
