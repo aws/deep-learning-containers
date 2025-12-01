@@ -250,7 +250,7 @@ RUN pip install --no-cache-dir -U \
     "awscli<1.42.50" \
     "boto3<1.40.50" \
     smclarify \
-    "sagemaker>=2.254.1" \
+    "sagemaker<=2.254.1" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training 
