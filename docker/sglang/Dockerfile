@@ -11,7 +11,7 @@ FROM $BASE_IMAGE AS base
 
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.43.3"
-
+ARG DUMMY_ARG=0
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
