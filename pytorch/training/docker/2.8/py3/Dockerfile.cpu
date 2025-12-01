@@ -279,6 +279,9 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
+# Force rebuild of SageMaker packages layer
+ARG CACHEBUST=1
+
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
