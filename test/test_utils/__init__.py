@@ -24,8 +24,9 @@ import time
 from collections.abc import Callable
 from typing import Any
 
-from aws import AWSSessionManager
 from botocore.exceptions import ClientError
+
+from .aws import AWSSessionManager
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
