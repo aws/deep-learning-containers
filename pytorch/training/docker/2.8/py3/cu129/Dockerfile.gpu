@@ -247,6 +247,8 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
+    # Pin s3fs before smclarify to prevent downgrade to 0.4.2 which lacks async dependencies
+    # Version pins to prevent package regressions and fix protobuf CVE vulnerabilities
     "s3fs>=2025.10.0" \
     smclarify \
     "sagemaker>=2.200.0" \
@@ -261,6 +263,7 @@ RUN pip install --no-cache-dir -U \
 RUN pip install --no-cache-dir -U awscli boto3
 
 # Install extra packages
+# Required packages missing from earlier builds to match production baseline
 RUN pip install --no-cache-dir -U \
     bokeh \
     imageio \
