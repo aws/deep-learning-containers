@@ -257,7 +257,10 @@ RUN pip install --no-cache-dir -U \
     "awscli>=1.43.0" \
     "boto3>=1.41.0" \
     "sniffio>=1.3.0" \
-    "wrapt>=2.0.1"
+    "wrapt>=2.0.1" \
+    "s3fs>=2025.10.0" \
+    "aiobotocore>=2.15.0" \
+    "aiohttp>=3.10.0"
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
