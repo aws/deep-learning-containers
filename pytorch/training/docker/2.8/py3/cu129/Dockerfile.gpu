@@ -10,6 +10,7 @@ ARG TORCHDATA_VERSION=0.11.0
 ARG GDRCOPY_VERSION=2.5.1
 ARG TE_VERSION=2.5
 ARG FLASH_ATTN_VERSION=2.8.3
+ARG TEST
 
 #################################################################
 #   ____
