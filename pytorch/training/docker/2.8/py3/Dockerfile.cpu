@@ -172,7 +172,7 @@ RUN pip install --no-cache-dir \
     typing \
     charset-normalizer \
     packaging \
-    boto3 \
+    "boto3<1.40.50" \
     PyYAML \
     numpy \
     scipy \
@@ -188,7 +188,7 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    "awscli" \
+    "awscli<1.42.50" \
     opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
@@ -279,16 +279,15 @@ ENV SAGEMAKER_TRAINING_MODULE=sagemaker_pytorch_container.training:main
 
 WORKDIR /
 
-# Force rebuild of SageMaker packages layer
-ARG CACHEBUST=1
-
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2.200.0" \
     sagemaker-experiments \
-    sagemaker-pytorch-training \
-    sagemaker-training
+    "sagemaker-pytorch-training>=3.0.0" \
+    "sagemaker-training>=5.1.1" \
+    "protobuf>=6.31.1" \
+    "rich>=14.2.0"
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -300,7 +299,12 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle
+    cloudpickle \
+    google-pasta \
+    multiprocess \
+    pathos \
+    pox \
+    ppft
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

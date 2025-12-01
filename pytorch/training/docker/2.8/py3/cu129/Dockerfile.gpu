@@ -244,9 +244,6 @@ ARG PYTHON
 
 WORKDIR /
 
-# Force rebuild of SageMaker packages layer
-ARG CACHEBUST=1
-
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
@@ -255,8 +252,10 @@ RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2.200.0" \
     sagemaker-experiments \
-    sagemaker-pytorch-training \
-    sagemaker-training
+    "sagemaker-pytorch-training>=3.0.0" \
+    "sagemaker-training>=5.1.1" \
+    "protobuf>=6.31.1" \
+    "rich>=14.2.0"
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -268,7 +267,12 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle
+    cloudpickle \
+    google-pasta \
+    multiprocess \
+    pathos \
+    pox \
+    ppft
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
