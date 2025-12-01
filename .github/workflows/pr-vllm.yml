@@ -144,7 +144,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-regression-test-${{ github.event.pull_request.number }}
@@ -206,7 +206,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-cuda-test-${{ github.event.pull_request.number }}
@@ -267,7 +267,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-ec2-example-test-${{ github.event.pull_request.number }}
@@ -424,7 +424,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-regression-test-${{ github.event.pull_request.number }}
@@ -486,7 +486,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-cuda-test-${{ github.event.pull_request.number }}
@@ -547,7 +547,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
@@ -704,7 +704,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-regression-test-${{ github.event.pull_request.number }}
@@ -766,7 +766,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-cuda-test-${{ github.event.pull_request.number }}
@@ -827,7 +827,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-sagemaker-example-test-${{ github.event.pull_request.number }}

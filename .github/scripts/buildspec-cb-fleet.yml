@@ -33,6 +33,10 @@ phases:
         echo "Listing all runtime environments after clean up ..."
         ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
 
+        ls -la ${RUNTIME_ROOT_VOLUME}
+        rm -rf /tmp/sglang
+        ls -la ${RUNTIME_ROOT_VOLUME}
+
   build:
     commands:
       - echo "BuildSpec will be overloaded for GHA self-hosted runner builds."
