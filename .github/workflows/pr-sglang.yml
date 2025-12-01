@@ -169,7 +169,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
+          CONTAINER_ID=$(docker run -d -it --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v /tmp/sglang/dataset:/dataset \
             -p 30000:30000 \
@@ -224,7 +224,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ./sglang_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
