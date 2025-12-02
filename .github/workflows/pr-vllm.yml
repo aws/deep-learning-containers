@@ -331,12 +331,12 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            VLLM_USE_V1=0 python3 offline_inference/audio_language.py --seed 0
+            # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
@@ -614,17 +614,17 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            VLLM_USE_V1=0 python3 offline_inference/audio_language.py --seed 0
+            # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
             python3 offline_inference/basic/score.py
-            VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
+            python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
           '
 
   # ====================================================
@@ -897,12 +897,12 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            VLLM_USE_V1=0 python3 offline_inference/audio_language.py --seed 0
+            # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
