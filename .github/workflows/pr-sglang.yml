@@ -11,12 +11,16 @@ permissions:
   contents: read
 
 env:
+  # CI Image configuration
   SGLANG_VERSION: "0.5.5"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
+  # Prod Image configuration
   PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
+  # CI environment configuration
   FORCE_COLOR: "1"
+  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
 jobs:
   check-changes:
@@ -159,10 +163,10 @@ jobs:
 
       - name: Setup for SGLang datasets
         run: |
-          mkdir -p /test_artifacts/sglang/dataset
-          if [ ! -f /tmp/sglang/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
+          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
               echo "Downloading ShareGPT dataset..."
-              wget -P /test_artifacts/sglang/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
           else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
@@ -171,7 +175,7 @@ jobs:
         run: |
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v /tmp/sglang/dataset:/dataset \
+            -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset \
             -p 30000:30000 \
             -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
             -e SM_SGLANG_REASONING_PARSER=qwen3 \

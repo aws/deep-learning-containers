@@ -11,14 +11,17 @@ permissions:
   contents: read
 
 env:
+  # CI Image configuration
   VLLM_VERSION: 0.11.2
   VLLM_RAYSERVE_VERSION: 0.10.2
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
+  # Prod Image configuration
   PROD_EC2_IMAGE: vllm:0.11-gpu-py312-ec2
   PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
   PROD_SAGEMAKER_IMAGE: vllm:0.11-gpu-py312
+  # CI environment configuration
   FORCE_COLOR: "1"
 
 jobs:
@@ -547,7 +550,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
