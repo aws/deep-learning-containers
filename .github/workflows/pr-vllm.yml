@@ -169,7 +169,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -231,7 +231,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -292,7 +292,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -449,7 +449,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -511,7 +511,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -572,7 +572,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -729,7 +729,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -791,7 +791,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
@@ -852,7 +852,7 @@ jobs:
 
       - name: Start container
         run: |
-          CONTAINER_ID=$(docker run -d -it --gpus=all --entrypoint /bin/bash \
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v ./vllm_source:/workdir --workdir /workdir \
