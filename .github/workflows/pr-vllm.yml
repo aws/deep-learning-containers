@@ -3,9 +3,9 @@ name: PR - vLLM
 on:
   workflow_call:
 
-permissions:
-  contents: read
-
+# permissions:
+#   contents: read
+#
 env:
   # CI Image configuration
   VLLM_VERSION: 0.11.2

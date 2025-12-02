@@ -3,9 +3,9 @@ name: PR - SGLang
 on:
   workflow_call:
 
-permissions:
-  contents: read
-
+# permissions:
+#   contents: read
+#
 env:
   # CI Image configuration
   SGLANG_VERSION: "0.5.5"
