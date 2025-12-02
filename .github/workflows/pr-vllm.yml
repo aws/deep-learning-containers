@@ -311,7 +311,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.1
+            uv pip install --system transformers<4.56
             mkdir src
             mv vllm src/vllm
           '
@@ -321,6 +321,7 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+            uv pip list | grep transformers
 
             # Examples Test # 30min
             cd /workdir/examples
@@ -476,13 +477,13 @@ jobs:
       - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
-          set -eux
-          nvidia-smi
+            set -eux
+            nvidia-smi
 
-          # Regression Test # 7min
-          cd /workdir/tests
-          uv pip install --system modelscope
-          pytest -v -s test_regression.py
+            # Regression Test # 7min
+            cd /workdir/tests
+            uv pip install --system modelscope
+            pytest -v -s test_regression.py
           '
 
   vllm-rayserve-cuda-test:
@@ -538,12 +539,12 @@ jobs:
       - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
-          set -eux
-          nvidia-smi
+            set -eux
+            nvidia-smi
 
-          # Platform Tests (CUDA) # 4min
-          cd /workdir/tests
-          pytest -v -s cuda/test_cuda_context.py
+            # Platform Tests (CUDA) # 4min
+            cd /workdir/tests
+            pytest -v -s cuda/test_cuda_context.py
           '
 
   vllm-rayserve-example-test:
@@ -592,7 +593,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.1
+            uv pip install --system transformers<4.56
             mkdir src
             mv vllm src/vllm
           '
@@ -600,27 +601,28 @@ jobs:
       - name: Run vLLM tests
         run: |
           docker exec ${CONTAINER_ID} sh -c '
-          set -eux
-          nvidia-smi
+            set -eux
+            nvidia-smi
+            uv pip list | grep transformers
 
-          # Examples Test # 30min
-          cd /workdir/examples
-          pip install tensorizer # for tensorizer test
-          python3 offline_inference/basic/generate.py --model facebook/opt-125m
-          # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
-          python3 offline_inference/basic/chat.py
-          python3 offline_inference/prefix_caching.py
-          python3 offline_inference/llm_engine_example.py
-          python3 offline_inference/audio_language.py --seed 0
-          python3 offline_inference/vision_language.py --seed 0
-          python3 offline_inference/vision_language_pooling.py --seed 0
-          python3 offline_inference/vision_language_multi_image.py --seed 0
-          VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
-          python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
-          python3 offline_inference/basic/classify.py
-          python3 offline_inference/basic/embed.py
-          python3 offline_inference/basic/score.py
-          VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
+            # Examples Test # 30min
+            cd /workdir/examples
+            pip install tensorizer # for tensorizer test
+            python3 offline_inference/basic/generate.py --model facebook/opt-125m
+            # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
+            python3 offline_inference/basic/chat.py
+            python3 offline_inference/prefix_caching.py
+            python3 offline_inference/llm_engine_example.py
+            python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/vision_language.py --seed 0
+            python3 offline_inference/vision_language_pooling.py --seed 0
+            python3 offline_inference/vision_language_multi_image.py --seed 0
+            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
+            python3 offline_inference/basic/classify.py
+            python3 offline_inference/basic/embed.py
+            python3 offline_inference/basic/score.py
+            VLLM_USE_V1=0 python3 offline_inference/profiling.py --model facebook/opt-125m run_num_steps --num-steps 2
           '
 
   # ====================================================
@@ -873,7 +875,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.1
+            uv pip install --system transformers<4.56
             mkdir src
             mv vllm src/vllm
           '
@@ -883,6 +885,7 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+            uv pip list | grep transformers
 
             # Examples Test # 30min
             cd /workdir/examples
