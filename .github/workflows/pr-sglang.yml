@@ -1,11 +1,7 @@
 name: PR - SGLang
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "**sglang**"
+  workflow_call:
 
 permissions:
   contents: read

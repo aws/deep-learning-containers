@@ -14,7 +14,6 @@ concurrency:
 
 jobs:
   gatekeeper:
-    name: gatekeeper
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base branch (safe)
@@ -22,5 +21,16 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
+
       - name: Run permission gate (from base)
         uses: ./.github/actions/pr-permission-gate
+
+  pr-vllm:
+    needs: [gatekeeper]
+    if: success()
+    uses: ./.github/workflows/pr-vllm.yml
+
+  pr-sglang:
+    needs: [gatekeeper]
+    if: success()
+    uses: ./.github/workflows/pr-sglang.yml

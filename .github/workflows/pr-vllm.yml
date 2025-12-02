@@ -1,11 +1,7 @@
 name: PR - vLLM
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "**vllm**"
+  workflow_call:
 
 permissions:
   contents: read
