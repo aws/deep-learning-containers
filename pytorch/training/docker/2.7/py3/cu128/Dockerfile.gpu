@@ -205,7 +205,8 @@ RUN pip install --no-cache-dir -U \
     "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    sniffio
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
