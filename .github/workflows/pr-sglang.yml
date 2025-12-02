@@ -276,6 +276,7 @@ jobs:
         run: |
           uv venv
           source .venv/bin/activate
+
           uv pip install -r test/requirements.txt
           uv pip install -r test/sglang/sagemaker/requirements.txt
 
