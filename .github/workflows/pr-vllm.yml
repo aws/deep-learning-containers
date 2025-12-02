@@ -311,7 +311,6 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system git+https://github.com/huggingface/transformers.git
             mkdir src
             mv vllm src/vllm
           '
@@ -321,7 +320,6 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
-            uv pip list | grep transformers
 
             # Examples Test # 30min
             cd /workdir/examples
@@ -335,7 +333,7 @@ jobs:
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            # VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
@@ -593,7 +591,6 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system git+https://github.com/huggingface/transformers.git
             mkdir src
             mv vllm src/vllm
           '
@@ -603,7 +600,6 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
-            uv pip list | grep transformers
 
             # Examples Test # 30min
             cd /workdir/examples
@@ -617,7 +613,7 @@ jobs:
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            # VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
@@ -875,7 +871,6 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system git+https://github.com/huggingface/transformers.git
             mkdir src
             mv vllm src/vllm
           '
@@ -885,7 +880,6 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
-            uv pip list | grep transformers
 
             # Examples Test # 30min
             cd /workdir/examples
@@ -899,7 +893,7 @@ jobs:
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
-            VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
+            # VLLM_USE_V1=0 python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
