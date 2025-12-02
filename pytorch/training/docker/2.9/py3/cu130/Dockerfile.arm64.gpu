@@ -223,8 +223,7 @@ RUN cd /tmp \
 && git clone https://github.com/NVIDIA/gdrcopy.git -b v${GDRCOPY_VERSION} \
 && cd gdrcopy \
 && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
-&& sed -i 's/GENCODE_FLAGS.*/GENCODE_FLAGS := -gencode arch=compute_90,code=compute_90 -gencode arch=compute_90,code=sm_90/g' tests/Makefile \
-&& CUDA=${CUDA_HOME} make install \
+&& CUDA=${CUDA_HOME} NVCCFLAGS="-gencode arch=compute_90,code=compute_90 -gencode arch=compute_90,code=sm_90" make install \
 && rm -rf /tmp/gdrcopy
 
 # Install NCCL
