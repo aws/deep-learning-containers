@@ -290,7 +290,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
+          # ref: v${{ env.VLLM_VERSION }}
           path: vllm_source
 
       - name: Start container
@@ -331,7 +332,7 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            # python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
@@ -573,7 +574,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_RAYSERVE_VERSION }}
+          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
+          # ref: v${{ env.VLLM_RAYSERVE_VERSION }}
           path: vllm_source
 
       - name: Start container
@@ -614,7 +616,7 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            # python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
@@ -856,7 +858,8 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
+          # ref: v${{ env.VLLM_VERSION }}
           path: vllm_source
 
       - name: Start container
@@ -897,7 +900,7 @@ jobs:
             python3 offline_inference/llm_engine_example.py
 
             # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
-            # python3 offline_inference/audio_language.py --seed 0
+            python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
