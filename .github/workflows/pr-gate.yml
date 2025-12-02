@@ -26,15 +26,11 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   pr-vllm:
-    # needs: [gatekeeper]
-    # if: success()
     permissions:
       contents: read
     uses: ./.github/workflows/pr-vllm.yml
 
   pr-sglang:
-    # needs: [gatekeeper]
-    # if: success()
     permissions:
       contents: read
     uses: ./.github/workflows/pr-sglang.yml
