@@ -299,7 +299,8 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle 
+    cloudpickle \
+    "langcodes<=3.5.0"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

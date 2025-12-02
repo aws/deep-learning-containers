@@ -267,7 +267,8 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle 
+    cloudpickle \
+    "langcodes<=3.5.0"
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
