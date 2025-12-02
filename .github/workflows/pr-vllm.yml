@@ -329,7 +329,10 @@ jobs:
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
+
+            # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
             # python3 offline_inference/audio_language.py --seed 0
+
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
@@ -609,7 +612,10 @@ jobs:
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
+
+            # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
             # python3 offline_inference/audio_language.py --seed 0
+
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
@@ -889,7 +895,10 @@ jobs:
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
+
+            # NOTE: Disabling test due to "AttributeError: 'WhisperFeatureExtractor' object has no attribute 'feature_extractor'"
             # python3 offline_inference/audio_language.py --seed 0
+
             python3 offline_inference/vision_language.py --seed 0
             python3 offline_inference/vision_language_pooling.py --seed 0
             python3 offline_inference/vision_language_multi_image.py --seed 0
