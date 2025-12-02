@@ -311,7 +311,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.2
+            uv pip install --system transformers==4.56.1
             mkdir src
             mv vllm src/vllm
           '
@@ -551,7 +551,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-vllm-rayserve-example-test-${{ github.event.pull_request.number }}
@@ -592,7 +592,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.2
+            uv pip install --system transformers==4.56.1
             mkdir src
             mv vllm src/vllm
           '
@@ -873,7 +873,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
-            uv pip install --system transformers==4.56.2
+            uv pip install --system transformers==4.56.1
             mkdir src
             mv vllm src/vllm
           '
