@@ -19,7 +19,7 @@ jobs:
   check-changes:
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-check-changes-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
@@ -109,7 +109,7 @@ jobs:
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-set-test-environment-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-set-sglang-test-environment-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}

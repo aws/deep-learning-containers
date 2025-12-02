@@ -1,4 +1,5 @@
 name: PR Permission Gate
+
 on:
   pull_request:
     branches: [main]
