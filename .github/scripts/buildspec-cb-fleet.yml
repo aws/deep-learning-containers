@@ -1,0 +1,51 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "Setting up CodeBuild fleet runner infrastructure ..."
+
+      # Install common dependencies across all runner fleets
+      - echo "Installing uv ..."
+      - |
+        if ! command -v uv &> /dev/null; then
+          curl -LsSf https://astral.sh/uv/install.sh | UV_INSTALL_DIR="/usr/local/bin" sh
+          uv self update
+        fi
+
+  pre_build:
+    commands:
+      - echo "Build started on $(date)"
+
+      # Clean up previous CodeBuild runtime environment
+      # Each runner tasks are expected to initialize with only one runtime environment
+      # All runtime environments apart from current runtime are considered dangling
+      - echo "Cleaning up dangling runtime environments ..."
+      - |
+        RUNTIME_ROOT_VOLUME="/tmp"
+        RUNTIME_PATTERN="codebuild-[^/]*"
+        echo "Listing all runtime environments before clean up ..."
+        ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
+
+        CURRENT_CODEBUILD_DIR=$(echo "${CODEBUILD_SRC_DIR}" | grep -o "${RUNTIME_ROOT_VOLUME}/${RUNTIME_PATTERN}")
+        find ${RUNTIME_ROOT_VOLUME} -maxdepth 1 -type d -name 'codebuild-*' ! -path "${CURRENT_CODEBUILD_DIR}" -exec rm -rf {} +
+
+        echo "Listing all runtime environments after clean up ..."
+        ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
+
+  build:
+    commands:
+      - echo "BuildSpec will be overloaded for GHA self-hosted runner builds."
+
+  post_build:
+    commands:
+      # Clean up docker containers and images
+      # Each runner tasks are expected to stop and remove all docker containers
+      # All running containers at this stage are considered dangling
+      - echo "Cleaning up dangling docker containers and unused docker images ..."
+      - |
+        docker rm -f $(docker ps -aq) || true
+        docker image prune -a --force --filter "until=24h"
+        docker system df
+
+      - echo "Build completed on $(date)"

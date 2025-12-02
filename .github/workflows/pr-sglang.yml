@@ -11,12 +11,16 @@ permissions:
   contents: read
 
 env:
+  # CI Image configuration
   SGLANG_VERSION: "0.5.5"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
+  # Prod Image configuration
   PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
+  # CI environment configuration
   FORCE_COLOR: "1"
+  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
 jobs:
   check-changes:
@@ -64,6 +68,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-sglang-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -71,7 +76,6 @@ jobs:
       ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/runner_setup.sh
       - run: .github/scripts/buildkitd.sh
 
       - name: ECR login
@@ -142,6 +146,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-sglang-local-benchmark-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -158,10 +163,10 @@ jobs:
 
       - name: Setup for SGLang datasets
         run: |
-          mkdir -p /tmp/sglang/dataset
-          if [ ! -f /tmp/sglang/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
+          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
               echo "Downloading ShareGPT dataset..."
-              wget -P /tmp/sglang/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
           else
               echo "ShareGPT dataset already exists. Skipping download."
           fi
@@ -170,7 +175,7 @@ jobs:
         run: |
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v /tmp/sglang/dataset:/dataset \
+            -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset \
             -p 30000:30000 \
             -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
             -e SM_SGLANG_REASONING_PARSER=qwen3 \
@@ -180,7 +185,7 @@ jobs:
             ${{ needs.set-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
-          sleep 60s
+          sleep 120s
           docker logs ${CONTAINER_ID}
 
       - name: Run SGLang tests
@@ -193,16 +198,13 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   sglang-frontend-test:
     needs: [build-sglang-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -252,10 +254,6 @@ jobs:
             python3 run_suite.py --suite per-commit
           '
 
-      - name: Cleanup container and images
-        if: always()
-        uses: ./.github/actions/container-cleanup
-
   sglang-sagemaker-endpoint-test:
     needs: [set-test-environment]
     if: |
@@ -264,6 +262,7 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
+        buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-sglang-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
@@ -271,12 +270,10 @@ jobs:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - run: .github/scripts/runner_setup.sh
       - name: Install test dependencies
         run: |
           uv venv
           source .venv/bin/activate
-
           uv pip install -r test/requirements.txt
           uv pip install -r test/sglang/sagemaker/requirements.txt
 
