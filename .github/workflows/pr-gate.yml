@@ -15,6 +15,9 @@ concurrency:
 jobs:
   gatekeeper:
     runs-on: ubuntu-latest
+    concurrency:
+      group: pr-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
         uses: actions/checkout@v5
