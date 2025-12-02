@@ -273,5 +273,218 @@
       "title": "CVE-2025-57319 - fast-redact",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "curl/libcurl": [
+    {
+      "description": "When libcurl is asked to perform automatic gzip decompression of content-encoded HTTP responses with the `CURLOPT_ACCEPT_ENCODING` option, **using zlib 1.2.0.3 or older**, an attacker-controlled integer overflow would make libcurl perform a buffer overflow.",
+      "vulnerability_id": "CVE-2025-0725",
+      "name": "CVE-2025-0725",
+      "package_name": "curl/libcurl",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/tensorflow/include/external/curl/include/curl/curlver.h",
+        "name": "curl/libcurl",
+        "package_manager": "GENERIC",
+        "version": "8.11.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.3,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.3,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-0725",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-0725 - curl/libcurl",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "1. A cookie is set using the `secure` keyword for `https://target` 2. curl is redirected to or otherwise made to speak with `http://target` (same hostname, but using clear text HTTP) using the same cookie set 3. The same cookie name is set - but with just a slash as path (`path='/'`). Since this site is not secure, the cookie *should* just be ignored. 4. A bug in the path comparison logic makes curl read outside a heap buffer boundary\n\nThe bug either causes a crash or it potentially makes the comparison come to the wrong conclusion and lets the clear-text site override the contents of the secure cookie, contrary to expectations and depending on the memory contents immediately following the single-byte allocation that holds the path.\n\nThe presumed and correct behavior would be to plainly ignore the second set of the cookie since it was already set as secure on a secure host so overriding it on an insecure host should not be okay.",
+      "vulnerability_id": "CVE-2025-9086",
+      "name": "CVE-2025-9086",
+      "package_name": "curl/libcurl",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/tensorflow/include/external/curl/include/curl/curlver.h",
+        "name": "curl/libcurl",
+        "package_manager": "GENERIC",
+        "version": "8.11.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-9086",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-9086 - curl/libcurl",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "glob": [
+    {
+      "description": "Glob matches files using patterns the shell uses. Starting in version 10.2.0 and prior to versions 10.5.0 and 11.1.0, the glob CLI contains a command injection vulnerability in its -c/--cmd option that allows arbitrary command execution when processing files with malicious names. When glob -c <command> <patterns> are used, matched filenames are passed to a shell with shell: true, enabling shell metacharacters in filenames to trigger command injection and achieve arbitrary code execution under the user or CI account privileges. This issue has been patched in versions 10.5.0 and 11.1.0.",
+      "vulnerability_id": "CVE-2025-64756",
+      "name": "CVE-2025-64756",
+      "package_name": "glob",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "glob",
+        "package_manager": "NODE",
+        "version": "10.3.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-64756",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-64756 - glob",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "vega": [
+    {
+      "description": "Vega is a visualization grammar, a declarative format for creating, saving, and sharing interactive visualization designs. In Vega prior to version 6.2.0, applications meeting 2 conditions are at risk of arbitrary JavaScript code execution, even if \"safe mode\" expressionInterpreter is used. They are vulnerable if they use `vega` in an application that attaches `vega` library and a `vega.View` instance similar to the Vega Editor to the global `window` and if they allow user-defined Vega `JSON` definitions (vs JSON that was is only provided through source code). Patches are available in the following Vega applications. If using the latest Vega line (6.x), upgrade to `vega` `6.2.0` / `vega-expression` `6.1.0` / `vega-interpreter` `2.2.1` (if using AST evaluator mode). If using Vega in a non-ESM environment, upgrade to `vega-expression` `5.2.1` / `1.2.1` (if using AST evaluator mode). Some workarounds are available. Do not attach `vega` View instances to global variables, and do not attach `vega` to the global wi",
+      "vulnerability_id": "CVE-2025-59840",
+      "name": "CVE-2025-59840",
+      "package_name": "vega",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega",
+        "package_manager": "NODE",
+        "version": "5.33.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59840",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-59840 - vega, vega-expression and 2 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "vega-expression": [
+    {
+      "description": "Vega is a visualization grammar, a declarative format for creating, saving, and sharing interactive visualization designs. In Vega prior to version 6.2.0, applications meeting 2 conditions are at risk of arbitrary JavaScript code execution, even if \"safe mode\" expressionInterpreter is used. They are vulnerable if they use `vega` in an application that attaches `vega` library and a `vega.View` instance similar to the Vega Editor to the global `window` and if they allow user-defined Vega `JSON` definitions (vs JSON that was is only provided through source code). Patches are available in the following Vega applications. If using the latest Vega line (6.x), upgrade to `vega` `6.2.0` / `vega-expression` `6.1.0` / `vega-interpreter` `2.2.1` (if using AST evaluator mode). If using Vega in a non-ESM environment, upgrade to `vega-expression` `5.2.1` / `1.2.1` (if using AST evaluator mode). Some workarounds are available. Do not attach `vega` View instances to global variables, and do not attach `vega` to the global wi",
+      "vulnerability_id": "CVE-2025-59840",
+      "name": "CVE-2025-59840",
+      "package_name": "vega-expression",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega-expression",
+        "package_manager": "NODE",
+        "version": "5.0.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59840",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-59840 - vega, vega-expression and 2 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Vega is a visualization grammar, a declarative format for creating, saving, and sharing interactive visualization designs. In Vega prior to version 6.2.0, applications meeting 2 conditions are at risk of arbitrary JavaScript code execution, even if \"safe mode\" expressionInterpreter is used. They are vulnerable if they use `vega` in an application that attaches `vega` library and a `vega.View` instance similar to the Vega Editor to the global `window` and if they allow user-defined Vega `JSON` definitions (vs JSON that was is only provided through source code). Patches are available in the following Vega applications. If using the latest Vega line (6.x), upgrade to `vega` `6.2.0` / `vega-expression` `6.1.0` / `vega-interpreter` `2.2.1` (if using AST evaluator mode). If using Vega in a non-ESM environment, upgrade to `vega-expression` `5.2.1` / `1.2.1` (if using AST evaluator mode). Some workarounds are available. Do not attach `vega` View instances to global variables, and do not attach `vega` to the global wi",
+      "vulnerability_id": "CVE-2025-59840",
+      "name": "CVE-2025-59840",
+      "package_name": "vega-expression",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega-expression",
+        "package_manager": "NODE",
+        "version": "5.2.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59840",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-59840 - vega, vega-expression and 2 more",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "vega-interpreter": [
+    {
+      "description": "Vega is a visualization grammar, a declarative format for creating, saving, and sharing interactive visualization designs. In Vega prior to version 6.2.0, applications meeting 2 conditions are at risk of arbitrary JavaScript code execution, even if \"safe mode\" expressionInterpreter is used. They are vulnerable if they use `vega` in an application that attaches `vega` library and a `vega.View` instance similar to the Vega Editor to the global `window` and if they allow user-defined Vega `JSON` definitions (vs JSON that was is only provided through source code). Patches are available in the following Vega applications. If using the latest Vega line (6.x), upgrade to `vega` `6.2.0` / `vega-expression` `6.1.0` / `vega-interpreter` `2.2.1` (if using AST evaluator mode). If using Vega in a non-ESM environment, upgrade to `vega-expression` `5.2.1` / `1.2.1` (if using AST evaluator mode). Some workarounds are available. Do not attach `vega` View instances to global variables, and do not attach `vega` to the global wi",
+      "vulnerability_id": "CVE-2025-59840",
+      "name": "CVE-2025-59840",
+      "package_name": "vega-interpreter",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega-interpreter",
+        "package_manager": "NODE",
+        "version": "1.0.5",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-59840",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-59840 - vega, vega-expression and 2 more",
+      "reason_to_ignore": "N/A"
+    }
   ]
 }
