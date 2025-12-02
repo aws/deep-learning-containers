@@ -311,6 +311,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
+            uv pip install transformers==4.57.1
             mkdir src
             mv vllm src/vllm
           '
@@ -591,6 +592,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
+            uv pip install transformers==4.57.1
             mkdir src
             mv vllm src/vllm
           '
@@ -871,6 +873,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
+            uv pip install transformers==4.57.1
             mkdir src
             mv vllm src/vllm
           '
