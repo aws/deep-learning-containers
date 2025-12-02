@@ -290,8 +290,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
-          # ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ env.VLLM_VERSION }}
           path: vllm_source
 
       - name: Start container
@@ -575,8 +574,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
-          # ref: v${{ env.VLLM_RAYSERVE_VERSION }}
+          ref: v${{ env.VLLM_RAYSERVE_VERSION }}
           path: vllm_source
 
       - name: Start container
@@ -860,8 +858,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: 00d3310d2d00d021d2e8f5f00e31b51d30f0413e
-          # ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ env.VLLM_VERSION }}
           path: vllm_source
 
       - name: Start container
