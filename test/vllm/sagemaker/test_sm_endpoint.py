@@ -12,243 +12,140 @@
 # language governing permissions and limitations under the License.
 """Integration test for serving endpoint with vLLM DLC"""
 
-import argparse
 import json
-import time
+import logging
+from pprint import pformat
 
-import boto3
-from botocore.exceptions import ClientError
-from sagemaker import serializers
+import pytest
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+from test_utils import clean_string, get_hf_token, random_suffix_name, wait_for_status
+from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
-# Fixed parameters
-AWS_REGION = "us-west-2"
-INSTANCE_TYPE = "ml.g5.12xlarge"
-ROLE = "SageMakerRole"
+# To enable debugging, change logging.INFO to logging.DEBUG
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
-
-def get_secret_hf_token():
-    print("Retrieving HuggingFace token from AWS Secrets Manager...")
-    secret_name = "test/hf_token"
-    region_name = "us-west-2"
-
-    session = boto3.session.Session()
-    client = session.client(service_name="secretsmanager", region_name=region_name)
-    try:
-        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
-        print("Successfully retrieved HuggingFace token")
-    except ClientError as e:
-        print(f"Failed to retrieve HuggingFace token: {e}")
-        raise e
-
-    response = json.loads(get_secret_value_response["SecretString"])
-    return response
+ENDPOINT_WAIT_PERIOD = 60
+ENDPOINT_WAIT_LENGTH = 30
+ENDPOINT_INSERVICE = "InService"
 
 
-def deploy_endpoint(name, image_uri, role, instance_type):
-    try:
-        print(f"Starting deployment of endpoint: {name}")
-        print(f"Using image: {image_uri}")
-        print(f"Instance type: {instance_type}")
-
-        response = get_secret_hf_token()
-        hf_token = response.get("HF_TOKEN")
-        print("Creating SageMaker model...")
-
-        model = Model(
-            name=name,
-            image_uri=image_uri,
-            role=role,
-            env={
-                "SM_VLLM_MODEL": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
-                "SM_VLLM_HF_TOKEN": hf_token,
-            },
-        )
-        print("Model created successfully")
-        print("Starting endpoint deployment (this may take 10-15 minutes)...")
-
-        model.deploy(
-            instance_type=instance_type,
-            initial_instance_count=1,
-            endpoint_name=name,
-            inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
-            wait=True,
-        )
-        print("Endpoint deployment completed successfully")
-        return True
-    except Exception as e:
-        print(f"Deployment failed: {str(e)}")
-        return False
+def get_endpoint_status(sagemaker_client, endpoint_name):
+    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
+    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
+    return response["EndpointStatus"]
 
 
-def invoke_endpoint(endpoint_name, prompt, max_tokens=2400, temperature=0.01):
-    try:
-        print(f"Creating predictor for endpoint: {endpoint_name}")
-        predictor = Predictor(
-            endpoint_name=endpoint_name,
-            serializer=serializers.JSONSerializer(),
-        )
-
-        payload = {
-            "messages": [{"role": "user", "content": prompt}],
-            "max_tokens": max_tokens,
-            "temperature": temperature,
-            "top_p": 0.9,
-            "top_k": 50,
-        }
-        print(f"Sending inference request with prompt: '{prompt[:50]}...'")
-        print(f"Request parameters: max_tokens={max_tokens}, temperature={temperature}")
-
-        response = predictor.predict(payload)
-        print("Inference request completed successfully")
-
-        if isinstance(response, bytes):
-            response = response.decode("utf-8")
-
-        if isinstance(response, str):
-            try:
-                response = json.loads(response)
-            except json.JSONDecodeError:
-                print("Warning: Response is not valid JSON. Returning as string.")
-
-        return response
-    except Exception as e:
-        print(f"Inference failed: {str(e)}")
-        return None
+@pytest.fixture(scope="function")
+def model_id(request):
+    # Return the model_id given by the test parameter
+    return request.param
 
 
-def delete_endpoint(endpoint_name):
-    try:
-        sagemaker_client = boto3.client("sagemaker", region_name=AWS_REGION)
-
-        print(f"Deleting endpoint: {endpoint_name}")
-        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-
-        print(f"Deleting endpoint configuration: {endpoint_name}")
-        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
-
-        print(f"Deleting model: {endpoint_name}")
-        sagemaker_client.delete_model(ModelName=endpoint_name)
-
-        print("Successfully deleted all resources")
-        return True
-    except Exception as e:
-        print(f"Error during deletion: {str(e)}")
-        return False
+@pytest.fixture(scope="function")
+def instance_type(request):
+    # Return the instance_type given by the test parameter
+    return request.param
 
 
-def wait_for_endpoint(endpoint_name, timeout=1800):
-    sagemaker_client = boto3.client("sagemaker", region_name=AWS_REGION)
-    start_time = time.time()
+@pytest.fixture(scope="function")
+def model_package(aws_session, image_uri, model_id):
+    sagemaker_client = aws_session.sagemaker
+    cleaned_id = clean_string(model_id.split("/")[1], "_./")
+    model_name = random_suffix_name(f"vllm-{cleaned_id}-model-package", 50)
 
-    while time.time() - start_time < timeout:
+    LOGGER.debug(f"Using image: {image_uri}")
+    LOGGER.debug(f"Model ID: {model_id}")
+
+    LOGGER.info(f"Creating SageMaker model: {model_name}...")
+    hf_token = get_hf_token(aws_session)
+    model = Model(
+        name=model_name,
+        image_uri=image_uri,
+        role=SAGEMAKER_ROLE,
+        predictor_cls=Predictor,
+        env={
+            "SM_VLLM_MODEL": model_id,
+            "SM_VLLM_HF_TOKEN": hf_token,
+        },
+    )
+    LOGGER.info("Model created successfully")
+
+    yield model
+
+    LOGGER.info(f"Deleting model: {model_name}")
+    sagemaker_client.delete_model(ModelName=model_name)
+
+
+@pytest.fixture(scope="function")
+def model_endpoint(aws_session, model_package, instance_type):
+    sagemaker_client = aws_session.sagemaker
+    model = model_package
+    cleaned_instance = clean_string(instance_type, "_./")
+    endpoint_name = random_suffix_name(f"vllm-{cleaned_instance}-endpoint", 50)
+
+    LOGGER.debug(f"Using instance type: {instance_type}")
+
+    LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
+    predictor = model.deploy(
+        instance_type=instance_type,
+        initial_instance_count=1,
+        endpoint_name=endpoint_name,
+        inference_ami_version=INFERENCE_AMI_VERSION,
+        serializer=JSONSerializer(),
+        wait=True,
+    )
+    LOGGER.info("Endpoint deployment completed successfully")
+
+    LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
+    assert wait_for_status(
+        ENDPOINT_INSERVICE,
+        ENDPOINT_WAIT_PERIOD,
+        ENDPOINT_WAIT_LENGTH,
+        get_endpoint_status,
+        sagemaker_client,
+        endpoint_name,
+    )
+
+    yield predictor
+
+    LOGGER.info(f"Deleting endpoint: {endpoint_name}")
+    sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
+
+    LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
+    sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+
+
+@pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
+@pytest.mark.parametrize("model_id", ["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"], indirect=True)
+def test_vllm_sagemaker_endpoint(model_endpoint):
+    predictor = model_endpoint
+
+    prompt = "Write a python script to calculate square of n"
+    payload = {
+        "messages": [{"role": "user", "content": prompt}],
+        "max_tokens": 2400,
+        "temperature": 0.01,
+        "top_p": 0.9,
+        "top_k": 50,
+    }
+    LOGGER.debug(f"Sending inference request with payload: {pformat(payload)}")
+
+    response = predictor.predict(payload)
+    LOGGER.info("Inference request invoked successfully")
+
+    if isinstance(response, bytes):
+        response = response.decode("utf-8")
+
+    if isinstance(response, str):
         try:
-            response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
-            status = response["EndpointStatus"]
+            response = json.loads(response)
+        except json.JSONDecodeError:
+            LOGGER.warning("Response is not valid JSON. Returning as string.")
 
-            if status == "InService":
-                return True
-            elif status in ["Failed", "OutOfService"]:
-                print(f"Endpoint creation failed with status: {status}")
-                return False
+    assert response, "Model response is empty, failing endpoint test!"
 
-            print(f"Endpoint status: {status}. Waiting...")
-            time.sleep(30)
-        except Exception as e:
-            print(f"Error checking endpoint status: {str(e)}")
-            return False
-
-    print("Timeout waiting for endpoint to be ready")
-    return False
-
-
-def test_vllm_on_sagemaker(image_uri, endpoint_name):
-    print("\n" + "=" * 80)
-    print("STARTING vLLM SAGEMAKER ENDPOINT TEST".center(80))
-    print("=" * 80)
-    print("Test Configuration:")
-    print(f"     Image URI: {image_uri}")
-    print(f"     Endpoint name: {endpoint_name}")
-    print(f"     Region: {AWS_REGION}")
-    print(f"     Instance type: {INSTANCE_TYPE}")
-    print("\n" + "-" * 80)
-    print("PHASE 1: ENDPOINT DEPLOYMENT".center(80))
-    print("-" * 80)
-
-    if not deploy_endpoint(endpoint_name, image_uri, ROLE, INSTANCE_TYPE):
-        print("\n" + "=" * 80)
-        print("DEPLOYMENT FAILED - CLEANING UP".center(80))
-        print("=" * 80)
-        # Cleanup any partially created resources
-        delete_endpoint(endpoint_name)
-        raise Exception("SageMaker endpoint deployment failed")
-
-    print("\n" + "-" * 80)
-    print("PHASE 2: WAITING FOR ENDPOINT READINESS".center(80))
-    print("-" * 80)
-    if not wait_for_endpoint(endpoint_name):
-        print("\nEndpoint failed to become ready. Initiating cleanup...")
-        delete_endpoint(endpoint_name)
-        print("\n" + "=" * 80)
-        print("ENDPOINT READINESS FAILED".center(80))
-        print("=" * 80)
-        raise Exception("SageMaker endpoint failed to become ready")
-
-    print("\nEndpoint is ready for inference!")
-    print("\n" + "-" * 80)
-    print("PHASE 3: TESTING INFERENCE".center(80))
-    print("-" * 80)
-    test_prompt = "Write a python script to calculate square of n"
-
-    response = invoke_endpoint(
-        endpoint_name=endpoint_name, prompt=test_prompt, max_tokens=2400, temperature=0.01
-    )
-
-    if response:
-        print("\n Inference test successful!")
-        print("\n Response from endpoint:")
-        print("-" * 40)
-        if isinstance(response, (dict, list)):
-            print(json.dumps(response, indent=2))
-        else:
-            print(response)
-        print("-" * 40)
-
-        print("\n" + "-" * 80)
-        print(" PHASE 4: CLEANUP".center(80))
-        print("-" * 80)
-        if delete_endpoint(endpoint_name):
-            print("\n" + "=" * 80)
-            print(" TEST COMPLETED SUCCESSFULLY! ".center(80))
-            print("=" * 80)
-        else:
-            print("\n Cleanup failed")
-    else:
-        print("\n No response received from the endpoint.")
-        print("\n" + "-" * 80)
-        print(" PHASE 4: CLEANUP (FAILED INFERENCE)".center(80))
-        print("-" * 80)
-        delete_endpoint(endpoint_name)
-        print("\n" + "=" * 80)
-        print(" TEST FAILED ".center(80))
-        print("=" * 80)
-        raise Exception("SageMaker endpoint inference test failed")
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Test vLLM SageMaker endpoint deployment and inference"
-    )
-    parser.add_argument(
-        "--image-uri", required=True, help="Docker image URI for the vLLM SageMaker model"
-    )
-    parser.add_argument("--endpoint-name", required=True, help="Name for the SageMaker endpoint")
-
-    args = parser.parse_args()
-
-    try:
-        test_vllm_on_sagemaker(args.image_uri, args.endpoint_name)
-    except Exception as e:
-        print(f"\nScript failed with error: {e}")
-        exit(1)
+    LOGGER.info(f"Model response: {pformat(response)}")
+    LOGGER.info("Inference test successful!")
