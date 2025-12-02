@@ -8,10 +8,6 @@ permissions:
   contents: read
   pull-requests: read
 
-concurrency:
-  group: pr-gate-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   gatekeeper:
     runs-on: ubuntu-latest
@@ -29,11 +25,15 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   pr-vllm:
+    needs: [gatekeeper]
+    if: success()
+    uses: ./.github/workflows/pr-vllm.yml
     permissions:
       contents: read
-    uses: ./.github/workflows/pr-vllm.yml
 
   pr-sglang:
+    needs: [gatekeeper]
+    if: success()
+    uses: ./.github/workflows/pr-sglang.yml
     permissions:
       contents: read
-    uses: ./.github/workflows/pr-sglang.yml
