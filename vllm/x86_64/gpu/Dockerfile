@@ -66,7 +66,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
     apt-get upgrade -y && \
     apt-get clean
 
-RUN pip install "nixl==0.8.0"
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
