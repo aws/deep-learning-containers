@@ -327,13 +327,23 @@ def is_service_running(selector_name, namespace="default"):
         LOGGER.info(f"Current status: {run_out.stdout}")
         LOGGER.info(f"{'='*60}")
 
-        # Get detailed pod information
-        run(f"kubectl get pods -n {namespace} --selector=app={selector_name} -o wide", warn=True)
-        run(f"kubectl describe pod -n {namespace} --selector=app={selector_name}", warn=True)
-        run(
+        # Capture and log kubectl outputs explicitly
+        get_pods_out = run(
+            f"kubectl get pods -n {namespace} --selector=app={selector_name} -o wide", warn=True
+        )
+        LOGGER.info(f"kubectl get pods output: {get_pods_out.stdout}")
+
+        describe_out = run(
+            f"kubectl describe pod -n {namespace} --selector=app={selector_name}", warn=True
+        )
+        LOGGER.info(f"kubectl describe pod output: {describe_out.stdout}")
+
+        logs_out = run(
             f"kubectl logs -n {namespace} --selector=app={selector_name} --all-containers=true --tail=50 || true",
             warn=True,
         )
+        if logs_out.stdout:
+            LOGGER.info(f"kubectl logs output: {logs_out.stdout}")
 
         LOGGER.info(f"{'='*60}")
 
