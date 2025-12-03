@@ -110,22 +110,22 @@ echo "Starting benchmark..."
 source vllm_env/bin/activate
 
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
-vllm bench serve \
-  --backend vllm \
-  --model $MODEL \
-  --endpoint /v1/completions \
-  --dataset-name sharegpt \
-  --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
-  --num-prompts 100 | tee "$LOG_DIR/benchmark.log"
-
-
 # vllm bench serve \
-#     --host 0.0.0.0 \
-#     --port 8192 \
-#     --model $MODEL \
-#     --dataset-name sharegpt \
-#     --dataset-path ShareGPT_V3_unfiltered_cleaned_split.json \
-#     --num-prompts 30 | tee "$LOG_DIR/benchmark.log"
+#   --backend vllm \
+#   --model $MODEL \
+#   --endpoint /v1/completions \
+#   --dataset-name sharegpt \
+#   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
+#   --num-prompts 100 | tee "$LOG_DIR/benchmark.log"
+
+
+vllm bench serve \
+    --host 0.0.0.0 \
+    --port 8192 \
+    --model $MODEL \
+    --dataset-name sharegpt \
+    --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
+    --num-prompts 30 | tee "$LOG_DIR/benchmark.log"
 
 # Cleanup function
 cleanup() {
