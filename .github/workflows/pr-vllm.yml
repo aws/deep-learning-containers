@@ -2,13 +2,14 @@ name: PR - vLLM
 
 on:
   pull_request:
-    branches:
-      - main
+    branches: [main]
+    types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   # CI Image configuration
@@ -25,7 +26,24 @@ env:
   FORCE_COLOR: "1"
 
 jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
   check-changes:
+    needs: [gatekeeper]
+    if: success()
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
