@@ -330,10 +330,13 @@ def is_service_running(selector_name, namespace="default"):
         # Get detailed pod information
         run(f"kubectl get pods -n {namespace} --selector=app={selector_name} -o wide", warn=True)
         run(f"kubectl describe pod -n {namespace} --selector=app={selector_name}", warn=True)
-        run(f"kubectl logs -n {namespace} --selector=app={selector_name} --all-containers=true --tail=50 || true", warn=True)
+        run(
+            f"kubectl logs -n {namespace} --selector=app={selector_name} --all-containers=true --tail=50 || true",
+            warn=True,
+        )
 
         LOGGER.info(f"{'='*60}")
-        
+
         raise ValueError("Service not running yet, try again")
 
 
