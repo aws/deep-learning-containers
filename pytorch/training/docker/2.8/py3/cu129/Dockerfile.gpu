@@ -250,10 +250,12 @@ RUN pip install --no-cache-dir -U \
     "awscli<1.42.50" \
     "boto3<1.40.50" \
     smclarify \
-    "sagemaker>=2" \
+    "sagemaker==2.254.1" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    # Add sniffio explicitly as it's not included in sagemaker==2.254.1 dependencies
+    sniffio   
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -265,7 +267,8 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle
+    cloudpickle \
+    "langcodes<=3.5.0"
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
