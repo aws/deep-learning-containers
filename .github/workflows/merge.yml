@@ -2,6 +2,8 @@ name: Merge Conditions
 
 on:
   pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
 
 permissions:
   checks: read
