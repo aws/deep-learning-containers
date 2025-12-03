@@ -298,7 +298,7 @@ def run_nixl_efa_test(head_conn, image_uri):
         )
         commands = [
             "chmod +x /home/ec2-user/test_nixl.sh",
-            f"/home/ec2-user/run_vllm_on_arm64.sh {image_uri}",
+            f"/home/ec2-user/test_nixl.sh {image_uri}",
         ]
 
         result = head_conn.run(
