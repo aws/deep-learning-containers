@@ -1,0 +1,24 @@
+name: Merge Conditions
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  checks: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  enforce-all-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: GitHub Workflow Checks
+        uses: poseidon/wait-for-status-checks@v0.6.0
+        with:
+          token: ${{ github.token }}
+          interval: 30s   # Reduce interval for quicker checks
+          timeout: 7200s  # Timeout should be adjusted according to the longest running workflow

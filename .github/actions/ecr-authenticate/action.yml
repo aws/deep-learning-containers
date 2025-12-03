@@ -1,4 +1,5 @@
 name: ECR Authentication
+
 description: Login to ECR, if image-uri is provided pull the image onto host runner.
 
 inputs:
