@@ -115,16 +115,16 @@ def setup_docker_image(conn, image_uri):
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     try:
 
-        for conn in [head_connection, worker_connection]:
-            install_python_in_instance(conn, "3.10")
-            setup_docker_image(conn, image_uri)
-            setup_env(conn)
-
         # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
         if not hf_token:
             raise Exception("Failed to get HF token")
+
+        for conn in [head_connection, worker_connection]:
+            install_python_in_instance(conn, "3.10")
+            setup_docker_image(conn, image_uri)
+            setup_env(conn)
 
         head_connection.put(
             "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
@@ -292,7 +292,7 @@ def run_nixl_efa_test(head_conn, image_uri):
     try:
         print("\n=== Starting NIXL EFA Test ===")
         install_python_in_instance(head_conn, python_version="3.10")
-
+        setup_env(head_conn)
         head_conn.put(
             "vllm/ec2/utils/test_nixl.sh",
             "/home/ec2-user/test_nixl.sh",
@@ -402,12 +402,11 @@ def test_vllm_on_ec2(resources, image_uri):
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
 
+            # Run multi-node test
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
             test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
 
             print("EFA tests completed successfully")
-
-            # Run multi-node test
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
 
         else:
             print("\nSkipping multi-node test: insufficient instances")
