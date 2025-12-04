@@ -360,24 +360,20 @@ def main():
     Invoke bucket query
     """
     # Logs are not necessary for normal run. Remove this line while debugging.
-    # logging.getLogger().disabled = True
+    logging.getLogger().disabled = True
 
-    # logging.basicConfig(level=logging.ERROR)
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.ERROR)
 
     token = None
     instance_id = None
     region = None
     token = get_imdsv2_token()
-    logging.debug("token: {}".format(token))
     if token:
         instance_id = _retrieve_instance_id(token)
         region = _retrieve_instance_region(token)
     else:
         instance_id = _retrieve_instance_id()
         region = _retrieve_instance_region()
-    logging.debug("instance_id: {}".format(instance_id))
-    logging.debug("region: {}".format(region))
 
     bucket_process = multiprocessing.Process(target=query_bucket, args=(instance_id, region))
     tag_process = multiprocessing.Process(target=tag_instance, args=(instance_id, region))
