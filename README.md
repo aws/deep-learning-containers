@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="AWS Logo" src="https://raw.githubusercontent.com/aws/deep-learning-containers/master/.github/assets/aws-logo.png" width=50%>
+  <img alt="AWS Logo" src="https://raw.githubusercontent.com/aws/deep-learning-containers/master/.github/assets/aws-logo.png" width=30%>
 <h3 align="center">
 One stop shop for running AI/ML on AWS.
 </h3>
@@ -12,7 +12,7 @@ One stop shop for running AI/ML on AWS.
 
 ### 🚀 Release Highlight
 
-- [2025/11/19] We released v0.11.1 [vLLM DLC](https://gallery.ecr.aws/deep-learning-containers/vllm), available in EC2/EKS/ECS `public.ecr.aws/deep-learning-containers/vllm:0.11.1-gpu-py312-ec2` and SageMaker `public.ecr.aws/deep-learning-containers/vllm:0.11.1-gpu-py312`
+- [2025/11/20] We released v0.11.2 [vLLM DLC](https://gallery.ecr.aws/deep-learning-containers/vllm), available in EC2/EKS/ECS `public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312-ec2` and SageMaker `public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312`
 - [2025/11/17] We released first [Sglang DLC](https://gallery.ecr.aws/deep-learning-containers/sglang), available in SageMaker `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 
 ### 🎉 Hot Off the Press
@@ -21,7 +21,7 @@ One stop shop for running AI/ML on AWS.
 -  Seamlessly integrate AWS Deep Learning Containers with Amazon SageMaker's managed MLflow service to streamline your ML experiment tracking, model management, and deployment workflow. Checkout [Level Up with SageMaker AI & MLflow](https://aws.amazon.com/blogs/machine-learning/use-aws-deep-learning-containers-with-amazon-sagemaker-ai-managed-mlflow/) for details 🔄
 -  Deploy and serve Large Language Models efficiently on Amazon EKS using vLLM Deep Learning Containers for optimized inference performance and scalability. Checkout [Deploy LLMs Like a Pro on EKS](https://aws.amazon.com/blogs/architecture/deploy-llms-on-amazon-eks-using-vllm-deep-learning-containers/) for details 🚀
 -  Learn to fine-tune and deploy Meta's Llama 3.2 Vision model for AI-powered web automation by combining AWS DLCs, Amazon EKS, and Bedrock to enable visual understanding in your applications. Checkout [Web Automation with Meta Llama 3.2 Vision](https://aws.amazon.com/blogs/machine-learning/fine-tune-and-deploy-meta-llama-3-2-vision-for-generative-ai-powered-web-automation-using-aws-dlcs-amazon-eks-and-amazon-bedrock/) for details 🎯
--  Discover how to simplify and accelerate your deep learning workflow by integrating AWS Deep Learning Containers with Amazon Q Developer and Model Composer Platform (MCP) for streamlined environment setup and management. Checkout [Supercharge Your DL Environment](https://aws.amazon.com/blogs/machine-learning/streamline-deep-learning-environments-with-amazon-q-developer-and-mcp/) for details ⚡ 
+-  Discover how to simplify and accelerate your deep learning workflow by integrating AWS Deep Learning Containers with Amazon Q Developer and Model Context Protocol (MCP) for streamlined environment setup and management. Checkout [Supercharge Your DL Environment](https://aws.amazon.com/blogs/machine-learning/streamline-deep-learning-environments-with-amazon-q-developer-and-mcp/) for details ⚡ 
 
 ### 🎓 Hands-on Workshop
 
