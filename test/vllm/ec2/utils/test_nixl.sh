@@ -8,6 +8,9 @@ LOG_DIR="/fsx/vllm-dlc/logs"
 
 mkdir -p $LOG_DIR
 
+cd /fsx/vllm-dlc/
+ls 
+
 # Function to check logs for LIBFABRIC backend
 check_libfabric() {
     local log_file=$1
@@ -91,7 +94,7 @@ check_libfabric "$LOG_DIR/decode.log" "Decoder"
 
 # Start proxy server
 echo "Starting proxy server..."
-python3 /fsx/vllm-dlc/vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
+python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
     --host 0.0.0.0 \
     --port 8192 \
     --prefiller-hosts localhost \
