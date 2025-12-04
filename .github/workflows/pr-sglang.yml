@@ -193,7 +193,7 @@ jobs:
 
       - name: Run tests
         run: |
-          docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && bash /usr/local/bin/bash_telemetry.sh && cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}""
+          docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && bash /usr/local/bin/bash_telemetry.sh && sleep 3 && cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}""
 
 
   sglang-local-benchmark-test:
