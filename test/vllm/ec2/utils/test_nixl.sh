@@ -6,7 +6,6 @@ MODEL="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 KV_CONFIG='{"kv_connector":"NixlConnector","kv_role":"kv_both", "kv_buffer_device":"cuda","kv_connector_extra_config":{"backends":["LIBFABRIC"]}}'
 LOG_DIR="/fsx/vllm-dlc/logs"
 
-cd /fsx/vllm-dlc
 mkdir -p $LOG_DIR
 
 # Function to check logs for LIBFABRIC backend
@@ -92,7 +91,7 @@ check_libfabric "$LOG_DIR/decode.log" "Decoder"
 
 # Start proxy server
 echo "Starting proxy server..."
-python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
+python3 /fsx/vllm-dlc/vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
     --host 0.0.0.0 \
     --port 8192 \
     --prefiller-hosts localhost \
