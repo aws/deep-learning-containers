@@ -102,24 +102,9 @@ python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
     --decoder-hosts localhost \
     --decoder-ports 8200 > "$LOG_DIR/proxy.log" 2>&1 &
 
-# Wait for proxy to be ready
-wait_for_server 8192 "Proxy" || exit 1
-
 # Run benchmark
 echo "Starting benchmark..."
-
-
 source vllm_env/bin/activate
-
-# Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
-# vllm bench serve \
-#   --backend vllm \
-#   --model $MODEL \
-#   --endpoint /v1/completions \
-#   --dataset-name sharegpt \
-#   --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
-#   --num-prompts 100 | tee "$LOG_DIR/benchmark.log"
-
 
 vllm bench serve \
     --host 0.0.0.0 \
