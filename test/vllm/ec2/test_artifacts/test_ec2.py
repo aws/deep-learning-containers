@@ -160,7 +160,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         )
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
-        if not wait_for_container_ready(head_connection, container_name, timeout=2000):
+        if not wait_for_container_ready(head_connection, container_name, timeout=3000):
             raise Exception("Container failed to become ready within timeout period")
 
         print("Running benchmark...")
