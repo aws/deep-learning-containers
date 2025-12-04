@@ -38,8 +38,7 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
-    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm && \
-    pip install "transformers<4.54.0"
+    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm transformers
     """
     connection.run(setup_command, shell=True)
 
