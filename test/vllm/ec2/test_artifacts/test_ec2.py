@@ -114,6 +114,12 @@ def setup_docker_image(conn, image_uri):
 
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     try:
+
+        for conn in [head_connection, worker_connection]:
+            install_python_in_instance(conn, "3.10")
+            setup_docker_image(conn, image_uri)
+            setup_env(conn)
+
         # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
@@ -285,6 +291,8 @@ def run_single_node_test(head_conn, image_uri):
 def run_nixl_efa_test(head_conn, image_uri):
     try:
         print("\n=== Starting NIXL EFA Test ===")
+        install_python_in_instance(head_conn, python_version="3.10")
+
         head_conn.put(
             "vllm/ec2/utils/test_nixl.sh",
             "/home/ec2-user/test_nixl.sh",
@@ -390,11 +398,6 @@ def test_vllm_on_ec2(resources, image_uri):
             )
 
             test_results["efa"] = True
-
-            for conn in [head_conn, worker_conn]:
-                install_python_in_instance(conn, "3.10")
-                setup_docker_image(conn, image_uri)
-                setup_env(conn)
 
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
