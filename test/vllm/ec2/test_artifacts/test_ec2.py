@@ -292,6 +292,7 @@ def run_nixl_efa_test(head_conn, image_uri):
     try:
         print("\n=== Starting NIXL EFA Test ===")
         setup_env(head_conn)
+        install_python_in_instance(head_conn, "3.10")
         head_conn.put(
             "vllm/ec2/utils/test_nixl.sh",
             "/home/ec2-user/test_nixl.sh",
