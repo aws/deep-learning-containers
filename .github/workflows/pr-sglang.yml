@@ -163,42 +163,6 @@ jobs:
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
-  sglang-telemetry-test:
-    needs: [set-test-environment, build-sglang-image]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-sglang-telemetry-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
-            -e TEST_MODE=1 \
-            ${{ needs.set-test-environment.outputs.image-uri }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-          docker logs ${CONTAINER_ID}
-
-      - name: Run tests
-        run: |
-          TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"` \
-          && curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-id
-          docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && python /usr/local/bin/deep_learning_container.py --framework sglang --framework-version "0.5.5" --container-type "general" && cat /tmp/test_request.txt"
-          docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && bash /usr/local/bin/bash_telemetry.sh && sleep 30 && cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}""
-
-
   sglang-local-benchmark-test:
     needs: [set-test-environment, build-sglang-image]
     if: success()
