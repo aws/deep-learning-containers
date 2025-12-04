@@ -304,6 +304,7 @@ def run_nixl_efa_test(head_conn, image_uri):
         raise
 
     if result.ok:
+        cleanup_containers(head_conn)
         print("NIXL EFA test completed successfully")
         return True
 
@@ -395,10 +396,10 @@ def test_vllm_on_ec2(resources, image_uri):
                 setup_docker_image(conn, image_uri)
                 setup_env(conn)
 
-            test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
-
             for conn in [head_conn, worker_conn]:
                 cleanup_containers(conn)
+
+            test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
 
             print("EFA tests completed successfully")
 
