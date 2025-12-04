@@ -9,7 +9,7 @@ LOG_DIR="/fsx/vllm-dlc/logs"
 mkdir -p $LOG_DIR
 
 cd /fsx/vllm-dlc/
-ls 
+pip install vllm
 
 # Function to check logs for LIBFABRIC backend
 check_libfabric() {
@@ -104,8 +104,6 @@ python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
 
 # Run benchmark
 echo "Starting benchmark..."
-source vllm_env/bin/activate
-
 vllm bench serve \
     --host 0.0.0.0 \
     --port 8192 \
