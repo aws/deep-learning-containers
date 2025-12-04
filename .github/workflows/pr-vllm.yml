@@ -13,6 +13,8 @@ permissions:
 
 env:
   # CI Image configuration
+  CONTAINER_TYPE: "general"
+  FRAMEWORK: "vllm"
   VLLM_VERSION: 0.11.2
   VLLM_RAYSERVE_VERSION: 0.10.2
   PYTHON_VERSION: "py312"
@@ -118,6 +120,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -159,6 +164,38 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+  vllm-ec2-telemetry-test:
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-vllm-ec2-telemetry-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -e TEST_MODE=1 \
+            ${{ needs.set-ec2-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          docker logs ${CONTAINER_ID}
+
+      - name: Run tests
+        run: |
+          docker exec ${CONTAINER_ID} cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}"
 
   vllm-ec2-regression-test:
     needs: [build-vllm-ec2-image, set-ec2-test-environment]
@@ -402,6 +439,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_RAYSERVE_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_RAYSERVE_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -443,6 +483,38 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+  vllm-rayserve-telemetry-test:
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-vllm-rayserve-telemetry-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -e TEST_MODE=1 \
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          docker logs ${CONTAINER_ID}
+
+      - name: Run tests
+        run: |
+          docker exec ${CONTAINER_ID} cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}"
 
   vllm-rayserve-regression-test:
     needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
@@ -686,6 +758,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -727,6 +802,38 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+  vllm-sagemaker-telemetry-test:
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-vllm-sagemaker-telemetry-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -e TEST_MODE=1 \
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          docker logs ${CONTAINER_ID}
+
+      - name: Run tests
+        run: |
+          docker exec ${CONTAINER_ID} cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}"
 
   vllm-sagemaker-regression-test:
     needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]

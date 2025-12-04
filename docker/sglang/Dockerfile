@@ -1,5 +1,8 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
+ARG FRAMEWORK=sglang
+ARG FRAMEWORK_VERSION=0.5.5
+ARG CONTAINER_TYPE=general
 ARG BASE_IMAGE=lmsysorg/sglang:v0.5.5-cu129-amd64
 
 # Use input argument as base image
@@ -32,13 +35,21 @@ WORKDIR /
 # Copy artifacts
 # ===============
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/common/install_efa.sh install_efa.sh
 COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && chmod +x /usr/local/bin/start_cuda_compat.sh
+  && chmod +x /usr/local/bin/start_cuda_compat.sh \
+  && rm /tmp/bash_telemetry.sh.template
 
 # Install EFA and remove vulnerable nvjpeg
 # =========================================

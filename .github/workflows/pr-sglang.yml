@@ -13,6 +13,8 @@ permissions:
 
 env:
   # CI Image configuration
+  CONTAINER_TYPE: "general"
+  FRAMEWORK: "sglang"
   SGLANG_VERSION: "0.5.5"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
@@ -116,6 +118,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.SGLANG_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -157,6 +162,39 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+  sglang-telemetry-test:
+    needs: [set-test-environment, build-sglang-image]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-sglang-telemetry-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -e TEST_MODE=1 \
+            ${{ needs.set-test-environment.outputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          docker logs ${CONTAINER_ID}
+
+      - name: Run tests
+        run: |
+          docker exec ${CONTAINER_ID} cat /tmp/test_request.txt | grep "sglang"
+
 
   sglang-local-benchmark-test:
     needs: [set-test-environment, build-sglang-image]
