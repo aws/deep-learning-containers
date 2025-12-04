@@ -360,7 +360,7 @@ def main():
     Invoke bucket query
     """
     # Logs are not necessary for normal run. Remove this line while debugging.
-    logging.getLogger().disabled = True
+    # logging.getLogger().disabled = True
 
     logging.basicConfig(level=logging.ERROR)
 
