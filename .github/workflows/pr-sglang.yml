@@ -193,6 +193,7 @@ jobs:
 
       - name: Run tests
         run: |
+          docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && python /usr/local/bin/deep_learning_container.py --framework sglang --framework-version "0.5.5" --container-type "general" && cat /tmp/test_request.txt"
           docker exec ${CONTAINER_ID} bash -c "export TEST_MODE=1 && bash /usr/local/bin/bash_telemetry.sh && sleep 30 && cat /tmp/test_request.txt | grep "${{ env.FRAMEWORK }}""
 
 
