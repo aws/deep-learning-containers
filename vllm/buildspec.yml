@@ -49,7 +49,7 @@ images:
       test_platforms:
         - sanity
         - security
-        # - ec2
+        - ec2
         # - eks
     # tests:
     #   - platform: ec2-multi-node-efa
