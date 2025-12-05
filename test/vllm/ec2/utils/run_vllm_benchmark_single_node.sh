@@ -21,7 +21,7 @@ sleep 1500
 source vllm_env/bin/activate
 
 # Example - Online Benchmark: https://github.com/vllm-project/vllm/tree/main/benchmarks#example---online-benchmark
-python3 /fsx/vllm-dlc/vllm/benchmarks/benchmark_serving.py \
+vllm bench serve \
   --backend vllm \
   --model $MODEL_NAME \
   --endpoint /v1/completions \
