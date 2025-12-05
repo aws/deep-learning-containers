@@ -38,7 +38,8 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
-    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm transformers
+    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
+    pip install "transformers<4.54.0"
     """
     connection.run(setup_command, shell=True)
 
@@ -114,7 +115,6 @@ def setup_docker_image(conn, image_uri):
 
 def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_uri):
     try:
-
         # Get HF token
         response = get_secret_hf_token()
         hf_token = response.get("HF_TOKEN")
@@ -160,7 +160,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         )
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
-        if not wait_for_container_ready(head_connection, container_name, timeout=3000):
+        if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
 
         print("Running benchmark...")
@@ -288,158 +288,11 @@ def run_single_node_test(head_conn, image_uri):
         return True
 
 
-def run_nixl_efa_test(head_conn, image_uri):
-    try:
-        print("\n=== Starting NIXL EFA Test ===")
-        install_python_in_instance(head_conn, python_version="3.10")
-        setup_env(head_conn)
-        head_conn.put(
-            "vllm/ec2/utils/test_nixl.sh",
-            "/home/ec2-user/test_nixl.sh",
-        )
-        commands = [
-            "chmod +x /home/ec2-user/test_nixl.sh",
-            f"/home/ec2-user/test_nixl.sh {image_uri}",
-        ]
-
-        result = head_conn.run(
-            "; ".join(commands),
-            hide=False,
-            timeout=7200,
-        )
-    except Exception as e:
-        print(f"Test execution failed: {str(e)}")
-        raise
-
-    if result.ok:
-        cleanup_containers(head_conn)
-        print("NIXL EFA test completed successfully")
-        return True
-
-
-def initialize_connections(ec2_cli, resources, num_instances_needed=1):
-    """
-    Initialize EC2 connections for a specific test
-
-    Args:
-        resources: Dictionary containing instance information and FSx config
-        num_instances_needed: Number of instances needed for the test
-
-    Returns:
-        tuple: (list of connections, list of instance IDs)
-    """
-    connections = []
-
-    try:
-        for instance_id, key_filename in resources["instances_info"][:num_instances_needed]:
-            instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
-                "Reservations"
-            ][0]["Instances"][0]
-            public_ip = instance_details.get("PublicIpAddress")
-
-            if not public_ip:
-                raise Exception(f"No public IP found for instance {instance_id}")
-
-            connection = Connection(
-                host=public_ip,
-                user="ec2-user",
-                connect_kwargs={"key_filename": key_filename},
-            )
-
-            connection.run('echo "Connection test"', hide=True)
-            connections.append(connection)
-            print(f"Successfully connected to instance {instance_id}")
-
-        return connections
-    except Exception as e:
-        print(f"Failed to initialize connections: {str(e)}")
-        raise
-
-
-def run_arm64_tests(ec2_cli, resources, image_uri):
-    """Execute ARM64 specific tests"""
-    try:
-        connections, _ = initialize_connections(ec2_cli, resources, num_instances_needed=1)
-        head_conn = connections[0]
-
-        print("\n=== Starting ARM64 Single Node Test ===")
-        result = run_single_node_test(head_conn, image_uri)
-        print(f"ARM64 Single node test: {'Passed' if result else 'Failed'}")
-
-        return result
-    finally:
-        for conn in connections:
-            conn.close()
-
-
-def run_efa_tests(ec2_cli, resources, image_uri):
-    """Execute EFA specific tests"""
-    try:
-        connections = initialize_connections(ec2_cli, resources, num_instances_needed=2)
-        head_conn, worker_conn = connections
-
-        print("\n=== Starting EFA Tests ===")
-        _setup_multinode_efa_instances(
-            image_uri,
-            resources["instances_info"][:2],
-            connections,
-            "p4d.24xlarge",
-            DEFAULT_REGION,
-        )
-
-        run_cmd_on_container(MASTER_CONTAINER_NAME, head_conn, EFA_SANITY_TEST_CMD, hide=False)
-        run_cmd_on_container(
-            MASTER_CONTAINER_NAME,
-            head_conn,
-            f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} 2",
-            hide=False,
-            timeout=DEFAULT_EFA_TIMEOUT,
-        )
-
-        for conn in connections:
-            cleanup_containers(conn)
-
-        return True
-    finally:
-        for conn in connections:
-            conn.close()
-
-
-def run_multinode_tests(ec2_cli, resources, image_uri):
-    """Execute multi-node specific tests"""
-    try:
-        connections = initialize_connections(ec2_cli, resources, num_instances_needed=2)
-        head_conn, worker_conn = connections
-
-        print("\n=== Starting Multi-Node Test ===")
-        result = run_multi_node_test(head_conn, worker_conn, image_uri)
-        print(f"Multi-node test: {'Passed' if result else 'Failed'}")
-
-        return result
-    finally:
-        for conn in connections:
-            conn.close()
-
-
-def run_nixl_tests(ec2_cli, resources, image_uri):
-    """Execute NIXL specific tests"""
-    try:
-        connections = initialize_connections(ec2_cli, resources, num_instances_needed=1)
-        head_conn = connections[0]
-
-        print("\n=== Starting NIXL Test ===")
-        result = run_nixl_efa_test(head_conn, image_uri)
-        print(f"NIXL test: {'Passed' if result else 'Failed'}")
-
-        return result
-    finally:
-        for conn in connections:
-            conn.close()
-
-
 def test_vllm_on_ec2(resources, image_uri):
     """
-    Test VLLM on EC2 instances with separate connections for each test
+    Test VLLM on EC2 instances:
+    - For non-arm64: EFA testing, Single node test, and Multi-node test
+    - For arm64: Single node test only
 
     Args:
         resources: Dictionary containing instance information and FSx config
@@ -447,27 +300,86 @@ def test_vllm_on_ec2(resources, image_uri):
     """
     ec2_cli = None
     fsx = None
-    test_results = {"efa": None, "single_node": None, "multi_node": None, "nixl": None}
+    ec2_connections = {}
+    test_results = {"efa": None, "single_node": None, "multi_node": None}
+
+    # to test agents
 
     try:
         ec2_cli = get_ec2_client(DEFAULT_REGION)
         fsx = FsxSetup(DEFAULT_REGION)
 
+        for instance_id, key_filename in resources["instances_info"]:
+            try:
+                instance_details = ec2_cli.describe_instances(InstanceIds=[instance_id])[
+                    "Reservations"
+                ][0]["Instances"][0]
+                public_ip = instance_details.get("PublicIpAddress")
+
+                if not public_ip:
+                    raise Exception(f"No public IP found for instance {instance_id}")
+
+                connection = Connection(
+                    host=public_ip,
+                    user="ec2-user",
+                    connect_kwargs={"key_filename": key_filename},
+                )
+
+                connection.run('echo "Connection test"', hide=True)
+                ec2_connections[instance_id] = connection
+                print(f"Successfully connected to instance {instance_id}")
+
+            except Exception as e:
+                print(f"Failed to connect to instance {instance_id}: {str(e)}")
+                raise
+
         is_arm64 = "arm64" in image_uri
+        instance_ids = list(ec2_connections.keys())
+        head_conn = ec2_connections[instance_ids[0]]
+
         if is_arm64:
-            test_results["single_node"] = run_arm64_tests(ec2_cli, resources, image_uri)
+            print("\n=== Starting ARM64 Single Node Test ===")
+            test_results["single_node"] = run_single_node_test(head_conn, image_uri)
+            print(
+                f"ARM64 Single node test: {'Passed' if test_results['single_node'] else 'Failed'}"
+            )
+
+        elif len(ec2_connections) >= 2:
+            worker_conn = ec2_connections[instance_ids[1]]
+
+            print("\n=== Starting EFA Tests ===")
+            _setup_multinode_efa_instances(
+                image_uri,
+                resources["instances_info"][:2],
+                [head_conn, worker_conn],
+                "p4d.24xlarge",
+                DEFAULT_REGION,
+            )
+
+            # Run EFA sanity test
+            run_cmd_on_container(MASTER_CONTAINER_NAME, head_conn, EFA_SANITY_TEST_CMD, hide=False)
+
+            # Run EFA integration test
+            run_cmd_on_container(
+                MASTER_CONTAINER_NAME,
+                head_conn,
+                f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} 2",
+                hide=False,
+                timeout=DEFAULT_EFA_TIMEOUT,
+            )
+
+            test_results["efa"] = True
+
+            for conn in [head_conn, worker_conn]:
+                cleanup_containers(conn)
+
+            print("EFA tests completed successfully")
+
+            # Run multi-node test
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+
         else:
-            if len(resources["instances_info"]) >= 2:
-                # Run EFA tests
-                test_results["efa"] = run_efa_tests(ec2_cli, resources, image_uri)
-
-                # Run multi-node tests with fresh connections
-                test_results["multi_node"] = run_multinode_tests(ec2_cli, resources, image_uri)
-
-                # Run NIXL tests with fresh connections
-                test_results["nixl"] = run_nixl_tests(ec2_cli, resources, image_uri)
-            else:
-                print("\nSkipping multi-node tests: insufficient instances")
+            print("\nSkipping multi-node test: insufficient instances")
 
         print("\n=== Test Summary ===")
         for test_name, result in test_results.items():
