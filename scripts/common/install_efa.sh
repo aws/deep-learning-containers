@@ -17,13 +17,26 @@ case $ARCH in
 esac
 
 function check_libnccl_net_so {
-    OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
-    NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
+
+    if [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then  # version threshold
+        # Newer EFA version - no ARCH_DIR, different filename
+        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
+        NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
+        echo "Using newer EFA path structure"
+    else
+        # Older EFA version - uses ARCH_DIR
+        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
+        NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
+        echo "Using older EFA path structure with ARCH_DIR: $ARCH_DIR"
+    fi
 
     # Check if file exists
     if [ ! -f "$NCCL_NET_SO" ]; then
         echo "ERROR: $NCCL_NET_SO does not exist"
         return 1
+    else
+        echo "NCCL OFI plugin found at: $NCCL_NET_SO"
+        return 0
     fi
 }
 
@@ -100,3 +113,4 @@ do
     esac
     shift
 done
+
