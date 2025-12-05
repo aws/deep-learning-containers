@@ -184,7 +184,7 @@ dlc-pr-pytorch-eia-inference = ""
 dlc-pr-tensorflow-2-eia-inference = ""
 
 # vllm
-dlc-pr-vllm = ""
+dlc-pr-vllm = "vllm/buildspec-sm.yml"
 
 # sglang
 dlc-pr-sglang = ""
