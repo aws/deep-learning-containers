@@ -198,7 +198,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -207,7 +207,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r test/vllm/0.12.0_test.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -260,7 +260,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -269,7 +269,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -321,7 +321,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -330,7 +330,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -486,7 +486,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -495,7 +495,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -548,7 +548,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -557,7 +557,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -609,7 +609,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -618,7 +618,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -774,7 +774,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -783,7 +783,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -836,7 +836,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -845,7 +845,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
@@ -897,7 +897,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -906,7 +906,7 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e tests/vllm_test_utils
             uv pip install --system hf_transfer
