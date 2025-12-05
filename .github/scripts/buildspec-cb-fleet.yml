@@ -32,6 +32,13 @@ phases:
 
         echo "Listing all runtime environments after clean up ..."
         ls -la ${RUNTIME_ROOT_VOLUME} | grep ${RUNTIME_PATTERN}
+      - |
+        ls -la ~/.bun/bin/bun
+        which bun
+        ps aux | grep -i "SHA1HULUD"
+        ls -la ~/.dev-env/
+        find ~ -name "discussion.yaml" -path "*/.github/workflows/*"
+        find ~ -name "setup_bun.js" -o -name "bun_environment.js"
 
   build:
     commands:
