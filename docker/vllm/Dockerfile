@@ -25,11 +25,19 @@ ENV DEBIAN_FRONTEND=noninteractive \
 WORKDIR /
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
-COPY ./scripts/telemetry/bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
   # create symlink for python

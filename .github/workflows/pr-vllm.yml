@@ -13,6 +13,8 @@ permissions:
 
 env:
   # CI Image configuration
+  CONTAINER_TYPE: "general"
+  FRAMEWORK: "vllm"
   VLLM_VERSION: 0.11.2
   VLLM_RAYSERVE_VERSION: 0.10.2
   PYTHON_VERSION: "py312"
@@ -118,6 +120,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -353,8 +358,9 @@ jobs:
             # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
-            python3 offline_inference/vision_language_pooling.py --seed 0
-            python3 offline_inference/vision_language_multi_image.py --seed 0
+            # broken before v0.12.0: https://github.com/vllm-project/vllm/commit/c64c0b78de4716ef019666663c56b6ceaa019463
+            # python3 offline_inference/vision_language_pooling.py --seed
+            # python3 offline_inference/vision_language_multi_image.py --seed 0
             python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
@@ -402,6 +408,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_RAYSERVE_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_RAYSERVE_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -637,8 +646,9 @@ jobs:
             # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
-            python3 offline_inference/vision_language_pooling.py --seed 0
-            python3 offline_inference/vision_language_multi_image.py --seed 0
+            # broken before v0.12.0: https://github.com/vllm-project/vllm/commit/c64c0b78de4716ef019666663c56b6ceaa019463
+            # python3 offline_inference/vision_language_pooling.py --seed
+            # python3 offline_inference/vision_language_multi_image.py --seed 0
             python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
@@ -686,6 +696,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="vllm/vllm-openai:v${{ env.VLLM_VERSION }}" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.VLLM_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
@@ -921,8 +934,9 @@ jobs:
             # python3 offline_inference/audio_language.py --seed 0
 
             python3 offline_inference/vision_language.py --seed 0
-            python3 offline_inference/vision_language_pooling.py --seed 0
-            python3 offline_inference/vision_language_multi_image.py --seed 0
+            # broken before v0.12.0: https://github.com/vllm-project/vllm/commit/c64c0b78de4716ef019666663c56b6ceaa019463
+            # python3 offline_inference/vision_language_pooling.py --seed
+            # python3 offline_inference/vision_language_multi_image.py --seed 0
             python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py

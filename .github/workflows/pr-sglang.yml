@@ -13,6 +13,8 @@ permissions:
 
 env:
   # CI Image configuration
+  CONTAINER_TYPE: "general"
+  FRAMEWORK: "sglang"
   SGLANG_VERSION: "0.5.5"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
@@ -116,6 +118,9 @@ jobs:
           docker buildx build --progress plain \
             --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
             --build-arg BASE_IMAGE="lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64" \
+            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
+            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
+            --build-arg FRAMEWORK_VERSION="${{ env.SGLANG_VERSION }}" \
             --cache-to=type=inline \
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
