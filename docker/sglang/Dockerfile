@@ -95,7 +95,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
 
 FROM base AS sglang-sagemaker
 
-ARG CACHE_REFRESH=0
+ARG CACHE_REFRESH=1
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
