@@ -214,6 +214,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -225,7 +226,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -279,6 +280,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -290,7 +292,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -343,6 +345,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -352,6 +355,7 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+            cd vllm_source/examples
             # for basic
             python3 offline_inference/basic/chat.py
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
@@ -511,6 +515,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -522,7 +527,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -576,6 +581,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -587,7 +593,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -640,6 +646,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -651,7 +658,7 @@ jobs:
             nvidia-smi
 
             # Examples Test # 30min
-            cd /workdir/examples
+            cd vllm_source/examples
             pip install tensorizer # for tensorizer test
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
             # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
@@ -808,6 +815,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -819,7 +827,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -873,6 +881,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -884,7 +893,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -937,6 +946,7 @@ jobs:
             uv pip install --system pytest pytest-asyncio
             uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -946,6 +956,7 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
+            cd vllm_source/examples
             # for basic
             python3 offline_inference/basic/chat.py
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
