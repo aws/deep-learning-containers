@@ -19,7 +19,6 @@ WORKDIR /
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY install_efa.sh install_efa.sh
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
@@ -41,10 +40,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
 
-
+COPY install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} &  \
-    rm install_efa.sh && \
-    mkdir -p /tmp/nvjpeg \
+    rm install_efa.sh 
+
+RUN mkdir -p /tmp/nvjpeg \
     && cd /tmp/nvjpeg \
     && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
