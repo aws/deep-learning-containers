@@ -55,8 +55,8 @@ RUN bash install_efa.sh ${EFA_VERSION} &  \
     && rm -rf /tmp/nvjpeg \ 
       # remove cuobjdump and nvdisasm
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
-    && rm -rf /usr/local/cuda/bin/nvdisasm*  
-
+    && rm -rf /usr/local/cuda/bin/nvdisasm*  \
+    && apt-get install -y git
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
