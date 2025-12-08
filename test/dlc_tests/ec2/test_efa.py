@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import time
 
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
@@ -214,6 +215,7 @@ def _setup_multinode_efa_instances(
     build_all_reduce_perf_promises = []
     # Run container
     _setup_container(master_connection, image, MASTER_CONTAINER_NAME)
+    time.sleep(3000)
     # Build all_reduce_perf binary using nccl-tests
     promise = run_cmd_on_container(
         MASTER_CONTAINER_NAME,

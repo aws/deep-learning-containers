@@ -42,12 +42,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm -rf /root/.cache | true
 
 
-RUN apt-get install -y wget && \
-    bash install_efa.sh ${EFA_VERSION} &  \
+RUN bash install_efa.sh ${EFA_VERSION} &  \
     rm install_efa.sh && \
     mkdir -p /tmp/nvjpeg \
     && cd /tmp/nvjpeg \
-    && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+    && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
     && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
