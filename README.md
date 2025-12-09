@@ -12,7 +12,7 @@ One stop shop for running AI/ML on AWS.
 
 ### 🚀 Release Highlight
 
-- [2025/11/20] We released v0.11.2 [vLLM DLC](https://gallery.ecr.aws/deep-learning-containers/vllm), available in EC2/EKS/ECS `public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312-ec2` and SageMaker `public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312`
+- [2025/12/09] We released v0.12.0 [vLLM DLC](https://gallery.ecr.aws/deep-learning-containers/vllm), available in EC2/EKS/ECS `public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312-ec2` and SageMaker `public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312`
 - [2025/11/17] We released first [Sglang DLC](https://gallery.ecr.aws/deep-learning-containers/sglang), available in SageMaker `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 
 ### 🎉 Hot Off the Press
