@@ -148,7 +148,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}")
 
         # add timer to let container run
-        time.sleep(30)
+        time.sleep(3000)
 
         commands = ["ray status", "fi_info -p efa"]
         for command in commands:
