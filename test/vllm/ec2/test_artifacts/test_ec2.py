@@ -154,7 +154,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
 
-        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384  --distributed-executor-backend ray"
         head_connection.run(
             f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
         )
