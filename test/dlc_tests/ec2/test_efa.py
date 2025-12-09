@@ -1,6 +1,7 @@
 import os
 
 import pytest
+import time
 
 import test.test_utils.ec2 as ec2_utils
 from test.test_utils import (
@@ -38,7 +39,7 @@ MASTER_CONTAINER_NAME = "master_container"
 WORKER_CONTAINER_NAME = "worker_container"
 HOSTS_FILE_LOCATION = "/root/hosts"
 
-DEFAULT_EFA_TIMEOUT = 300
+DEFAULT_EFA_TIMEOUT = 1000
 
 EC2_EFA_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",

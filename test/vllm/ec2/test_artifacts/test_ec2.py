@@ -393,7 +393,7 @@ def test_vllm_on_ec2(resources, image_uri):
                 head_conn,
                 f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} 2",
                 hide=False,
-                timeout=DEFAULT_EFA_TIMEOUT,
+                timeout=1000,
             )
 
             test_results["efa"] = True
