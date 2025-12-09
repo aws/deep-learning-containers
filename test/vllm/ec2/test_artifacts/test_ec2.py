@@ -124,7 +124,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         for conn in [head_connection, worker_connection]:
             install_python_in_instance(conn, "3.10")
             setup_docker_image(conn, image_uri)
-            setup_env(conn)
+            # setup_env(conn)
 
         head_connection.put(
             "vllm/ec2/utils/head_node_setup.sh", "/home/ec2-user/head_node_setup.sh"
