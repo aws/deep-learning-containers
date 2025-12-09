@@ -164,7 +164,8 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
             raise Exception("Container failed to become ready within timeout period")
 
         print("Running benchmark...")
-        benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
+        # benchmark_cmd = "source vllm_env/bin/activate &&" + create_benchmark_command()
+        benchmark_cmd = create_benchmark_command()
         benchmark_result = head_connection.run(benchmark_cmd, timeout=7200)
 
         return benchmark_result
