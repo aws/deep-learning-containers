@@ -328,6 +328,7 @@ ENV TS_DISABLE_SYSTEM_METRICS=true
 RUN pip install --no-cache-dir \
     scikit-learn \
     pandas \
+    types-python-dateutil \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 

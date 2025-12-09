@@ -255,6 +255,7 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 RUN pip install --no-cache-dir \
     scikit-learn \
     pandas \
+    types-python-dateutil \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
     s3transfer
 
