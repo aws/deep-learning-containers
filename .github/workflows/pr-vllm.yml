@@ -15,15 +15,15 @@ env:
   # CI Image configuration
   CONTAINER_TYPE: "general"
   FRAMEWORK: "vllm"
-  VLLM_VERSION: 0.11.2
+  VLLM_VERSION: 0.12.0
   VLLM_RAYSERVE_VERSION: 0.10.2
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
   # Prod Image configuration
-  PROD_EC2_IMAGE: vllm:0.11-gpu-py312-ec2
+  PROD_EC2_IMAGE: vllm:0.12-gpu-py312-ec2
   PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
-  PROD_SAGEMAKER_IMAGE: vllm:0.11-gpu-py312
+  PROD_SAGEMAKER_IMAGE: vllm:0.12-gpu-py312
   # CI environment configuration
   FORCE_COLOR: "1"
 
@@ -198,7 +198,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -207,10 +207,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -222,7 +226,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -260,7 +264,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -269,10 +273,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -284,7 +292,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -321,7 +329,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -330,10 +338,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -343,30 +355,25 @@ jobs:
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
             nvidia-smi
-
-            # Examples Test # 30min
-            cd /workdir/examples
+            cd vllm_source/examples
             pip install tensorizer # for tensorizer test
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
             # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
-
-            # NOTE: Change in Ultravox model changed the class of a audio_processor https://huggingface.co/fixie-ai/ultravox-v0_5-llama-3_2-1b/commit/9a3c571b8fdaf1e66dd3ea61bbcb6db5c70a438e
-            # vLLM created a fix here https://github.com/vllm-project/vllm/pull/29588 but it is not consumed in vLLM<=0.11
-            # python3 offline_inference/audio_language.py --seed 0
-
+            python3 offline_inference/audio_language.py --seed 0
             python3 offline_inference/vision_language.py --seed 0
-            # broken before v0.12.0: https://github.com/vllm-project/vllm/commit/c64c0b78de4716ef019666663c56b6ceaa019463
-            # python3 offline_inference/vision_language_pooling.py --seed
-            # python3 offline_inference/vision_language_multi_image.py --seed 0
+            python3 offline_inference/vision_language_pooling.py --seed 0
+            python3 offline_inference/vision_language_multi_image.py --seed 0
             python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
             python3 offline_inference/basic/score.py
-            python3 offline_inference/simple_profiling.py
+            python3 offline_inference/spec_decode.py --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
+            # https://github.com/vllm-project/vllm/pull/26682 uses slightly more memory in PyTorch 2.9+ causing this test to OOM in 1xL4 GPU
+            python3 offline_inference/spec_decode.py --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
           '
 
   # ===================================================
@@ -486,7 +493,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -495,10 +502,11 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -510,7 +518,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -548,7 +556,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -557,10 +565,11 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -572,7 +581,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -609,7 +618,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -618,10 +627,11 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -633,7 +643,7 @@ jobs:
             nvidia-smi
 
             # Examples Test # 30min
-            cd /workdir/examples
+            cd vllm_source/examples
             pip install tensorizer # for tensorizer test
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
             # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
@@ -774,7 +784,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -783,10 +793,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -798,7 +812,7 @@ jobs:
             nvidia-smi
 
             # Regression Test # 7min
-            cd /workdir/tests
+            cd vllm_source/tests
             uv pip install --system modelscope
             pytest -v -s test_regression.py
           '
@@ -836,7 +850,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -845,10 +859,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -860,7 +878,7 @@ jobs:
             nvidia-smi
 
             # Platform Tests (CUDA) # 4min
-            cd /workdir/tests
+            cd vllm_source/tests
             pytest -v -s cuda/test_cuda_context.py
           '
 
@@ -897,7 +915,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ./vllm_source:/workdir --workdir /workdir \
+            -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
@@ -906,10 +924,14 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv pip install --system -r requirements/common.txt -r requirements/dev.txt --torch-backend=auto
+            # delete old test dependencies file and regen
+            rm vllm_source/requirements/test.txt
+            uv pip compile vllm_source/requirements/test.in -o vllm_source/requirements/test.txt --index-strategy unsafe-best-match --torch-backend cu129 --python-platform x86_64-manylinux_2_28 --python-version 3.12
+            uv pip install --system -r vllm_source/requirements/common.txt -r vllm_source/requirements/dev.txt --torch-backend=auto
             uv pip install --system pytest pytest-asyncio
-            uv pip install --system -e tests/vllm_test_utils
+            uv pip install --system -e vllm_source/tests/vllm_test_utils
             uv pip install --system hf_transfer
+            cd vllm_source
             mkdir src
             mv vllm src/vllm
           '
@@ -920,29 +942,42 @@ jobs:
             set -eux
             nvidia-smi
 
-            # Examples Test # 30min
-            cd /workdir/examples
+            cd vllm_source
+
+            # Test LoRA adapter loading/unloading via SageMaker endpoints
+            pytest tests/entrypoints/sagemaker/test_sagemaker_lora_adapters.py -v
+
+            # Test stateful session management
+            pytest tests/entrypoints/sagemaker/test_sagemaker_stateful_sessions.py -v
+
+            # Test sagemaker custom middleware
+            pytest tests/entrypoints/sagemaker/test_sagemaker_middleware_integration.py -v
+
+            # Test sagemaker endpoint overrides
+            pytest tests/entrypoints/sagemaker/test_sagemaker_handler_overrides.py -v
+
+            # Test LoRA adapter loading/unloading via original OpenAI API server endpoints
+            pytest tests/entrypoints/openai/test_lora_adapters.py -v
+
+            cd examples
             pip install tensorizer # for tensorizer test
             python3 offline_inference/basic/generate.py --model facebook/opt-125m
             # python3 offline_inference/basic/generate.py --model meta-llama/Llama-2-13b-chat-hf --cpu-offload-gb 10
             python3 offline_inference/basic/chat.py
             python3 offline_inference/prefix_caching.py
             python3 offline_inference/llm_engine_example.py
-
-            # NOTE: Change in Ultravox model changed the class of a audio_processor https://huggingface.co/fixie-ai/ultravox-v0_5-llama-3_2-1b/commit/9a3c571b8fdaf1e66dd3ea61bbcb6db5c70a438e
-            # vLLM created a fix here https://github.com/vllm-project/vllm/pull/29588 but it is not consumed in vLLM<=0.11
-            # python3 offline_inference/audio_language.py --seed 0
-
+            python3 offline_inference/audio_language.py --seed 0
             python3 offline_inference/vision_language.py --seed 0
-            # broken before v0.12.0: https://github.com/vllm-project/vllm/commit/c64c0b78de4716ef019666663c56b6ceaa019463
-            # python3 offline_inference/vision_language_pooling.py --seed
-            # python3 offline_inference/vision_language_multi_image.py --seed 0
+            python3 offline_inference/vision_language_pooling.py --seed 0
+            python3 offline_inference/vision_language_multi_image.py --seed 0
             python3 others/tensorize_vllm_model.py --model facebook/opt-125m serialize --serialized-directory /tmp/ --suffix v1 && python3 others/tensorize_vllm_model.py --model facebook/opt-125m deserialize --path-to-tensors /tmp/vllm/facebook/opt-125m/v1/model.tensors
             python3 offline_inference/encoder_decoder_multimodal.py --model-type whisper --seed 0
             python3 offline_inference/basic/classify.py
             python3 offline_inference/basic/embed.py
             python3 offline_inference/basic/score.py
-            python3 offline_inference/simple_profiling.py
+            python3 offline_inference/spec_decode.py --test --method eagle --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 2048
+            # https://github.com/vllm-project/vllm/pull/26682 uses slightly more memory in PyTorch 2.9+ causing this test to OOM in 1xL4 GPU
+            python3 offline_inference/spec_decode.py --test --method eagle3 --num_spec_tokens 3 --dataset-name hf --dataset-path philschmid/mt-bench --num-prompts 80 --temp 0 --top-p 1.0 --top-k -1 --tp 1 --enable-chunked-prefill --max-model-len 1536
           '
 
   vllm-sagemaker-endpoint-test:

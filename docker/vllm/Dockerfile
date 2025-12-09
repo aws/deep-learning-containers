@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.11.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.12.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -8,7 +8,7 @@ FROM $BASE_IMAGE AS base
 # ====================== common =========================================
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
-ARG EFA_VERSION="1.43.3"
+ARG EFA_VERSION="1.45.1"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
@@ -19,7 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
-  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -54,7 +54,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
   && mkdir -p /tmp/nvjpeg \
   && cd /tmp/nvjpeg \
-  && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+  && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
   && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
   && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
   && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
