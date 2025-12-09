@@ -4,6 +4,17 @@ Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-co
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file. 
 
+## [0.12.0] - 2025-12-08
+### Added
+- SageMaker and EC2 support for vLLM 0.12.0
+- Upgraded EFA version to 1.45.1 and introduced NIXL with Libfabric backend
+
+### Sample ECR URI
+```
+public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312
+public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312-ec2
+```
+
 ## [0.11.2] - 2025-11-20
 ### Added
 - SageMaker and EC2 support for vLLM 0.11.2
