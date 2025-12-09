@@ -104,17 +104,34 @@ You can pin your version by adding the version tag to your URL as follows:
 
 Base Containers 
 ============================
-Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/base
+
+| Framework         | Platform	| Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| CUDA 12.9     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.8-gpu-py312-ubuntu22.04-ec2             |
+| CUDA 12.8     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.9-gpu-py312-ubuntu22.04-ec2             |
+
+Also available in Amazon ECR Public Gallery for EC2, ECS, and EKS support only: https://gallery.ecr.aws/deep-learning-containers/base
 
 
 vLLM Containers
 ============================
-Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/vllm
+
+| Framework         | Platform	| Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| vLLM 0.11     | SageMaker 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11-gpu-py312             |
+| vLLM 0.11     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11-gpu-py312-ec2             |
+
+Also available in Amazon ECR Public Gallery for EC2, ECS, and EKS support only: https://gallery.ecr.aws/deep-learning-containers/vllm
 
 
 SGLang Containers
 ============================
-Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/sglang
+
+| Framework         | Platform	| Python Version Options	| Example URL																						                                                                         |
+|-------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
+| Sglang 0.5     | SageMaker 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/sglang:0.5-gpu-py312             |
+
+Also available in Amazon ECR Public Gallery for EC2, ECS, and EKS support only: https://gallery.ecr.aws/deep-learning-containers/sglang
 
 
 EC2 Framework Containers (EC2, ECS, and EKS support only)
