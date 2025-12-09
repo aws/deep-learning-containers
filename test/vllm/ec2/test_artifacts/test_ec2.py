@@ -148,7 +148,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         worker_connection.run(f"./worker_node_setup.sh {image_uri} {head_ip} {worker_ip}")
 
         # add timer to let container run
-        time.sleep(3000)
+        time.sleep(30)
 
         commands = ["ray status", "fi_info -p efa"]
         for command in commands:
@@ -160,7 +160,7 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         )
 
         print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
-        if not wait_for_container_ready(head_connection, container_name, timeout=2000):
+        if not wait_for_container_ready(head_connection, container_name, timeout=1000):
             raise Exception("Container failed to become ready within timeout period")
 
         print("Running benchmark...")
