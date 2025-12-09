@@ -107,8 +107,10 @@ Base Containers
 
 | Framework         | Platform	| Python Version Options	| Example URL																						                                                                         |
 |-------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| CUDA 12.9     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.8-gpu-py312-ubuntu22.04-ec2             |
-| CUDA 12.8     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.9-gpu-py312-ubuntu22.04-ec2             |
+| CUDA 13.0     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:13.0.0-gpu-py312-cu130-ubuntu22.04-ec2             |
+| CUDA 12.9     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.9.1-gpu-py312-cu129-ubuntu22.04-ec2             |
+| CUDA 12.8     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.8.0-gpu-py312-cu128-ubuntu22.04-ec2             |
+| CUDA 12.8     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/base:12.8.1-gpu-py312-cu128-ubuntu24.04-ec2             |
 
 Also available in Amazon ECR Public Gallery for EC2, ECS, and EKS support only: https://gallery.ecr.aws/deep-learning-containers/base
 
