@@ -43,7 +43,7 @@ wait_for_server() {
         attempt=$((attempt + 1))
     done
     echo "❌ Timeout waiting for $service after $max_attempts attempts"
-    tail -n 40 "$log_file"
+    cat $log_file
     return 1
 }
 
