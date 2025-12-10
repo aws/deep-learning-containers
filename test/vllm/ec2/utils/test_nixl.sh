@@ -29,6 +29,7 @@ check_libfabric() {
 wait_for_server() {
     local port=$1
     local service=$2
+    local log_file=$3
     local max_attempts=60
     local attempt=1
 
@@ -42,6 +43,7 @@ wait_for_server() {
         attempt=$((attempt + 1))
     done
     echo "❌ Timeout waiting for $service after $max_attempts attempts"
+    tail -n 40 "$log_file"
     return 1
 }
 
@@ -66,7 +68,7 @@ docker run --rm \
         --kv-transfer-config '$KV_CONFIG'" > "$LOG_DIR/prefill.log" 2>&1 &
 
 # Wait for prefiller to be ready
-wait_for_server 8100 "Prefiller" || exit 1
+wait_for_server 8100 "Prefiller" "$LOG_DIR/prefill.log" || exit 1
 check_libfabric "$LOG_DIR/prefill.log" "Prefiller"
 
 # Start Decoder on GPU 1
@@ -89,7 +91,7 @@ docker run --rm \
         --kv-transfer-config '$KV_CONFIG'" > "$LOG_DIR/decode.log" 2>&1 &
 
 # Wait for decoder to be ready
-wait_for_server 8200 "Decoder" || exit 1
+wait_for_server 8200 "Decoder" "$LOG_DIR/decode.log" || exit 1
 check_libfabric "$LOG_DIR/decode.log" "Decoder"
 
 # Start proxy server
