@@ -179,6 +179,32 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=
         assert test_utils.request_pytorch_inference_densenet(
             port=port_to_forward, server_type=server_type
         )
+    except Exception as e:
+        # Capture diagnostic information on failure
+        print(f"\n{'='*80}")
+        print(f"TEST FAILED - Capturing pod logs for {selector_name}")
+        print(f"{'='*80}\n")
+        
+        # Get pod name
+        pod_result = run(f"kubectl get pods -n default --selector=app={selector_name} -o jsonpath='{{.items[0].metadata.name}}'", warn=True, hide=True)
+        pod_name = pod_result.stdout.strip()
+        
+        if pod_name:
+            print(f"Pod name: {pod_name}\n")
+            
+            # Get pod logs
+            print("=== CONTAINER LOGS (last 100 lines) ===")
+            run(f"kubectl logs {pod_name} -n default --tail=100", warn=True)
+            
+            # Get pod status and events
+            print("\n=== POD STATUS ===")
+            run(f"kubectl describe pod {pod_name} -n default | tail -50", warn=True)
+        else:
+            print("Could not find pod. Showing all pods:")
+            run("kubectl get pods -n default", warn=True)
+        
+        print(f"\n{'='*80}\n")
+        raise  # Re-raise the original exception
     finally:
         run(f"kubectl delete deployment {selector_name}")
         run(f"kubectl delete service {selector_name}")
