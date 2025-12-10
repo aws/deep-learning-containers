@@ -1,0 +1,51 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+framework: &FRAMEWORK hf-vllm
+version: &VERSION "0.12.0"
+short_version: &SHORT_VERSION "0.12"
+arch_type: &ARCH_TYPE x86_64
+autopatch_build: "False"
+
+repository_info:
+  build_repository: &BUILD_REPOSITORY
+    image_type: &IMAGE_TYPE inference
+    root: huggingface/hf-vllm
+    repository_name: &REPOSITORY_NAME !join [ pr, "-", huggingface, "-", hf-vllm ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ huggingface, "-", hf-vllm ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  build_context: &BUILD_CONTEXT
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+    cuda-compatibility-lib:
+      source: ../build_artifacts/inference/cuda-compatibility-lib.sh
+      target: cuda-compatibility-lib.sh
+
+
+images:
+  BuildHuggingFaceHfVllmGpuPy312Cu129InferenceDockerImage:
+    <<: *BUILD_REPOSITORY
+    context:
+      <<: *BUILD_CONTEXT
+    image_size_baseline: 25000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu129
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu22.04
+    vllm_version: &VLLM_VERSION 0.12.0
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
+    target: sagemaker
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker
