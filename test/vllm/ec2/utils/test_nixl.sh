@@ -15,20 +15,14 @@ pip install vllm
 check_libfabric() {
     local log_file=$1
     local service=$2
-    echo ""
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-    echo "🔍 Checking $service logs for LIBFABRIC backend..."
-    echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    echo "Checking $service logs for LIBFABRIC backend..."
     if grep -q "Backend LIBFABRIC was instantiated" "$log_file"; then
         echo "✅ $service: LIBFABRIC backend successfully instantiated"
     else
         echo "❌ $service: LIBFABRIC backend not found in logs"
-        echo ""
-        echo "📄 Last 50 lines of $service log:"
-        echo "─────────────────────────────────────────"
+        echo "Last 50 lines of $service log:"
         tail -n 50 "$log_file"
     fi
-    echo ""
 }
 
 # Function to wait for server health
@@ -38,11 +32,10 @@ wait_for_server() {
     local max_attempts=60
     local attempt=1
 
-    echo ""
-    echo "⏳ Waiting for $service to be ready on port $port..."
+    echo "Waiting for $service to be ready on port $port..."
     while [ $attempt -le $max_attempts ]; do
         if curl -s "http://localhost:$port/health" >/dev/null; then
-            echo "✅ $service is ready (attempt $attempt/$max_attempts)"
+            echo "✅ $service is ready (attempt $attempt)"
             return 0
         fi
         sleep 5
@@ -53,10 +46,7 @@ wait_for_server() {
 }
 
 # Start Prefiller on GPU 0
-echo ""
-echo "╔════════════════════════════════════════╗"
-echo "║   🚀 Starting Prefiller on GPU 0      ║"
-echo "╚════════════════════════════════════════╝"
+echo "Starting prefiller on GPU 0..."
 docker run --rm \
     --gpus all \
     --network host \
@@ -80,10 +70,7 @@ wait_for_server 8100 "Prefiller" || exit 1
 check_libfabric "$LOG_DIR/prefill.log" "Prefiller"
 
 # Start Decoder on GPU 1
-echo ""
-echo "╔════════════════════════════════════════╗"
-echo "║   🚀 Starting Decoder on GPU 1        ║"
-echo "╚════════════════════════════════════════╝"
+echo "Starting decoder on GPU 1..."
 docker run --rm \
     --gpus all \
     --network host \
@@ -106,10 +93,7 @@ wait_for_server 8200 "Decoder" || exit 1
 check_libfabric "$LOG_DIR/decode.log" "Decoder"
 
 # Start proxy server
-echo ""
-echo "╔════════════════════════════════════════╗"
-echo "║       Starting Proxy Server            ║"
-echo "╚════════════════════════════════════════╝"
+echo "Starting proxy server..."
 python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
     --host 0.0.0.0 \
     --port 8192 \
@@ -119,11 +103,7 @@ python3 vllm/tests/v1/kv_connector/nixl_integration/toy_proxy_server.py \
     --decoder-ports 8200 > "$LOG_DIR/proxy.log" 2>&1 &
 
 # Run benchmark
-echo ""
-echo "╔════════════════════════════════════════╗"
-echo "║       Starting Benchmark               ║"
-echo "╚════════════════════════════════════════╝"
-echo ""
+echo "Starting benchmark..."
 vllm bench serve \
     --host 0.0.0.0 \
     --port 8192 \
@@ -132,35 +112,10 @@ vllm bench serve \
     --dataset-path /fsx/vllm-dlc/ShareGPT_V3_unfiltered_cleaned_split.json \
     --num-prompts 30 | tee "$LOG_DIR/benchmark.log"
 
-# Print logs at the end
-echo ""
-echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                     📋 PREFILLER LOGS                        ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo ""
-cat "$LOG_DIR/prefill.log"
-
-echo ""
-echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                      📋 DECODER LOGS                         ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo ""
-cat "$LOG_DIR/decode.log"
-
-echo ""
-echo "╔══════════════════════════════════════════════════════════════╗"
-echo "║                   ✨ TEST COMPLETED ✨                       ║"
-echo "╚══════════════════════════════════════════════════════════════╝"
-echo ""
-
 # Cleanup function
 cleanup() {
-    echo ""
-    echo "🧹 Cleaning up containers..."
+    echo "Cleaning up containers..."
     docker stop vllm-prefill vllm-decoder >/dev/null 2>&1
-    echo "✅ Cleanup complete"
 }
 
 # Register cleanup on script exit

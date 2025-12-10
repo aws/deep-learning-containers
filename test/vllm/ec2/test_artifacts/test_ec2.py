@@ -291,6 +291,7 @@ def run_single_node_test(head_conn, image_uri):
 def run_nixl_efa_test(head_conn, image_uri):
     try:
         print("\n=== Starting NIXL EFA Test ===")
+
         head_conn.put(
             "vllm/ec2/utils/test_nixl.sh",
             "/home/ec2-user/test_nixl.sh",
