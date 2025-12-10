@@ -169,6 +169,7 @@ RUN pip install --no-cache-dir \
     setuptools \
     urllib3 \
     awscli \
+    types-python-dateutil \
     opencv-python
 
 # Install PyTorch

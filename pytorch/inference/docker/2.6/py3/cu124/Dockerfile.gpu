@@ -224,6 +224,7 @@ RUN pip install --no-cache-dir -U \
     setuptools \
     urllib3 \
     awscli \
+    types-python-dateutil \
     # libgcc \
     # ninja is needed for apex to speed up the build
     ninja \
