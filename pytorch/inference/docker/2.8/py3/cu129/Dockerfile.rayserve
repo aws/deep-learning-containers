@@ -162,4 +162,4 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 #            https://docs.ray.io/en/latest/ray-observability/getting-started.html
 EXPOSE 8000 8265
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["ray", "serve", "start", "--http-host", "0.0.0.0", "--http-port", "8000", "--dashboard-host", "0.0.0.0", "--dashboard-port", "8265"]
+CMD ["/bin/bash"]
