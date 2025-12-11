@@ -154,12 +154,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
 
-        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384  --distributed-executor-backend ray"
         head_connection.run(
             f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
         )
 
-        print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
+        print("Waiting for model to be ready, approx estimated time to complete is 30 mins...")
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
 
@@ -241,6 +241,7 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
     result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
     if result.ok:
         print("Multi-node test completed successfully")
+        cleanup_containers(head_conn)
         return True
     return False
 
@@ -291,7 +292,7 @@ def run_single_node_test(head_conn, image_uri):
 def run_nixl_efa_test(head_conn, image_uri):
     try:
         print("\n=== Starting NIXL EFA Test ===")
-        install_python_in_instance(head_conn, "3.10")
+
         setup_env(head_conn)
         head_conn.put(
             "vllm/ec2/utils/test_nixl.sh",
@@ -403,8 +404,7 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
-            # Run multi-node test
-            # test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
             test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
 
         else:
