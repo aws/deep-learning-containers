@@ -36,7 +36,7 @@ images:
     <<: *INFERENCE_REPOSITORY
     build: &PYTORCH_GPU_INFERENCE_PY3 true
     image_size_baseline: 14000
-    device_type: &DEVICE_TYPE rayserve
+    device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     cuda_version: &CUDA_VERSION cu129
