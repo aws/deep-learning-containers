@@ -486,5 +486,67 @@
       "title": "CVE-2025-59840 - vega, vega-expression and 2 more",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "jws": [
+    {
+      "description": "auth0/node-jws is a JSON Web Signature implementation for Node.js. In versions 3.2.2 and earlier and version 4.0.0, auth0/node-jws has an improper signature verification vulnerability when using the HS256 algorithm under specific conditions. Applications are affected when they use the jws.createVerify() function for HMAC algorithms and use user-provided data from the JSON Web Signature protected header or payload in HMAC secret lookup routines, which can allow attackers to bypass signature verification. This issue has been patched in versions 3.2.3 and 4.0.1.",
+      "vulnerability_id": "CVE-2025-65945",
+      "name": "CVE-2025-65945",
+      "package_name": "jws",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "jws",
+        "package_manager": "NODE",
+        "version": "3.2.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-65945",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-65945 - jws",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "validator": [
+    {
+      "description": "Versions of the package validator before 13.15.22 are vulnerable to Incomplete Filtering of One or More Instances of Special Elements in the isLength() function that does not take into account Unicode variation selectors (\\uFE0F, \\uFE0E) appearing in a sequence which lead to improper string length calculation. This can lead to an application using isLength for input validation accepting strings significantly longer than intended, resulting in issues like data truncation in databases, buffer overflows in other system components, or denial-of-service.",
+      "vulnerability_id": "CVE-2025-12758",
+      "name": "CVE-2025-12758",
+      "package_name": "validator",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "validator",
+        "package_manager": "NODE",
+        "version": "13.12.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-12758",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-12758 - validator",
+      "reason_to_ignore": "N/A"
+    }
   ]
 }
