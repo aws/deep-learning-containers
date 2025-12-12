@@ -26,8 +26,24 @@ try:
 except:
     pass
 
+# Auto-start Ray cluster and Ray Serve
+subprocess.run(
+    [
+        "ray",
+        "start",
+        "--head",
+        "--disable-usage-stats",
+        "--dashboard-host",
+        "0.0.0.0",
+        "--dashboard-port",
+        "8265",
+    ],
+    check=True,
+)
 
-subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
+subprocess.run(["serve", "start", "--http-host", "0.0.0.0", "--http-port", "8000"], check=True)
 
-# prevent docker exit
-subprocess.call(["tail", "-f", "/dev/null"])
+if len(sys.argv) > 1:
+    subprocess.check_call(shlex.split(" ".join(sys.argv[1:])))
+else:
+    subprocess.call(["tail", "-f", "/dev/null"])
