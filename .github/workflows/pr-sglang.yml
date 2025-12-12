@@ -93,44 +93,22 @@ jobs:
       group: ${{ github.workflow }}-build-sglang-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
-      ci-image: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
+      ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
       - uses: actions/checkout@v5
-      - run: .github/scripts/buildkitd.sh
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Resolve image URI for build
-        id: image-uri-build
-        run: |
-          CI_IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:sglang-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          echo "Image URI to build: ${CI_IMAGE_URI}"
-          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
       - name: Build image
-        run: |
-          # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-          docker buildx build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --build-arg BASE_IMAGE="lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64" \
-            --build-arg CONTAINER_TYPE="${{ env.CONTAINER_TYPE }}" \
-            --build-arg FRAMEWORK="${{ env.FRAMEWORK }}" \
-            --build-arg FRAMEWORK_VERSION="${{ env.SGLANG_VERSION }}" \
-            --cache-to=type=inline \
-            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-            --tag ${CI_IMAGE_URI} \
-            --target sglang-sagemaker \
-            -f docker/sglang/Dockerfile .
-
-      - name: Container push
-        run: |
-          docker push ${CI_IMAGE_URI}
-          docker rmi ${CI_IMAGE_URI}
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ env.FRAMEWORK }}
+          target: sglang-sagemaker
+          base-image: lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64
+          framework-version: ${{ env.SGLANG_VERSION }}
+          container-type: ${{ env.CONTAINER_TYPE }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
 
   set-test-environment:
     needs: [check-changes, build-sglang-image]
