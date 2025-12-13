@@ -188,7 +188,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_10_2_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_12_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -588,7 +588,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_10_2_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_12_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -634,7 +634,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_10_2_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_12_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -680,7 +680,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_10_2_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_12_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
