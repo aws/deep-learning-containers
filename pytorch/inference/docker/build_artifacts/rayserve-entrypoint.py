@@ -16,16 +16,6 @@ import shlex
 import subprocess
 import sys
 
-
-try:
-    subprocess.call(
-        ["/bin/bash", "/usr/local/bin/bash_telemetry.sh"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-except:
-    pass
-
 # Auto-start Ray cluster and Ray Serve
 subprocess.run(
     [

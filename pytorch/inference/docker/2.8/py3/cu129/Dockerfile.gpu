@@ -20,13 +20,13 @@ ARG RAY_VERSION=2.49.0
 #                      |___/                        |_|
 #################################################################
 
-FROM public.ecr.aws/deep-learning-containers/base:12.9.1-gpu-py312-ubuntu22.04-ec2 AS common
-# base has EFA, PYTHON and CUDA 12.9
+FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu22.04 AS common
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON
+ARG PYTHON_VERSION
 ARG PYTORCH_VERSION
 ARG TORCHAUDIO_VERSION
 ARG TORCHVISION_VERSION
@@ -34,8 +34,6 @@ ARG RAY_VERSION
 
 ENV CUDA_HOME="/usr/local/cuda"
 ENV PATH="${CUDA_HOME}/bin:${PATH}"
-ENV EFA_PATH="/opt/amazon/efa"
-ENV OPEN_MPI_PATH="/opt/amazon/openmpi"
 
 # Python won't try to write .pyc or .pyo files on the import of source modules
 # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
@@ -56,29 +54,43 @@ RUN apt-get update \
     ca-certificates \
     zlib1g-dev \
     openssl \
-    python3-dev \
+    libssl-dev \
     pkg-config \
     check \
     llvm \
     xz-utils \
+    curl \
+    wget \
+    unzip \
+    libffi-dev \
+    libbz2-dev \
+    liblzma-dev \
+    libsqlite3-dev \
+    libreadline-dev \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-ENV PATH="${OPEN_MPI_PATH}/bin:${EFA_PATH}/bin:${PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}"
-# Python Path
+COPY install_python.sh install_python.sh
+RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
+
+# Python Path - nvidia/cuda base already has CUDA paths configured
 ENV PATH="/usr/local/bin:${PATH}"
 
-# Install common conda packages
+# Install PyTorch first (needs specific index-url)
 RUN pip install --no-cache-dir \
-    cython \
+    torch==${PYTORCH_VERSION} \
+    torchvision==${TORCHVISION_VERSION} \
+    torchaudio==${TORCHAUDIO_VERSION} \
+    --index-url https://download.pytorch.org/whl/cu129 \
+ && pip install --no-cache-dir "triton==3.2.0" \
+ && pip uninstall -y dataclasses || true
+
+# Install Ray Serve + all dependencies in one optimized command
+RUN pip install --no-cache-dir \
+    ray[serve]==${RAY_VERSION} \
     cryptography \
     pyOpenSSL \
-    pybind11 \
     mkl \
-    mkl-include \
-    parso \
-    typing \
     charset-normalizer \
     packaging \
     PyYAML \
@@ -86,8 +98,6 @@ RUN pip install --no-cache-dir \
     scipy \
     click \
     psutil \
-    ipython \
-    ipykernel \
     pillow \
     h5py \
     fsspec \
@@ -96,27 +106,11 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    ninja \
     opencv-python==4.11.0.86 \
-    mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1
 
-RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
-    torchvision==${TORCHVISION_VERSION} \
-    torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu129 \
-    && pip install --no-cache-dir -U \
-    "triton==3.2.0" \
-    && pip uninstall -y dataclasses
-
-RUN pip install --no-cache-dir ray[serve]==${RAY_VERSION}
-
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
-
-COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-RUN chmod +x /usr/local/bin/bash_telemetry.sh
-RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
@@ -162,4 +156,3 @@ RUN chmod +x /usr/local/bin/dockerd-entrypoint.py
 #            https://docs.ray.io/en/latest/ray-observability/getting-started.html
 EXPOSE 8000 8265
 ENTRYPOINT ["python", "/usr/local/bin/dockerd-entrypoint.py"]
-CMD ["/bin/bash"]
