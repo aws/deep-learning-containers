@@ -3,7 +3,7 @@ description: 'Build and push Docker images for different frameworks and targets'
 
 inputs:
   framework:
-    description: 'Framework name (vllm, sglang)'
+    description: 'Framework name'
     required: true
   target:
     description: 'Docker build target'
@@ -23,8 +23,11 @@ inputs:
   aws-region:
     description: 'AWS region'
     required: true
-  tag:
-    description: 'Complete image tag (e.g., vllm-0.12.0-gpu-py312-cu129-ubuntu22.04-ec2-pr-123)'
+  tag_pr:
+    description: 'Pull request image tag'
+    required: true
+  dockerfile-path:
+    description: 'Path to the Dockerfile'
     required: true
 
 outputs:
@@ -66,11 +69,7 @@ runs:
           --cache-to=type=inline \
           --cache-from=type=registry,ref=${CI_IMAGE_URI} \
           --tag ${CI_IMAGE_URI} \
+          --push \
           --target ${{ inputs.target }} \
-          -f docker/${{ inputs.framework }}/Dockerfile .
-
-    - name: Container push
-      shell: bash
-      run: |
-        docker push ${CI_IMAGE_URI}
+          -f ${{ inputs.dockerfile-path }} .
         docker rmi ${CI_IMAGE_URI}

@@ -115,7 +115,8 @@ jobs:
           container-type: ${{ env.CONTAINER_TYPE }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-ec2-pr-${{ github.event.pull_request.number }}
+          tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-ec2-test-environment:
     needs: [check-changes, build-vllm-ec2-image]
@@ -315,7 +316,8 @@ jobs:
           container-type: ${{ env.CONTAINER_TYPE }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-rayserve-test-environment:
     needs: [check-changes, build-vllm-rayserve-image]
@@ -515,7 +517,8 @@ jobs:
           container-type: ${{ env.CONTAINER_TYPE }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-sagemaker-test-environment:
     needs: [check-changes, build-vllm-sagemaker-image]

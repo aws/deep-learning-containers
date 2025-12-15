@@ -108,7 +108,8 @@ jobs:
           container-type: ${{ env.CONTAINER_TYPE }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          tag_pr: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-test-environment:
     needs: [check-changes, build-sglang-image]
