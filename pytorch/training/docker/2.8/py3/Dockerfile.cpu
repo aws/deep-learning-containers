@@ -188,7 +188,7 @@ RUN pip install --no-cache-dir \
     "requests>=2.32.0" \
     "setuptools>=70.0.0" \
     "urllib3>=2.5.0" \
-    "awscli" \
+    awscli \
     opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
@@ -206,7 +206,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     accelerate \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
-    spacy \
+    spacy==3.8.7 \
     # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4  \
     blis \
@@ -282,10 +282,12 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker>=2" \
+    "sagemaker==2.254.1" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    # Add sniffio explicitly as it's not included in sagemaker==2.254.1 dependencies
+    sniffio  
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
@@ -297,7 +299,8 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle
+    cloudpickle \
+    "langcodes<=3.5.0"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

@@ -57,7 +57,9 @@ def is_test_job_efa_dedicated():
 def assign_sagemaker_remote_job_instance_type(image):
     if "graviton" in image or "arm64" in image:
         return "ml.c6g.2xlarge"
-    elif "neuronx" in image or "training-neuron" in image:
+    elif "training-neuronx" in image:
+        return "ml.trn1.32xlarge"
+    elif "neuronx" in image:
         return "ml.trn1.2xlarge"
     elif "inference-neuron" in image:
         return "ml.inf1.xlarge"
@@ -305,7 +307,7 @@ def execute_local_tests(image, pytest_cache_params):
         image, SAGEMAKER_LOCAL_TEST_TYPE
     )
     pytest_command += " --last-failed --last-failed-no-failures all "
-    print(pytest_command)
+    print(f"Running local sm test with command: {pytest_command}")
     framework, _ = get_framework_and_version_from_tag(image)
     framework = framework.replace("_trcomp", "")
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -343,8 +345,10 @@ def execute_local_tests(image, pytest_cache_params):
             "sudo curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose"
         )
         ec2_conn.run("sudo chmod +x /usr/local/bin/docker-compose")
+
         with ec2_conn.cd(path):
             ec2_conn.run(f"pip install -r requirements.txt")
+
             pytest_cache_util.download_pytest_cache_from_s3_to_ec2(
                 ec2_conn, path, **pytest_cache_params
             )
@@ -428,6 +432,7 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
     pytest_command, path, tag, job_type = generate_sagemaker_pytest_cmd(
         image, SAGEMAKER_REMOTE_TEST_TYPE
     )
+    print(f"Running remote sm test with command: {pytest_command}")
     context = Context()
     with context.cd(path):
         context.run(f"virtualenv {tag}")

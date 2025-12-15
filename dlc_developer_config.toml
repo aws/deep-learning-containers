@@ -36,7 +36,7 @@ deep_canary_mode = false
 
 [build]
 # Add in frameworks you would like to build. By default, builds are disabled unless you specify building an image.
-# available frameworks - ["base", "vllm", "autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
+# available frameworks - ["base", "vllm", "sglang", "autogluon", "huggingface_tensorflow", "huggingface_pytorch", "huggingface_tensorflow_trcomp", "huggingface_pytorch_trcomp", "pytorch_trcomp", "tensorflow", "pytorch", "stabilityai_pytorch"]
 build_frameworks = ["hf-vllm"]
 
 
@@ -56,6 +56,10 @@ notify_test_failures = false
   notification_severity = "medium"
 
 [test]
+# Set to true to use the new test structure path for frameworks
+# Off by default (set to false)
+use_new_test_structure = false
+
 ### On by default
 sanity_tests = true
 security_tests = true
@@ -86,7 +90,7 @@ enable_ipv6 = false
 ###    b. Configure the default security group to allow SSH traffic using IPv4
 ###
 ### 3. Create an EFA-enabled security group:
-###    a. Follow 'Step 1: Prepare an EFA-enabled security group' in: 
+###    a. Follow 'Step 1: Prepare an EFA-enabled security group' in:
 ###       https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa-start.html#efa-start-security
 ###    b. Configure this security group to also allow SSH traffic via IPv4
 ipv6_vpc_name = ""
@@ -106,8 +110,6 @@ sagemaker_remote_efa_instance_type = ""
 # Run CI tests for nightly images
 # false by default
 nightly_pr_test_mode = false
-
-use_scheduler = false
 
 [buildspec_override]
 # Assign the path to the required buildspec file from the deep-learning-containers folder
@@ -186,3 +188,6 @@ dlc-pr-vllm = ""
 
 # hf-vllm
 dlc-pr-hf-vllm = ""
+
+# sglang
+dlc-pr-sglang = ""

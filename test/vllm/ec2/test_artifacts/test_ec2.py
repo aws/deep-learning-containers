@@ -38,8 +38,8 @@ def setup_env(connection):
     python3 -m venv vllm_env && \
     source vllm_env/bin/activate && \
     pip install --upgrade pip setuptools wheel && \
-    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm==0.10.0 && \
-    pip install "transformers<4.54.0"
+    pip install numpy torch tqdm aiohttp pandas datasets pillow ray vllm && \
+    pip install transformers
     """
     connection.run(setup_command, shell=True)
 
@@ -154,12 +154,12 @@ def test_vllm_benchmark_on_multi_node(head_connection, worker_connection, image_
         for command in commands:
             head_connection.run(f"docker exec -i {container_name} /bin/bash -c '{command}'")
 
-        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384"
+        serve_command = f"vllm serve {MODEL_NAME} --tensor-parallel-size 8 --pipeline-parallel-size 2 --max-num-batched-tokens 16384  --distributed-executor-backend ray"
         head_connection.run(
             f"docker exec -i {container_name} /bin/bash -c '{serve_command} > vllm.log 2>&1 &'"
         )
 
-        print("Waiting for model to be ready, approx estimated time to complete is 15 mins...")
+        print("Waiting for model to be ready, approx estimated time to complete is 30 mins...")
         if not wait_for_container_ready(head_connection, container_name, timeout=2000):
             raise Exception("Container failed to become ready within timeout period")
 
@@ -241,6 +241,7 @@ def run_multi_node_test(head_conn, worker_conn, image_uri):
     result = test_vllm_benchmark_on_multi_node(head_conn, worker_conn, image_uri)
     if result.ok:
         print("Multi-node test completed successfully")
+        cleanup_containers(head_conn)
         return True
     return False
 
@@ -288,6 +289,34 @@ def run_single_node_test(head_conn, image_uri):
         return True
 
 
+def run_nixl_efa_test(head_conn, image_uri):
+    try:
+        print("\n=== Starting NIXL EFA Test ===")
+
+        setup_env(head_conn)
+        head_conn.put(
+            "vllm/ec2/utils/test_nixl.sh",
+            "/home/ec2-user/test_nixl.sh",
+        )
+        commands = [
+            "chmod +x /home/ec2-user/test_nixl.sh",
+            f"/home/ec2-user/test_nixl.sh {image_uri}",
+        ]
+
+        result = head_conn.run(
+            "; ".join(commands),
+            hide=False,
+            timeout=7200,
+        )
+    except Exception as e:
+        print(f"Test execution failed: {str(e)}")
+        raise
+
+    if result.ok:
+        print("NIXL EFA test completed successfully")
+        return True
+
+
 def test_vllm_on_ec2(resources, image_uri):
     """
     Test VLLM on EC2 instances:
@@ -301,7 +330,7 @@ def test_vllm_on_ec2(resources, image_uri):
     ec2_cli = None
     fsx = None
     ec2_connections = {}
-    test_results = {"efa": None, "single_node": None, "multi_node": None}
+    test_results = {"efa": None, "single_node": None, "multi_node": None, "nixl": None}
 
     # to test agents
 
@@ -365,7 +394,7 @@ def test_vllm_on_ec2(resources, image_uri):
                 head_conn,
                 f"{EFA_INTEGRATION_TEST_CMD} {HOSTS_FILE_LOCATION} 2",
                 hide=False,
-                timeout=DEFAULT_EFA_TIMEOUT,
+                timeout=1000,
             )
 
             test_results["efa"] = True
@@ -375,8 +404,8 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
-            # Run multi-node test
             test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+            test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
 
         else:
             print("\nSkipping multi-node test: insufficient instances")

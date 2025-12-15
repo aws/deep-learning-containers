@@ -31,10 +31,12 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
-    if "vllm" in image:
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
         pytest.skip(
-            "vLLM images do not require test_dlc_standard_labels check as they are managed by vLLM devs. Skipping test."
+            f"{', '.join(upstream_types)} images do not require test_dlc_standard_labels check as they are managed by upstream devs. Skipping test."
         )
+
     customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
 
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)

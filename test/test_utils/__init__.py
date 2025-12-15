@@ -115,6 +115,7 @@ AL2023_BASE_DLAMI_US_WEST_2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
 )
+
 AL2023_BASE_DLAMI_US_EAST_1 = get_ami_id_ssm(
     region_name="us-east-1",
     parameter_path="/aws/service/deeplearning/ami/x86_64/base-oss-nvidia-driver-gpu-amazon-linux-2023/latest/ami-id",
@@ -139,10 +140,12 @@ UL20_BENCHMARK_CPU_ARM64_US_WEST_2 = get_ami_id_boto3(
     ami_name_pattern="Deep Learning ARM64 AMI OSS Nvidia Driver GPU PyTorch 2.2.? (Ubuntu 20.04) ????????",
     IncludeDeprecated=True,
 )
+
 AML2_CPU_ARM64_US_EAST_1 = get_ami_id_boto3(
     region_name="us-east-1",
-    ami_name_pattern="Deep Learning Base AMI (Amazon Linux 2) Version ??.?",
+    ami_name_pattern="Deep Learning ARM64 Base OSS Nvidia Driver GPU AMI (Amazon Linux 2) ????????",
 )
+
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1 = "ami-0673bb31cc62485dd"
 PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_WEST_2 = "ami-02d9a47bc61a31d43"
 
@@ -202,9 +205,6 @@ ECS_AML2_ARM64_CPU_USWEST2 = get_ami_id_ssm(
     region_name="us-west-2",
     parameter_path="/aws/service/ecs/optimized-ami/amazon-linux-2/arm64/recommended",
 )
-NEURON_AL2_DLAMI = get_ami_id_boto3(
-    region_name="us-west-2", ami_name_pattern="Deep Learning AMI (Amazon Linux 2) Version ??.?"
-)
 
 # Account ID of test executor
 ACCOUNT_ID = boto3.client("sts", region_name=DEFAULT_REGION).get_caller_identity().get("Account")
@@ -214,6 +214,9 @@ TENSORFLOW_MODELS_BUCKET = "s3://tensoflow-trained-models"
 
 # Used for referencing tests scripts from container_tests directory (i.e. from ECS cluster)
 CONTAINER_TESTS_PREFIX = os.path.join(os.sep, "test", "bin")
+
+# Used for referencing test scripts in the new v2 test structure
+CONTAINER_TESTS_PREFIX_V2 = os.path.join(os.sep, "test", "v2", "ec2")
 
 # S3 Bucket to use to transfer tests into an EC2 instance
 TEST_TRANSFER_S3_BUCKET = f"s3://dlinfra-tests-transfer-bucket-{ACCOUNT_ID}"
@@ -244,7 +247,7 @@ DLC_PUBLIC_REGISTRY_ALIAS = "public.ecr.aws/deep-learning-containers"
 SAGEMAKER_EXECUTION_REGIONS = ["us-west-2", "us-east-1", "eu-west-1"]
 # Before SM GA with Trn1, they support launch of ml.trn1 instance only in us-east-1. After SM GA this can be removed
 SAGEMAKER_NEURON_EXECUTION_REGIONS = ["us-west-2"]
-SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-east-1"]
+SAGEMAKER_NEURONX_EXECUTION_REGIONS = ["us-west-2"]
 
 UPGRADE_ECR_REPO_NAME = "upgraded-image-ecr-scan-repo"
 ECR_SCAN_HELPER_BUCKET = f"ecr-scan-helper-{ACCOUNT_ID}"
@@ -802,6 +805,10 @@ def is_security_test_enabled():
     return config.is_security_test_enabled()
 
 
+def is_new_test_structure_enabled():
+    return os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+
+
 def is_huggingface_image():
     if not os.getenv("FRAMEWORK_BUILDSPEC_FILE"):
         return False
@@ -1269,11 +1276,17 @@ def generate_ssh_keypair(ec2_client, key_name):
     return key_filename
 
 
-def destroy_ssh_keypair(ec2_client, key_filename):
-    key_name = os.path.basename(key_filename).split(".pem")[0]
+def destroy_ssh_keypair(ec2_client, key_file):
+    if not key_file.endswith(".pem"):
+        LOGGER.error(f"Invalid key pair file name {key_file}. Unable to delete")
+        return
+    run(f"rm -f {key_file}")
+    key_name = os.path.basename(key_file).split(".pem")[0]
     response = ec2_client.delete_key_pair(KeyName=key_name)
-    run(f"rm -f {key_filename}")
-    return response, key_name
+    if response["Return"] == True:
+        LOGGER.info(f"Deleted key pair {key_name}")
+    else:
+        LOGGER.error(f"Failed to delete key pair {key_name}")
 
 
 def upload_tests_to_s3(testname_datetime_suffix):
@@ -1296,9 +1309,14 @@ def upload_tests_to_s3(testname_datetime_suffix):
         raise EnvironmentError("Test is being run from wrong path")
     while os.path.basename(path) != "dlc_tests":
         path = os.path.dirname(path)
-    container_tests_path = os.path.join(path, "container_tests")
 
-    run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
+    # If if new test structure is enabled, upload only v2 directory for new test structure
+    if is_new_test_structure_enabled():
+        v2_path = os.path.join(os.path.dirname(path), "v2")
+        run(f"aws s3 cp --recursive {v2_path}/ {s3_test_location}/v2/")
+    else:
+        container_tests_path = os.path.join(path, "container_tests")
+        run(f"aws s3 cp --recursive {container_tests_path}/ {s3_test_location}/")
     return s3_test_location
 
 
@@ -1924,6 +1942,7 @@ def get_framework_from_image_uri(image_uri):
         "autogluon": "autogluon",
         "base": "base",
         "vllm": "vllm",
+        "sglang": "sglang",
     }
 
     for image_pattern, framework in framework_map.items():
@@ -2051,19 +2070,25 @@ def get_job_type_from_image(image_uri):
     :return: Job Type
     """
     tested_job_type = None
-    allowed_job_types = ("training", "inference", "base", "vllm")
-    for job_type in allowed_job_types:
-        if job_type in image_uri:
+    job_type_mapping = {
+        "training": "training",
+        "inference": "inference",
+        "base": "general",
+        "vllm": "general",
+        "sglang": "general",
+    }
+
+    for key, job_type in job_type_mapping.items():
+        if key in image_uri:
             tested_job_type = job_type
-            break
 
     if not tested_job_type and "eia" in image_uri:
         tested_job_type = "inference"
 
     if not tested_job_type:
         raise RuntimeError(
-            f"Cannot find Job Type in image uri {image_uri} "
-            f"from allowed frameworks {allowed_job_types}"
+            f"Cannot determine job type from {image_uri}. "
+            f"Expected one of: {', '.join(job_type_mapping.keys())}"
         )
 
     return tested_job_type

@@ -1,7 +1,7 @@
 botocore>1.0,<2.0
 boto3>1.0,<2.0
 awscli<2
-sagemaker>=2.180.0
+sagemaker>=2.180.0,<=2.254.1
 smdebug>=1
 sagemaker-experiments
 numpy
@@ -19,7 +19,6 @@ pytest-rerunfailures
 pytest-xdist
 requests
 mock
-six
 python-dateutil>=2.1,<2.8.1
 requests-mock
 # test pipemode fails for 2.x containers with module 'tensorflow' has no attribute 'train'

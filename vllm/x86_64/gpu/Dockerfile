@@ -1,7 +1,7 @@
-FROM docker.io/vllm/vllm-openai:v0.10.2 as final
+FROM docker.io/vllm/vllm-openai:v0.12.0 as base
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.43.2"
 LABEL maintainer="Amazon AI"
+ARG EFA_VERSION="1.45.1"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
@@ -17,25 +17,16 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
-COPY install_efa.sh install_efa.sh
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
-COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+
 RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     chmod +x /usr/local/bin/bash_telemetry.sh && \
-    chmod +x /usr/local/bin/dockerd_entrypoint.sh && \
-    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
-    # Install EFA
-    bash install_efa.sh ${EFA_VERSION} && \
-    rm install_efa.sh && \
-    # OSS compliance and software update
-    apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y --allow-change-held-packages --no-install-recommends unzip && \
-    apt-get clean && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc  && \
+    # OSS compliance - use Python zipfile instead of unzip
     HOME_DIR=/root && \
     curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
-    unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ && \
+    python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
     cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
     chmod +x /usr/local/bin/testOSSCompliance && \
     chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
@@ -49,9 +40,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py && \
     rm -rf /var/lib/apt/lists/* && \
     rm -rf /root/.cache | true
 
+COPY install_efa.sh install_efa.sh
+RUN bash install_efa.sh ${EFA_VERSION} && \
+    rm install_efa.sh 
+
 RUN mkdir -p /tmp/nvjpeg \
     && cd /tmp/nvjpeg \
-    && wget https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
+    && curl -O https://developer.download.nvidia.com/compute/cuda/redist/libnvjpeg/linux-x86_64/libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && tar -xvf libnvjpeg-linux-x86_64-12.4.0.76-archive.tar.xz \
     && rm -rf /usr/local/cuda/targets/x86_64-linux/lib/libnvjpeg* \
     && rm -rf /usr/local/cuda/targets/x86_64-linux/include/nvjpeg.h \
@@ -60,6 +55,31 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /tmp/nvjpeg \ 
       # remove cuobjdump and nvdisasm
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
-    && rm -rf /usr/local/cuda/bin/nvdisasm*  
+    && rm -rf /usr/local/cuda/bin/nvdisasm*  \
+    && apt-get install -y git
+
+# ====================== ec2 =========================================
+FROM base AS vllm-ec2 
+
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh 
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+FROM base AS vllm-sagemaker
+
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold && \
+    apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean
+
+COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]

@@ -63,7 +63,6 @@ check_error "Failed to set permissions"
 cd /fsx/vllm-dlc
 git clone https://github.com/vllm-project/vllm.git
 cd vllm
-git checkout tags/v0.10.2
 
 # Download ShareGPT dataset
 log "Downloading ShareGPT dataset..."

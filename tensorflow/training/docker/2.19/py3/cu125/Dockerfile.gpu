@@ -236,7 +236,7 @@ RUN mkdir -p /tmp/nvjpeg \
 && rm -rf /tmp/nvjpeg \
 # patch cuobjdump and nvdisasm
 && rm -rf /usr/local/cuda/bin/cuobjdump* \
-&& rm -rf /usr/local/cuda/bin/nvdisasm* 
+&& rm -rf /usr/local/cuda/bin/nvdisasm*
 
 ADD https://raw.githubusercontent.com/aws/deep-learning-containers/master/src/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 RUN chmod +x /usr/local/bin/deep_learning_container.py
@@ -330,10 +330,13 @@ RUN pip install --no-cache-dir -U \
     --no-build-isolation
 
 
+# Pin numpy to 1.26.4
+RUN ${PIP} install --no-cache-dir -U "numpy==1.26.4"
+
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
 RUN ${PIP} install \
-    --default-timeout=300 \ 
+    --default-timeout=300 \
     --retries 5 \
     --no-cache-dir -U \
     "tf-models-official==${TF_VERSION}.1" \
@@ -342,8 +345,8 @@ RUN ${PIP} install \
  && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    tensorflow-datasets 
-    
+    tensorflow-datasets
+
 # Install rust and cargo
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
@@ -385,6 +388,9 @@ ENV TF_AUTOTUNE_THRESHOLD=2
 
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
+
+# Remove ipykernel
+RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
 # remove tmp files
 RUN rm -rf /tmp/*

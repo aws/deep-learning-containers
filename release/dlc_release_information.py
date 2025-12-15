@@ -4,7 +4,6 @@ import sys
 
 import boto3
 import logging
-import requests
 
 from botocore.exceptions import ClientError
 from invoke import run
@@ -17,17 +16,37 @@ LOGGER.setLevel(logging.INFO)
 
 
 class DLCReleaseInformation:
-    def __init__(self, dlc_account_id, dlc_region, dlc_repository, dlc_tag):
-        if not all([dlc_account_id, dlc_tag, dlc_repository, dlc_region]):
+    def __init__(
+        self,
+        dlc_account_id,
+        dlc_public_account_id,
+        dlc_region,
+        dlc_repository,
+        dlc_tag,
+        dlc_soci_tag=None,
+        is_private_release=True,
+        public_registry=None,
+    ):
+        if not all([dlc_tag, dlc_repository, dlc_region]):
             raise ValueError(
-                "One or multiple environment variables TARGET_ACCOUNT_ID_CLASSIC, TAG_WITH_DLC_VERSION, "
-                "TARGET_ECR_REPOSITORY, REGION  not set. This environment variable is expected to be set by the promoter stage."
+                "One or multiple environment variables TAG_WITH_DLC_VERSION, "
+                "TARGET_ECR_REPOSITORY, REGION not set. This environment variable is expected to be set by the promoter stage."
             )
 
+        if is_private_release and not dlc_account_id:
+            raise ValueError("dlc_account_id is required for private releases")
+
+        if not is_private_release and not dlc_public_account_id:
+            raise ValueError("dlc_public_account_id is required for public releases only")
+
         self.dlc_account_id = dlc_account_id
+        self.dlc_public_account_id = dlc_public_account_id
         self.dlc_region = dlc_region
         self.dlc_repository = dlc_repository
         self.dlc_tag = dlc_tag
+        self.dlc_soci_tag = dlc_soci_tag
+        self.is_private_release = is_private_release
+        self.public_registry = public_registry
 
         self.container_name = self.run_container()
 
@@ -37,10 +56,14 @@ class DLCReleaseInformation:
         self.imp_packages_to_record = Buildspec()
         self.imp_packages_to_record.load(imp_package_list_path)
 
-        self._image_details = self.get_image_details_from_ecr()
+        self._image_details = self.get_image_details_from_ecr(self.dlc_tag)
+        self._soci_image_details = self.get_image_details_from_ecr(self.dlc_soci_tag)
 
     def get_boto3_ecr_client(self):
         return boto3.Session(region_name=self.dlc_region).client("ecr")
+
+    def get_boto3_ecr_public_client(self):
+        return boto3.Session(region_name="us-east-1").client("ecr-public")
 
     def run_container(self):
         """
@@ -52,8 +75,12 @@ class DLCReleaseInformation:
 
         run(f"docker rm -f {container_name}", warn=True, hide=True)
 
+        if self.is_private_release:
+            image_uri = self.image
+        else:
+            image_uri = self.public_image
         run(
-            f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {self.image}",
+            f"docker run -id --privileged --name {container_name} --entrypoint='/bin/bash' {image_uri}",
             hide=True,
         )
 
@@ -71,23 +98,44 @@ class DLCReleaseInformation:
 
         return run_stdout
 
-    def get_image_details_from_ecr(self):
-        _ecr = self.get_boto3_ecr_client()
+    def get_image_details_from_ecr(self, tag):
+        if tag is None:
+            return None
 
-        try:
-            response = _ecr.describe_images(
-                registryId=self.dlc_account_id,
-                repositoryName=self.dlc_repository,
-                imageIds=[{"imageTag": self.dlc_tag}],
-            )
-        except ClientError as e:
-            LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
-
-        return response["imageDetails"][0]
+        if self.is_private_release:
+            _ecr = self.get_boto3_ecr_client()
+            try:
+                response = _ecr.describe_images(
+                    registryId=self.dlc_account_id,
+                    repositoryName=self.dlc_repository,
+                    imageIds=[{"imageTag": tag}],
+                )
+            except ClientError as e:
+                LOGGER.error("ClientError when performing ECR operation. Exception: {}".format(e))
+            return response["imageDetails"][0]
+        else:
+            _ecr_public = self.get_boto3_ecr_public_client()
+            try:
+                response = _ecr_public.describe_images(
+                    registryId=self.dlc_public_account_id,
+                    repositoryName=self.dlc_repository,
+                    imageIds=[{"imageTag": tag}],
+                )
+            except ClientError as e:
+                LOGGER.error(
+                    "ClientError when performing ECR Public operation. Exception: {}".format(e)
+                )
+            return response["imageDetails"][0]
 
     @property
     def image(self):
         return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_tag}"
+
+    @property
+    def public_image(self):
+        if self.public_registry is None:
+            return None
+        return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_tag}"
 
     @property
     def image_tags(self):
@@ -96,6 +144,30 @@ class DLCReleaseInformation:
     @property
     def image_digest(self):
         return self._image_details["imageDigest"]
+
+    @property
+    def soci_image(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return f"{self.dlc_account_id}.dkr.ecr.{self.dlc_region}.amazonaws.com/{self.dlc_repository}:{self.dlc_soci_tag}"
+
+    @property
+    def public_soci_image(self):
+        if self.dlc_soci_tag is None or self.public_registry is None:
+            return None
+        return f"{self.public_registry}/{self.dlc_repository}:{self.dlc_soci_tag}"
+
+    @property
+    def soci_image_tags(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return self._soci_image_details["imageTags"]
+
+    @property
+    def soci_image_digest(self):
+        if self.dlc_soci_tag is None:
+            return None
+        return self._soci_image_details["imageDigest"]
 
     @property
     def bom_pip_packages(self):
@@ -116,8 +188,9 @@ class DLCReleaseInformation:
         elif "triton" in self.dlc_repository:
             self.get_container_command_output("apt remove -y python3-pip")
             self.get_container_command_output(
-                "curl -s https://bootstrap.pypa.io/get-pip.py | python3"
+                "curl -s https://bootstrap.pypa.io/get-pip.py -o get-pip.py"
             )
+            self.get_container_command_output("python3 get-pip.py")
             self.get_container_command_output("python3 -m pip install pipdeptree")
             return self.get_container_command_output("python3 -m pipdeptree")
         elif "large-model-inference" in self.dlc_repository:

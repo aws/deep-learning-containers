@@ -33,6 +33,7 @@ from test_utils import (
 from test_utils import KEYS_TO_DESTROY_FILE
 from test_utils.pytest_cache import PytestCache
 from test.vllm.trigger_test import test as test_vllm
+from infra.test_infra.entrypoint import main as run_new_tests
 
 from src.codebuild_environment import get_codebuild_project_name
 
@@ -120,57 +121,11 @@ def print_log_stream(logs):
     LOGGER.info("Print log stream complete.")
 
 
-def send_scheduler_requests(requester, image):
-    """
-    Send a PR test request through the requester, and wait for the response.
-    If test completed or encountered runtime error, create local XML reports.
-    Otherwise the test failed, print the failure reason.
-
-    :param requester: JobRequester object
-    :param image: <string> ECR URI
-    """
-    # Note: 3 is the max number of instances required for any tests. Here we schedule tests conservatively.
-    identifier = requester.send_request(image, "PR", 3)
-    image_tag = image.split(":")[-1]
-    report_path = os.path.join(os.getcwd(), "test", f"{image_tag}.xml")
-    while True:
-        query_status_response = requester.query_status(identifier)
-        test_status = query_status_response["status"]
-        if test_status == "completed":
-            LOGGER.info(f"Test for image {image} completed.")
-            logs_response = requester.receive_logs(identifier)
-            LOGGER.info(
-                f"Receive logs success for ticket {identifier.ticket_name}, report path: {report_path}"
-            )
-            print_log_stream(logs_response)
-            metrics_utils.send_test_result_metrics(0)
-            with open(report_path, "w") as xml_report:
-                xml_report.write(logs_response["XML_REPORT"])
-            break
-
-        elif test_status == "runtimeError":
-            logs_response = requester.receive_logs(identifier)
-            with open(report_path, "w") as xml_report:
-                xml_report.write(logs_response["XML_REPORT"])
-            print_log_stream(logs_response)
-            metrics_utils.send_test_result_metrics(1)
-            raise Exception(f"Test for image {image} ran into runtime error.")
-            break
-
-        elif test_status == "failed":
-            metrics_utils.send_test_result_metrics(1)
-            raise Exception(
-                f"Scheduling failed for image {image}. Reason: {query_status_response['reason']}"
-            )
-            break
-
-
 def run_sagemaker_remote_tests(images, pytest_cache_params):
     """
     Function to set up multiprocessing for SageMaker tests
     :param images: <list> List of all images to be used in SageMaker tests
     """
-    use_scheduler = os.getenv("USE_SCHEDULER", "False").lower() == "true"
     executor_mode = os.getenv("EXECUTOR_MODE", "False").lower() == "true"
 
     if executor_mode:
@@ -196,19 +151,6 @@ def run_sagemaker_remote_tests(images, pytest_cache_params):
                 "runtimeError", instance_type, num_of_instances, job_type, test_report
             )
         return
-
-    elif use_scheduler:
-        LOGGER.info("entered scheduler mode.")
-        import concurrent.futures
-        from job_requester import JobRequester
-
-        job_requester = JobRequester()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(images)) as executor:
-            futures = [
-                executor.submit(send_scheduler_requests, job_requester, image) for image in images
-            ]
-            for future in futures:
-                future.result()
     else:
         if not images:
             return
@@ -257,22 +199,18 @@ def setup_sm_benchmark_env(dlc_images, test_path):
         setup_sm_benchmark_mx_train_env(resources_location)
 
 
-def delete_key_pairs(keyfile):
+def delete_key_pairs(keys_to_delete_file):
     """
     Function to delete key pairs from a file in mainline context
 
-    :param keyfile: file with all of the keys to delete
+    :param keys_to_delete_file: file with all of the keys to delete
     """
-    try:
-        with open(keyfile) as key_destroy_file:
-            for key_file in key_destroy_file:
-                LOGGER.info(f"destroying {key_file} listed in {key_destroy_file}")
-                ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
-                if ".pem" in key_file:
-                    _resp, keyname = destroy_ssh_keypair(ec2_client, key_file)
-                    LOGGER.info(f"Deleted {keyname}")
-    except Exception as e:
-        LOGGER.error(f"Failed to delete key pair with exception: {e}")
+    ec2_client = boto3.client("ec2", config=Config(retries={"max_attempts": 10}))
+    with open(keys_to_delete_file) as f:
+        for key_file in f:
+            key_file = key_file.strip()
+            LOGGER.info(f"Destroying {key_file} listed in {keys_to_delete_file}")
+            destroy_ssh_keypair(ec2_client, key_file)
 
 
 def build_bai_docker_container():
@@ -286,6 +224,23 @@ def build_bai_docker_container():
         ctx.run("docker build -t bai_env_container -f Dockerfile .")
 
 
+def run_vllm_tests(test_type, all_image_list, new_test_structure_enabled):
+    """
+    Helper function to run vLLM tests for different test types
+    """
+    try:
+        LOGGER.info(f"Running vLLM {test_type.upper()} tests with image: {all_image_list[0]}")
+        if new_test_structure_enabled:
+            LOGGER.info("Using new buildspec-based test system")
+            run_new_tests()
+        else:
+            LOGGER.info("Using legacy test system")
+            test_vllm()
+    except Exception as e:
+        LOGGER.error(f"vLLM {test_type.upper()} tests failed: {str(e)}")
+        raise
+
+
 def main():
     # Define constants
     start_time = datetime.now()
@@ -297,6 +252,11 @@ def main():
     # Enable IPv6 testing from environment variable
     ipv6_enabled = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
     os.environ["ENABLE_IPV6_TESTING"] = "true" if ipv6_enabled else "false"
+
+    # Enable new test structure path from environment variable
+    new_test_structure_enabled = os.getenv("USE_NEW_TEST_STRUCTURE", "false").lower() == "true"
+    os.environ["USE_NEW_TEST_STRUCTURE"] = "true" if new_test_structure_enabled else "false"
+
     # Executing locally ona can provide commit_id or may ommit it. Assigning default value for local executions:
     commit_id = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION", default="unrecognised_commit_id")
     LOGGER.info(f"Images tested: {dlc_images}")
@@ -327,12 +287,21 @@ def main():
             "security_sanity",
             "eks",
             "ec2",
+            "sagemaker",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on vllm images. Skipping..."
             )
             return
-
+        elif all("sglang" in image_uri for image_uri in all_image_list) and test_type not in {
+            "functionality_sanity",
+            "security_sanity",
+            "sagemaker",
+        }:
+            LOGGER.info(
+                f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
+            )
+            return
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -428,14 +397,8 @@ def main():
             framework = frameworks_in_images[0]
 
             if framework == "vllm":
-                try:
-                    LOGGER.info(f"Running vLLM EKS EC2 tests with image: {all_image_list[0]}")
-                    test_vllm()
-                    # Exit function after vLLM tests
-                    return
-                except Exception as e:
-                    LOGGER.error(f"vLLM EKS EC2 tests failed: {str(e)}")
-                    raise
+                run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
+                return
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
@@ -536,6 +499,10 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
+        if "vllm" in dlc_images:
+            run_vllm_tests("sagemaker", all_image_list, new_test_structure_enabled)
+            return
+
         if "habana" in dlc_images:
             LOGGER.info(f"Skipping SM tests for Habana. Images: {dlc_images}")
             # Creating an empty file for because codebuild job fails without it
@@ -590,6 +557,8 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
+            "vllm": "Skipping - there are no local mode tests for VLLM",
+            "sglang": "Skipping - there are no local mode tests for sglang",
         }
 
         for skip_condition, reason in sm_local_to_skip.items():

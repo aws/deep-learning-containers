@@ -241,11 +241,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
+    # requires explicit declaration of spacy, thic, blis, typer, langcodes, language_data
     spacy \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4  \
     blis \
+    typer \ 
+    langcodes \
+    language_data \
     numpy \
  && pip uninstall -y dataclasses
 
@@ -312,20 +315,27 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     fastai==2.8.2 \
     accelerate \
     # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
+    # requires explicit declaration of spacy, thic, blis, typer, langcodes, language_data
     spacy \
     thinc==8.3.4  \
     blis \
     numpy \
+    typer \ 
+    langcodes \
+    language_data \
  && pip uninstall -y dataclasses
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
+    # address package regression caused by smclarify depedency s3fs"
+    "awscli<=1.42.61" \
+    "boto3<=1.40.61" \
     smclarify \
     "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
-    sagemaker-training
+    sagemaker-training \
+    sniffio
 
 # Install extra packages
 RUN pip install --no-cache-dir -U \
