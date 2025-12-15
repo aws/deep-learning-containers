@@ -49,8 +49,9 @@ RUN pip install --no-cache-dir \
     accelerate==${ACCELERATE_VERSION} \
     ninja==${NINJA_VERSION} \
     trl==${TRL_VERSION} \
-    peft==${PEFT_VERSION} \
-    flash-attn==${FLASH_ATTN_VERSION}
+    peft==${PEFT_VERSION}
+    # peft==${PEFT_VERSION} \
+    # flash-attn==${FLASH_ATTN_VERSION}
 
 # Override conflicting versions to satisfy datasets requirements
 RUN pip install --no-cache-dir dill==0.3.8 multiprocess==0.70.16 \
