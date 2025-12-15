@@ -143,7 +143,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
-    needs: [set-test-environment]
+    needs: [build-sglang-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -201,7 +201,7 @@ jobs:
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
   sglang-frontend-test:
-    needs: [set-test-environment]
+    needs: [build-sglang-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

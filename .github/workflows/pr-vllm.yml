@@ -150,7 +150,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-ec2-regression-test:
-    needs: [set-ec2-test-environment]
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -196,7 +196,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
   vllm-ec2-cuda-test:
-    needs: [set-ec2-test-environment]
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -242,7 +242,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
   vllm-ec2-example-test:
-    needs: [set-ec2-test-environment]
+    needs: [build-vllm-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -351,7 +351,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-rayserve-regression-test:
-    needs: [set-rayserve-test-environment]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -397,7 +397,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
   vllm-rayserve-cuda-test:
-    needs: [set-rayserve-test-environment]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -443,7 +443,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
   vllm-rayserve-example-test:
-    needs: [set-rayserve-test-environment]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -552,7 +552,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-sagemaker-regression-test:
-    needs: [set-sagemaker-test-environment]
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -598,7 +598,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
   vllm-sagemaker-cuda-test:
-    needs: [set-sagemaker-test-environment]
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -644,7 +644,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
   vllm-sagemaker-example-test:
-    needs: [set-sagemaker-test-environment]
+    needs: [build-vllm-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
