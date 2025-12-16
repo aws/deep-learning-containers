@@ -1,0 +1,75 @@
+name: 'Build Docker Image'
+description: 'Build and push Docker images for different frameworks and targets'
+
+inputs:
+  framework:
+    description: 'Framework name'
+    required: true
+  target:
+    description: 'Docker build target'
+    required: true
+  base-image:
+    description: 'Base Docker image'
+    required: true
+  framework-version:
+    description: 'Framework version'
+    required: true
+  container-type:
+    description: 'Container type (e.g., general)'
+    required: true
+  aws-account-id:
+    description: 'AWS account ID for ECR'
+    required: true
+  aws-region:
+    description: 'AWS region'
+    required: true
+  tag_pr:
+    description: 'Pull request image tag'
+    required: true
+  dockerfile-path:
+    description: 'Path to the Dockerfile'
+    required: true
+
+outputs:
+  image-uri:
+    description: 'Built image URI'
+    value: ${{ steps.image-uri-build.outputs.CI_IMAGE_URI }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup buildkitd
+      shell: bash
+      run: .github/scripts/buildkitd.sh
+
+    - name: ECR login
+      uses: ./.github/actions/ecr-authenticate
+      with:
+        aws-account-id: ${{ inputs.aws-account-id }}
+        aws-region: ${{ inputs.aws-region }}
+
+    - name: Resolve image URI for build
+      id: image-uri-build
+      shell: bash
+      run: |
+        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag_pr }}
+        echo "Image URI to build: ${CI_IMAGE_URI}"
+        echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
+        echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+    - name: Build image
+      shell: bash
+      run: |
+        docker buildx build --progress plain \
+          --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+          --build-arg BASE_IMAGE="${{ inputs.base-image }}" \
+          --build-arg CONTAINER_TYPE="${{ inputs.container-type }}" \
+          --build-arg FRAMEWORK="${{ inputs.framework }}" \
+          --build-arg FRAMEWORK_VERSION="${{ inputs.framework-version }}" \
+          --cache-to=type=inline \
+          --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+          --tag ${CI_IMAGE_URI} \
+          --push \
+          --target ${{ inputs.target }} \
+          -f ${{ inputs.dockerfile-path }} .
+        docker rmi ${CI_IMAGE_URI}
