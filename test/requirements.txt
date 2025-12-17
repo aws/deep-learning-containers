@@ -5,6 +5,7 @@ fabric
 invoke
 junit-xml==1.9
 packaging
+Pillow
 # Pin pytest to preserve pytest cache behavior
 pytest<8.1
 pytest-rerunfailures<=15.1
