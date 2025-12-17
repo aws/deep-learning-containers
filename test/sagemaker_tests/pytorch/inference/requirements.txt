@@ -13,7 +13,10 @@ invoke
 mock
 numpy
 Pillow
-packaging
+# Pin packaging>=25 to satisfy pyproject-api and tox requirements (Python 3.12.12 compatibility)
+packaging>=25
+# Pin PyYAML>=6.0 to ensure Python 3.12 wheel compatibility (avoid build from source failures)
+PyYAML>=6.0
 # Preserve pytest caching behavior in earlier versions
 pytest<8.1
 pytest-cov
