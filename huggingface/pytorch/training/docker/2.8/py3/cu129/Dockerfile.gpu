@@ -4,9 +4,8 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker
 
-RUN apt-get remove -y --purge emacs && \
-
-apt-get autoremove -y
+RUN apt-get remove -y --purge emacs \
+ && apt-get autoremove -y
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -24,13 +23,6 @@ ARG FLASH_ATTN_VERSION=2.8.3
 ARG NINJA_VERSION=1.13.0
 ARG KERNELS_VERSION=0.9.0
 ARG PYTHON=python3
-
-# TODO: Remove when the base image is updated
-RUN pip install --upgrade pip \
- && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
- && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
- && pip --no-cache-dir install --upgrade wheel setuptools \
- && pip install --no-cache-dir -U "werkzeug==3.0.6"
 
 # Pre-install kenlm without build isolation so it uses system cmake
 RUN pip install --no-cache-dir --no-build-isolation kenlm
@@ -61,11 +53,22 @@ RUN pip install --no-cache-dir dill==0.3.8 multiprocess==0.70.16 \
 
 # Fix CVE-77744: Upgrade urllib3 to version 2.5.0 or higher
 # Remove sigopt to avoid dependency conflict (it's not essential for core functionality)
-RUN pip install --no-cache-dir -U "urllib3>=2.5.0" \
- && pip uninstall -y sigopt || true
-
-# Fix CVE-2023-48022: Remove Ray to eliminate vulnerability
-RUN pip uninstall -y ray
+# CVE patch
+RUN pip install --upgrade pip \
+ && pip uninstall -y sigopt || true \
+ && pip uninstall -y ray pyctcdecode \
+ && pip install --no-cache-dir -U \
+    pyarrow \
+    cryptography \
+    pyopenssl \
+    Pillow \
+    wheel \
+    setuptools \
+    "s3fs==2025.9.0" \
+    "werkzeug>=3.1.4" \
+    "filelock>=3.20.1" \
+    "numpy>2" \
+    "urllib3>=2.5.0"
 
 # hf_transfer will be a built-in feature, remove the env variable then
 ENV HF_HUB_ENABLE_HF_TRANSFER="1"
