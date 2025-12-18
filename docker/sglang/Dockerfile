@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.5-cu129-amd64
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.6-cu129-amd64
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -10,7 +10,7 @@ FROM $BASE_IMAGE AS base
 # ====================================================
 
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.43.3"
+ARG EFA_VERSION="1.46.0"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
