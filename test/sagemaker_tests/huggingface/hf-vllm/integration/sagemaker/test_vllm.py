@@ -82,7 +82,7 @@ def _test_vllm_model(
 
     hf_model = HuggingFaceModel(
         env=env,
-        role="sagemaker-dlcs",
+        role="SageMakerRole",
         image_uri=image_uri,
         sagemaker_session=sagemaker_session,
     )
