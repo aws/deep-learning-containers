@@ -4,9 +4,8 @@
 # docker image region us-west-2
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker
 
-RUN apt-get remove -y --purge emacs && \
-
-apt-get autoremove -y
+RUN apt-get remove -y --purge emacs \
+ && apt-get autoremove -y
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
@@ -27,7 +26,6 @@ ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
 RUN pip install --upgrade pip \
- && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
  && pip install --no-cache-dir -U "werkzeug==3.0.6"
