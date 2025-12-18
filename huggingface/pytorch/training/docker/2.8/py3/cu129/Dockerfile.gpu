@@ -12,7 +12,7 @@ LABEL dlc_major_version="1"
 
 # version args
 ARG TRANSFORMERS_VERSION=4.56.2
-ARG DATASETS_VERSION=4.4.1
+ARG DATASETS_VERSION=4.1.0
 ARG HUGGINGFACE_HUB_VERSION=0.35.3
 ARG DIFFUSERS_VERSION=0.35.1
 ARG EVALUATE_VERSION=0.4.3
@@ -64,7 +64,7 @@ RUN pip install --upgrade pip \
     Pillow \
     wheel \
     setuptools \
-    "s3fs==2025.10.0" \
+    "s3fs==2025.9.0" \
     "werkzeug>=3.1.4" \
     "filelock>=3.20.1" \
     "numpy>2" \
