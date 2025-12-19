@@ -12,15 +12,17 @@ permissions:
   pull-requests: read
 
 env:
-  # CI Image configuration
+  # Common
   CONTAINER_TYPE: "general"
   FRAMEWORK: "sglang"
-  SGLANG_VERSION: "0.5.5"
+  SGLANG_VERSION: "0.5.6"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
-  # Prod Image configuration
+
+  # SGLang SageMaker
   PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
+
   # CI environment configuration
   FORCE_COLOR: "1"
   TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
@@ -106,7 +108,7 @@ jobs:
           base-image: lmsysorg/sglang:v${{ env.SGLANG_VERSION }}-${{ env.CUDA_VERSION }}-amd64
           framework-version: ${{ env.SGLANG_VERSION }}
           container-type: ${{ env.CONTAINER_TYPE }}
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-account-id-inp: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag_pr: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile

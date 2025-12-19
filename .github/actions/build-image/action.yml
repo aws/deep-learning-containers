@@ -17,7 +17,7 @@ inputs:
   container-type:
     description: 'Container type (e.g., general)'
     required: true
-  aws-account-id:
+  aws-account-id-inp:
     description: 'AWS account ID for ECR'
     required: true
   aws-region:
@@ -45,14 +45,14 @@ runs:
     - name: ECR login
       uses: ./.github/actions/ecr-authenticate
       with:
-        aws-account-id: ${{ inputs.aws-account-id }}
+        aws-account-id: ${{ inputs.aws-account-id-inp }}
         aws-region: ${{ inputs.aws-region }}
 
     - name: Resolve image URI for build
       id: image-uri-build
       shell: bash
       run: |
-        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag_pr }}
+        CI_IMAGE_URI=${{ inputs.aws-account-id-inp }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag_pr }}
         echo "Image URI to build: ${CI_IMAGE_URI}"
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}

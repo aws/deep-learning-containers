@@ -18,7 +18,6 @@ env:
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
-  FORCE_COLOR: "1"
 
   # vLLM EC2
   VLLM_VERSION: 0.12.0
@@ -30,6 +29,9 @@ env:
   # vLLM RayServe
   VLLM_RAYSERVE_VERSION: 0.10.2
   PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
+
+  # CI environment configuration
+  FORCE_COLOR: "1"
 
 
 jobs:
@@ -82,9 +84,9 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-vllm*"
             test-change:
               - "test/vllm/**"
+  # - ".github/workflows/pr-vllm*"
 
   # ==============================================
   # =============== vLLM EC2 jobs ================
@@ -113,7 +115,7 @@ jobs:
           base-image: vllm/vllm-openai:v${{ env.VLLM_VERSION }}
           framework-version: ${{ env.VLLM_VERSION }}
           container-type: ${{ env.CONTAINER_TYPE }}
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-account-id-inp: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-ec2-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
@@ -314,7 +316,7 @@ jobs:
           base-image: vllm/vllm-openai:v${{ env.VLLM_RAYSERVE_VERSION }}
           framework-version: ${{ env.VLLM_RAYSERVE_VERSION }}
           container-type: ${{ env.CONTAINER_TYPE }}
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-account-id-inp: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
@@ -515,7 +517,7 @@ jobs:
           base-image: vllm/vllm-openai:v${{ env.VLLM_VERSION }}
           framework-version: ${{ env.VLLM_VERSION }}
           container-type: ${{ env.CONTAINER_TYPE }}
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-account-id-inp: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag_pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
