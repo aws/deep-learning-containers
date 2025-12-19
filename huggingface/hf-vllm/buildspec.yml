@@ -12,9 +12,9 @@ repository_info:
   build_repository: &BUILD_REPOSITORY
     image_type: &IMAGE_TYPE gpu
     root: huggingface/hf-vllm
-    repository_name: &REPOSITORY_NAME !join [ pr, "-", *FRAMEWORK ]
+    repository_name: &REPOSITORY_NAME !join [ "pr", "-", "huggingface", "-", *BASE_FRAMEWORK ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
-    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ *FRAMEWORK ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ "huggingface", "-", *BASE_FRAMEWORK ]
     release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
 
 context:
