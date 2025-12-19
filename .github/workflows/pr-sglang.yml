@@ -202,7 +202,7 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-  sglang-frontend-test:
+  sglang-upstream-test:
     needs: [build-sglang-image, set-test-environment]
     if: success()
     runs-on:
@@ -254,8 +254,8 @@ jobs:
             nvidia-smi
 
             # Frontend Test
-            cd /workdir/test/lang
-            python3 run_suite.py --suite per-commit
+            cd /workdir/test
+            python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
   sglang-sagemaker-endpoint-test:
