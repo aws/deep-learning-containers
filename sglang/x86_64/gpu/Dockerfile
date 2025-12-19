@@ -1,11 +1,11 @@
-FROM lmsysorg/sglang:v0.5.5-cu129-amd64 AS base
+FROM lmsysorg/sglang:v0.5.6-cu129-amd64 AS base
 
 # ====================================================
 # ====================== common ======================
 # ====================================================
 
 ARG PYTHON="python3"
-ARG EFA_VERSION="1.43.3"
+ARG EFA_VERSION="1.46.0"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
