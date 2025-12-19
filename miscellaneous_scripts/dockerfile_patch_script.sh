@@ -81,11 +81,6 @@ if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaw
     rm -rf /usr/local/cuda/bin/nvdisasm*
 fi
 
-# For PT 2.7 2.8 and 2.9 training, upgrade filelock 3.20.1 to remedy https://nvd.nist.gov/vuln/detail/CVE-2025-68146
-if [[ $LATEST_RELEASED_IMAGE_URI =~ ^763104351884\.dkr\.ecr\.us-west-2\.amazonaws\.com/pytorch-training:2\.[7-9]\.[0-9]+-* ]]; then
-    pip uninstall -y filelock && pip install "filelock>=3.20.1" && echo "Installed filelock from pip"
-fi
-
 ###########################
 
 
