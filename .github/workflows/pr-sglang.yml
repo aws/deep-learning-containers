@@ -256,6 +256,9 @@ jobs:
             # Frontend Test
             cd /workdir/test
             python3 run_suite.py --hw cuda --suite stage-a-test-1
+            cd /workdir/test/srt
+            python3 run_suite.py --suite per-commit-amd
+            python3 run_suite.py --suite per-commit-1-gpu
           '
 
   sglang-sagemaker-endpoint-test:
