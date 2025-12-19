@@ -85,8 +85,8 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - ".github/workflows/pr-vllm*"
-              test-change:
-                - "test/vllm/**"
+            test-change:
+              - "test/vllm/**"
 
   # ==============================================
   # =============== vLLM EC2 jobs ================
