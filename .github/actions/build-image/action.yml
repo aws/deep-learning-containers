@@ -42,19 +42,6 @@ runs:
       shell: bash
       run: .github/scripts/buildkitd.sh
 
-    - name: print
-      shell: bash
-      run: |
-        echo ${{ inputs.framework }}
-        echo ${{ inputs.target }}
-        echo ${{ inputs.base-image }}
-        echo ${{ inputs.framework-version }}
-        echo ${{ inputs.container-type }}
-        echo ${{ inputs.aws-account-id }}
-        echo ${{ inputs.aws-region }}
-        echo ${{ inputs.tag-pr }}
-        echo ${{ inputs.dockerfile-path }}
-
     - name: ECR login
       uses: ./.github/actions/ecr-authenticate
       with:
