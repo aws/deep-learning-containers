@@ -264,7 +264,8 @@ RUN pip install --no-cache-dir -U \
     shap \
     scikit-learn \
     seaborn \
-    cloudpickle
+    cloudpickle \
+    "filelock>=3.20.1"
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh

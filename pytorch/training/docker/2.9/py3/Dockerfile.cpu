@@ -297,7 +297,8 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     shap \
-    cloudpickle
+    cloudpickle \
+    "filelock>=3.20.1"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
