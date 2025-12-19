@@ -99,6 +99,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: print
+        shell: bash
+        run: |
+          echo ${{ vars.CI_AWS_ACCOUNT_ID }}
+          echo ${{ vars.AWS_REGION }}
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
