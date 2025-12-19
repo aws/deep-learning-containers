@@ -23,7 +23,7 @@ inputs:
   aws-region:
     description: 'AWS region'
     required: true
-  tag_pr:
+  tag-pr:
     description: 'Pull request image tag'
     required: true
   dockerfile-path:
@@ -52,7 +52,7 @@ runs:
       id: image-uri-build
       shell: bash
       run: |
-        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag_pr }}
+        CI_IMAGE_URI=${{ inputs.aws-account-id }}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/ci:${{ inputs.tag-pr }}
         echo "Image URI to build: ${CI_IMAGE_URI}"
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_ENV}
         echo "CI_IMAGE_URI=${CI_IMAGE_URI}" >> ${GITHUB_OUTPUT}
