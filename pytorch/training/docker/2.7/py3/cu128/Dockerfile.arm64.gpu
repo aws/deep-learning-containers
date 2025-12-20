@@ -204,7 +204,8 @@ RUN pip install --no-cache-dir \
     mpi4py \
     packaging \
     ninja \
-    pybind11
+    pybind11 \
+    "filelock>=3.20.1"
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
