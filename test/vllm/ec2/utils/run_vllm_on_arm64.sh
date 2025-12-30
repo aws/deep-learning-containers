@@ -13,6 +13,9 @@ MODEL_NAME="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
 CONTAINER_NAME="vllm-arm64-dlc"
 PORT=8000
 
+cd /fsx/vllm-dlc/vllm
+git checkout v0.10.2
+
 wait_for_api() {
     local max_attempts=60
     local attempt=1
