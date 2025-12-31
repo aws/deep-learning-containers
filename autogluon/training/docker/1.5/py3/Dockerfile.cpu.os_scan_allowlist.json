@@ -474,5 +474,189 @@
             "title": "CVE-2025-32434 - torch",
             "reason_to_ignore": "Security vulnerability allowlisted for AutoGluon DLC"
         }
-    ]
+    ],
+      "Brotli": [
+    {
+      "description": "Scrapy versions up to 2.13.2 are vulnerable to a denial of service (DoS) attack due to a flaw in its brotli decompression implementation. The protection mechanism against decompression bombs fails to mitigate the brotli variant, allowing remote servers to crash clients with less than 80GB of available memory. This occurs because brotli can achieve extremely high compression ratios for zero-filled data, leading to excessive memory consumption during decompression.",
+      "vulnerability_id": "CVE-2025-6176",
+      "name": "CVE-2025-6176",
+      "package_name": "Brotli",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/brotli-1.1.0.dist-info/METADATA",
+        "name": "Brotli",
+        "package_manager": "PYTHON",
+        "version": "1.1.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 7.5,
+      "cvss_v31_score": 0.0,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-6176",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-6176 - Brotli",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "curl/libcurl": [
+    {
+      "description": "1. A cookie is set using the `secure` keyword for `https://target` 2. curl is redirected to or otherwise made to speak with `http://target` (same hostname, but using clear text HTTP) using the same cookie set 3. The same cookie name is set - but with just a slash as path (`path='/'`). Since this site is not secure, the cookie *should* just be ignored. 4. A bug in the path comparison logic makes curl read outside a heap buffer boundary\n\nThe bug either causes a crash or it potentially makes the comparison come to the wrong conclusion and lets the clear-text site override the contents of the secure cookie, contrary to expectations and depending on the memory contents immediately following the single-byte allocation that holds the path.\n\nThe presumed and correct behavior would be to plainly ignore the second set of the cookie since it was already set as secure on a secure host so overriding it on an insecure host should not be okay.",
+      "vulnerability_id": "CVE-2025-9086",
+      "name": "CVE-2025-9086",
+      "package_name": "curl/libcurl",
+      "package_details": {
+        "file_path": "/opt/conda/include/curl/curlver.h",
+        "name": "curl/libcurl",
+        "package_manager": "GENERIC",
+        "version": "8.14.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-9086",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-9086 - curl/libcurl",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "fonttools": [
+    {
+      "description": "fontTools is a library for manipulating fonts, written in Python. In versions from 4.33.0 to before 4.60.2, the fonttools varLib (or python3 -m fontTools.varLib) script has an arbitrary file write vulnerability that leads to remote code execution when a malicious .designspace file is processed. The vulnerability affects the main() code path of fontTools.varLib, used by the fonttools varLib CLI and any code that invokes fontTools.varLib.main(). This issue has been patched in version 4.60.2.",
+      "vulnerability_id": "CVE-2025-66034",
+      "name": "CVE-2025-66034",
+      "package_name": "fonttools",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/fonttools-4.59.0.dist-info/METADATA",
+        "name": "fonttools",
+        "package_manager": "PYTHON",
+        "version": "4.59.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66034",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2025-66034 - fonttools",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "openssl/openssl": [
+    {
+      "description": "Issue summary: An application trying to decrypt CMS messages encrypted using password based encryption can trigger an out-of-bounds read and write.\n\nImpact summary: This out-of-bounds read may trigger a crash which leads to Denial of Service for an application. The out-of-bounds write can cause a memory corruption which can have various consequences including a Denial of Service or Execution of attacker-supplied code.\n\nAlthough the consequences of a successful exploit of this vulnerability could be severe, the probability that the attacker would be able to perform it is low. Besides, password based (PWRI) encryption support in CMS messages is very rarely used. For that reason the issue was assessed as Moderate severity according to our Security Policy.\n\nThe FIPS modules in 3.5, 3.4, 3.3, 3.2, 3.1 and 3.0 are not affected by this issue, as the CMS implementation is outside the OpenSSL FIPS module boundary.",
+      "vulnerability_id": "CVE-2025-9230",
+      "name": "CVE-2025-9230",
+      "package_name": "openssl/openssl",
+      "package_details": {
+        "file_path": "/opt/conda/include/openssl/opensslv.h",
+        "name": "openssl/openssl",
+        "package_manager": "GENERIC",
+        "version": "3.5.1",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-9230",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-9230 - openssl/openssl",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "urllib3": [
+    {
+      "description": "urllib3 is a user-friendly HTTP client library for Python. Starting in version 1.0 and prior to 2.6.0, the Streaming API improperly handles highly compressed data. urllib3's streaming API is designed for the efficient handling of large HTTP responses by reading the content in chunks, rather than loading the entire response body into memory at once. When streaming a compressed response, urllib3 can perform decoding or decompression based on the HTTP Content-Encoding header (e.g., gzip, deflate, br, or zstd). The library must read compressed data from the network and decompress it until the requested chunk size is met. Any resulting decompressed data that exceeds the requested amount is held in an internal buffer for the next read operation. The decompression logic could cause urllib3 to fully decode a small amount of highly compressed data in a single operation. This can result in excessive resource consumption (high CPU usage and massive memory allocation for the decompressed data.",
+      "vulnerability_id": "CVE-2025-66471",
+      "name": "CVE-2025-66471",
+      "package_name": "urllib3",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/urllib3-2.5.0.dist-info/METADATA",
+        "name": "urllib3",
+        "package_manager": "PYTHON",
+        "version": "2.5.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66471",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-66471 - urllib3",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "urllib3 is a user-friendly HTTP client library for Python. Starting in version 1.24 and prior to 2.6.0, the number of links in the decompression chain was unbounded allowing a malicious server to insert a virtually unlimited number of compression steps leading to high CPU usage and massive memory allocation for the decompressed data. This vulnerability is fixed in 2.6.0.",
+      "vulnerability_id": "CVE-2025-66418",
+      "name": "CVE-2025-66418",
+      "package_name": "urllib3",
+      "package_details": {
+        "file_path": "/opt/conda/lib/python3.11/site-packages/urllib3-2.5.0.dist-info/METADATA",
+        "name": "urllib3",
+        "package_manager": "PYTHON",
+        "version": "2.5.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66418",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-66418 - urllib3",
+      "reason_to_ignore": "N/A"
+    }
+  ]
 }
