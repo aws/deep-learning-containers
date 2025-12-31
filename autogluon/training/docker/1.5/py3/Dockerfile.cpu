@@ -23,7 +23,7 @@ RUN apt-get update \
 ARG AUTOGLUON_VERSION=1.5.0
 
 # Upgrading pip and installing/updating Python dependencies
-# Comments are added to explain the reason behind each update
+# Comments are added to explain the reason behind each update.
 RUN pip install --no-cache-dir -U --trusted-host pypi.org --trusted-host files.pythonhosted.org pip \
  && pip install --no-cache-dir -U wheel \
  && pip install --no-cache-dir -U autogluon==${AUTOGLUON_VERSION} \
