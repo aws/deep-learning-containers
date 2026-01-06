@@ -120,10 +120,8 @@ vLLM Containers
 
 | Framework         | Platform	| Python Version Options	| Example URL																						                                                                         |
 |-------------------|-----------|-----------------------|-----------------------------------------------------------------------------------------------------------|
-| vLLM 0.12     | SageMaker 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.12-gpu-py312             |
-| vLLM 0.12     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.12-gpu-py312-ec2             |
-| vLLM 0.11     | SageMaker 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11-gpu-py312             |
-| vLLM 0.11     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11-gpu-py312-ec2             |
+| vLLM 0.13     | SageMaker 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.13-gpu-py312             |
+| vLLM 0.13     | EC2, ECS, and EKS 	| 3.12 (py312)			| 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.13-gpu-py312-ec2             |
 
 Also available in Amazon ECR Public Gallery for EC2, ECS, and EKS support only: https://gallery.ecr.aws/deep-learning-containers/vllm
 
