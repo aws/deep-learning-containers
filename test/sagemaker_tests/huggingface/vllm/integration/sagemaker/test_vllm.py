@@ -38,10 +38,10 @@ def test_vllm_bloom(framework_version, ecr_image, instance_type, sagemaker_regio
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
         test_function=_test_vllm_model,
+        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
         model_id="bigscience/bloom-560m",
-        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
     )
 
 
@@ -55,23 +55,31 @@ def test_vllm_qwen(framework_version, ecr_image, instance_type, sagemaker_region
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
         test_function=_test_vllm_model,
+        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
         model_id="Qwen/Qwen3-8B",
-        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
     )
 
 
 def _test_vllm_model(
-    sagemaker_session,
-    framework_version,
     image_uri,
+    sagemaker_session,
     instance_type,
     model_id,
-    accelerator_type=None,
+    framework_version=None,
     **kwargs,
 ):
-    """Test vLLM model deployment and inference using OpenAI-compatible API format"""
+    """Test vLLM model deployment and inference using OpenAI-compatible API format
+    
+    Note: Parameters must match what invoke_sm_endpoint_helper_function passes:
+    - image_uri: ECR image URI
+    - sagemaker_session: SageMaker session
+    - instance_type: ML instance type (passed via **test_function_args)
+    - model_id: HuggingFace model ID (passed via **test_function_args)
+    - framework_version: Optional version info (passed via **test_function_args)
+    - **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
+    """
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-serving")
 
     env = {
