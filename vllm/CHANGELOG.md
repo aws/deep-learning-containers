@@ -3,7 +3,7 @@
 Available in Amazon ECR Public Gallery:
 
 - https://gallery.ecr.aws/deep-learning-containers/vllm for x86 architecture.
-- https://gallery.ecr.aws/deep-learning-containers/vllm for ARM64 architecture.
+- https://gallery.ecr.aws/deep-learning-containers/vllm-arm64 for ARM64 architecture.
 
 All notable changes to vLLM Deep Learning Containers will be documented in this file.
 
