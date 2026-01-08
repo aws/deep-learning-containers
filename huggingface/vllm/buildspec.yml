@@ -10,7 +10,7 @@ autopatch_build: "False"
 
 repository_info:
   build_repository: &BUILD_REPOSITORY
-    image_type: &IMAGE_TYPE gpu
+    image_type: &IMAGE_TYPE inference
     root: huggingface/vllm
     repository_name: &REPOSITORY_NAME !join [ "pr", "-", "huggingface", "-", *BASE_FRAMEWORK ]
     repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
