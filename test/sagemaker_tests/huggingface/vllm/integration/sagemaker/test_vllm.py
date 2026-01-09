@@ -50,7 +50,7 @@ def test_vllm_bloom(framework_version, ecr_image, instance_type, sagemaker_regio
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_qwen(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = instance_type or "ml.g6.12xlarge"
+    instance_type = "ml.g6.12xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
@@ -83,7 +83,7 @@ def _test_vllm_model(
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-serving")
 
     env = {
-        "HF_MODEL_ID": model_id,
+        "SM_VLLM_MODEL": model_id,
         "SM_NUM_GPUS": "4",
         "SM_VLLM_MAX_MODEL_LEN": "512",
     }
