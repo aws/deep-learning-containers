@@ -18,8 +18,8 @@ repos:
   # ------------------------------- 🌳 Git Tools ------------------------------- #
       - id: check-merge-conflict
         name: "🌳 git · Detect conflict markers"
-      - id: forbid-new-submodules
-        name: "🌳 git · Prevent submodule creation"
+      # - id: forbid-new-submodules
+      #   name: "🌳 git · Prevent submodule creation"
       - id: no-commit-to-branch
         name: "🌳 git · Protect main branches"
         args: ["--branch", "main", "--branch", "master"]

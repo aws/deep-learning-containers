@@ -1,0 +1,3 @@
+[submodule "docs/tutorials/content"]
+	path = docs/tutorials/content
+	url = https://github.com/aws-samples/sample-aws-deep-learning-containers

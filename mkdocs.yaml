@@ -1,0 +1,69 @@
+# === Site Metadata ===
+site_name: Deep Learning Containers                           # Browser tab title & header
+site_description: Documentation for AWS Deep Learning Containers  # SEO meta description
+site_url: https://aws.github.io/deep-learning-containers          # Canonical URL (for sitemap, SEO)
+
+# === GitHub Integration ===
+repo_name: aws/deep-learning-containers                           # Displayed name for repo link
+repo_url: https://github.com/aws/deep-learning-containers         # Links to GitHub (top-right corner)
+
+theme:
+  name: material                              # Use Material for MkDocs theme
+  logo: assets/logos/AWS_logo_RGB.svg         # Logo in page
+  favicon: assets/logos/AWS_logo_RGB_REV.svg  # Browser tab icon
+  palette:
+    # Auto mode - follows system preference
+    - media: "(prefers-color-scheme)"         # Follows system preference color
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode            # Toggle button label system -> light
+    # Light mode
+    - media: "(prefers-color-scheme: light)"  # Set to light mode
+      scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode             # Toggle button label light -> dark
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange                    # Header/nav bar color
+      accent: orange                          # Links/buttons highlight color
+      toggle:
+        icon: material/brightness-2
+        name: Switch to system preference     # Toggle button label dark -> system
+  features:
+    - content.code.copy                       # Copy button on code blocks
+    - content.tabs.link                       # Sync tab selection across page
+    - navigation.instant                      # SPA-like navigation (no full reload)
+    - navigation.instant.progress             # Loading progress bar
+    - navigation.tracking                     # URL updates as you scroll
+    - navigation.tabs                         # Top-level sections as tabs
+    - navigation.tabs.sticky                  # Tabs stay visible when scrolling
+    - navigation.sections                     # Group items in sidebar
+    - navigation.top                          # "Back to top" button
+    - search.highlight                        # Highlight search matches on page
+    - search.share                            # Share search results via URL
+    - toc.follow                              # TOC follows scroll position
+  icon:
+    repo: fontawesome/brands/github           # GitHub icon for repo link
+
+extra_css:
+  - stylesheets/extra.css                     # Custom CSS overrides
+
+# === Markdown Extensions ===
+markdown_extensions:
+  - pymdownx.highlight:                       # Syntax highlighting for code
+      anchor_linenums: true                   # Linkable line numbers
+  - pymdownx.superfences                      # Nested code blocks, diagrams
+  - pymdownx.tabbed:                          # Tabbed content blocks
+      alternate_style: true                   # Modern tab styling
+  - admonition                                # Note/warning/tip boxes (!!! note)
+  - pymdownx.details                          # Collapsible admonitions (???)
+  - tables                                    # Markdown tables support
+
+# === Plugins ===
+plugins:
+  - search                                    # Built-in search functionality
+  - awesome-nav                               # .nav.yml file support

@@ -1,0 +1,37 @@
+/* Light mode - AWS dark navy */
+.md-tabs__link,
+.md-header__title,
+.md-search__input::placeholder,
+.md-header__button,
+.md-source__repository,
+.md-search__icon,
+.md-header__button svg,
+.md-source__icon svg {
+  color: #232f3e !important;
+  fill: #232f3e !important;
+}
+.md-tabs__link--active {
+  color: #ff9900 !important;
+}
+.md-search__input {
+  color: #232f3e !important;
+}
+
+/* Dark mode - light text */
+[data-md-color-scheme="slate"] .md-tabs__link,
+[data-md-color-scheme="slate"] .md-header__title,
+[data-md-color-scheme="slate"] .md-search__input::placeholder,
+[data-md-color-scheme="slate"] .md-header__button,
+[data-md-color-scheme="slate"] .md-source__repository,
+[data-md-color-scheme="slate"] .md-search__icon,
+[data-md-color-scheme="slate"] .md-header__button svg,
+[data-md-color-scheme="slate"] .md-source__icon svg {
+  color: #f5f5f5 !important;
+  fill: #f5f5f5 !important;
+}
+[data-md-color-scheme="slate"] .md-tabs__link--active {
+  color: #ff9900 !important;
+}
+[data-md-color-scheme="slate"] .md-search__input {
+  color: #f5f5f5 !important;
+}
