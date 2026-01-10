@@ -5,6 +5,7 @@ on:
     branches: [doc-poc]
     paths:
       - "docs/**"
+      - ".github/workflows/docs.yml"
   workflow_dispatch:
 
 concurrency:
@@ -25,4 +26,5 @@ jobs:
         uses: mhausenblas/mkdocs-deploy-gh-pages@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CONFIG_FILE: mkdocs.yaml
           REQUIREMENTS: requirements/docs.txt
