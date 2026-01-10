@@ -23,7 +23,7 @@ theme:
       primary: deep orange
       accent: orange
       toggle:
-        icon: material/brightness-7
+        icon: material/brightness-5
         name: Switch to dark mode             # Toggle button label light -> dark
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
@@ -31,7 +31,7 @@ theme:
       primary: deep orange                    # Header/nav bar color
       accent: orange                          # Links/buttons highlight color
       toggle:
-        icon: material/brightness-2
+        icon: material/brightness-3
         name: Switch to system preference     # Toggle button label dark -> system
   features:
     - content.code.copy                       # Copy button on code blocks
