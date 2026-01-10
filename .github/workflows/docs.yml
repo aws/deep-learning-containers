@@ -5,6 +5,8 @@ on:
     branches: [doc-poc]
     paths:
       - "docs/**"
+      - "mkdocs.yaml"
+      - "requirements/docs.txt"
       - ".github/workflows/docs.yml"
   workflow_dispatch:
 
@@ -13,18 +15,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout base branch (safe)
         uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
-          fetch-depth: 1
+          fetch-depth: 0
+          submodules: true
 
-      - name: Deploy docs
-        uses: mhausenblas/mkdocs-deploy-gh-pages@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CONFIG_FILE: mkdocs.yaml
-          REQUIREMENTS: requirements/docs.txt
+      - name: Install dependencies
+        run: pip install -r requirements/docs.txt
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force
