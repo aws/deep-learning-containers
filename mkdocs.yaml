@@ -49,21 +49,30 @@ theme:
   icon:
     repo: fontawesome/brands/github           # GitHub icon for repo link
 
-extra_css:
-  - stylesheets/extra.css                     # Custom CSS overrides
-
 # === Markdown Extensions ===
 markdown_extensions:
-  - pymdownx.highlight:                       # Syntax highlighting for code
-      anchor_linenums: true                   # Linkable line numbers
+  - attr_list                                 # Add HTML attributes to elements
+  - md_in_html                                # Markdown inside HTML blocks
+  - admonition                                # Note/warning/tip boxes (signify by !!! note)
+  - pymdownx.details                          # Collapsible admonitions (signify by ??? note)
   - pymdownx.superfences                      # Nested code blocks, diagrams
   - pymdownx.tabbed:                          # Tabbed content blocks
       alternate_style: true                   # Modern tab styling
-  - admonition                                # Note/warning/tip boxes (!!! note)
-  - pymdownx.details                          # Collapsible admonitions (???)
+  - pymdownx.highlight:                       # Syntax highlighting for code
+      anchor_linenums: true                   # Linkable line numbers
+      line_spans: __span                      # Wrap lines in spans
+      pygments_lang_class: true               # Add language class to code blocks
   - tables                                    # Markdown tables support
+  - toc:                                      # Table of contents
+      permalink: true                         # Add permalink anchors to headings
 
 # === Plugins ===
 plugins:
-  - search                                    # Built-in search functionality
+  - meta                                      # Page metadata from YAML front matter
+  - search                                    # Built-in search
+  - autorefs                                  # Auto-link to other pages/headings
   - awesome-nav                               # .nav.yml file support
+
+# === Custom Assets ===
+extra_css:
+  - stylesheets/extra.css                     # Custom CSS overrides

@@ -35,3 +35,12 @@
 [data-md-color-scheme="slate"] .md-search__input {
   color: #f5f5f5 !important;
 }
+
+
+/* Center logo figure */
+figure {
+  text-align: center;
+}
+figure img {
+  display: inline-block;
+}
