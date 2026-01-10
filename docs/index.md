@@ -4,7 +4,8 @@ hide:
   - toc
 ---
 
-![AWS Logo](assets/logos/AWS_logo_RGB.svg){: width="30%" }
+![AWS Logo](assets/logos/AWS_logo_RGB.svg#only-light){: width="30%" }
+![AWS Logo](assets/logos/AWS_logo_RGB_REV.svg#only-dark){: width="30%" }
 {: style="text-align:center" }
 
 <h1 style="text-align: center;">AWS Deep Learning Containers</h1>
