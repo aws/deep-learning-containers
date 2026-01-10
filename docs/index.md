@@ -1,7 +1,13 @@
-# AWS Deep Learning Containers
+---
+hide:
+  - navigation
+  - toc
+---
 
-![AWS Logo](assets/logos/AWS_logo_RGB.svg){ width="30%" }
+![AWS Logo](assets/logos/AWS_logo_RGB.svg){: width="30%" }
 {: style="text-align:center" }
+
+<h1 style="text-align: center;">AWS Deep Learning Containers</h1>
 
 **One stop shop for running AI/ML on AWS**
 {: style="text-align:center" }
@@ -9,17 +15,17 @@
 [**Tutorials**](tutorials/index.md) · [**Available Images**](reference/available_images.md) · [**AWS Doc**](https://aws.amazon.com/ai/machine-learning/containers/)
 {: style="text-align:center" }
 
-______________________________________________________________________
+---
 
 ## 🔥 What's New
 
 ### 🚀 Release Highlights
 
 - **[2025/12/19]** Released v0.13.0 [vLLM DLC](https://gallery.ecr.aws/deep-learning-containers/vllm)
-  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.13-gpu-py312-ec2`
-  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.13.0-gpu-py312`
+    - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.13-gpu-py312-ec2`
+    - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.13.0-gpu-py312`
 - **[2025/11/17]** Released first [SGLang DLC](https://gallery.ecr.aws/deep-learning-containers/sglang)
-  - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
+    - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 
 ### 🎉 Hot Off the Press
 
@@ -33,7 +39,7 @@ ______________________________________________________________________
 
 - 🚀 **[LLM Deployment on EKS Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US)** - Deploy and optimize LLMs on Amazon EKS using vLLM Deep Learning Containers. | [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc)
 
-______________________________________________________________________
+---
 
 ## About
 
@@ -65,7 +71,7 @@ AWS Deep Learning Containers (DLCs) are a suite of Docker images that streamline
 
 Our containers undergo rigorous security scanning and are regularly updated to address vulnerabilities, ensuring your ML workloads run on a secure foundation.
 
-______________________________________________________________________
+---
 
 ## Quick Links
 

@@ -9,11 +9,11 @@ Once we are ready to open the project for community participation, we will annou
 In the meantime:
 
 - You are welcome to **open issues** for **bug reports, questions, or feedback**.\
-  Please keep issue reports focused and include relevant context (environment, version, steps to reproduce, etc.).
+    Please keep issue reports focused and include relevant context (environment, version, steps to reproduce, etc.).
 - Please **do not open pull requests** — they will be closed without review until contribution is re-enabled.
 - Security issues should continue to be reported through the [AWS/Amazon Security vulnerability reporting page](https://aws.amazon.com/security/vulnerability-reporting/).
 
-______________________________________________________________________
+---
 
 ## Code of Conduct
 
@@ -21,7 +21,7 @@ This project follows the [Amazon Open Source Code of Conduct](https://aws.github
 For more information, see the [Code of Conduct FAQ](https://aws.github.io/code-of-conduct-faq) or contact\
 <opensource-codeofconduct@amazon.com> with questions.
 
-______________________________________________________________________
+---
 
 ## Licensing
 

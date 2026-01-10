@@ -15,6 +15,7 @@ aws ecr get-login-password --region us-east-1 | docker login --username AWS --pa
 ```
 
 !!! note "Region-specific authentication"
+
 Replace `us-east-1` with your desired region. See [Available Images](../reference/available_images.md) for region-specific ECR URLs.
 
 ## Pull a Container Image
