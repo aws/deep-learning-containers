@@ -13,7 +13,7 @@ hide:
 **One stop shop for running AI/ML on AWS**
 {: style="text-align:center" }
 
-[**Tutorials**](tutorials/index.md) · [**Available Images**](reference/available_images.md) · [**AWS Doc**](https://aws.amazon.com/ai/machine-learning/containers/)
+[**AWS Doc**](https://aws.amazon.com/ai/machine-learning/containers/) · [**Available Images**](reference/available_images.md) · [**Tutorials**](tutorials/index.md)
 {: style="text-align:center" }
 
 ---
