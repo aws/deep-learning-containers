@@ -37,6 +37,6 @@ Run your first training or inference job with AWS Deep Learning Containers.
 
 ## Next Steps
 
-- [EKS Training](../tutorials/content/training/eks/README.md) - Distributed training on Kubernetes
-- [vLLM on SageMaker](../tutorials/content/vllm-samples/sagemaker/README.md) - Deploy LLMs with vLLM
+- [EKS Training](../tutorials/training/eks/README.md) - Distributed training on Kubernetes
+- [vLLM on SageMaker](../tutorials/vllm-samples/sagemaker/README.md) - Deploy LLMs with vLLM
 - [Available Images](../reference/available_images.md) - Browse all container options

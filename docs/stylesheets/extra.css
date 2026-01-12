@@ -1,7 +1,18 @@
 :root {
-    --darkmode-text:  #232f3e;
-    --lightmode-text: #f5f5f5;
-    --aws-orange:     #ff9900;
+  --aws-white:           #ffffff;
+  --aws-paper:           #f1f3f3;
+  --aws-stone:           #d4dada;
+  --aws-squid-ink:       #232f32;
+  --aws-dark-squid-ink:  #161d26;
+  --aws-anchor:          #003181;
+  --aws-sky:             #2074d5;
+  --aws-smile:           #ff9900;
+  --aws-rind:            #fbd8bf;
+
+  --lightmode-text: var(--aws-squid-ink);
+  --darkmode-text: var(--aws-white);
+  --md-primary-fg-color: var(--aws-sky);
+  --md-accent-fg-color: var(--aws-smile);
 }
 
 /* Light mode - AWS dark navy */
@@ -13,14 +24,18 @@
 .md-search__icon,
 .md-header__button svg,
 .md-source__icon svg {
-  color: var(--darkmode-text) !important;
-  fill: var(--darkmode-text) !important;
+  color: var(--lightmode-text) !important;
+  fill: var(--lightmode-text) !important;
 }
 .md-tabs__link--active {
-  color: var(--aws-orange) !important;
+  color: var(--aws-rind) !important;
 }
 .md-search__input {
-  color: var(--darkmode-text) !important;
+  color: var(--lightmode-text) !important;
+}
+[data-md-color-scheme="default"] .md-header__button.md-logo img,
+[data-md-color-scheme="default"] .md-header__button.md-logo svg {
+  content: url('../assets/logos/AWS_logo_RGB.svg');
 }
 
 /* Dark mode - light text */
@@ -32,12 +47,16 @@
 [data-md-color-scheme="slate"] .md-search__icon,
 [data-md-color-scheme="slate"] .md-header__button svg,
 [data-md-color-scheme="slate"] .md-source__icon svg {
-  color: var(--lightmode-text) !important;
-  fill: var(--lightmode-text) !important;
+  color: var(--darkmode-text) !important;
+  fill: var(--darkmode-text) !important;
 }
 [data-md-color-scheme="slate"] .md-tabs__link--active {
-  color: var(--aws-orange) !important;
+  color: var(--aws-rind) !important;
 }
 [data-md-color-scheme="slate"] .md-search__input {
-  color: var(--lightmode-text) !important;
+  color: var(--darkmode-text) !important;
+}
+[data-md-color-scheme="slate"] .md-header__button.md-logo img,
+[data-md-color-scheme="slate"] .md-header__button.md-logo svg {
+  content: url('../assets/logos/AWS_logo_RGB_REV.svg');
 }

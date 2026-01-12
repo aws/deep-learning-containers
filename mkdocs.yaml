@@ -1,5 +1,5 @@
 # === Site Metadata ===
-site_name: Deep Learning Containers                           # Browser tab title & header
+site_name: Deep Learning Containers                               # Browser tab title & header
 site_description: Documentation for AWS Deep Learning Containers  # SEO meta description
 site_url: https://aws.github.io/deep-learning-containers          # Canonical URL (for sitemap, SEO)
 
@@ -8,71 +8,74 @@ repo_name: aws/deep-learning-containers                           # Displayed na
 repo_url: https://github.com/aws/deep-learning-containers         # Links to GitHub (top-right corner)
 
 theme:
-  name: material                              # Use Material for MkDocs theme
-  logo: assets/logos/AWS_logo_RGB.svg         # Logo in page
-  favicon: assets/logos/AWS_logo_RGB_REV.svg  # Browser tab icon
+  name: material                                                  # Use Material for MkDocs theme
+  logo: assets/logos/AWS_logo_RGB.svg                             # Logo in page
+  favicon: assets/logos/AWS_logo_RGB.svg                      # Browse tab icon
   palette:
     # Auto mode - follows system preference
-    - media: "(prefers-color-scheme)"         # Follows system preference color
+    - media: "(prefers-color-scheme)"                             # Follows system preference color
       toggle:
         icon: material/brightness-auto
-        name: Switch to light mode            # Toggle button label system -> light
+        name: Switch to light mode                                # Toggle button label system -> light
     # Light mode
-    - media: "(prefers-color-scheme: light)"  # Set to light mode
+    - media: "(prefers-color-scheme: light)"                      # Set to light mode
       scheme: default
-      primary: deep orange
-      accent: orange
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-5
-        name: Switch to dark mode             # Toggle button label light -> dark
+        name: Switch to dark mode                                 # Toggle button label light -> dark
     # Dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
-      primary: deep orange                    # Header/nav bar color
-      accent: orange                          # Links/buttons highlight color
+      primary: custom                                             # Header/nav bar color
+      accent: custom                                              # Links/buttons highlight color
       toggle:
         icon: material/brightness-3
-        name: Switch to system preference     # Toggle button label dark -> system
+        name: Switch to system preference                         # Toggle button label dark -> system
   features:
-    - content.code.copy                       # Copy button on code blocks
-    - content.tabs.link                       # Sync tab selection across page
-    - navigation.instant                      # SPA-like navigation (no full reload)
-    - navigation.instant.progress             # Loading progress bar
-    - navigation.tracking                     # URL updates as you scroll
-    - navigation.tabs                         # Top-level sections as tabs
-    - navigation.tabs.sticky                  # Tabs stay visible when scrolling
-    - navigation.sections                     # Group items in sidebar
-    - navigation.top                          # "Back to top" button
-    - search.highlight                        # Highlight search matches on page
-    - search.share                            # Share search results via URL
-    - toc.follow                              # TOC follows scroll position
+    - content.code.copy                                           # Copy button on code blocks
+    - content.tabs.link                                           # Sync tab selection across page
+    - navigation.instant                                          # SPA-like navigation (no full reload)
+    - navigation.instant.progress                                 # Loading progress bar
+    - navigation.tracking                                         # URL updates as you scroll
+    - navigation.tabs                                             # Top-level sections as tabs
+    - navigation.tabs.sticky                                      # Tabs stay visible when scrolling
+    - navigation.sections                                         # Group items in sidebar
+    - navigation.top                                              # "Back to top" button
+    - search.highlight                                            # Highlight search matches on page
+    - search.share                                                # Share search results via URL
+    - toc.follow                                                  # TOC follows scroll position
   icon:
-    repo: fontawesome/brands/github           # GitHub icon for repo link
+    repo: fontawesome/brands/github                               # GitHub icon for repo link
 
 # === Markdown Extensions ===
 markdown_extensions:
-  - attr_list                                 # Add HTML attributes to elements
-  - md_in_html                                # Markdown inside HTML blocks
-  - admonition                                # Note/warning/tip boxes (signify by !!! note)
-  - pymdownx.details                          # Collapsible admonitions (signify by ??? note)
-  - pymdownx.superfences                      # Nested code blocks, diagrams
-  - pymdownx.tabbed:                          # Tabbed content blocks
-      alternate_style: true                   # Modern tab styling
-  - pymdownx.highlight:                       # Syntax highlighting for code
-      anchor_linenums: true                   # Linkable line numbers
-      line_spans: __span                      # Wrap lines in spans
-      pygments_lang_class: true               # Add language class to code blocks
-  - tables                                    # Markdown tables support
-  - toc:                                      # Table of contents
-      permalink: true                         # Add permalink anchors to headings
+  - attr_list                                                     # Add HTML attributes to elements
+  - md_in_html                                                    # Markdown inside HTML blocks
+  - admonition                                                    # Note/warning/tip boxes (signify by !!! note)
+  - pymdownx.details                                              # Collapsible admonitions (signify by ??? note)
+  - pymdownx.superfences                                          # Nested code blocks, diagrams
+  - pymdownx.tabbed:                                              # Tabbed content blocks
+      alternate_style: true                                       # Modern tab styling
+  - pymdownx.highlight:                                           # Syntax highlighting for code
+      anchor_linenums: true                                       # Linkable line numbers
+      line_spans: __span                                          # Wrap lines in spans
+      pygments_lang_class: true                                   # Add language class to code blocks
+  - tables                                                        # Markdown tables support
+  - toc:                                                          # Table of contents
+      permalink: true                                             # Add permalink anchors to headings
 
 # === Plugins ===
 plugins:
-  - meta                                      # Page metadata from YAML front matter
-  - search                                    # Built-in search
-  - autorefs                                  # Auto-link to other pages/headings
-  - awesome-nav                               # .nav.yml file support
+  - meta                                                          # Page metadata from YAML front matter
+  - search                                                        # Built-in search
+  - autorefs                                                      # Auto-link to other pages/headings
+  - awesome-nav                                                   # .nav.yml file support
 
 # === Custom Assets ===
 extra_css:
-  - stylesheets/extra.css                     # Custom CSS overrides
+  - stylesheets/extra.css                                         # Custom CSS overrides
+
+extra_javascript:
+  - javascripts/favicon-switcher.js                               # Favicon light/dark mode switcher
