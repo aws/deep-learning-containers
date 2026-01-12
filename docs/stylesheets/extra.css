@@ -15,7 +15,7 @@
   --md-accent-fg-color: var(--aws-smile);
 }
 
-/* Light mode - AWS dark navy */
+/* Light mode - dark text and icon */
 .md-tabs__link,
 .md-header__title,
 .md-search__input::placeholder,
@@ -27,9 +27,6 @@
   color: var(--lightmode-text) !important;
   fill: var(--lightmode-text) !important;
 }
-.md-tabs__link--active {
-  color: var(--aws-rind) !important;
-}
 .md-search__input {
   color: var(--lightmode-text) !important;
 }
@@ -38,7 +35,7 @@
   content: url('../assets/logos/AWS_logo_RGB.svg');
 }
 
-/* Dark mode - light text */
+/* Dark mode - light text and icon */
 [data-md-color-scheme="slate"] .md-tabs__link,
 [data-md-color-scheme="slate"] .md-header__title,
 [data-md-color-scheme="slate"] .md-search__input::placeholder,
@@ -49,9 +46,6 @@
 [data-md-color-scheme="slate"] .md-source__icon svg {
   color: var(--darkmode-text) !important;
   fill: var(--darkmode-text) !important;
-}
-[data-md-color-scheme="slate"] .md-tabs__link--active {
-  color: var(--aws-rind) !important;
 }
 [data-md-color-scheme="slate"] .md-search__input {
   color: var(--darkmode-text) !important;

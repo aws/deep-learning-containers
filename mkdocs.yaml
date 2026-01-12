@@ -76,6 +76,3 @@ plugins:
 # === Custom Assets ===
 extra_css:
   - stylesheets/extra.css                                         # Custom CSS overrides
-
-extra_javascript:
-  - javascripts/favicon-switcher.js                               # Favicon light/dark mode switcher
