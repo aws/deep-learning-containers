@@ -1,3 +1,9 @@
+:root {
+    --darkmode-text:  #232f3e;
+    --lightmode-text: #f5f5f5;
+    --aws-orange:     #ff9900;
+}
+
 /* Light mode - AWS dark navy */
 .md-tabs__link,
 .md-header__title,
@@ -7,14 +13,14 @@
 .md-search__icon,
 .md-header__button svg,
 .md-source__icon svg {
-  color: #232f3e !important;
-  fill: #232f3e !important;
+  color: var(--darkmode-text) !important;
+  fill: var(--darkmode-text) !important;
 }
 .md-tabs__link--active {
-  color: #ff9900 !important;
+  color: var(--aws-orange) !important;
 }
 .md-search__input {
-  color: #232f3e !important;
+  color: var(--darkmode-text) !important;
 }
 
 /* Dark mode - light text */
@@ -26,12 +32,12 @@
 [data-md-color-scheme="slate"] .md-search__icon,
 [data-md-color-scheme="slate"] .md-header__button svg,
 [data-md-color-scheme="slate"] .md-source__icon svg {
-  color: #f5f5f5 !important;
-  fill: #f5f5f5 !important;
+  color: var(--lightmode-text) !important;
+  fill: var(--lightmode-text) !important;
 }
 [data-md-color-scheme="slate"] .md-tabs__link--active {
-  color: #ff9900 !important;
+  color: var(--aws-orange) !important;
 }
 [data-md-color-scheme="slate"] .md-search__input {
-  color: #f5f5f5 !important;
+  color: var(--lightmode-text) !important;
 }
