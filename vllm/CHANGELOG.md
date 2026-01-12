@@ -1,137 +1,180 @@
 # Changelog
 
-Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-containers/vllm.
+Available in Amazon ECR Public Gallery:
 
-All notable changes to vLLM Deep Learning Containers will be documented in this file. 
+- https://gallery.ecr.aws/deep-learning-containers/vllm for x86 architecture.
+- https://gallery.ecr.aws/deep-learning-containers/vllm-arm64 for ARM64 architecture.
+
+All notable changes to vLLM Deep Learning Containers will be documented in this file.
 
 ## [0.13.0] - 2025-12-19
-### Added
+
+### Updated
+
 - SageMaker and EC2 support for vLLM 0.13.0
 - Upgraded EFA version to 1.46.0
 
 ### Sample ECR URI
+
 ```
 public.ecr.aws/deep-learning-containers/vllm:0.13.0-gpu-py312
 public.ecr.aws/deep-learning-containers/vllm:0.13.0-gpu-py312-ec2
 ```
 
 ## [0.12.0] - 2025-12-08
-### Added
+
+### Updated
+
 - SageMaker and EC2 support for vLLM 0.12.0
 - Upgraded EFA version to 1.45.1 and introduced NIXL with Libfabric backend
 
 ### Sample ECR URI
+
 ```
 public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312
 public.ecr.aws/deep-learning-containers/vllm:0.12.0-gpu-py312-ec2
 ```
 
 ## [0.11.2] - 2025-11-20
-### Added
+
+### Updated
+
 - SageMaker and EC2 support for vLLM 0.11.2
 - CUDA 12.9 and Python 3.12 compatibility
 - Latest ML performance optimizations inherited from vLLM 0.11.2
 
 ### Sample ECR URI
+
 ```
 public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312
 public.ecr.aws/deep-learning-containers/vllm:0.11.2-gpu-py312-ec2
 ```
 
 ## [0.11.1] - 2025-11-19
-### Added
+
+### Updated
+
 - SageMaker and EC2 support for vLLM 0.11.1
 - CUDA 12.9 and Python 3.12 compatibility
-- Latest ML performance optimizations inherited from vLLM 0.11.1 
+- Latest ML performance optimizations inherited from vLLM 0.11.1
 
 ### Sample ECR URI
+
 ```
 public.ecr.aws/deep-learning-containers/vllm:0.11.1-gpu-py312
 public.ecr.aws/deep-learning-containers/vllm:0.11.1-gpu-py312-ec2
 ```
 
 ## [0.11.0] - 2025-10-14
-### Added
+
+### Updated
+
 - SageMaker support for vLLM 0.11.0
 - NIXL 0.6.0 and LMCache 0.3.7 libraries included for faster model inference performance
 
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11.0-gpu-py312-cu128-ubuntu22.04-sagemaker-v1.0
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11.0-gpu-py312-cu128-ubuntu22.04-sagemaker
 ```
 
 ## [0.11.0] - 2025-10-08
+
 ### Updated
+
 - vllm/vllm-openai version `v0.11.0`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.11.0) for details.
 - EFA installer version `1.43.3`
 
-
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.11.0-gpu-py312-cu128-ubuntu22.04-ec2
 ```
 
 ## [0.10.2] - 2025-09-18
+
 ### Updated
+
 - vllm/vllm-openai version `v0.10.2`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.2) for details.
 
 ### Added
+
 - Introducing vLLM ARM64 support for AWS Graviton (g5g) with NVIDIA T4 GPUs, using XFormers/FlashInfer as attention backend and V0 engine for Turing architecture compatibility - [release tag](https://github.com/aws/deep-learning-containers/releases/tag/v1.1-vllm-arm64-ec2-0.10.2-gpu-py312)
 
 ### Sample ECR URI
+
 ```
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-arm64:0.10.2-gpu-py312-cu129-ubuntu22.04-ec2-v1.1 
-763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.10.2-gpu-py312-cu129-ubuntu22.04-ec2-v1.0 
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm-arm64:0.10.2-gpu-py312-cu129-ubuntu22.04-ec2-v1.1
+763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.10.2-gpu-py312-cu129-ubuntu22.04-ec2-v1.0
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.10.2-gpu-py312-cu129-ubuntu22.04-ec2
 ```
 
 ## [0.10.1] - 2025-08-25
+
 ### Updated
+
 - vllm/vllm-openai version `v0.10.1.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.1.1) for details.
 - EFA installer version `1.43.2`
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.10-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.10.1-gpu-py312-cu128-ubuntu22.04-ec2
 ```
 
 ## [0.10.0] - 2025-08-04
+
 ### Updated
+
 - vllm/vllm-openai version `v0.10.0`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.10.0) for details.
 - EFA installer version `1.43.1`
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.10-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.10.0-gpu-py312-cu128-ubuntu22.04-ec2
 ```
 
 ## [0.9.2] - 2025-07-15
+
 ### Updated
+
 - vllm/vllm-openai version `v0.9.2`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.9.2) for details.
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9.2-gpu-py312-cu128-ubuntu22.04-ec2
 ```
 
 ## [0.9.1] - 2025-06-13
+
 ### Updated
+
 - vllm/vllm-openai version `v0.9.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.9.1) for details.
 - EFA installer version `1.42.0`
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9.1-gpu-py312-cu128-ubuntu22.04-ec2
 ```
 
-
 ## [0.9.0.1] - 2025-06-10
+
 ### Updated
+
 - vllm/vllm-openai version `v0.9.0.1`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.9.0.1) for details.
 - EFA installer version `1.41.0`
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.9.0-gpu-py312-cu128-ubuntu22.04-ec2
@@ -139,10 +182,13 @@ public.ecr.aws/deep-learning-containers/vllm:0.11.1-gpu-py312-ec2
 
 ## [0.8.5] - 2025-06-02
 
-### Added
+### Updated
+
 - vllm/vllm-openai version `v0.8.5`, see [release note](https://github.com/vllm-project/vllm/releases/tag/v0.8.5) for details.
 - EFA installer version `1.40.0`
+
 ### Sample ECR URI
+
 ```
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8-gpu-py312-ec2
 763104351884.dkr.ecr.us-east-1.amazonaws.com/vllm:0.8.5-gpu-py312-cu128-ubuntu22.04-ec2
