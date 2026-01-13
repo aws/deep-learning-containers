@@ -37,7 +37,7 @@ def main():
     yaml_data = load_yaml(DATA_FILE)
 
     if args.verbose:
-        LOGGER.setLevel(logging.DEBUG)
+        logging.getLogger().setLevel(logging.DEBUG)
 
     LOGGER.info(f"Loaded data from {DATA_FILE}")
 

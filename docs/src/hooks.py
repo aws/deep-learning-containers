@@ -35,4 +35,4 @@ def on_startup(command=["build", "gh-deploy", "serve"], dirty=False):
     """MkDocs hook - runs before build."""
     yaml_data = load_yaml(DATA_FILE)
     clone_tutorials()
-    generate_all(yaml_data, dry_run=False, verbose=False)
+    generate_all(yaml_data, dry_run=False)
