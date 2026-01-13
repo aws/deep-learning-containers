@@ -28,8 +28,7 @@ This step is only required for local development. GitHub Actions automatically c
 
 For any changes required to the tutorial pages, create a new PR in [aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
 
-> **Important**
-> When making changes to the tutorials page, make sure that you update the tutorials [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.
+> **Important**: When making changes to the tutorials page, make sure that you update the tutorials [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.
 
 ## Navigation
 
