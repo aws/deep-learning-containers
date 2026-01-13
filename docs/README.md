@@ -16,20 +16,6 @@ Start the development server with live reload:
 mkdocs serve
 ```
 
-### Tutorials Setup (Local Only)
-
-Clone the tutorials repository into `docs/tutorials/` for local development:
-
-```bash
-git clone https://github.com/aws-samples/sample-aws-deep-learning-containers.git docs/tutorials
-```
-
-This step is only required for local development. GitHub Actions automatically clones this repository during production deployment.
-
-For any changes required to the tutorial pages, create a new PR in [aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
-
-> **Important**: When making changes to the tutorials page, make sure that you update the tutorials [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.
-
 ## Navigation
 
 Site navigation is managed centrally in `docs/.nav.yml` using the `awesome-nav` plugin. Structure:
@@ -65,3 +51,9 @@ plugins:
   - autorefs
   - awesome-nav
 ```
+
+## Tutorials Changes
+
+For any changes required to the tutorial pages, create a new PR in [aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
+
+> **Important**: When making changes to the tutorials page, make sure that you update the tutorials [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.
