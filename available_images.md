@@ -328,6 +328,16 @@ Please refer to the following pages to view all available versions and tags for 
 
 To get the latest one, you can check the Hugging Face [documentation](https://huggingface.co/docs/optimum-neuron/en/containers#available-optimum-neuron-containers).
 
+HuggingFace Neuron vLLM Containers
+===============================
+
+To get the latest one, you can check the Hugging Face [documentation](https://huggingface.co/docs/optimum-neuron/en/containers#available-optimum-neuron-containers).
+
+| Framework                                                          | Neuron SDK Version | Job Type  | Supported EC2 Instance Type | Python Version Options | Example URL                                                                                                                                      |
+|--------------------------------------------------------------------|--------------------|-----------|-----------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| vLLM 0.11.0 with NeuronX Inference and HuggingFace Optimum  | Neuron 2.26.0      | inference | inf2/trn2/trn1                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-vllm-inference-neuronx:0.11.0-optimum0.4.2-neuronx-py310-sdk2.26.0-ubuntu22.04  |
+| vLLM 0.10.2 with NeuronX Inference and HuggingFace Optimum  | Neuron 2.26.0     | inference | inf2/trn2/trn1                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-vllm-inference-neuronx:0.10.2-neuronx-py310-sdk2.26.0-ubuntu22.04  |
+
 HuggingFace Neuron Inference Containers
 ===============================
 
