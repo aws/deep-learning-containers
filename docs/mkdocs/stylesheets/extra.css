@@ -13,9 +13,22 @@
   --aws-smile:           #ff9900;
   --aws-rind:            #fbd8bf;
 
-  --lightmode-text: var(--aws-squid-ink);
+  --lightmode-text: var(--aws-dark-squid-ink);
   --darkmode-text: var(--aws-white);
 }
+
+/* ==========================================================================
+   Common Elements
+   ========================================================================== */
+
+/* Hyperlinks */
+.md-content a {
+  color: var(--aws-smile);
+}
+.md-content a:hover {
+  color: var(--aws-rind);
+}
+
 
 /* ==========================================================================
    Light Mode
@@ -23,7 +36,7 @@
 
 /* Theme colors */
 [data-md-color-scheme="default"] {
-  --md-primary-fg-color: var(--aws-sky);
+  --md-primary-fg-color: var(--aws-stone);
   --md-accent-fg-color: var(--aws-smile);
 }
 
@@ -51,13 +64,14 @@
   content: url('../../assets/logos/AWS_logo_RGB.svg');
 }
 
+
 /* ==========================================================================
    Dark Mode
    ========================================================================== */
 
 /* Theme colors */
 [data-md-color-scheme="slate"] {
-  --md-primary-fg-color: var(--aws-sky);
+  --md-primary-fg-color: var(--aws-dark-squid-ink);
   --md-accent-fg-color: var(--aws-smile);
 }
 
