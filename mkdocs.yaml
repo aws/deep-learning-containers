@@ -7,6 +7,10 @@ site_url: https://aws.github.io/deep-learning-containers          # Canonical UR
 repo_name: aws/deep-learning-containers                           # Displayed name for repo link
 repo_url: https://github.com/aws/deep-learning-containers         # Links to GitHub (top-right corner)
 
+exclude_docs: |
+  ^src
+  *.template.md
+
 theme:
   name: material                                                  # Use Material for MkDocs theme
   logo: assets/logos/AWS_logo_RGB.svg                             # Logo in page
@@ -75,4 +79,4 @@ plugins:
 
 # === Custom Assets ===
 extra_css:
-  - stylesheets/extra.css                                         # Custom CSS overrides
+  - mkdocs/stylesheets/extra.css                                  # Custom CSS overrides
