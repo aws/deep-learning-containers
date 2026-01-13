@@ -12,6 +12,9 @@
 # language governing permissions and limitations under the License.
 """Common utilities for documentation generation."""
 
+import os
+import subprocess
+
 import yaml
 
 
@@ -41,3 +44,11 @@ def write_output(path: str, content: str) -> None:
     """Write generated markdown to file."""
     with open(path, "w") as f:
         f.write(content)
+
+
+def clone_git_repository(git_repository: str, target_dir: str) -> None:
+    """Clone sample tutorials repository into docs/tutorials."""
+    if os.path.exists(target_dir):
+        return
+
+    subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)

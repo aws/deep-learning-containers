@@ -1,15 +1,3 @@
-# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"). You
-# may not use this file except in compliance with the License. A copy of
-# the License is located at
-#
-#     http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is
-# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
-# ANY KIND, either express or implied. See the License for the specific
-# language governing permissions and limitations under the License.
 """Documentation generation entry point.
 
 Usage:
@@ -19,11 +7,22 @@ Usage:
 import argparse
 import logging
 import os
+import sys
 
 from generate import generate_all, generate_available_images, generate_support_policy
+from logger import ColoredFormatter
 from utils import load_yaml
 
-logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
+# Configure root logger - all child loggers inherit this
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(ColoredFormatter())
+console_handler.setLevel(logging.DEBUG)
+
+root_logger.addHandler(console_handler)
+
 LOGGER = logging.getLogger(__name__)
 
 # Resolve paths relative to this file
@@ -49,7 +48,7 @@ def main():
     yaml_data = load_yaml(DATA_FILE)
 
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
+        root_logger.setLevel(logging.DEBUG)
 
     LOGGER.info(f"Loaded data from {DATA_FILE}")
 
