@@ -17,6 +17,8 @@ from . import (
 
 IMAGE_TABLE_GENERATORS = [
     base_table,
+    vllm_table,
+    sglang_table,
     pytorch_table,
     tensorflow_table,
     huggingface_pytorch_table,
@@ -24,8 +26,6 @@ IMAGE_TABLE_GENERATORS = [
     neuron_table,
     autogluon_table,
     djl_table,
-    vllm_table,
-    sglang_table,
     triton_table,
 ]
 

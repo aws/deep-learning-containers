@@ -8,7 +8,7 @@ repo_name: aws/deep-learning-containers                           # Displayed na
 repo_url: https://github.com/aws/deep-learning-containers         # Links to GitHub (top-right corner)
 
 exclude_docs: |
-  ^src
+  src/*
   *.template.md
 
 # === Hooks ===
