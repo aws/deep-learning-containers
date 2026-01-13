@@ -1,0 +1,287 @@
+# =============================================================================
+# Deep Learning Containers - Source of Truth
+# =============================================================================
+# This file is the single source of truth for DLC image data and support policy.
+# Run `python docs/src/generate.py` to regenerate documentation from this file.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Framework Support Policy
+# -----------------------------------------------------------------------------
+# Manually maintained by developers. Each framework version includes:
+#   - cuda: CUDA version(s) used
+#   - ga: General Availability date (GitHub release date)
+#   - eop: End of Patch support date
+# -----------------------------------------------------------------------------
+
+support_policy:
+  supported:
+    base:
+      "13.0":
+        cuda: "13.0"
+        ga: "2025-10-22"
+        eop: "2026-10-22"
+      "12.9":
+        cuda: "12.9"
+        ga: "2025-08-18"
+        eop: "2027-08-18"
+      "12.8":
+        cuda: "12.8"
+        ga: "2025-06-05"
+        eop: "2026-06-05"
+    pytorch:
+      "2.9":
+        cuda: "13.0"
+        ga: "2025-10-15"
+        eop: "2026-10-15"
+      "2.8":
+        cuda: "12.9"
+        ga: "2025-08-06"
+        eop: "2026-08-06"
+      "2.7":
+        cuda: "12.8"
+        ga: "2025-04-23"
+        eop: "2026-04-23"
+      "2.6":
+        cuda: "12.6/12.4"
+        ga: "2025-01-29"
+        eop: "2026-01-29"
+    tensorflow:
+      "2.19":
+        cuda: "12.5/12.2"
+        ga: "2025-03-11"
+        eop: "2026-03-11"
+
+  unsupported:
+    pytorch:
+      "2.5":
+        cuda: "12.4"
+        ga: "2024-10-29"
+        eop: "2025-10-29"
+      "2.4":
+        cuda: "12.4"
+        ga: "2024-07-24"
+        eop: "2025-07-24"
+      "2.3":
+        cuda: "12.1"
+        ga: "2024-04-24"
+        eop: "2025-04-24"
+      "2.2":
+        cuda: "12.1/11.8"
+        ga: "2024-01-30"
+        eop: "2025-01-30"
+      "2.1":
+        cuda: "12.1/11.8"
+        ga: "2023-10-04"
+        eop: "2024-10-04"
+      "2.0":
+        cuda: "12.1/11.8"
+        ga: "2023-03-15"
+        eop: "2024-03-15"
+      "1.13":
+        cuda: "11.7"
+        ga: "2022-10-28"
+        eop: "2024-10-28"
+    tensorflow:
+      "2.18":
+        cuda: "12.5/12.2"
+        ga: "2024-10-24"
+        eop: "2025-10-24"
+      "2.16":
+        cuda: "12.3/12.2"
+        ga: "2024-03-07"
+        eop: "2025-03-07"
+      "2.14":
+        cuda: "11.8"
+        ga: "2023-09-26"
+        eop: "2024-09-26"
+
+# -----------------------------------------------------------------------------
+# Container Images
+# -----------------------------------------------------------------------------
+# Organized by repository name. Tags are parsed to extract metadata.
+# Tag format: <version>-<processor>-<python>-[cuda]-<os>-<platform>
+# -----------------------------------------------------------------------------
+
+images:
+  # ===========================================================================
+  # Base Containers
+  # ===========================================================================
+  base:
+    - "13.0.0-gpu-py312-cu130-ubuntu22.04-ec2"
+    - "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"
+    - "12.8.0-gpu-py312-cu128-ubuntu22.04-ec2"
+    - "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+
+  # ===========================================================================
+  # vLLM Containers
+  # ===========================================================================
+  vllm:
+    - "0.13-gpu-py312"
+    - "0.13-gpu-py312-ec2"
+
+  # ===========================================================================
+  # SGLang Containers
+  # ===========================================================================
+  sglang:
+    - "0.5-gpu-py312"
+
+  # ===========================================================================
+  # PyTorch Containers
+  # ===========================================================================
+  pytorch-training:
+    - "2.9.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"
+    - "2.9.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.9.0-gpu-py312-cu130-ubuntu22.04-sagemaker"
+    - "2.8.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.8.0-gpu-py312-cu129-ubuntu22.04-ec2"
+    - "2.8.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
+    - "2.7.1-cpu-py312-ubuntu22.04-ec2"
+    - "2.7.1-gpu-py312-cu128-ubuntu22.04-ec2"
+    - "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker"
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.6.0-gpu-py312-cu126-ubuntu22.04-ec2"
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker"
+
+  pytorch-inference:
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
+
+  # ===========================================================================
+  # TensorFlow Containers
+  # ===========================================================================
+  tensorflow-training:
+    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.19.0-gpu-py312-cu125-ubuntu22.04-sagemaker"
+
+  tensorflow-inference:
+    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.19.0-gpu-py312-cu122-ubuntu22.04-sagemaker"
+
+  # ===========================================================================
+  # ARM64/Graviton Containers
+  # ===========================================================================
+  pytorch-training-arm64:
+    - "2.7.0-gpu-py312-cu128-ubuntu22.04-ec2"
+
+  pytorch-inference-arm64:
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+
+  # ===========================================================================
+  # Large Model Inference (LMI)
+  # ===========================================================================
+  djl-inference:
+    - "0.36.0-lmi18.0.0-cu128"
+    - "0.35.0-lmi17.0.0-cu128"
+    - "0.34.0-lmi16.0.0-cu128"
+    - "0.33.0-lmi15.0.0-cu128"
+    - "0.33.0-tensorrtllm0.21.0-cu128"
+    - "0.32.0-lmi14.0.0-cu126"
+    - "0.32.0-tensorrtllm0.12.0-cu125"
+    - "0.36.0-cpu-full"
+    - "0.35.0-cpu-full"
+    - "0.29.0-cpu-full"
+
+  # ===========================================================================
+  # AutoGluon Containers
+  # ===========================================================================
+  autogluon-training:
+    - "1.4.0-gpu-py311-cu124-ubuntu22.04"
+    - "1.4.0-cpu-py311-ubuntu22.04"
+    - "1.3.0-gpu-py311-cu124-ubuntu22.04"
+    - "1.3.0-cpu-py311-ubuntu22.04"
+
+  autogluon-inference:
+    - "1.4.0-gpu-py311-cu124-ubuntu22.04"
+    - "1.4.0-cpu-py311-ubuntu22.04"
+    - "1.3.0-gpu-py311-cu124-ubuntu22.04"
+    - "1.3.0-cpu-py311-ubuntu22.04"
+
+  # ===========================================================================
+  # HuggingFace Containers
+  # ===========================================================================
+  huggingface-pytorch-training:
+    - "2.5.1-transformers4.49.0-gpu-py311-cu124-ubuntu22.04"
+    - "2.1.0-transformers4.36.0-gpu-py310-cu121-ubuntu20.04"
+    - "2.0.0-transformers4.28.1-gpu-py310-cu118-ubuntu20.04"
+    - "1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04"
+
+  huggingface-pytorch-inference:
+    - "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"
+    - "2.6.0-transformers4.49.0-gpu-py312-cu124-ubuntu22.04"
+    - "2.1.0-transformers4.37.0-cpu-py310-ubuntu22.04"
+    - "2.1.0-transformers4.37.0-gpu-py310-cu118-ubuntu20.04"
+
+  huggingface-tensorflow-training:
+    - "2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04"
+
+  huggingface-tensorflow-inference:
+    - "2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04"
+    - "2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04"
+
+  # ===========================================================================
+  # HuggingFace Neuron Containers
+  # ===========================================================================
+  huggingface-pytorch-inference-neuronx:
+    - "2.8.0-transformers4.55.4-neuronx-py310-sdk2.26.0-ubuntu22.04"
+    - "2.7.1-transformers4.51.3-neuronx-py310-sdk2.24.1-ubuntu22.04"
+    - "2.1.2-transformers4.43.2-neuronx-py310-sdk2.20.0-ubuntu20.04"
+
+  huggingface-pytorch-training-neuronx:
+    - "2.8.0-transformers4.55.4-neuronx-py310-sdk2.26.0-ubuntu22.04"
+    - "2.7.0-transformers4.51.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
+    - "2.1.2-transformers4.48.1-neuronx-py310-sdk2.20.0-ubuntu20.04"
+
+  # ===========================================================================
+  # Neuron Containers
+  # ===========================================================================
+  pytorch-inference-neuronx:
+    - "2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"
+    - "2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04"
+    - "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
+    - "2.6.0-neuronx-py310-sdk2.23.0-ubuntu22.04"
+
+  pytorch-training-neuronx:
+    - "2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"
+    - "2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04"
+    - "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
+    - "2.6.0-neuronx-py310-sdk2.23.0-ubuntu22.04"
+
+  tensorflow-inference-neuronx:
+    - "2.10.1-neuronx-py310-sdk2.17.0-ubuntu20.04"
+
+  # ===========================================================================
+  # StabilityAI Containers
+  # ===========================================================================
+  stabilityai-pytorch-inference:
+    - "2.0.1-sgm0.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker"
+
+  # ===========================================================================
+  # SageMaker Training Compiler Containers
+  # ===========================================================================
+  pytorch-trcomp-training:
+    - "1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker"
+    - "1.12.0-gpu-py38-cu113-ubuntu20.04-sagemaker"
+
+  huggingface-pytorch-trcomp-training:
+    - "1.11.0-transformers4.21.1-gpu-py38-cu113-ubuntu20.04"
+
+  # ===========================================================================
+  # NVIDIA Triton Containers
+  # ===========================================================================
+  sagemaker-tritonserver:
+    - "25.09-py3"
+    - "25.04-py3"
+    - "24.09-py3"
+    - "24.05-py3"
+    - "24.03-py3"
+    - "24.01-py3"
+    - "23.12-py3"
