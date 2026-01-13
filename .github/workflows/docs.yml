@@ -24,6 +24,13 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: Checkout tutorials repository
+        uses: actions/checkout@v5
+        with:
+          repository: aws-samples/sample-aws-deep-learning-containers
+          ref: main
+          path: docs/tutorials
+
       - name: Install dependencies
         run: pip install -r docs/requirements.txt
 
