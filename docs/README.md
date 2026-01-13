@@ -16,7 +16,7 @@ Start the development server with live reload:
 mkdocs serve --livereload
 ```
 
-## Tutorials Setup (Local Only)
+### Tutorials Setup (Local Only)
 
 Clone the tutorials repository into `docs/tutorials/` for local development:
 
