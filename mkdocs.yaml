@@ -11,10 +11,14 @@ exclude_docs: |
   ^src
   *.template.md
 
+# === Hooks ===
+hooks:
+  - docs/src/main.py                                              # Auto-generate docs from YAML
+
 theme:
   name: material                                                  # Use Material for MkDocs theme
   logo: assets/logos/AWS_logo_RGB.svg                             # Logo in page
-  favicon: assets/logos/AWS_logo_RGB.svg                      # Browse tab icon
+  favicon: assets/logos/AWS_logo_RGB.svg                          # Browse tab icon
   palette:
     # Auto mode - follows system preference
     - media: "(prefers-color-scheme)"                             # Follows system preference color

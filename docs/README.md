@@ -13,7 +13,7 @@ pip install -r docs/requirements.txt
 Start the development server with live reload:
 
 ```bash
-mkdocs serve --livereload
+mkdocs serve
 ```
 
 ### Tutorials Setup (Local Only)
