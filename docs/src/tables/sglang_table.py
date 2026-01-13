@@ -2,6 +2,7 @@
 
 import re
 
+from constants import TABLE_HEADER
 from utils import render_table
 
 REPO_KEYS = ["sglang"]
@@ -50,6 +51,6 @@ def generate(yaml_data: dict) -> str:
             )
 
         display_name = DISPLAY_NAMES.get(repo_key, repo_key)
-        sections.append(f"## {display_name}\n\n" + render_table(COLUMNS, rows))
+        sections.append(f"{TABLE_HEADER} {display_name}\n" + render_table(COLUMNS, rows))
 
     return "\n\n".join(sections)

@@ -9,14 +9,14 @@ def load_yaml(path: str) -> dict:
         return yaml.safe_load(f)
 
 
-def render_table(headers: list[str], rows: list[list[str]]) -> str:
+def render_table(headers: list[str], rows: list[list[str]], prefix: str = "") -> str:
     """Convert headers and rows to markdown table string."""
     if not rows:
         return ""
-    header_line = "| " + " | ".join(headers) + " |"
+    header_line = f"{prefix}" + "| " + " | ".join(headers) + " |"
     separator = "| " + " | ".join(["---"] * len(headers)) + " |"
     row_lines = ["| " + " | ".join(row) + " |" for row in rows]
-    return "\n".join([header_line, separator] + row_lines)
+    return f"\n{prefix}".join([header_line, separator] + row_lines)
 
 
 def read_template(path: str) -> str:

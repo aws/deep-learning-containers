@@ -105,7 +105,7 @@ def main():
 
 
 # MkDocs hook entry point
-def on_pre_build(config):
+def on_startup(command=["build", "gh-deploy", "serve"], dirty=False):
     """MkDocs hook - runs before build."""
     generate_all(dry_run=False, verbose=False)
 
