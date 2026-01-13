@@ -13,7 +13,7 @@ exclude_docs: |
 
 # === Hooks ===
 hooks:
-  - docs/src/main.py                                              # Auto-generate docs from YAML
+  - docs/src/hooks.py                                              # Auto-generate docs from YAML
 
 theme:
   name: material                                                  # Use Material for MkDocs theme
