@@ -32,7 +32,7 @@
 }
 [data-md-color-scheme="default"] .md-header__button.md-logo img,
 [data-md-color-scheme="default"] .md-header__button.md-logo svg {
-  content: url('../..//assets/logos/AWS_logo_RGB.svg');
+  content: url('../../assets/logos/AWS_logo_RGB.svg');
 }
 
 /* Dark mode - light text and icon */
