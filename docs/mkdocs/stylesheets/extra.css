@@ -1,3 +1,7 @@
+/* ==========================================================================
+   AWS Color Palette
+   ========================================================================== */
+
 :root {
   --aws-white:           #ffffff;
   --aws-paper:           #f1f3f3;
@@ -11,11 +15,19 @@
 
   --lightmode-text: var(--aws-squid-ink);
   --darkmode-text: var(--aws-white);
+}
+
+/* ==========================================================================
+   Light Mode
+   ========================================================================== */
+
+/* Theme colors */
+[data-md-color-scheme="default"] {
   --md-primary-fg-color: var(--aws-sky);
   --md-accent-fg-color: var(--aws-smile);
 }
 
-/* Light mode - dark text and icon */
+/* Header, tabs, and search text/icons */
 .md-tabs__link,
 .md-header__title,
 .md-search__input::placeholder,
@@ -27,15 +39,29 @@
   color: var(--lightmode-text) !important;
   fill: var(--lightmode-text) !important;
 }
+
+/* Search input text */
 .md-search__input {
   color: var(--lightmode-text) !important;
 }
+
+/* Header logo */
 [data-md-color-scheme="default"] .md-header__button.md-logo img,
 [data-md-color-scheme="default"] .md-header__button.md-logo svg {
   content: url('../../assets/logos/AWS_logo_RGB.svg');
 }
 
-/* Dark mode - light text and icon */
+/* ==========================================================================
+   Dark Mode
+   ========================================================================== */
+
+/* Theme colors */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--aws-sky);
+  --md-accent-fg-color: var(--aws-smile);
+}
+
+/* Header, tabs, and search text/icons */
 [data-md-color-scheme="slate"] .md-tabs__link,
 [data-md-color-scheme="slate"] .md-header__title,
 [data-md-color-scheme="slate"] .md-search__input::placeholder,
@@ -47,9 +73,13 @@
   color: var(--darkmode-text) !important;
   fill: var(--darkmode-text) !important;
 }
+
+/* Search input text */
 [data-md-color-scheme="slate"] .md-search__input {
   color: var(--darkmode-text) !important;
 }
+
+/* Header logo */
 [data-md-color-scheme="slate"] .md-header__button.md-logo img,
 [data-md-color-scheme="slate"] .md-header__button.md-logo svg {
   content: url('../../assets/logos/AWS_logo_RGB_REV.svg');

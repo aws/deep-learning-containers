@@ -13,13 +13,7 @@ pip install -r docs/requirements.txt
 Start the development server with live reload:
 
 ```bash
-mkdocs serve
-```
-
-Build the static site:
-
-```bash
-mkdocs build
+mkdocs serve --livereload
 ```
 
 ## Tutorials Setup (Local Only)
@@ -31,6 +25,7 @@ git clone https://github.com/aws-samples/sample-aws-deep-learning-containers.git
 ```
 
 This step is only required for local development. GitHub Actions automatically clones this repository during production deployment.
+For any changes required to the tutorial pages, create a new PR in [aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
 
 ## Navigation
 
