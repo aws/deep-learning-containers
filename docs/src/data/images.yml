@@ -13,16 +13,16 @@
 
 public_ecr_repositories:
   - base
+  - sglang
   - vllm
   - vllm-arm64
-  - sglang
   - pytorch-training
   - pytorch-inference
+  - pytorch-training-arm64
+  - pytorch-inference-arm64
   - tensorflow-training
   - tensorflow-inference
-  - pytorch-inference-arm64
   - tensorflow-inference-arm64
-  - pytorch-training-arm64
 
 # -----------------------------------------------------------------------------
 # Framework Support Policy
