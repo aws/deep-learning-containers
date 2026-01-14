@@ -1,17 +1,4 @@
-# Available Deep Learning Containers Images
-
-Replace `<repository-name>` and `<image-tag>` based on your desired container.
-
-## Getting Started
-
-Once you've selected your desired Deep Learning Containers image, continue with one of the following:
-
-- [Amazon EC2 Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ec2.html)
-- [Amazon ECS Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ecs.html)
-- [Amazon EKS Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-eks.html)
-- [HuggingFace on AWS](https://huggingface.co/docs/sagemaker/en/index)
-- [Security in AWS Deep Learning Containers](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/security.html)
-- [Release Notes](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html)
+# Available Images
 
 ## Region Availability
 
@@ -52,38 +39,5 @@ Once you've selected your desired Deep Learning Containers image, continue with 
 | South America (Sao Paulo) | sa-east-1      | ✅      | ✅     | `763104351884.dkr.ecr.sa-east-1.amazonaws.com/<repository-name>:<image-tag>`         |
 | China (Beijing)           | cn-north-1     | ✅      | ❌     | `727897471807.dkr.ecr.cn-north-1.amazonaws.com.cn/<repository-name>:<image-tag>`     |
 | China (Ningxia)           | cn-northwest-1 | ✅      | ❌     | `727897471807.dkr.ecr.cn-northwest-1.amazonaws.com.cn/<repository-name>:<image-tag>` |
-
-## Authentication
-
-```bash
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-east-1.amazonaws.com
-```
-
-Then pull images:
-
-```bash
-docker pull <name of container image>
-```
-
-## Image Tag Guide
-
-To form your container image URL, use the following format:
-
-```
-<account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
-```
-
-Where:
-
-- `<account_id>`: Find the account ID for your region in the Region Availability table above
-- `<region>`: Your AWS region (e.g., `us-east-1`, `us-west-2`, `eu-west-1`)
-- `<repository>`: The framework repository name (e.g., `pytorch-training`, `base`, `vllm`, `sglang`)
-- `<tag>`: The image tag from the tables below
-
-Example:
-
-```
-763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.9.0-gpu-py312-cu130-ubuntu22.04-sagemaker
-```
 
 ---

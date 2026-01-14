@@ -2,8 +2,6 @@ nav:
   - Home: index.md
   - Getting Started:
     - get_started/index.md
-    - Installation: get_started/installation.md
-    - Quick Start: get_started/quickstart.md
   - Tutorials: tutorials
   - Reference:
     - Available Images: reference/available_images.md

@@ -38,7 +38,7 @@ hide:
 
 ### 🎓 Hands-on Workshop
 
-- 🚀 **[LLM Deployment on EKS Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US)** - Deploy and optimize LLMs on Amazon EKS using vLLM Deep Learning Containers. | [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc)
+- 🚀 **[LLM Deployment on EKS Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US)** - Deploy and optimize LLMs on Amazon EKS using vLLM Deep Learning Containers. For more information, see [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc)
 
 ---
 
