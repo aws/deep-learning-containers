@@ -101,19 +101,20 @@ repos:
     rev: 1.0.0
     hooks:
       - id: mdformat
+        name: "📝 markdown · Format markdown (docs)"
+        files: ^docs/
+        additional_dependencies:
+        - mdformat-gfm
+        - mdformat-mkdocs[recommended]
+        - mdformat-ruff
+        - ruff
+      - id: mdformat
         name: "📝 markdown · Format markdown"
+        exclude: ^docs/
         additional_dependencies:
         - mdformat-gfm
         - mdformat-ruff
         - ruff
-
-  - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.45.0
-    hooks:
-      - id: markdownlint
-        name: "📝 markdown · Lint markdown"
-        args: [--fix]
-
 
   ### Docker Tools ###
   - repo: https://github.com/reteps/dockerfmt

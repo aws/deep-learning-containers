@@ -1,0 +1,30 @@
+name: Publish Documentations via GitHub Pages
+
+on:
+  push:
+    branches: [main, doc-poc]
+    paths:
+      - "**docs**"
+  workflow_dispatch:
+
+concurrency:
+  group: publish-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Install dependencies
+        run: pip install -r docs/requirements.txt
+
+      - name: Deploy to GitHub Pages
+        run: mkdocs gh-deploy --force

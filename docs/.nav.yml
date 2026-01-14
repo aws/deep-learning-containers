@@ -1,0 +1,24 @@
+nav:
+  - Home: index.md
+  - Getting Started:
+    - get_started/index.md
+    - Using Deep Learning Containers: get_started/using_dlcs.md
+  - Release Notes:
+    - releasenotes/index.md
+    - Base: releasenotes/base/index.md
+    - SGLang: releasenotes/sglang/index.md
+    - vLLM: releasenotes/vllm/index.md
+    - PyTorch: releasenotes/pytorch/index.md
+    - Tensorflow: releasenotes/tensorflow/index.md
+  - Tutorials: tutorials
+  - Reference:
+    - Available Images: reference/available_images.md
+    - Support Policy: reference/support_policy.md
+  - Security:
+    - security/index.md
+    - Data Protection: security/data-protection.md
+    - Identity and Access Management: security/identity-and-access-management.md
+    - Monitoring and Usage Tracking: security/logging-and-monitoring.md
+    - Compliance Validation: security/compliance.md
+    - Resilience: security/resilience.md
+    - Infrastructure Security: security/infrastructure-security.md

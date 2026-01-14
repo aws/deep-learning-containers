@@ -1,0 +1,59 @@
+# Documentation Development Runbook
+
+## Prerequisites
+
+Follow the environment setup instructions in [DEVELOPMENT.md](../DEVELOPMENT.md), then install documentation dependencies:
+
+```bash
+pip install -r docs/requirements.txt
+```
+
+## Local Development
+
+Start the development server with live reload:
+
+```bash
+mkdocs serve
+```
+
+## Navigation
+
+Site navigation is managed centrally in `docs/.nav.yml` using the `awesome-nav` plugin. Structure:
+
+```yaml
+nav:
+  - Home: index.md
+  - Section Name:
+      - section/index.md
+      - Page Title: section/page.md
+  - Directory Reference: dirname  # Auto-discovers pages in directory
+```
+
+## Configuration
+
+Key settings in `mkdocs.yaml`:
+
+**Theme Palette** - Modify color scheme under `theme.palette`:
+
+```yaml
+theme:
+  palette:
+    - scheme: default    # light mode
+      primary: custom
+      accent: custom
+```
+
+**Plugins** - Add/remove plugins under `plugins`:
+
+```yaml
+plugins:
+  - search
+  - autorefs
+  - awesome-nav
+```
+
+## Tutorials Changes
+
+For any changes required to the tutorial pages, create a new PR in [aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
+
+> **Important**: When making changes to the tutorials page, make sure that you update the tutorials [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.

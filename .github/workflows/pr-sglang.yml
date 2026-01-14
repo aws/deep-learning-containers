@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"
+      - "!docs/**"
 
 permissions:
   contents: read

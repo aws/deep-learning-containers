@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
+      - "!docs/**"
 
 permissions:
   contents: read

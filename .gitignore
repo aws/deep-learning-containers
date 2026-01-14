@@ -5,3 +5,6 @@ __pycache__
 .venv
 .ruff_cache
 .pytest_cache
+docs/tutorials
+docs/reference/available_images.md
+docs/reference/support_policy.md
