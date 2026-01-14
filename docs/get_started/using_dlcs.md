@@ -6,7 +6,7 @@ This guide covers how to run AWS Deep Learning Containers on AWS Platforms such 
 
 ### Using SageMaker Python SDK
 
-Deploy a vLLM inference endpoint:
+#### Deploy a vLLM inference endpoint:
 
 ```python
 from sagemaker.model import Model
@@ -26,7 +26,7 @@ predictor = model.deploy(
 )
 ```
 
-Deploy an SGLang inference endpoint:
+#### Deploy an SGLang inference endpoint:
 
 ```python
 from sagemaker.model import Model
@@ -48,7 +48,7 @@ predictor = model.deploy(
 
 ### Using Boto3
 
-Deploy a vLLM inference endpoint:
+#### Deploy a vLLM inference endpoint:
 
 ```python
 import boto3
@@ -85,7 +85,7 @@ sagemaker.create_endpoint(
 )
 ```
 
-Deploy an SGLang inference endpoint:
+#### Deploy an SGLang inference endpoint:
 
 ```python
 import boto3
@@ -124,7 +124,7 @@ sagemaker.create_endpoint(
 
 ## Running on EC2
 
-After pulling a DLC image, run it with Docker:
+#### Running PyTorch Training Container on an EC2 Instance
 
 ```bash
 # Run interactively
@@ -132,12 +132,9 @@ docker run -it --gpus all <account_id>.dkr.ecr.<region>.amazonaws.com/<repositor
 
 # Example: Run PyTorch container
 docker run -it --gpus all {{ images.latest_pytorch_training_ec2 }} bash
-```
 
-Mount local directories to persist data:
-
-```bash
-docker run -it --gpus all -v /local/data:/data <image_uri> bash
+# Mount local directories to persist data
+docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training_ec2 }} bash
 ```
 
 For available image URIs, see [Available Images](../reference/available_images.md).
