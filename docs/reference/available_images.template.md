@@ -4,9 +4,13 @@ This page is for referencing our supported deep learning containers.
 
 Refer to the tables below for all images that are available in AWS ECR repositories.
 
+## ECR Public Gallery
+
 Additionally, we also publish the following images to [ECR Public Gallery](https://gallery.ecr.aws/deep-learning-containers).
 
 {{ public_ecr_image_list }}
+
+---
 
 ## Region Availability
 
