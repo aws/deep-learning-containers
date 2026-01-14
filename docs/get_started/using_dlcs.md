@@ -137,4 +137,7 @@ docker run -it --gpus all {{ images.latest_pytorch_training_ec2 }} bash
 docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training_ec2 }} bash
 ```
 
-For available image URIs, see [Available Images](../reference/available_images.md).
+## Quick Links
+
+- [Available Images](reference/available_images.md) - Browse all container images
+- [Support Policy](reference/support_policy.md) - Framework versions and timelines
