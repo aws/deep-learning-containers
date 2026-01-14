@@ -12,4 +12,4 @@
 # language governing permissions and limitations under the License.
 """Global variables for documentation generation."""
 
-TABLE_HEADER = "##"
+AVAILABLE_IMAGES_TABLE_HEADER = "##"

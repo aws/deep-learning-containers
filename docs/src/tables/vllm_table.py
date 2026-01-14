@@ -14,11 +14,11 @@
 
 import re
 
-from constants import TABLE_HEADER
+from constants import AVAILABLE_IMAGES_TABLE_HEADER
 from utils import build_ecr_url, render_table
 
-REPO_KEYS = ["vllm"]
-DISPLAY_NAMES = {"vllm": "vLLM"}
+REPO_KEYS = ["vllm", "vllm-arm64"]
+DISPLAY_NAMES = {"vllm": "vLLM", "vllm-arm64": "vLLM (ARM64)"}
 COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
@@ -72,6 +72,8 @@ def generate(yaml_data: dict) -> str:
             )
 
         display_name = DISPLAY_NAMES.get(repo_key, repo_key)
-        sections.append(f"{TABLE_HEADER} {display_name}\n" + render_table(COLUMNS, rows))
+        sections.append(
+            f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n" + render_table(COLUMNS, rows)
+        )
 
     return "\n\n".join(sections)

@@ -48,7 +48,7 @@
 
 /* Theme colors */
 [data-md-color-scheme="default"] {
-  --md-primary-fg-color: var(--aws-stone);
+  --md-primary-fg-color: var(--aws-white);
   --md-accent-fg-color: var(--aws-smile);
 }
 

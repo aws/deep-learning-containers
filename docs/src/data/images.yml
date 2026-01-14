@@ -6,6 +6,25 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
+# Public ECR Repositories
+# -----------------------------------------------------------------------------
+# List of repositories published to ECR Public Gallery
+# -----------------------------------------------------------------------------
+
+public_ecr_repositories:
+  - base
+  - vllm
+  - vllm-arm64
+  - sglang
+  - pytorch-training
+  - pytorch-inference
+  - tensorflow-training
+  - tensorflow-inference
+  - pytorch-inference-arm64
+  - tensorflow-inference-arm64
+  - pytorch-training-arm64
+
+# -----------------------------------------------------------------------------
 # Framework Support Policy
 # -----------------------------------------------------------------------------
 # Manually maintained by developers. Each framework version includes:
@@ -167,6 +186,9 @@ images:
   # ===========================================================================
   # ARM64/Graviton Containers
   # ===========================================================================
+  vllm-arm64:
+    - "0.10.2-gpu-py312-cu129-ubuntu22.04-ec2"
+
   pytorch-training-arm64:
     - "2.7.0-gpu-py312-cu128-ubuntu22.04-ec2"
 

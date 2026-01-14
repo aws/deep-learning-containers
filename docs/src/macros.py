@@ -34,6 +34,9 @@ def get_latest_image(repo: str, platform: str) -> str:
 
 def define_env(env):
     """Define variables for mkdocs-macros-plugin."""
+    data = load_yaml(DATA_FILE)
+    public_repos = data.get("public_ecr_repositories", [])
+    env.variables["public_ecr_image_list"] = ", ".join(public_repos)
     env.variables["images"] = {
         "latest_pytorch_training_ec2": get_latest_image("pytorch-training", "-ec2"),
         "latest_vllm_sagemaker": get_latest_image("vllm", "-sagemaker"),

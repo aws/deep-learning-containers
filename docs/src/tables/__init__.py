@@ -17,8 +17,8 @@ from . import (
 
 IMAGE_TABLE_GENERATORS = [
     base_table,
-    vllm_table,
     sglang_table,
+    vllm_table,
     pytorch_table,
     tensorflow_table,
     huggingface_pytorch_table,
