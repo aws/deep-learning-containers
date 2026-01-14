@@ -2,6 +2,7 @@ nav:
   - Home: index.md
   - Getting Started:
     - get_started/index.md
+    - Using Deep Learning Containers: get_started/using_dlcs.md
   - Tutorials: tutorials
   - Reference:
     - Available Images: reference/available_images.md

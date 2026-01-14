@@ -80,6 +80,8 @@ plugins:
   - search                                                        # Built-in search
   - autorefs                                                      # Auto-link to other pages/headings
   - awesome-nav                                                   # .nav.yml file support
+  - macros:                                                       # Variable substitution in markdown
+      module_name: docs/src/macros
 
 # === Custom Assets ===
 extra_css:
