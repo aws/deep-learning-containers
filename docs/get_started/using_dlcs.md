@@ -81,6 +81,7 @@ sagemaker.create_endpoint_config(
             "ModelName": "sglang-model",
             "InstanceType": "ml.g5.2xlarge",
             "InitialInstanceCount": 1,
+            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
         }
     ],
 )
@@ -118,6 +119,7 @@ sagemaker.create_endpoint_config(
             "ModelName": "vllm-model",
             "InstanceType": "ml.g5.2xlarge",
             "InitialInstanceCount": 1,
+            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
         }
     ],
 )
@@ -145,5 +147,5 @@ docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training
 
 ## Quick Links
 
-- [Available Images](reference/available_images.md) - Browse all container images
-- [Support Policy](reference/support_policy.md) - Framework versions and timelines
+- [Available Images](../reference/available_images.md) - Browse all container images
+- [Support Policy](../reference/support_policy.md) - Framework versions and timelines
