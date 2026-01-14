@@ -72,6 +72,8 @@ AWS Deep Learning Containers (DLCs) are a suite of Docker images that streamline
 
 Our containers undergo rigorous security scanning and are regularly updated to address vulnerabilities, ensuring your ML workloads run on a secure foundation.
 
+For more information on our security policy, see [Security](security/index.md).
+
 ---
 
 ## Quick Links
@@ -80,11 +82,11 @@ Our containers undergo rigorous security scanning and are regularly updated to a
 - [Tutorials](tutorials/index.md) - Step-by-step guides
 - [Available Images](reference/available_images.md) - Browse all container images
 - [Support Policy](reference/support_policy.md) - Framework versions and timelines
+- [Security](security/index.md) - Security policy
 
 ## Getting Help
 
 - [GitHub Issues](https://github.com/aws/deep-learning-containers/issues) - Report bugs or request features
-- [AWS Documentation](https://docs.aws.amazon.com/deep-learning-containers/) - Official AWS documentation
 
 ## License
 
