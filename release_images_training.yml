@@ -104,15 +104,3 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
-  9:
-    framework: "autogluon"
-    version: "1.5.0"
-    arch_type: "x86"
-    training:
-      device_types: ["cpu", "gpu"]
-      python_versions: ["py312"]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu126"
-      example: False
-      disable_sm_tag: True
-      force_release: False
