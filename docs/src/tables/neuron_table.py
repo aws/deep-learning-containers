@@ -15,7 +15,7 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = [
     "pytorch-inference-neuronx",
@@ -27,12 +27,12 @@ DISPLAY_NAMES = {
     "pytorch-training-neuronx": "PyTorch Training (Neuronx)",
     "tensorflow-inference-neuronx": "TensorFlow Inference (Neuronx)",
 }
-COLUMNS = ["Framework", "SDK", "Python", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "SDK", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
     """Parse Neuron tag format: 2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"""
-    result = {"version": "", "sdk": "", "python": "", "accelerator": "Neuron"}
+    result = {"version": "", "sdk": "", "python": ""}
 
     match = re.match(
         r"^(\d+\.\d+\.\d+)-"  # framework version
@@ -59,7 +59,6 @@ def generate(yaml_data: dict) -> str:
         if not tags:
             continue
 
-        # Determine framework from repo key
         if "pytorch" in repo_key:
             framework_name = "PyTorch"
         elif "tensorflow" in repo_key:
@@ -73,10 +72,11 @@ def generate(yaml_data: dict) -> str:
             rows.append(
                 [
                     f"{framework_name} {parsed['version']}",
-                    parsed["sdk"],
                     parsed["python"],
-                    parsed["accelerator"],
-                    f"`{tag}`",
+                    parsed["sdk"],
+                    "Neuron",
+                    "SageMaker",
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

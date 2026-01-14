@@ -52,3 +52,8 @@ def clone_git_repository(git_repository: str, target_dir: str) -> None:
         return
 
     subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)
+
+
+def build_ecr_url(repo_name: str, tag: str, account_id: str = "763104351884") -> str:
+    """Build ECR URL from repository name and tag."""
+    return f"`{account_id}.dkr.ecr.<region>.amazonaws.com/{repo_name}:{tag}`"

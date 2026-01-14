@@ -15,11 +15,11 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = ["djl-inference"]
 DISPLAY_NAMES = {"djl-inference": "DJL Inference"}
-COLUMNS = ["Version", "Engine", "CUDA", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Engine", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
@@ -28,7 +28,7 @@ def parse_tag(tag: str) -> dict:
     GPU: 0.36.0-lmi18.0.0-cu128 or 0.33.0-tensorrtllm0.21.0-cu128
     CPU: 0.36.0-cpu-full
     """
-    result = {"version": "", "engine": "", "cuda": "", "accelerator": ""}
+    result = {"version": "", "engine": "", "cuda": "-", "accelerator": "", "python": "-"}
 
     # GPU with LMI
     match = re.match(r"^(\d+\.\d+\.\d+)-lmi([\d.]+)-(cu\d+)$", tag)
@@ -74,11 +74,13 @@ def generate(yaml_data: dict) -> str:
             parsed = parse_tag(tag)
             rows.append(
                 [
-                    parsed["version"],
-                    parsed["engine"],
+                    f"DJLServing {parsed['version']}",
+                    parsed["python"],
                     parsed["cuda"],
+                    parsed["engine"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    "SageMaker",
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

@@ -15,7 +15,7 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = [
     "pytorch-training",
@@ -29,14 +29,13 @@ DISPLAY_NAMES = {
     "pytorch-training-arm64": "PyTorch Training (ARM64)",
     "pytorch-inference-arm64": "PyTorch Inference (ARM64)",
 }
-COLUMNS = ["Framework", "Platform", "Python", "CUDA", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
     """Parse PyTorch tag format: 2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"""
-    result = {"version": "", "accelerator": "", "python": "", "cuda": "", "os": "", "platform": ""}
+    result = {"version": "", "accelerator": "", "python": "", "cuda": "-", "platform": ""}
 
-    # Pattern: version-accelerator-python-[cuda]-os-[platform]
     match = re.match(
         r"^(\d+\.\d+\.\d+)-"  # version
         r"(cpu|gpu)-"  # accelerator
@@ -48,17 +47,12 @@ def parse_tag(tag: str) -> dict:
         result["version"] = match.group(1)
         result["accelerator"] = match.group(2).upper()
         result["python"] = match.group(3)
-        result["cuda"] = match.group(4) or ""
+        result["cuda"] = match.group(4) or "-"
 
-    # Extract platform from end
     if tag.endswith("-ec2"):
-        result["platform"] = "EC2"
+        result["platform"] = "EC2, ECS, EKS"
     elif tag.endswith("-sagemaker"):
         result["platform"] = "SageMaker"
-    elif tag.endswith("-eks"):
-        result["platform"] = "EKS"
-    elif tag.endswith("-ecs"):
-        result["platform"] = "ECS"
 
     return result
 
@@ -79,11 +73,11 @@ def generate(yaml_data: dict) -> str:
             rows.append(
                 [
                     f"PyTorch {parsed['version']}",
-                    parsed["platform"],
                     parsed["python"],
                     parsed["cuda"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    parsed["platform"],
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

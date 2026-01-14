@@ -29,6 +29,18 @@
   color: var(--aws-rind);
 }
 
+/* TOC active link */
+.md-nav__link--active {
+  color: var(--aws-sky) !important;
+}
+
+/* Table Horizontal Scroll */
+.md-typeset table:not([class]) {
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
 
 /* ==========================================================================
    Light Mode
@@ -63,6 +75,7 @@
 [data-md-color-scheme="default"] .md-header__button.md-logo svg {
   content: url('../../assets/logos/AWS_logo_RGB.svg');
 }
+
 
 
 /* ==========================================================================

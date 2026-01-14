@@ -15,11 +15,11 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = ["sagemaker-tritonserver"]
 DISPLAY_NAMES = {"sagemaker-tritonserver": "NVIDIA Triton Server for SageMaker"}
-COLUMNS = ["Version", "Python", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
@@ -51,7 +51,10 @@ def generate(yaml_data: dict) -> str:
                 [
                     f"Triton {parsed['version']}",
                     parsed["python"],
-                    f"`{tag}`",
+                    "-",
+                    "GPU",
+                    "SageMaker",
+                    build_ecr_url(repo_key, tag, "007439368137"),
                 ]
             )
 

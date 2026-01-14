@@ -9,7 +9,7 @@ Once you've selected your desired Deep Learning Containers image, continue with 
 - [Amazon EC2 Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ec2.html)
 - [Amazon ECS Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-ecs.html)
 - [Amazon EKS Tutorials](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/deep-learning-containers-eks.html)
-- [Hugging Face on AWS](https://huggingface.co/docs/sagemaker/en/index)
+- [HuggingFace on AWS](https://huggingface.co/docs/sagemaker/en/index)
 - [Security in AWS Deep Learning Containers](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/security.html)
 - [Release Notes](https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html)
 
@@ -67,12 +67,23 @@ docker pull <name of container image>
 
 ## Image Tag Guide
 
-Select your framework, job type (`training`, `inference`, or `general`), and Python version (`py38`, `py39`, `py310`, `py311`, or `py312`).
-
-Pin versions by adding the version tag:
+To form your container image URL, use the following format:
 
 ```
-763104351884.dkr.ecr.us-east-1.amazonaws.com/tensorflow-training:2.4.1-cpu-py37-ubuntu18.04-v1.0
+<account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
+```
+
+Where:
+
+- `<account_id>`: Find the account ID for your region in the Region Availability table above
+- `<region>`: Your AWS region (e.g., `us-east-1`, `us-west-2`, `eu-west-1`)
+- `<repository>`: The framework repository name (e.g., `pytorch-training`, `base`, `vllm`, `sglang`)
+- `<tag>`: The image tag from the tables below
+
+Example:
+
+```
+763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.9.0-gpu-py312-cu130-ubuntu22.04-sagemaker
 ```
 
 ---

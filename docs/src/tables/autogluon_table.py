@@ -15,19 +15,19 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = ["autogluon-training", "autogluon-inference"]
 DISPLAY_NAMES = {
     "autogluon-training": "AutoGluon Training",
     "autogluon-inference": "AutoGluon Inference",
 }
-COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
     """Parse AutoGluon tag format: 1.4.0-gpu-py311-cu124-ubuntu22.04"""
-    result = {"version": "", "accelerator": "", "python": "", "cuda": ""}
+    result = {"version": "", "accelerator": "", "python": "", "cuda": "-"}
 
     match = re.match(
         r"^(\d+\.\d+\.\d+)-"  # version
@@ -40,7 +40,7 @@ def parse_tag(tag: str) -> dict:
         result["version"] = match.group(1)
         result["accelerator"] = match.group(2).upper()
         result["python"] = match.group(3)
-        result["cuda"] = match.group(4) or ""
+        result["cuda"] = match.group(4) or "-"
 
     return result
 
@@ -64,7 +64,8 @@ def generate(yaml_data: dict) -> str:
                     parsed["python"],
                     parsed["cuda"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    "SageMaker",
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

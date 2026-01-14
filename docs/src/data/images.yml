@@ -108,62 +108,61 @@ images:
   # Base Containers
   # ===========================================================================
   base:
-    - "14.0.0-gpu-py312-cu130-ubuntu22.04-ec2"
     - "13.0.0-gpu-py312-cu130-ubuntu22.04-ec2"
     - "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"
-    - "12.8.0-gpu-py312-cu128-ubuntu22.04-ec2"
     - "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+    - "12.8.0-gpu-py312-cu128-ubuntu22.04-ec2"
 
   # ===========================================================================
   # vLLM Containers
   # ===========================================================================
   vllm:
-    - "0.13-gpu-py312"
-    - "0.13-gpu-py312-ec2"
+    - "0.13.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
+    - "0.13.0-gpu-py312-cu129-ubuntu22.04-ec2"
 
   # ===========================================================================
   # SGLang Containers
   # ===========================================================================
   sglang:
-    - "0.5-gpu-py312"
+    - "0.5.6-gpu-py312-cu129-ubuntu22.04-sagemaker"
 
   # ===========================================================================
   # PyTorch Containers
   # ===========================================================================
   pytorch-training:
-    - "2.9.0-cpu-py312-ubuntu22.04-ec2"
-    - "2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"
-    - "2.9.0-cpu-py312-ubuntu22.04-sagemaker"
     - "2.9.0-gpu-py312-cu130-ubuntu22.04-sagemaker"
-    - "2.8.0-cpu-py312-ubuntu22.04-ec2"
-    - "2.8.0-gpu-py312-cu129-ubuntu22.04-ec2"
-    - "2.8.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.9.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"
+    - "2.9.0-cpu-py312-ubuntu22.04-ec2"
     - "2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
-    - "2.7.1-cpu-py312-ubuntu22.04-ec2"
-    - "2.7.1-gpu-py312-cu128-ubuntu22.04-ec2"
-    - "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.8.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.8.0-gpu-py312-cu129-ubuntu22.04-ec2"
+    - "2.8.0-cpu-py312-ubuntu22.04-ec2"
     - "2.7.1-gpu-py312-cu128-ubuntu22.04-sagemaker"
-    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
-    - "2.6.0-gpu-py312-cu126-ubuntu22.04-ec2"
-    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.7.1-gpu-py312-cu128-ubuntu22.04-ec2"
+    - "2.7.1-cpu-py312-ubuntu22.04-ec2"
     - "2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker"
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.6.0-gpu-py312-cu126-ubuntu22.04-ec2"
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
 
   pytorch-inference:
-    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
-    - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
-    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
     - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
 
   # ===========================================================================
   # TensorFlow Containers
   # ===========================================================================
   tensorflow-training:
-    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
     - "2.19.0-gpu-py312-cu125-ubuntu22.04-sagemaker"
+    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
 
   tensorflow-inference:
-    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
     - "2.19.0-gpu-py312-cu122-ubuntu22.04-sagemaker"
+    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
 
   # ===========================================================================
   # ARM64/Graviton Containers
@@ -172,9 +171,9 @@ images:
     - "2.7.0-gpu-py312-cu128-ubuntu22.04-ec2"
 
   pytorch-inference-arm64:
-    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
     - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
-    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+    - "2.6.0-cpu-py312-ubuntu22.04-ec2"
 
   # ===========================================================================
   # Large Model Inference (LMI)
@@ -216,17 +215,17 @@ images:
     - "1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04"
 
   huggingface-pytorch-inference:
-    - "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"
     - "2.6.0-transformers4.49.0-gpu-py312-cu124-ubuntu22.04"
-    - "2.1.0-transformers4.37.0-cpu-py310-ubuntu22.04"
+    - "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"
     - "2.1.0-transformers4.37.0-gpu-py310-cu118-ubuntu20.04"
+    - "2.1.0-transformers4.37.0-cpu-py310-ubuntu22.04"
 
   huggingface-tensorflow-training:
     - "2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04"
 
   huggingface-tensorflow-inference:
-    - "2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04"
     - "2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04"
+    - "2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04"
 
   # ===========================================================================
   # HuggingFace Neuron Containers

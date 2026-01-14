@@ -15,11 +15,11 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = ["base"]
 DISPLAY_NAMES = {"base": "Base"}
-COLUMNS = ["Version", "Platform", "Python", "CUDA", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
@@ -37,10 +37,10 @@ def parse_tag(tag: str) -> dict:
         result["version"] = match.group(1)
         result["accelerator"] = match.group(2).upper()
         result["python"] = match.group(3)
-        result["cuda"] = match.group(4) or ""
+        result["cuda"] = match.group(4) or "-"
 
     if tag.endswith("-ec2"):
-        result["platform"] = "EC2"
+        result["platform"] = "EC2, ECS, EKS"
     elif tag.endswith("-sagemaker"):
         result["platform"] = "SageMaker"
 
@@ -62,12 +62,12 @@ def generate(yaml_data: dict) -> str:
             parsed = parse_tag(tag)
             rows.append(
                 [
-                    parsed["version"],
-                    parsed["platform"],
+                    f"Base {parsed['version']}",
                     parsed["python"],
                     parsed["cuda"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    parsed["platform"],
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

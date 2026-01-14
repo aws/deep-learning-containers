@@ -15,7 +15,7 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = [
     "huggingface-pytorch-training",
@@ -31,26 +31,37 @@ DISPLAY_NAMES = {
     "huggingface-pytorch-training-neuronx": "HuggingFace PyTorch Training (Neuronx)",
     "huggingface-pytorch-trcomp-training": "HuggingFace PyTorch Training Compiler",
 }
-COLUMNS = ["Framework", "Transformers", "Platform", "Python", "CUDA", "Accelerator", "Tag"]
+COLUMNS_STANDARD = [
+    "Framework",
+    "Python",
+    "CUDA",
+    "Transformers",
+    "Accelerator",
+    "Platform",
+    "Example URL",
+]
+COLUMNS_NEURON = [
+    "Framework",
+    "Python",
+    "SDK",
+    "Transformers",
+    "Accelerator",
+    "Platform",
+    "Example URL",
+]
 
 
 def parse_tag(tag: str) -> dict:
-    """Parse HuggingFace PyTorch tag formats.
-
-    Standard: 2.5.1-transformers4.49.0-gpu-py311-cu124-ubuntu22.04
-    Neuronx: 2.8.0-transformers4.55.4-neuronx-py310-sdk2.26.0-ubuntu22.04
-    """
+    """Parse HuggingFace PyTorch tag formats."""
     result = {
         "version": "",
         "transformers": "",
         "accelerator": "",
         "python": "",
-        "cuda": "",
+        "cuda": "-",
         "sdk": "",
-        "platform": "",
     }
 
-    # Standard format
     match = re.match(
         r"^(\d+\.\d+\.\d+)-"  # pytorch version
         r"transformers(\d+\.\d+\.\d+)-"  # transformers version
@@ -71,11 +82,6 @@ def parse_tag(tag: str) -> dict:
         elif extra.startswith("sdk"):
             result["sdk"] = extra
 
-    if tag.endswith("-sagemaker"):
-        result["platform"] = "SageMaker"
-    elif tag.endswith("-ec2"):
-        result["platform"] = "EC2"
-
     return result
 
 
@@ -89,22 +95,38 @@ def generate(yaml_data: dict) -> str:
         if not tags:
             continue
 
+        is_neuron = "neuronx" in repo_key
+        columns = COLUMNS_NEURON if is_neuron else COLUMNS_STANDARD
+
         rows = []
         for tag in tags:
             parsed = parse_tag(tag)
-            rows.append(
-                [
-                    f"PyTorch {parsed['version']}",
-                    parsed["transformers"],
-                    parsed["platform"],
-                    parsed["python"],
-                    parsed["cuda"] or parsed["sdk"],
-                    parsed["accelerator"],
-                    f"`{tag}`",
-                ]
-            )
+            if is_neuron:
+                rows.append(
+                    [
+                        f"PyTorch {parsed['version']}",
+                        parsed["python"],
+                        parsed["sdk"],
+                        parsed["transformers"],
+                        parsed["accelerator"],
+                        "SageMaker",
+                        build_ecr_url(repo_key, tag),
+                    ]
+                )
+            else:
+                rows.append(
+                    [
+                        f"PyTorch {parsed['version']}",
+                        parsed["python"],
+                        parsed["cuda"],
+                        parsed["transformers"],
+                        parsed["accelerator"],
+                        "SageMaker",
+                        build_ecr_url(repo_key, tag),
+                    ]
+                )
 
         display_name = DISPLAY_NAMES.get(repo_key, repo_key)
-        sections.append(f"{TABLE_HEADER} {display_name}\n" + render_table(COLUMNS, rows))
+        sections.append(f"{TABLE_HEADER} {display_name}\n" + render_table(columns, rows))
 
     return "\n\n".join(sections)

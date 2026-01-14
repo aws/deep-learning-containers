@@ -15,7 +15,7 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = [
     "huggingface-tensorflow-training",
@@ -25,21 +25,17 @@ DISPLAY_NAMES = {
     "huggingface-tensorflow-training": "HuggingFace TensorFlow Training",
     "huggingface-tensorflow-inference": "HuggingFace TensorFlow Inference",
 }
-COLUMNS = ["Framework", "Transformers", "Platform", "Python", "CUDA", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Transformers", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
-    """Parse HuggingFace TensorFlow tag format.
-
-    Example: 2.6.3-transformers4.17.0-gpu-py38-cu112-ubuntu20.04
-    """
+    """Parse HuggingFace TensorFlow tag format."""
     result = {
         "version": "",
         "transformers": "",
         "accelerator": "",
         "python": "",
-        "cuda": "",
-        "platform": "",
+        "cuda": "-",
     }
 
     match = re.match(
@@ -55,12 +51,7 @@ def parse_tag(tag: str) -> dict:
         result["transformers"] = match.group(2)
         result["accelerator"] = match.group(3).upper()
         result["python"] = match.group(4)
-        result["cuda"] = match.group(5) or ""
-
-    if tag.endswith("-sagemaker"):
-        result["platform"] = "SageMaker"
-    elif tag.endswith("-ec2"):
-        result["platform"] = "EC2"
+        result["cuda"] = match.group(5) or "-"
 
     return result
 
@@ -81,12 +72,12 @@ def generate(yaml_data: dict) -> str:
             rows.append(
                 [
                     f"TensorFlow {parsed['version']}",
-                    parsed["transformers"],
-                    parsed["platform"],
                     parsed["python"],
                     parsed["cuda"],
+                    parsed["transformers"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    "SageMaker",
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 

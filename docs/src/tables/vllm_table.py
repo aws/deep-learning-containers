@@ -15,29 +15,34 @@
 import re
 
 from constants import TABLE_HEADER
-from utils import render_table
+from utils import build_ecr_url, render_table
 
 REPO_KEYS = ["vllm"]
 DISPLAY_NAMES = {"vllm": "vLLM"}
-COLUMNS = ["Version", "Platform", "Python", "Accelerator", "Tag"]
+COLUMNS = ["Framework", "Python", "CUDA", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
-    """Parse vLLM tag format: 0.13-gpu-py312 or 0.13-gpu-py312-ec2"""
-    result = {"version": "", "accelerator": "", "python": "", "platform": ""}
+    """Parse vLLM tag format: 0.13.0-gpu-py312-cu129-ubuntu22.04-ec2"""
+    result = {"version": "", "accelerator": "", "python": "", "cuda": "-", "platform": ""}
 
     match = re.match(
-        r"^(\d+\.\d+)-"  # version
+        r"^(\d+\.\d+\.\d+)-"  # version
         r"(cpu|gpu)-"  # accelerator
-        r"(py\d+)"  # python
-        r"(?:-(ec2|sagemaker|eks|ecs))?$",  # platform (optional)
+        r"(py\d+)-"  # python
+        r"(?:(cu\d+)-)?",  # cuda (optional)
         tag,
     )
     if match:
         result["version"] = match.group(1)
         result["accelerator"] = match.group(2).upper()
         result["python"] = match.group(3)
-        result["platform"] = (match.group(4) or "").upper()
+        result["cuda"] = match.group(4) or "-"
+
+    if tag.endswith("-ec2"):
+        result["platform"] = "EC2, ECS, EKS"
+    elif tag.endswith("-sagemaker"):
+        result["platform"] = "SageMaker"
 
     return result
 
@@ -58,10 +63,11 @@ def generate(yaml_data: dict) -> str:
             rows.append(
                 [
                     f"vLLM {parsed['version']}",
-                    parsed["platform"],
                     parsed["python"],
+                    parsed["cuda"],
                     parsed["accelerator"],
-                    f"`{tag}`",
+                    parsed["platform"],
+                    build_ecr_url(repo_key, tag),
                 ]
             )
 
