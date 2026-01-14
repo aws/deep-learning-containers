@@ -7,7 +7,6 @@ on:
     paths:
       - "**sglang**"
       - "!docs/**"
-      - "!.github/**"
 
 permissions:
   contents: read
@@ -79,6 +78,7 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
+              - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
 
