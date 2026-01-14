@@ -13,3 +13,4 @@
 """Global variables for documentation generation."""
 
 AVAILABLE_IMAGES_TABLE_HEADER = "##"
+TUTORIALS_REPO = "https://github.com/aws-samples/sample-aws-deep-learning-containers"

@@ -18,6 +18,7 @@ MkDocs hook:
 
 import os
 
+from constants import TUTORIALS_REPO
 from generate import generate_all
 from utils import clone_git_repository, load_yaml
 
@@ -32,7 +33,6 @@ TUTORIALS_DIR = os.path.join(DOCS_DIR, "tutorials")
 def on_startup(command=["build", "gh-deploy", "serve"], dirty=False):
     """MkDocs hook - runs before build."""
     yaml_data = load_yaml(DATA_FILE)
-    tutorials_repo = "https://github.com/aws-samples/sample-aws-deep-learning-containers"
 
-    clone_git_repository(tutorials_repo, TUTORIALS_DIR)
+    clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR)
     generate_all(yaml_data, dry_run=False)

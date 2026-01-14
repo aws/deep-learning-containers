@@ -15,7 +15,7 @@
 import re
 
 from constants import AVAILABLE_IMAGES_TABLE_HEADER
-from utils import build_ecr_url, render_table
+from utils import build_ecr_url, build_public_registry_note, render_table
 
 REPO_KEYS = [
     "pytorch-inference-neuronx",
@@ -55,7 +55,8 @@ def generate(yaml_data: dict) -> str:
     sections = []
 
     for repo_key in REPO_KEYS:
-        tags = images.get(repo_key, [])
+        repo_data = images.get(repo_key, {})
+        tags = repo_data.get("tags", [])
         if not tags:
             continue
 
@@ -81,8 +82,10 @@ def generate(yaml_data: dict) -> str:
             )
 
         display_name = DISPLAY_NAMES.get(repo_key, repo_key)
-        sections.append(
-            f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n" + render_table(COLUMNS, rows)
-        )
+        section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
+        if repo_data.get("public_registry"):
+            section += "\n" + build_public_registry_note(repo_key) + "\n"
+        section += render_table(COLUMNS, rows)
+        sections.append(section)
 
     return "\n\n".join(sections)

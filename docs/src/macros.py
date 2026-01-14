@@ -23,7 +23,8 @@ DATA_FILE = os.path.join(SRC_DIR, "data", "images.yml")
 def get_latest_image(repo: str, platform: str) -> str:
     """Get the latest image URI for a repository and platform."""
     data = load_yaml(DATA_FILE)
-    tags = data.get("images", {}).get(repo, [])
+    repo_data = data.get("images", {}).get(repo, {})
+    tags = repo_data.get("tags", [])
     for tag in tags:
         if tag.endswith(platform):
             return f"763104351884.dkr.ecr.us-west-2.amazonaws.com/{repo}:{tag}"
@@ -34,14 +35,6 @@ def get_latest_image(repo: str, platform: str) -> str:
 
 def define_env(env):
     """Define variables for mkdocs-macros-plugin."""
-    data = load_yaml(DATA_FILE)
-    public_repos = data.get("public_ecr_repositories", [])
-
-    # Assign environment at mkdocs build time
-    env.variables["public_ecr_image_list"] = "\n".join(
-        f"- [{repo}](https://gallery.ecr.aws/deep-learning-containers/{repo})"
-        for repo in public_repos
-    )
     env.variables["images"] = {
         "latest_pytorch_training_ec2": get_latest_image("pytorch-training", "-ec2"),
         "latest_vllm_sagemaker": get_latest_image("vllm", "-sagemaker"),

@@ -57,3 +57,9 @@ def clone_git_repository(git_repository: str, target_dir: str) -> None:
 def build_ecr_url(repo_name: str, tag: str, account_id: str = "763104351884") -> str:
     """Build ECR URL from repository name and tag."""
     return f"`{account_id}.dkr.ecr.<region>.amazonaws.com/{repo_name}:{tag}`"
+
+
+def build_public_registry_note(repo_name: str) -> str:
+    """Build public registry note for markdown output."""
+    url = f"https://gallery.ecr.aws/deep-learning-containers/{repo_name}"
+    return f"These images are also available in ECR Public Gallery: [{repo_name}]({url})\n"
