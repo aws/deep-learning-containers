@@ -2,7 +2,7 @@ name: Publish Documentations via GitHub Pages
 
 on:
   push:
-    branches: [doc-poc]
+    branches: [main]
     paths:
       - "**docs**"
   workflow_dispatch:
