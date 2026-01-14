@@ -68,7 +68,7 @@ def model_package(aws_session, image_uri, model_id):
         predictor_cls=Predictor,
         env={
             "SM_VLLM_MODEL": model_id,
-            "SM_VLLM_HF_TOKEN": hf_token,
+            "HF_TOKEN": hf_token,
         },
     )
     LOGGER.info("Model created successfully")
