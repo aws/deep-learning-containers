@@ -1,6 +1,12 @@
 # Using Deep Learning Containers
 
-This guide covers how to run AWS Deep Learning Containers on AWS Platforms such as SageMaker and EC2.
+The following sections describe how to use Deep Learning Containers to run sample code from each of the frameworks on AWS infrastructure.
+
+## Use Cases
+
+- For information on using Deep Learning Containers with SageMaker AI, see the [Use Your Own Algorithms or Models with SageMaker AI Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
+
+- To learn about using Deep Learning Containers with SageMaker AI HyperPod on EKS, see [Orchestrating SageMaker HyperPod clusters with Amazon EKS SageMaker AI](https://docs.aws.amazon.com//sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
 
 ## Running on SageMaker
 
