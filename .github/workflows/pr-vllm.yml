@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -84,7 +85,6 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-vllm*"
             test-change:
               - "test/vllm/**"
 

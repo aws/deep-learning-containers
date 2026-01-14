@@ -6,6 +6,7 @@ on:
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -77,7 +78,6 @@ jobs:
               - "scripts/sglang/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-sglang*"
             test-change:
               - "test/sglang/**"
 
