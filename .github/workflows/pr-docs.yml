@@ -11,6 +11,10 @@ permissions:
   contents: read
   pull-requests: read
 
+env:
+  # CI environment configuration
+  FORCE_COLOR: "1"
+
 jobs:
   gatekeeper:
     runs-on: ubuntu-latest
