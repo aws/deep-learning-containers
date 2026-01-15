@@ -80,7 +80,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          uv venv
+          uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
 
