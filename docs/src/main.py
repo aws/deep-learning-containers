@@ -84,8 +84,8 @@ def main():
             action()
             break
     else:
-        generate_all(yaml_data, args.dry_run)
         clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR)
+        generate_all(yaml_data, args.dry_run)
 
     LOGGER.info("Done")
 

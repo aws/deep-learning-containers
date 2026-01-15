@@ -83,6 +83,10 @@ jobs:
           uv venv
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
+
+      - name: Build documentations
+        run: |
+          uv pip install -r docs/requirements.txt
           python3 docs/src/main.py --verbose
 
       - name: Run documentation tests
