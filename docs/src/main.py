@@ -16,7 +16,7 @@ This file is mainly used for development process to test the doc generation func
 If you intend to run the code with mkdocs, see src/hooks.py.
 
 Usage:
-    python docs/src/main.py [--dry-run] [--verbose] [--support-policy-only] [--available-images-only]
+    python docs/src/main.py [-h] [--dry-run] [--verbose] [--support-policy-only | --available-images-only | --clone-tutorials]
 """
 
 import argparse
