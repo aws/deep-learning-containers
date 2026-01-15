@@ -64,7 +64,7 @@ jobs:
               - "test/docs/**"
               - ".github/workflows/pr-docs*"
 
-  vllm-sagemaker-endpoint-test:
+  documentation-test:
     needs: [check-changes]
     if: needs.check-changes.outputs.docs-change == 'true'
     runs-on:
