@@ -86,8 +86,9 @@ jobs:
 
       - name: Build documentations
         run: |
+          source .venv/bin/activate
           uv pip install -r docs/requirements.txt
-          python3 docs/src/main.py --verbose
+          mkdocs build
 
       - name: Run documentation tests
         run: |
