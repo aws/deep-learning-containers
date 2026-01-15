@@ -23,28 +23,29 @@ REPO_KEYS = [
     "tensorflow-inference-neuronx",
 ]
 DISPLAY_NAMES = {
-    "pytorch-inference-neuronx": "PyTorch Inference (Neuronx)",
-    "pytorch-training-neuronx": "PyTorch Training (Neuronx)",
-    "tensorflow-inference-neuronx": "TensorFlow Inference (Neuronx)",
+    "pytorch-inference-neuronx": "PyTorch Inference (NeuronX)",
+    "pytorch-training-neuronx": "PyTorch Training (NeuronX)",
+    "tensorflow-inference-neuronx": "TensorFlow Inference (NeuronX)",
 }
 COLUMNS = ["Framework", "Python", "SDK", "Accelerator", "Platform", "Example URL"]
 
 
 def parse_tag(tag: str) -> dict:
     """Parse Neuron tag format: 2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"""
-    result = {"version": "", "sdk": "", "python": ""}
+    result = {"version": "", "sdk": "", "python": "", "accelerator": ""}
 
     match = re.match(
         r"^(\d+\.\d+\.\d+)-"  # framework version
-        r"neuronx-"  # neuronx marker
+        r"(neuronx)-"  # neuronx marker
         r"(py\d+)-"  # python
         r"sdk([\d.]+)-",  # sdk version
         tag,
     )
     if match:
         result["version"] = match.group(1)
-        result["python"] = match.group(2)
-        result["sdk"] = match.group(3)
+        result["accelerator"] = "NeuronX" if match.group(2) == "neuronx" else "-"
+        result["python"] = match.group(3)
+        result["sdk"] = match.group(4)
 
     return result
 
@@ -75,7 +76,7 @@ def generate(yaml_data: dict) -> str:
                     f"{framework_name} {parsed['version']}",
                     parsed["python"],
                     parsed["sdk"],
-                    "Neuron",
+                    parsed["accelerator"],
                     "SageMaker",
                     build_ecr_url(repo_key, tag),
                 ]

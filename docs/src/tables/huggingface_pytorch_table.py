@@ -27,8 +27,8 @@ REPO_KEYS = [
 DISPLAY_NAMES = {
     "huggingface-pytorch-training": "HuggingFace PyTorch Training",
     "huggingface-pytorch-inference": "HuggingFace PyTorch Inference",
-    "huggingface-pytorch-inference-neuronx": "HuggingFace PyTorch Inference (Neuronx)",
-    "huggingface-pytorch-training-neuronx": "HuggingFace PyTorch Training (Neuronx)",
+    "huggingface-pytorch-inference-neuronx": "HuggingFace PyTorch Inference (NeuronX)",
+    "huggingface-pytorch-training-neuronx": "HuggingFace PyTorch Training (NeuronX)",
     "huggingface-pytorch-trcomp-training": "HuggingFace PyTorch Training Compiler",
 }
 COLUMNS_STANDARD = [
@@ -74,7 +74,7 @@ def parse_tag(tag: str) -> dict:
         result["version"] = match.group(1)
         result["transformers"] = match.group(2)
         accel = match.group(3)
-        result["accelerator"] = "Neuron" if accel == "neuronx" else accel.upper()
+        result["accelerator"] = "NeuronX" if accel == "neuronx" else accel.upper()
         result["python"] = match.group(4)
         extra = match.group(5) or ""
         if extra.startswith("cu"):
@@ -96,7 +96,7 @@ def generate(yaml_data: dict) -> str:
         if not tags:
             continue
 
-        is_neuron = "neuronx" in repo_key
+        is_neuron = "neuron" in repo_key
         columns = COLUMNS_NEURON if is_neuron else COLUMNS_STANDARD
 
         rows = []
