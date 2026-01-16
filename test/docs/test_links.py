@@ -22,11 +22,11 @@ DOCS_DIR = os.path.join(os.path.dirname(__file__), "..", "..", "docs")
 
 @pytest.fixture(scope="module")
 def markdown_files():
-    """Get all markdown files in docs directory."""
+    """Get all markdown files in docs directory, excluding templates."""
     md_files = []
     for root, _, files in os.walk(DOCS_DIR):
         for f in files:
-            if f.endswith(".md"):
+            if f.endswith(".md") and not f.endswith(".template.md"):
                 md_files.append(os.path.join(root, f))
     return md_files
 
