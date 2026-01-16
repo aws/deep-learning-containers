@@ -214,7 +214,7 @@ jobs:
         fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sglang-ec2-upstream-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
