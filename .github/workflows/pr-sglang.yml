@@ -24,7 +24,7 @@ env:
   # SGLang SageMaker
   PROD_SAGEMAKER_IMAGE: sglang:0.5-gpu-py312
 
-  # SGLang EC2 
+  # SGLang EC2
   PROD_EC2_IMAGE: sglang:0.5-gpu-py312-ec2
 
   # CI environment configuration
