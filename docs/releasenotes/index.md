@@ -4,9 +4,11 @@ This section contains release notes for AWS Deep Learning Containers organized b
 
 ## Frameworks
 
-{% for fw in frameworks -%}
-- [{{ fw.display_name }}]({{ fw.name }}/index.md)
-{% endfor %}
+- [Base](base/index.md)
+- [SGLang](sglang/index.md)
+- [vLLM](vllm/index.md)
+- [PyTorch](pytorch/index.md)
+- [TensorFlow](tensorflow/index.md)
 
 ## Resources
 

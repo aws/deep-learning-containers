@@ -232,19 +232,6 @@ def generate_release_notes(configs: list[dict], dry_run: bool = False) -> list[s
         if not dry_run:
             index_path.write_text(index_content)
 
-    # Generate main releasenotes/index.md
-    frameworks_list = [
-        {"name": fw, "display_name": FRAMEWORK_NAMES.get(fw, fw)}
-        for fw in FRAMEWORK_ORDER
-        if fw in by_framework
-    ]
-    main_index_content = env.get_template("release_notes_main_index.template.md").render(
-        frameworks=frameworks_list
-    )
-    if not dry_run:
-        main_index_content_path = RELEASENOTES_DIR / "index.md"
-        main_index_content_path.write_text(main_index_content)
-
     return generated
 
 
