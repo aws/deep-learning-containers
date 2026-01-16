@@ -6,7 +6,7 @@ The following sections describe how to use Deep Learning Containers to run sampl
 
 - For information on using Deep Learning Containers with SageMaker AI, see the [Use Your Own Algorithms or Models with SageMaker AI Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
 
-- To learn about using Deep Learning Containers with SageMaker AI HyperPod on EKS, see [Orchestrating SageMaker HyperPod clusters with Amazon EKS SageMaker AI](https://docs.aws.amazon.com//sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
+- To learn about using Deep Learning Containers with SageMaker AI HyperPod on EKS, see [Orchestrating SageMaker HyperPod clusters with Amazon EKS SageMaker AI](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
 
 ## Running on SageMaker
 
@@ -81,6 +81,7 @@ sagemaker.create_endpoint_config(
             "ModelName": "sglang-model",
             "InstanceType": "ml.g5.2xlarge",
             "InitialInstanceCount": 1,
+            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
         }
     ],
 )
@@ -118,6 +119,7 @@ sagemaker.create_endpoint_config(
             "ModelName": "vllm-model",
             "InstanceType": "ml.g5.2xlarge",
             "InitialInstanceCount": 1,
+            "InferenceAmiVersion": "al2-ami-sagemaker-inference-gpu-3-1",
         }
     ],
 )
@@ -145,5 +147,5 @@ docker run -it --gpus all -v /local/data:/data {{ images.latest_pytorch_training
 
 ## Quick Links
 
-- [Available Images](reference/available_images.md) - Browse all container images
-- [Support Policy](reference/support_policy.md) - Framework versions and timelines
+- [Available Images](../reference/available_images.md) - Browse all container images
+- [Support Policy](../reference/support_policy.md) - Framework versions and timelines

@@ -4,6 +4,6 @@ Release notes for AWS Deep Learning Containers with SGLang for large language mo
 
 ## SGLang 0.5
 
-| Platform  | Type    | Link                                |
-| --------- | ------- | ----------------------------------- |
-| SageMaker | General | [SGLang on SageMaker](sagemaker.md) |
+| Platform  | Type    | Link                                    |
+| --------- | ------- | --------------------------------------- |
+| SageMaker | General | [SGLang on SageMaker](0.5-sagemaker.md) |
