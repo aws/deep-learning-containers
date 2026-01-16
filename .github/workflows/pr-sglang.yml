@@ -185,12 +185,12 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset \
             -p 30000:30000 \
-            -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
-            -e SM_SGLANG_REASONING_PARSER=qwen3 \
-            -e SM_SGLANG_HOST=127.0.0.1 \
-            -e SM_SGLANG_PORT=30000 \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.set-ec2-test-environment.outputs.image-uri }})
+            --model-path Qwen/Qwen3-0.6B \
+            --reasoning-parser qwen3 \
+            --host 127.0.0.1 \
+            --port 30000)
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
           sleep 120s
