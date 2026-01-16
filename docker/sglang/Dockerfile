@@ -107,3 +107,22 @@ COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
 RUN chmod +x /usr/bin/serve
 
 ENTRYPOINT ["/usr/bin/serve"]
+
+# =======================================================
+# ====================== EC2 ============================
+# =======================================================
+
+FROM base AS sglang-ec2
+
+ARG CACHE_REFRESH=0
+RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
+  && apt-get update \
+  && apt-get upgrade -y \
+  && apt-get clean
+
+RUN rm -rf /tmp/*
+
+COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+ENTRYPOINT ["/usr/bin/serve"]
