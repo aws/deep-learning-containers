@@ -1,0 +1,24 @@
+# PyTorch 2.7 GPU Training ARM64 on EC2
+metadata:
+  framework: pytorch
+  job_type: training
+  version: "2.7"
+  accelerator: gpu
+  platform: ec2
+  architecture: arm64
+  ga_date: 2025-04-23
+  eop_date: 2026-04-23
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.8"
+  cudnn: "9.8.0"
+  nccl: "2.25.1"
+
+image:
+  public_registry: true
+  tags:
+    - "2.7.0-gpu-py312-cu128-ubuntu22.04-ec2"

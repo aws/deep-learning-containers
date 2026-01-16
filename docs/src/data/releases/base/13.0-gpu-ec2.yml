@@ -1,0 +1,25 @@
+# Base CUDA 13.0 GPU on EC2/ECS/EKS
+metadata:
+  framework: base
+  job_type: general
+  version: "13.0"
+  accelerator: gpu
+  platform: ec2
+  architecture: x86_64
+  ga_date: 2025-10-22
+  eop_date: 2026-10-22
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "13.0.0"
+  cudnn: "9.13.0.50"
+  nccl: "2.27.7-1"
+  efa: "1.44.0"
+
+image:
+  public_registry: true
+  tags:
+    - "13.0.0-gpu-py312-cu130-ubuntu22.04-ec2"

@@ -1,0 +1,21 @@
+# PyTorch 2.6 CPU Inference on SageMaker
+metadata:
+  framework: pytorch
+  job_type: inference
+  version: "2.6"
+  accelerator: cpu
+  platform: sagemaker
+  architecture: x86_64
+  ga_date: 2025-01-29
+  eop_date: 2026-01-29
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages: {}
+
+image:
+  public_registry: true
+  tags:
+    - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"

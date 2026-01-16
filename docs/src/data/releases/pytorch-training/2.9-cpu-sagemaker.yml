@@ -1,0 +1,21 @@
+# PyTorch 2.9 CPU Training on SageMaker
+metadata:
+  framework: pytorch
+  job_type: training
+  version: "2.9"
+  accelerator: cpu
+  platform: sagemaker
+  architecture: x86_64
+  ga_date: 2025-10-15
+  eop_date: 2026-10-15
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages: {}
+
+image:
+  public_registry: true
+  tags:
+    - "2.9.0-cpu-py312-ubuntu22.04-sagemaker"

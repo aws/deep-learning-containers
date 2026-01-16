@@ -1,0 +1,22 @@
+# SGLang 0.5 GPU on SageMaker
+metadata:
+  framework: sglang
+  job_type: general
+  version: "0.5"
+  accelerator: gpu
+  platform: sagemaker
+  architecture: x86_64
+  ga_date: 2025-05-01
+  eop_date: 2026-05-01
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.9"
+
+image:
+  public_registry: true
+  tags:
+    - "0.5.6-gpu-py312-cu129-ubuntu22.04-sagemaker"

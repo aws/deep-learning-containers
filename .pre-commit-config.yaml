@@ -103,6 +103,7 @@ repos:
       - id: mdformat
         name: "📝 markdown · Format markdown (docs)"
         files: ^docs/
+        exclude: ^docs/(README|DEVELOPMENT)\.md$|\.template\.md$
         additional_dependencies:
         - mdformat-gfm
         - mdformat-mkdocs[recommended]

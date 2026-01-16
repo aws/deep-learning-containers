@@ -1,0 +1,25 @@
+# Base CUDA 12.9 GPU on EC2/ECS/EKS
+metadata:
+  framework: base
+  job_type: general
+  version: "12.9"
+  accelerator: gpu
+  platform: ec2
+  architecture: x86_64
+  ga_date: 2025-08-18
+  eop_date: 2027-08-18
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.9.1"
+  cudnn: "9.10.0"
+  nccl: "2.26.2"
+  efa: "1.43.0"
+
+image:
+  public_registry: true
+  tags:
+    - "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"

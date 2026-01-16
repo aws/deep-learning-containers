@@ -1,4 +1,6 @@
+jinja2
 mkdocs-autorefs
 mkdocs-awesome-nav
 mkdocs-macros-plugin
 mkdocs-material>=9.0
+pyyaml

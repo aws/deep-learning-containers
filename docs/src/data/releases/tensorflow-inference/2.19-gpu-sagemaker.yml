@@ -1,0 +1,24 @@
+# TensorFlow 2.19 GPU Inference on SageMaker
+metadata:
+  framework: tensorflow
+  job_type: inference
+  version: "2.19"
+  accelerator: gpu
+  platform: sagemaker
+  architecture: x86_64
+  ga_date: 2025-03-11
+  eop_date: 2026-03-11
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.2"
+  cudnn: "8.9.4.25"
+  nccl: "2.18.3"
+
+image:
+  public_registry: true
+  tags:
+    - "2.19.0-gpu-py312-cu122-ubuntu22.04-sagemaker"

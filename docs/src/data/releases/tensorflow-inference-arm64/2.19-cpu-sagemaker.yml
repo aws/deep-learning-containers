@@ -1,0 +1,21 @@
+# TensorFlow 2.19 CPU Inference ARM64 on SageMaker
+metadata:
+  framework: tensorflow
+  job_type: inference
+  version: "2.19"
+  accelerator: cpu
+  platform: sagemaker
+  architecture: arm64
+  ga_date: 2025-03-11
+  eop_date: 2026-03-11
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages: {}
+
+image:
+  public_registry: true
+  tags:
+    - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"

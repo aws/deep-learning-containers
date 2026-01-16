@@ -1,0 +1,28 @@
+# TensorFlow 2.19 GPU Training on SageMaker
+metadata:
+  framework: tensorflow
+  job_type: training
+  version: "2.19"
+  accelerator: gpu
+  platform: sagemaker
+  architecture: x86_64
+  ga_date: 2025-03-11
+  eop_date: 2026-03-11
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.5"
+  cudnn: "9.3.0.75"
+  nccl: "2.23.4"
+
+image:
+  public_registry: true
+  tags:
+    - "2.19.0-gpu-py312-cu125-ubuntu22.04-sagemaker"
+
+sections:
+  known_issues:
+    - "Tensorflow IO package throws exception while working with s3 filesystem."

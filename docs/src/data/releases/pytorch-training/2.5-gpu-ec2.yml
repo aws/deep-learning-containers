@@ -1,0 +1,24 @@
+# PyTorch 2.5 GPU Training on EC2/ECS/EKS
+metadata:
+  framework: pytorch
+  job_type: training
+  version: "2.5"
+  accelerator: gpu
+  platform: ec2
+  architecture: x86_64
+  ga_date: 2024-10-29
+  eop_date: 2025-10-29
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.4.0"
+  cudnn: "9.13.0.50"
+  nccl: "2.27.7-1"
+
+image:
+  public_registry: true
+  tags:
+    - "2.5.0-gpu-py312-cu124-ubuntu22.04-ec2"

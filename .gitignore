@@ -5,6 +5,9 @@ __pycache__
 .venv
 .ruff_cache
 .pytest_cache
-docs/tutorials
+
+# Generated files
 docs/reference/available_images.md
 docs/reference/support_policy.md
+docs/releasenotes/**
+docs/tutorials

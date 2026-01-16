@@ -1,0 +1,23 @@
+# PyTorch 2.6 GPU Inference ARM64 on SageMaker
+metadata:
+  framework: pytorch
+  job_type: inference
+  version: "2.6"
+  accelerator: gpu
+  platform: sagemaker
+  architecture: arm64
+  ga_date: 2025-01-29
+  eop_date: 2026-01-29
+
+environment:
+  python: "3.12"
+  os: ubuntu22.04
+
+packages:
+  cuda: "12.4.1"
+  cudnn: "9.1.0.70"
+
+image:
+  public_registry: true
+  tags:
+    - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"

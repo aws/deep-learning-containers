@@ -12,6 +12,7 @@ nav:
     - Tensorflow: releasenotes/tensorflow/index.md
   - Tutorials: tutorials
   - Reference:
+    - reference/index.md
     - Available Images: reference/available_images.md
     - Support Policy: reference/support_policy.md
   - Security:
