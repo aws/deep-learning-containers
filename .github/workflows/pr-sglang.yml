@@ -114,14 +114,14 @@ jobs:
           tag-pr: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
-  set-test-environment:
+  set-sagemaker-test-environment:
     needs: [check-changes, build-sglang-sagemaker-image]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-set-test-environment-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-set-sagemaker-test-environment-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
@@ -146,7 +146,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
-    needs: [build-sglang-sagemaker-image, set-test-environment]
+    needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -162,9 +162,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
 
       - name: Setup for SGLang datasets
         run: |
@@ -187,7 +187,7 @@ jobs:
             -e SM_SGLANG_HOST=127.0.0.1 \
             -e SM_SGLANG_PORT=30000 \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.set-test-environment.outputs.image-uri }})
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
           echo "Waiting for serving endpoint startup ..."
           sleep 120s
@@ -204,7 +204,7 @@ jobs:
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
   sglang-upstream-test:
-    needs: [build-sglang-sagemaker-image, set-test-environment]
+    needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -220,9 +220,9 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.set-test-environment.outputs.aws-account-id }}
+          aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.set-test-environment.outputs.image-uri }}
+          image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
 
       - name: Checkout SGLang tests
         uses: actions/checkout@v5
@@ -237,7 +237,7 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ./sglang_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.set-test-environment.outputs.image-uri }})
+            ${{ needs.set-sagemaker-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
 
       - name: Setup for SGLang tests
@@ -260,10 +260,10 @@ jobs:
           '
 
   sglang-sagemaker-endpoint-test:
-    needs: [set-test-environment]
+    needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.set-test-environment.result == 'success'
+      needs.set-sagemaker-test-environment.result == 'success'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -286,4 +286,4 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.set-test-environment.outputs.image-uri }} sglang/sagemaker
+          python3 -m pytest -vs -rA --image-uri ${{ needs.set-sagemaker-test-environment.outputs.image-uri }} sglang/sagemaker
