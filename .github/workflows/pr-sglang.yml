@@ -85,7 +85,7 @@ jobs:
   # ======================================================
   # =============== SGLang SageMaker jobs ================
   # ======================================================
-  build-sglang-image:
+  build-sglang-sagemaker-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
@@ -93,7 +93,7 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-sglang-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-sglang-sagemaker-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -115,7 +115,7 @@ jobs:
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-test-environment:
-    needs: [check-changes, build-sglang-image]
+    needs: [check-changes, build-sglang-sagemaker-image]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -133,9 +133,9 @@ jobs:
       - name: Set test environment
         id: set-env
         run: |
-          if [[ "${{ needs.build-sglang-image.result }}" == "success" ]]; then
+          if [[ "${{ needs.build-sglang-sagemaker-image.result }}" == "success" ]]; then
             AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ needs.build-sglang-image.outputs.ci-image }}
+            IMAGE_URI=${{ needs.build-sglang-sagemaker-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
@@ -146,7 +146,7 @@ jobs:
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   sglang-local-benchmark-test:
-    needs: [build-sglang-image, set-test-environment]
+    needs: [build-sglang-sagemaker-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -204,7 +204,7 @@ jobs:
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
   sglang-upstream-test:
-    needs: [build-sglang-image, set-test-environment]
+    needs: [build-sglang-sagemaker-image, set-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
