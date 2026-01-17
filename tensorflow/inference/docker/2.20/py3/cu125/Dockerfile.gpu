@@ -13,9 +13,9 @@
 #                  |_|
 ########################################################
 
-# Note: Using TF Serving 2.19.1 as TF Serving 2.20.0 is not yet released
+# Note: Using TF Serving 2.19.0 as TF Serving 2.20.0 is not yet released
 # TF Serving 2.19 is compatible with TF 2.20 models (SavedModel format is backward compatible)
-FROM tensorflow/serving:2.19.1-devel-gpu as build_image
+FROM tensorflow/serving:2.19.0-devel-gpu as build_image
 
 FROM nvidia/cuda:12.5.0-base-ubuntu22.04 AS base_image
 
@@ -40,8 +40,8 @@ ARG PYTHON_VERSION=3.12.10
 ARG TFS_SHORT_VERSION=2.20
 ARG CUDA_DASH=12-5
 
-# TF Serving 2.19.1 git commit
-ARG TF_SERVING_VERSION_GIT_COMMIT=eab9c35
+# TF Serving 2.19.0 git commit
+ARG TF_SERVING_VERSION_GIT_COMMIT=c491ba6
 
 # ENV variable to be passed to SageMaker stage
 ENV PIP=${PIP}
@@ -185,9 +185,9 @@ RUN ${PIP} install -U --no-cache-dir \
     packaging \
     "setuptools>=70.0.0" \
 # using --no-dependencies to avoid installing tensorflow binary
-# Note: Using TF Serving API 2.19.1 as 2.20.0 is not yet released
+# Note: Using TF Serving API 2.19.0 as 2.20.0 is not yet released
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api-gpu=="2.19.1"
+    tensorflow-serving-api-gpu=="2.19.0"
 
 
 # Install TF Serving GPU pkg

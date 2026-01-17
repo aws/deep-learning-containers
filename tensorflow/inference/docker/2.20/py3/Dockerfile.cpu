@@ -13,9 +13,9 @@
 #                  |_|
 ########################################################
 
-# Note: Using TF Serving 2.19.1 as TF Serving 2.20.0 is not yet released
+# Note: Using TF Serving 2.19.0 as TF Serving 2.20.0 is not yet released
 # TF Serving 2.19 is compatible with TF 2.20 models (SavedModel format is backward compatible)
-FROM tensorflow/serving:2.19.1-devel as build_image
+FROM tensorflow/serving:2.19.0-devel as build_image
 
 FROM ubuntu:22.04 AS base_image
 
@@ -112,9 +112,9 @@ RUN ${PIP} install --no-cache-dir \
     packaging \
     "setuptools>=70.0.0" \
 # using --no-dependencies to avoid installing tensorflow binary
-# Note: Using TF Serving API 2.19.1 as 2.20.0 is not yet released
+# Note: Using TF Serving API 2.19.0 as 2.20.0 is not yet released
  && ${PIP} install --no-dependencies --no-cache-dir \
-    tensorflow-serving-api=="2.19.1"
+    tensorflow-serving-api=="2.19.0"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
