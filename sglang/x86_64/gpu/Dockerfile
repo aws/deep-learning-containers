@@ -1,4 +1,4 @@
-FROM lmsysorg/sglang:v0.5.6-cu129-amd64 AS base
+FROM lmsysorg/sglang:v0.5.7-cu129-amd64 AS base
 
 # ====================================================
 # ====================== common ======================
@@ -34,15 +34,6 @@ COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
  && chmod +x /usr/local/bin/bash_telemetry.sh \
  && chmod +x /usr/local/bin/start_cuda_compat.sh
-
-# Install cuda compat
-# ====================
-# RUN apt-get update \
-#  && apt-get -y upgrade --only-upgrade systemd \
-#  && apt-get install -y --allow-change-held-packages --no-install-recommends \
-#     cuda-compat-12-9 \
-#  && rm -rf /var/lib/apt/lists/* \
-#  && apt-get clean
 
 # Install EFA and remove vulnerable nvjpeg
 # =========================================
