@@ -20,12 +20,6 @@ env:
   EC2_CONFIG: ".github/config/vllm-0.13.0-ec2.yml"
   SAGEMAKER_CONFIG: ".github/config/vllm-0.13.0-sagemaker.yml"
   RAYSERVE_CONFIG: ".github/config/vllm-0.10.2-rayserve.yml"
-  
-  # AWS Configuration - Temporary hardcoded values for testing
-  # TODO: Remove before merging - use repository variables instead
-  AWS_REGION: "us-east-1"
-  CI_AWS_ACCOUNT_ID: "YOUR_CI_ACCOUNT_ID"
-  PROD_AWS_ACCOUNT_ID: "YOUR_PROD_ACCOUNT_ID"
 
 
 jobs:
