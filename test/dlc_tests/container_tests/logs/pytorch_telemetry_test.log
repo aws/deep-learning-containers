@@ -1,0 +1,32 @@
+Call type: entrypoint
+Verify pytorch telemetry test for entrypoint. You can follow progress on the log file : /test/logs/pytorch_telemetry_test.log
+Test type: opt_in
+Test entrypoint telemetry opt_in
+Testing opt-in telemetry...
+Call type: entrypoint
+Verify pytorch telemetry test for entrypoint. You can follow progress on the log file : /test/logs/pytorch_telemetry_test.log
+Test type: opt_in
+Test entrypoint telemetry opt_in
+Checking opt-in telemetry...
+Call type: entrypoint
+Verify pytorch telemetry test for entrypoint. You can follow progress on the log file : /test/logs/pytorch_telemetry_test.log
+Test type: opt_in
+Test entrypoint telemetry opt_in
+Checking opt-in telemetry...
+entrypoint opt_in telemetry test Failed
+Call type: entrypoint
+Verify pytorch telemetry test for entrypoint. You can follow progress on the log file : /test/logs/pytorch_telemetry_test.log
+Test type: opt_in
+Test entrypoint telemetry opt_in
+Checking opt-in telemetry...
+entrypoint opt_in telemetry test Failed
+Call type: entrypoint
+Verify pytorch telemetry test for entrypoint. You can follow progress on the log file : /test/logs/pytorch_telemetry_test.log
+Test type: opt_in
+Test entrypoint telemetry opt_in
+Checking opt-in telemetry...
+Error: test_request.txt file not found - opt-in failed
+Checking /tmp directory contents:
+total 8
+drwxrwxrwt 1 root root 4096 May 12 18:15 .
+drwxr-xr-x 1 root root 4096 May 12 18:15 ..
