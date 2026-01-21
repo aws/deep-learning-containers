@@ -1,4 +1,4 @@
-name: PR - vLLM
+name: PR - Release-vLLM
 
 on:
   pull_request:
@@ -41,9 +41,24 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
           
           # Load and output configs as JSON for easy parsing in other jobs
-          echo "ec2-config=$(yq eval -o=json '.' ${{ env.EC2_CONFIG }})" >> $GITHUB_OUTPUT
-          echo "sagemaker-config=$(yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }})" >> $GITHUB_OUTPUT
-          echo "rayserve-config=$(yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }})" >> $GITHUB_OUTPUT
+          # Using multiline output format to handle special characters
+          {
+            echo "ec2-config<<EOF"
+            yq eval -o=json '.' ${{ env.EC2_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          
+          {
+            echo "sagemaker-config<<EOF"
+            yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+          
+          {
+            echo "rayserve-config<<EOF"
+            yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   gatekeeper:
     runs-on: ubuntu-latest
