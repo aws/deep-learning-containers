@@ -1,5 +1,5 @@
 # Legacy support policy data for older, unsupported images
-# These entries appear in support_policy.md but not in available_images.md
+# These entries are older versions that we won't be migrating to individual <image>.yml config files
 
 pytorch:
   - version: "2.5"
