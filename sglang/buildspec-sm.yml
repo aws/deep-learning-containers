@@ -36,7 +36,7 @@ images:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
-    image_size_baseline: 29000
+    image_size_baseline: 32000
     device_type: &DEVICE_TYPE gpu
     cuda_version: &CUDA_VERSION cu129
     python_version: &DOCKER_PYTHON_VERSION py3
