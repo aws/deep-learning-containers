@@ -21,11 +21,11 @@ env:
   OS_VERSION: "ubuntu22.04"
 
   # vLLM EC2
-  VLLM_VERSION: 0.13.0
-  PROD_EC2_IMAGE: vllm:0.13-gpu-py312-ec2
+  VLLM_VERSION: 0.14.0
+  PROD_EC2_IMAGE: vllm:0.14-gpu-py312-ec2
 
   # vLLM SageMaker
-  PROD_SAGEMAKER_IMAGE: vllm:0.13-gpu-py312
+  PROD_SAGEMAKER_IMAGE: vllm:0.14-gpu-py312
 
   # vLLM RayServe
   VLLM_RAYSERVE_VERSION: 0.10.2
@@ -192,7 +192,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -238,7 +238,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -284,7 +284,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -594,7 +594,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -640,7 +640,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -686,7 +686,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
