@@ -31,11 +31,16 @@ docs/src/
 │   ├── pytorch-training-neuronx/
 │   │   └── 2.9-neuronx-sdk2.27.1.yml
 │   └── ...
-├── global.yml                     # Shared terminology and configuration
+├── legacy/                        # Historical support data
+│   └── legacy_support.yml
+├── constants.py                   # Path constants and global variables
 ├── generate.py                    # Generation logic
+├── global.yml                     # Shared terminology and configuration
 ├── hooks.py                       # MkDocs hooks
+├── logger.py                      # Logging configuration
 ├── macros.py                      # MkDocs macros
-└── utils.py                       # Utilities
+├── main.py                        # CLI entry point
+└── utils.py                       # Reusable helper functions
 ```
 
 ### Adding a New Image
@@ -114,14 +119,14 @@ display_names:
   pytorch-training: "PyTorch Training"
   # ...
 
-# Framework groups for support policy consolidation
+# Framework groups for support policy consolidation (lowercase keys)
 framework_groups:
-  PyTorch:
+  pytorch:
     - pytorch-training
     - pytorch-inference
     - pytorch-training-arm64
     - pytorch-inference-arm64
-  TensorFlow:
+  tensorflow:
     - tensorflow-training
     - tensorflow-inference
     - tensorflow-inference-arm64
@@ -204,7 +209,7 @@ PyTorch:
 #### Adding Legacy Entries
 
 1. Open `docs/src/legacy/legacy_support.yml`
-1. Add entries under the framework name key (must match `framework_groups` keys exactly)
+1. Add entries under the framework name key (must match `display_names` keys for framework groups, e.g., `pytorch`, `tensorflow`)
 1. Each entry needs: `version`, `ga`, `eop`
 
 #### Behavior

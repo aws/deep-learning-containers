@@ -13,14 +13,21 @@ docs/
 │   │   │   └── 2.9-cpu-sagemaker.yml
 │   │   └── <repository>/
 │   │       └── <version>-<accelerator>-<platform>.yml
+│   ├── legacy/                  # Historical support data
+│   │   └── legacy_support.yml
 │   ├── tables/                  # Table column configurations
 │   │   └── <repository>.yml
 │   ├── templates/reference/     # Jinja2 templates
 │   │   ├── available_images.template.md
 │   │   └── support_policy.template.md
-│   ├── global.yml               # Shared terminology and configuration
+│   ├── constants.py             # Path constants and global variables
 │   ├── generate.py              # Generation logic
-│   └── main.py                  # CLI entry point
+│   ├── global.yml               # Shared terminology and configuration
+│   ├── hooks.py                 # MkDocs hooks entry point
+│   ├── logger.py                # Logging configuration
+│   ├── macros.py                # MkDocs macros plugin integration
+│   ├── main.py                  # CLI entry point
+│   └── utils.py                 # Reusable helper functions
 ├── reference/
 │   ├── available_images.md      # Generated
 │   └── support_policy.md        # Generated
@@ -110,6 +117,66 @@ eop: '2026-10-15'   # End of Patch date (YYYY-MM-DD)
 - All images with the same (repository, version) must have identical GA/EOP dates
 - The generator validates this and raises an error if dates are inconsistent
 - Supported vs Unsupported is auto-determined by comparing EOP to current date
+
+### Support Policy Consolidation
+
+The `framework_groups` configuration in `global.yml` consolidates support policy rows by framework. Repositories in the same group are combined into a
+single row using the framework display name.
+
+```yaml
+# docs/src/global.yml
+framework_groups:
+  pytorch:
+    - pytorch-training
+    - pytorch-inference
+    - pytorch-training-arm64
+    - pytorch-inference-arm64
+  tensorflow:
+    - tensorflow-training
+    - tensorflow-inference
+    - tensorflow-inference-arm64
+```
+
+**Requirements:**
+
+- All repositories in a group with a given version must have identical GA/EOP dates
+- Missing versions in some repositories are allowed (only present repos are consolidated)
+- A `ValueError` is raised if dates differ within a group for the same version
+
+* * *
+
+## Legacy Support Data
+
+Historical support policy data for older, unsupported images is stored in `docs/src/legacy/legacy_support.yml`. This data appears only in the "No
+Longer Supported" section of `support_policy.md`.
+
+### File Format
+
+```yaml
+PyTorch:
+  - version: "2.5"
+    ga: "2024-10-29"
+    eop: "2025-10-29"
+  - version: "2.4"
+    ga: "2024-07-24"
+    eop: "2025-07-24"
+TensorFlow:
+  - version: "2.16"
+    ga: "2024-03-15"
+    eop: "2025-03-15"
+```
+
+### Adding Legacy Entries
+
+1. Open `docs/src/legacy/legacy_support.yml`
+2. Add entries under the framework display name key (e.g., `PyTorch`, `TensorFlow`)
+3. Each entry requires: `version`, `ga`, `eop`
+
+### Behavior
+
+- Legacy entries appear only in `support_policy.md` (unsupported section)
+- Images past their EOP date are automatically filtered from `available_images.md`
+- The `is_image_supported()` function checks if `eop >= today`
 
 * * *
 
@@ -317,7 +384,7 @@ python main.py --verbose
 ### Preview with MkDocs
 
 ```bash
-cd /path/to/deep-learning-containers
+cd docs
 mkdocs serve
 ```
 
