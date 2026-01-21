@@ -1,0 +1,10 @@
+framework: PyTorch
+version: "2.7"
+accelerator: cpu
+python: py312
+os: ubuntu22.04
+platform: ec2
+tag: "2.7.1-cpu-py312-ubuntu22.04-ec2"
+ga: "2025-04-23"
+eop: "2026-04-23"
+public_registry: true

@@ -1,0 +1,8 @@
+framework: TensorFlow
+version: "2.11"
+accelerator: cpu
+python: py39
+transformers: "4.26.0"
+os: ubuntu20.04
+platform: sagemaker
+tag: "2.11.1-transformers4.26.0-cpu-py39-ubuntu20.04"

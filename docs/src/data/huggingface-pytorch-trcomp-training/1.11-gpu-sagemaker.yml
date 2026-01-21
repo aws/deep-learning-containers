@@ -1,0 +1,9 @@
+framework: PyTorch
+version: "1.11"
+accelerator: gpu
+python: py38
+cuda: cu113
+transformers: "4.21.1"
+os: ubuntu20.04
+platform: sagemaker
+tag: "1.11.0-transformers4.21.1-gpu-py38-cu113-ubuntu20.04"

@@ -1,0 +1,124 @@
+# =============================================================================
+# Global Variables for Documentation
+# =============================================================================
+# Use ${var} syntax to reference other variables (resolved by OmegaConf)
+# =============================================================================
+
+# Base terminology
+aws: "AWS"
+amazon: "Amazon"
+dlc: "Deep Learning Containers"
+
+# Composed terminology
+dlc_long: "${aws} ${dlc}"
+dlc_short: "DLC"
+sagemaker: "${amazon} SageMaker AI"
+ec2: "${amazon} EC2"
+ec2_short: "EC2"
+ecs: "${amazon} ECS"
+ecs_short: "ECS"
+eks: "${amazon} EKS"
+eks_short: "EKS"
+ecr: "${amazon} ECR"
+ecr_short: "ECR"
+
+# Platform display mappings (config value -> table display)
+platforms:
+  ec2: "EC2, ECS, EKS"
+  sagemaker: "SageMaker"
+
+# ECR configuration
+example_ecr_account: "763104351884"
+public_gallery_url: "https://gallery.ecr.aws/deep-learning-containers"
+
+# =============================================================================
+# Repository Display Names
+# =============================================================================
+# Used in available_images.md table headers and support_policy.md Framework column
+# REQUIRED: Error raised if repository not listed here
+# =============================================================================
+display_names:
+  # Framework groups (for support policy consolidation)
+  # Repositories
+  base: "Base"
+  sglang: "SGLang"
+  vllm: "vLLM"
+  vllm-arm64: "vLLM ARM64"
+  pytorch: "PyTorch"
+  tensorflow: "TensorFlow"
+  pytorch-training: "PyTorch Training"
+  pytorch-training-arm64: "PyTorch Training ARM64"
+  pytorch-inference: "PyTorch Inference"
+  pytorch-inference-arm64: "PyTorch Inference ARM64"
+  tensorflow-training: "TensorFlow Training"
+  tensorflow-inference: "TensorFlow Inference"
+  tensorflow-inference-arm64: "TensorFlow Inference ARM64"
+  pytorch-training-neuronx: "PyTorch Training NeuronX"
+  pytorch-inference-neuronx: "PyTorch Inference NeuronX"
+  tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
+  huggingface-pytorch-training: "HuggingFace PyTorch Training"
+  huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
+  huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
+  huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
+  huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
+  huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
+  autogluon-training: "AutoGluon Training"
+  autogluon-inference: "AutoGluon Inference"
+  djl-inference: "DJL Inference"
+  sagemaker-tritonserver: "NVIDIA Triton Server for SageMaker"
+  stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
+  pytorch-trcomp-training: "PyTorch Training Compiler"
+  huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
+
+# =============================================================================
+# Framework Groups for Support Policy Consolidation
+# =============================================================================
+# Repositories in the same group with matching GA/EOP dates for a version
+# are consolidated into a single row. Use lowercase keys.
+# Display names are defined in the display_names section.
+# =============================================================================
+framework_groups:
+  pytorch:
+    - pytorch-training
+    - pytorch-inference
+    - pytorch-training-arm64
+    - pytorch-inference-arm64
+  tensorflow:
+    - tensorflow-training
+    - tensorflow-inference
+    - tensorflow-inference-arm64
+
+# =============================================================================
+# Table Order
+# =============================================================================
+# Order of tables in available_images.md and support_policy.md
+# Repositories not listed will not appear in generated docs
+# =============================================================================
+table_order:
+  - base
+  - sglang
+  - vllm
+  - vllm-arm64
+  - pytorch-training
+  - pytorch-inference
+  - pytorch-training-arm64
+  - pytorch-inference-arm64
+  - tensorflow-training
+  - tensorflow-inference
+  - tensorflow-inference-arm64
+  - pytorch-training-neuronx
+  - pytorch-inference-neuronx
+  - tensorflow-inference-neuronx
+  - huggingface-pytorch-training
+  - huggingface-pytorch-inference
+  - huggingface-pytorch-training-neuronx
+  - huggingface-pytorch-inference-neuronx
+  - huggingface-pytorch-trcomp-training
+  - huggingface-tensorflow-training
+  - huggingface-tensorflow-inference
+  - autogluon-training
+  - autogluon-inference
+  - djl-inference
+  - sagemaker-tritonserver
+  - stabilityai-pytorch-inference
+  - pytorch-trcomp-training

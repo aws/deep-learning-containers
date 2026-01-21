@@ -1,0 +1,16 @@
+# Table Configuration - DJL Inference
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: cuda
+    header: "CUDA"
+  - field: engine
+    header: "Engine"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_url
+    header: "Example URL"

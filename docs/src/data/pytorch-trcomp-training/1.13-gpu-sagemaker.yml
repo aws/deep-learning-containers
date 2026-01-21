@@ -1,0 +1,8 @@
+framework: PyTorch
+version: "1.13"
+accelerator: gpu
+python: py39
+cuda: cu117
+os: ubuntu20.04
+platform: sagemaker
+tag: "1.13.1-gpu-py39-cu117-ubuntu20.04-sagemaker"

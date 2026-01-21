@@ -1,0 +1,12 @@
+# Table Configuration - SageMaker Triton Server
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_url
+    header: "Example URL"

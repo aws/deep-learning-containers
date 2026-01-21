@@ -1,0 +1,8 @@
+framework: PyTorch
+version: "2.6"
+accelerator: neuronx
+python: py310
+sdk: "2.23.0"
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.6.0-neuronx-py310-sdk2.23.0-ubuntu22.04"
