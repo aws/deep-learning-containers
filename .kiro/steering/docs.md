@@ -154,6 +154,42 @@ mkdocs build
 - Auto-determines supported/unsupported by comparing `eop` to current date
 - Uses `display_names` for Framework column
 
+### Legacy Support Data
+
+Historical support policy data for older, unsupported images is stored in `docs/src/legacy/legacy_support.yml`.
+
+#### Directory Structure
+
+```
+docs/src/legacy/
+└── legacy_support.yml    # Historical support data
+```
+
+#### File Format
+
+```yaml
+pytorch-training:
+  - version: "2.5"
+    ga: "2024-10-29"
+    eop: "2025-10-29"
+  - version: "2.4"
+    ga: "2024-07-24"
+    eop: "2025-07-24"
+```
+
+#### Adding Legacy Entries
+
+1. Open `docs/src/legacy/legacy_support.yml`
+1. Add entries under the appropriate repository key
+1. Each entry needs: `version`, `ga`, `eop`
+1. Map to all relevant repositories (training, inference, arm64 variants)
+
+#### Behavior
+
+- Legacy entries appear only in `support_policy.md` (unsupported section)
+- Images past their EOP date are automatically filtered from `available_images.md`
+- The `is_image_supported()` function checks if `eop >= today`
+
 ## Code Organization
 
 ### File Responsibilities

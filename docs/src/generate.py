@@ -24,9 +24,11 @@ from utils import (
     check_public_registry,
     get_display_name,
     group_images_by_version,
+    is_image_supported,
     load_all_image_configs,
     load_global_config,
     load_image_configs,
+    load_legacy_support,
     load_table_config,
     read_template,
     write_output,
@@ -66,6 +68,20 @@ def generate_support_policy(global_config: dict, dry_run: bool = False) -> str:
             supported.append(entry)
         else:
             unsupported.append(entry)
+
+    # Add legacy support entries (all unsupported)
+    legacy_data = load_legacy_support()
+    for (repository, version), data in legacy_data.items():
+        display_name = get_display_name(global_config, repository)
+        unsupported.append(
+            {
+                "framework": display_name,
+                "version": version,
+                "ga": data["ga"],
+                "eop": data["eop"],
+                "_repository": repository,
+            }
+        )
 
     # Sort by table_order, then by version descending
     def sort_key(item):
@@ -115,6 +131,11 @@ def generate_available_images(global_config: dict, dry_run: bool = False) -> str
 
     for repository in table_order:
         images = load_image_configs(repository)
+        if not images:
+            continue
+
+        # Filter out unsupported images (past EOP date)
+        images = [img for img in images if is_image_supported(img)]
         if not images:
             continue
 

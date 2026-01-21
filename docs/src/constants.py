@@ -18,6 +18,7 @@ from pathlib import Path
 SRC_DIR = Path(__file__).parent
 DOCS_DIR = SRC_DIR.parent
 DATA_DIR = SRC_DIR / "data"
+LEGACY_DIR = SRC_DIR / "legacy"
 TABLES_DIR = SRC_DIR / "tables"
 TEMPLATES_DIR = SRC_DIR / "templates"
 REFERENCE_DIR = DOCS_DIR / "reference"

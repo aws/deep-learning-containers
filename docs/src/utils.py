@@ -16,10 +16,11 @@ import logging
 import os
 import subprocess
 from collections import defaultdict
+from datetime import date
 from pathlib import Path
 
 import yaml
-from constants import DATA_DIR, GLOBAL_CONFIG_PATH, TABLES_DIR
+from constants import DATA_DIR, GLOBAL_CONFIG_PATH, LEGACY_DIR, TABLES_DIR
 from omegaconf import OmegaConf
 from packaging.version import Version
 
@@ -48,6 +49,36 @@ def load_table_config(repository: str) -> dict:
     if not path.exists():
         raise FileNotFoundError(f"Table config not found: {path}")
     return load_yaml(path)
+
+
+def load_legacy_support() -> dict[tuple[str, str], dict]:
+    """Load legacy support policy data from legacy_support.yml.
+
+    Returns dict mapping (repository, version) tuple to {ga, eop} dict.
+    Returns empty dict if file doesn't exist.
+    """
+    path = LEGACY_DIR / "legacy_support.yml"
+    if not path.exists():
+        return {}
+
+    data = load_yaml(path)
+    result = {}
+    for repository, entries in data.items():
+        for entry in entries:
+            key = (repository, entry["version"])
+            result[key] = {"ga": entry["ga"], "eop": entry["eop"]}
+    return result
+
+
+def is_image_supported(image: dict) -> bool:
+    """Check if an image is still supported based on its EOP date.
+
+    Returns True if image has no 'eop' field or eop >= today.
+    """
+    eop = image.get("eop")
+    if not eop:
+        return True
+    return date.fromisoformat(eop) >= date.today()
 
 
 def load_image_configs(repository: str) -> list[dict]:
