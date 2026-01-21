@@ -27,6 +27,12 @@ platforms:
   ec2: "EC2, ECS, EKS"
   sagemaker: "SageMaker"
 
+# Accelerator display mappings (config value -> table display)
+accelerators:
+  gpu: "GPU"
+  cpu: "CPU"
+  neuronx: "NeuronX"
+
 # ECR configuration
 example_ecr_account: "763104351884"
 public_gallery_url: "https://gallery.ecr.aws/deep-learning-containers"
@@ -88,9 +94,6 @@ framework_groups:
     - tensorflow-training
     - tensorflow-inference
     - tensorflow-inference-arm64
-  autogluon:
-    - autogluon-training
-    - autogluon-inference
 
 # =============================================================================
 # Table Order

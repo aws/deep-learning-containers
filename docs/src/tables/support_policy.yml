@@ -1,0 +1,9 @@
+columns:
+  - field: framework
+    header: "Framework"
+  - field: version
+    header: "Version"
+  - field: ga
+    header: "GA Date"
+  - field: eop
+    header: "EOP Date"

@@ -262,15 +262,18 @@ def get_field_value(image: dict, field: str, global_config: dict, repository: st
     Returns:
         str: Formatted field value. Returns '-' for missing fields.
     """
-    field_handlers = {
+    special_fields = {
         "framework_version": lambda: f"{image.get('framework', '')} {image.get('version', '')}",
         "example_url": lambda: build_ecr_url(image, global_config, repository),
         "platform": lambda: global_config.get("platforms", {}).get(
-            image.get("platform", ""), image.get("platform", "")
+            image.get("platform", ""), image.get("platform", "-")
         ),
-        "accelerator": lambda: image.get("accelerator", "").upper(),
+        "accelerator": lambda: global_config.get("accelerators", {}).get(
+            image.get("accelerator", ""), image.get("accelerator", "-").upper()
+        ),
     }
-    return field_handlers.get(field, lambda: str(image.get(field, "-")))()
+    # Default handlers to lambda: str(image.get(field), "-")
+    return special_fields.get(field, lambda: str(image.get(field, "-")))()
 
 
 def validate_date_consistency(
@@ -322,7 +325,6 @@ def group_images_by_version(all_images: dict[str, list[dict]]) -> dict[tuple[str
 
             key = (repository, image["version"])
             data = version_data[key]
-            print(data["images"])
 
             validate_date_consistency(
                 data["ga"],
@@ -361,7 +363,7 @@ def check_public_registry(images: list[dict], repository: str) -> bool:
     return False
 
 
-def build_image_table(
+def build_table(
     images: list[dict], columns: list[dict], global_config: dict, repository: str
 ) -> str:
     """Build markdown table for a list of images using column configuration.
@@ -455,6 +457,45 @@ def consolidate_support_entries(
     return result
 
 
+def parse_version(version_str: str | None) -> Version:
+    """Parse version string safely, returning Version("0") on failure.
+
+    Args:
+        version_str: Version string to parse, or None.
+
+    Returns:
+        Version: Parsed version, or Version("0") if parsing fails.
+    """
+    try:
+        return Version(version_str or "0")
+    except Exception:
+        return Version("0")
+
+
+def make_support_policy_entry(
+    framework: str, version: str, ga: str, eop: str, repository: str
+) -> dict:
+    """Create a support policy entry dict.
+
+    Args:
+        framework: Display name for the framework.
+        version: Framework version.
+        ga: General Availability date.
+        eop: End of Patch date.
+        repository: Repository name (used for sorting/grouping).
+
+    Returns:
+        dict: Support policy entry with framework, version, ga, eop, _repository keys.
+    """
+    return {
+        "framework": framework,
+        "version": version,
+        "ga": ga,
+        "eop": eop,
+        "_repository": repository,
+    }
+
+
 def get_latest_image(repo: str, platform: str) -> str:
     """Get the latest image URI for a repository and platform.
 
@@ -479,12 +520,6 @@ def get_latest_image(repo: str, platform: str) -> str:
             f"Image not found for {repo} with platform {platform}. Docs must be fixed to use a valid image."
         )
 
-    def version_key(img: dict) -> Version:
-        try:
-            return Version(img.get("version", "0"))
-        except Exception:
-            return Version("0")
-
-    latest = max(matching, key=version_key)
+    latest = max(matching, key=lambda img: parse_version(img.get("version")))
     account = latest.get("example_ecr_account", global_config["example_ecr_account"])
     return f"{account}.dkr.ecr.us-west-2.amazonaws.com/{repo}:{latest['tag']}"
