@@ -17,6 +17,7 @@ common:
   customer_type: "ec2"
   arch_type: "x86"
   prod_image: "vllm:0.10-gpu-py312-rayserve"
+  device_type: "gpu"
 
 # Release configuration
 release:

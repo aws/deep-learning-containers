@@ -17,6 +17,7 @@ common:
   customer_type: "sagemaker"
   arch_type: "x86"
   prod_image: "vllm:0.13-gpu-py312"
+  device_type: "gpu"
 
 # Release configuration
 release:

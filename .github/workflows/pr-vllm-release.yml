@@ -142,6 +142,7 @@ jobs:
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -154,7 +155,7 @@ jobs:
           container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-gpu-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-ec2-test-environment:
@@ -334,6 +335,37 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_ec2_examples_test.sh
 
+  generate-ec2-release-spec:
+    needs: [load-config, build-vllm-ec2-image, vllm-ec2-regression-test, vllm-ec2-cuda-test, vllm-ec2-example-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-ec2-image.result == 'success' &&
+      needs.vllm-ec2-regression-test.result == 'success' &&
+      needs.vllm-ec2-cuda-test.result == 'success' &&
+      needs.vllm-ec2-example-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.ec2-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.ec2-config }}
+
   # ===================================================
   # =============== vLLM RayServe jobs ================
   # ===================================================
@@ -362,6 +394,7 @@ jobs:
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -374,7 +407,7 @@ jobs:
           container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-gpu-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-rayserve-test-environment:
@@ -554,6 +587,37 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_rayserve_examples_test.sh
 
+  generate-rayserve-release-spec:
+    needs: [load-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-rayserve-image.result == 'success' &&
+      needs.vllm-rayserve-regression-test.result == 'success' &&
+      needs.vllm-rayserve-cuda-test.result == 'success' &&
+      needs.vllm-rayserve-example-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.rayserve-config }}
+
   # ====================================================
   # =============== vLLM SageMaker jobs ================
   # ====================================================
@@ -583,6 +647,7 @@ jobs:
           echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
           echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
           echo "customer-type=$(jq -r '.common.customer_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
 
       - name: Build image
         id: build
@@ -595,7 +660,7 @@ jobs:
           container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-gpu-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-sagemaker-test-environment:
@@ -803,3 +868,36 @@ jobs:
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA --image-uri ${{ needs.set-sagemaker-test-environment.outputs.image-uri }} vllm/sagemaker
+
+  generate-sagemaker-release-spec:
+    needs: [load-config, build-vllm-sagemaker-image, vllm-sagemaker-regression-test, vllm-sagemaker-cuda-test, vllm-sagemaker-example-test, vllm-sagemaker-endpoint-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-sagemaker-image.result == 'success' &&
+      needs.vllm-sagemaker-regression-test.result == 'success' &&
+      needs.vllm-sagemaker-cuda-test.result == 'success' &&
+      needs.vllm-sagemaker-example-test.result == 'success' &&
+      needs.vllm-sagemaker-endpoint-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.sagemaker-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.sagemaker-config }}
+

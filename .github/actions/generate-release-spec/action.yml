@@ -1,0 +1,96 @@
+name: 'Generate Release Spec'
+description: 'Generate release specification YAML from config file'
+
+inputs:
+  config-json:
+    description: 'JSON string containing the configuration'
+    required: true
+
+outputs:
+  release-spec:
+    description: 'Generated release specification YAML'
+    value: ${{ steps.generate.outputs.spec }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate release spec
+      id: generate
+      shell: bash
+      run: |
+        echo '${{ inputs.config-json }}' > config.json
+
+        # Extract required values from config
+        FRAMEWORK=$(jq -r '.common.framework' config.json)
+        VERSION=$(jq -r '.common.framework_version' config.json)
+
+        # Validate required fields
+        if [ -z "$FRAMEWORK" ] || [ "$FRAMEWORK" == "null" ]; then
+          echo "Error: framework is required"
+          exit 1
+        fi
+
+        if [ -z "$VERSION" ] || [ "$VERSION" == "null" ]; then
+          echo "Error: version is required"
+          exit 1
+        fi
+
+        # Extract optional values from config (with null handling)
+        ARCH_TYPE=$(jq -r '.common.arch_type // empty' config.json)
+        JOB_TYPE=$(jq -r '.common.job_type // empty' config.json)
+        DEVICE_TYPE=$(jq -r '.common.device_type // empty' config.json)
+        PYTHON_VERSION=$(jq -r '.common.python_version // empty' config.json)
+        OS_VERSION=$(jq -r '.common.os_version // empty' config.json)
+        CUSTOMER_TYPE=$(jq -r '.common.customer_type // empty' config.json)
+        CUDA_VERSION=$(jq -r '.common.cuda_version // empty' config.json)
+        FORCE_RELEASE=$(jq -r '.release.force_release // empty' config.json)
+        PUBLIC_REGISTRY=$(jq -r '.release.public_registry // empty' config.json)
+        PRIVATE_REGISTRY=$(jq -r '.release.private_registry // empty' config.json)
+        ENABLE_SOCI=$(jq -r '.release.enable_soci // empty' config.json)
+
+        echo "Generating release spec with:"
+        echo "  Framework: ${FRAMEWORK} [required]"
+        echo "  Version: ${VERSION} [required]"
+        [ -n "$ARCH_TYPE" ] && echo "  Arch Type: ${ARCH_TYPE}"
+        [ -n "$JOB_TYPE" ] && echo "  Job Type: ${JOB_TYPE}"
+        [ -n "$DEVICE_TYPE" ] && echo "  Device Type: ${DEVICE_TYPE}"
+        [ -n "$CUSTOMER_TYPE" ] && echo "  Customer Type: ${CUSTOMER_TYPE}"
+
+        # Generate release spec YAML with conditional fields
+        {
+          echo "spec<<EOF"
+
+          # Required fields
+          echo "framework: \"${FRAMEWORK}\""
+          echo "version: \"${VERSION}\""
+
+          # Optional fields - only include if they have values
+          [ -n "$ARCH_TYPE" ] && echo "arch_type: \"${ARCH_TYPE}\""
+          [ -n "$JOB_TYPE" ] && echo "job_type: \"${JOB_TYPE}\""
+          [ -n "$DEVICE_TYPE" ] && echo "device_type: \"${DEVICE_TYPE}\""
+          [ -n "$PYTHON_VERSION" ] && echo "python_version: \"${PYTHON_VERSION}\""
+          [ -n "$OS_VERSION" ] && echo "os_version: \"${OS_VERSION}\""
+          [ -n "$CUSTOMER_TYPE" ] && echo "customer_type: \"${CUSTOMER_TYPE}\""
+          [ -n "$CUDA_VERSION" ] && echo "cuda_version: \"${CUDA_VERSION}\""
+
+          # Boolean flags - only include if explicitly set
+          if [ -n "$FORCE_RELEASE" ] && [ "$FORCE_RELEASE" != "null" ]; then
+            echo "force_release: ${FORCE_RELEASE}"
+          fi
+
+          if [ -n "$PUBLIC_REGISTRY" ] && [ "$PUBLIC_REGISTRY" != "null" ]; then
+            echo "public_registry: ${PUBLIC_REGISTRY}"
+          fi
+
+          if [ -n "$PRIVATE_REGISTRY" ] && [ "$PRIVATE_REGISTRY" != "null" ]; then
+            echo "private_registry: ${PRIVATE_REGISTRY}"
+          fi
+
+          if [ -n "$ENABLE_SOCI" ] && [ "$ENABLE_SOCI" != "null" ]; then
+            echo "enable_soci: ${ENABLE_SOCI}"
+          fi
+
+          echo "EOF"
+        } >> ${GITHUB_OUTPUT}
+
+        echo "Release spec generated successfully"

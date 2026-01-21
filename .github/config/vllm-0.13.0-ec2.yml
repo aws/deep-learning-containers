@@ -41,6 +41,7 @@ common:
   customer_type: "ec2"
   arch_type: "x86"
   prod_image: "vllm:0.13-gpu-py312-ec2" # original PROD_EC2_IMAGE PROD_SAGEMAKER_IMAGE PROD_RAYSERVE_IMAGE
+  device_type: "gpu"
 
 # Release configuration
 release:
