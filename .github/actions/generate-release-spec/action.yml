@@ -55,6 +55,10 @@ runs:
         [ -n "$JOB_TYPE" ] && echo "  Job Type: ${JOB_TYPE}"
         [ -n "$DEVICE_TYPE" ] && echo "  Device Type: ${DEVICE_TYPE}"
         [ -n "$CUSTOMER_TYPE" ] && echo "  Customer Type: ${CUSTOMER_TYPE}"
+        [ -n "$FORCE_RELEASE" ] && echo "  Force Release: ${FORCE_RELEASE}"
+        [ -n "$PUBLIC_REGISTRY" ] && echo "  Public Registry: ${PUBLIC_REGISTRY}"
+        [ -n "$PRIVATE_REGISTRY" ] && echo "  Private Registry: ${PRIVATE_REGISTRY}"
+        [ -n "$ENABLE_SOCI" ] && echo "  Enable SOCI: ${ENABLE_SOCI}"
 
         # Generate release spec YAML with conditional fields
         {
@@ -64,7 +68,7 @@ runs:
           echo "framework: \"${FRAMEWORK}\""
           echo "version: \"${VERSION}\""
 
-          # Optional fields - only include if they have values
+          # Optional string fields - only include if they have values
           [ -n "$ARCH_TYPE" ] && echo "arch_type: \"${ARCH_TYPE}\""
           [ -n "$JOB_TYPE" ] && echo "job_type: \"${JOB_TYPE}\""
           [ -n "$DEVICE_TYPE" ] && echo "device_type: \"${DEVICE_TYPE}\""
@@ -73,22 +77,11 @@ runs:
           [ -n "$CUSTOMER_TYPE" ] && echo "customer_type: \"${CUSTOMER_TYPE}\""
           [ -n "$CUDA_VERSION" ] && echo "cuda_version: \"${CUDA_VERSION}\""
 
-          # Boolean flags - only include if explicitly set
-          if [ -n "$FORCE_RELEASE" ] && [ "$FORCE_RELEASE" != "null" ]; then
-            echo "force_release: ${FORCE_RELEASE}"
-          fi
-
-          if [ -n "$PUBLIC_REGISTRY" ] && [ "$PUBLIC_REGISTRY" != "null" ]; then
-            echo "public_registry: ${PUBLIC_REGISTRY}"
-          fi
-
-          if [ -n "$PRIVATE_REGISTRY" ] && [ "$PRIVATE_REGISTRY" != "null" ]; then
-            echo "private_registry: ${PRIVATE_REGISTRY}"
-          fi
-
-          if [ -n "$ENABLE_SOCI" ] && [ "$ENABLE_SOCI" != "null" ]; then
-            echo "enable_soci: ${ENABLE_SOCI}"
-          fi
+          # Boolean flags - include if not empty (jq converts true/false to strings)
+          [ -n "$FORCE_RELEASE" ] && echo "force_release: ${FORCE_RELEASE}"
+          [ -n "$PUBLIC_REGISTRY" ] && echo "public_registry: ${PUBLIC_REGISTRY}"
+          [ -n "$PRIVATE_REGISTRY" ] && echo "private_registry: ${PRIVATE_REGISTRY}"
+          [ -n "$ENABLE_SOCI" ] && echo "enable_soci: ${ENABLE_SOCI}"
 
           echo "EOF"
         } >> ${GITHUB_OUTPUT}

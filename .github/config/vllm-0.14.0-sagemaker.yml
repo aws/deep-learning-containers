@@ -9,14 +9,14 @@ image:
 # Build configuration
 common:
   framework: "vllm"
-  framework_version: "0.13.0"
+  framework_version: "0.14.0"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
   os_version: "ubuntu22.04"
   customer_type: "sagemaker"
   arch_type: "x86"
-  prod_image: "vllm:0.13-gpu-py312"
+  prod_image: "vllm:0.14-gpu-py312"
   device_type: "gpu"
 
 # Release configuration

@@ -33,14 +33,14 @@ image:
 # Build configuration
 common:
   framework: "vllm"
-  framework_version: "0.13.0" # original VLLM_VERSION
+  framework_version: "0.14.0" # original VLLM_VERSION
   job_type: "general" # original CONTAINER_TYPE
   python_version: "py312"
   cuda_version: "cu129"
   os_version: "ubuntu22.04"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "vllm:0.13-gpu-py312-ec2" # original PROD_EC2_IMAGE PROD_SAGEMAKER_IMAGE PROD_RAYSERVE_IMAGE
+  prod_image: "vllm:0.14-gpu-py312-ec2" # original PROD_EC2_IMAGE PROD_SAGEMAKER_IMAGE PROD_RAYSERVE_IMAGE
   device_type: "gpu"
 
 # Release configuration
