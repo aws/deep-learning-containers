@@ -35,30 +35,32 @@ runs:
           exit 1
         fi
 
-        # Extract optional values from config (with null handling)
-        ARCH_TYPE=$(jq -r '.common.arch_type // empty' config.json)
-        JOB_TYPE=$(jq -r '.common.job_type // empty' config.json)
-        DEVICE_TYPE=$(jq -r '.common.device_type // empty' config.json)
-        PYTHON_VERSION=$(jq -r '.common.python_version // empty' config.json)
-        OS_VERSION=$(jq -r '.common.os_version // empty' config.json)
-        CUSTOMER_TYPE=$(jq -r '.common.customer_type // empty' config.json)
-        CUDA_VERSION=$(jq -r '.common.cuda_version // empty' config.json)
-        FORCE_RELEASE=$(jq -r '.release.force_release // empty' config.json)
-        PUBLIC_REGISTRY=$(jq -r '.release.public_registry // empty' config.json)
-        PRIVATE_REGISTRY=$(jq -r '.release.private_registry // empty' config.json)
-        ENABLE_SOCI=$(jq -r '.release.enable_soci // empty' config.json)
+        # Extract optional values from config
+        ARCH_TYPE=$(jq -r '.common.arch_type' config.json)
+        JOB_TYPE=$(jq -r '.common.job_type' config.json)
+        DEVICE_TYPE=$(jq -r '.common.device_type' config.json)
+        PYTHON_VERSION=$(jq -r '.common.python_version' config.json)
+        OS_VERSION=$(jq -r '.common.os_version' config.json)
+        CUSTOMER_TYPE=$(jq -r '.common.customer_type' config.json)
+        CUDA_VERSION=$(jq -r '.common.cuda_version' config.json)
+
+        # Extract boolean values
+        FORCE_RELEASE=$(jq -r '.release.force_release' config.json)
+        PUBLIC_REGISTRY=$(jq -r '.release.public_registry' config.json)
+        PRIVATE_REGISTRY=$(jq -r '.release.private_registry' config.json)
+        ENABLE_SOCI=$(jq -r '.release.enable_soci' config.json)
 
         echo "Generating release spec with:"
         echo "  Framework: ${FRAMEWORK} [required]"
         echo "  Version: ${VERSION} [required]"
-        [ -n "$ARCH_TYPE" ] && echo "  Arch Type: ${ARCH_TYPE}"
-        [ -n "$JOB_TYPE" ] && echo "  Job Type: ${JOB_TYPE}"
-        [ -n "$DEVICE_TYPE" ] && echo "  Device Type: ${DEVICE_TYPE}"
-        [ -n "$CUSTOMER_TYPE" ] && echo "  Customer Type: ${CUSTOMER_TYPE}"
-        [ -n "$FORCE_RELEASE" ] && echo "  Force Release: ${FORCE_RELEASE}"
-        [ -n "$PUBLIC_REGISTRY" ] && echo "  Public Registry: ${PUBLIC_REGISTRY}"
-        [ -n "$PRIVATE_REGISTRY" ] && echo "  Private Registry: ${PRIVATE_REGISTRY}"
-        [ -n "$ENABLE_SOCI" ] && echo "  Enable SOCI: ${ENABLE_SOCI}"
+        [ "$ARCH_TYPE" != "null" ] && echo "  Arch Type: ${ARCH_TYPE}"
+        [ "$JOB_TYPE" != "null" ] && echo "  Job Type: ${JOB_TYPE}"
+        [ "$DEVICE_TYPE" != "null" ] && echo "  Device Type: ${DEVICE_TYPE}"
+        [ "$CUSTOMER_TYPE" != "null" ] && echo "  Customer Type: ${CUSTOMER_TYPE}"
+        [ "$FORCE_RELEASE" != "null" ] && echo "  Force Release: ${FORCE_RELEASE}"
+        [ "$PUBLIC_REGISTRY" != "null" ] && echo "  Public Registry: ${PUBLIC_REGISTRY}"
+        [ "$PRIVATE_REGISTRY" != "null" ] && echo "  Private Registry: ${PRIVATE_REGISTRY}"
+        [ "$ENABLE_SOCI" != "null" ] && echo "  Enable SOCI: ${ENABLE_SOCI}"
 
         # Generate release spec YAML with conditional fields
         {
@@ -68,20 +70,20 @@ runs:
           echo "framework: \"${FRAMEWORK}\""
           echo "version: \"${VERSION}\""
 
-          # Optional string fields - only include if they have values
-          [ -n "$ARCH_TYPE" ] && echo "arch_type: \"${ARCH_TYPE}\""
-          [ -n "$JOB_TYPE" ] && echo "job_type: \"${JOB_TYPE}\""
-          [ -n "$DEVICE_TYPE" ] && echo "device_type: \"${DEVICE_TYPE}\""
-          [ -n "$PYTHON_VERSION" ] && echo "python_version: \"${PYTHON_VERSION}\""
-          [ -n "$OS_VERSION" ] && echo "os_version: \"${OS_VERSION}\""
-          [ -n "$CUSTOMER_TYPE" ] && echo "customer_type: \"${CUSTOMER_TYPE}\""
-          [ -n "$CUDA_VERSION" ] && echo "cuda_version: \"${CUDA_VERSION}\""
+          # Optional string fields - only include if not null
+          [ "$ARCH_TYPE" != "null" ] && echo "arch_type: \"${ARCH_TYPE}\""
+          [ "$JOB_TYPE" != "null" ] && echo "job_type: \"${JOB_TYPE}\""
+          [ "$DEVICE_TYPE" != "null" ] && echo "device_type: \"${DEVICE_TYPE}\""
+          [ "$PYTHON_VERSION" != "null" ] && echo "python_version: \"${PYTHON_VERSION}\""
+          [ "$OS_VERSION" != "null" ] && echo "os_version: \"${OS_VERSION}\""
+          [ "$CUSTOMER_TYPE" != "null" ] && echo "customer_type: \"${CUSTOMER_TYPE}\""
+          [ "$CUDA_VERSION" != "null" ] && echo "cuda_version: \"${CUDA_VERSION}\""
 
-          # Boolean flags - include if not empty (jq converts true/false to strings)
-          [ -n "$FORCE_RELEASE" ] && echo "force_release: ${FORCE_RELEASE}"
-          [ -n "$PUBLIC_REGISTRY" ] && echo "public_registry: ${PUBLIC_REGISTRY}"
-          [ -n "$PRIVATE_REGISTRY" ] && echo "private_registry: ${PRIVATE_REGISTRY}"
-          [ -n "$ENABLE_SOCI" ] && echo "enable_soci: ${ENABLE_SOCI}"
+          # Boolean flags - include if not null (handles both true and false)
+          [ "$FORCE_RELEASE" != "null" ] && echo "force_release: ${FORCE_RELEASE}"
+          [ "$PUBLIC_REGISTRY" != "null" ] && echo "public_registry: ${PUBLIC_REGISTRY}"
+          [ "$PRIVATE_REGISTRY" != "null" ] && echo "private_registry: ${PRIVATE_REGISTRY}"
+          [ "$ENABLE_SOCI" != "null" ] && echo "enable_soci: ${ENABLE_SOCI}"
 
           echo "EOF"
         } >> ${GITHUB_OUTPUT}
