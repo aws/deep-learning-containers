@@ -247,8 +247,9 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv venv --python 3.12
-            . .venv/bin/activate
+            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # our CI suffers the same issue
+            export IS_BLACKWELL=1
 
             bash scripts/ci/ci_install_dependency.sh
           '
@@ -426,8 +427,9 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            uv venv --python 3.12
-            . .venv/bin/activate
+            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # our CI suffers the same issue
+            export IS_BLACKWELL=1
 
             bash scripts/ci/ci_install_dependency.sh
           '
