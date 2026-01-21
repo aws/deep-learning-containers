@@ -102,8 +102,8 @@ repos:
     hooks:
       - id: mdformat
         name: "📝 markdown · Format markdown (docs)"
-        files: ^docs/reference
-        # exclude: (\.(template\.md)$|^docs/release-notes/|^docs/DEVELOPMENT\.md$)
+        files: ^docs/
+        exclude: \.(template\.md)$
         additional_dependencies:
         - mdformat-gfm
         - mdformat-mkdocs[recommended]
