@@ -17,8 +17,8 @@ env:
   FORCE_COLOR: "1"
 
   # Config file paths
-  EC2_CONFIG: ".github/config/vllm-0.13.0-ec2.yml"
-  SAGEMAKER_CONFIG: ".github/config/vllm-0.13.0-sagemaker.yml"
+  EC2_CONFIG: ".github/config/vllm-0.14.0-ec2.yml"
+  SAGEMAKER_CONFIG: ".github/config/vllm-0.14.0-sagemaker.yml"
   RAYSERVE_CONFIG: ".github/config/vllm-0.10.2-rayserve.yml"
 
 
@@ -834,7 +834,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_13_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_14_0_test_setup.sh
 
       - name: Run vLLM tests
         run: |
