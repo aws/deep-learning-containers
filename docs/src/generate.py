@@ -22,6 +22,7 @@ from utils import (
     build_image_table,
     build_public_registry_note,
     check_public_registry,
+    consolidate_support_entries,
     get_display_name,
     group_images_by_version,
     is_image_supported,
@@ -71,16 +72,30 @@ def generate_support_policy(global_config: dict, dry_run: bool = False) -> str:
 
     # Add legacy support entries (all unsupported)
     legacy_data = load_legacy_support()
-    for (repository, version), data in legacy_data.items():
-        display_name = get_display_name(global_config, repository)
+    framework_groups = global_config.get("framework_groups", {})
+    for (framework, version), data in legacy_data.items():
+        display_name = get_display_name(global_config, framework)
+        repos = framework_groups.get(framework, [])
+        # This variable does not matter for legacy images because fields are already consolidated.
+        # Defaulting this to first in the list
+        dummy_repo = repos[0] if repos else framework
         unsupported.append(
             {
                 "framework": display_name,
                 "version": version,
                 "ga": data["ga"],
                 "eop": data["eop"],
-                "_repository": repository,
+                "_repository": dummy_repo,
             }
+        )
+
+    # Consolidate entries by framework when GA/EOP dates match
+    if framework_groups:
+        supported = consolidate_support_entries(
+            supported, framework_groups, table_order, global_config
+        )
+        unsupported = consolidate_support_entries(
+            unsupported, framework_groups, table_order, global_config
         )
 
     # Sort by table_order, then by version descending

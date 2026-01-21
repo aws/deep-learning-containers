@@ -114,12 +114,36 @@ display_names:
   pytorch-training: "PyTorch Training"
   # ...
 
+# Framework groups for support policy consolidation
+framework_groups:
+  PyTorch:
+    - pytorch-training
+    - pytorch-inference
+    - pytorch-training-arm64
+    - pytorch-inference-arm64
+  TensorFlow:
+    - tensorflow-training
+    - tensorflow-inference
+    - tensorflow-inference-arm64
+
 # Table order (controls order in available_images.md and support_policy.md)
 table_order:
   - base
   - pytorch-training
   # ...
 ```
+
+### Support Policy Consolidation
+
+The `framework_groups` configuration consolidates support policy rows by framework. Repositories in the same group are combined into a single row using the framework name (e.g., "PyTorch").
+
+**Requirements:**
+
+- All repositories in a group that have a given version must have identical GA/EOP dates
+- Missing versions in some repositories are allowed (only present repos are consolidated)
+- A `ValueError` is raised if dates differ within a group for the same version
+
+To add a new framework group, add an entry to `framework_groups` with the framework name as key and list of repositories as value.
 
 ### Reordering Tables and Columns
 
@@ -168,7 +192,7 @@ docs/src/legacy/
 #### File Format
 
 ```yaml
-pytorch-training:
+PyTorch:
   - version: "2.5"
     ga: "2024-10-29"
     eop: "2025-10-29"
@@ -180,9 +204,8 @@ pytorch-training:
 #### Adding Legacy Entries
 
 1. Open `docs/src/legacy/legacy_support.yml`
-1. Add entries under the appropriate repository key
+1. Add entries under the framework name key (must match `framework_groups` keys exactly)
 1. Each entry needs: `version`, `ga`, `eop`
-1. Map to all relevant repositories (training, inference, arm64 variants)
 
 #### Behavior
 

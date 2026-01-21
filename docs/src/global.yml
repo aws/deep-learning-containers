@@ -38,10 +38,14 @@ public_gallery_url: "https://gallery.ecr.aws/deep-learning-containers"
 # REQUIRED: Error raised if repository not listed here
 # =============================================================================
 display_names:
+  # Framework groups (for support policy consolidation)
+  # Repositories
   base: "Base"
+  sglang: "SGLang"
   vllm: "vLLM"
   vllm-arm64: "vLLM ARM64"
-  sglang: "SGLang"
+  pytorch: "PyTorch"
+  tensorflow: "TensorFlow"
   pytorch-training: "PyTorch Training"
   pytorch-training-arm64: "PyTorch Training ARM64"
   pytorch-inference: "PyTorch Inference"
@@ -65,6 +69,24 @@ display_names:
   stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
   pytorch-trcomp-training: "PyTorch Training Compiler"
   huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
+
+# =============================================================================
+# Framework Groups for Support Policy Consolidation
+# =============================================================================
+# Repositories in the same group with matching GA/EOP dates for a version
+# are consolidated into a single row. Use lowercase keys.
+# Display names are defined in the display_names section.
+# =============================================================================
+framework_groups:
+  pytorch:
+    - pytorch-training
+    - pytorch-inference
+    - pytorch-training-arm64
+    - pytorch-inference-arm64
+  tensorflow:
+    - tensorflow-training
+    - tensorflow-inference
+    - tensorflow-inference-arm64
 
 # =============================================================================
 # Table Order
