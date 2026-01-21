@@ -1,0 +1,29 @@
+# vLLM SageMaker Image Configuration
+# This file contains all configuration for building, testing, and releasing the vLLM SageMaker image
+
+# Image identification
+image:
+  name: "vllm-sagemaker"
+  description: "vLLM for Amazon SageMaker"
+
+# Build configuration
+common:
+  framework: "vllm"
+  framework_version: "0.13.0"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "ubuntu22.04"
+  customer_type: "sagemaker"
+  arch_type: "x86"
+  prod_image: "vllm:0.13-gpu-py312"
+
+# Release configuration
+release:
+  release: true
+  force_release: true
+  public_registry: true
+  private_registry: true
+  enable_soci: false
+  source_stage: private
+  target_stage: gamma
