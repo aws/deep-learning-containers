@@ -4,9 +4,11 @@ The following sections describe how to use {{ dlc }} to run sample code from eac
 
 ## Use Cases
 
-- For information on using {{ dlc }} with {{ sagemaker }}, see the [Use Your Own Algorithms or Models with {{ sagemaker }} Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
+- For information on using {{ dlc }} with {{ sagemaker }}, see the
+  [Use Your Own Algorithms or Models with {{ sagemaker }} Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
 
-- To learn about using {{ dlc }} with {{ sagemaker }} HyperPod on {{ eks }}, see [Orchestrating SageMaker HyperPod clusters with {{ eks }} and {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
+- To learn about using {{ dlc }} with {{ sagemaker }} HyperPod on {{ eks }}, see
+  [Orchestrating SageMaker HyperPod clusters with {{ eks }} and {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
 
 ## Running on {{ sagemaker }}
 

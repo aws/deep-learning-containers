@@ -1,25 +1,19 @@
-______________________________________________________________________
-
+---
 hide:
-
-- navigation
-- toc
-
-______________________________________________________________________
-
-![AWS Logo](assets/logos/AWS_logo_RGB.svg#only-light){: width="30%" }
-![AWS Logo](assets/logos/AWS_logo_RGB_REV.svg#only-dark){: width="30%" }
-{: style="text-align:center" }
+  - navigation
+  - toc
+---
+<div style="text-align:center"> <img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">
+<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%"> </div>
 
 <h1 style="text-align: center;">{{ dlc_long }}</h1>
 
-**One stop shop for running AI/ML on {{ aws }}**
-{: style="text-align:center" }
+<p style="text-align:center"><strong>One stop shop for running AI/ML on {{ aws }}</strong></p>
 
-[**{{ aws }} Doc**](https://aws.amazon.com/ai/machine-learning/containers/) · [**Available Images**](reference/available_images.md) · [**Tutorials**](tutorials/index.md)
-{: style="text-align:center" }
+<p style="text-align:center"><a href="https://aws.amazon.com/ai/machine-learning/containers/"><strong>{{ aws }} Doc</strong></a> ·
+<a href="reference/available_images.md"><strong>Available Images</strong></a> · <a href="tutorials/index.md"><strong>Tutorials</strong></a></p>
 
-______________________________________________________________________
+* * *
 
 ## 🔥 What's New
 
@@ -33,21 +27,34 @@ ______________________________________________________________________
 
 ### 🎉 Hot Off the Press
 
-- 🌐 **[Master Distributed Training on {{ eks }}](https://aws.amazon.com/blogs/machine-learning/configure-and-verify-a-distributed-training-cluster-with-aws-deep-learning-containers-on-amazon-eks/)** - Set up and validate a distributed training environment on {{ eks }} for scalable ML model training across multiple nodes.
-- 🔄 **[Level Up with {{ sagemaker }} & MLflow](https://aws.amazon.com/blogs/machine-learning/use-aws-deep-learning-containers-with-amazon-sagemaker-ai-managed-mlflow/)** - Integrate {{ aws }} {{ dlc_short }} with {{ sagemaker }}'s managed MLflow service for streamlined experiment tracking and model management.
-- 🚀 **[Deploy LLMs Like a Pro on {{ eks }}](https://aws.amazon.com/blogs/architecture/deploy-llms-on-amazon-eks-using-vllm-deep-learning-containers/)** - Deploy and serve Large Language Models efficiently on {{ eks }} using vLLM {{ dlc }}.
-- 🎯 **[Web Automation with Meta Llama 3.2 Vision](https://aws.amazon.com/blogs/machine-learning/fine-tune-and-deploy-meta-llama-3-2-vision-for-generative-ai-powered-web-automation-using-aws-dlcs-amazon-eks-and-amazon-bedrock/)** - Fine-tune and deploy Meta's Llama 3.2 Vision model for AI-powered web automation.
-- ⚡ **[Supercharge Your DL Environment](https://aws.amazon.com/blogs/machine-learning/streamline-deep-learning-environments-with-amazon-q-developer-and-mcp/)** - Integrate {{ aws }} {{ dlc_short }} with {{ amazon }} Q Developer and Model Context Protocol (MCP).
+- 🌐
+  **[Master Distributed Training on {{ eks }}](https://aws.amazon.com/blogs/machine-learning/configure-and-verify-a-distributed-training-cluster-with-aws-deep-learning-containers-on-amazon-eks/)**
+  \- Set up and validate a distributed training environment on {{ eks }} for scalable ML model training across multiple nodes.
+- 🔄
+  **[Level Up with {{ sagemaker }} & MLflow](https://aws.amazon.com/blogs/machine-learning/use-aws-deep-learning-containers-with-amazon-sagemaker-ai-managed-mlflow/)**
+  \- Integrate {{ aws }}{{ dlc_short }} with {{ sagemaker }}'s managed MLflow service for streamlined experiment tracking and model management.
+- 🚀
+  **[Deploy LLMs Like a Pro on {{ eks }}](https://aws.amazon.com/blogs/architecture/deploy-llms-on-amazon-eks-using-vllm-deep-learning-containers/)**
+  \- Deploy and serve Large Language Models efficiently on {{ eks }} using vLLM {{ dlc }}.
+- 🎯
+  **[Web Automation with Meta Llama 3.2 Vision](https://aws.amazon.com/blogs/machine-learning/fine-tune-and-deploy-meta-llama-3-2-vision-for-generative-ai-powered-web-automation-using-aws-dlcs-amazon-eks-and-amazon-bedrock/)**
+  \- Fine-tune and deploy Meta's Llama 3.2 Vision model for AI-powered web automation.
+- ⚡
+  **[Supercharge Your DL Environment](https://aws.amazon.com/blogs/machine-learning/streamline-deep-learning-environments-with-amazon-q-developer-and-mcp/)**
+  \- Integrate {{ aws }}{{ dlc_short }} with {{ amazon }} Q Developer and Model Context Protocol (MCP).
 
 ### 🎓 Hands-on Workshop
 
-- 🚀 **[LLM Deployment on {{ eks }} Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US)** - Deploy and optimize LLMs on {{ eks }} using vLLM {{ dlc }}. For more information, see [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc)
+- 🚀 **[LLM Deployment on {{ eks }} Workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/c22b50fb-64b1-4e18-8d0f-ce990f87eed3/en-US)** -
+  Deploy and optimize LLMs on {{ eks }} using vLLM {{ dlc }}. For more information, see
+  [Sample Code](https://github.com/aws-samples/sample-vllm-on-eks-with-dlc)
 
-______________________________________________________________________
+* * *
 
 ## About
 
-{{ dlc_long }} ({{ dlc_short }}) are a suite of Docker images that streamline the deployment of AI/ML workloads on {{ sagemaker }}, {{ eks }}, and {{ ec2 }}.
+{{ dlc_long }} ({{ dlc_short }}) are a suite of Docker images that streamline the deployment of AI/ML workloads on {{ sagemaker }}, {{ eks }}, and
+{{ ec2 }}.
 
 ### 🎯 What We Offer
 
@@ -73,11 +80,12 @@ ______________________________________________________________________
 
 ### 🔒 Security & Compliance
 
-Our containers undergo rigorous security scanning and are regularly updated to address vulnerabilities, ensuring your ML workloads run on a secure foundation.
+Our containers undergo rigorous security scanning and are regularly updated to address vulnerabilities, ensuring your ML workloads run on a secure
+foundation.
 
 For more information on our security policy, see [Security](security/index.md).
 
-______________________________________________________________________
+* * *
 
 ## Quick Links
 

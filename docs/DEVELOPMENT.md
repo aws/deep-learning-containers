@@ -27,7 +27,7 @@ docs/
 └── .venv/                       # Python virtual environment
 ```
 
----
+* * *
 
 ## Adding a New Image to available_images.md
 
@@ -78,7 +78,7 @@ cd docs && source .venv/bin/activate
 cd src && python main.py --verbose
 ```
 
----
+* * *
 
 ## Adding Support Policy for an Image
 
@@ -111,7 +111,7 @@ eop: '2026-10-15'   # End of Patch date (YYYY-MM-DD)
 - The generator validates this and raises an error if dates are inconsistent
 - Supported vs Unsupported is auto-determined by comparing EOP to current date
 
----
+* * *
 
 ## Editing Table Columns in available_images.md
 
@@ -149,22 +149,22 @@ columns:
 
 ### Available Fields
 
-| Field               | Description                                              |
-| ------------------- | -------------------------------------------------------- |
-| `framework_version` | Framework name + version (e.g., "PyTorch 2.9")           |
-| `python`            | Python version                                           |
-| `cuda`              | CUDA version                                             |
-| `sdk`               | Neuron SDK version                                       |
-| `accelerator`       | gpu, cpu, or neuronx                                     |
-| `platform`          | Displayed platform (from `global.yml` platforms mapping) |
-| `os`                | Operating system                                         |
-| `example_url`       | ECR image URL                                            |
+| Field | Description |
+| --- | --- |
+| `framework_version` | Framework name + version (e.g., "PyTorch 2.9") |
+| `python` | Python version |
+| `cuda` | CUDA version |
+| `sdk` | Neuron SDK version |
+| `accelerator` | gpu, cpu, or neuronx |
+| `platform` | Displayed platform (from `global.yml` platforms mapping) |
+| `os` | Operating system |
+| `example_url` | ECR image URL |
 
 ### Remove a Column
 
 Simply remove the entry from the `columns` list.
 
----
+* * *
 
 ## Reordering Tables in available_images.md
 
@@ -187,7 +187,7 @@ table_order:
 
 Remove the repository from `table_order`. The images will still exist but won't appear in generated docs.
 
----
+* * *
 
 ## Adding a New Repository
 
@@ -241,7 +241,7 @@ table_order:
 
 Create image config files in `docs/src/data/<repository-name>/`.
 
----
+* * *
 
 ## Using Global Variables in Markdown
 
@@ -251,18 +251,18 @@ The documentation uses mkdocs-macros-plugin for variable substitution.
 
 Variables are defined in `docs/src/global.yml` and exposed via `docs/src/macros.py`:
 
-| Variable          | Value                        |
-| ----------------- | ---------------------------- |
-| `{{ aws }}`       | AWS                          |
-| `{{ amazon }}`    | Amazon                       |
-| `{{ dlc }}`       | Deep Learning Containers     |
-| `{{ dlc_long }}`  | AWS Deep Learning Containers |
-| `{{ dlc_short }}` | DLC                          |
-| `{{ sagemaker }}` | Amazon SageMaker AI          |
-| `{{ ec2 }}`       | Amazon EC2                   |
-| `{{ ecs }}`       | Amazon ECS                   |
-| `{{ eks }}`       | Amazon EKS                   |
-| `{{ ecr }}`       | Amazon ECR                   |
+| Variable | Value |
+| --- | --- |
+| `{{ aws }}` | AWS |
+| `{{ amazon }}` | Amazon |
+| `{{ dlc }}` | Deep Learning Containers |
+| `{{ dlc_long }}` | AWS Deep Learning Containers |
+| `{{ dlc_short }}` | DLC |
+| `{{ sagemaker }}` | Amazon SageMaker AI |
+| `{{ ec2 }}` | Amazon EC2 |
+| `{{ ecs }}` | Amazon ECS |
+| `{{ eks }}` | Amazon EKS |
+| `{{ ecr }}` | Amazon ECR |
 
 ### Usage in Markdown
 
@@ -276,25 +276,25 @@ Deploy on {{ sagemaker }}, {{ eks }}, or {{ ec2 }}.
 
 1. Add to `docs/src/global.yml`:
 
-    ```yaml
-    my_var: My Value
-    ```
+   ```yaml
+   my_var: My Value
+   ```
 
-1. Variables are automatically exposed if they are strings.
+2. Variables are automatically exposed if they are strings.
 
----
+* * *
 
 ## Image Sorting in Tables
 
 Images are automatically sorted by:
 
 1. **Version** (descending) - Newest versions first
-1. **Platform** - SageMaker before EC2
-1. **Accelerator** - GPU before NeuronX before CPU
+2. **Platform** - SageMaker before EC2
+3. **Accelerator** - GPU before NeuronX before CPU
 
 This sorting is handled in `docs/src/generate.py` and cannot be configured.
 
----
+* * *
 
 ## Running Documentation Generation
 
@@ -329,7 +329,7 @@ Open http://127.0.0.1:8000 in your browser.
 mkdocs build
 ```
 
----
+* * *
 
 ## Overriding ECR Account
 
@@ -349,7 +349,7 @@ tag: 25.04-py3
 example_ecr_account: '007439368137'  # Override default account
 ```
 
----
+* * *
 
 ## Troubleshooting
 
@@ -368,5 +368,5 @@ Ensure the variable is defined in `global.yml` and is a string type. Non-string 
 ### Images Not Appearing
 
 1. Check the image config file exists in `docs/src/data/<repository>/`
-1. Verify the repository is in `table_order` in `global.yml`
-1. Run `python main.py --verbose` to see any errors
+2. Verify the repository is in `table_order` in `global.yml`
+3. Run `python main.py --verbose` to see any errors

@@ -46,7 +46,7 @@ Where:
 aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com
 
 # Pull PyTorch training image
-docker pull 763104351884.dkr.ecr.us-west-2.amazonaws.com/{{ images.latest_pytorch_training_ec2 }}
+docker pull {{ images.latest_pytorch_training_ec2 }}
 ```
 
 ## Next Steps
