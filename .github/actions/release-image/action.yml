@@ -57,7 +57,7 @@ runs:
         echo "Installing SOCI and nerdctl..."
         ARCH_SUFFIX="${{ inputs.arch }}"
         echo "Using architecture: ${ARCH_SUFFIX}"
-        
+
         # **************** SOCI SNAPSHOTTER *********************************************
         echo "Installing SOCI for ${ARCH_SUFFIX}..."
         SOCI_VERSION="0.11.1"
@@ -67,7 +67,7 @@ runs:
         soci --version
         echo "Successfully installed SOCI v${SOCI_VERSION} for ${ARCH_SUFFIX}"
         # **************** END SOCI SNAPSHOTTER *****************************************
-        
+
         # **************** NERDCTL ******************************************************
         echo "Installing nerdctl for ${ARCH_SUFFIX}..."
         export CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock
@@ -79,7 +79,7 @@ runs:
         nerdctl --version
         echo "Successfully installed nerdctl v${NERDCTL_VERSION} for ${ARCH_SUFFIX}"
         # **************** END NERDCTL **************************************************
-        
+
         echo "CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock" >> ${GITHUB_ENV}
         echo "ARCH=${ARCH_SUFFIX}" >> ${GITHUB_ENV}
 
@@ -89,21 +89,21 @@ runs:
         echo "Downloading release package from S3..."
         PACKAGE_DIR="release_package"
         mkdir -p ${PACKAGE_DIR}
-        
+
         aws s3 sync \
           s3://${{ inputs.release-package-s3-bucket }}/${{ inputs.release-package-s3-prefix }} \
           ${PACKAGE_DIR} \
           --region ${{ inputs.aws-region }}
-        
+
         if [ ! -d "${PACKAGE_DIR}" ] || [ -z "$(ls -A ${PACKAGE_DIR})" ]; then
           echo "Error: Failed to download package from S3"
           exit 1
         fi
-        
+
         echo "Installing release package..."
         python -m pip install --upgrade pip
         pip install -e ./${PACKAGE_DIR}
-        
+
         echo "PACKAGE_DIR=${PACKAGE_DIR}" >> ${GITHUB_ENV}
 
     - name: Set release environment variables
@@ -113,7 +113,7 @@ runs:
         echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
         echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
         echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
-        
+
         echo "Environment variables set:"
         echo "  REGION: ${{ inputs.aws-region }}"
         echo "  SOURCE_STAGE: ${{ inputs.source-stage }}"
@@ -130,20 +130,20 @@ runs:
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
         echo "Source Image URI: ${{ inputs.source-image-uri }}"
-        
+
         # Create release spec file
         cat > release_spec.yml <<'EOF'
         ${{ inputs.release-spec-content }}
         EOF
-        
+
         echo "Release specification:"
         cat release_spec.yml
-        
+
         # Run publish_dlc_images with source image URI
         publish_dlc_images --release-spec release_spec.yml --source-image-uri "${{ inputs.source-image-uri }}"
-        
+
         echo "Step 1 completed: Images published successfully"
-        
+
         # Verify metadata file was created
         if [ -f "/tmp/release_metadata.dict" ]; then
           echo "Release metadata created:"
@@ -166,20 +166,20 @@ runs:
         echo "Region: ${REGION}"
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
-        
+
         # Verify metadata from Step 1 exists
         if [ ! -f "/tmp/release_metadata.dict" ]; then
           echo "Error: Release metadata from Step 1 not found"
           echo "Step 1 must complete successfully before Step 2 can run"
           exit 1
         fi
-        
+
         echo "Release metadata from Step 1:"
         cat /tmp/release_metadata.dict
-        
+
         # Run generate_dlc_image_release_information
         generate_dlc_image_release_information
-        
+
         echo "Step 2 completed: Release information generated and uploaded to S3"
         echo "success=true" >> ${GITHUB_OUTPUT}
 
@@ -194,17 +194,17 @@ runs:
         echo "Region: ${REGION}"
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
-        
+
         # Run publish_release_information
         # This script will:
         # 1. Load release info from S3 (uploaded in Step 2)
         # 2. Write image SHA to availability canaries bucket
         # 3. Publish SNS notifications
         publish_release_information
-        
+
         echo "Step 3 completed: Release information published successfully"
         echo "success=true" >> ${GITHUB_OUTPUT}
-        
+
         echo "=========================================="
         echo "All three steps completed successfully!"
         echo "=========================================="
@@ -220,7 +220,7 @@ runs:
         echo "Step 2 (Generate Info):  ${{ steps.step2.outputs.success || 'failed/skipped' }}"
         echo "Step 3 (Publish Notifications): ${{ steps.step3.outputs.success || 'failed/skipped' }}"
         echo "=========================================="
-        
+
         if [ "${{ steps.step1.outputs.success }}" != "true" ]; then
           echo "❌ Release failed at Step 1 (Publish Images)"
           echo "   Step 2 and Step 3 were skipped"

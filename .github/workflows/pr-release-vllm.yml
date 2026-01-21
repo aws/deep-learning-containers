@@ -15,7 +15,7 @@ permissions:
 env:
   # CI environment configuration
   FORCE_COLOR: "1"
-  
+
   # Config file paths
   EC2_CONFIG: ".github/config/vllm-0.13.0-ec2.yml"
   SAGEMAKER_CONFIG: ".github/config/vllm-0.13.0-sagemaker.yml"
@@ -39,7 +39,7 @@ jobs:
           # Install yq for YAML parsing
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
-          
+
           # Load and output configs as JSON for easy parsing in other jobs
           # Using multiline output format to handle special characters
           {
@@ -47,13 +47,13 @@ jobs:
             yq eval -o=json '.' ${{ env.EC2_CONFIG }}
             echo "EOF"
           } >> $GITHUB_OUTPUT
-          
+
           {
             echo "sagemaker-config<<EOF"
             yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }}
             echo "EOF"
           } >> $GITHUB_OUTPUT
-          
+
           {
             echo "rayserve-config<<EOF"
             yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
