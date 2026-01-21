@@ -247,6 +247,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
+            uv venv --python 3.12
+            source .venv/bin/activate
 
             bash scripts/ci/ci_install_dependency.sh
           '
@@ -424,6 +426,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
+            uv venv --python 3.12
+            source .venv/bin/activate
 
             bash scripts/ci/ci_install_dependency.sh
           '
