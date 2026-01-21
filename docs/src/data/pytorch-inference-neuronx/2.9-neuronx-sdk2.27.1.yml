@@ -1,0 +1,8 @@
+framework: PyTorch
+version: "2.9"
+accelerator: neuronx
+python: py312
+sdk: "2.27.1"
+os: ubuntu24.04
+platform: sagemaker
+tag: "2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04"

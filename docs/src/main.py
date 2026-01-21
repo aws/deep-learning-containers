@@ -27,7 +27,7 @@ import sys
 from constants import TUTORIALS_REPO
 from generate import generate_all, generate_available_images, generate_support_policy
 from logger import ColoredFormatter
-from utils import clone_git_repository, load_yaml
+from utils import clone_git_repository, load_global_config
 
 # Configure root logger - all child loggers inherit this
 root_logger = logging.getLogger()
@@ -44,14 +44,12 @@ LOGGER = logging.getLogger(__name__)
 # Resolve paths relative to this file
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 DOCS_DIR = os.path.dirname(SRC_DIR)
-DATA_FILE = os.path.join(SRC_DIR, "data", "images.yml")
-REFERENCE_DIR = os.path.join(DOCS_DIR, "reference")
 TUTORIALS_DIR = os.path.join(DOCS_DIR, "tutorials")
 
 
 def main():
     """CLI entry point."""
-    parser = argparse.ArgumentParser(description="Generate DLC documentation from YAML source")
+    parser = argparse.ArgumentParser(description="Generate DLC documentation from config files")
     parser.add_argument("--dry-run", action="store_true", help="Print output without writing files")
     parser.add_argument("--verbose", action="store_true", help="Print detailed progress")
 
@@ -70,12 +68,12 @@ def main():
     if args.verbose:
         root_logger.setLevel(logging.DEBUG)
 
-    yaml_data = load_yaml(DATA_FILE)
-    LOGGER.info(f"Loaded data from {DATA_FILE}")
+    global_config = load_global_config()
+    LOGGER.info("Loaded global config")
 
     actions = {
-        "support_policy_only": lambda: generate_support_policy(yaml_data, args.dry_run),
-        "available_images_only": lambda: generate_available_images(yaml_data, args.dry_run),
+        "support_policy_only": lambda: generate_support_policy(global_config, args.dry_run),
+        "available_images_only": lambda: generate_available_images(global_config, args.dry_run),
         "clone_tutorials": lambda: clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR),
     }
 
@@ -85,7 +83,7 @@ def main():
             break
     else:
         clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR)
-        generate_all(yaml_data, args.dry_run)
+        generate_all(args.dry_run)
 
     LOGGER.info("Done")
 

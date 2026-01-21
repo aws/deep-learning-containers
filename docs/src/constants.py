@@ -12,5 +12,17 @@
 # language governing permissions and limitations under the License.
 """Global variables for documentation generation."""
 
+from pathlib import Path
+
+# Path constants
+SRC_DIR = Path(__file__).parent
+DOCS_DIR = SRC_DIR.parent
+DATA_DIR = SRC_DIR / "data"
+TABLES_DIR = SRC_DIR / "tables"
+TEMPLATES_DIR = SRC_DIR / "templates"
+REFERENCE_DIR = DOCS_DIR / "reference"
+TUTORIALS_DIR = DOCS_DIR / "tutorials"
+GLOBAL_CONFIG_PATH = SRC_DIR / "global.yml"
+
 AVAILABLE_IMAGES_TABLE_HEADER = "##"
 TUTORIALS_REPO = "https://github.com/aws-samples/sample-aws-deep-learning-containers"

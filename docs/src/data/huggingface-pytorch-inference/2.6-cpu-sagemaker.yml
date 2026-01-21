@@ -1,0 +1,8 @@
+framework: PyTorch
+version: "2.6"
+accelerator: cpu
+python: py312
+transformers: "4.49.0"
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"
