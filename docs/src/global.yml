@@ -62,6 +62,7 @@ display_names:
   huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
   huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
   huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
+  autogluon: "AutoGluon"
   autogluon-training: "AutoGluon Training"
   autogluon-inference: "AutoGluon Inference"
   djl-inference: "DJL Inference"
@@ -87,6 +88,9 @@ framework_groups:
     - tensorflow-training
     - tensorflow-inference
     - tensorflow-inference-arm64
+  autogluon:
+    - autogluon-training
+    - autogluon-inference
 
 # =============================================================================
 # Table Order

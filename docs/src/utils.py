@@ -273,6 +273,33 @@ def get_field_value(image: dict, field: str, global_config: dict, repository: st
     return field_handlers.get(field, lambda: str(image.get(field, "-")))()
 
 
+def validate_date_consistency(
+    current_ga: str | None,
+    current_eop: str | None,
+    new_ga: str,
+    new_eop: str,
+    msg_context: str,
+) -> None:
+    """Validate that GA/EOP dates are consistent with existing values.
+
+    Args:
+        current_ga: Existing GA date or None.
+        current_eop: Existing EOP date or None.
+        new_ga: New GA date to validate.
+        new_eop: New EOP date to validate.
+        context: Description for error message (e.g., "pytorch-training 2.9").
+
+    Raises:
+        ValueError: If dates are inconsistent.
+    """
+    if (current_ga is not None and current_ga != new_ga) or (
+        current_eop is not None and current_eop != new_eop
+    ):
+        raise ValueError(
+            f"Inconsistent dates for {msg_context}: GA=({current_ga} vs {new_ga}), EOP=({current_eop} vs {new_eop})"
+        )
+
+
 def group_images_by_version(all_images: dict[str, list[dict]]) -> dict[tuple[str, str], dict]:
     """Group images by (repository, version) and validate GA/EOP consistency.
 
@@ -295,17 +322,15 @@ def group_images_by_version(all_images: dict[str, list[dict]]) -> dict[tuple[str
 
             key = (repository, image["version"])
             data = version_data[key]
+            print(data["images"])
 
-            if data["ga"] is not None and data["ga"] != image["ga"]:
-                raise ValueError(
-                    f"Inconsistent GA date for {repository} {image['version']}: "
-                    f"{data['ga']} vs {image['ga']}"
-                )
-            if data["eop"] is not None and data["eop"] != image["eop"]:
-                raise ValueError(
-                    f"Inconsistent EOP date for {repository} {image['version']}: "
-                    f"{data['eop']} vs {image['eop']}"
-                )
+            validate_date_consistency(
+                data["ga"],
+                data["eop"],
+                image["ga"],
+                image["eop"],
+                f"{repository} {image['version']}",
+            )
 
             data["ga"] = image["ga"]
             data["eop"] = image["eop"]
@@ -405,13 +430,14 @@ def consolidate_support_entries(
         # Validate all entries have same GA/EOP dates
         first = group_entries[0]
         for entry in group_entries[1:]:
-            if entry["ga"] != first["ga"] or entry["eop"] != first["eop"]:
-                display_name = get_display_name(global_config, group_key)
-                raise ValueError(
-                    f"Inconsistent dates in {display_name} {version}: "
-                    f"{first['_repository']} has GA={first['ga']}, EOP={first['eop']} but "
-                    f"{entry['_repository']} has GA={entry['ga']}, EOP={entry['eop']}"
-                )
+            validate_date_consistency(
+                first["ga"],
+                first["eop"],
+                entry["ga"],
+                entry["eop"],
+                f"{get_display_name(global_config, group_key)} {version} "
+                f"({first['_repository']} vs {entry['_repository']})",
+            )
 
         # Consolidate to single row with display name
         display_name = get_display_name(global_config, group_key)
