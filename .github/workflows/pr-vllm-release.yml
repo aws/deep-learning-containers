@@ -1,4 +1,4 @@
-name: PR - Release-vLLM
+name: PR - vLLM_RELEASE
 
 on:
   pull_request:
