@@ -1,0 +1,16 @@
+# Table Configuration - HuggingFace PyTorch Training NeuronX
+columns:
+  - field: framework_version
+    header: "Framework"
+  - field: python
+    header: "Python"
+  - field: sdk
+    header: "SDK"
+  - field: transformers
+    header: "Transformers"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: example_url
+    header: "Example URL"

@@ -1,0 +1,10 @@
+framework: PyTorch
+version: "2.9"
+accelerator: cpu
+python: py312
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.9.0-cpu-py312-ubuntu22.04-sagemaker"
+ga: "2025-10-15"
+eop: "2026-10-15"
+public_registry: true

@@ -1,0 +1,9 @@
+framework: PyTorch
+version: "2.7"
+accelerator: neuronx
+python: py310
+sdk: "2.24.1"
+transformers: "4.51.0"
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.7.0-transformers4.51.0-neuronx-py310-sdk2.24.1-ubuntu22.04"

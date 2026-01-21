@@ -1,0 +1,7 @@
+framework: Triton
+version: "23.12"
+accelerator: gpu
+python: py3
+platform: sagemaker
+tag: "23.12-py3"
+example_ecr_account: "007439368137"

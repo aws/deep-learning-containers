@@ -1,0 +1,9 @@
+framework: TensorFlow
+version: "2.11"
+accelerator: gpu
+python: py39
+cuda: cu112
+transformers: "4.26.0"
+os: ubuntu20.04
+platform: sagemaker
+tag: "2.11.1-transformers4.26.0-gpu-py39-cu112-ubuntu20.04"

@@ -12,31 +12,21 @@
 # language governing permissions and limitations under the License.
 """Documentation global variables for mkdocs-macros-plugin."""
 
-import os
-
-from utils import load_yaml
-
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_FILE = os.path.join(SRC_DIR, "data", "images.yml")
-
-
-def get_latest_image(repo: str, platform: str) -> str:
-    """Get the latest image URI for a repository and platform."""
-    data = load_yaml(DATA_FILE)
-    repo_data = data.get("images", {}).get(repo, {})
-    tags = repo_data.get("tags", [])
-    for tag in tags:
-        if tag.endswith(platform):
-            return f"763104351884.dkr.ecr.us-west-2.amazonaws.com/{repo}:{tag}"
-    raise ValueError(
-        f"Image not found for {repo} with platform {platform}. Docs must be fixed to use a valid image."
-    )
+from utils import get_latest_image, load_global_config
 
 
 def define_env(env):
     """Define variables for mkdocs-macros-plugin."""
+    global_config = load_global_config()
+
+    # Expose all global config variables to mkdocs macros
+    for key, value in global_config.items():
+        if isinstance(value, str):
+            env.variables[key] = value
+
+    # Image helpers
     env.variables["images"] = {
-        "latest_pytorch_training_ec2": get_latest_image("pytorch-training", "-ec2"),
-        "latest_vllm_sagemaker": get_latest_image("vllm", "-sagemaker"),
-        "latest_sglang_sagemaker": get_latest_image("sglang", "-sagemaker"),
+        "latest_pytorch_training_ec2": get_latest_image("pytorch-training", "ec2"),
+        "latest_vllm_sagemaker": get_latest_image("vllm", "sagemaker"),
+        "latest_sglang_sagemaker": get_latest_image("sglang", "sagemaker"),
     }

@@ -1,0 +1,11 @@
+framework: Base
+version: "12.8"
+accelerator: gpu
+python: py312
+cuda: cu128
+os: ubuntu24.04
+platform: ec2
+tag: "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+ga: "2025-06-05"
+eop: "2026-06-05"
+public_registry: true

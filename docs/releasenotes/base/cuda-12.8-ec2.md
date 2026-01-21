@@ -1,8 +1,10 @@
 # AWS Deep Learning Base Containers for EC2, ECS, EKS (CUDA 12.8)
 
-[AWS Deep Learning Containers (DLCs)](https://aws.amazon.com/machine-learning/containers/) now support Base images that serve as a foundational layer to build the machine learning environment on EC2, ECS and EKS, with Ubuntu 24.04.
+[AWS Deep Learning Containers (DLCs)](https://aws.amazon.com/machine-learning/containers/) now support Base images that serve as a foundational layer
+to build the machine learning environment on EC2, ECS and EKS, with Ubuntu 24.04.
 
-These Base DLCs package the essential deep learning components and dependencies without being tied to a specific framework implementation, providing users the flexibility to customize the DLCs with their preferred frameworks.
+These Base DLCs package the essential deep learning components and dependencies without being tied to a specific framework implementation, providing
+users the flexibility to customize the DLCs with their preferred frameworks.
 
 ## Release Notes
 
