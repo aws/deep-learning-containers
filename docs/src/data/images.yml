@@ -284,6 +284,7 @@ images:
   # ===========================================================================
   pytorch-inference-neuronx:
     tags:
+      - "2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04"
       - "2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"
       - "2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04"
       - "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
@@ -291,6 +292,7 @@ images:
 
   pytorch-training-neuronx:
     tags:
+      - "2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04"
       - "2.8.0-neuronx-py311-sdk2.26.1-ubuntu22.04"
       - "2.7.0-neuronx-py310-sdk2.25.0-ubuntu22.04"
       - "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
