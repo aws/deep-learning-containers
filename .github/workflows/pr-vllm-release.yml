@@ -618,6 +618,36 @@ jobs:
         with:
           config-json: ${{ needs.load-config.outputs.rayserve-config }}
 
+  release-rayserve-image:
+    needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
+    if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-release-rayserve-image-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse RayServe config for release stages
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo "source-stage=$(jq -r '.release.source_stage' config.json)" >> $GITHUB_OUTPUT
+          echo "target-stage=$(jq -r '.release.target_stage' config.json)" >> $GITHUB_OUTPUT
+
+      - name: Release image
+        uses: ./.github/actions/release-image
+        with:
+          source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+          release-spec-content: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
+          source-stage: ${{ steps.config.outputs.source-stage }}
+          target-stage: ${{ steps.config.outputs.target-stage }}
+          aws-region: ${{ vars.AWS_REGION }}
+
   # # ====================================================
   # # =============== vLLM SageMaker jobs ================
   # # ====================================================

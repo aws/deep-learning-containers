@@ -38,7 +38,7 @@ inputs:
 outputs:
   release-metadata-file:
     description: 'Path to release metadata file'
-    value: '/tmp/release_metadata.dict'
+    value: '/tmp/release_metadata_${{ github.run_id }}-${{ github.run_attempt }}.dict'
   release-completed:
     description: 'Whether all three steps completed successfully'
     value: ${{ steps.step3.outputs.success }}
@@ -110,11 +110,22 @@ runs:
       shell: bash
       run: |
         echo "Setting release environment variables..."
+
+        # Create unique identifier for this run
+        RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+        echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+
+        # Set metadata file path with unique identifier
+        METADATA_FILE="/tmp/release_metadata_${RUN_IDENTIFIER}.dict"
+        echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
+
         echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
         echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
         echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
 
         echo "Environment variables set:"
+        echo "  RUN_IDENTIFIER: ${RUN_IDENTIFIER}"
+        echo "  METADATA_FILE: ${METADATA_FILE}"
         echo "  REGION: ${{ inputs.aws-region }}"
         echo "  SOURCE_STAGE: ${{ inputs.source-stage }}"
         echo "  TARGET_STAGE: ${{ inputs.target-stage }}"
@@ -126,6 +137,8 @@ runs:
         echo "=========================================="
         echo "Step 1: Publishing DLC Images"
         echo "=========================================="
+        echo "Run Identifier: ${RUN_IDENTIFIER}"
+        echo "Metadata File: ${METADATA_FILE}"
         echo "Region: ${REGION}"
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
@@ -139,18 +152,21 @@ runs:
         echo "Release specification:"
         cat release_spec.yml
 
-        # Run publish_dlc_images with source image URI
-        publish_dlc_images --release-spec release_spec.yml --source-image-uri "${{ inputs.source-image-uri }}"
+        # Run publish_dlc_images with source image URI and custom metadata file path
+        publish_dlc_images \
+          --release-spec release_spec.yml \
+          --source-image-uri "${{ inputs.source-image-uri }}" \
+          --metadata-file "${METADATA_FILE}"
 
         echo "Step 1 completed: Images published successfully"
 
         # Verify metadata file was created
-        if [ -f "/tmp/release_metadata.dict" ]; then
-          echo "Release metadata created:"
-          cat /tmp/release_metadata.dict
+        if [ -f "${METADATA_FILE}" ]; then
+          echo "Release metadata created at: ${METADATA_FILE}"
+          cat ${METADATA_FILE}
           echo "success=true" >> ${GITHUB_OUTPUT}
         else
-          echo "Error: Release metadata file not found"
+          echo "Error: Release metadata file not found at ${METADATA_FILE}"
           echo "success=false" >> ${GITHUB_OUTPUT}
           exit 1
         fi
@@ -163,22 +179,26 @@ runs:
         echo "=========================================="
         echo "Step 2: Generating Release Information"
         echo "=========================================="
+        echo "Run Identifier: ${RUN_IDENTIFIER}"
+        echo "Metadata File: ${METADATA_FILE}"
         echo "Region: ${REGION}"
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
 
         # Verify metadata from Step 1 exists
-        if [ ! -f "/tmp/release_metadata.dict" ]; then
-          echo "Error: Release metadata from Step 1 not found"
+        if [ ! -f "${METADATA_FILE}" ]; then
+          echo "Error: Release metadata from Step 1 not found at ${METADATA_FILE}"
           echo "Step 1 must complete successfully before Step 2 can run"
           exit 1
         fi
 
         echo "Release metadata from Step 1:"
-        cat /tmp/release_metadata.dict
+        cat ${METADATA_FILE}
 
-        # Run generate_dlc_image_release_information
-        generate_dlc_image_release_information
+        # Run generate_dlc_image_release_information with custom metadata file path and run ID
+        generate_dlc_image_release_information \
+          --metadata-file "${METADATA_FILE}" \
+          --run-id "${RUN_IDENTIFIER}"
 
         echo "Step 2 completed: Release information generated and uploaded to S3"
         echo "success=true" >> ${GITHUB_OUTPUT}
@@ -191,16 +211,17 @@ runs:
         echo "=========================================="
         echo "Step 3: Publishing Release Information"
         echo "=========================================="
+        echo "Run Identifier: ${RUN_IDENTIFIER}"
         echo "Region: ${REGION}"
         echo "Source Stage: ${SOURCE_STAGE}"
         echo "Target Stage: ${TARGET_STAGE}"
 
-        # Run publish_release_information
+        # Run publish_release_information with run_id
         # This script will:
         # 1. Load release info from S3 (uploaded in Step 2)
         # 2. Write image SHA to availability canaries bucket
         # 3. Publish SNS notifications
-        publish_release_information
+        publish_release_information --run-id "${RUN_IDENTIFIER}"
 
         echo "Step 3 completed: Release information published successfully"
         echo "success=true" >> ${GITHUB_OUTPUT}
