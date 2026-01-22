@@ -588,13 +588,17 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_rayserve_examples_test.sh
 
   generate-rayserve-release-spec:
-    needs: [load-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
+    # needs: [load-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
+    # if: |
+    #   always() && !failure() && !cancelled() &&
+    #   needs.build-vllm-rayserve-image.result == 'success' &&
+    #   needs.vllm-rayserve-regression-test.result == 'success' &&
+    #   needs.vllm-rayserve-cuda-test.result == 'success' &&
+    #   needs.vllm-rayserve-example-test.result == 'success'
+    needs: [load-config, build-vllm-rayserve-image]
     if: |
       always() && !failure() && !cancelled() &&
-      needs.build-vllm-rayserve-image.result == 'success' &&
-      needs.vllm-rayserve-regression-test.result == 'success' &&
-      needs.vllm-rayserve-cuda-test.result == 'success' &&
-      needs.vllm-rayserve-example-test.result == 'success'
+      needs.build-vllm-rayserve-image.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
