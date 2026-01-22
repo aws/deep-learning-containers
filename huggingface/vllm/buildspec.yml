@@ -22,9 +22,12 @@ context:
     deep_learning_container:
       source: ../../src/deep_learning_container.py
       target: deep_learning_container.py
-    cuda-compatibility-lib:
-      source: ../build_artifacts/inference/cuda-compatibility-lib.sh
-      target: cuda-compatibility-lib.sh
+    start_cuda_compat:
+      source: build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
+    sagemaker_entrypoint:
+      source: build_artifacts/sagemaker_entrypoint.sh
+      target: sagemaker_entrypoint.sh
 
 
 images:
