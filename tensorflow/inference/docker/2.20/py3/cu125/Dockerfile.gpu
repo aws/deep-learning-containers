@@ -51,7 +51,7 @@ ENV PYTHON_VERSION=${PYTHON_VERSION}
 
 ENV CUDA_DASH=12-5
 ENV NCCL_VERSION=2.21.5-1+cuda12.5
-ENV CUDNN_VERSION=9.3.0.75-1+cuda12.5
+ENV CUDNN_VERSION=9.3.0.75-1
 
 # See http://bugs.python.org/issue19846
 ENV LANG=C.UTF-8
@@ -125,8 +125,8 @@ RUN apt-get update \
     #cuda-cublas-dev not available with 10-1, install libcublas instead
     libcublas-${CUDA_DASH} \
     libcublas-dev-${CUDA_DASH} \
-    libcudnn9=${CUDNN_VERSION} \
-    libcudnn9-dev=${CUDNN_VERSION} \
+    libcudnn9-cuda-12=${CUDNN_VERSION} \
+    libcudnn9-dev-cuda-12=${CUDNN_VERSION} \
     libnccl2=${NCCL_VERSION} \
     libnccl-dev=${NCCL_VERSION} \
     libgomp1 \
