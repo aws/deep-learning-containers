@@ -45,22 +45,6 @@ docs/src/
 └── utils.py                       # Pure utility functions (render_table, parse_version, etc.)
 ```
 
-### Module Dependency Hierarchy
-
-The codebase follows a strict dependency hierarchy to prevent circular imports:
-
-```
-constants.py (no project imports)
-    ↓
-file_loader.py (imports: constants)
-    ↓
-utils.py (imports: constants)
-    ↓
-image_config.py (imports: constants, file_loader, utils)
-    ↓
-generate.py (imports: constants, file_loader, utils, image_config)
-```
-
 ### File Responsibilities
 
 - `constants.py` - Path constants and global variables
