@@ -405,12 +405,14 @@ def main():
                 # sglang tests follow standard EC2/EKS test flow
                 pass
 
-            eks_cluster_name = f"dlc-{framework}-{build_context}"
-            eks_utils.eks_setup()
-            if eks_utils.is_eks_cluster_active(eks_cluster_name):
-                eks_utils.eks_write_kubeconfig(eks_cluster_name)
-            else:
-                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
+            # Only set up EKS cluster for EKS tests, not EC2 tests
+            if specific_test_type == "eks":
+                eks_cluster_name = f"dlc-{framework}-{build_context}"
+                eks_utils.eks_setup()
+                if eks_utils.is_eks_cluster_active(eks_cluster_name):
+                    eks_utils.eks_write_kubeconfig(eks_cluster_name)
+                else:
+                    raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Get specified tests if any
         specified_tests = os.getenv("SPECIFIED_TESTS")
