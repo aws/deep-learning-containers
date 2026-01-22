@@ -17,9 +17,35 @@ import os
 import subprocess
 from pathlib import Path
 
+import yaml
+from constants import TABLES_DIR
 from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
+
+
+def load_yaml(path: str | Path) -> dict:
+    """Load YAML file and return parsed content."""
+    with open(path) as f:
+        return yaml.safe_load(f)
+
+
+def load_table_config(repository: str) -> dict:
+    """Load table column configuration for a repository.
+
+    Raises:
+        FileNotFoundError: If table config file does not exist.
+    """
+    path = TABLES_DIR / f"{repository}.yml"
+    if not path.exists():
+        raise FileNotFoundError(f"Table config not found: {path}")
+    return load_yaml(path)
+
+
+def load_jinja2(path: str | Path) -> str:
+    """Load and return Jinja2 template file content."""
+    with open(path) as f:
+        return f.read()
 
 
 def render_table(headers: list[str], rows: list[list[str]]) -> str:
@@ -53,16 +79,11 @@ def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
     subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)
 
 
-def build_ecr_url(image_config, global_config: dict, repository: str) -> str:
-    """Build ECR URL string for an image with region placeholder."""
-    account = image_config.get("example_ecr_account", global_config["example_ecr_account"])
-    tag = image_config.get("tag", "")
-    return f"`{account}.dkr.ecr.<region>.amazonaws.com/{repository}:{tag}`"
-
-
-def build_public_registry_note(repository: str, global_config: dict) -> str:
+def build_public_registry_note(repository: str) -> str:
     """Build markdown note linking to ECR Public Gallery for a repository."""
-    url = f"{global_config['public_gallery_url']}/{repository}"
+    from constants import GLOBAL_CONFIG
+
+    url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
     return f"These images are also available in ECR Public Gallery: [{repository}]({url})\n"
 
 

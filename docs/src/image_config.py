@@ -16,8 +16,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from constants import DATA_DIR
-from file_loader import load_yaml
+from constants import DATA_DIR, GLOBAL_CONFIG
+from utils import load_yaml
 
 
 class ImageConfig:
@@ -29,6 +29,12 @@ class ImageConfig:
     def __init__(self, repository: str, **kwargs: Any) -> None:
         self._repository = repository
         self._data = kwargs
+        # Compute framework_group from GLOBAL_CONFIG, default to repository
+        self._framework_group = repository
+        for group_key, repos in GLOBAL_CONFIG.get("framework_groups", {}).items():
+            if repository in repos:
+                self._framework_group = group_key
+                break
 
     @classmethod
     def from_yaml(cls, path: Path, repository: str) -> "ImageConfig":
@@ -37,6 +43,7 @@ class ImageConfig:
         return cls(repository, **data)
 
     def __getattr__(self, name: str) -> Any:
+        """Get field value by reference YAML data."""
         if name.startswith("_"):
             raise AttributeError(name)
         try:
@@ -53,6 +60,11 @@ class ImageConfig:
         """Repository name for this image."""
         return self._repository
 
+    @property
+    def framework_group(self) -> str:
+        """Framework group key (or repository if not in a group)."""
+        return self._framework_group
+
     def is_supported(self, today: date | None = None) -> bool:
         """Check if image is still supported based on EOP date."""
         eop = self._data.get("eop")
@@ -65,29 +77,12 @@ class ImageConfig:
         """Check if image has GA and EOP dates defined."""
         return "ga" in self._data and "eop" in self._data
 
-    def get_display_name(self, global_config: dict) -> str:
-        """Get human-readable display name for the repository.
-
-        Raises:
-            KeyError: If repository not found in display_names.
-        """
-        display_names = global_config.get("display_names", {})
+    def get_display_name(self) -> str:
+        """Get human-readable display name for the repository."""
+        display_names = GLOBAL_CONFIG.get("display_names", {})
         if self._repository not in display_names:
             raise KeyError(f"Display name not found for: {self._repository}")
         return display_names[self._repository]
-
-    def get_framework_group(self, global_config: dict) -> str | None:
-        """Get framework group key if repository belongs to one."""
-        framework_groups = global_config.get("framework_groups", {})
-        for group_key, repos in framework_groups.items():
-            if self._repository in repos:
-                return group_key
-        return None
-
-
-def load_image(path: Path, repository: str) -> ImageConfig:
-    """Load a single image configuration from YAML file."""
-    return ImageConfig.from_yaml(path, repository)
 
 
 def load_repository_images(repository: str) -> list[ImageConfig]:
@@ -95,39 +90,25 @@ def load_repository_images(repository: str) -> list[ImageConfig]:
     repo_dir = DATA_DIR / repository
     if not repo_dir.exists():
         return []
-    return [load_image(f, repository) for f in sorted(repo_dir.glob("*.yml"))]
+    return [ImageConfig.from_yaml(f, repository) for f in sorted(repo_dir.glob("*.yml"))]
 
 
-def load_all_images() -> dict[str, list[ImageConfig]]:
-    """Load all image configurations across all repositories."""
-    result = {}
-    for repo_dir in DATA_DIR.iterdir():
-        if repo_dir.is_dir():
-            images = load_repository_images(repo_dir.name)
-            if images:
-                result[repo_dir.name] = images
-    return result
-
-
-def get_field_display(img: ImageConfig, field: str, global_config: dict) -> str:
-    """Get display value for a field with mappings applied.
-
-    Handles special fields: framework_version, example_url, platform, accelerator.
-    """
+def get_field_display(img: ImageConfig, field: str) -> str:
+    """Get display value for a field with mappings applied."""
     if field == "framework_version":
         return f"{img.get('framework', '')} {img.get('version', '')}"
 
     if field == "example_url":
-        account = img.get("example_ecr_account", global_config["example_ecr_account"])
+        account = img.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
         tag = img.get("tag", "")
         return f"`{account}.dkr.ecr.<region>.amazonaws.com/{img.repository}:{tag}`"
 
     if field == "platform":
-        platforms = global_config.get("platforms", {})
+        platforms = GLOBAL_CONFIG.get("platforms", {})
         return platforms.get(img.get("platform", ""), img.get("platform", "-"))
 
     if field == "accelerator":
-        accelerators = global_config.get("accelerators", {})
+        accelerators = GLOBAL_CONFIG.get("accelerators", {})
         return accelerators.get(img.get("accelerator", ""), img.get("accelerator", "-").upper())
 
     # Default: return raw value or "-"
@@ -135,36 +116,68 @@ def get_field_display(img: ImageConfig, field: str, global_config: dict) -> str:
     return str(value) if value is not None else "-"
 
 
-def build_image_row(img: ImageConfig, columns: list[dict], global_config: dict) -> list[str]:
+def build_image_row(img: ImageConfig, columns: list[dict]) -> list[str]:
     """Build a table row from an ImageConfig using column definitions."""
-    return [get_field_display(img, col["field"], global_config) for col in columns]
+    return [get_field_display(img, col["field"]) for col in columns]
 
 
-def sort_images_for_table(images: list[ImageConfig]) -> list[ImageConfig]:
-    """Sort images for available_images table: version desc, sagemaker first, gpu first."""
+def sort_by_version(
+    images: list[ImageConfig],
+    tiebreakers: list[callable] | None = None,
+) -> list[ImageConfig]:
+    """Sort ImageConfig objects by version descending with optional tiebreakers."""
     from utils import parse_version
 
     def sort_key(img: ImageConfig):
         ver = parse_version(img.get("version"))
-        platform_order = 0 if img.get("platform") == "sagemaker" else 1
-        accel = img.get("accelerator", "").lower()
-        accel_order = 0 if accel == "gpu" else 1 if accel == "neuronx" else 2
-        return (-ver.major, -ver.minor, -ver.micro, platform_order, accel_order)
+        keys = [-ver.major, -ver.minor, -ver.micro]
+        if tiebreakers:
+            keys.extend(fn(img) for fn in tiebreakers)
+        return tuple(keys)
 
     return sorted(images, key=sort_key)
 
 
-def sort_support_entries(entries: list[dict], table_order: list[str]) -> list[dict]:
-    """Sort support policy entries by table_order then version descending."""
-    from utils import parse_version
+def get_framework_order() -> list[str]:
+    """Derive framework order from table_order, collapsing framework groups."""
+    table_order = GLOBAL_CONFIG.get("table_order", [])
+    framework_groups = GLOBAL_CONFIG.get("framework_groups", {})
 
-    def sort_key(item):
-        repo = item["_sort_repo"]
-        order = table_order.index(repo) if repo in table_order else len(table_order)
-        ver = parse_version(item["version"])
-        return (order, -ver.major, -ver.minor, -ver.micro)
+    # Build reverse mapping: repo -> framework group
+    repo_to_group = {}
+    for group, repos in framework_groups.items():
+        for repo in repos:
+            repo_to_group[repo] = group
 
-    return sorted(entries, key=sort_key)
+    seen = set()
+    result = []
+    for repo in table_order:
+        key = repo_to_group.get(repo, repo)
+        if key not in seen:
+            seen.add(key)
+            result.append(key)
+    return result
+
+
+def get_legacy_images() -> dict[str, list[ImageConfig]]:
+    """Get legacy support policy data as ImageConfig objects.
+
+    Returns:
+        Mapping of framework key to list of ImageConfig objects.
+    """
+    from constants import LEGACY_DIR
+
+    path = LEGACY_DIR / "legacy_support.yml"
+    if not path.exists():
+        return {}
+
+    data = load_yaml(path)
+    return {
+        framework: [
+            ImageConfig(framework, version=e["version"], ga=e["ga"], eop=e["eop"]) for e in entries
+        ]
+        for framework, entries in data.items()
+    }
 
 
 def get_latest_image(repo: str, platform: str) -> str:
@@ -173,10 +186,8 @@ def get_latest_image(repo: str, platform: str) -> str:
     Raises:
         ValueError: If no image found for the repository and platform combination.
     """
-    from file_loader import load_global_config
     from utils import parse_version
 
-    global_config = load_global_config()
     images = load_repository_images(repo)
 
     matching = [img for img in images if img.get("platform") == platform]
@@ -184,5 +195,5 @@ def get_latest_image(repo: str, platform: str) -> str:
         raise ValueError(f"Image not found for {repo} with platform {platform}")
 
     latest = max(matching, key=lambda img: parse_version(img.get("version")))
-    account = latest.get("example_ecr_account", global_config["example_ecr_account"])
+    account = latest.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
     return f"{account}.dkr.ecr.us-west-2.amazonaws.com/{repo}:{latest.tag}"

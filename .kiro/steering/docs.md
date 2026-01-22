@@ -33,27 +33,39 @@ docs/src/
 │   └── ...
 ├── legacy/                        # Historical support data
 │   └── legacy_support.yml
-├── constants.py                   # Path constants and global variables
-├── file_loader.py                 # File loading utilities (YAML, configs, templates)
-├── image_config.py                # ImageConfig class and image-related functions
+├── constants.py                   # Path constants, global variables, and GLOBAL_CONFIG
 ├── generate.py                    # Generation logic
 ├── global.yml                     # Shared terminology and configuration
 ├── hooks.py                       # MkDocs hooks
+├── image_config.py                # ImageConfig class and image-related functions
 ├── logger.py                      # Logging configuration
 ├── macros.py                      # MkDocs macros
 ├── main.py                        # CLI entry point
-└── utils.py                       # Pure utility functions (render_table, parse_version, etc.)
+├── sorter.py                      # Sorting tiebreaker functions
+└── utils.py                       # Utility functions (file loading, table rendering, etc.)
 ```
 
 ### File Responsibilities
 
-- `constants.py` - Path constants and global variables
-- `file_loader.py` - All file loading: `load_yaml()`, `load_global_config()`, `load_table_config()`, `load_legacy_support()`, `load_jinja2()`
-- `utils.py` - Pure utility functions: `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_ecr_url()`, `build_public_registry_note()`, `check_public_registry()`
-- `image_config.py` - `ImageConfig` class, image loaders, sorting functions, row building helpers
+- `constants.py` - Path constants, global variables, and `GLOBAL_CONFIG`
+- `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`
+- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_public_registry_note()`, `check_public_registry()`
+- `image_config.py` - `ImageConfig` class, image loaders, sorting, legacy images, row building helpers
 - `generate.py` - `generate_support_policy()`, `generate_available_images()`, `generate_all()`
 - `macros.py` - MkDocs macros plugin integration
 - `hooks.py` - MkDocs hooks entry point
+
+### Global Configuration
+
+The global configuration is loaded once at module import time in `constants.py` and exposed as `GLOBAL_CONFIG`. This eliminates the need to pass `global_config` to most functions.
+
+```python
+from constants import GLOBAL_CONFIG
+
+# Access any config value
+table_order = GLOBAL_CONFIG.get("table_order", [])
+display_names = GLOBAL_CONFIG["display_names"]
+```
 
 ### ImageConfig Class
 
@@ -70,6 +82,7 @@ img.version  # "2.9"
 img.framework  # "PyTorch"
 img.accelerator  # "gpu"
 img.repository  # "pytorch-training"
+img.framework_group  # "pytorch" (computed from GLOBAL_CONFIG, defaults to repository)
 
 # Safe access with default
 img.get("cuda", "-")  # "cu130" or "-" if not present
@@ -77,35 +90,37 @@ img.get("cuda", "-")  # "cu130" or "-" if not present
 # Built-in methods
 img.is_supported()  # True if eop >= today
 img.has_support_dates()  # True if ga and eop fields exist
-img.get_display_name(global_config)  # "PyTorch Training"
-img.get_framework_group(global_config)  # "pytorch" or None
+img.get_display_name()  # "PyTorch Training" (uses GLOBAL_CONFIG)
 ```
 
 ### Image Loading Functions
 
 ```python
-from image_config import load_image, load_repository_images, load_all_images
-
-# Load single image
-img = load_image(Path("data/pytorch-training/2.9-gpu-ec2.yml"), "pytorch-training")
+from image_config import load_repository_images, get_legacy_images
 
 # Load all images for a repository
 images = load_repository_images("pytorch-training")  # list[ImageConfig]
 
-# Load all images across all repositories
-all_images = load_all_images()  # dict[str, list[ImageConfig]]
+# Load legacy support policy images
+legacy = get_legacy_images()  # dict[str, list[ImageConfig]]
 ```
 
 ### Sorting Functions
 
 ```python
-from image_config import sort_images_for_table, sort_support_entries
+from image_config import sort_by_version
 
-# Sort images for available_images.md (version desc, sagemaker first, gpu first)
-sorted_images = sort_images_for_table(images)
+# Sort images by version descending
+sorted_images = sort_by_version(images)
 
-# Sort support policy entries by table_order then version desc
-sorted_entries = sort_support_entries(entries, table_order)
+# Sort with tiebreakers (for available_images: platform, then accelerator)
+sorted_images = sort_by_version(
+    images,
+    tiebreakers=[
+        lambda img: 0 if img.get("platform") == "sagemaker" else 1,
+        lambda img: {"gpu": 0, "neuronx": 1, "cpu": 2}.get(img.get("accelerator", "").lower(), 3),
+    ],
+)
 ```
 
 ### Table Building
@@ -115,10 +130,10 @@ from image_config import build_image_row, get_field_display
 from utils import render_table
 
 # Get display value for a field (handles platform/accelerator mappings)
-value = get_field_display(img, "platform", global_config)  # "EC2, ECS, EKS"
+value = get_field_display(img, "platform")  # "EC2, ECS, EKS"
 
 # Build a complete row
-row = build_image_row(img, columns, global_config)  # ["PyTorch 2.9", "py312", ...]
+row = build_image_row(img, columns)  # ["PyTorch 2.9", "py312", ...]
 
 # Render markdown table
 table = render_table(headers, rows)

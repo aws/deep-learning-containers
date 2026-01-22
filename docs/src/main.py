@@ -21,11 +21,9 @@ Usage:
 
 import argparse
 import logging
-import os
 import sys
 
-from constants import TUTORIALS_REPO
-from file_loader import load_global_config
+from constants import TUTORIALS_DIR, TUTORIALS_REPO
 from generate import generate_all, generate_available_images, generate_support_policy
 from logger import ColoredFormatter
 from utils import clone_git_repository
@@ -41,11 +39,6 @@ console_handler.setLevel(logging.DEBUG)
 root_logger.addHandler(console_handler)
 
 LOGGER = logging.getLogger(__name__)
-
-# Resolve paths relative to this file
-SRC_DIR = os.path.dirname(os.path.abspath(__file__))
-DOCS_DIR = os.path.dirname(SRC_DIR)
-TUTORIALS_DIR = os.path.join(DOCS_DIR, "tutorials")
 
 
 def main():
@@ -69,12 +62,11 @@ def main():
     if args.verbose:
         root_logger.setLevel(logging.DEBUG)
 
-    global_config = load_global_config()
     LOGGER.info("Loaded global config")
 
     actions = {
-        "support_policy_only": lambda: generate_support_policy(global_config, args.dry_run),
-        "available_images_only": lambda: generate_available_images(global_config, args.dry_run),
+        "support_policy_only": lambda: generate_support_policy(args.dry_run),
+        "available_images_only": lambda: generate_available_images(args.dry_run),
         "clone_tutorials": lambda: clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR),
     }
 
