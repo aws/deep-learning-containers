@@ -24,6 +24,9 @@ context:
     install_efa:
       source: scripts/install_efa.sh
       target: install_efa.sh
+    start_cuda_compat:
+      source: sglang/build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
     sagemaker_entrypoint:
       source: sglang/build_artifacts/dockerd_entrypoint.sh
       target: dockerd_entrypoint.sh
