@@ -32,7 +32,7 @@ def setup_dataset(connection):
 
     dataset_check = connection.run(
         "test -f /tmp/dataset/ShareGPT_V3_unfiltered_cleaned_split.json && echo 'exists' || echo 'missing'",
-        hide=True
+        hide=True,
     )
 
     if "missing" in dataset_check.stdout:
@@ -67,11 +67,9 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
     4. Validates successful completion
     """
     try:
-        print("
-" + "="*80)
+        print("\n" + "=" * 80)
         print("Starting SGLang EC2 Local Benchmark Test")
-        print("="*80 + "
-")
+        print("=" * 80 + "\n")
 
         # Setup
         setup_docker_image(connection, image_uri)
@@ -80,7 +78,7 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
 
-        # Start SGLang container 
+        # Start SGLang container
         container_name = "sglang_benchmark"
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
@@ -98,18 +96,16 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
         print("Starting SGLang server container...")
         connection.run(container_cmd)
 
-        # Wait for server startup 
+        # Wait for server startup
         print("Waiting for serving endpoint startup (120s)...")
         time.sleep(120)
 
         # Check container logs
-        print("
-Container logs:")
+        print("\nContainer logs:")
         connection.run(f"docker logs {container_name}")
 
-        # Run benchmark 
-        print("
-Running SGLang benchmark...")
+        # Run benchmark
+        print("\nRunning SGLang benchmark...")
         benchmark_cmd = f"""
         docker exec {container_name} python3 -m sglang.bench_serving \
             --backend sglang \
@@ -123,17 +119,14 @@ Running SGLang benchmark...")
         result = connection.run(benchmark_cmd)
 
         if result.return_code == 0:
-            print("
-✓ SGLang local benchmark test passed successfully")
+            print("\n✓ SGLang local benchmark test passed successfully")
             return True
         else:
-            print(f"
-✗ Benchmark test failed with return code {result.return_code}")
+            print(f"\n✗ Benchmark test failed with return code {result.return_code}")
             return False
 
     except Exception as e:
-        print(f"
-Local benchmark test failed: {str(e)}")
+        print(f"\nLocal benchmark test failed: {str(e)}")
         return False
     finally:
         cleanup_containers(connection)
@@ -151,11 +144,9 @@ def test_sglang_ec2_upstream(connection, image_uri):
     5. Validates test results
     """
     try:
-        print("
-" + "="*80)
+        print("\n" + "=" * 80)
         print("Starting SGLang EC2 Upstream Test")
-        print("="*80 + "
-")
+        print("=" * 80 + "\n")
 
         # Setup
         setup_docker_image(connection, image_uri)
@@ -163,7 +154,7 @@ def test_sglang_ec2_upstream(connection, image_uri):
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
 
-        # Clone SGLang source 
+        # Clone SGLang source
         print("Cloning SGLang source repository...")
         connection.run("rm -rf /tmp/sglang_source", warn=True)
         connection.run(
@@ -171,7 +162,7 @@ def test_sglang_ec2_upstream(connection, image_uri):
             f"https://github.com/sgl-project/sglang.git /tmp/sglang_source"
         )
 
-        # Start container with bash entrypoint 
+        # Start container with bash entrypoint
         container_name = "sglang_upstream"
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
@@ -186,21 +177,16 @@ def test_sglang_ec2_upstream(connection, image_uri):
         print("Starting SGLang container with bash entrypoint...")
         connection.run(container_cmd)
 
-        # Install test dependencies 
-        print("
-Installing SGLang test dependencies...")
-        connection.run(
-            f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh"
-        )
+        # Install test dependencies
+        print("\nInstalling SGLang test dependencies...")
+        connection.run(f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh")
 
         # Check GPU availability
-        print("
-Checking GPU availability:")
+        print("\nChecking GPU availability:")
         connection.run(f"docker exec {container_name} nvidia-smi")
 
-        # Run upstream test suite 
-        print("
-Running SGLang upstream test suite (stage-a-test-1)...")
+        # Run upstream test suite
+        print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
         test_cmd = f"""
         docker exec {container_name} sh -c '
             set -eux
@@ -212,17 +198,14 @@ Running SGLang upstream test suite (stage-a-test-1)...")
         result = connection.run(test_cmd)
 
         if result.return_code == 0:
-            print("
-✓ SGLang upstream test passed successfully")
+            print("\n✓ SGLang upstream test passed successfully")
             return True
         else:
-            print(f"
-✗ Upstream test failed with return code {result.return_code}")
+            print(f"\n✗ Upstream test failed with return code {result.return_code}")
             return False
 
     except Exception as e:
-        print(f"
-Upstream test failed: {str(e)}")
+        print(f"\nUpstream test failed: {str(e)}")
         return False
     finally:
         cleanup_containers(connection)
@@ -271,29 +254,23 @@ def test_sglang_on_ec2(resources, image_uri):
 
         # Get primary connection
         instance_ids = list(ec2_connections.keys())
-        head_conn = ec2_connections[instance_ids]
+        head_conn = ec2_connections[instance_ids[0]]
 
         # Run tests
-        print("
-" + "="*80)
+        print("\n" + "=" * 80)
         print("Starting SGLang EC2 Tests")
-        print("="*80)
+        print("=" * 80)
 
         # Test 1: Local Benchmark
-        test_results["local_benchmark"] = test_sglang_ec2_local_benchmark(
-            head_conn, image_uri
-        )
+        test_results["local_benchmark"] = test_sglang_ec2_local_benchmark(head_conn, image_uri)
 
         # Test 2: Upstream Tests
-        test_results["upstream"] = test_sglang_ec2_upstream(
-            head_conn, image_uri
-        )
+        test_results["upstream"] = test_sglang_ec2_upstream(head_conn, image_uri)
 
         # Print summary
-        print("
-" + "="*80)
+        print("\n" + "=" * 80)
         print("Test Summary")
-        print("="*80)
+        print("=" * 80)
         for test_name, result in test_results.items():
             if result is not None:
                 status = "✓ Passed" if result else "✗ Failed"
@@ -305,10 +282,8 @@ def test_sglang_on_ec2(resources, image_uri):
         if not all(result for result in test_results.values() if result is not None):
             raise Exception("One or more SGLang tests failed")
 
-        print("
-✓ All SGLang EC2 tests passed successfully")
+        print("\n✓ All SGLang EC2 tests passed successfully")
 
     except Exception as e:
-        print(f"
-Test execution failed: {str(e)}")
+        print(f"\nTest execution failed: {str(e)}")
         raise
