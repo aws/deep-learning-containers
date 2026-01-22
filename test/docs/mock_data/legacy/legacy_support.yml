@@ -1,0 +1,8 @@
+# Legacy support policy data for tests
+mock-framework:
+  - version: "0.5"
+    ga: "2023-01-01"
+    eop: "2024-01-01"
+  - version: "0.9"
+    ga: "2023-06-01"
+    eop: "2024-06-01"
