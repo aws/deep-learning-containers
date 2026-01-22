@@ -387,7 +387,7 @@ def main():
         if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
-                for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
+                for framework in ("mxnet", "pytorch", "tensorflow", "vllm", "sglang")
                 if framework in dlc_images
             ]
             if len(frameworks_in_images) != 1:
@@ -400,6 +400,10 @@ def main():
             if framework == "vllm":
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
+
+            if framework == "sglang":
+                # sglang tests follow standard EC2/EKS test flow
+                pass
 
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
