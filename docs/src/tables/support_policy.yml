@@ -1,5 +1,6 @@
 columns:
   - field: framework
+    data: framework_group
     header: "Framework"
   - field: version
     header: "Version"

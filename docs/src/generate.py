@@ -18,8 +18,8 @@ from constants import AVAILABLE_IMAGES_TABLE_HEADER, GLOBAL_CONFIG, REFERENCE_DI
 from image_config import (
     ImageConfig,
     build_image_row,
-    get_framework_order,
-    get_legacy_images,
+    check_public_registry,
+    load_legacy_images,
     load_repository_images,
     sort_by_version,
 )
@@ -27,7 +27,7 @@ from jinja2 import Template
 from sorter import accelerator_sorter, platform_sorter
 from utils import (
     build_public_registry_note,
-    check_public_registry,
+    get_framework_order,
     load_jinja2,
     load_table_config,
     render_table,
@@ -44,7 +44,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
     LOGGER.debug(f"Generating {output_path}")
 
     framework_groups = GLOBAL_CONFIG.get("framework_groups", {})
-    legacy_data = get_legacy_images()
+    legacy_data = load_legacy_images()
 
     supported, unsupported = [], []
 
@@ -55,7 +55,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
         # Load images with support dates from all repos in group
         images = []
         for repo in repos:
-            images.extend(img for img in load_repository_images(repo) if img.has_support_dates())
+            images.extend(img for img in load_repository_images(repo) if img.has_support_dates)
 
         # Deduplicate by version, validating date consistency
         version_map: dict[str, ImageConfig] = {}
@@ -75,23 +75,17 @@ def generate_support_policy(dry_run: bool = False) -> str:
 
         # Sort by version descending and separate supported/unsupported
         for img in sort_by_version(list(version_map.values())):
-            (supported if img.is_supported() else unsupported).append(img)
+            (supported if img.is_supported else unsupported).append(img)
 
     # Build tables
     table_config = load_table_config("support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    def build_row(img: ImageConfig) -> list[str]:
-        return [
-            GLOBAL_CONFIG["display_names"].get(img.framework_group, img.framework_group)
-            if col["field"] == "framework"
-            else img.get(col["field"], "-")
-            for col in columns
-        ]
-
-    supported_table = render_table(headers, [build_row(img) for img in supported])
-    unsupported_table = render_table(headers, [build_row(img) for img in unsupported])
+    supported_table = render_table(headers, [build_image_row(img, columns) for img in supported])
+    unsupported_table = render_table(
+        headers, [build_image_row(img, columns) for img in unsupported]
+    )
 
     # Render template
     template = Template(load_jinja2(template_path))
@@ -119,7 +113,7 @@ def generate_available_images(dry_run: bool = False) -> str:
     tables_content = []
 
     for repository in table_order:
-        images = [img for img in load_repository_images(repository) if img.is_supported()]
+        images = [img for img in load_repository_images(repository) if img.is_supported]
         if not images:
             continue
 
@@ -129,7 +123,7 @@ def generate_available_images(dry_run: bool = False) -> str:
             LOGGER.warning(f"No table config for {repository}, skipping")
             continue
 
-        display_name = images[0].get_display_name()
+        display_name = images[0].display_repository
         columns = table_config.get("columns", [])
         has_public_registry = check_public_registry(images, repository)
 

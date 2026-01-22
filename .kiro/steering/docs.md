@@ -49,11 +49,25 @@ docs/src/
 
 - `constants.py` - Path constants, global variables, and `GLOBAL_CONFIG`
 - `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`
-- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_public_registry_note()`, `check_public_registry()`
-- `image_config.py` - `ImageConfig` class, image loaders, sorting, legacy images, row building helpers
+- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_public_registry_note()`, `get_framework_order()`
+- `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`), `sort_by_version`, `get_latest_image`, `build_image_row`, `check_public_registry`
 - `generate.py` - `generate_support_policy()`, `generate_available_images()`, `generate_all()`
 - `macros.py` - MkDocs macros plugin integration
 - `hooks.py` - MkDocs hooks entry point
+
+### Module Import Structure
+
+The modules follow a strict import hierarchy to avoid circular imports:
+
+```
+constants.py  (no project imports)
+     ↓
+utils.py      (imports from constants)
+     ↓
+image_config.py (imports from constants and utils)
+```
+
+Functions that instantiate `ImageConfig` must stay in `image_config.py`. Functions that only use `GLOBAL_CONFIG` or utilities can live in `utils.py`.
 
 ### Global Configuration
 
@@ -87,22 +101,33 @@ img.framework_group  # "pytorch" (computed from GLOBAL_CONFIG, defaults to repos
 # Safe access with default
 img.get("cuda", "-")  # "cu130" or "-" if not present
 
-# Built-in methods
-img.is_supported()  # True if eop >= today
-img.has_support_dates()  # True if ga and eop fields exist
-img.get_display_name()  # "PyTorch Training" (uses GLOBAL_CONFIG)
+# Properties (no parentheses)
+img.is_supported  # True if eop >= today
+img.has_support_dates  # True if ga and eop fields exist
+img.display_repository  # "PyTorch Training" (uses GLOBAL_CONFIG)
+img.display_framework_group  # "PyTorch" (uses GLOBAL_CONFIG)
+
+# Display properties for table rendering
+img.display_framework_version  # "PyTorch 2.9"
+img.display_example_url  # formatted ECR URL
+img.display_platform  # "EC2, ECS, EKS" (mapped from "ec2")
+img.display_accelerator  # "GPU" (mapped from "gpu")
+
+# Generic display accessor (uses display_<field> property if exists, else raw value)
+img.get_display("platform")  # "EC2, ECS, EKS"
+img.get_display("python")  # "py312" (no display_ property, returns raw)
 ```
 
 ### Image Loading Functions
 
 ```python
-from image_config import load_repository_images, get_legacy_images
+from image_config import load_repository_images, load_legacy_images
 
 # Load all images for a repository
 images = load_repository_images("pytorch-training")  # list[ImageConfig]
 
 # Load legacy support policy images
-legacy = get_legacy_images()  # dict[str, list[ImageConfig]]
+legacy = load_legacy_images()  # dict[str, list[ImageConfig]]
 ```
 
 ### Sorting Functions
@@ -126,13 +151,10 @@ sorted_images = sort_by_version(
 ### Table Building
 
 ```python
-from image_config import build_image_row, get_field_display
+from image_config import build_image_row
 from utils import render_table
 
-# Get display value for a field (handles platform/accelerator mappings)
-value = get_field_display(img, "platform")  # "EC2, ECS, EKS"
-
-# Build a complete row
+# Build a complete row (uses img.get_display() internally)
 row = build_image_row(img, columns)  # ["PyTorch 2.9", "py312", ...]
 
 # Render markdown table
@@ -183,6 +205,9 @@ table = render_table(headers, rows)
        header: "Framework"
      - field: python
        header: "Python"
+     - field: framework
+       data: framework_group  # optional: use different data source for display
+       header: "Framework"
      # ... add columns in desired order
    ```
 
@@ -306,7 +331,7 @@ pytorch:
 
 - Legacy entries appear only in `support_policy.md` (unsupported section)
 - Images past their EOP date are automatically filtered from `available_images.md`
-- The `ImageConfig.is_supported()` method checks if `eop >= today`
+- The `ImageConfig.is_supported` property checks if `eop >= today`
 
 ## Update knowledge base
 

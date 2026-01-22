@@ -48,6 +48,12 @@ def load_jinja2(path: str | Path) -> str:
         return f.read()
 
 
+def write_output(path: str | Path, content: str) -> None:
+    """Write content to output file."""
+    with open(path, "w") as f:
+        f.write(content)
+
+
 def render_table(headers: list[str], rows: list[list[str]]) -> str:
     """Render headers and rows as a markdown table string."""
     if not rows:
@@ -56,12 +62,6 @@ def render_table(headers: list[str], rows: list[list[str]]) -> str:
     separator = "| " + " | ".join(["---"] * len(headers)) + " |"
     row_lines = ["| " + " | ".join(str(cell) for cell in row) + " |" for row in rows]
     return "\n".join([header_line, separator] + row_lines)
-
-
-def write_output(path: str | Path, content: str) -> None:
-    """Write content to output file."""
-    with open(path, "w") as f:
-        f.write(content)
 
 
 def parse_version(version_str: str | None) -> Version:
@@ -85,14 +85,22 @@ def build_public_registry_note(repository: str) -> str:
     return f"These images are also available in ECR Public Gallery: [{repository}]({url})\n"
 
 
-def check_public_registry(images: list, repository: str) -> bool:
-    """Check if repository images are available in public registry."""
-    if all(img.get("public_registry") for img in images):
-        return True
-    if any(img.get("public_registry") for img in images):
-        LOGGER.warning(
-            f"{repository} contains images with mixed public_registry values. "
-            "Please check if this is a mistake."
-        )
-        return True
-    return False
+def get_framework_order() -> list[str]:
+    """Derive framework order from table_order, collapsing framework groups."""
+    table_order = GLOBAL_CONFIG.get("table_order", [])
+    framework_groups = GLOBAL_CONFIG.get("framework_groups", {})
+
+    # Build reverse mapping: repo -> framework group
+    repo_to_group = {}
+    for group, repos in framework_groups.items():
+        for repo in repos:
+            repo_to_group[repo] = group
+
+    seen = set()
+    result = []
+    for repo in table_order:
+        key = repo_to_group.get(repo, repo)
+        if key not in seen:
+            seen.add(key)
+            result.append(key)
+    return result
