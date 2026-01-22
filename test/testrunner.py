@@ -297,6 +297,7 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "sagemaker",
+            "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
