@@ -26,10 +26,6 @@ inputs:
   target-stage:
     description: 'Target stage (e.g., gamma, release)'
     required: true
-  python-version:
-    description: 'Python version to use'
-    required: false
-    default: '3.12'
   arch:
     description: 'Architecture (amd64 or arm64)'
     required: false
@@ -46,11 +42,6 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ inputs.python-version }}
-
     - name: Install SOCI and nerdctl
       shell: bash
       run: |
@@ -100,11 +91,16 @@ runs:
           exit 1
         fi
 
+        echo "Creating virtual environment with uv..."
+        uv venv --python 3.12 .venv
+        source .venv/bin/activate
+
         echo "Installing release package..."
-        python -m pip install --upgrade pip
-        pip install -e ./${PACKAGE_DIR}
+        uv pip install -e ./${PACKAGE_DIR}
 
         echo "PACKAGE_DIR=${PACKAGE_DIR}" >> ${GITHUB_ENV}
+        echo "VIRTUAL_ENV=${PWD}/.venv" >> ${GITHUB_ENV}
+        echo "${PWD}/.venv/bin" >> ${GITHUB_PATH}
 
     - name: Set release environment variables
       shell: bash
