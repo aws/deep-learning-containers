@@ -26,7 +26,6 @@ from image_config import (
 from jinja2 import Template
 from sorter import accelerator_sorter, platform_sorter
 from utils import (
-    build_public_registry_note,
     get_framework_order,
     load_jinja2,
     load_table_config,
@@ -109,6 +108,7 @@ def generate_available_images(dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "available_images.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
+    display_names = GLOBAL_CONFIG.get("display_names", {})
     table_order = GLOBAL_CONFIG.get("table_order", [])
     tables_content = []
 
@@ -123,7 +123,7 @@ def generate_available_images(dry_run: bool = False) -> str:
             LOGGER.warning(f"No table config for {repository}, skipping")
             continue
 
-        display_name = images[0].display_repository
+        display_name = display_names[repository]
         columns = table_config.get("columns", [])
         has_public_registry = check_public_registry(images, repository)
 
@@ -136,7 +136,10 @@ def generate_available_images(dry_run: bool = False) -> str:
 
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
-            section += f"\n{build_public_registry_note(repository)}"
+            url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
+            section += (
+                f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
+            )
         section += f"\n{render_table(headers, rows)}"
         tables_content.append(section)
 

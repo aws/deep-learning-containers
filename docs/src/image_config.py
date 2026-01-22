@@ -132,7 +132,11 @@ class ImageConfig:
 
 
 def build_image_row(img: ImageConfig, columns: list[dict]) -> list[str]:
-    """Build a table row from an ImageConfig using column definitions."""
+    """Build a table row from an ImageConfig using column definitions.
+
+    In tables/<table>.yml, the <field> name will map to img.<field> / img.get(<field>) attribute.
+    If you need to do string manipulation on the field, create a new property with convention display_<field>.
+    """
     return [img.get_display(col.get("data", col["field"])) for col in columns]
 
 

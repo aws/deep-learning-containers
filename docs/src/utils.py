@@ -79,12 +79,6 @@ def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
     subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)
 
 
-def build_public_registry_note(repository: str) -> str:
-    """Build markdown note linking to ECR Public Gallery for a repository."""
-    url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
-    return f"These images are also available in ECR Public Gallery: [{repository}]({url})\n"
-
-
 def get_framework_order() -> list[str]:
     """Derive framework order from table_order, collapsing framework groups."""
     table_order = GLOBAL_CONFIG.get("table_order", [])
