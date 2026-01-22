@@ -18,7 +18,7 @@ import subprocess
 from pathlib import Path
 
 import yaml
-from constants import TABLES_DIR
+from constants import GLOBAL_CONFIG, TABLES_DIR
 from packaging.version import Version
 
 LOGGER = logging.getLogger(__name__)
@@ -81,8 +81,6 @@ def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
 
 def build_public_registry_note(repository: str) -> str:
     """Build markdown note linking to ECR Public Gallery for a repository."""
-    from constants import GLOBAL_CONFIG
-
     url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
     return f"These images are also available in ECR Public Gallery: [{repository}]({url})\n"
 

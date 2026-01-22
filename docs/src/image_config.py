@@ -16,8 +16,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from constants import DATA_DIR, GLOBAL_CONFIG
-from utils import load_yaml
+from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR
+from utils import load_yaml, parse_version
 
 
 class ImageConfig:
@@ -126,7 +126,6 @@ def sort_by_version(
     tiebreakers: list[callable] | None = None,
 ) -> list[ImageConfig]:
     """Sort ImageConfig objects by version descending with optional tiebreakers."""
-    from utils import parse_version
 
     def sort_key(img: ImageConfig):
         ver = parse_version(img.get("version"))
@@ -165,8 +164,6 @@ def get_legacy_images() -> dict[str, list[ImageConfig]]:
     Returns:
         Mapping of framework key to list of ImageConfig objects.
     """
-    from constants import LEGACY_DIR
-
     path = LEGACY_DIR / "legacy_support.yml"
     if not path.exists():
         return {}
@@ -186,8 +183,6 @@ def get_latest_image(repo: str, platform: str) -> str:
     Raises:
         ValueError: If no image found for the repository and platform combination.
     """
-    from utils import parse_version
-
     images = load_repository_images(repo)
 
     matching = [img for img in images if img.get("platform") == platform]
