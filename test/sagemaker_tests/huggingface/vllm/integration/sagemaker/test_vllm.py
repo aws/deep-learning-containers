@@ -17,7 +17,8 @@ import logging
 
 import pytest
 import sagemaker
-from sagemaker.huggingface import HuggingFaceModel
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
@@ -33,7 +34,6 @@ LOGGER = logging.getLogger(__name__)
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_bloom(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = "ml.g6.12xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
@@ -50,7 +50,6 @@ def test_vllm_bloom(framework_version, ecr_image, instance_type, sagemaker_regio
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_qwen(framework_version, ecr_image, instance_type, sagemaker_regions):
-    instance_type = "ml.g6.12xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,
@@ -72,13 +71,15 @@ def _test_vllm_model(
 ):
     """Test vLLM model deployment and inference using OpenAI-compatible API format
     
-    Note: Parameters must match what invoke_sm_endpoint_helper_function passes:
-    - image_uri: ECR image URI
-    - sagemaker_session: SageMaker session
-    - instance_type: ML instance type (passed via **test_function_args)
-    - model_id: HuggingFace model ID (passed via **test_function_args)
-    - framework_version: Optional version info (passed via **test_function_args)
-    - **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
+    Uses sagemaker.model.Model for SDK v3 compatibility instead of HuggingFaceModel.
+    
+    Args:
+        image_uri: ECR image URI
+        sagemaker_session: SageMaker session
+        instance_type: ML instance type
+        model_id: HuggingFace model ID
+        framework_version: Optional version info
+        **kwargs: Additional args from helper (boto_session, sagemaker_client, etc.)
     """
     endpoint_name = sagemaker.utils.unique_name_from_base("sagemaker-hf-vllm-serving")
 
@@ -88,19 +89,22 @@ def _test_vllm_model(
         "SM_VLLM_HOST": "0.0.0.0",
     }
 
-    hf_model = HuggingFaceModel(
-        env=env,
-        role="SageMakerRole",
+    model = Model(
+        name=endpoint_name,
         image_uri=image_uri,
+        role="SageMakerRole",
+        env=env,
         sagemaker_session=sagemaker_session,
+        predictor_cls=Predictor,
     )
 
     with timeout_and_delete_endpoint(endpoint_name, sagemaker_session, minutes=45):
-        predictor = hf_model.deploy(
+        predictor = model.deploy(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
             container_startup_health_check_timeout=1800,
+            inference_ami_version="al2-ami-sagemaker-inference-gpu-3-1",
         )
 
         predictor.serializer = JSONSerializer()
