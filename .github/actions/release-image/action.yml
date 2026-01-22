@@ -50,25 +50,35 @@ runs:
         echo "Using architecture: ${ARCH_SUFFIX}"
 
         # **************** SOCI SNAPSHOTTER *********************************************
-        echo "Installing SOCI for ${ARCH_SUFFIX}..."
-        SOCI_VERSION="0.11.1"
-        wget https://github.com/awslabs/soci-snapshotter/releases/download/v${SOCI_VERSION}/soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
-        sudo tar -C /usr/local/bin -xvf soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz soci soci-snapshotter-grpc
-        rm soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
-        soci --version
-        echo "Successfully installed SOCI v${SOCI_VERSION} for ${ARCH_SUFFIX}"
+        if command -v soci &> /dev/null; then
+          echo "SOCI already installed:"
+          soci --version
+        else
+          echo "Installing SOCI for ${ARCH_SUFFIX}..."
+          SOCI_VERSION="0.11.1"
+          wget https://github.com/awslabs/soci-snapshotter/releases/download/v${SOCI_VERSION}/soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+          sudo tar -C /usr/local/bin -xvf soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz soci soci-snapshotter-grpc
+          rm soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+          soci --version
+          echo "Successfully installed SOCI v${SOCI_VERSION} for ${ARCH_SUFFIX}"
+        fi
         # **************** END SOCI SNAPSHOTTER *****************************************
 
         # **************** NERDCTL ******************************************************
-        echo "Installing nerdctl for ${ARCH_SUFFIX}..."
-        export CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock
-        NERDCTL_VERSION="2.1.5"
-        wget https://github.com/containerd/nerdctl/releases/download/v${NERDCTL_VERSION}/nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
-        sudo tar -C /usr/local/bin -xzf nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
-        sudo chmod +x /usr/local/bin/nerdctl
-        rm nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
-        nerdctl --version
-        echo "Successfully installed nerdctl v${NERDCTL_VERSION} for ${ARCH_SUFFIX}"
+        if command -v nerdctl &> /dev/null; then
+          echo "nerdctl already installed:"
+          nerdctl --version
+        else
+          echo "Installing nerdctl for ${ARCH_SUFFIX}..."
+          export CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock
+          NERDCTL_VERSION="2.1.5"
+          wget https://github.com/containerd/nerdctl/releases/download/v${NERDCTL_VERSION}/nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+          sudo tar -C /usr/local/bin -xzf nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+          sudo chmod +x /usr/local/bin/nerdctl
+          rm nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+          nerdctl --version
+          echo "Successfully installed nerdctl v${NERDCTL_VERSION} for ${ARCH_SUFFIX}"
+        fi
         # **************** END NERDCTL **************************************************
 
         echo "CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock" >> ${GITHUB_ENV}
@@ -93,10 +103,21 @@ runs:
 
         echo "Creating virtual environment with uv..."
         uv venv --python 3.12 .venv
-        source .venv/bin/activate
 
         echo "Installing release package..."
         uv pip install -e ./${PACKAGE_DIR}
+
+        echo "Verifying installed scripts..."
+        ls -la .venv/bin/ | grep -E "publish_dlc_images|generate_dlc_image_release_information|publish_release_information" || echo "Warning: Scripts not found in .venv/bin/"
+
+        # Check if scripts were installed
+        if [ -f ".venv/bin/publish_dlc_images" ]; then
+          echo "✓ Scripts installed successfully in .venv/bin/"
+        else
+          echo "✗ Scripts not found in .venv/bin/"
+          echo "Checking if scripts are in the package..."
+          ls -la ${PACKAGE_DIR}/scripts/
+        fi
 
         echo "PACKAGE_DIR=${PACKAGE_DIR}" >> ${GITHUB_ENV}
         echo "VIRTUAL_ENV=${PWD}/.venv" >> ${GITHUB_ENV}
@@ -106,6 +127,13 @@ runs:
       shell: bash
       run: |
         echo "Setting release environment variables..."
+
+        # Verify scripts are in PATH
+        echo "Current PATH: ${PATH}"
+        echo "Checking for scripts..."
+        which publish_dlc_images || echo "publish_dlc_images not in PATH"
+        which generate_dlc_image_release_information || echo "generate_dlc_image_release_information not in PATH"
+        which publish_release_information || echo "publish_release_information not in PATH"
 
         # Create unique identifier for this run
         RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
@@ -149,7 +177,7 @@ runs:
         cat release_spec.yml
 
         # Run publish_dlc_images with source image URI and custom metadata file path
-        publish_dlc_images \
+        ${PACKAGE_DIR}/scripts/publish_dlc_images \
           --release-spec release_spec.yml \
           --source-image-uri "${{ inputs.source-image-uri }}" \
           --metadata-file "${METADATA_FILE}"
@@ -192,7 +220,7 @@ runs:
         cat ${METADATA_FILE}
 
         # Run generate_dlc_image_release_information with custom metadata file path and run ID
-        generate_dlc_image_release_information \
+        ${PACKAGE_DIR}/scripts/generate_dlc_image_release_information \
           --metadata-file "${METADATA_FILE}" \
           --run-id "${RUN_IDENTIFIER}"
 
@@ -217,7 +245,7 @@ runs:
         # 1. Load release info from S3 (uploaded in Step 2)
         # 2. Write image SHA to availability canaries bucket
         # 3. Publish SNS notifications
-        publish_release_information --run-id "${RUN_IDENTIFIER}"
+        ${PACKAGE_DIR}/scripts/publish_release_information --run-id "${RUN_IDENTIFIER}"
 
         echo "Step 3 completed: Release information published successfully"
         echo "success=true" >> ${GITHUB_OUTPUT}
