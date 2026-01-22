@@ -25,9 +25,10 @@ import os
 import sys
 
 from constants import TUTORIALS_REPO
+from file_loader import load_global_config
 from generate import generate_all, generate_available_images, generate_support_policy
 from logger import ColoredFormatter
-from utils import clone_git_repository, load_global_config
+from utils import clone_git_repository
 
 # Configure root logger - all child loggers inherit this
 root_logger = logging.getLogger()

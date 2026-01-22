@@ -22,6 +22,9 @@ eks_short: "EKS"
 ecr: "${amazon} ECR"
 ecr_short: "ECR"
 
+# Default value for empty/missing fields in tables
+default_empty_field: "-"
+
 # Platform display mappings (config value -> table display)
 platforms:
   ec2: "EC2, ECS, EKS"

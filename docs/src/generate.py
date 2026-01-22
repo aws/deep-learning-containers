@@ -13,26 +13,23 @@
 """Documentation generation functions."""
 
 import logging
+from collections import defaultdict
 from datetime import date
 
 from constants import AVAILABLE_IMAGES_TABLE_HEADER, REFERENCE_DIR, TEMPLATES_DIR
+from file_loader import load_global_config, load_jinja2, load_legacy_support, load_table_config
+from image_config import (
+    build_image_row,
+    load_all_images,
+    load_repository_images,
+    sort_images_for_table,
+    sort_support_entries,
+)
 from jinja2 import Template
 from utils import (
     build_public_registry_note,
-    build_table,
     check_public_registry,
-    consolidate_support_entries,
-    get_display_name,
-    group_images_by_version,
-    is_image_supported,
-    load_all_image_configs,
-    load_global_config,
-    load_image_configs,
-    load_legacy_support,
-    load_table_config,
-    make_support_policy_entry,
-    parse_version,
-    read_template,
+    render_table,
     write_output,
 )
 
@@ -45,70 +42,90 @@ def generate_support_policy(global_config: dict, dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "support_policy.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    all_images = load_all_image_configs()
+    all_images = load_all_images()
     today = date.today()
-    version_data = group_images_by_version(all_images)
-
-    # Separate supported and unsupported
-    supported = []
-    unsupported = []
     table_order = global_config.get("table_order", [])
-
-    for (repository, version), data in version_data.items():
-        eop_date = date.fromisoformat(data["eop"])
-        display_name = get_display_name(global_config, repository)
-        entry = make_support_policy_entry(
-            display_name, version, data["ga"], data["eop"], repository
-        )
-
-        if eop_date >= today:
-            supported.append(entry)
-        else:
-            unsupported.append(entry)
-
-    # Add legacy support entries (all unsupported)
-    legacy_data = load_legacy_support()
     framework_groups = global_config.get("framework_groups", {})
-    for (framework, version), data in legacy_data.items():
-        display_name = get_display_name(global_config, framework)
-        repos = framework_groups.get(framework, [])
-        # This variable does not matter for legacy images because fields are already consolidated.
-        # Defaulting this to first in the list
-        dummy_repo = repos[0] if repos else framework
-        unsupported.append(
-            make_support_policy_entry(display_name, version, data["ga"], data["eop"], dummy_repo)
-        )
 
-    # Consolidate entries by framework when GA/EOP dates match
-    supported = consolidate_support_entries(supported, framework_groups, table_order, global_config)
-    unsupported = consolidate_support_entries(
-        unsupported, framework_groups, table_order, global_config
+    # Group images by (framework_group or repository, version) and validate dates
+    version_data: dict[tuple[str, str], dict] = defaultdict(
+        lambda: {"ga": None, "eop": None, "repository": None}
     )
 
-    # Sort by table_order, then by version descending
-    def sort_key(item):
-        repo = item["_repository"]
-        if repo in table_order:
-            order = table_order.index(repo)
+    for repository, images in all_images.items():
+        for img in images:
+            if not img.has_support_dates():
+                continue
+
+            # Use framework group if available, otherwise repository
+            group_key = img.get_framework_group(global_config) or repository
+            key = (group_key, img.version)
+            data = version_data[key]
+
+            # Validate date consistency
+            if data["ga"] is not None and (data["ga"] != img.ga or data["eop"] != img.eop):
+                raise ValueError(
+                    f"Inconsistent dates for {group_key} {img.version}: "
+                    f"({data['ga']}, {data['eop']}) vs ({img.ga}, {img.eop})"
+                )
+
+            data["ga"] = img.ga
+            data["eop"] = img.eop
+            # Track first repository for sorting
+            if data["repository"] is None:
+                data["repository"] = repository
+
+    # Separate supported and unsupported
+    supported, unsupported = [], []
+    for (group_key, version), data in version_data.items():
+        eop_date = date.fromisoformat(data["eop"])
+        display_name = global_config["display_names"].get(group_key, group_key)
+        # For sorting: use first repo in framework group if it's a group, else the repository
+        if group_key in framework_groups:
+            sort_repo = framework_groups[group_key][0]
         else:
-            raise ValueError(
-                f"Table {repo} does not exists within the table order in global configuration."
-            )
-        ver = parse_version(item["version"])
-        return (order, -ver.major, -ver.minor, -ver.micro)
+            sort_repo = data["repository"]
+        entry = {
+            "framework": display_name,
+            "version": version,
+            "ga": data["ga"],
+            "eop": data["eop"],
+            "_sort_repo": sort_repo,
+        }
+        (supported if eop_date >= today else unsupported).append(entry)
 
-    supported.sort(key=sort_key)
-    unsupported.sort(key=sort_key)
+    # Add legacy entries (all unsupported)
+    legacy_data = load_legacy_support()
+    for (framework, version), data in legacy_data.items():
+        display_name = global_config["display_names"].get(framework, framework)
+        repos = framework_groups.get(framework, [])
+        unsupported.append(
+            {
+                "framework": display_name,
+                "version": version,
+                "ga": data["ga"],
+                "eop": data["eop"],
+                "_sort_repo": repos[0] if repos else framework,
+            }
+        )
 
-    # Build tables using shared table rendering
+    # Sort by table_order then version descending
+    supported = sort_support_entries(supported, table_order)
+    unsupported = sort_support_entries(unsupported, table_order)
+
+    # Build tables
     table_config = load_table_config("support_policy")
     columns = table_config.get("columns", [])
-    supported_table = build_table(supported, columns, global_config, "support_policy")
-    unsupported_table = build_table(unsupported, columns, global_config, "support_policy")
+    headers = [col["header"] for col in columns]
+
+    supported_rows = [[e[col["field"]] for col in columns] for e in supported]
+    unsupported_rows = [[e[col["field"]] for col in columns] for e in unsupported]
+
+    supported_table = render_table(headers, supported_rows)
+    unsupported_table = render_table(headers, unsupported_rows)
 
     # Render template
-    template_content = read_template(template_path)
-    template = Template(template_content)
+    template = Template(load_jinja2(template_path))
     content = template.render(
         supported_table=supported_table,
         unsupported_table=unsupported_table,
@@ -118,8 +135,6 @@ def generate_support_policy(global_config: dict, dry_run: bool = False) -> str:
     if not dry_run:
         write_output(output_path, content)
         LOGGER.debug(f"Wrote {output_path}")
-    else:
-        LOGGER.debug("Dry run - skipping write")
 
     LOGGER.info("Generated support_policy.md")
     return content
@@ -135,12 +150,12 @@ def generate_available_images(global_config: dict, dry_run: bool = False) -> str
     tables_content = []
 
     for repository in table_order:
-        images = load_image_configs(repository)
+        images = load_repository_images(repository)
         if not images:
             continue
 
-        # Filter out unsupported images (past EOP date)
-        images = [img for img in images if is_image_supported(img)]
+        # Filter supported images
+        images = [img for img in images if img.is_supported()]
         if not images:
             continue
 
@@ -150,31 +165,25 @@ def generate_available_images(global_config: dict, dry_run: bool = False) -> str
             LOGGER.warning(f"No table config for {repository}, skipping")
             continue
 
-        display_name = get_display_name(global_config, repository)
+        display_name = images[0].get_display_name(global_config)
         columns = table_config.get("columns", [])
         has_public_registry = check_public_registry(images, repository)
 
-        # Sort images: version desc, platform (sagemaker before ec2), accelerator (gpu before cpu)
-        def sort_key(img):
-            ver = parse_version(img.get("version"))
-            platform_order = 0 if img.get("platform") == "sagemaker" else 1
-            accel = img.get("accelerator", "").lower()
-            accel_order = 0 if accel == "gpu" else 1 if accel == "neuronx" else 2
-            return (-ver.major, -ver.minor, -ver.micro, platform_order, accel_order)
+        # Sort images
+        images = sort_images_for_table(images)
 
-        images.sort(key=sort_key)
+        # Build table
+        headers = [col["header"] for col in columns]
+        rows = [build_image_row(img, columns, global_config) for img in images]
 
-        # Build table section
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
             section += f"\n{build_public_registry_note(repository, global_config)}"
-
-        section += f"\n{build_table(images, columns, global_config, repository)}"
+        section += f"\n{render_table(headers, rows)}"
         tables_content.append(section)
 
-    # Render template with tables
-    template_content = read_template(template_path)
-    template = Template(template_content)
+    # Render template
+    template = Template(load_jinja2(template_path))
     content = template.render(
         tables_content="\n\n".join(tables_content),
         **global_config,
@@ -183,8 +192,6 @@ def generate_available_images(global_config: dict, dry_run: bool = False) -> str
     if not dry_run:
         write_output(output_path, content)
         LOGGER.debug(f"Wrote {output_path}")
-    else:
-        LOGGER.debug("Dry run - skipping write")
 
     LOGGER.info("Generated available_images.md")
     return content

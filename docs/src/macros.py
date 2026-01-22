@@ -12,7 +12,8 @@
 # language governing permissions and limitations under the License.
 """Documentation global variables for mkdocs-macros-plugin."""
 
-from utils import get_latest_image, load_global_config
+from file_loader import load_global_config
+from image_config import get_latest_image
 
 
 def define_env(env):
