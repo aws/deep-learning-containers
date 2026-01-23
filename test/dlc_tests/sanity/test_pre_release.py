@@ -182,7 +182,9 @@ def test_python_version(image):
     # stream to stderr (in some cases).
     container_py_version = output.stdout + output.stderr
 
-    assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
+    assert (
+        py_version in container_py_version
+    ), f"Cannot find {py_version} in {container_py_version}"
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -801,7 +803,8 @@ def test_cuda_paths(gpu):
         if image_spec["device_type"] == "gpu" and image_spec["tag"] == image_tag:
             image_tag_in_buildspec = True
             dockerfile_spec_abs_path = os.path.join(
-                os.path.dirname(framework_version_path), image_spec["docker_file"].lstrip("docker/")
+                os.path.dirname(framework_version_path),
+                image_spec["docker_file"].lstrip("docker/"),
             )
             break
     try:
@@ -922,7 +925,9 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
             expected_serving_version = "2.19"
 
         cmd = f"tensorflow_model_server --version"
-        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
+        output = ec2.execute_ec2_training_test(
+            ec2_connection, image, cmd, executable="bash"
+        ).stdout
         assert re.match(
             rf"TensorFlow ModelServer: {expected_serving_version}(\D+)?", output
         ), f"Cannot find model server version {expected_serving_version} in {output}"
@@ -1238,7 +1243,9 @@ def test_core_package_version(image):
     container_name = get_container_name("test_core_package_version", image)
     start_container(container_name, image, ctx)
     docker_exec_command = f"""docker exec --user root {container_name}"""
-    installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
+    installed_package_version_dict = get_installed_python_packages_with_version(
+        docker_exec_command
+    )
 
     violation_data = {}
 
