@@ -182,9 +182,7 @@ def test_python_version(image):
     # stream to stderr (in some cases).
     container_py_version = output.stdout + output.stderr
 
-    assert (
-        py_version in container_py_version
-    ), f"Cannot find {py_version} in {container_py_version}"
+    assert py_version in container_py_version, f"Cannot find {py_version} in {container_py_version}"
 
 
 @pytest.mark.usefixtures("sagemaker", "functionality_sanity")
@@ -925,9 +923,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
             expected_serving_version = "2.19"
 
         cmd = f"tensorflow_model_server --version"
-        output = ec2.execute_ec2_training_test(
-            ec2_connection, image, cmd, executable="bash"
-        ).stdout
+        output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
             rf"TensorFlow ModelServer: {expected_serving_version}(\D+)?", output
         ), f"Cannot find model server version {expected_serving_version} in {output}"
@@ -1243,9 +1239,7 @@ def test_core_package_version(image):
     container_name = get_container_name("test_core_package_version", image)
     start_container(container_name, image, ctx)
     docker_exec_command = f"""docker exec --user root {container_name}"""
-    installed_package_version_dict = get_installed_python_packages_with_version(
-        docker_exec_command
-    )
+    installed_package_version_dict = get_installed_python_packages_with_version(docker_exec_command)
 
     violation_data = {}
 
@@ -1253,9 +1247,9 @@ def test_core_package_version(image):
         package_name = package_name.lower()
         installed_version = None
         if package_name not in installed_package_version_dict:
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+            violation_data[package_name] = (
+                f"Package: {package_name} not installed in {installed_package_version_dict}"
+            )
         else:
             installed_version = Version(installed_package_version_dict[package_name])
         if installed_version and installed_version not in SpecifierSet(
@@ -1330,15 +1324,15 @@ def test_package_version_regression_in_image(image):
     violating_packages = {}
     for package_name, version_in_released_image in released_image_package_version_dict.items():
         if package_name not in current_image_package_version_dict:
-            violating_packages[
-                package_name
-            ] = "Not present in the image that is being currently built."
+            violating_packages[package_name] = (
+                "Not present in the image that is being currently built."
+            )
             continue
         version_in_current_image = current_image_package_version_dict[package_name]
         if Version(version_in_released_image) > Version(version_in_current_image):
-            violating_packages[
-                package_name
-            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            violating_packages[package_name] = (
+                f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            )
 
     assert (
         not violating_packages

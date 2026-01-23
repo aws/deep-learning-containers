@@ -141,11 +141,13 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/*
 
 
-# Upgrade pip, setuptools (with patched vendored wheel), and wheel to fix CVE-2026-24049
+# Upgrade pip, setuptools, and wheel to fix CVE-2026-24049
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
     "setuptools>=75.8.2" \
-    "wheel>=0.46.2"
+    "wheel>=0.46.2" \
+ && rm -rf /usr/local/lib/python*/site-packages/setuptools/_vendor/wheel* \
+ && rm -rf /usr/local/lib/python*/site-packages/setuptools/_distutils_hack/__pycache__
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
