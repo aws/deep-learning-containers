@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.6-cu129-amd64
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.7-cu129-amd64
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -47,7 +47,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/start_cuda_compat.sh \
   && rm /tmp/bash_telemetry.sh.template \
-  && uv pip install --system botocore \
+  && uv pip install --system --break-system-packages botocore \
   && uv cache clean
 
 # Install EFA and remove vulnerable nvjpeg
