@@ -256,6 +256,12 @@ def test_tf_serving_version_cpu(tensorflow_inference):
             "Skipping this test for TF 2.6.3 inference as the v2.6.3 version is already on production"
         )
 
+    # TF Serving 2.20 is not yet released, so TF 2.20 images use TF Serving 2.19
+    # Map TF 2.20.x to expected TF Serving 2.19.x
+    expected_serving_version = tag_framework_version
+    if Version(tag_framework_version) >= Version("2.20.0") and Version(tag_framework_version) < Version("2.21.0"):
+        expected_serving_version = "2.19"
+
     ctx = Context()
     container_name = get_container_name("tf-serving-version", image)
     start_container(container_name, image, ctx)
@@ -263,8 +269,8 @@ def test_tf_serving_version_cpu(tensorflow_inference):
         container_name, ctx, "tensorflow_model_server --version", executable="bash"
     )
     assert re.match(
-        rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output.stdout
-    ), f"Cannot find model server version {tag_framework_version} in {output.stdout}"
+        rf"TensorFlow ModelServer: {expected_serving_version}(\D+)?", output.stdout
+    ), f"Cannot find model server version {expected_serving_version} in {output.stdout}"
 
     stop_and_remove_container(container_name, ctx)
 
@@ -295,6 +301,11 @@ def test_tf_serving_api_version(tensorflow_inference):
 
     _, tag_framework_version = get_framework_and_version_from_tag(image)
 
+    # TF Serving 2.20 is not yet released, so TF 2.20 images use TF Serving API 2.19
+    expected_serving_api_version = tag_framework_version
+    if Version(tag_framework_version) >= Version("2.20.0") and Version(tag_framework_version) < Version("2.21.0"):
+        expected_serving_api_version = "2.19.0"
+
     ctx = Context()
     container_name = get_container_name("tf-serving-api-version", image)
     start_container(container_name, image, ctx)
@@ -302,8 +313,8 @@ def test_tf_serving_api_version(tensorflow_inference):
         output = run_cmd_on_container(container_name, ctx, cmd, executable="bash")
         str_version_from_output = ((str(output.stdout).split(" "))[1]).strip()
         assert (
-            tag_framework_version == str_version_from_output
-        ), f"Tensorflow serving API version is {str_version_from_output} while the Tensorflow version is {tag_framework_version}. Both don't match!"
+            expected_serving_api_version == str_version_from_output
+        ), f"Tensorflow serving API version is {str_version_from_output} while the expected version is {expected_serving_api_version}. Both don't match!"
     except Exception as e:
         LOGGER.error(f"Unable to execute command on container. Error: {e}")
         raise
@@ -899,11 +910,16 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
         ),
         image_repo_name,
     ):
+        # TF Serving 2.20 is not yet released, so TF 2.20 images use TF Serving 2.19
+        expected_serving_version = tag_framework_version
+        if Version(tag_framework_version) >= Version("2.20.0") and Version(tag_framework_version) < Version("2.21.0"):
+            expected_serving_version = "2.19"
+
         cmd = f"tensorflow_model_server --version"
         output = ec2.execute_ec2_training_test(ec2_connection, image, cmd, executable="bash").stdout
         assert re.match(
-            rf"TensorFlow ModelServer: {tag_framework_version}(\D+)?", output
-        ), f"Cannot find model server version {tag_framework_version} in {output}"
+            rf"TensorFlow ModelServer: {expected_serving_version}(\D+)?", output
+        ), f"Cannot find model server version {expected_serving_version} in {output}"
     else:
         # Framework name may include huggingface
         if any(
@@ -1093,6 +1109,10 @@ def test_license_file(image):
             framework = "tensorflow"
         else:
             raise Exception(f"Invalid huggingface framework detected: {framework}")
+
+    # TF 2.20 license is not yet available in S3, use TF 2.19 license
+    if framework == "tensorflow" and short_version == "2.20":
+        short_version = "2.19"
 
     LICENSE_FILE_BUCKET = "aws-dlc-licenses"
     local_repo_path = get_repository_local_path()
