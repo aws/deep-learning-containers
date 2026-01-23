@@ -16,7 +16,7 @@ env:
   # Common
   CONTAINER_TYPE: "general"
   FRAMEWORK: "sglang"
-  SGLANG_VERSION: "0.5.7"
+  SGLANG_VERSION: "0.5.8"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu22.04"
@@ -247,9 +247,9 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
-            # our CI suffers the same issue
-            export IS_BLACKWELL=1
+            # # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # # our CI suffers the same issue
+            # export IS_BLACKWELL=1
 
             bash scripts/ci/ci_install_dependency.sh
           '
@@ -427,9 +427,9 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} sh -c '
             set -eux
-            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
-            # our CI suffers the same issue
-            export IS_BLACKWELL=1
+            # # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # # our CI suffers the same issue
+            # export IS_BLACKWELL=1
 
             bash scripts/ci/ci_install_dependency.sh
           '
