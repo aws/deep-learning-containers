@@ -559,7 +559,6 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
-            "vllm": "Skipping - there are no local mode tests for VLLM",
             "sglang": "Skipping - there are no local mode tests for sglang",
         }
 
@@ -570,6 +569,13 @@ def main():
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
                 sm_utils.generate_empty_report(report, test_type, skip_condition)
                 return
+
+        # Skip base vllm (not huggingface_vllm) - huggingface_vllm has local tests
+        if "vllm" in dlc_images and "huggingface" not in dlc_images:
+            LOGGER.info(f"Skipping - there are no local mode tests for base VLLM. Images: {dlc_images}")
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "vllm")
+            return
 
         testing_image_list = [
             image
