@@ -14,7 +14,7 @@ common:
   python_version: "py312"
   cuda_version: "cu129"
   os_version: "ubuntu22.04"
-  customer_type: "ec2"
+  customer_type: "rayserve-ec2"
   arch_type: "x86"
   prod_image: "vllm:0.10-gpu-py312-rayserve"
   device_type: "gpu"
