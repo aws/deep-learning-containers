@@ -22,10 +22,19 @@ eks_short: "EKS"
 ecr: "${amazon} ECR"
 ecr_short: "ECR"
 
+# Default value for empty/missing fields in tables
+default_empty_field: "-"
+
 # Platform display mappings (config value -> table display)
 platforms:
   ec2: "EC2, ECS, EKS"
   sagemaker: "SageMaker"
+
+# Accelerator display mappings (config value -> table display)
+accelerators:
+  gpu: "GPU"
+  cpu: "CPU"
+  neuronx: "NeuronX"
 
 # ECR configuration
 example_ecr_account: "763104351884"
@@ -62,6 +71,7 @@ display_names:
   huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
   huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
   huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
+  autogluon: "AutoGluon"
   autogluon-training: "AutoGluon Training"
   autogluon-inference: "AutoGluon Inference"
   djl-inference: "DJL Inference"
