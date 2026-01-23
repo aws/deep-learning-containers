@@ -96,9 +96,10 @@ RUN apt-get update \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
+# Upgrade pip, setuptools (with patched vendored wheel), and wheel to fix CVE-2026-24049
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools \
+    "setuptools>=75.8.2" \
     "wheel>=0.46.2"
 
 RUN ${PIP} install --no-cache-dir \
@@ -111,7 +112,6 @@ RUN ${PIP} install --no-cache-dir \
     grpcio \
     "protobuf>=4.25.0,<6.0.0" \
     packaging \
-    "setuptools>=70.0.0" \
 # using --no-dependencies to avoid installing tensorflow binary
 # Note: Using TF Serving API 2.19.0 as 2.20.0 is not yet released
  && ${PIP} install --no-dependencies --no-cache-dir \
