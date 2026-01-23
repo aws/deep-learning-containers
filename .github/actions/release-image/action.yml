@@ -107,21 +107,18 @@ runs:
         echo "Installing release package..."
         uv pip install -e ./${PACKAGE_DIR}
 
-        echo "Verifying installed scripts..."
-        ls -la .venv/bin/ | grep -E "publish_dlc_images|generate_dlc_image_release_information|publish_release_information" || echo "Warning: Scripts not found in .venv/bin/"
+        echo "Making scripts executable and adding to PATH..."
+        chmod +x ${PACKAGE_DIR}/scripts/*
 
-        # Check if scripts were installed
-        if [ -f ".venv/bin/publish_dlc_images" ]; then
-          echo "✓ Scripts installed successfully in .venv/bin/"
-        else
-          echo "✗ Scripts not found in .venv/bin/"
-          echo "Checking if scripts are in the package..."
-          ls -la ${PACKAGE_DIR}/scripts/
-        fi
+        echo "Verifying scripts are executable..."
+        ls -la ${PACKAGE_DIR}/scripts/ | grep -E "publish_dlc_images|generate_dlc_image_release_information|publish_release_information"
 
         echo "PACKAGE_DIR=${PACKAGE_DIR}" >> ${GITHUB_ENV}
         echo "VIRTUAL_ENV=${PWD}/.venv" >> ${GITHUB_ENV}
+
+        # Add both venv/bin and scripts directory to PATH
         echo "${PWD}/.venv/bin" >> ${GITHUB_PATH}
+        echo "${PWD}/${PACKAGE_DIR}/scripts" >> ${GITHUB_PATH}
 
     - name: Set release environment variables
       shell: bash
@@ -177,7 +174,7 @@ runs:
         cat release_spec.yml
 
         # Run publish_dlc_images with source image URI and custom metadata file path
-        ${PACKAGE_DIR}/scripts/publish_dlc_images \
+        publish_dlc_images \
           --release-spec release_spec.yml \
           --source-image-uri "${{ inputs.source-image-uri }}" \
           --metadata-file "${METADATA_FILE}"
@@ -220,7 +217,7 @@ runs:
         cat ${METADATA_FILE}
 
         # Run generate_dlc_image_release_information with custom metadata file path and run ID
-        ${PACKAGE_DIR}/scripts/generate_dlc_image_release_information \
+        generate_dlc_image_release_information \
           --metadata-file "${METADATA_FILE}" \
           --run-id "${RUN_IDENTIFIER}"
 
@@ -245,7 +242,7 @@ runs:
         # 1. Load release info from S3 (uploaded in Step 2)
         # 2. Write image SHA to availability canaries bucket
         # 3. Publish SNS notifications
-        ${PACKAGE_DIR}/scripts/publish_release_information --run-id "${RUN_IDENTIFIER}"
+        publish_release_information --run-id "${RUN_IDENTIFIER}"
 
         echo "Step 3 completed: Release information published successfully"
         echo "success=true" >> ${GITHUB_OUTPUT}
