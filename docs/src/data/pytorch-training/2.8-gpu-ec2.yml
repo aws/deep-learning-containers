@@ -1,0 +1,11 @@
+framework: PyTorch
+version: "2.8"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: ec2
+tag: "2.8.0-gpu-py312-cu129-ubuntu22.04-ec2"
+ga: "2025-08-06"
+eop: "2026-08-06"
+public_registry: true

@@ -1,14 +1,16 @@
-# Using Deep Learning Containers
+# Using {{ dlc }}
 
-The following sections describe how to use Deep Learning Containers to run sample code from each of the frameworks on AWS infrastructure.
+The following sections describe how to use {{ dlc }} to run sample code from each of the frameworks on {{ aws }} infrastructure.
 
 ## Use Cases
 
-- For information on using Deep Learning Containers with SageMaker AI, see the [Use Your Own Algorithms or Models with SageMaker AI Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
+- For information on using {{ dlc }} with {{ sagemaker }}, see the
+  [Use Your Own Algorithms or Models with {{ sagemaker }} Documentation](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers.html).
 
-- To learn about using Deep Learning Containers with SageMaker AI HyperPod on EKS, see [Orchestrating SageMaker HyperPod clusters with Amazon EKS SageMaker AI](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
+- To learn about using {{ dlc }} with {{ sagemaker }} HyperPod on {{ eks }}, see
+  [Orchestrating SageMaker HyperPod clusters with {{ eks }} and {{ sagemaker }}](https://docs.aws.amazon.com/sagemaker/latest/dg/sagemaker-hyperpod-eks.html).
 
-## Running on SageMaker
+## Running on {{ sagemaker }}
 
 ### Using SageMaker Python SDK
 
@@ -130,9 +132,9 @@ sagemaker.create_endpoint(
 )
 ```
 
-## Running on EC2
+## Running on {{ ec2 }}
 
-#### Running PyTorch Training Container on an EC2 Instance
+#### Running PyTorch Training Container on an {{ ec2_short }} Instance
 
 ```bash
 # Run interactively

@@ -1,0 +1,11 @@
+framework: PyTorch
+version: "2.6"
+accelerator: gpu
+python: py312
+cuda: cu124
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
+ga: "2025-01-29"
+eop: "2026-01-29"
+public_registry: true

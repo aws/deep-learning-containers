@@ -1,0 +1,8 @@
+framework: PyTorch
+version: "2.1"
+accelerator: cpu
+python: py310
+transformers: "4.37.0"
+os: ubuntu22.04
+platform: sagemaker
+tag: "2.1.0-transformers4.37.0-cpu-py310-ubuntu22.04"

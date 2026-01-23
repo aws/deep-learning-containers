@@ -1,0 +1,7 @@
+framework: AutoGluon
+version: "1.4"
+accelerator: cpu
+python: py311
+os: ubuntu22.04
+platform: sagemaker
+tag: "1.4.0-cpu-py311-ubuntu22.04"
