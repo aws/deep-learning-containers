@@ -1,4 +1,4 @@
-FROM lmsysorg/sglang:v0.5.7-cu129-amd64 AS base
+FROM lmsysorg/sglang:v0.5.8-cu129-amd64 AS base
 
 # ====================================================
 # ====================== common ======================
