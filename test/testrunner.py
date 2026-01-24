@@ -402,7 +402,13 @@ def main():
                 return
 
             if framework == "sglang":
-                # sglang tests follow standard EC2/EKS test flow
+                # Skip telemetry tests for sglang (similar to vllm)
+                if specific_test_type == "telemetry":
+                    LOGGER.info(f"Skipping telemetry tests for sglang images. Images: {dlc_images}")
+                    report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+                    sm_utils.generate_empty_report(report, test_type, "sglang")
+                    return
+                # sglang tests follow standard EC2/EKS test flow for other test types
                 pass
 
             # Only set up EKS cluster for EKS tests, not EC2 tests

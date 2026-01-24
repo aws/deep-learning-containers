@@ -5,6 +5,7 @@ Tests SGLang inference capabilities on EC2 instances
 
 import time
 import os
+import pytest
 from test.test_utils.ec2 import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
@@ -18,31 +19,31 @@ DATASET_URL = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_un
 DEFAULT_REGION = "us-west-2"
 
 
-def setup_docker_image(connection, image_uri):
+def setup_docker_image(ec2_connection, image_uri):
     """Pull SGLang Docker image from ECR"""
     account_id = get_account_id_from_image_uri(image_uri)
-    login_to_ecr_registry(connection, account_id, DEFAULT_REGION)
+    login_to_ecr_registry(ec2_connection, account_id, DEFAULT_REGION)
     print(f"Pulling SGLang image: {image_uri}")
-    connection.run(f"docker pull {image_uri}", hide="out")
+    ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
 
-def setup_dataset(connection):
+def setup_dataset(ec2_connection):
     """Download ShareGPT dataset for benchmarking"""
-    connection.run("mkdir -p /tmp/dataset")
+    ec2_connection.run("mkdir -p /tmp/dataset")
 
-    dataset_check = connection.run(
+    dataset_check = ec2_connection.run(
         "test -f /tmp/dataset/ShareGPT_V3_unfiltered_cleaned_split.json && echo 'exists' || echo 'missing'",
         hide=True,
     )
 
     if "missing" in dataset_check.stdout:
         print("Downloading ShareGPT dataset...")
-        connection.run(f"wget -P /tmp/dataset {DATASET_URL}")
+        ec2_connection.run(f"wget -P /tmp/dataset {DATASET_URL}")
     else:
         print("ShareGPT dataset already exists. Skipping download.")
 
 
-def cleanup_containers(connection):
+def cleanup_containers(ec2_connection):
     """Cleanup all Docker containers"""
     try:
         print("Cleaning up containers...")
@@ -51,12 +52,15 @@ def cleanup_containers(connection):
             "docker ps -aq | xargs -r docker rm",
         ]
         for cmd in commands:
-            connection.run(cmd, hide=True, warn=True)
+            ec2_connection.run(cmd, hide=True, warn=True)
     except Exception as e:
         print(f"Cleanup warning: {e}")
 
 
-def test_sglang_ec2_local_benchmark(connection, image_uri):
+@pytest.mark.model("Qwen3-0.6B")
+@pytest.mark.processor("gpu")
+@pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_GPU_INSTANCE_TYPE], indirect=True)
+def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
     """
     Test SGLang local benchmark on EC2 using ShareGPT dataset
 
@@ -72,8 +76,8 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
         print("=" * 80 + "\n")
 
         # Setup
-        setup_docker_image(connection, image_uri)
-        setup_dataset(connection)
+        setup_docker_image(ec2_connection, sglang_inference)
+        setup_dataset(ec2_connection)
 
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
@@ -86,7 +90,7 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
             -v /tmp/dataset:/dataset \
             -p 30000:30000 \
             -e HF_TOKEN={hf_token} \
-            {image_uri} \
+            {sglang_inference} \
             --model-path Qwen/Qwen3-0.6B \
             --reasoning-parser qwen3 \
             --host 0.0.0.0 \
@@ -94,7 +98,7 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
         """
 
         print("Starting SGLang server container...")
-        connection.run(container_cmd)
+        ec2_connection.run(container_cmd)
 
         # Wait for server startup
         print("Waiting for serving endpoint startup (120s)...")
@@ -102,7 +106,7 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
 
         # Check container logs
         print("\nContainer logs:")
-        connection.run(f"docker logs {container_name}")
+        ec2_connection.run(f"docker logs {container_name}")
 
         # Run benchmark
         print("\nRunning SGLang benchmark...")
@@ -116,23 +120,22 @@ def test_sglang_ec2_local_benchmark(connection, image_uri):
             --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
         """
 
-        result = connection.run(benchmark_cmd)
+        result = ec2_connection.run(benchmark_cmd)
 
         if result.return_code == 0:
             print("\n✓ SGLang local benchmark test passed successfully")
-            return True
         else:
             print(f"\n✗ Benchmark test failed with return code {result.return_code}")
-            return False
+            raise AssertionError(f"Benchmark test failed with return code {result.return_code}")
 
-    except Exception as e:
-        print(f"\nLocal benchmark test failed: {str(e)}")
-        return False
     finally:
-        cleanup_containers(connection)
+        cleanup_containers(ec2_connection)
 
 
-def test_sglang_ec2_upstream(connection, image_uri):
+@pytest.mark.model("Qwen3-0.6B")
+@pytest.mark.processor("gpu")
+@pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE], indirect=True)
+def test_sglang_ec2_upstream(ec2_connection, sglang_inference):
     """
     Test SGLang upstream test suite on EC2
 
@@ -149,15 +152,15 @@ def test_sglang_ec2_upstream(connection, image_uri):
         print("=" * 80 + "\n")
 
         # Setup
-        setup_docker_image(connection, image_uri)
+        setup_docker_image(ec2_connection, sglang_inference)
 
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
 
         # Clone SGLang source
         print("Cloning SGLang source repository...")
-        connection.run("rm -rf /tmp/sglang_source", warn=True)
-        connection.run(
+        ec2_connection.run("rm -rf /tmp/sglang_source", warn=True)
+        ec2_connection.run(
             f"git clone --branch v{SGLANG_VERSION} --depth 1 "
             f"https://github.com/sgl-project/sglang.git /tmp/sglang_source"
         )
@@ -171,19 +174,20 @@ def test_sglang_ec2_upstream(connection, image_uri):
             -v /tmp/sglang_source:/workdir \
             --workdir /workdir \
             -e HF_TOKEN={hf_token} \
-            {image_uri}
+            {sglang_inference} \
+            -c "tail -f /dev/null"
         """
 
         print("Starting SGLang container with bash entrypoint...")
-        connection.run(container_cmd)
+        ec2_connection.run(container_cmd)
 
         # Install test dependencies
         print("\nInstalling SGLang test dependencies...")
-        connection.run(f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh")
+        ec2_connection.run(f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh")
 
         # Check GPU availability
         print("\nChecking GPU availability:")
-        connection.run(f"docker exec {container_name} nvidia-smi")
+        ec2_connection.run(f"docker exec {container_name} nvidia-smi")
 
         # Run upstream test suite
         print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
@@ -195,95 +199,14 @@ def test_sglang_ec2_upstream(connection, image_uri):
         '
         """
 
-        result = connection.run(test_cmd)
+        result = ec2_connection.run(test_cmd)
 
         if result.return_code == 0:
             print("\n✓ SGLang upstream test passed successfully")
-            return True
         else:
             print(f"\n✗ Upstream test failed with return code {result.return_code}")
-            return False
+            raise AssertionError(f"Upstream test failed with return code {result.return_code}")
 
-    except Exception as e:
-        print(f"\nUpstream test failed: {str(e)}")
-        return False
     finally:
-        cleanup_containers(connection)
-        connection.run("rm -rf /tmp/sglang_source", warn=True)
-
-
-def test_sglang_on_ec2(resources, image_uri):
-    """
-    Main test orchestrator for SGLang EC2 tests
-
-    Runs both local benchmark and upstream tests on EC2 instances
-
-    Args:
-        resources: Dictionary containing instance information
-        image_uri: SGLang Docker image URI to test
-    """
-    from fabric import Connection
-
-    ec2_connections = {}
-    test_results = {"local_benchmark": None, "upstream": None}
-
-    try:
-        # Setup connections to EC2 instances
-        for instance_id, key_filename in resources["instances_info"]:
-            try:
-                # Get instance public IP
-                public_ip = resources.get("public_ips", {}).get(instance_id)
-
-                if not public_ip:
-                    raise Exception(f"No public IP found for instance {instance_id}")
-
-                connection = Connection(
-                    host=public_ip,
-                    user="ec2-user",
-                    connect_kwargs={"key_filename": key_filename},
-                )
-
-                # Test connection
-                connection.run('echo "Connection test"', hide=True)
-                ec2_connections[instance_id] = connection
-                print(f"Successfully connected to instance {instance_id}")
-
-            except Exception as e:
-                print(f"Failed to connect to instance {instance_id}: {str(e)}")
-                raise
-
-        # Get primary connection
-        instance_ids = list(ec2_connections.keys())
-        head_conn = ec2_connections[instance_ids[0]]
-
-        # Run tests
-        print("\n" + "=" * 80)
-        print("Starting SGLang EC2 Tests")
-        print("=" * 80)
-
-        # Test 1: Local Benchmark
-        test_results["local_benchmark"] = test_sglang_ec2_local_benchmark(head_conn, image_uri)
-
-        # Test 2: Upstream Tests
-        test_results["upstream"] = test_sglang_ec2_upstream(head_conn, image_uri)
-
-        # Print summary
-        print("\n" + "=" * 80)
-        print("Test Summary")
-        print("=" * 80)
-        for test_name, result in test_results.items():
-            if result is not None:
-                status = "✓ Passed" if result else "✗ Failed"
-                print(f"{test_name.replace('_', ' ').title()}: {status}")
-            else:
-                print(f"{test_name.replace('_', ' ').title()}: Not Run")
-
-        # Check if any test failed
-        if not all(result for result in test_results.values() if result is not None):
-            raise Exception("One or more SGLang tests failed")
-
-        print("\n✓ All SGLang EC2 tests passed successfully")
-
-    except Exception as e:
-        print(f"\nTest execution failed: {str(e)}")
-        raise
+        cleanup_containers(ec2_connection)
+        ec2_connection.run("rm -rf /tmp/sglang_source", warn=True)
