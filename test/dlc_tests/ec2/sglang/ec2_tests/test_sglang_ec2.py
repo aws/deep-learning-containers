@@ -60,6 +60,7 @@ def cleanup_containers(ec2_connection):
 @pytest.mark.model("Qwen3-0.6B")
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_GPU_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_key_name", [None], indirect=True)
 def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
     """
     Test SGLang local benchmark on EC2 using ShareGPT dataset
@@ -135,6 +136,7 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
 @pytest.mark.model("Qwen3-0.6B")
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE], indirect=True)
+@pytest.mark.parametrize("ec2_key_name", [None], indirect=True)
 def test_sglang_ec2_upstream(ec2_connection, sglang_inference):
     """
     Test SGLang upstream test suite on EC2
