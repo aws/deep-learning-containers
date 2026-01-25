@@ -167,13 +167,14 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
 
         # Start container with bash entrypoint
         container_name = "sglang_upstream"
+        hf_token_env = f"-e HF_TOKEN={hf_token}" if hf_token else ""
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
             --entrypoint /bin/bash \
-            -v /home/ubuntu/.cache/huggingface:/root/.cache/huggingface \
+            -v /home/ec2-user/.cache/huggingface:/root/.cache/huggingface \
             -v /tmp/sglang_source:/workdir \
             --workdir /workdir \
-            -e HF_TOKEN={hf_token} \
+            {hf_token_env} \
             {sglang} \
             -c "tail -f /dev/null"
         """
