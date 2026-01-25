@@ -3,10 +3,11 @@ from test.test_utils import ec2 as ec2_utils
 
 
 @pytest.fixture(scope="session")
-def sglang_inference():
+def sglang():
     """
-    SGLang inference fixture - parametrized automatically by pytest_generate_tests in main conftest.py
+    SGLang fixture - parametrized automatically by pytest_generate_tests in main conftest.py
     This fixture will be populated with image URIs that match 'sglang' in the repository name.
+    The repo name is just "sglang", not "sglang-inference".
     """
     pass
 

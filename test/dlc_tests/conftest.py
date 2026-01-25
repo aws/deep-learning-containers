@@ -110,7 +110,7 @@ FRAMEWORK_FIXTURES = (
     # Autogluon
     "autogluon_training",
     # SGLang
-    "sglang_inference",
+    "sglang",
     # Processor fixtures
     "gpu",
     "cpu",
@@ -1016,7 +1016,7 @@ def _check_sglang_telemetry_skip(request):
     # Check if sglang_inference fixture is being used
     if "sglang_inference" in request.fixturenames:
         pytest.skip("Telemetry tests are not supported for SGLang images")
-    
+
     # Also check for gpu/cpu fixtures with SGLang images
     for fixture_name in ["gpu", "cpu"]:
         if fixture_name in request.fixturenames:

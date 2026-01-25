@@ -61,7 +61,7 @@ def cleanup_containers(ec2_connection):
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_GPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_key_name", [None], indirect=True)
-def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
+def test_sglang_ec2_local_benchmark(ec2_connection, sglang):
     """
     Test SGLang local benchmark on EC2 using ShareGPT dataset
 
@@ -77,7 +77,7 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
         print("=" * 80 + "\n")
 
         # Setup
-        setup_docker_image(ec2_connection, sglang_inference)
+        setup_docker_image(ec2_connection, sglang)
         setup_dataset(ec2_connection)
 
         # Get HuggingFace token
@@ -91,7 +91,7 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
             -v /tmp/dataset:/dataset \
             -p 30000:30000 \
             -e HF_TOKEN={hf_token} \
-            {sglang_inference} \
+            {sglang} \
             --model-path Qwen/Qwen3-0.6B \
             --reasoning-parser qwen3 \
             --host 0.0.0.0 \
@@ -137,7 +137,7 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang_inference):
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE], indirect=True)
 @pytest.mark.parametrize("ec2_key_name", [None], indirect=True)
-def test_sglang_ec2_upstream(ec2_connection, sglang_inference):
+def test_sglang_ec2_upstream(ec2_connection, sglang):
     """
     Test SGLang upstream test suite on EC2
 
@@ -154,7 +154,7 @@ def test_sglang_ec2_upstream(ec2_connection, sglang_inference):
         print("=" * 80 + "\n")
 
         # Setup
-        setup_docker_image(ec2_connection, sglang_inference)
+        setup_docker_image(ec2_connection, sglang)
 
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
@@ -176,7 +176,7 @@ def test_sglang_ec2_upstream(ec2_connection, sglang_inference):
             -v /tmp/sglang_source:/workdir \
             --workdir /workdir \
             -e HF_TOKEN={hf_token} \
-            {sglang_inference} \
+            {sglang} \
             -c "tail -f /dev/null"
         """
 
