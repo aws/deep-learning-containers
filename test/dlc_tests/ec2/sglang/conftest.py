@@ -2,15 +2,16 @@ import pytest
 from test.test_utils import ec2 as ec2_utils
 
 
-@pytest.fixture(scope="function")
-def sglang_inference(request):
+@pytest.fixture(scope="session")
+def sglang_inference():
     """
-    Fixture to provide SGLang image URI
+    SGLang inference fixture - parametrized automatically by pytest_generate_tests in main conftest.py
+    This fixture will be populated with image URIs that match 'sglang' in the repository name.
     """
-    return request.config.getoption("--image-uri")
+    pass
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="session")
 def gpu_only():
     """SGLang requires GPU"""
-    return True
+    pass
