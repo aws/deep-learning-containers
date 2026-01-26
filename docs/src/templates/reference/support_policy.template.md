@@ -9,16 +9,8 @@
 
 ## Supported Frameworks
 
-| Framework | Version | GA Date | EOP Date |
-| --- | --- | --- | --- |
-{% for item in supported -%}
-| {{ item.framework }} | {{ item.version }} | {{ item.ga }} | {{ item.eop }} |
-{% endfor %}
+{{ supported_table }}
 
 ## Unsupported Frameworks
 
-| Framework | Version | GA Date | EOP Date |
-| --- | --- | --- | --- |
-{% for item in unsupported -%}
-| {{ item.framework }} | {{ item.version }} | {{ item.ga }} | {{ item.eop }} |
-{% endfor %}
+{{ unsupported_table }}

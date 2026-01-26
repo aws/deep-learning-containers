@@ -33,14 +33,132 @@ docs/src/
 │   └── ...
 ├── legacy/                        # Historical support data
 │   └── legacy_support.yml
-├── constants.py                   # Path constants and global variables
+├── constants.py                   # Path constants, global variables, and GLOBAL_CONFIG
 ├── generate.py                    # Generation logic
 ├── global.yml                     # Shared terminology and configuration
 ├── hooks.py                       # MkDocs hooks
+├── image_config.py                # ImageConfig class and image-related functions
 ├── logger.py                      # Logging configuration
 ├── macros.py                      # MkDocs macros
 ├── main.py                        # CLI entry point
-└── utils.py                       # Reusable helper functions
+├── sorter.py                      # Sorting tiebreaker functions
+└── utils.py                       # Utility functions (file loading, table rendering, etc.)
+```
+
+### File Responsibilities
+
+- `constants.py` - Path constants, global variables, and `GLOBAL_CONFIG`
+- `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`
+- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_public_registry_note()`, `get_framework_order()`
+- `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`), `sort_by_version`, `get_latest_image`, `build_image_row`, `check_public_registry`
+- `generate.py` - `generate_support_policy()`, `generate_available_images()`, `generate_all()`
+- `macros.py` - MkDocs macros plugin integration
+- `hooks.py` - MkDocs hooks entry point
+
+### Module Import Structure
+
+The modules follow a strict import hierarchy to avoid circular imports:
+
+```
+constants.py  (no project imports)
+     ↓
+utils.py      (imports from constants)
+     ↓
+image_config.py (imports from constants and utils)
+```
+
+Functions that instantiate `ImageConfig` must stay in `image_config.py`. Functions that only use `GLOBAL_CONFIG` or utilities can live in `utils.py`.
+
+### Global Configuration
+
+The global configuration is loaded once at module import time in `constants.py` and exposed as `GLOBAL_CONFIG`. This eliminates the need to pass `global_config` to most functions.
+
+```python
+from constants import GLOBAL_CONFIG
+
+# Access any config value
+table_order = GLOBAL_CONFIG.get("table_order", [])
+display_names = GLOBAL_CONFIG["display_names"]
+```
+
+### ImageConfig Class
+
+The `ImageConfig` class provides a dynamic, config-driven interface for image data:
+
+```python
+from image_config import ImageConfig, load_repository_images
+
+# Load from YAML file
+img = ImageConfig.from_yaml(Path("data/pytorch-training/2.9-gpu-ec2.yml"), "pytorch-training")
+
+# Access any YAML field as attribute
+img.version  # "2.9"
+img.framework  # "PyTorch"
+img.accelerator  # "gpu"
+img.repository  # "pytorch-training"
+img.framework_group  # "pytorch" (computed from GLOBAL_CONFIG, defaults to repository)
+
+# Safe access with default
+img.get("cuda", "-")  # "cu130" or "-" if not present
+
+# Properties (no parentheses)
+img.is_supported  # True if eop >= today
+img.has_support_dates  # True if ga and eop fields exist
+img.display_repository  # "PyTorch Training" (uses GLOBAL_CONFIG)
+img.display_framework_group  # "PyTorch" (uses GLOBAL_CONFIG)
+
+# Display properties for table rendering
+img.display_framework_version  # "PyTorch 2.9"
+img.display_example_url  # formatted ECR URL
+img.display_platform  # "EC2, ECS, EKS" (mapped from "ec2")
+img.display_accelerator  # "GPU" (mapped from "gpu")
+
+# Generic display accessor (uses display_<field> property if exists, else raw value)
+img.get_display("platform")  # "EC2, ECS, EKS"
+img.get_display("python")  # "py312" (no display_ property, returns raw)
+```
+
+### Image Loading Functions
+
+```python
+from image_config import load_repository_images, load_legacy_images
+
+# Load all images for a repository
+images = load_repository_images("pytorch-training")  # list[ImageConfig]
+
+# Load legacy support policy images
+legacy = load_legacy_images()  # dict[str, list[ImageConfig]]
+```
+
+### Sorting Functions
+
+```python
+from image_config import sort_by_version
+
+# Sort images by version descending
+sorted_images = sort_by_version(images)
+
+# Sort with tiebreakers (for available_images: platform, then accelerator)
+sorted_images = sort_by_version(
+    images,
+    tiebreakers=[
+        lambda img: 0 if img.get("platform") == "sagemaker" else 1,
+        lambda img: {"gpu": 0, "neuronx": 1, "cpu": 2}.get(img.get("accelerator", "").lower(), 3),
+    ],
+)
+```
+
+### Table Building
+
+```python
+from image_config import build_image_row
+from utils import render_table
+
+# Build a complete row (uses img.get_display() internally)
+row = build_image_row(img, columns)  # ["PyTorch 2.9", "py312", ...]
+
+# Render markdown table
+table = render_table(headers, rows)
 ```
 
 ### Adding a New Image
@@ -87,6 +205,9 @@ docs/src/
        header: "Framework"
      - field: python
        header: "Python"
+     - field: framework
+       data: framework_group  # optional: use different data source for display
+       header: "Framework"
      # ... add columns in desired order
    ```
 
@@ -166,9 +287,10 @@ Images in `available_images.md` are automatically sorted by:
 ### Running Generation
 
 ```bash
-# Development
-cd docs && source .venv/bin/activate
-cd src && python main.py --verbose
+# Development (use venv in base directory)
+cd /path/to/deep-learning-containers
+source .venv/bin/activate
+cd docs/src && python main.py --verbose
 
 # With MkDocs (automatic via hooks)
 mkdocs serve
@@ -178,7 +300,7 @@ mkdocs build
 ### Support Policy Logic
 
 - Scans all image configs for `ga` and `eop` fields
-- Groups by (repository, version)
+- Groups by (framework_group or repository, version)
 - Validates consistency within each group
 - Auto-determines supported/unsupported by comparing `eop` to current date
 - Uses `display_names` for Framework column
@@ -187,17 +309,10 @@ mkdocs build
 
 Historical support policy data for older, unsupported images is stored in `docs/src/legacy/legacy_support.yml`.
 
-#### Directory Structure
-
-```
-docs/src/legacy/
-└── legacy_support.yml    # Historical support data
-```
-
 #### File Format
 
 ```yaml
-PyTorch:
+pytorch:
   - version: "2.5"
     ga: "2024-10-29"
     eop: "2025-10-29"
@@ -216,37 +331,9 @@ PyTorch:
 
 - Legacy entries appear only in `support_policy.md` (unsupported section)
 - Images past their EOP date are automatically filtered from `available_images.md`
-- The `is_image_supported()` function checks if `eop >= today`
-
-## Code Organization
-
-### File Responsibilities
-
-- `generate.py` - Contains only `generate_*` functions for documentation generation
-- `utils.py` - Contains all reusable helper functions
-- `macros.py` - MkDocs macros plugin integration
-- `hooks.py` - MkDocs hooks entry point
-- `constants.py` - All path constants and global variables
-
-### utils.py Conventions
-
-All functions in `utils.py` must:
-
-1. Have a docstring explaining what the function does
-1. Be fully typed with type hints
-1. Document exceptions raised (if any)
-
-Example:
-
-```python
-def get_display_name(global_config: dict, repository: str) -> str:
-    """Get human-readable display name for a repository.
-
-    Raises:
-        KeyError: If repository not found in global config display_names.
-    """
-```
+- The `ImageConfig.is_supported` property checks if `eop >= today`
 
 ## Update knowledge base
 
-If there are any new changes to the documentations generation and organization, make sure to update you knowledge base in the steering/docs.md file.
+If there are any new changes to the documentations generation and organization, make sure to update you knowledge base in the steering/docs.md file and any runbook or update to processes should also be updated in DEVELOPMENT.md files.
+This is done so that developers get the most up-to-date information on the current codebase.

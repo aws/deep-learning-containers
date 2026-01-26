@@ -12,15 +12,14 @@
 # language governing permissions and limitations under the License.
 """Documentation global variables for mkdocs-macros-plugin."""
 
-from utils import get_latest_image, load_global_config
+from constants import GLOBAL_CONFIG
+from image_config import get_latest_image
 
 
 def define_env(env):
     """Define variables for mkdocs-macros-plugin."""
-    global_config = load_global_config()
-
     # Expose all global config variables to mkdocs macros
-    for key, value in global_config.items():
+    for key, value in GLOBAL_CONFIG.items():
         if isinstance(value, str):
             env.variables[key] = value
 
