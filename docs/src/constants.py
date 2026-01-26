@@ -24,7 +24,11 @@ LEGACY_DIR = SRC_DIR / "legacy"
 TABLES_DIR = SRC_DIR / "tables"
 TEMPLATES_DIR = SRC_DIR / "templates"
 REFERENCE_DIR = DOCS_DIR / "reference"
+RELEASE_NOTES_DIR = DOCS_DIR / "releasenotes"
 TUTORIALS_DIR = DOCS_DIR / "tutorials"
+
+# Release notes configuration
+RELEASE_NOTES_REQUIRED_FIELDS = ["announcement", "packages"]
 GLOBAL_CONFIG_PATH = SRC_DIR / "global.yml"
 
 AVAILABLE_IMAGES_TABLE_HEADER = "##"

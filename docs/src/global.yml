@@ -38,23 +38,29 @@ accelerators:
 
 # ECR configuration
 example_ecr_account: "763104351884"
+
+# External URLs
 public_gallery_url: "https://gallery.ecr.aws/deep-learning-containers"
+security_bulletin_url: "https://aws.amazon.com/security/security-bulletins/"
+github_repo_url: "https://github.com/aws/deep-learning-containers"
 
 # =============================================================================
-# Repository Display Names
+# Display Names
 # =============================================================================
-# Used in available_images.md table headers and support_policy.md Framework column
-# REQUIRED: Error raised if repository not listed here
+# Consolidated display names for repositories, frameworks, and packages
+# Used in available_images.md, support_policy.md, and release notes
 # =============================================================================
 display_names:
-  # Framework groups (for support policy consolidation)
+  # Framework groups
+  pytorch: "PyTorch"
+  tensorflow: "TensorFlow"
+  autogluon: "AutoGluon"
+
   # Repositories
   base: "Base"
   sglang: "SGLang"
   vllm: "vLLM"
   vllm-arm64: "vLLM ARM64"
-  pytorch: "PyTorch"
-  tensorflow: "TensorFlow"
   pytorch-training: "PyTorch Training"
   pytorch-training-arm64: "PyTorch Training ARM64"
   pytorch-inference: "PyTorch Inference"
@@ -71,7 +77,6 @@ display_names:
   huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
   huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
   huggingface-tensorflow-inference: "HuggingFace TensorFlow Inference"
-  autogluon: "AutoGluon"
   autogluon-training: "AutoGluon Training"
   autogluon-inference: "AutoGluon Inference"
   djl-inference: "DJL Inference"
@@ -79,6 +84,21 @@ display_names:
   stabilityai-pytorch-inference: "StabilityAI PyTorch Inference"
   pytorch-trcomp-training: "PyTorch Training Compiler"
   huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
+
+  # Packages
+  python: "Python"
+  cuda: "CUDA"
+  cudnn: "cuDNN"
+  nccl: "NCCL"
+  efa: "EFA"
+  torchvision: "TorchVision"
+  torchaudio: "TorchAudio"
+  torchdata: "TorchData"
+  torchtnt: "TorchTNT"
+  transformers: "Transformers"
+  transformer_engine: "Transformer Engine"
+  flash_attn: "Flash Attention"
+  neuronx_sdk: "NeuronX SDK"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation

@@ -24,7 +24,12 @@ import logging
 import sys
 
 from constants import TUTORIALS_DIR, TUTORIALS_REPO
-from generate import generate_all, generate_available_images, generate_support_policy
+from generate import (
+    generate_all,
+    generate_available_images,
+    generate_release_notes,
+    generate_support_policy,
+)
 from logger import ColoredFormatter
 from utils import clone_git_repository
 
@@ -57,6 +62,9 @@ def main():
     exclusive_group.add_argument(
         "--clone-tutorials", action="store_true", help="Clone only aws-samples tutorials repository"
     )
+    exclusive_group.add_argument(
+        "--release-notes-only", action="store_true", help="Generate only release notes"
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -68,6 +76,7 @@ def main():
         "support_policy_only": lambda: generate_support_policy(args.dry_run),
         "available_images_only": lambda: generate_available_images(args.dry_run),
         "clone_tutorials": lambda: clone_git_repository(TUTORIALS_REPO, TUTORIALS_DIR),
+        "release_notes_only": lambda: generate_release_notes(args.dry_run),
     }
 
     for flag, action in actions.items():

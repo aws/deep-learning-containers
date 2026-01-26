@@ -64,6 +64,16 @@ def render_table(headers: list[str], rows: list[list[str]]) -> str:
     return "\n".join([header_line, separator] + row_lines)
 
 
+def build_ecr_uri(account: str, repository: str, tag: str, region: str = "<region>") -> str:
+    """Build ECR URI string."""
+    return f"{account}.dkr.ecr.{region}.amazonaws.com/{repository}:{tag}"
+
+
+def build_public_ecr_uri(repository: str, tag: str) -> str:
+    """Build public ECR URI string."""
+    return f"public.ecr.aws/deep-learning-containers/{repository}:{tag}"
+
+
 def parse_version(version_str: str | None) -> Version:
     """Parse version string safely, returning Version("0") on failure."""
     try:

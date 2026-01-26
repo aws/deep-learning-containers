@@ -14,11 +14,18 @@
 
 import logging
 
-from constants import AVAILABLE_IMAGES_TABLE_HEADER, GLOBAL_CONFIG, REFERENCE_DIR, TEMPLATES_DIR
+from constants import (
+    AVAILABLE_IMAGES_TABLE_HEADER,
+    GLOBAL_CONFIG,
+    REFERENCE_DIR,
+    RELEASE_NOTES_DIR,
+    TEMPLATES_DIR,
+)
 from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
+    load_images_by_framework_group,
     load_legacy_images,
     load_repository_images,
     sort_by_version,
@@ -42,19 +49,18 @@ def generate_support_policy(dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "support_policy.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    framework_groups = GLOBAL_CONFIG.get("framework_groups", {})
     legacy_data = load_legacy_images()
-
     supported, unsupported = [], []
 
-    for framework_key in get_framework_order():
-        # Get repos for this framework (group or single repo)
-        repos = framework_groups.get(framework_key, [framework_key])
+    # Load images with support dates, grouped by framework_group
+    images_by_group = load_images_by_framework_group(lambda img: img.has_support_dates)
 
-        # Load images with support dates from all repos in group
-        images = []
-        for repo in repos:
-            images.extend(img for img in load_repository_images(repo) if img.has_support_dates)
+    if not images_by_group:
+        LOGGER.info("No support policy tables to generate")
+        return
+
+    for framework_key in get_framework_order():
+        images = images_by_group.get(framework_key, [])
 
         # Deduplicate by version, validating date consistency
         version_map: dict[str, ImageConfig] = {}
@@ -158,11 +164,90 @@ def generate_available_images(dry_run: bool = False) -> str:
     return content
 
 
+def generate_release_notes(dry_run: bool = False) -> None:
+    """Generate release notes from image configs with release notes fields."""
+    LOGGER.debug("Generating release notes")
+
+    template_path = TEMPLATES_DIR / "releasenotes" / "release_note.template.md"
+    index_template_path = TEMPLATES_DIR / "releasenotes" / "index.template.md"
+    display_names = GLOBAL_CONFIG.get("display_names", {})
+
+    # Load images with release notes, grouped by framework_group
+    images_by_group = load_images_by_framework_group(lambda img: img.has_release_notes)
+
+    if not images_by_group:
+        LOGGER.info("No release notes to generate")
+        return
+
+    release_template = Template(load_jinja2(template_path))
+    index_template = Template(load_jinja2(index_template_path))
+
+    for group in get_framework_order():
+        images = images_by_group.get(group)
+        if not images:
+            continue
+
+        group_dir = RELEASE_NOTES_DIR / group
+        if not dry_run:
+            group_dir.mkdir(parents=True, exist_ok=True)
+
+        # Generate individual release notes
+        index_entries: dict[str, list] = {}  # version -> list of entries
+        for img in sort_by_version(images, tiebreakers=[platform_sorter, accelerator_sorter]):
+            # Determine type from repository name
+            repo_type = "Training" if "training" in img.repository else "Inference"
+            if "training" not in img.repository and "inference" not in img.repository:
+                repo_type = img.display_repository
+
+            content = release_template.render(
+                title=f"{img.display_repository} {img.version} on {img.display_platform}",
+                framework=img.get("framework"),
+                version=img.get("version"),
+                platform_display=img.display_platform,
+                announcement=img.get("announcement", []),
+                packages=img.get("packages", {}),
+                image_uris=img.get_image_uris(),
+                known_issues=img.get("known_issues"),
+                **GLOBAL_CONFIG,
+            )
+
+            output_path = group_dir / img.release_note_filename
+            if not dry_run:
+                write_output(output_path, content)
+                LOGGER.debug(f"Wrote {output_path}")
+
+            # Collect for index
+            version = img.get("version")
+            index_entries.setdefault(version, []).append(
+                {
+                    "platform": img.display_platform,
+                    "type": repo_type,
+                    "title": f"{img.display_repository} {version} on {img.display_platform}",
+                    "filename": img.release_note_filename,
+                }
+            )
+
+        # Generate index for this framework group
+        index_content = index_template.render(
+            framework_display=display_names.get(group, group),
+            releases_by_version=index_entries,
+            **GLOBAL_CONFIG,
+        )
+
+        index_path = group_dir / "index.md"
+        if not dry_run:
+            write_output(index_path, index_content)
+            LOGGER.debug(f"Wrote {index_path}")
+
+    LOGGER.info("Generated release notes")
+
+
 def generate_all(dry_run: bool = False) -> None:
     """Generate all documentation files."""
     LOGGER.info("Loaded global config")
 
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
+    generate_release_notes(dry_run)
 
     LOGGER.info("Documentation generation complete")
