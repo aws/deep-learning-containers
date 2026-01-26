@@ -258,6 +258,19 @@ docs/releasenotes/
     └── ...
 ```
 
+**Framework index page structure:**
+
+The framework-specific `index.md` uses table rendering (like `available_images.md` and `support_policy.md`) with columns defined in `tables/release_notes.yml`:
+
+- Repository, Framework, Platform, Accelerator, Link
+
+The index separates release notes into two sections:
+
+1. **Supported images** - Images where `eop >= today` or no EOP date is set
+1. **Deprecated images** - Images where `eop < today`, displayed in a warning admonition
+
+This separation uses the `ImageConfig.is_supported` property.
+
 **Generated release note sections:**
 
 1. **Announcement** - Bullet list from `announcement` field
@@ -427,4 +440,5 @@ pytorch:
 ## Update knowledge base
 
 If there are any new changes to the documentations generation and organization, make sure to update you knowledge base in the steering/docs.md file and any runbook or update to processes should also be updated in DEVELOPMENT.md files.
-This is done so that developers get the most up-to-date information on the current codebase.
+This is done so that developers get the most up-to-date information on the current codebase. Be sure to not let this steering document get too large since it will overflow the context window.
+If the document gets longer than 500 lines, make sure to delete unnecessary sections and condense verbose sections where necessary. Also, do not delete comments unless the it is unnecessary.

@@ -91,6 +91,11 @@ class ImageConfig:
         """Generate release note filename: <repo>-<version>-<accelerator>-<platform>.md"""
         return f"{self._repository}-{self.get('version')}-{self.get('accelerator')}-{self.get('platform')}.md"
 
+    @property
+    def display_release_note_link(self) -> str:
+        """Markdown link to the release note file."""
+        return f"[Release Notes]({self.release_note_filename})"
+
     def get_image_uris(self) -> list[str]:
         """Get list of image URIs (private ECR + public ECR if available)."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])

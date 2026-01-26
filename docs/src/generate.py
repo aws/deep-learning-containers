@@ -68,8 +68,10 @@ def generate_support_policy(dry_run: bool = False) -> str:
             existing = version_map.get(img.version)
             if existing and (existing.ga != img.ga or existing.eop != img.eop):
                 raise ValueError(
-                    f"Inconsistent dates for {framework_key} {img.version}: "
-                    f"({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
+                    f"Inconsistent dates for {framework_key} {img.version}: \n"
+                    f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
+                    f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
+                    f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
                 )
             version_map[img.version] = img
 
@@ -83,7 +85,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
             (supported if img.is_supported else unsupported).append(img)
 
     # Build tables
-    table_config = load_table_config("support_policy")
+    table_config = load_table_config("extra/support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
@@ -181,6 +183,9 @@ def generate_release_notes(dry_run: bool = False) -> None:
 
     release_template = Template(load_jinja2(template_path))
     index_template = Template(load_jinja2(index_template_path))
+    table_config = load_table_config("extra/release_notes")
+    columns = table_config.get("columns", [])
+    headers = [col["header"] for col in columns]
 
     for group in get_framework_order():
         images = images_by_group.get(group)
@@ -191,14 +196,9 @@ def generate_release_notes(dry_run: bool = False) -> None:
         if not dry_run:
             group_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate individual release notes
-        index_entries: dict[str, list] = {}  # version -> list of entries
+        # Generate individual release notes and collect for index
+        supported, deprecated = [], []
         for img in sort_by_version(images, tiebreakers=[platform_sorter, accelerator_sorter]):
-            # Determine type from repository name
-            repo_type = "Training" if "training" in img.repository else "Inference"
-            if "training" not in img.repository and "inference" not in img.repository:
-                repo_type = img.display_repository
-
             content = release_template.render(
                 title=f"{img.display_repository} {img.version} on {img.display_platform}",
                 framework=img.get("framework"),
@@ -216,21 +216,23 @@ def generate_release_notes(dry_run: bool = False) -> None:
                 write_output(output_path, content)
                 LOGGER.debug(f"Wrote {output_path}")
 
-            # Collect for index
-            version = img.get("version")
-            index_entries.setdefault(version, []).append(
-                {
-                    "platform": img.display_platform,
-                    "type": repo_type,
-                    "title": f"{img.display_repository} {version} on {img.display_platform}",
-                    "filename": img.release_note_filename,
-                }
-            )
+            (supported if img.is_supported else deprecated).append(img)
+
+        # Build tables
+        supported_table = render_table(
+            headers, [build_image_row(img, columns) for img in supported]
+        )
+        deprecated_table = (
+            render_table(headers, [build_image_row(img, columns) for img in deprecated])
+            if deprecated
+            else ""
+        )
 
         # Generate index for this framework group
         index_content = index_template.render(
             framework_display=display_names.get(group, group),
-            releases_by_version=index_entries,
+            supported_table=supported_table,
+            deprecated_table=deprecated_table,
             **GLOBAL_CONFIG,
         )
 

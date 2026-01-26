@@ -11,3 +11,11 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+
+announcement:
+  - "Introduced containers for PyTorch 2.6.0 for inference supporting EC2, ECS, and EKS"
+  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+
+packages:
+  python: "3.12"
+  pytorch: "2.6.0"

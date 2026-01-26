@@ -30,13 +30,13 @@ def load_yaml(path: str | Path) -> dict:
         return yaml.safe_load(f)
 
 
-def load_table_config(repository: str) -> dict:
+def load_table_config(table_path: str) -> dict:
     """Load table column configuration for a repository.
 
     Raises:
         FileNotFoundError: If table config file does not exist.
     """
-    path = TABLES_DIR / f"{repository}.yml"
+    path = TABLES_DIR / f"{table_path}.yml"
     if not path.exists():
         raise FileNotFoundError(f"Table config not found: {path}")
     return load_yaml(path)
