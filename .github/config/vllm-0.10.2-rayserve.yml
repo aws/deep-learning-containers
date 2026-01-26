@@ -25,6 +25,6 @@ release:
   force_release: true
   public_registry: true
   private_registry: true
-  enable_soci: false
+  enable_soci: true
   source_stage: private
   target_stage: gamma

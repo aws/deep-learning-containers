@@ -1,0 +1,227 @@
+name: Reusable Release Image Workflow
+
+on:
+  workflow_call:
+    inputs:
+      source-image-uri:
+        description: 'Source image URI to release'
+        required: true
+        type: string
+      release-spec:
+        description: 'Release specification YAML content'
+        required: true
+        type: string
+      source-stage:
+        description: 'Source stage (e.g., private, beta)'
+        required: true
+        type: string
+      target-stage:
+        description: 'Target stage (e.g., gamma, release)'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region'
+        required: false
+        type: string
+        default: 'us-west-2'
+      runner-fleet:
+        description: 'CodeBuild runner fleet'
+        required: false
+        type: string
+        default: 'default-runner'
+    outputs:
+      run-identifier:
+        description: 'Unique identifier for this release run'
+        value: ${{ jobs.step1-publish-images.outputs.run-identifier }}
+
+jobs:
+  step1-publish-images:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    outputs:
+      run-identifier: ${{ steps.setup.outputs.run-identifier }}
+      metadata-file-name: ${{ steps.setup.outputs.metadata-file-name }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Install SOCI and nerdctl
+        run: |
+          echo "Installing SOCI and nerdctl..."
+          ARCH_SUFFIX="amd64"
+
+          # SOCI SNAPSHOTTER
+          if command -v soci &> /dev/null; then
+            echo "SOCI already installed:"
+            soci --version
+          else
+            echo "Installing SOCI for ${ARCH_SUFFIX}..."
+            SOCI_VERSION="0.11.1"
+            wget https://github.com/awslabs/soci-snapshotter/releases/download/v${SOCI_VERSION}/soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo tar -C /usr/local/bin -xvf soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz soci soci-snapshotter-grpc
+            rm soci-snapshotter-${SOCI_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            soci --version
+          fi
+
+          # NERDCTL
+          if command -v nerdctl &> /dev/null; then
+            echo "nerdctl already installed:"
+            nerdctl --version
+          else
+            echo "Installing nerdctl for ${ARCH_SUFFIX}..."
+            export CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock
+            NERDCTL_VERSION="2.1.5"
+            wget https://github.com/containerd/nerdctl/releases/download/v${NERDCTL_VERSION}/nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo tar -C /usr/local/bin -xzf nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            sudo chmod +x /usr/local/bin/nerdctl
+            rm nerdctl-${NERDCTL_VERSION}-linux-${ARCH_SUFFIX}.tar.gz
+            nerdctl --version
+          fi
+
+          echo "CONTAINERD_ADDRESS=/var/run/docker/containerd/containerd.sock" >> ${GITHUB_ENV}
+
+      - name: Setup release environment
+        id: setup
+        run: |
+          RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          METADATA_FILE="/tmp/release_metadata_${RUN_IDENTIFIER}.dict"
+
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+
+          echo "run-identifier=${RUN_IDENTIFIER}" >> ${GITHUB_OUTPUT}
+          echo "metadata-file-name=release_metadata_${RUN_IDENTIFIER}.dict" >> ${GITHUB_OUTPUT}
+
+      - name: Publish DLC Images
+        run: |
+          echo "=========================================="
+          echo "Step 1: Publishing DLC Images"
+          echo "=========================================="
+
+          cat > release_spec.yml <<'EOF'
+          ${{ inputs.release-spec }}
+          EOF
+
+          echo "Release specification:"
+          cat release_spec.yml
+
+          publish_dlc_images \
+            --release-spec release_spec.yml \
+            --source-image-uri "${{ inputs.source-image-uri }}" \
+            --metadata-file "${METADATA_FILE}"
+
+          echo "✅ Step 1 completed: Images published successfully"
+
+          if [ -f "${METADATA_FILE}" ]; then
+            echo "Release metadata created:"
+            cat ${METADATA_FILE}
+          else
+            echo "❌ Error: Metadata file not found"
+            exit 1
+          fi
+
+      - name: Upload metadata artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-metadata-${{ steps.setup.outputs.run-identifier }}
+          path: ${{ env.METADATA_FILE }}
+          retention-days: 7
+
+  step2-generate-info:
+    needs: [step1-publish-images]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download metadata artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
+          path: /tmp/
+
+      - name: Setup environment
+        run: |
+          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
+          METADATA_FILE="/tmp/${{ needs.step1-publish-images.outputs.metadata-file-name }}"
+
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+
+      - name: Generate Release Information
+        run: |
+          echo "=========================================="
+          echo "Step 2: Generating Release Information"
+          echo "=========================================="
+
+          if [ ! -f "${METADATA_FILE}" ]; then
+            echo "❌ Error: Metadata file not found at ${METADATA_FILE}"
+            exit 1
+          fi
+
+          echo "Release metadata from Step 1:"
+          cat ${METADATA_FILE}
+
+          generate_dlc_image_release_information \
+            --metadata-file "${METADATA_FILE}" \
+            --run-id "${RUN_IDENTIFIER}"
+
+          echo "✅ Step 2 completed: Release information generated and uploaded to S3"
+
+  step3-publish-notifications:
+    needs: [step1-publish-images, step2-generate-info]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup release package
+        uses: ./.github/actions/setup-release-package
+        with:
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Setup environment
+        run: |
+          RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
+          echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
+          echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+
+      - name: Publish Release Information
+        run: |
+          echo "=========================================="
+          echo "Step 3: Publishing Release Information"
+          echo "=========================================="
+
+          publish_release_information --run-id "${RUN_IDENTIFIER}"
+
+          echo "✅ Step 3 completed: Release information published successfully"
+          echo ""
+          echo "=========================================="
+          echo "🎉 All release steps completed successfully!"
+          echo "=========================================="
