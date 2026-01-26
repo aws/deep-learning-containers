@@ -6,4 +6,7 @@ sdk: "2.20.0"
 transformers: "4.48.1"
 os: ubuntu20.04
 platform: sagemaker
-tag: "2.1.2-transformers4.48.1-neuronx-py310-sdk2.20.0-ubuntu20.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.1.2-transformers4.48.1-neuronx-py310-sdk2.20.0-ubuntu20.04"

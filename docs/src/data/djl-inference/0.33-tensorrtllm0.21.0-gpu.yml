@@ -1,8 +1,10 @@
 framework: DJLServing
 version: "0.33"
 accelerator: gpu
-python: "-"
 cuda: cu128
 engine: "TensorRT-LLM 0.21.0"
 platform: sagemaker
-tag: "0.33.0-tensorrtllm0.21.0-cu128"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "0.33.0-tensorrtllm0.21.0-cu128"
