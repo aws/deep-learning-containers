@@ -84,6 +84,7 @@ def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
         except Exception:
             return Version("0")
 
+
 def get_framework_order() -> list[str]:
     """Derive framework order from table_order, collapsing framework groups."""
     table_order = GLOBAL_CONFIG.get("table_order", [])
