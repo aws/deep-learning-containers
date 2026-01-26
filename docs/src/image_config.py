@@ -175,7 +175,7 @@ def build_image_row(img: ImageConfig, columns: list[dict]) -> list[str]:
     In tables/<table>.yml, the <field> name will map to img.<field> / img.get(<field>) attribute.
     If you need to do string manipulation on the field, create a new property with convention display_<field>.
     """
-    return [img.get_display(col.get("data", col["field"])) for col in columns]
+    return [img.get_display(col["field"]) for col in columns]
 
 
 def load_repository_images(repository: str) -> list[ImageConfig]:

@@ -12,6 +12,17 @@
 # language governing permissions and limitations under the License.
 """Sorting tiebreaker functions for image tables."""
 
+from constants import GLOBAL_CONFIG
+
+
+def repository_sorter(img) -> int:
+    """Repository order: by table_order index."""
+    table_order = GLOBAL_CONFIG.get("table_order", [])
+    try:
+        return table_order.index(img.repository)
+    except ValueError:
+        return len(table_order)
+
 
 def platform_sorter(img) -> int:
     """Platform order: SageMaker before EC2."""

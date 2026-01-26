@@ -1,12 +1,9 @@
 columns:
   - field: repository
-    data: repository
-    header: "Repository"
-  - field: framework_version
     header: "Framework"
-  - field: platform
-    header: "Platform"
   - field: accelerator
     header: "Accelerator"
+  - field: platform
+    header: "Platform"
   - field: release_note_link
     header: "Link"

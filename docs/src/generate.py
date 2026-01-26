@@ -31,11 +31,12 @@ from image_config import (
     sort_by_version,
 )
 from jinja2 import Template
-from sorter import accelerator_sorter, platform_sorter
+from sorter import accelerator_sorter, platform_sorter, repository_sorter
 from utils import (
     get_framework_order,
     load_jinja2,
     load_table_config,
+    parse_version,
     render_table,
     write_output,
 )
@@ -59,8 +60,8 @@ def generate_support_policy(dry_run: bool = False) -> str:
         LOGGER.info("No support policy tables to generate")
         return
 
-    for framework_key in get_framework_order():
-        images = images_by_group.get(framework_key, [])
+    for framework_group in get_framework_order():
+        images = images_by_group.get(framework_group, [])
 
         # Deduplicate by version, validating date consistency
         version_map: dict[str, ImageConfig] = {}
@@ -68,7 +69,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
             existing = version_map.get(img.version)
             if existing and (existing.ga != img.ga or existing.eop != img.eop):
                 raise ValueError(
-                    f"Inconsistent dates for {framework_key} {img.version}: \n"
+                    f"Inconsistent dates for {framework_group} {img.version}: \n"
                     f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
                     f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
                     f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
@@ -76,7 +77,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
             version_map[img.version] = img
 
         # Merge legacy entries for this framework
-        for legacy_img in legacy_data.get(framework_key, []):
+        for legacy_img in legacy_data.get(framework_group, []):
             if legacy_img.version not in version_map:
                 version_map[legacy_img.version] = legacy_img
 
@@ -187,18 +188,19 @@ def generate_release_notes(dry_run: bool = False) -> None:
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    for group in get_framework_order():
-        images = images_by_group.get(group)
-        if not images:
+    for framework_group in get_framework_order():
+        group_images = images_by_group.get(framework_group)
+        if not group_images:
             continue
 
-        group_dir = RELEASE_NOTES_DIR / group
+        group_dir = RELEASE_NOTES_DIR / framework_group
         if not dry_run:
             group_dir.mkdir(parents=True, exist_ok=True)
 
-        # Generate individual release notes and collect for index
-        supported, deprecated = [], []
-        for img in sort_by_version(images, tiebreakers=[platform_sorter, accelerator_sorter]):
+        framework_display = display_names.get(framework_group, framework_group)
+
+        # Generate individual release notes
+        for img in group_images:
             content = release_template.render(
                 title=f"{img.display_repository} {img.version} on {img.display_platform}",
                 framework=img.get("framework"),
@@ -216,23 +218,47 @@ def generate_release_notes(dry_run: bool = False) -> None:
                 write_output(output_path, content)
                 LOGGER.debug(f"Wrote {output_path}")
 
-            (supported if img.is_supported else deprecated).append(img)
+        # Group images by framework version
+        images_by_version: dict[str, list[ImageConfig]] = {}
+        for img in group_images:
+            images_by_version.setdefault(img.version, []).append(img)
 
-        # Build tables
-        supported_table = render_table(
-            headers, [build_image_row(img, columns) for img in supported]
+        # Sort framework versions descending
+        sorted_framework_versions = sorted(
+            images_by_version.keys(), key=parse_version, reverse=True
         )
-        deprecated_table = (
-            render_table(headers, [build_image_row(img, columns) for img in deprecated])
-            if deprecated
-            else ""
-        )
+
+        # Build version-separated content for supported and deprecated
+        supported_sections, deprecated_sections = [], []
+        for framework_version in sorted_framework_versions:
+            sorted_images = sort_by_version(
+                images_by_version[framework_version],
+                tiebreakers=[repository_sorter, platform_sorter, accelerator_sorter],
+            )
+
+            # Separate supported and deprecated for this version
+            supported_images = [img for img in sorted_images if img.is_supported]
+            deprecated_images = [img for img in sorted_images if not img.is_supported]
+
+            if supported_images:
+                table = render_table(
+                    headers, [build_image_row(img, columns) for img in supported_images]
+                )
+                supported_sections.append(f"### {framework_display} {framework_version}\n\n{table}")
+
+            if deprecated_images:
+                table = render_table(
+                    headers, [build_image_row(img, columns) for img in deprecated_images]
+                )
+                deprecated_sections.append(
+                    f"### {framework_display} {framework_version}\n\n{table}"
+                )
 
         # Generate index for this framework group
         index_content = index_template.render(
-            framework_display=display_names.get(group, group),
-            supported_table=supported_table,
-            deprecated_table=deprecated_table,
+            framework_display=framework_display,
+            supported_content="\n\n".join(supported_sections),
+            deprecated_content="\n\n".join(deprecated_sections),
             **GLOBAL_CONFIG,
         )
 
