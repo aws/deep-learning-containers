@@ -224,6 +224,7 @@ Starting LMI V10 (0.28.0), we are changing the name from LMI DeepSpeed DLC to LM
 
 | Framework                                                                                                                   | Job Type  | Accelerator | Python Version Options | Example URL                                                                               |
 |-----------------------------------------------------------------------------------------------------------------------------|-----------|-------------|------------------------|-------------------------------------------------------------------------------------------|
+| DJLServing 0.36.0 with vLLM 0.14.0, Transformers 4.57.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.36.0-lmi19.0.0-cu128 |
 | DJLServing 0.36.0 with vLLM 0.12.0, Transformers 4.57.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.36.0-lmi18.0.0-cu128 |
 | DJLServing 0.35.0 with vLLM 0.11.1, Transformers 4.57.1, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.35.0-lmi17.0.0-cu128 |
 | DJLServing 0.34.0 with vLLM 0.10.2, Transformers 4.55.2, and Accelerate 1.0.1 | inference | GPU | 3.12 (py312) | 763104351884.dkr.ecr.us-west-2.amazonaws.com/djl-inference:0.34.0-lmi16.0.0-cu128 |
