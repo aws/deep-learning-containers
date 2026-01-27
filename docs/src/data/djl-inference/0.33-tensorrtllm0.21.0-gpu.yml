@@ -1,7 +1,6 @@
 framework: DJLServing
 version: "0.33"
 accelerator: gpu
-python: "-"
 cuda: cu128
 engine: "TensorRT-LLM 0.21.0"
 platform: sagemaker

@@ -1,7 +1,6 @@
 framework: DJLServing
 version: "0.36"
 accelerator: cpu
-python: "-"
 engine: "CPU Full"
 platform: sagemaker
 tag: "0.36.0-cpu-full"
