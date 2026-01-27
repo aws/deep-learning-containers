@@ -92,15 +92,15 @@ def _assert_vllm_chat_prediction(predictor):
 
 @pytest.mark.model("qwen2.5-0.5b")
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_local_completions(ecr_image, sagemaker_local_session, instance_type):
+def test_vllm_local_completions(docker_image, sagemaker_local_session, instance_type):
     """Test vLLM local deployment with completions API."""
-    with _predictor(ecr_image, sagemaker_local_session, instance_type) as predictor:
+    with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
         _assert_vllm_prediction(predictor)
 
 
 @pytest.mark.model("qwen2.5-0.5b")
 @pytest.mark.team("sagemaker-1p-algorithms")
-def test_vllm_local_chat(ecr_image, sagemaker_local_session, instance_type):
+def test_vllm_local_chat(docker_image, sagemaker_local_session, instance_type):
     """Test vLLM local deployment with chat completions API."""
-    with _predictor(ecr_image, sagemaker_local_session, instance_type) as predictor:
+    with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
         _assert_vllm_chat_prediction(predictor)
