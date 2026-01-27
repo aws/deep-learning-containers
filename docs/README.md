@@ -4,9 +4,6 @@
 
 Follow the environment setup instructions in [DEVELOPMENT.md](../DEVELOPMENT.md), then install documentation dependencies:
 
-
-
-
 ```bash
 pip install -r docs/requirements.txt
 ```
