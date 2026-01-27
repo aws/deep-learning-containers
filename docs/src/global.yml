@@ -39,11 +39,6 @@ accelerators:
 # ECR configuration
 example_ecr_account: "763104351884"
 
-# External URLs
-public_gallery_url: "https://gallery.ecr.aws/deep-learning-containers"
-security_bulletin_url: "https://aws.amazon.com/security/security-bulletins/"
-github_repo_url: "https://github.com/aws/deep-learning-containers"
-
 # =============================================================================
 # Display Names
 # =============================================================================

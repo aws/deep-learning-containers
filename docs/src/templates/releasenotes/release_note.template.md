@@ -17,7 +17,7 @@
 
 ## Security Advisory
 
-{{ aws }} recommends that customers monitor critical security updates in the [{{ aws }} Security Bulletin]({{ security_bulletin_url }}).
+{{ aws }} recommends that customers monitor critical security updates in the [{{ aws }} Security Bulletin](https://aws.amazon.com/security/security-bulletins/).
 
 ## Reference
 
@@ -32,7 +32,7 @@
 
 - [Available Images](../../reference/available_images.md)
 - [Support Policy](../../reference/support_policy.md)
-- [GitHub Repository]({{ github_repo_url }})
+- [GitHub Repository](https://github.com/aws/deep-learning-containers)
 {% for section_key, items in optional.items() %}
 
 ## {{ display_names.get(section_key, section_key) }}

@@ -14,4 +14,4 @@ Historical release notes are available in the [archive](archive/index.md).
 
 - [Available Images](../reference/available_images.md)
 - [Support Policy](../reference/support_policy.md)
-- [GitHub Repository]({{ github_repo_url }})
+- [GitHub Repository](https://github.com/aws/deep-learning-containers)

@@ -18,6 +18,7 @@ from pathlib import Path
 from constants import (
     AVAILABLE_IMAGES_TABLE_HEADER,
     GLOBAL_CONFIG,
+    PUBLIC_GALLERY_URL,
     REFERENCE_DIR,
     RELEASE_NOTES_DIR,
     RELEASE_NOTES_TABLE_HEADER,
@@ -264,7 +265,7 @@ def generate_available_images(dry_run: bool = False) -> str:
 
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
-            url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
+            url = f"{PUBLIC_GALLERY_URL}/{repository}"
             section += (
                 f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
             )
