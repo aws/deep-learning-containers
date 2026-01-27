@@ -42,7 +42,7 @@ docs/
 └── mkdocs.yml
 ```
 
-* * *
+______________________________________________________________________
 
 ## Adding a New Image
 
@@ -74,7 +74,7 @@ See `docs/src/data/template/image-template.yml` for all available fields.
 cd docs/src && python main.py --verbose
 ```
 
-* * *
+______________________________________________________________________
 
 ## Adding Support Policy Dates
 
@@ -87,7 +87,7 @@ eop: "2026-10-15"   # End of Patch date
 
 **Validation:** All images in the same framework group with the same version must have identical GA/EOP dates.
 
-* * *
+______________________________________________________________________
 
 ## Adding Release Notes
 
@@ -114,6 +114,7 @@ Release notes are generated automatically for images with `announcement` and `pa
 ### Adding New Optional Sections
 
 1. Add section to image config under `optional`:
+
    ```yaml
    optional:
      known_issues:
@@ -122,7 +123,8 @@ Release notes are generated automatically for images with `announcement` and `pa
        - "This image will be deprecated..."
    ```
 
-2. Add display name to `global.yml`:
+1. Add display name to `global.yml`:
+
    ```yaml
    display_names:
      deprecation_notice: "Deprecation Notice"
@@ -130,13 +132,14 @@ Release notes are generated automatically for images with `announcement` and `pa
 
 Sections render in YAML order as bullet lists.
 
-* * *
+______________________________________________________________________
 
 ## Adding a New Repository
 
 1. Create directory: `docs/src/data/<repository>/`
 
-2. Create table config `docs/src/tables/<repository>.yml`:
+1. Create table config `docs/src/tables/<repository>.yml`:
+
    ```yaml
    columns:
      - field: framework_version
@@ -147,7 +150,8 @@ Sections render in YAML order as bullet lists.
        header: "Example URL"
    ```
 
-3. Add to `docs/src/global.yml`:
+1. Add to `docs/src/global.yml`:
+
    ```yaml
    display_names:
      my-repo: "My Repository"
@@ -156,7 +160,7 @@ Sections render in YAML order as bullet lists.
      - my-repo
    ```
 
-* * *
+______________________________________________________________________
 
 ## Editing Table Columns
 
@@ -173,7 +177,7 @@ columns:
 
 **Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_url`, `tag`, `release_note_link`
 
-* * *
+______________________________________________________________________
 
 ## Legacy Support Data
 
@@ -186,7 +190,7 @@ pytorch:
     eop: "2025-10-29"
 ```
 
-* * *
+______________________________________________________________________
 
 ## Global Configuration
 
@@ -198,7 +202,7 @@ pytorch:
 - **table_order:** Order of tables in available_images.md
 - **platforms/accelerators:** Display mappings
 
-* * *
+______________________________________________________________________
 
 ## Running Generation
 
@@ -215,7 +219,7 @@ python main.py --release-notes-only
 cd docs && mkdocs serve
 ```
 
-* * *
+______________________________________________________________________
 
 ## Troubleshooting
 
