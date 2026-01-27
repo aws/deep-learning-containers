@@ -335,6 +335,7 @@ To get the latest one, you can check the Hugging Face [documentation](https://hu
 
 | Framework                                                          | Neuron SDK Version | Job Type  | Supported EC2 Instance Type | Python Version Options | Example URL                                                                                                                                      |
 |--------------------------------------------------------------------|--------------------|-----------|-----------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------|
+| vLLM 0.11.0 with NeuronX Inference and HuggingFace Optimum  | Neuron 2.26.1      | inference | inf2/trn2/trn1                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-vllm-inference-neuronx:0.11.0-optimum0.4.4-neuronx-py310-sdk2.26.1-ubuntu22.04  |
 | vLLM 0.11.0 with NeuronX Inference and HuggingFace Optimum  | Neuron 2.26.0      | inference | inf2/trn2/trn1                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-vllm-inference-neuronx:0.11.0-optimum0.4.2-neuronx-py310-sdk2.26.0-ubuntu22.04  |
 | vLLM 0.10.2 with NeuronX Inference and HuggingFace Optimum  | Neuron 2.26.0     | inference | inf2/trn2/trn1                   | 3.10 (py310)           | 763104351884.dkr.ecr.us-west-2.amazonaws.com/huggingface-vllm-inference-neuronx:0.10.2-neuronx-py310-sdk2.26.0-ubuntu22.04  |
 

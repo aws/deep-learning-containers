@@ -119,13 +119,13 @@ release_images:
       private_registry: False
   9:
     framework: "sglang"
-    version: "0.5.7"
+    version: "0.5.8"
     arch_type: "x86"
     customer_type: "sagemaker"
     general:
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
+      os_version: "ubuntu24.04"
       cuda_version: "cu129"
       example: False
       disable_sm_tag: False
