@@ -6,7 +6,7 @@ cuda: cu128
 os: ubuntu22.04
 platform: sagemaker
 ga: "2025-04-23"
-eop: "2026-01-23"
+eop: "2026-04-23"
 public_registry: true
 
 # Image tags (first tag is used in available_images.md)
