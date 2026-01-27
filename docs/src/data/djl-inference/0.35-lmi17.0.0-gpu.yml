@@ -1,7 +1,6 @@
 framework: DJLServing
 version: "0.35"
 accelerator: gpu
-python: "-"
 cuda: cu128
 engine: "LMI 17.0.0"
 platform: sagemaker
