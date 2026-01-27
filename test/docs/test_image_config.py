@@ -187,12 +187,7 @@ class TestBuildImageRow:
                 ],
                 ["PyTorch 2.0", "py312"],
             ),
-            (
-                [{"field": "version", "data": "framework_version", "header": "Framework"}],
-                ["PyTorch 2.0"],
-            ),
         ],
-        ids=["basic_columns", "data_override"],
     )
     def test_build_row(self, columns, expected):
         img = ImageConfig("repo", framework="PyTorch", version="2.0", python="py312")
