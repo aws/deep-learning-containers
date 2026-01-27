@@ -136,15 +136,33 @@ class TestDateConsistencyValidation:
 
         def mock_load(repo):
             if repo == "repo-a":
-                return [ImageConfig(repo, version="1.0", ga=repo_a_dates[0], eop=repo_a_dates[1])]
+                return [
+                    ImageConfig(
+                        repo,
+                        version="1.0",
+                        ga=repo_a_dates[0],
+                        eop=repo_a_dates[1],
+                        accelerator="gpu",
+                        platform="ec2",
+                    )
+                ]
             elif repo == "repo-b":
-                return [ImageConfig(repo, version="1.0", ga=repo_b_dates[0], eop=repo_b_dates[1])]
+                return [
+                    ImageConfig(
+                        repo,
+                        version="1.0",
+                        ga=repo_b_dates[0],
+                        eop=repo_b_dates[1],
+                        accelerator="gpu",
+                        platform="ec2",
+                    )
+                ]
             return []
 
         with patch("generate.GLOBAL_CONFIG", patched_config):
             with patch("utils.GLOBAL_CONFIG", patched_config):
                 with patch("image_config.GLOBAL_CONFIG", patched_config):
-                    with patch("generate.load_repository_images", mock_load):
+                    with patch("image_config.load_repository_images", mock_load):
                         if should_raise:
                             LOGGER.debug("Expecting ValueError for inconsistent dates")
                             with pytest.raises(ValueError, match="Inconsistent dates"):
