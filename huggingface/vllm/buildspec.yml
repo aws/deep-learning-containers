@@ -3,8 +3,8 @@ prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
 base_framework: &BASE_FRAMEWORK vllm
 framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
-version: &VERSION "0.12.0"
-short_version: &SHORT_VERSION "0.12"
+version: &VERSION "0.14.0"
+short_version: &SHORT_VERSION "0.14"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -42,7 +42,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
     transformers_version: &TRANSFORMERS_VERSION 4.57.3
-    vllm_version: &VLLM_VERSION 0.12.0
+    vllm_version: &VLLM_VERSION 0.14.0
     tag: !join [ "vllm", "-", *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     latest_release_tag: !join [ "vllm", "-", *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]

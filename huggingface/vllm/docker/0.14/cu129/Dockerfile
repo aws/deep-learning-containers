@@ -1,4 +1,4 @@
-ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.12.0-gpu-py312-cu129-ubuntu22.04-sagemaker-v1.0
+ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/vllm:0.14.0-gpu-py312-cu129-ubuntu22.04-sagemaker-v1.0
 FROM ${FINAL_BASE_IMAGE} AS vllm-base
 
 LABEL maintainer="Amazon AI"
