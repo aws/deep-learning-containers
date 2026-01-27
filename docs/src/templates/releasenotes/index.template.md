@@ -2,8 +2,6 @@
 
 Release notes for {{ dlc_long }} with {{ framework_display }}.
 
-## Supported Images
-
 {{ supported_content }}
 {% if deprecated_content %}
 
