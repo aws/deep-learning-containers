@@ -3,7 +3,7 @@ version: "0.5"
 accelerator: gpu
 python: py312
 cuda: cu129
-os: ubuntu22.04
+os: ubuntu24.04
 platform: sagemaker
-tag: "0.5.6-gpu-py312-cu129-ubuntu22.04-sagemaker"
+tag: "0.5.8-gpu-py312-cu129-ubuntu24.04-sagemaker"
 public_registry: true
