@@ -5,4 +5,7 @@ python: py312
 transformers: "4.49.0"
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.6.0-transformers4.49.0-cpu-py312-ubuntu22.04"

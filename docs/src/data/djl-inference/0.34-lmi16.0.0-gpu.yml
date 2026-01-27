@@ -4,4 +4,7 @@ accelerator: gpu
 cuda: cu128
 engine: "LMI 16.0.0"
 platform: sagemaker
-tag: "0.34.0-lmi16.0.0-cu128"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "0.34.0-lmi16.0.0-cu128"
