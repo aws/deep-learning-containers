@@ -93,7 +93,14 @@ jobs:
       - name: Setup release environment
         id: setup
         run: |
-          RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          # Extract a unique identifier from the source image URI
+          # Example: 123456789.dkr.ecr.us-west-2.amazonaws.com/vllm:0.14.0-gpu-py3.11-cu12.4-ubuntu22.04-ec2-pr-123
+          # Extract the tag portion after the last colon
+          IMAGE_TAG=$(echo "${{ inputs.source-image-uri }}" | rev | cut -d':' -f1 | rev)
+          # Sanitize the tag to be filesystem-safe (replace special chars with dashes)
+          SANITIZED_TAG=$(echo "${IMAGE_TAG}" | tr '/:.' '-')
+
+          RUN_IDENTIFIER="${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-${SANITIZED_TAG}"
           METADATA_FILE="/tmp/release_metadata_${RUN_IDENTIFIER}.dict"
 
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
@@ -104,6 +111,8 @@ jobs:
 
           echo "run-identifier=${RUN_IDENTIFIER}" >> ${GITHUB_OUTPUT}
           echo "metadata-file-name=release_metadata_${RUN_IDENTIFIER}.dict" >> ${GITHUB_OUTPUT}
+
+          echo "Generated run identifier: ${RUN_IDENTIFIER}"
 
       - name: Publish DLC Images
         run: |
