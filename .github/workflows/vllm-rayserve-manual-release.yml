@@ -1,0 +1,151 @@
+name: vLLM RayServe Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-image-uri:
+        description: 'Source image URI to release (e.g., 123456789.dkr.ecr.us-west-2.amazonaws.com/vllm:0.10.2-gpu-py3.11-cu12.4-ubuntu22.04-rayserve-ec2)'
+        required: true
+        type: string
+      config-file:
+        description: 'Config file path'
+        required: false
+        type: string
+        default: '.github/config/vllm-0.10.2-rayserve.yml'
+      aws-region:
+        description: 'AWS region'
+        required: false
+        type: string
+        default: 'us-west-2'
+
+permissions:
+  contents: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  load-config:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load-config.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration file
+        id: load-config
+        run: |
+          # Install yq for YAML parsing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          # Load and output config as JSON
+          {
+            echo "config<<EOF"
+            yq eval -o=json '.' ${{ inputs.config-file }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+  validate-image:
+    needs: [load-config]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate image URI format
+        run: |
+          IMAGE_URI="${{ inputs.source-image-uri }}"
+
+          # Basic validation
+          if [[ ! "$IMAGE_URI" =~ ^[0-9]+\.dkr\.ecr\.[a-z0-9-]+\.amazonaws\.com/.+:.+$ ]]; then
+            echo "❌ Error: Invalid image URI format"
+            echo "Expected format: ACCOUNT.dkr.ecr.REGION.amazonaws.com/REPO:TAG"
+            echo "Received: $IMAGE_URI"
+            exit 1
+          fi
+
+          echo "✅ Image URI format is valid"
+          echo "Image URI: $IMAGE_URI"
+
+      - name: Display release configuration
+        run: |
+          echo "=========================================="
+          echo "Release Configuration"
+          echo "=========================================="
+          echo "Source Image: ${{ inputs.source-image-uri }}"
+          echo "Config File: ${{ inputs.config-file }}"
+          echo "AWS Region: ${{ inputs.aws-region }}"
+          echo ""
+          echo "Release Settings:"
+          echo '${{ needs.load-config.outputs.config }}' | jq -r '.release'
+
+  generate-release-spec:
+    needs: [load-config, validate-image]
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+
+          if [ "$RELEASE_ENABLED" != "true" ]; then
+            echo "❌ Error: Release is not enabled in config file"
+            echo "Please set 'release.release: true' in ${{ inputs.config-file }}"
+            exit 1
+          fi
+
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.config }}
+
+  release-image:
+    needs: [load-config, validate-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ inputs.source-image-uri }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
+      source-stage: ${{ fromJson(needs.load-config.outputs.config).release.source_stage }}
+      target-stage: ${{ fromJson(needs.load-config.outputs.config).release.target_stage }}
+      aws-region: ${{ inputs.aws-region }}
+      runner-fleet: default-runner
+
+  summary:
+    needs: [load-config, validate-image, generate-release-spec, release-image]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Release Summary
+        run: |
+          echo "=========================================="
+          echo "vLLM RayServe Manual Release Summary"
+          echo "=========================================="
+          echo ""
+          echo "Source Image: ${{ inputs.source-image-uri }}"
+          echo "Config File: ${{ inputs.config-file }}"
+          echo "AWS Region: ${{ inputs.aws-region }}"
+          echo ""
+          echo "Job Results:"
+          echo "  - Load Config: ${{ needs.load-config.result }}"
+          echo "  - Validate Image: ${{ needs.validate-image.result }}"
+          echo "  - Generate Release Spec: ${{ needs.generate-release-spec.result }}"
+          echo "  - Release Image: ${{ needs.release-image.result }}"
+          echo ""
+
+          if [ "${{ needs.release-image.result }}" == "success" ]; then
+            echo "✅ Release completed successfully!"
+          else
+            echo "❌ Release failed or was skipped"
+            exit 1
+          fi
