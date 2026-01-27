@@ -15,16 +15,49 @@ from __future__ import absolute_import
 import json
 import os
 import re
+import shutil
+import tarfile
 
 import boto3
 
 # Path to test resources
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 
-# Model artifacts for local mode tests
-model_dir = os.path.join(resources_path, "tiny-random-qwen3")
-model_data = "tiny-random-qwen3.tar.gz"
+# Model artifacts for local mode tests - downloaded from HuggingFace Hub at runtime
+MODEL_ID = "Qwen/Qwen2.5-0.5B"
+model_dir = os.path.join(resources_path, "qwen2.5-0.5b")
+model_data = "qwen2.5-0.5b.tar.gz"
 model_data_path = os.path.join(model_dir, model_data)
+
+
+def ensure_model_downloaded():
+    """Download model from HuggingFace Hub and create tarball if not already present."""
+    if os.path.exists(model_data_path):
+        return model_data_path
+    
+    from huggingface_hub import snapshot_download
+    
+    os.makedirs(model_dir, exist_ok=True)
+    local_model_dir = os.path.join(model_dir, "model")
+    
+    print(f"Downloading {MODEL_ID} from HuggingFace Hub...")
+    snapshot_download(repo_id=MODEL_ID, local_dir=local_model_dir, ignore_patterns=["*.gguf", "*.onnx"])
+    
+    # Remove cache folder if present
+    cache_dir = os.path.join(local_model_dir, ".cache")
+    if os.path.exists(cache_dir):
+        shutil.rmtree(cache_dir)
+    
+    print(f"Creating tarball {model_data}...")
+    with tarfile.open(model_data_path, "w:gz") as tar:
+        for item in os.listdir(local_model_dir):
+            tar.add(os.path.join(local_model_dir, item), arcname=item)
+    
+    # Clean up extracted model
+    shutil.rmtree(local_model_dir)
+    
+    print(f"Model ready at {model_data_path}")
+    return model_data_path
 
 # Role for local mode (not used but required by SageMaker SDK)
 ROLE = "dummy/unused-role"

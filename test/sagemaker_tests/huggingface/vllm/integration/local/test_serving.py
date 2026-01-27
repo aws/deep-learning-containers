@@ -20,7 +20,7 @@ from sagemaker.predictor import Predictor
 from sagemaker.serializers import JSONSerializer
 from sagemaker.deserializers import JSONDeserializer
 
-from ...integration import ROLE, model_data_path
+from ...integration import ROLE, ensure_model_downloaded
 from ...utils import local_mode_utils
 
 
@@ -31,6 +31,9 @@ def _predictor(image, sagemaker_local_session, instance_type):
     Model is extracted to /opt/ml/model by SageMaker from model_data tar.gz.
     vLLM loads the model from this local path.
     """
+    # Download model from HuggingFace Hub if not already present
+    model_data_path = ensure_model_downloaded()
+    
     env = {
         "SM_VLLM_MODEL": "/opt/ml/model",
         "SM_VLLM_MAX_MODEL_LEN": "512",
@@ -87,7 +90,7 @@ def _assert_vllm_chat_prediction(predictor):
     assert "choices" in output
 
 
-@pytest.mark.model("tiny-random-qwen3")
+@pytest.mark.model("qwen2.5-0.5b")
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_local_completions(ecr_image, sagemaker_local_session, instance_type):
     """Test vLLM local deployment with completions API."""
@@ -95,7 +98,7 @@ def test_vllm_local_completions(ecr_image, sagemaker_local_session, instance_typ
         _assert_vllm_prediction(predictor)
 
 
-@pytest.mark.model("tiny-random-qwen3")
+@pytest.mark.model("qwen2.5-0.5b")
 @pytest.mark.team("sagemaker-1p-algorithms")
 def test_vllm_local_chat(ecr_image, sagemaker_local_session, instance_type):
     """Test vLLM local deployment with chat completions API."""
