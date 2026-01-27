@@ -32,12 +32,6 @@ class ImageConfig:
     def __init__(self, repository: str, **kwargs: Any) -> None:
         self._repository = repository
         self._data = kwargs
-        # Compute framework_group from GLOBAL_CONFIG, default to repository
-        self._framework_group = repository
-        for group_key, repos in GLOBAL_CONFIG.get("framework_groups", {}).items():
-            if repository in repos:
-                self._framework_group = group_key
-                break
 
     @classmethod
     def from_yaml(cls, path: Path, repository: str) -> "ImageConfig":
@@ -66,7 +60,10 @@ class ImageConfig:
     @property
     def framework_group(self) -> str:
         """Framework group key (or repository if not in a group)."""
-        return self._framework_group
+        for group_key, repos in GLOBAL_CONFIG.get("framework_groups", {}).items():
+            if self._repository in repos:
+                return group_key
+        return self._repository
 
     @property
     def is_supported(self) -> bool:
@@ -122,25 +119,25 @@ class ImageConfig:
         return display_names[self._repository]
 
     @property
-    def display_framework_group(self) -> str:
-        """Get human-readable display name for the framework group."""
-        display_names = GLOBAL_CONFIG.get("display_names", {})
-        if self._framework_group not in display_names:
-            raise KeyError(f"Display name not found for: {self._framework_group}")
-        return display_names[self._framework_group]
-
-    @property
-    def display_framework_version(self) -> str:
-        """Framework and version combined for table display."""
-        return f"{self.get('framework', '')} {self.get('version', '')}"
-
-    @property
     def display_tag(self) -> str:
         """Get first tag for display (used in available_images.md). Tags must be a list."""
         tags = self.get("tags", [])
         if not isinstance(tags, list):
             raise ValueError(f"'tags' field must be a list in {self._repository}")
         return tags[0] if tags else ""
+
+    @property
+    def display_framework_group(self) -> str:
+        """Get human-readable display name for the framework group."""
+        display_names = GLOBAL_CONFIG.get("display_names", {})
+        if self.framework_group not in display_names:
+            raise KeyError(f"Display name not found for: {self.framework_group}")
+        return display_names[self.framework_group]
+
+    @property
+    def display_framework_version(self) -> str:
+        """Framework and version combined for table display."""
+        return f"{self.get('framework', '')} {self.get('version', '')}"
 
     @property
     def display_example_url(self) -> str:
