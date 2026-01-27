@@ -24,6 +24,7 @@ packages:
   cudnn: "9.8.0.87"
   nccl: "2.27.5"
 
-known_issues:
-  - "There is no official Triton distribution for ARM64/aarch64 yet"
-  - "Passing device_id to torch.distributed.init_process_group() results in NCCL randomly hanging during communications"
+optional:
+  known_issues:
+    - "There is no official Triton distribution for ARM64/aarch64 yet"
+    - "Passing device_id to torch.distributed.init_process_group() results in NCCL randomly hanging during communications"

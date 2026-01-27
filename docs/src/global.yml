@@ -85,6 +85,9 @@ display_names:
   pytorch-trcomp-training: "PyTorch Training Compiler"
   huggingface-pytorch-trcomp-training: "HuggingFace PyTorch Training Compiler"
 
+  # Release notes optional section names
+  known_issues: "Known Issues"
+
   # Packages
   python: "Python"
   cuda: "CUDA"

@@ -33,10 +33,10 @@
 - [Available Images](../../reference/available_images.md)
 - [Support Policy](../../reference/support_policy.md)
 - [GitHub Repository]({{ github_repo_url }})
-{% if known_issues %}
+{% for section_key, items in optional.items() %}
 
-## Known Issues
-{% for issue in known_issues %}
-- {{ issue }}
+## {{ display_names.get(section_key, section_key) }}
+{% for item in items %}
+- {{ item }}
 {% endfor %}
-{% endif %}
+{% endfor %}

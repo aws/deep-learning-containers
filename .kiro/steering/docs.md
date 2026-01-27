@@ -28,6 +28,8 @@ docs/src/
 │   ├── pytorch-inference.yml
 │   └── ...
 ├── data/                          # Image configs (one file per image)
+│   ├── template/
+│   │   └── image-template.yml     # Template with all possible fields documented
 │   ├── pytorch-training/
 │   │   ├── 2.9-gpu-ec2.yml
 │   │   ├── 2.9-cpu-sagemaker.yml
@@ -442,3 +444,5 @@ pytorch:
 If there are any new changes to the documentations generation and organization, make sure to update you knowledge base in the steering/docs.md file and any runbook or update to processes should also be updated in DEVELOPMENT.md files.
 This is done so that developers get the most up-to-date information on the current codebase. Be sure to not let this steering document get too large since it will overflow the context window.
 If the document gets longer than 500 lines, make sure to delete unnecessary sections and condense verbose sections where necessary. Also, do not delete comments unless the it is unnecessary.
+
+When making changes to image config field reading or processing, update `docs/src/data/template/image-template.yml` to reflect those changes.

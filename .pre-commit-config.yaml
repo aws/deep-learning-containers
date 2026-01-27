@@ -104,7 +104,7 @@ repos:
         language: python
         additional_dependencies: [flowmark]
         files: ^docs/
-        exclude: (\.template\.md$|/\.venv/)
+        exclude: (\.template\.md$|DEVELOPMENT\.md$)
         types: [markdown]
 
   - repo: https://github.com/hukkin/mdformat

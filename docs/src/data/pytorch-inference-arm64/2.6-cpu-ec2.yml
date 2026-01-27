@@ -20,5 +20,6 @@ packages:
   python: "3.12"
   pytorch: "2.6.0"
 
-known_issues:
-  - "There is no official Triton distribution for ARM64/aarch64 yet"
+optional:
+  known_issues:
+    - "There is no official Triton distribution for ARM64/aarch64 yet"
