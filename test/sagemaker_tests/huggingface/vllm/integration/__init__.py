@@ -54,23 +54,23 @@ def dump_logs_from_cloudwatch(e, region="us-west-2"):
         endpoint = endpoint_match.group(1)
         log_group_name = f"/aws/sagemaker/Endpoints/{endpoint}"
         try:
-        log_stream_resp = logs_client.describe_log_streams(logGroupName=log_group_name)
-        all_traffic_log_stream = ""
-        for log_stream in log_stream_resp.get("logStreams", []):
-            log_stream_name = log_stream.get("logStreamName")
-            if log_stream_name.startswith("AllTraffic"):
-                all_traffic_log_stream = log_stream_name
-                break
-        if not all_traffic_log_stream:
-            raise NoLogStreamFoundError(
-                f"Cannot find all traffic log streams for endpoint {endpoint}"
+            log_stream_resp = logs_client.describe_log_streams(logGroupName=log_group_name)
+            all_traffic_log_stream = ""
+            for log_stream in log_stream_resp.get("logStreams", []):
+                log_stream_name = log_stream.get("logStreamName")
+                if log_stream_name.startswith("AllTraffic"):
+                    all_traffic_log_stream = log_stream_name
+                    break
+            if not all_traffic_log_stream:
+                raise NoLogStreamFoundError(
+                    f"Cannot find all traffic log streams for endpoint {endpoint}"
+                ) from e
+            events = logs_client.get_log_events(
+                logGroupName=log_group_name, logStreamName=all_traffic_log_stream
+            )
+            raise SageMakerEndpointFailure(
+                f"Error from endpoint {endpoint}:\n{json.dumps(events, indent=4)}"
             ) from e
-        events = logs_client.get_log_events(
-            logGroupName=log_group_name, logStreamName=all_traffic_log_stream
-        )
-        raise SageMakerEndpointFailure(
-            f"Error from endpoint {endpoint}:\n{json.dumps(events, indent=4)}"
-        ) from e
         except logs_client.exceptions.ResourceNotFoundException:
             # Log group doesn't exist yet - endpoint may have failed before creating logs
             raise SageMakerEndpointFailure(
