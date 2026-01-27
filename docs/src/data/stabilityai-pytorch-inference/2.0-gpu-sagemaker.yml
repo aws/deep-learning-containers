@@ -5,4 +5,7 @@ python: py310
 cuda: cu118
 os: ubuntu20.04
 platform: sagemaker
-tag: "2.0.1-sgm0.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.0.1-sgm0.1.0-gpu-py310-cu118-ubuntu20.04-sagemaker"

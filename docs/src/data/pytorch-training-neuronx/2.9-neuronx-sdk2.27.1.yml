@@ -5,4 +5,7 @@ python: py312
 sdk: "2.27.1"
 os: ubuntu24.04
 platform: sagemaker
-tag: "2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.9.0-neuronx-py312-sdk2.27.1-ubuntu24.04"

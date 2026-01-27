@@ -4,7 +4,19 @@ accelerator: cpu
 python: py312
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
 ga: "2025-04-23"
 eop: "2026-04-23"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
+
+announcement:
+  - "Introduced containers for PyTorch 2.7 for Training which support SageMaker"
+  - "Added Python 3.12 support"
+  - "Added Ubuntu 22.04 support"
+
+packages:
+  python: "3.12"
+  pytorch: "2.7.1"

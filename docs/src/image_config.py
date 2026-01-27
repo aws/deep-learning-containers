@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR
-from utils import load_yaml, parse_version
+from utils import build_ecr_uri, load_yaml, parse_version
 
 LOGGER = logging.getLogger(__name__)
 
@@ -90,6 +90,14 @@ class ImageConfig:
         return display_names[self._repository]
 
     @property
+    def display_tag(self) -> str:
+        """Get first tag for display (used in available_images.md). Tags must be a list."""
+        tags = self.get("tags", [])
+        if not isinstance(tags, list):
+            raise ValueError(f"'tags' field must be a list in {self._repository}")
+        return tags[0] if tags else ""
+
+    @property
     def display_framework_group(self) -> str:
         """Get human-readable display name for the framework group."""
         display_names = GLOBAL_CONFIG.get("display_names", {})
@@ -106,9 +114,7 @@ class ImageConfig:
     def display_example_url(self) -> str:
         """Example ECR URL for table display."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
-        return (
-            f"`{account}.dkr.ecr.<region>.amazonaws.com/{self._repository}:{self.get('tag', '')}`"
-        )
+        return f"`{build_ecr_uri(account, self._repository, self.display_tag)}`"
 
     @property
     def display_platform(self) -> str:
@@ -137,7 +143,7 @@ def build_image_row(img: ImageConfig, columns: list[dict]) -> list[str]:
     In tables/<table>.yml, the <field> name will map to img.<field> / img.get(<field>) attribute.
     If you need to do string manipulation on the field, create a new property with convention display_<field>.
     """
-    return [img.get_display(col.get("data", col["field"])) for col in columns]
+    return [img.get_display(col["field"]) for col in columns]
 
 
 def load_repository_images(repository: str) -> list[ImageConfig]:
@@ -196,7 +202,7 @@ def check_public_registry(images: list[ImageConfig], repository: str) -> bool:
     return False
 
 
-def get_latest_image(repo: str, platform: str) -> str:
+def get_latest_image_uri(repo: str, platform: str) -> str:
     """Get the latest image URI for a repository and platform.
 
     Raises:
@@ -210,4 +216,4 @@ def get_latest_image(repo: str, platform: str) -> str:
 
     latest = sort_by_version(matching)[0]
     account = latest.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
-    return f"{account}.dkr.ecr.us-west-2.amazonaws.com/{repo}:{latest.tag}"
+    return build_ecr_uri(account, repo, latest.display_tag, "us-west-2")

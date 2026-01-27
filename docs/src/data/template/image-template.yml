@@ -1,0 +1,100 @@
+# =============================================================================
+# Image Configuration Template
+# =============================================================================
+# This template documents all possible fields for image config YAML files.
+# Copy this file to docs/src/data/<repository>/<version>-<accelerator>-<platform>.yml
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Required Fields
+# -----------------------------------------------------------------------------
+
+# Framework display name (e.g., "PyTorch", "TensorFlow")
+framework: PyTorch
+
+# Framework version (must be quoted to preserve format)
+version: "2.9"
+
+# Accelerator type: gpu, cpu, or neuronx
+accelerator: gpu
+
+# Python version identifier (e.g., py310, py311, py312)
+python: py312
+
+# Target platform: ec2 or sagemaker
+platform: ec2
+
+# Image tags - list of Docker image tags
+# First tag is used as the display tag in available_images.md
+tags:
+  - "2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"
+  - "2.9-gpu-py312-ec2"
+
+# -----------------------------------------------------------------------------
+# Optional Fields - Image Metadata
+# -----------------------------------------------------------------------------
+# These fields are used as part of columns in tables/<repository>.yml
+# For example, if you require a column called "foo",
+# add foo field here and in your desired table YAML file.
+
+# CUDA version identifier (for GPU images)
+cuda: cu130
+
+# Neuron SDK version (for neuronx images)
+sdk: "2.27.1"
+
+# Operating system
+os: ubuntu22.04
+
+# Whether image is available in ECR Public Gallery
+public_registry: true
+
+# Override default ECR account (defaults to GLOBAL_CONFIG["example_ecr_account"])
+example_ecr_account: "763104351884"
+
+# -----------------------------------------------------------------------------
+# Support Policy Fields
+# -----------------------------------------------------------------------------
+# Required for images that appear in support_policy.md
+# All images in the same framework_group with the same version must have identical dates
+
+# General Availability date (ISO format)
+ga: "2025-10-15"
+
+# End of Patch date (ISO format) - image is unsupported after this date
+eop: "2026-10-15"
+
+# -----------------------------------------------------------------------------
+# Release Notes Fields
+# -----------------------------------------------------------------------------
+# Required for release notes generation: announcement and packages
+
+# Announcement bullet points for the release note
+announcement:
+  - "Introduced containers for PyTorch 2.9 for Training"
+  - "Added Python 3.12 support"
+
+# Package versions displayed in Core Packages table
+# Keys should match entries in global.yml display_names for proper formatting
+packages:
+  python: "3.12"
+  pytorch: "2.9.0"
+  cuda: "13.0"
+  cudnn: "9.13.0.50"
+  nccl: "2.27.7-1"
+
+# -----------------------------------------------------------------------------
+# Optional Sections
+# -----------------------------------------------------------------------------
+# Dynamic optional sections rendered at the end of release notes
+# Section keys are looked up in global.yml display_names for headers
+# Each section renders as a bullet list
+
+optional:
+  # Known issues section
+  known_issues:
+    - "Description of known issue"
+  # Add new optional sections here - they will render automatically
+  # example_section:
+  #   - "Item 1"
+  #   - "Item 2"

@@ -1,7 +1,9 @@
 framework: DJLServing
 version: "0.29"
 accelerator: cpu
-python: "-"
 engine: "CPU Full"
 platform: sagemaker
-tag: "0.29.0-cpu-full"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "0.29.0-cpu-full"

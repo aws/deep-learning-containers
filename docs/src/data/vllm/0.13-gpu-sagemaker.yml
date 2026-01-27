@@ -5,5 +5,8 @@ python: py312
 cuda: cu129
 os: ubuntu22.04
 platform: sagemaker
-tag: "0.13.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "0.13.0-gpu-py312-cu129-ubuntu22.04-sagemaker"

@@ -5,7 +5,23 @@ python: py312
 cuda: cu129
 os: ubuntu22.04
 platform: ec2
-tag: "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"
 ga: "2025-08-18"
 eop: "2027-08-18"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"
+
+announcement:
+  - "Introduced containers for Bse CUDA 12.9.0 for training which support EC2, ECS, and EKS"
+  - "Starting with Base 12.9.0, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+  - "Added Python 3.12, Ubuntu 22.04 support"
+
+packages:
+  python: "3.12"
+  cuda: "12.9.0"
+
+optional:
+  known_issues:
+    - "Example known issue for demonstration purposes"

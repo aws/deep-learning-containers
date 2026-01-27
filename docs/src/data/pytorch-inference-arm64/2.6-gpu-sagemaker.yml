@@ -5,7 +5,21 @@ python: py312
 cuda: cu124
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
 ga: "2025-01-29"
 eop: "2026-01-29"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
+
+announcement:
+  - "Introduced container for PyTorch 2.6.0 for inference supporting SageMaker services on ARM64 instances"
+  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+  - "TorchServe version: 0.12.0"
+
+packages:
+  python: "3.12"
+  pytorch: "2.6.0"
+  cuda: "12.4.1"
+  cudnn: "9.1.0.70"

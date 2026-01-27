@@ -6,4 +6,7 @@ cuda: cu117
 transformers: "4.26.0"
 os: ubuntu20.04
 platform: sagemaker
-tag: "1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "1.13.1-transformers4.26.0-gpu-py39-cu117-ubuntu20.04"

@@ -5,7 +5,23 @@ python: py312
 cuda: cu128
 os: ubuntu24.04
 platform: ec2
-tag: "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
 ga: "2025-06-05"
 eop: "2026-06-05"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+
+announcement:
+  - "Introduced containers for Bse CUDA 12.8.1 for training which support EC2, ECS, and EKS"
+  - "Starting with Base 12.8.1, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+  - "Added Python 3.12, Ubuntu 24.04 support"
+
+packages:
+  python: "3.12"
+  cuda: "12.8.1"
+
+optional:
+  known_issues:
+    - "Example known issue for demonstration purposes"
