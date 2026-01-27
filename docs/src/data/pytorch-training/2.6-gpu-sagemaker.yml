@@ -12,19 +12,3 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-gpu-py312-cu126-ubuntu22.04-sagemaker"
-
-announcement:
-  - "Introduced containers for PyTorch 2.6.0 for training which support SageMaker service"
-  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
-  - "Added Python 3.12, CUDA 12.6, Ubuntu 22.04 support"
-
-packages:
-  python: "3.12"
-  pytorch: "2.6.0"
-  cuda: "12.6.3"
-  cudnn: "9.7.0.66"
-  nccl: "2.23.4"
-
-optional:
-  known_issues:
-    - "Customers using TransformerEngine may run into NVFuser deprecation warnings"
