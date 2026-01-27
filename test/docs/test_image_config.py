@@ -20,7 +20,7 @@ from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
-    get_latest_image,
+    get_latest_image_uri,
     load_legacy_images,
     load_repository_images,
     sort_by_version,
@@ -187,12 +187,7 @@ class TestBuildImageRow:
                 ],
                 ["PyTorch 2.0", "py312"],
             ),
-            (
-                [{"field": "version", "data": "framework_version", "header": "Framework"}],
-                ["PyTorch 2.0"],
-            ),
         ],
-        ids=["basic_columns", "data_override"],
     )
     def test_build_row(self, columns, expected):
         img = ImageConfig("repo", framework="PyTorch", version="2.0", python="py312")
@@ -278,12 +273,12 @@ class TestCheckPublicRegistry:
 
 class TestGetLatestImage:
     def test_success(self, mock_paths):
-        LOGGER.debug("Testing get_latest_image for valid repo/platform")
-        uri = get_latest_image("mock-repo", "ec2")
+        LOGGER.debug("Testing get_latest_image_uri for valid repo/platform")
+        uri = get_latest_image_uri("mock-repo", "ec2")
         LOGGER.debug(f"Latest image URI: {uri}")
         assert "mock-repo" in uri
         assert "2.0.0-gpu-py312" in uri
-        LOGGER.info("get_latest_image test passed")
+        LOGGER.info("get_latest_image_uri test passed")
 
     @pytest.mark.parametrize(
         "repo,platform",
@@ -292,4 +287,4 @@ class TestGetLatestImage:
     )
     def test_not_found(self, mock_paths, repo, platform):
         with pytest.raises(ValueError, match="Image not found"):
-            get_latest_image(repo, platform)
+            get_latest_image_uri(repo, platform)

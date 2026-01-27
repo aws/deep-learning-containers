@@ -5,7 +5,10 @@ python: py312
 cuda: cu125
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.19.0-gpu-py312-cu125-ubuntu22.04-sagemaker"
 ga: "2025-03-11"
 eop: "2026-03-11"
 public_registry: true
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.19.0-gpu-py312-cu125-ubuntu22.04-sagemaker"

@@ -5,4 +5,7 @@ python: py310
 sdk: "2.24.1"
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.7.0-neuronx-py310-sdk2.24.1-ubuntu22.04"

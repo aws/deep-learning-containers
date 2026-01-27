@@ -4,7 +4,9 @@ accelerator: cpu
 python: py311
 os: ubuntu22.04
 platform: ec2
-tag: "1.0.0-cpu-py311-ubuntu22.04-ec2"
 ga: "2024-01-01"
 eop: "2025-01-01"
 public_registry: false
+
+tags:
+  - "1.0.0-cpu-py311-ubuntu22.04-ec2"
