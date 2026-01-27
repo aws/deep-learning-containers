@@ -548,5 +548,160 @@
       "title": "CVE-2025-12758 - validator",
       "reason_to_ignore": "N/A"
     }
+  ],
+  "jaraco.context": [
+    {
+      "description": "jaraco.context, an open-source software package that provides some useful decorators and context managers, has a Zip Slip path traversal vulnerability in the `jaraco.context.tarball()` function starting in version 5.2.0 and prior to version 6.1.0. The vulnerability may allow attackers to extract files outside the intended extraction directory when malicious tar archives are processed. The strip_first_component filter splits the path on the first `/` and extracts the second component, while allowing `../` sequences. Paths like `dummy_dir/../../etc/passwd` become `../../etc/passwd`. Note that this suffers from a nested tarball attack as well with multi-level tar files such as `dummy_dir/inner.tar.gz`, where the inner.tar.gz includes a traversal `dummy_dir/../../config/.env` that also gets translated to `../../config/.env`. Version 6.1.0 contains a patch for the issue.",
+      "vulnerability_id": "CVE-2026-23949",
+      "name": "CVE-2026-23949",
+      "package_name": "jaraco.context",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-5.3.0.dist-info/METADATA",
+        "name": "jaraco.context",
+        "package_manager": "PYTHON",
+        "version": "5.3.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.6,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.6,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-23949",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-23949 - jaraco.context",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "qs": [
+    {
+      "description": "Improper Input Validation vulnerability in qs (parse modules) allows HTTP DoS.This issue affects qs: < 6.14.1.\n\nSummaryThe arrayLimit\u00a0option in qs does not enforce limits for bracket notation (a[]=1&a[]=2), allowing attackers to cause denial-of-service via memory exhaustion. Applications using arrayLimit\u00a0for DoS protection are vulnerable.\n\nDetailsThe arrayLimit\u00a0option only checks limits for indexed notation (a[0]=1&a[1]=2) but completely bypasses it for bracket notation (a[]=1&a[]=2).\n\nVulnerable code\u00a0(lib/parse.js:159-162):\n\nif (root === '[]' && options.parseArrays) { obj = utils.combine([], leaf); // No arrayLimit check }\n\nWorking code\u00a0(lib/parse.js:175):\n\nelse if (index <= options.arrayLimit) { // Limit checked here obj = []; obj[index] = leaf; }\n\nThe bracket notation handler at line 159 uses utils.combine([], leaf)\u00a0without validating against options.arrayLimit, while indexed notation at line 175 checks index <= options.arrayLimit\u00a0before creating arrays.\n\nPoCTest 1 - Basic bypass:\n\nnpm install qs\n\nconst qs",
+      "vulnerability_id": "CVE-2025-15284",
+      "name": "CVE-2025-15284",
+      "package_name": "qs",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "qs",
+        "package_manager": "NODE",
+        "version": "6.13.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.5,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.5,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-15284",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-15284 - qs",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "tar": [
+    {
+      "description": "node-tar,a Tar for Node.js, has a race condition vulnerability in versions up to and including 7.5.3. This is due to an incomplete handling of Unicode path collisions in the `path-reservations` system. On case-insensitive or normalization-insensitive filesystems (such as macOS APFS, In which it has been tested), the library fails to lock colliding paths (e.g., `\u00df` and `ss`), allowing them to be processed in parallel. This bypasses the library's internal concurrency safeguards and permits Symlink Poisoning attacks via race conditions. The library uses a `PathReservations` system to ensure that metadata checks and file operations for the same path are serialized. This prevents race conditions where one entry might clobber another concurrently. This is a Race Condition which enables Arbitrary File Overwrite. This vulnerability affects users and systems using node-tar on macOS (APFS/HFS+). Because of using `NFD` Unicode normalization (in which `\u00df` and `ss` are different), conflicting paths do not have their order",
+      "vulnerability_id": "CVE-2026-23950",
+      "name": "CVE-2026-23950",
+      "package_name": "tar",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "tar",
+        "package_manager": "NODE",
+        "version": "6.1.11",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.8,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.8,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-23950",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-23950 - tar",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "vega-functions": [
+    {
+      "description": "vega-functions provides function implementations for the Vega expression language. Prior to version 6.1.1, for sites that allow users to supply untrusted user input, malicious use of an internal function (not part of the public API) could be used to run unintentional javascript (XSS). This issue is fixed in vega-functions `6.1.1`. There is no workaround besides upgrading. Using `vega.expressionInterpreter` as described in CSP safe mode does not prevent this issue.",
+      "vulnerability_id": "CVE-2025-66648",
+      "name": "CVE-2025-66648",
+      "package_name": "vega-functions",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega-functions",
+        "package_manager": "NODE",
+        "version": "5.18.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 7.2,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 7.2,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-66648",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-66648 - vega-functions",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "vega-selections": [
+    {
+      "description": "Vega is a visualization grammar, a declarative format for creating, saving, and sharing interactive visualization designs. Prior to versions 6.1.2 and 5.6.3, applications meeting two conditions are at risk of arbitrary JavaScript code execution, even if \"safe mode\" expressionInterpreter is used. First, they use `vega` in an application that attaches both `vega` library and a `vega.View` instance similar to the Vega Editor to the global `window`, or has any other satisfactory function gadgets in the global scope. Second, they allow user-defined Vega `JSON` definitions (vs JSON that was is only provided through source code). This vulnerability allows for DOM XSS, potentially stored, potentially reflected, depending on how the library is being used. The vulnerability requires user interaction with the page to trigger. An attacker can exploit this issue by tricking a user into opening a malicious Vega specification. Successful exploitation allows the attacker to execute arbitrary JavaScript in the context of the ",
+      "vulnerability_id": "CVE-2025-65110",
+      "name": "CVE-2025-65110",
+      "package_name": "vega-selections",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+        "name": "vega-selections",
+        "package_manager": "NODE",
+        "version": "5.6.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.1,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.1,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-65110",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2025-65110 - vega-selections",
+      "reason_to_ignore": "N/A"
+    }
   ]
 }
