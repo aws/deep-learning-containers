@@ -11,15 +11,3 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-cpu-py312-ubuntu22.04-ec2"
-
-announcement:
-  - "Introduced containers for PyTorch 2.6.0 for inference supporting EC2, ECS, and EKS on ARM64 instances"
-  - "TorchServe version: 0.12.0"
-
-packages:
-  python: "3.12"
-  pytorch: "2.6.0"
-
-optional:
-  known_issues:
-    - "There is no official Triton distribution for ARM64/aarch64 yet"

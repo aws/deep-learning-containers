@@ -11,12 +11,3 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
-
-announcement:
-  - "Introduced containers for PyTorch 2.6.0 for training which support SageMaker service"
-  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
-  - "Added Python 3.12, Ubuntu 22.04 support"
-
-packages:
-  python: "3.12"
-  pytorch: "2.6.0"

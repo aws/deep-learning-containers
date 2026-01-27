@@ -12,19 +12,3 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "2.7.0-gpu-py312-cu128-ubuntu22.04-ec2"
-
-announcement:
-  - "Introduced containers for PyTorch 2.7 for Training on EC2 for ARM64 instances"
-  - "This image should be used with the G5g instance type, which is powered by Graviton CPUs and NVIDIA T4G Tensor Core GPUs"
-
-packages:
-  python: "3.12"
-  pytorch: "2.7.0"
-  cuda: "12.8.0"
-  cudnn: "9.8.0.87"
-  nccl: "2.27.5"
-
-optional:
-  known_issues:
-    - "There is no official Triton distribution for ARM64/aarch64 yet"
-    - "Passing device_id to torch.distributed.init_process_group() results in NCCL randomly hanging during communications"
