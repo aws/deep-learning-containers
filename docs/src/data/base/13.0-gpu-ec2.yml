@@ -12,3 +12,16 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "13.0.0-gpu-py312-cu130-ubuntu22.04-ec2"
+
+announcement:
+  - "Introduced containers for Bse CUDA 13.0.0 for training which support EC2, ECS, and EKS"
+  - "Starting with Base 13.0.0, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+  - "Added Python 3.12, Ubuntu 22.04 support"
+
+packages:
+  python: "3.12"
+  cuda: "13.0.0"
+
+optional:
+  known_issues:
+    - "Example known issue for demonstration purposes"

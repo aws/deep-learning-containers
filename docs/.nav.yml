@@ -6,6 +6,7 @@ nav:
   - Release Notes:
     - releasenotes/index.md
     - PyTorch: releasenotes/pytorch/index.md
+    - Base: releasenotes/base/index.md
   - Tutorials: tutorials
   - Reference:
     - reference/index.md

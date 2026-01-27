@@ -146,7 +146,7 @@ def generate_release_notes(dry_run: bool = False) -> None:
         return
 
     for framework_group in get_framework_order():
-        group_images = images_by_group.get(framework_group)
+        group_images = images_by_group.get(framework_group, [])
         if not group_images:
             continue
 
@@ -182,6 +182,8 @@ def generate_support_policy(dry_run: bool = False) -> str:
 
     for framework_group in get_framework_order():
         images = images_by_group.get(framework_group, [])
+        if not images:
+            continue
 
         # Deduplicate by version, validating date consistency
         version_map: dict[str, ImageConfig] = {}
