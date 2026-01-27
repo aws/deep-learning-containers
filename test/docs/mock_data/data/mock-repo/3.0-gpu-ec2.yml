@@ -1,0 +1,22 @@
+framework: MockFramework
+version: "3.0"
+accelerator: gpu
+python: py312
+cuda: cu130
+os: ubuntu22.04
+platform: ec2
+ga: "2026-01-01"
+eop: "2500-01-01"
+public_registry: true
+
+tags:
+  - "3.0.0-gpu-py312-cu130-ubuntu22.04-ec2"
+
+announcement:
+  - "Introduced MockFramework 3.0 containers"
+  - "Added CUDA 13.0 support"
+
+packages:
+  python: "3.12"
+  mockframework: "3.0.0"
+  cuda: "13.0"
