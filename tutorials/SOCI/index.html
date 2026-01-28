@@ -1,0 +1,2958 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for AWS Deep Learning Containers">
+      
+      
+      
+        <link rel="canonical" href="https://aws.github.io/deep-learning-containers/tutorials/SOCI/">
+      
+      
+        <link rel="prev" href="../mlflow/dlc-with-mlflow/">
+      
+      
+        <link rel="next" href="../../reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/logos/AWS_logo_RGB.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>SOCI - Deep Learning Containers</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../mkdocs/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#soci-index-for-aws-deep-learning-containers" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Deep Learning Containers" class="md-header__button md-logo" aria-label="Deep Learning Containers" data-md-component="logo">
+      
+  <img src="../../assets/logos/AWS_logo_RGB.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Deep Learning Containers
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SOCI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-2.69L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.04 7 9.54s-2.94 8.27-7 9.54c.95.3 1.95.46 3 .46a10 10 0 0 0 10-10A10 10 0 0 0 9 2"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws/deep-learning-containers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/deep-learning-containers
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../get_started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../releasenotes/" class="md-tabs__link">
+          
+  
+  
+  Release Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../security/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Deep Learning Containers" class="md-nav__button md-logo" aria-label="Deep Learning Containers" data-md-component="logo">
+      
+  <img src="../../assets/logos/AWS_logo_RGB.svg" alt="logo">
+
+    </a>
+    Deep Learning Containers
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws/deep-learning-containers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/deep-learning-containers
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get_started/using_dlcs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Deep Learning Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Release Notes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/sglang/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SGLang
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/vllm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/pytorch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyTorch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../releasenotes/tensorflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensorflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Training
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/eks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EKS Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vllm-samples/sagemaker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM on SageMaker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vllm-samples/deepseek/eks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DeepSeek on EKS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../vllm-samples/deepseek/eks/fraud-detection-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud Detection Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mlflow/dlc-with-mlflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOCI
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOCI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-on-soci-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background on SOCI Index
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background on SOCI Index">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-soci-matters-with-vs-without-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SOCI Matters: With vs Without Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#soci-index-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Index Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soci-index-manifest-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Index Manifest Version
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dlc-soci-supported-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DLC SOCI Supported Frameworks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DLC SOCI Supported Frameworks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-uris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample URIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dlc-soci-tag-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DLC SOCI Tag Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Versions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-with-soci-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started with SOCI Index
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started with SOCI Index">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-setup-install-and-configure-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Setup: Install and Configure SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Setup: Install and Configure SOCI Snapshotter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choose-your-container-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose Your Container Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-1-using-finch-recommended-for-ease-of-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Using Finch (Recommended for Ease of Use)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Using Finch (Recommended for Ease of Use)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull-soci-images-with-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull SOCI Images with Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-containers-with-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Containers with Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-using-nerdctl-advanced-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Using nerdctl (Advanced Use Cases)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: Using nerdctl (Advanced Use Cases)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-nerdctl-is-using-soci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify nerdctl is Using SOCI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull-soci-images-with-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull SOCI Images with nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-containers-with-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Containers with nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-comparison-soci-vs-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Comparison: SOCI vs Docker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Comparison: SOCI vs Docker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-pull-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Pull Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-runtime-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Container Runtime Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Container Runtime Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#soci-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-performance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Performance Benefits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/available_images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/support_policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security in AWS Deep Learning Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/data-protection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Protection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/identity-and-access-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identity and Access Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/logging-and-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring and Usage Tracking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/compliance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security/infrastructure-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#background-on-soci-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background on SOCI Index
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background on SOCI Index">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-soci-matters-with-vs-without-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SOCI Matters: With vs Without Comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#soci-index-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Index Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#soci-index-manifest-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Index Manifest Version
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dlc-soci-supported-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DLC SOCI Supported Frameworks
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DLC SOCI Supported Frameworks">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-uris" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sample URIs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dlc-soci-tag-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DLC SOCI Tag Introduction
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supported-versions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Versions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started-with-soci-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started with SOCI Index
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started with SOCI Index">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-setup-install-and-configure-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Setup: Install and Configure SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Setup: Install and Configure SOCI Snapshotter">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-soci-snapshotter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure SOCI Snapshotter
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choose-your-container-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choose Your Container Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-1-using-finch-recommended-for-ease-of-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Using Finch (Recommended for Ease of Use)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 1: Using Finch (Recommended for Ease of Use)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull-soci-images-with-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull SOCI Images with Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-containers-with-finch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Containers with Finch
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-using-nerdctl-advanced-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Using nerdctl (Advanced Use Cases)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Option 2: Using nerdctl (Advanced Use Cases)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verify-nerdctl-is-using-soci" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verify nerdctl is Using SOCI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pull-soci-images-with-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pull SOCI Images with nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#run-containers-with-nerdctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Run Containers with nerdctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-comparison-soci-vs-docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Comparison: SOCI vs Docker
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Comparison: SOCI vs Docker">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-pull-benchmark" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Pull Benchmark
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#container-runtime-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Container Runtime Comparison
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Container Runtime Comparison">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#soci-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SOCI Runtime
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-performance-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Performance Benefits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        References
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="soci-index-for-aws-deep-learning-containers">SOCI Index for AWS Deep Learning Containers<a class="headerlink" href="#soci-index-for-aws-deep-learning-containers" title="Permanent link">&para;</a></h1>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#background-on-soci-index">Background on SOCI Index</a></li>
+<li><a href="#why-soci-matters-with-vs-without-comparison">Why SOCI Matters: With vs Without Comparison</a></li>
+<li><a href="#soci-index-components">SOCI Index Components</a></li>
+<li><a href="#soci-index-manifest-version">SOCI Index Manifest Version</a></li>
+<li><a href="#dlc-soci-supported-frameworks">DLC SOCI Supported Frameworks</a></li>
+<li><a href="#sample-uris">Sample URIs</a></li>
+<li><a href="#dlc-soci-tag-introduction">DLC SOCI Tag Introduction</a></li>
+<li><a href="#supported-versions">Supported Versions</a></li>
+<li><a href="#getting-started-with-soci-index">Getting Started with SOCI Index</a></li>
+<li><a href="#environment">Environment</a></li>
+<li><a href="#common-setup-install-and-configure-soci-snapshotter">Common Setup: Install and Configure SOCI Snapshotter</a><ul>
+<li><a href="#prerequisites">Prerequisites</a></li>
+<li><a href="#install-the-soci-snapshotter">Install the SOCI Snapshotter</a></li>
+<li><a href="#configure-soci-snapshotter">Configure SOCI Snapshotter</a></li>
+</ul>
+</li>
+<li><a href="#choose-your-container-client">Choose Your Container Client</a><ul>
+<li><a href="#option-1-using-finch-recommended-for-ease-of-use">Option 1: Using Finch (Recommended for Ease of Use)</a></li>
+<li><a href="#option-2-using-nerdctl-advanced-use-cases">Option 2: Using nerdctl (Advanced Use Cases)</a></li>
+</ul>
+</li>
+<li><a href="#performance-comparison-soci-vs-docker">Performance Comparison: SOCI vs Docker</a></li>
+<li><a href="#references">References</a></li>
+</ul>
+<hr />
+<h2 id="background-on-soci-index">Background on SOCI Index<a class="headerlink" href="#background-on-soci-index" title="Permanent link">&para;</a></h2>
+<p>The Software Component Index (SOCI) is a technology that enables efficient container image management through selective file downloading. It uses a layer-based indexing system to map file locations within container images, allowing containers to start with only the necessary files loaded (lazy loading). This approach significantly reduces network bandwidth usage and improves container startup times, making it particularly valuable for organizations managing large container images in cloud environments.</p>
+<h3 id="why-soci-matters-with-vs-without-comparison">Why SOCI Matters: With vs Without Comparison<a class="headerlink" href="#why-soci-matters-with-vs-without-comparison" title="Permanent link">&para;</a></h3>
+<p><strong>Without SOCI (Traditional Approach):</strong>
+- Must download the ENTIRE container image before starting (e.g., 17.6GB image takes ~4m26s)
+- Container can only start after all layers are downloaded
+- Total time to run: ~4m26s + startup overhead</p>
+<p><strong>With SOCI (Lazy Loading):</strong>
+- Only downloads the SOCI index and metadata (~37.9KB takes ~8.9s)
+- Container starts immediately; additional data fetched on-demand as needed
+- Total time to run: ~8.9s + startup overhead</p>
+<p><strong>Key Benefits:</strong>
+- <strong>~97% faster</strong> initial pull time (4m26s → 8.9s)
+- <strong>~99.8% less</strong> data downloaded upfront (17.6GB → ~37.9KB)
+- <strong>Immediate</strong> container startup
+- Ideal for large images, rapid scaling, and bandwidth-constrained environments</p>
+<p>See the <a href="#performance-comparison-soci-vs-docker">Performance Comparison</a> section for detailed benchmarks.</p>
+<h3 id="soci-index-components">SOCI Index Components<a class="headerlink" href="#soci-index-components" title="Permanent link">&para;</a></h3>
+<p>A SOCI index, which enables lazy loading of container images, consists of two key components:</p>
+<ol>
+<li><strong>SOCI Index Manifest</strong>: Lists zTOCs and references the target image</li>
+<li><strong>zTOCs (Zone Table of Contents)</strong>: Comprising:</li>
+<li><strong>TOC</strong>: A table of contents containing file metadata and corresponding offset information in the decompressed TAR archive</li>
+<li><strong>zInfo</strong>: A collection of checkpoints representing compression engine states at various points in the layer</li>
+</ol>
+<h2 id="soci-index-manifest-version">SOCI Index Manifest Version<a class="headerlink" href="#soci-index-manifest-version" title="Permanent link">&para;</a></h2>
+<p>DLC uses SOCI Index Manifest v2. SOCI Index Manifest v1 and SOCI Index Manifest v2 both allow lazily loading container images. SOCI Index Manifest v1 is a standalone artifact that can be discovered using the OCI Referrers API. SOCI Index Manifest v2 uses SOCI-enabled images where the SOCI index is bundled with the original image into a single, multi-architecture image. The SOCI snapshotter v0.10.0 will no longer consume SOCI Index Manifest v1 by default. For detailed differences between v1 and v2, please refer to <a href="https://github.com/awslabs/soci-snapshotter/blob/main/docs/soci-index-manifest-v2.md">SOCI Index Manifest v2 Documentation</a>.</p>
+<h2 id="dlc-soci-supported-frameworks">DLC SOCI Supported Frameworks<a class="headerlink" href="#dlc-soci-supported-frameworks" title="Permanent link">&para;</a></h2>
+<p>Deep Learning Containers (DLC) provides SOCI index for the following images both in private registry and <a href="https://gallery.ecr.aws/deep-learning-containers">public gallery</a>: PyTorch Training (x86, arm64), Tensorflow Training, vLLM (x86, arm64), and SGLang.</p>
+<h3 id="sample-uris">Sample URIs<a class="headerlink" href="#sample-uris" title="Permanent link">&para;</a></h3>
+<ul>
+<li>
+<p><strong>ECR Private Registry</strong> (requires AWS account to login):
+  <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>763104351884.dkr.ecr.us-east-1.amazonaws.com/pytorch-training:2.9-cpu-py312-ubuntu22.04-sagemaker-v1-soci
+</span></code></pre></div></p>
+</li>
+<li>
+<p><strong>ECR Public Gallery</strong> (no login required):
+  <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-cpu-py312-ubuntu22.04-sagemaker-v1-soci
+</span></code></pre></div></p>
+</li>
+</ul>
+<h3 id="dlc-soci-tag-introduction">DLC SOCI Tag Introduction<a class="headerlink" href="#dlc-soci-tag-introduction" title="Permanent link">&para;</a></h3>
+<p>For different tracking purposes, DLC images have several tags for one single image. Taking PyTorch training image as an example, it has six tags. Tags without version or with only major version will be overridden by each patch release and always point to the latest release image, while tags with minor version and timestamp will only attach to one specific image.</p>
+<p><strong>Tags attached to specific image:</strong>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2-v1.2-2025-12-15-22-03-41</code>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2-v1.2</code></p>
+<p><strong>Tags always attached to latest image:</strong>
+- <code>2.9-gpu-py312-ec2</code>
+- <code>2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1</code>
+- <code>2.9.0-gpu-py312-ec2</code>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2</code></p>
+<p><strong>Usage Guidelines:</strong>
+- To use a specific image, use tags with timestamp and minor version
+- To always get the latest image with CVE patches, use tags without timestamp</p>
+<p><strong>SOCI-Enabled Tags:</strong></p>
+<p>For SOCI index enabled images, DLC adds <code>-soci</code> as a tag suffix. For the above image examples, the SOCI tags are:</p>
+<p><strong>Tags attached to specific image:</strong>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2-v1.2-2025-12-15-22-03-41-soci</code>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2-v1.2-soci</code></p>
+<p><strong>Tags always attached to latest image:</strong>
+- <code>2.9-gpu-py312-ec2-soci</code>
+- <code>2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci</code>
+- <code>2.9.0-gpu-py312-ec2-soci</code>
+- <code>2.9.0-gpu-py312-cu130-ubuntu22.04-ec2-soci</code></p>
+<h3 id="supported-versions">Supported Versions<a class="headerlink" href="#supported-versions" title="Permanent link">&para;</a></h3>
+<p>For the latest supported version releases, please refer to DLC <a href="https://gallery.ecr.aws/deep-learning-containers">public gallery</a> to check the tags.</p>
+<ul>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/pytorch-training">Pytorch Training</a></li>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/pytorch-training-arm64">Pytorch Training arm64</a></li>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/tensorflow-training">Tensorflow Training</a></li>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/vllm">vLLM</a></li>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/vllm-arm64">vLLM arm64</a></li>
+<li><a href="https://gallery.ecr.aws/deep-learning-containers/sglang">SGLang</a></li>
+</ul>
+<h2 id="getting-started-with-soci-index">Getting Started with SOCI Index<a class="headerlink" href="#getting-started-with-soci-index" title="Permanent link">&para;</a></h2>
+<h3 id="environment">Environment<a class="headerlink" href="#environment" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Instance Type</strong>: c5.24xlarge</li>
+<li><strong>AMI</strong>: Deep Learning Base OSS Nvidia Driver GPU AMI (Amazon Linux 2023) </li>
+<li>At the time of writing, we are using AMI date 20250701</li>
+</ul>
+<h3 id="common-setup-install-and-configure-soci-snapshotter">Common Setup: Install and Configure SOCI Snapshotter<a class="headerlink" href="#common-setup-install-and-configure-soci-snapshotter" title="Permanent link">&para;</a></h3>
+<p>Both Finch and nerdctl use the same SOCI snapshotter. Follow these steps to set it up:</p>
+<h4 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h4>
+<p><strong>1. containerd (&gt;= 1.4)</strong></p>
+<p>Required to run the SOCI snapshotter. To verify your containerd version:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>containerd<span class="w"> </span>--version
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Expected output:</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="c1"># containerd github.com/containerd/containerd/v2 2.0.5 fb4c30d4ede3531652d86197bf3fc9515e5276d9</span>
+</span></code></pre></div>
+<p><strong>2. fuse</strong></p>
+<p>Used for mounting without root access.</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>sudo<span class="w"> </span>yum<span class="w"> </span>install<span class="w"> </span>fuse
+</span></code></pre></div>
+<h4 id="install-the-soci-snapshotter">Install the SOCI Snapshotter<a class="headerlink" href="#install-the-soci-snapshotter" title="Permanent link">&para;</a></h4>
+<p>The SOCI project produces 2 binaries:
+- <strong>soci</strong>: The CLI tool used to build/manage SOCI indices
+- <strong>soci-snapshotter-grpc</strong>: The daemon (a containerd snapshotter plugin) used for lazy loading</p>
+<p><strong>Note</strong>: Each soci-snapshotter binary is compiled with a specific glibc version. Check your system glibc version for compatibility.</p>
+<p>To check glibc version:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>ldd<span class="w"> </span>--version
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="c1"># Expected output:</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="c1"># ldd (GNU libc) 2.34</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># Copyright (C) 2021 Free Software Foundation, Inc.</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="c1"># This is free software; see the source for copying conditions. There is NO</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="c1"># Written by Roland McGrath and Ulrich Drepper.</span>
+</span></code></pre></div>
+<p>To install soci-snapshotter:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="nv">version</span><span class="o">=</span><span class="s2">&quot;0.12.1&quot;</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>wget<span class="w"> </span>https://github.com/awslabs/soci-snapshotter/releases/download/v<span class="si">${</span><span class="nv">version</span><span class="si">}</span>/soci-snapshotter-<span class="si">${</span><span class="nv">version</span><span class="si">}</span>-linux-amd64.tar.gz
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-C<span class="w"> </span>/usr/local/bin<span class="w"> </span>-xvf<span class="w"> </span>soci-snapshotter-<span class="si">${</span><span class="nv">version</span><span class="si">}</span>-linux-amd64.tar.gz<span class="w"> </span>soci<span class="w"> </span>soci-snapshotter-grpc
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="c1"># Verify installation</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>soci<span class="w"> </span>--version
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># Expected output:</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="c1"># soci version v0.12.1 c140af2f22fffade79af74ddcc1c29388d763051</span>
+</span></code></pre></div>
+<h4 id="configure-soci-snapshotter">Configure SOCI Snapshotter<a class="headerlink" href="#configure-soci-snapshotter" title="Permanent link">&para;</a></h4>
+<p><strong>Step 1: Start Snapshotter in Background</strong></p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>sudo<span class="w"> </span>mkdir<span class="w"> </span>-p<span class="w"> </span>/run/soci-snapshotter-grpc
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="c1"># Start the SOCI snapshotter in background</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>sudo<span class="w"> </span>/usr/local/bin/soci-snapshotter-grpc<span class="w"> </span><span class="p">&amp;</span>
+</span></code></pre></div>
+<p><strong>Expected output:</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;starting soci-snapshotter-grpc&quot;</span><span class="p">,</span><span class="nt">&quot;revision&quot;</span><span class="p">:</span><span class="s2">&quot;c140af2f22fffade79af74ddcc1c29388d763051&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-16T23:54:48.995428161Z&quot;</span><span class="p">,</span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="s2">&quot;v0.12.1&quot;</span><span class="p">}</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="p">{</span><span class="nt">&quot;emitMetricPeriod&quot;</span><span class="p">:</span><span class="mi">10000000000</span><span class="p">,</span><span class="nt">&quot;fetchPeriod&quot;</span><span class="p">:</span><span class="mi">500000000</span><span class="p">,</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;maxQueueSize&quot;</span><span class="p">:</span><span class="mi">100</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;constructing background fetcher&quot;</span><span class="p">,</span><span class="nt">&quot;silencePeriod&quot;</span><span class="p">:</span><span class="mi">30000000000</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-16T23:54:49.007876736Z&quot;</span><span class="p">}</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="p">{</span><span class="nt">&quot;address&quot;</span><span class="p">:</span><span class="s2">&quot;/run/soci-snapshotter-grpc/soci-snapshotter-grpc.sock&quot;</span><span class="p">,</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;soci-snapshotter-grpc successfully started&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-16T23:54:49.011089880Z&quot;</span><span class="p">}</span>
+</span></code></pre></div>
+<p>Verify the snapshotter is running:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>soci-snapshotter
+</span></code></pre></div>
+<p><strong>Expected output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>root       12809  0.0  0.0 234584  8084 pts/1    S    23:54   0:00 sudo /usr/local/bin/soci-snapshotter-grpc
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>root       12812  0.0  0.0 234584  2516 pts/2    Ss+  23:54   0:00 sudo /usr/local/bin/soci-snapshotter-grpc
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>root       12813  0.0  0.0 2317432 42584 pts/2   Sl   23:54   0:00 /usr/local/bin/soci-snapshotter-grpc
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>ec2-user   12875  0.0  0.0 222324  2124 pts/1    S+   23:55   0:00 grep --color=auto soci-snapshotter
+</span></code></pre></div>
+<p><strong>Step 2: Configure containerd to Use SOCI Plugin</strong></p>
+<p>Modify <code>/etc/containerd/config.toml</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>sudo<span class="w"> </span>vim<span class="w"> </span>/etc/containerd/config.toml
+</span></code></pre></div>
+<p>Ensure the config includes the following section:</p>
+<div class="language-toml highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">[proxy_plugins]</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="k">[proxy_plugins.soci]</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;snapshot&quot;</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="n">address</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/run/soci-snapshotter-grpc/soci-snapshotter-grpc.sock&quot;</span>
+</span></code></pre></div>
+<hr />
+<h3 id="choose-your-container-client">Choose Your Container Client<a class="headerlink" href="#choose-your-container-client" title="Permanent link">&para;</a></h3>
+<p>After setting up the SOCI snapshotter, choose one of the following container clients:</p>
+<h3 id="option-1-using-finch-recommended-for-ease-of-use">Option 1: Using Finch (Recommended for Ease of Use)<a class="headerlink" href="#option-1-using-finch-recommended-for-ease-of-use" title="Permanent link">&para;</a></h3>
+<p><a href="https://runfinch.com/">Finch</a> is an open source client for container development that provides a simpler, streamlined experience. Finch uses the same SOCI snapshotter configured above.</p>
+<p><strong>Advantages of Finch:</strong>
+- Simpler command-line interface
+- Single package installation via dnf
+- <strong>CNI plugins pre-configured</strong> - Unlike nerdctl, Finch includes built-in network configuration, so you don't need to use <code>--network host</code> or manually configure CNI plugins
+- Ideal for users who want a streamlined experience</p>
+<h4 id="install-finch">Install Finch<a class="headerlink" href="#install-finch" title="Permanent link">&para;</a></h4>
+<p>Finch is packaged in the standard Amazon Linux repositories, making installation straightforward:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>sudo<span class="w"> </span>dnf<span class="w"> </span>install<span class="w"> </span>runfinch-finch
+</span></code></pre></div>
+<p>Verify Finch is installed correctly:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>sudo<span class="w"> </span>finch<span class="w"> </span>run<span class="w"> </span>public.ecr.aws/finch/hello-finch:latest
+</span></code></pre></div>
+<p><strong>Expected output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>.....                                      
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>                            @@@@@@@@@@@@@@@@@@@                                 
+</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>                        @@@@@@@@@@@@    @@@@@@@@@@@                             
+</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>                      @@@@@@@                  @@@@@@@                          
+</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>                    @@@@@@                        @@@@@@                        
+</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a>                  @@@@@@                            @@@@@                       
+</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a>                 @@@@@                      @@@#     @@@@@@@@@                  
+</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>                @@@@@                     @@   @@@       @@@@@@@@@@             
+</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>                @@@@%                     @     @@            @@@@@@@@@@@       
+</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a>                @@@@                                               @@@@@@@@     
+</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a>                @@@@                                         @@@@@@@@@@@&amp;       
+</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a>                @@@@@                                  &amp;@@@@@@@@@@@             
+</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>                 @@@@@                               @@@@@@@@                   
+</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a>                  @@@@@                            @@@@@(                       
+</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>                   @@@@@@                        @@@@@@                         
+</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a>                     @@@@@@@                  @@@@@@@                           
+</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>                        @@@@@@@@@@@@@@@@@@@@@@@@@@                              
+</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>                            @@@@@@@@@@@@@@@@@@
+</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a>
+</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a>
+</span><span id="__span-14-22"><a id="__codelineno-14-22" name="__codelineno-14-22" href="#__codelineno-14-22"></a>Hello from Finch!
+</span><span id="__span-14-23"><a id="__codelineno-14-23" name="__codelineno-14-23" href="#__codelineno-14-23"></a>
+</span><span id="__span-14-24"><a id="__codelineno-14-24" name="__codelineno-14-24" href="#__codelineno-14-24"></a>Visit us @ github.com/runfinch
+</span></code></pre></div>
+<h4 id="pull-soci-images-with-finch">Pull SOCI Images with Finch<a class="headerlink" href="#pull-soci-images-with-finch" title="Permanent link">&para;</a></h4>
+<p>Pull a SOCI-enabled DLC image using Finch:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>sudo<span class="w"> </span>finch<span class="w"> </span>pull<span class="w"> </span>--snapshotter<span class="w"> </span>soci<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.8-gpu-py312-cu129-ubuntu22.04-ec2-v1-soci
+</span></code></pre></div>
+<p><strong>Expected output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>config-sha256:a4f4e7578325b0651818c5605b87f9eef2ba5a54dcfa896dabe448a6c4c468be:    exists         |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>elapsed: 12.3s
+</span></code></pre></div>
+<h4 id="run-containers-with-finch">Run Containers with Finch<a class="headerlink" href="#run-containers-with-finch" title="Permanent link">&para;</a></h4>
+<p>Run an interactive container with SOCI lazy loading:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>sudo<span class="w"> </span>finch<span class="w"> </span>run<span class="w"> </span>--snapshotter<span class="w"> </span>soci<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.8-gpu-py312-cu129-ubuntu22.04-ec2-v1-soci<span class="w"> </span>/bin/bash
+</span></code></pre></div>
+<p><strong>Note</strong>: You must use the <code>--snapshotter soci</code> flag with Finch to enable SOCI lazy loading. Without this flag, Finch will download the entire image.</p>
+<p>For more information about Finch, visit the <a href="https://runfinch.com/docs/managing-finch/linux/installation/">Finch documentation</a>.</p>
+<hr />
+<h3 id="option-2-using-nerdctl-advanced-use-cases">Option 2: Using nerdctl (Advanced Use Cases)<a class="headerlink" href="#option-2-using-nerdctl-advanced-use-cases" title="Permanent link">&para;</a></h3>
+<p>Provides more control and flexibility for advanced use cases.</p>
+<p><strong>Important</strong>: nerdctl requires CNI (Container Network Interface) plugin configuration for container networking. Without CNI configuration, you must use the <code>--network host</code> flag when running containers. All examples in this guide use <code>--network host</code> for simplicity.</p>
+<h4 id="install-nerdctl">Install nerdctl<a class="headerlink" href="#install-nerdctl" title="Permanent link">&para;</a></h4>
+<p><strong>nerdctl (&gt;= v1.6.0)</strong> is required to interact with containerd/registry. <strong>Note</strong>: SOCI will not work with rootless nerdctl.</p>
+<p>To install nerdctl:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>wget<span class="w"> </span>https://github.com/containerd/nerdctl/releases/download/v2.1.5/nerdctl-2.1.5-linux-amd64.tar.gz
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>sudo<span class="w"> </span>tar<span class="w"> </span>-C<span class="w"> </span>/usr/local/bin<span class="w"> </span>-xzf<span class="w"> </span>nerdctl-2.1.5-linux-amd64.tar.gz
+</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>sudo<span class="w"> </span>chmod<span class="w"> </span>+x<span class="w"> </span>/usr/local/bin/nerdctl
+</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>
+</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="c1"># Verify installation</span>
+</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>nerdctl<span class="w"> </span>--version
+</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="c1"># Expected output:</span>
+</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># nerdctl version 2.1.5</span>
+</span></code></pre></div>
+<h4 id="verify-nerdctl-is-using-soci">Verify nerdctl is Using SOCI<a class="headerlink" href="#verify-nerdctl-is-using-soci" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>sudo<span class="w"> </span>nerdctl<span class="w"> </span>system<span class="w"> </span>info
+</span></code></pre></div>
+<p>Look for <code>soci</code> in the Storage plugins:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>Client:
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a> Namespace:     default
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a> Debug Mode:    false
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>Server:
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a> Server Version: 2.0.5
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a> Storage Driver: overlayfs
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a> Logging Driver: json-file
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a> Cgroup Driver: systemd
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a> Cgroup Version: 2
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a> Plugins:
+</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>  Log:     fluentd journald json-file none syslog
+</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>  Storage: native overlayfs soci
+</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a> Security Options:
+</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>  seccomp
+</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>   Profile: builtin
+</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>  cgroupns
+</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a> Kernel Version:   6.1.141-155.222.amzn2023.x86_64
+</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a> Operating System: Amazon Linux 2023.7.20250623
+</span><span id="__span-20-20"><a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a> OSType:           linux
+</span><span id="__span-20-21"><a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a> Architecture:     x86_64
+</span><span id="__span-20-22"><a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a> CPUs:             96
+</span><span id="__span-20-23"><a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a> Total Memory:     184.9GiB
+</span><span id="__span-20-24"><a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a> Name:             ip-172-31-53-55.us-west-2.compute.internal
+</span><span id="__span-20-25"><a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a> ID:               cafd1e17-3c20-4557-af0d-425ea0ef25bc
+</span></code></pre></div>
+<h4 id="pull-soci-images-with-nerdctl">Pull SOCI Images with nerdctl<a class="headerlink" href="#pull-soci-images-with-nerdctl" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>sudo<span class="w"> </span>nerdctl<span class="w"> </span>pull<span class="w"> </span>--snapshotter<span class="w"> </span>soci<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci: resolved       |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>index-sha256:fbacb61760f570e2f8df6eacd65a6285c8699405566fdb73711390e9d81db2b8:    done           |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-22-3"><a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>manifest-sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22:     done           |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-22-4"><a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>config-sha256:d007250deb6300c72286af12cf0510cf69b0c7227e4b4d50783a03ac8d917275:       done           |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-22-5"><a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>elapsed: 8.9 s     total:  37.9 K (4.3 KiB/s)
+</span></code></pre></div>
+<p>Verify the image:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>sudo<span class="w"> </span>nerdctl<span class="w"> </span>images
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>REPOSITORY                                                  TAG                                            IMAGE ID        CREATED          PLATFORM       SIZE    BLOB SIZE
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>public.ecr.aws/deep-learning-containers/pytorch-training    2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci    fbacb61760f5    5 minutes ago    linux/amd64    0B      8.792GB
+</span></code></pre></div>
+<p><strong>FUSE mount output:</strong></p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Getxattr = 13&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005689642Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Open = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005771355Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Readlink = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005780603Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: whiteout.Getattr = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005788862Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Listxattr = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005798239Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Lookup = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005805635Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Readdir = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005813816Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: file.Read = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005824207Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: file.Getattr = 0&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005831686Z&quot;</span><span class="p">}</span>
+</span><span id="__span-25-10"><a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a><span class="p">{</span><span class="nt">&quot;level&quot;</span><span class="p">:</span><span class="s2">&quot;info&quot;</span><span class="p">,</span><span class="nt">&quot;msg&quot;</span><span class="p">:</span><span class="s2">&quot;fuse operation count for image sha256:ca3e4389bb850cf3f43128b98897ac4522e20f354452a41139cfe7f45431da22: node.Getattr = 13&quot;</span><span class="p">,</span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="s2">&quot;2025-12-17T00:06:33.005839399Z&quot;</span><span class="p">}</span>
+</span></code></pre></div>
+<h4 id="run-containers-with-nerdctl">Run Containers with nerdctl<a class="headerlink" href="#run-containers-with-nerdctl" title="Permanent link">&para;</a></h4>
+<p>Run an interactive container with SOCI lazy loading:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>sudo<span class="w"> </span>nerdctl<span class="w"> </span>run<span class="w"> </span>--snapshotter<span class="w"> </span>soci<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci<span class="w"> </span>/bin/bash
+</span></code></pre></div>
+<p><strong>Note</strong>: You must use the <code>--snapshotter soci</code> flag with nerdctl to enable SOCI lazy loading. Without this flag, nerdctl will download the entire image. Additionally, since nerdctl requires CNI configuration, the <code>--network host</code> flag is used in this example.</p>
+<hr />
+<h2 id="performance-comparison-soci-vs-docker">Performance Comparison: SOCI vs Docker<a class="headerlink" href="#performance-comparison-soci-vs-docker" title="Permanent link">&para;</a></h2>
+<h3 id="docker-pull-benchmark">Docker Pull Benchmark<a class="headerlink" href="#docker-pull-benchmark" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nb">time</span><span class="w"> </span>docker<span class="w"> </span>pull<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>real    4m26.405s
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>user    0m0.129s
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>sys     0m0.127s
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>docker<span class="w"> </span>images
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>REPOSITORY                                                 TAG                                           IMAGE ID       CREATED        SIZE
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a>public.ecr.aws/deep-learning-containers/pytorch-training   2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1        d007250deb63   32 hours ago   17.6GB
+</span></code></pre></div>
+<p><strong>Analysis</strong>: The image size is 17.6GB. Using Docker to pull the full image takes <strong>4m26.405s</strong>, while SOCI only pulls the index and necessary layers, taking just <strong>8.9s</strong>(using nerdctl). The remaining layers are pulled during runtime as needed.</p>
+<h3 id="container-runtime-comparison">Container Runtime Comparison<a class="headerlink" href="#container-runtime-comparison" title="Permanent link">&para;</a></h3>
+<h4 id="docker-runtime">Docker Runtime<a class="headerlink" href="#docker-runtime" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="nb">time</span><span class="w"> </span>docker<span class="w"> </span>run<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1<span class="w"> </span><span class="s1">&#39;python -c &quot;import torch; print(torch.__version__)&quot;&#39;</span>
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>bash: cannot set terminal process group (-1): Inappropriate ioctl for device
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>bash: no job control in this shell
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>2.9.0+cu130
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a>real    0m4.308s
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>user    0m0.010s
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>sys     0m0.023s
+</span></code></pre></div>
+<h4 id="soci-runtime">SOCI Runtime<a class="headerlink" href="#soci-runtime" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="nb">time</span><span class="w"> </span>sudo<span class="w"> </span>nerdctl<span class="w"> </span>run<span class="w"> </span>--snapshotter<span class="w"> </span>soci<span class="w"> </span>--rm<span class="w"> </span>--network<span class="w"> </span>host<span class="w"> </span>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci<span class="w"> </span><span class="s1">&#39;python -c &quot;import torch; print(torch.__version__)&quot;&#39;</span>
+</span></code></pre></div>
+<p><strong>Output:</strong></p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>public.ecr.aws/deep-learning-containers/pytorch-training:2.9-gpu-py312-cu130-ubuntu22.04-ec2-v1-soci: resolved       |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>manifest-sha256:10f1280343bfe3e9acb43bbcf2ac78e0bf636df6181c1dbbfa6e84ac285d0948:    done           |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>config-sha256:d007250deb6300c72286af12cf0510cf69b0c7227e4b4d50783a03ac8d917275:      exists         |++++++++++++++++++++++++++++++++++++++| 
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>elapsed: 0.3 s     total:  7.3 Ki (24.3 KiB/s)                                      
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>bash: cannot set terminal process group (-1): Inappropriate ioctl for device
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>bash: no job control in this shell
+</span><span id="__span-34-7"><a id="__codelineno-34-7" name="__codelineno-34-7" href="#__codelineno-34-7"></a>2.9.0+cu130
+</span><span id="__span-34-8"><a id="__codelineno-34-8" name="__codelineno-34-8" href="#__codelineno-34-8"></a>
+</span><span id="__span-34-9"><a id="__codelineno-34-9" name="__codelineno-34-9" href="#__codelineno-34-9"></a>real    0m22.785s
+</span><span id="__span-34-10"><a id="__codelineno-34-10" name="__codelineno-34-10" href="#__codelineno-34-10"></a>user    0m0.020s
+</span><span id="__span-34-11"><a id="__codelineno-34-11" name="__codelineno-34-11" href="#__codelineno-34-11"></a>sys     0m0.031s
+</span></code></pre></div>
+<h3 id="key-performance-benefits">Key Performance Benefits<a class="headerlink" href="#key-performance-benefits" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Faster Initial Pull</strong>: SOCI reduces initial pull time from 4m26s to 8.9s (~97% reduction)</li>
+<li><strong>Reduced Bandwidth</strong>: Only pulls necessary layers during initial pull</li>
+<li><strong>Lazy Loading</strong>: Additional layers are fetched on-demand during runtime</li>
+<li><strong>Storage Efficiency</strong>: Reduces initial storage footprint while maintaining full functionality</li>
+</ul>
+<h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
+<p>For more information about SOCI snapshotter and related tools, please refer to the following resources:</p>
+<ul>
+<li><strong>SOCI Snapshotter Official Documentation</strong>: <a href="https://github.com/awslabs/soci-snapshotter">https://github.com/awslabs/soci-snapshotter</a></li>
+<li><strong>SOCI Snapshotter Getting Started Guide</strong>: <a href="https://github.com/awslabs/soci-snapshotter/blob/main/docs/getting-started.md">https://github.com/awslabs/soci-snapshotter/blob/main/docs/getting-started.md</a></li>
+<li><strong>SOCI Index Manifest v2 Documentation</strong>: <a href="https://github.com/awslabs/soci-snapshotter/blob/main/docs/soci-index-manifest-v2.md">https://github.com/awslabs/soci-snapshotter/blob/main/docs/soci-index-manifest-v2.md</a></li>
+<li><strong>Finch Documentation</strong>: <a href="https://runfinch.com/docs/managing-finch/linux/installation/">https://runfinch.com/docs/managing-finch/linux/installation/</a></li>
+<li><strong>AWS Deep Learning Containers Release Notes</strong>: <a href="https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html">https://docs.aws.amazon.com/deep-learning-containers/latest/devguide/dlc-release-notes.html</a></li>
+<li><strong>AWS Deep Learning Containers Public Gallery</strong>: <a href="https://gallery.ecr.aws/deep-learning-containers">https://gallery.ecr.aws/deep-learning-containers</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "content.tabs.link", "navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "search.highlight", "search.share", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3747 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for AWS Deep Learning Containers">
+      
+      
+      
+        <link rel="canonical" href="https://aws.github.io/deep-learning-containers/tutorials/vllm-samples/deepseek/eks/">
+      
+      
+        <link rel="prev" href="../../sagemaker/">
+      
+      
+        <link rel="next" href="fraud-detection-demo/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/logos/AWS_logo_RGB.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>DeepSeek on EKS - Deep Learning Containers</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../mkdocs/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#vllm-deepseek-model-on-eks-with-gpu-support-efa-and-fsx-lustre-integration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Deep Learning Containers" class="md-header__button md-logo" aria-label="Deep Learning Containers" data-md-component="logo">
+      
+  <img src="../../../../assets/logos/AWS_logo_RGB.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Deep Learning Containers
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              DeepSeek on EKS
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m14.3 16-.7-2h-3.2l-.7 2H7.8L11 7h2l3.2 9zM20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12zm-9.15 3.96h2.3L12 9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_2" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-2.69L23.31 12 20 8.69V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to system preference"  type="radio" name="__palette" id="__palette_2">
+    
+      <label class="md-header__button md-icon" title="Switch to system preference" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9 2c-1.05 0-2.05.16-3 .46 4.06 1.27 7 5.04 7 9.54s-2.94 8.27-7 9.54c.95.3 1.95.46 3 .46a10 10 0 0 0 10-10A10 10 0 0 0 9 2"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/aws/deep-learning-containers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/deep-learning-containers
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../get_started/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../releasenotes/" class="md-tabs__link">
+          
+  
+  
+  Release Notes
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  
+  Tutorials
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../reference/" class="md-tabs__link">
+          
+  
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../security/" class="md-tabs__link">
+          
+  
+  
+  Security
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Deep Learning Containers" class="md-nav__button md-logo" aria-label="Deep Learning Containers" data-md-component="logo">
+      
+  <img src="../../../../assets/logos/AWS_logo_RGB.svg" alt="logo">
+
+    </a>
+    Deep Learning Containers
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/aws/deep-learning-containers" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    aws/deep-learning-containers
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../get_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../get_started/using_dlcs/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Using Deep Learning Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Release Notes
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/sglang/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SGLang
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/vllm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/pytorch/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyTorch
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../releasenotes/tensorflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tensorflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Tutorials
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tutorials
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Training
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../training/eks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EKS Training
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Inference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Inference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sagemaker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    vLLM on SageMaker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DeepSeek on EKS
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DeepSeek on EKS
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-example-ai-powered-fraud-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Advanced Example: AI-Powered Fraud Detection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Advanced Example: AI-Powered Fraud Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#go-to-fraud-detection-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👉 Go to Fraud Detection Demo →
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-ways-to-use-this-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Two Ways to Use This Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Two Ways to Use This Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-basic-vllm-deployment-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Basic vLLM Deployment (This Page)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-complete-fraud-detection-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Complete Fraud Detection Demo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regional-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regional Availability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-aws-profile-for-a-new-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up AWS Profile for a New Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-aws-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install AWS CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-eksctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install eksctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-kubectl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install kubectl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-helm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Helm
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-an-eks-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an EKS cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-node-group-with-efa-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a node group with EFA support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-nvidia-device-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check NVIDIA device pods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-an-fsx-for-lustre-file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an FSx for Lustre file system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-aws-fsx-csi-driver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the AWS FSx CSI Driver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-kubernetes-resources-for-fsx-for-lustre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Kubernetes resources for FSx for Lustre
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-aws-load-balancer-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the AWS Load Balancer Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-security-groups-for-the-alb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure security groups for the ALB
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-the-vllm-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy the vLLM server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-the-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test the deployment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleanup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cleanup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-cleanup-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Cleanup Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-cleanup-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Cleanup Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-delete-kubernetes-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Delete Kubernetes Resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-delete-the-iam-service-account-cloudformation-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Delete the IAM Service Account CloudFormation Stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-delete-the-iam-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Delete the IAM Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-delete-the-fsx-lustre-filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Delete the FSx Lustre Filesystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-check-for-any-remaining-load-balancers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Check for Any Remaining Load Balancers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-delete-the-node-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Delete the Node Group
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-delete-the-security-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delete the Security Groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-delete-the-eks-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Delete the EKS Cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-troubleshooting-cloudformation-stack-deletion-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Troubleshooting CloudFormation Stack Deletion Failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-verify-all-resources-are-deleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Verify All Resources Are Deleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#leaderworkerset-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LeaderWorkerSet Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LeaderWorkerSet Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ray-cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ray Cluster Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vllm-server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        vLLM Server Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-aws-load-balancer-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting AWS Load Balancer Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elastic-fabric-adapter-efa-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elastic Fabric Adapter (EFA) Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Elastic Fabric Adapter (EFA) Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#efa-setup-in-the-nodegroup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EFA Setup in the Nodegroup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-of-efa-for-large-language-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benefits of EFA for Large Language Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration-using-application-load-balancer-alb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Configuration: Using Application Load Balancer (ALB)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration: Using Application Load Balancer (ALB)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-group-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Group Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssltls-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL/TLS Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fsx-lustre-integration-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FSx Lustre Integration Benefits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="fraud-detection-demo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Fraud Detection Demo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Integrations
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Integrations
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../mlflow/dlc-with-mlflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MLflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../SOCI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SOCI
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/available_images/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Available Images
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reference/support_policy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Support Policy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Security
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security in AWS Deep Learning Containers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/data-protection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Protection
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/identity-and-access-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Identity and Access Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/logging-and-monitoring/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Monitoring and Usage Tracking
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/compliance/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Compliance Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/resilience/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Resilience
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../security/infrastructure-security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Infrastructure Security
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-example-ai-powered-fraud-detection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Advanced Example: AI-Powered Fraud Detection
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="🚀 Advanced Example: AI-Powered Fraud Detection">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#go-to-fraud-detection-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        👉 Go to Fraud Detection Demo →
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#two-ways-to-use-this-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📚 Two Ways to Use This Repository
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="📚 Two Ways to Use This Repository">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#option-1-basic-vllm-deployment-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 1: Basic vLLM Deployment (This Page)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#option-2-complete-fraud-detection-demo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Option 2: Complete Fraud Detection Demo
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Prerequisites">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#regional-availability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regional Availability
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-aws-profile-for-a-new-account" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setting Up AWS Profile for a New Account
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#installation-instructions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation Instructions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Installation Instructions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-aws-cli" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install AWS CLI
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-eksctl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install eksctl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-kubectl" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install kubectl
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-helm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install Helm
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create-an-eks-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an EKS cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-a-node-group-with-efa-support" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create a node group with EFA support
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#check-nvidia-device-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check NVIDIA device pods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-an-fsx-for-lustre-file-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create an FSx for Lustre file system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-aws-fsx-csi-driver" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the AWS FSx CSI Driver
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create-kubernetes-resources-for-fsx-for-lustre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Create Kubernetes resources for FSx for Lustre
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#install-the-aws-load-balancer-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install the AWS Load Balancer Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configure-security-groups-for-the-alb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configure security groups for the ALB
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deploy-the-vllm-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deploy the vLLM server
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#test-the-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Test the deployment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleanup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cleanup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-the-cleanup-script" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the Cleanup Script
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-cleanup-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Cleanup Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-delete-kubernetes-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Delete Kubernetes Resources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-delete-the-iam-service-account-cloudformation-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Delete the IAM Service Account CloudFormation Stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-delete-the-iam-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Delete the IAM Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-delete-the-fsx-lustre-filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Delete the FSx Lustre Filesystem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-check-for-any-remaining-load-balancers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Check for Any Remaining Load Balancers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-delete-the-node-group" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Delete the Node Group
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-delete-the-security-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Delete the Security Groups
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-delete-the-eks-cluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Delete the EKS Cluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-troubleshooting-cloudformation-stack-deletion-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Troubleshooting CloudFormation Stack Deletion Failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-verify-all-resources-are-deleted" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Verify All Resources Are Deleted
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#leaderworkerset-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LeaderWorkerSet Implementation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="LeaderWorkerSet Implementation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ray-cluster-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ray Cluster Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vllm-server-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        vLLM Server Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-aws-load-balancer-controller" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting AWS Load Balancer Controller
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#elastic-fabric-adapter-efa-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Elastic Fabric Adapter (EFA) Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Elastic Fabric Adapter (EFA) Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#efa-setup-in-the-nodegroup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EFA Setup in the Nodegroup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#benefits-of-efa-for-large-language-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benefits of EFA for Large Language Models
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#advanced-configuration-using-application-load-balancer-alb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Advanced Configuration: Using Application Load Balancer (ALB)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Advanced Configuration: Using Application Load Balancer (ALB)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#security-group-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security Group Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ssltls-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSL/TLS Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#access-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Access Logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fsx-lustre-integration-benefits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FSx Lustre Integration Benefits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="vllm-deepseek-model-on-eks-with-gpu-support-efa-and-fsx-lustre-integration">vLLM Deepseek Model on EKS with GPU Support, EFA, and FSx Lustre Integration<a class="headerlink" href="#vllm-deepseek-model-on-eks-with-gpu-support-efa-and-fsx-lustre-integration" title="Permanent link">&para;</a></h1>
+<p>This repository contains scripts and configuration files to deploy a deepseek model using the AWS public vLLM deep learning container ECR image on an Amazon EKS cluster with GPU support (p4d.24xlarge instances with NVIDIA A100 GPUs), Elastic Fabric Adapter (EFA) for high-performance networking, and FSx Lustre for persistent model storage.</p>
+<p><img alt="Architecture Diagram" src="media-files/architecture-diagram.png" /></p>
+<hr />
+<h2 id="advanced-example-ai-powered-fraud-detection">🚀 Advanced Example: AI-Powered Fraud Detection<a class="headerlink" href="#advanced-example-ai-powered-fraud-detection" title="Permanent link">&para;</a></h2>
+<p><strong>New!</strong> Check out our <strong>complete production-ready fraud detection demo</strong> that showcases:
+- ✅ Real-time financial fraud detection using DeepSeek R1 32B
+- ✅ AI agents with Model Context Protocol (MCP) microservices
+- ✅ Interactive Streamlit UI for fraud analysis
+- ✅ Full deployment on AWS (EKS + ECS + ALB)
+- ✅ Sub-2 second inference latency
+- ✅ Production-ready architecture with cost optimization</p>
+<h3 id="go-to-fraud-detection-demo">👉 <a href="fraud-detection-demo/"><strong>Go to Fraud Detection Demo →</strong></a><a class="headerlink" href="#go-to-fraud-detection-demo" title="Permanent link">&para;</a></h3>
+<p><strong>What's included:</strong>
+- Complete working production example
+- Step-by-step deployment guide
+- 6 MCP microservices (transaction-risk, identity-verifier, geolocation-checker, etc.)
+- Performance metrics and cost analysis
+- Troubleshooting guide</p>
+<p><strong>Timeline:</strong> ~45 min for basic vLLM setup + ~30 min for full demo deployment</p>
+<hr />
+<h2 id="two-ways-to-use-this-repository">📚 Two Ways to Use This Repository<a class="headerlink" href="#two-ways-to-use-this-repository" title="Permanent link">&para;</a></h2>
+<h3 id="option-1-basic-vllm-deployment-this-page">Option 1: Basic vLLM Deployment (This Page)<a class="headerlink" href="#option-1-basic-vllm-deployment-this-page" title="Permanent link">&para;</a></h3>
+<p>Deploy vLLM with DeepSeek R1 32B on Amazon EKS. Perfect for:
+- Learning vLLM deployment basics
+- Testing model inference
+- Building your own applications</p>
+<p><strong>Continue reading below</strong> for the basic deployment guide.</p>
+<h3 id="option-2-complete-fraud-detection-demo">Option 2: Complete Fraud Detection Demo<a class="headerlink" href="#option-2-complete-fraud-detection-demo" title="Permanent link">&para;</a></h3>
+<p>Full production example with AI agents, microservices, and UI. Perfect for:
+- Understanding production AI architectures
+- Seeing vLLM in a real-world use case
+- Learning about MCP and AI agents</p>
+<p><strong>Jump to:</strong> <a href="fraud-detection-demo/">fraud-detection-demo/README.md</a></p>
+<hr />
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<p>Before getting started, ensure you have:</p>
+<ul>
+<li>An AWS account with access to amazon EC2 P4 instances (you may need to request a quota increase)</li>
+<li>Access to a terminal which has the below tools installed:</li>
+<li>AWS CLI version 2.11.0 or later</li>
+<li>eksctl version 0.150.0 or later</li>
+<li>kubectl version 1.27 or later</li>
+<li>Helm version 3.12.0 or later</li>
+<li>Configure a new aws cli profile (vllm-profile) with an IAM role/user that has the following permissions:</li>
+<li>Create, manage, and delete EKS clusters and node groups</li>
+<li>Create, manage, and delete EC2 resources including VPCs, subnets, security groups, and internet gateways</li>
+<li>Create and manage IAM roles</li>
+<li>Create, update, and delete CloudFormation stacks</li>
+<li>Create, delete, and describe FSx file systems</li>
+<li>Create and manage Elastic Load Balancers</li>
+</ul>
+<h3 id="regional-availability">Regional Availability<a class="headerlink" href="#regional-availability" title="Permanent link">&para;</a></h3>
+<p>This solution can be deployed in any region where Amazon EKS, P4d instances, and Amazon FSx for Lustre are available. This guide uses the us-west-2 (Oregon) region.</p>
+<h3 id="setting-up-aws-profile-for-a-new-account">Setting Up AWS Profile for a New Account<a class="headerlink" href="#setting-up-aws-profile-for-a-new-account" title="Permanent link">&para;</a></h3>
+<p>If you're deploying to a new AWS account, you'll need to create a new AWS profile:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Create a new AWS profile</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>aws<span class="w"> </span>configure<span class="w"> </span>--profile<span class="w"> </span>vllm-profile
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># For temporary credentials, also add the session token</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nb">echo</span><span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;\naws_session_token = YOUR_SESSION_TOKEN_HERE&quot;</span><span class="w"> </span>&gt;&gt;<span class="w"> </span>~/.aws/credentials
+</span></code></pre></div>
+<p>You'll need to provide:
+- AWS Access Key ID
+- AWS Secret Access Key
+- Default region (e.g., us-west-2)
+- Default output format (e.g., json, table)
+- Session token (if using temporary credentials)</p>
+<h3 id="installation-instructions">Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permanent link">&para;</a></h3>
+<h4 id="install-aws-cli">Install AWS CLI<a class="headerlink" href="#install-aws-cli" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># For Linux</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>curl<span class="w"> </span><span class="s2">&quot;https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip&quot;</span><span class="w"> </span>-o<span class="w"> </span><span class="s2">&quot;awscliv2.zip&quot;</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>unzip<span class="w"> </span>awscliv2.zip
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>sudo<span class="w"> </span>./aws/install
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># Configure AWS CLI</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>aws<span class="w"> </span>configure
+</span></code></pre></div>
+<h4 id="install-eksctl">Install eksctl<a class="headerlink" href="#install-eksctl" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># For Linux</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>curl<span class="w"> </span>--silent<span class="w"> </span>--location<span class="w"> </span><span class="s2">&quot;https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_</span><span class="k">$(</span>uname<span class="w"> </span>-s<span class="k">)</span><span class="s2">_amd64.tar.gz&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>xz<span class="w"> </span>-C<span class="w"> </span>/tmp
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>sudo<span class="w"> </span>mv<span class="w"> </span>/tmp/eksctl<span class="w"> </span>/usr/local/bin
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>eksctl<span class="w"> </span>version
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># For macOS</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>brew<span class="w"> </span>tap<span class="w"> </span>weaveworks/tap
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>brew<span class="w"> </span>install<span class="w"> </span>weaveworks/tap/eksctl
+</span></code></pre></div>
+<h4 id="install-kubectl">Install kubectl<a class="headerlink" href="#install-kubectl" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># For Linux</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>curl<span class="w"> </span>-LO<span class="w"> </span><span class="s2">&quot;https://dl.k8s.io/release/</span><span class="k">$(</span>curl<span class="w"> </span>-L<span class="w"> </span>-s<span class="w"> </span>https://dl.k8s.io/release/stable.txt<span class="k">)</span><span class="s2">/bin/linux/amd64/kubectl&quot;</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>chmod<span class="w"> </span>+x<span class="w"> </span>kubectl
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>sudo<span class="w"> </span>mv<span class="w"> </span>kubectl<span class="w"> </span>/usr/local/bin/
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="c1"># For macOS</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>brew<span class="w"> </span>install<span class="w"> </span>kubectl
+</span></code></pre></div>
+<h4 id="install-helm">Install Helm<a class="headerlink" href="#install-helm" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># For Linux</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>curl<span class="w"> </span>https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3<span class="w"> </span><span class="p">|</span><span class="w"> </span>bash
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># For macOS</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>brew<span class="w"> </span>install<span class="w"> </span>helm
+</span></code></pre></div>
+<h2 id="files">Files<a class="headerlink" href="#files" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>cleanup.sh</code>: Script for cleaning up all resources created by this deployment</li>
+<li><code>eks-cluster.yaml</code>: EKS cluster configuration</li>
+<li><code>fsx-inspect-pod.yaml</code>: Pod definition for inspecting FSx Lustre filesystem</li>
+<li><code>fsx-lustre-pv.yaml</code>: Persistent Volume for FSx Lustre</li>
+<li><code>fsx-lustre-pvc.yaml</code>: Persistent Volume Claim for FSx Lustre</li>
+<li><code>fsx-storage-class.yaml</code>: Storage class for FSx Lustre</li>
+<li><code>iam-policy.json</code>: IAM policy document for the AWS Load Balancer Controller</li>
+<li><code>large-model-nodegroup.yaml</code>: Nodegroup configuration for p4d.24xlarge instances with EFA support</li>
+<li><code>vllm-deepseek-32b-lws.yaml</code>: LeaderWorkerSet configuration for the vLLM server with deepseek model</li>
+<li><code>vllm-deepseek-32b-lws-ingress.yaml</code>: Kubernetes ingress for the vLLM server with ALB</li>
+</ul>
+<h2 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h2>
+<p>This section provides step-by-step instructions to deploy the vLLM Deepseek model on Amazon EKS with GPU support, EFA, and FSx Lustre integration. Follow these steps in order to set up your environment.</p>
+<h3 id="create-an-eks-cluster">Create an EKS cluster<a class="headerlink" href="#create-an-eks-cluster" title="Permanent link">&para;</a></h3>
+<p>First, we create an EKS cluster in the us-west-2 Region using the provided configuration file:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Update the region in eks-cluster.yaml if needed</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|region: us-east-1|region: us-west-2|g&quot;</span><span class="w"> </span>eks-cluster.yaml
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Create the EKS cluster</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>eksctl<span class="w"> </span>create<span class="w"> </span>cluster<span class="w"> </span>-f<span class="w"> </span>eks-cluster.yaml<span class="w"> </span>--profile<span class="w"> </span>vllm-profile
+</span></code></pre></div>
+<p><strong>Timeline:</strong> This will take approximately 15-20 minutes to complete. During this time, eksctl creates a CloudFormation stack that provisions the necessary resources for your EKS cluster.</p>
+<p>You can validate the cluster creation with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Verify cluster creation</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>eksctl<span class="w"> </span>get<span class="w"> </span>cluster<span class="w"> </span>--profile<span class="w"> </span>vllm-profile
+</span></code></pre></div>
+<h3 id="create-a-node-group-with-efa-support">Create a node group with EFA support<a class="headerlink" href="#create-a-node-group-with-efa-support" title="Permanent link">&para;</a></h3>
+<p>Next, we create a managed node group with P4d.24xlarge instances that have EFA enabled:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Get the VPC ID from the EKS cluster</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nv">VPC_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;cluster.resourcesVpcConfig.vpcId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Find the one of private subnet&#39;s availability zone</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="nv">PRIVATE_AZ</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-subnets<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span>--filters<span class="w"> </span><span class="s2">&quot;Name=vpc-id,Values=</span><span class="nv">$VPC_ID</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;Name=map-public-ip-on-launch,Values=false&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;Subnets[0].AvailabilityZone&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Selected private subnet AZ: </span><span class="nv">$PRIVATE_AZ</span><span class="s2">&quot;</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># update the nodegroup_az section with the private AZ value</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|availabilityZones: \[nodegroup_az\]|availabilityZones: \[\&quot;</span><span class="nv">$PRIVATE_AZ</span><span class="s2">\&quot;\]|g&quot;</span><span class="w"> </span>large-model-nodegroup.yaml
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># Verify the change</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>grep<span class="w"> </span><span class="s2">&quot;availabilityZones&quot;</span><span class="w"> </span>large-model-nodegroup.yaml
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1"># Create the node group with EFA support</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>eksctl<span class="w"> </span>create<span class="w"> </span>nodegroup<span class="w"> </span>-f<span class="w"> </span>large-model-nodegroup.yaml<span class="w"> </span>--profile<span class="w"> </span>vllm-profile
+</span></code></pre></div>
+<p><strong>Timeline:</strong> This will take approximately 10-15 minutes to complete. The EFA configuration is particularly important for multi-node deployments.</p>
+<p>After the node group is created, configure kubectl to connect to the cluster:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Configure kubectl to connect to the cluster</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>aws<span class="w"> </span>eks<span class="w"> </span>update-kubeconfig<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span>--region<span class="w"> </span>us-west-2<span class="w"> </span>--profile<span class="w"> </span>vllm-profile
+</span></code></pre></div>
+<p>Verify that the nodes are ready:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Check node status</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes
+</span></code></pre></div>
+<h3 id="check-nvidia-device-pods">Check NVIDIA device pods<a class="headerlink" href="#check-nvidia-device-pods" title="Permanent link">&para;</a></h3>
+<p>Verify that the NVIDIA device plugin is running:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Check NVIDIA device plugin pods</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>nvidia
+</span></code></pre></div>
+<p>Verify that GPUs are available in the cluster:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Check available GPUs</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>nodes<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.items[].status.capacity.&quot;nvidia.com/gpu&quot;&#39;</span>
+</span></code></pre></div>
+<h3 id="create-an-fsx-for-lustre-file-system">Create an FSx for Lustre file system<a class="headerlink" href="#create-an-fsx-for-lustre-file-system" title="Permanent link">&para;</a></h3>
+<p>For optimal performance, we create an FSx for Lustre file system to store our model weights:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Create a security group for FSx Lustre</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nv">FSX_SG_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>create-security-group<span class="w"> </span>--group-name<span class="w"> </span>fsx-lustre-sg<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span>--description<span class="w"> </span><span class="s2">&quot;Security group for FSx Lustre&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span>--vpc-id<span class="w"> </span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;cluster.resourcesVpcConfig.vpcId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;GroupId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>
+</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Created security group: </span><span class="nv">$FSX_SG_ID</span><span class="s2">&quot;</span>
+</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
+</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="c1"># Add inbound rules for FSx Lustre</span>
+</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>authorize-security-group-ingress<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$FSX_SG_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span>--protocol<span class="w"> </span>tcp<span class="w"> </span>--port<span class="w"> </span><span class="m">988</span>-1023<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">  </span>--source-group<span class="w"> </span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;cluster.resourcesVpcConfig.clusterSecurityGroupId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a>
+</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>authorize-security-group-ingress<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$FSX_SG_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">     </span>--protocol<span class="w"> </span>tcp<span class="w"> </span>--port<span class="w"> </span><span class="m">988</span>-1023<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">     </span>--source-group<span class="w"> </span><span class="nv">$FSX_SG_ID</span>
+</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a>
+</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="c1"># Create the FSx Lustre filesystem</span>
+</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="nv">SUBNET_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;cluster.resourcesVpcConfig.subnetIds[0]&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a>
+</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Using subnet: </span><span class="nv">$SUBNET_ID</span><span class="s2">&quot;</span>
+</span><span id="__span-12-25"><a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a>
+</span><span id="__span-12-26"><a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="nv">FSX_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>create-file-system<span class="w"> </span>--file-system-type<span class="w"> </span>LUSTRE<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-27"><a id="__codelineno-12-27" name="__codelineno-12-27" href="#__codelineno-12-27"></a><span class="w">  </span>--storage-capacity<span class="w"> </span><span class="m">1200</span><span class="w"> </span>--subnet-ids<span class="w"> </span><span class="nv">$SUBNET_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-28"><a id="__codelineno-12-28" name="__codelineno-12-28" href="#__codelineno-12-28"></a><span class="w">  </span>--security-group-ids<span class="w"> </span><span class="nv">$FSX_SG_ID</span><span class="w"> </span>--lustre-configuration<span class="w"> </span><span class="nv">DeploymentType</span><span class="o">=</span>SCRATCH_2<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-29"><a id="__codelineno-12-29" name="__codelineno-12-29" href="#__codelineno-12-29"></a><span class="w">  </span>--tags<span class="w"> </span><span class="nv">Key</span><span class="o">=</span>Name,Value<span class="o">=</span>vllm-model-storage<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-30"><a id="__codelineno-12-30" name="__codelineno-12-30" href="#__codelineno-12-30"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;FileSystem.FileSystemId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-31"><a id="__codelineno-12-31" name="__codelineno-12-31" href="#__codelineno-12-31"></a>
+</span><span id="__span-12-32"><a id="__codelineno-12-32" name="__codelineno-12-32" href="#__codelineno-12-32"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Created FSx filesystem: </span><span class="nv">$FSX_ID</span><span class="s2">&quot;</span>
+</span><span id="__span-12-33"><a id="__codelineno-12-33" name="__codelineno-12-33" href="#__codelineno-12-33"></a>
+</span><span id="__span-12-34"><a id="__codelineno-12-34" name="__codelineno-12-34" href="#__codelineno-12-34"></a><span class="c1"># Wait for the filesystem to be available (typically takes 5-10 minutes)</span>
+</span><span id="__span-12-35"><a id="__codelineno-12-35" name="__codelineno-12-35" href="#__codelineno-12-35"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Waiting for filesystem to become available...&quot;</span>
+</span><span id="__span-12-36"><a id="__codelineno-12-36" name="__codelineno-12-36" href="#__codelineno-12-36"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems<span class="w"> </span>--file-system-id<span class="w"> </span><span class="nv">$FSX_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-37"><a id="__codelineno-12-37" name="__codelineno-12-37" href="#__codelineno-12-37"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;FileSystems[0].Lifecycle&quot;</span><span class="w"> </span>--output<span class="w"> </span>text
+</span><span id="__span-12-38"><a id="__codelineno-12-38" name="__codelineno-12-38" href="#__codelineno-12-38"></a>
+</span><span id="__span-12-39"><a id="__codelineno-12-39" name="__codelineno-12-39" href="#__codelineno-12-39"></a><span class="c1"># You can run the above command periodically until it returns &quot;AVAILABLE&quot;</span>
+</span><span id="__span-12-40"><a id="__codelineno-12-40" name="__codelineno-12-40" href="#__codelineno-12-40"></a><span class="c1"># Example: watch -n 30 &quot;aws --profile vllm-profile fsx describe-file-systems --file-system-id $FSX_ID --query FileSystems[0].Lifecycle --output text&quot;</span>
+</span><span id="__span-12-41"><a id="__codelineno-12-41" name="__codelineno-12-41" href="#__codelineno-12-41"></a>
+</span><span id="__span-12-42"><a id="__codelineno-12-42" name="__codelineno-12-42" href="#__codelineno-12-42"></a><span class="c1"># Get the DNS name and mount name</span>
+</span><span id="__span-12-43"><a id="__codelineno-12-43" name="__codelineno-12-43" href="#__codelineno-12-43"></a><span class="nv">FSX_DNS</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems<span class="w"> </span>--file-system-id<span class="w"> </span><span class="nv">$FSX_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-44"><a id="__codelineno-12-44" name="__codelineno-12-44" href="#__codelineno-12-44"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;FileSystems[0].DNSName&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-45"><a id="__codelineno-12-45" name="__codelineno-12-45" href="#__codelineno-12-45"></a>
+</span><span id="__span-12-46"><a id="__codelineno-12-46" name="__codelineno-12-46" href="#__codelineno-12-46"></a><span class="nv">FSX_MOUNT</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems<span class="w"> </span>--file-system-id<span class="w"> </span><span class="nv">$FSX_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-12-47"><a id="__codelineno-12-47" name="__codelineno-12-47" href="#__codelineno-12-47"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;FileSystems[0].LustreConfiguration.MountName&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-12-48"><a id="__codelineno-12-48" name="__codelineno-12-48" href="#__codelineno-12-48"></a>
+</span><span id="__span-12-49"><a id="__codelineno-12-49" name="__codelineno-12-49" href="#__codelineno-12-49"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;FSx DNS: </span><span class="nv">$FSX_DNS</span><span class="s2">&quot;</span>
+</span><span id="__span-12-50"><a id="__codelineno-12-50" name="__codelineno-12-50" href="#__codelineno-12-50"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;FSx Mount Name: </span><span class="nv">$FSX_MOUNT</span><span class="s2">&quot;</span>
+</span></code></pre></div>
+<h3 id="install-the-aws-fsx-csi-driver">Install the AWS FSx CSI Driver<a class="headerlink" href="#install-the-aws-fsx-csi-driver" title="Permanent link">&para;</a></h3>
+<p>To mount the FSx for Lustre file system in our Kubernetes pods:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Add the AWS FSx CSI Driver Helm repository</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>aws-fsx-csi-driver<span class="w"> </span>https://kubernetes-sigs.github.io/aws-fsx-csi-driver/
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>helm<span class="w"> </span>repo<span class="w"> </span>update
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="c1"># Install the AWS FSx CSI Driver</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>helm<span class="w"> </span>install<span class="w"> </span>aws-fsx-csi-driver<span class="w"> </span>aws-fsx-csi-driver/aws-fsx-csi-driver<span class="w"> </span>--namespace<span class="w"> </span>kube-system
+</span></code></pre></div>
+<p>Verify that the AWS FSx CSI Driver is running:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Check AWS FSx CSI Driver pods</span>
+</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>fsx
+</span></code></pre></div>
+<h3 id="create-kubernetes-resources-for-fsx-for-lustre">Create Kubernetes resources for FSx for Lustre<a class="headerlink" href="#create-kubernetes-resources-for-fsx-for-lustre" title="Permanent link">&para;</a></h3>
+<p>We create the necessary Kubernetes resources to use our FSx for Lustre file system:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Update the storage class with your subnet and security group IDs</span>
+</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;subnet-id&gt;|</span><span class="nv">$SUBNET_ID</span><span class="s2">|g&quot;</span><span class="w"> </span>fsx-storage-class.yaml
+</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;sg-id&gt;|</span><span class="nv">$FSX_SG_ID</span><span class="s2">|g&quot;</span><span class="w"> </span>fsx-storage-class.yaml
+</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="c1"># Update the PV with your FSx Lustre details</span>
+</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;fs-id&gt;|</span><span class="nv">$FSX_ID</span><span class="s2">|g&quot;</span><span class="w"> </span>fsx-lustre-pv.yaml
+</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;fs-id&gt;.fsx.us-west-2.amazonaws.com|</span><span class="nv">$FSX_DNS</span><span class="s2">|g&quot;</span><span class="w"> </span>fsx-lustre-pv.yaml
+</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;mount-name&gt;|</span><span class="nv">$FSX_MOUNT</span><span class="s2">|g&quot;</span><span class="w"> </span>fsx-lustre-pv.yaml
+</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="c1"># Apply the Kubernetes resources</span>
+</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>fsx-storage-class.yaml
+</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>fsx-lustre-pv.yaml
+</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>fsx-lustre-pvc.yaml
+</span></code></pre></div>
+<p>Verify that the resources were created successfully:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Check storage class</span>
+</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>sc<span class="w"> </span>fsx-sc
+</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Check persistent volume</span>
+</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>fsx-lustre-pv
+</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a>
+</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="c1"># Check persistent volume claim</span>
+</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>fsx-lustre-pvc
+</span></code></pre></div>
+<h3 id="install-the-aws-load-balancer-controller">Install the AWS Load Balancer Controller<a class="headerlink" href="#install-the-aws-load-balancer-controller" title="Permanent link">&para;</a></h3>
+<p>To expose our vLLM service to the outside world:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Download the IAM policy document</span>
+</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>curl<span class="w"> </span>-o<span class="w"> </span>iam-policy.json<span class="w"> </span>https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/install/iam_policy.json
+</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>
+</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="c1"># Create the IAM policy</span>
+</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>iam<span class="w"> </span>create-policy<span class="w"> </span>--policy-name<span class="w"> </span>AWSLoadBalancerControllerIAMPolicy<span class="w"> </span>--policy-document<span class="w"> </span>file://iam-policy.json
+</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>
+</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="c1"># Create an IAM OIDC provider for the cluster</span>
+</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>eksctl<span class="w"> </span>utils<span class="w"> </span>associate-iam-oidc-provider<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>--region<span class="o">=</span>us-west-2<span class="w"> </span>--cluster<span class="o">=</span>vllm-cluster<span class="w"> </span>--approve
+</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a>
+</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="c1"># Create an IAM service account for the AWS Load Balancer Controller</span>
+</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="nv">ACCOUNT_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>sts<span class="w"> </span>get-caller-identity<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Account&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a>eksctl<span class="w"> </span>create<span class="w"> </span>iamserviceaccount<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">  </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-14"><a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="w">  </span>--cluster<span class="o">=</span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-15"><a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a><span class="w">  </span>--namespace<span class="o">=</span>kube-system<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-16"><a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="w">  </span>--name<span class="o">=</span>aws-load-balancer-controller<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-17"><a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="w">  </span>--attach-policy-arn<span class="o">=</span>arn:aws:iam::<span class="nv">$ACCOUNT_ID</span>:policy/AWSLoadBalancerControllerIAMPolicy<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-18"><a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">  </span>--override-existing-serviceaccounts<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-19"><a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="w">  </span>--approve
+</span><span id="__span-17-20"><a id="__codelineno-17-20" name="__codelineno-17-20" href="#__codelineno-17-20"></a>
+</span><span id="__span-17-21"><a id="__codelineno-17-21" name="__codelineno-17-21" href="#__codelineno-17-21"></a><span class="c1"># Install the AWS Load Balancer Controller using Helm</span>
+</span><span id="__span-17-22"><a id="__codelineno-17-22" name="__codelineno-17-22" href="#__codelineno-17-22"></a>helm<span class="w"> </span>repo<span class="w"> </span>add<span class="w"> </span>eks<span class="w"> </span>https://aws.github.io/eks-charts
+</span><span id="__span-17-23"><a id="__codelineno-17-23" name="__codelineno-17-23" href="#__codelineno-17-23"></a>helm<span class="w"> </span>repo<span class="w"> </span>update
+</span><span id="__span-17-24"><a id="__codelineno-17-24" name="__codelineno-17-24" href="#__codelineno-17-24"></a>
+</span><span id="__span-17-25"><a id="__codelineno-17-25" name="__codelineno-17-25" href="#__codelineno-17-25"></a><span class="c1"># Install the CRDs</span>
+</span><span id="__span-17-26"><a id="__codelineno-17-26" name="__codelineno-17-26" href="#__codelineno-17-26"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>https://raw.githubusercontent.com/aws/eks-charts/master/stable/aws-load-balancer-controller/crds/crds.yaml
+</span><span id="__span-17-27"><a id="__codelineno-17-27" name="__codelineno-17-27" href="#__codelineno-17-27"></a>
+</span><span id="__span-17-28"><a id="__codelineno-17-28" name="__codelineno-17-28" href="#__codelineno-17-28"></a><span class="c1"># Install the controller</span>
+</span><span id="__span-17-29"><a id="__codelineno-17-29" name="__codelineno-17-29" href="#__codelineno-17-29"></a>helm<span class="w"> </span>install<span class="w"> </span>aws-load-balancer-controller<span class="w"> </span>eks/aws-load-balancer-controller<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-30"><a id="__codelineno-17-30" name="__codelineno-17-30" href="#__codelineno-17-30"></a><span class="w">  </span>-n<span class="w"> </span>kube-system<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-31"><a id="__codelineno-17-31" name="__codelineno-17-31" href="#__codelineno-17-31"></a><span class="w">  </span>--set<span class="w"> </span><span class="nv">clusterName</span><span class="o">=</span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-32"><a id="__codelineno-17-32" name="__codelineno-17-32" href="#__codelineno-17-32"></a><span class="w">  </span>--set<span class="w"> </span>serviceAccount.create<span class="o">=</span><span class="nb">false</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-33"><a id="__codelineno-17-33" name="__codelineno-17-33" href="#__codelineno-17-33"></a><span class="w">  </span>--set<span class="w"> </span>serviceAccount.name<span class="o">=</span>aws-load-balancer-controller
+</span><span id="__span-17-34"><a id="__codelineno-17-34" name="__codelineno-17-34" href="#__codelineno-17-34"></a>
+</span><span id="__span-17-35"><a id="__codelineno-17-35" name="__codelineno-17-35" href="#__codelineno-17-35"></a><span class="c1"># Install the LeaderWorkerSet controller</span>
+</span><span id="__span-17-36"><a id="__codelineno-17-36" name="__codelineno-17-36" href="#__codelineno-17-36"></a>helm<span class="w"> </span>install<span class="w"> </span>lws<span class="w"> </span>oci://registry.k8s.io/lws/charts/lws<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-37"><a id="__codelineno-17-37" name="__codelineno-17-37" href="#__codelineno-17-37"></a><span class="w">  </span>--version<span class="o">=</span><span class="m">0</span>.6.1<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-38"><a id="__codelineno-17-38" name="__codelineno-17-38" href="#__codelineno-17-38"></a><span class="w">  </span>--namespace<span class="w"> </span>lws-system<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-39"><a id="__codelineno-17-39" name="__codelineno-17-39" href="#__codelineno-17-39"></a><span class="w">  </span>--create-namespace<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-17-40"><a id="__codelineno-17-40" name="__codelineno-17-40" href="#__codelineno-17-40"></a><span class="w">  </span>--wait<span class="w"> </span>--timeout<span class="w"> </span>300s
+</span></code></pre></div>
+<p>Verify that the AWS Load Balancer Controller is running:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Check AWS Load Balancer Controller pods</span>
+</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>aws-load-balancer-controller
+</span></code></pre></div>
+<h3 id="configure-security-groups-for-the-alb">Configure security groups for the ALB<a class="headerlink" href="#configure-security-groups-for-the-alb" title="Permanent link">&para;</a></h3>
+<p>We create a dedicated security group for the ALB:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Create security group for the ALB</span>
+</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nv">USER_IP</span><span class="o">=</span><span class="k">$(</span>curl<span class="w"> </span>-s<span class="w"> </span>https://checkip.amazonaws.com<span class="k">)</span>
+</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="nv">VPC_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;cluster.resourcesVpcConfig.vpcId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
+</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="nv">ALB_SG</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>create-security-group<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">  </span>--group-name<span class="w"> </span>vllm-alb-sg<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a><span class="w">  </span>--description<span class="w"> </span><span class="s2">&quot;Security group for vLLM ALB&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">  </span>--vpc-id<span class="w"> </span><span class="nv">$VPC_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;GroupId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
+</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ALB security group: </span><span class="nv">$ALB_SG</span><span class="s2">&quot;</span>
+</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>
+</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="c1"># Allow inbound traffic on port 80 from your IP</span>
+</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>authorize-security-group-ingress<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="w">  </span>--group-id<span class="w"> </span><span class="nv">$ALB_SG</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="w">  </span>--protocol<span class="w"> </span>tcp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="w">  </span>--port<span class="w"> </span><span class="m">80</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a><span class="w">  </span>--cidr<span class="w"> </span><span class="si">${</span><span class="nv">USER_IP</span><span class="si">}</span>/32
+</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a>
+</span><span id="__span-19-22"><a id="__codelineno-19-22" name="__codelineno-19-22" href="#__codelineno-19-22"></a><span class="c1"># Get the node group security group ID</span>
+</span><span id="__span-19-23"><a id="__codelineno-19-23" name="__codelineno-19-23" href="#__codelineno-19-23"></a><span class="nv">NODE_INSTANCE_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-instances<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-24"><a id="__codelineno-19-24" name="__codelineno-19-24" href="#__codelineno-19-24"></a><span class="w">  </span>--filters<span class="w"> </span><span class="s2">&quot;Name=tag:eks:nodegroup-name,Values=vllm-p4d-nodes-efa&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-25"><a id="__codelineno-19-25" name="__codelineno-19-25" href="#__codelineno-19-25"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;Reservations[0].Instances[0].InstanceId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-19-26"><a id="__codelineno-19-26" name="__codelineno-19-26" href="#__codelineno-19-26"></a>
+</span><span id="__span-19-27"><a id="__codelineno-19-27" name="__codelineno-19-27" href="#__codelineno-19-27"></a><span class="nv">NODE_SG</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-instances<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-28"><a id="__codelineno-19-28" name="__codelineno-19-28" href="#__codelineno-19-28"></a><span class="w">  </span>--instance-ids<span class="w"> </span><span class="nv">$NODE_INSTANCE_ID</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-29"><a id="__codelineno-19-29" name="__codelineno-19-29" href="#__codelineno-19-29"></a><span class="w">  </span>--query<span class="w"> </span><span class="s2">&quot;Reservations[0].Instances[0].SecurityGroups[0].GroupId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-19-30"><a id="__codelineno-19-30" name="__codelineno-19-30" href="#__codelineno-19-30"></a>
+</span><span id="__span-19-31"><a id="__codelineno-19-31" name="__codelineno-19-31" href="#__codelineno-19-31"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Node security group: </span><span class="nv">$NODE_SG</span><span class="s2">&quot;</span>
+</span><span id="__span-19-32"><a id="__codelineno-19-32" name="__codelineno-19-32" href="#__codelineno-19-32"></a>
+</span><span id="__span-19-33"><a id="__codelineno-19-33" name="__codelineno-19-33" href="#__codelineno-19-33"></a><span class="c1"># Allow traffic from ALB security group to node security group on port 8000 (vLLM service port)</span>
+</span><span id="__span-19-34"><a id="__codelineno-19-34" name="__codelineno-19-34" href="#__codelineno-19-34"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>authorize-security-group-ingress<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-35"><a id="__codelineno-19-35" name="__codelineno-19-35" href="#__codelineno-19-35"></a><span class="w">  </span>--group-id<span class="w"> </span><span class="nv">$NODE_SG</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-36"><a id="__codelineno-19-36" name="__codelineno-19-36" href="#__codelineno-19-36"></a><span class="w">  </span>--protocol<span class="w"> </span>tcp<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-37"><a id="__codelineno-19-37" name="__codelineno-19-37" href="#__codelineno-19-37"></a><span class="w">  </span>--port<span class="w"> </span><span class="m">8000</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-19-38"><a id="__codelineno-19-38" name="__codelineno-19-38" href="#__codelineno-19-38"></a><span class="w">  </span>--source-group<span class="w"> </span><span class="nv">$ALB_SG</span>
+</span><span id="__span-19-39"><a id="__codelineno-19-39" name="__codelineno-19-39" href="#__codelineno-19-39"></a>
+</span><span id="__span-19-40"><a id="__codelineno-19-40" name="__codelineno-19-40" href="#__codelineno-19-40"></a><span class="c1"># Update the security group in the ingress file</span>
+</span><span id="__span-19-41"><a id="__codelineno-19-41" name="__codelineno-19-41" href="#__codelineno-19-41"></a>sed<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;s|&lt;sg-id&gt;|</span><span class="nv">$ALB_SG</span><span class="s2">|g&quot;</span><span class="w"> </span>vllm-deepseek-32b-lws-ingress.yaml
+</span></code></pre></div>
+<h3 id="deploy-the-vllm-server">Deploy the vLLM server<a class="headerlink" href="#deploy-the-vllm-server" title="Permanent link">&para;</a></h3>
+<p>Finally, we deploy the vLLM server using the LeaderWorkerSet pattern:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Deploy the vLLM server</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># First, verify that the AWS Load Balancer Controller is running</span>
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>aws-load-balancer-controller
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="c1"># Wait until the controller is in Running state</span>
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="c1"># If it&#39;s not running, check the logs:</span>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># kubectl logs -n kube-system deployment/aws-load-balancer-controller</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="c1"># Apply the LeaderWorkerSet</span>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>vllm-deepseek-32b-lws.yaml
+</span></code></pre></div>
+<p><strong>Timeline:</strong> The deployment will start immediately, but the pod might remain in ContainerCreating state for several minutes (5-15 minutes) while it pulls the large GPU-enabled container image. After the container starts, it will take additional time (10-15 minutes) to download and load the DeepSeek model.</p>
+<p>You can monitor the progress with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Monitor pod status</span>
+</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Check pod logs</span>
+</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>&lt;pod-name&gt;
+</span></code></pre></div>
+<p>We also deploy an ingress resource that configures the ALB to route traffic to our vLLM service:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Apply the ingress (only after the controller is running)</span>
+</span><span id="__span-22-2"><a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>vllm-deepseek-32b-lws-ingress.yaml
+</span></code></pre></div>
+<p>You can check the status of the ingress with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-23-1"><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># Check ingress status</span>
+</span><span id="__span-23-2"><a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>ingress
+</span></code></pre></div>
+<h3 id="test-the-deployment">Test the deployment<a class="headerlink" href="#test-the-deployment" title="Permanent link">&para;</a></h3>
+<p>When the deployment is complete, we can test our vLLM server:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-24-1"><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># Test the vLLM server</span>
+</span><span id="__span-24-2"><a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="c1"># Get the ALB endpoint</span>
+</span><span id="__span-24-3"><a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="nb">export</span><span class="w"> </span><span class="nv">VLLM_ENDPOINT</span><span class="o">=</span><span class="k">$(</span>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>vllm-deepseek-32b-lws-ingress<span class="w"> </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.loadBalancer.ingress[0].hostname}&#39;</span><span class="k">)</span>
+</span><span id="__span-24-4"><a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;vLLM endpoint: </span><span class="nv">$VLLM_ENDPOINT</span><span class="s2">&quot;</span>
+</span><span id="__span-24-5"><a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>
+</span><span id="__span-24-6"><a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a><span class="c1"># Test the completions API</span>
+</span><span id="__span-24-7"><a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://<span class="nv">$VLLM_ENDPOINT</span>/v1/completions<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-8"><a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-24-9"><a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-24-10"><a id="__codelineno-24-10" name="__codelineno-24-10" href="#__codelineno-24-10"></a><span class="s1">      &quot;model&quot;: &quot;deepseek-ai/DeepSeek-R1-Distill-Qwen-32B&quot;,</span>
+</span><span id="__span-24-11"><a id="__codelineno-24-11" name="__codelineno-24-11" href="#__codelineno-24-11"></a><span class="s1">      &quot;prompt&quot;: &quot;Hello, how are you?&quot;,</span>
+</span><span id="__span-24-12"><a id="__codelineno-24-12" name="__codelineno-24-12" href="#__codelineno-24-12"></a><span class="s1">      &quot;max_tokens&quot;: 100,</span>
+</span><span id="__span-24-13"><a id="__codelineno-24-13" name="__codelineno-24-13" href="#__codelineno-24-13"></a><span class="s1">      &quot;temperature&quot;: 0.7</span>
+</span><span id="__span-24-14"><a id="__codelineno-24-14" name="__codelineno-24-14" href="#__codelineno-24-14"></a><span class="s1">  }&#39;</span>
+</span></code></pre></div>
+<p>You can also test the chat completions API:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-25-1"><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Test the chat completions API</span>
+</span><span id="__span-25-2"><a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://<span class="nv">$VLLM_ENDPOINT</span>/v1/chat/completions<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-3"><a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+</span><span id="__span-25-4"><a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+</span><span id="__span-25-5"><a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a><span class="s1">      &quot;model&quot;: &quot;deepseek-ai/DeepSeek-R1-Distill-Qwen-32B&quot;,</span>
+</span><span id="__span-25-6"><a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="s1">      &quot;messages&quot;: [{&quot;role&quot;: &quot;user&quot;, &quot;content&quot;: &quot;What are the benefits of using FSx Lustre with EKS?&quot;}],</span>
+</span><span id="__span-25-7"><a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="s1">      &quot;max_tokens&quot;: 100,</span>
+</span><span id="__span-25-8"><a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a><span class="s1">      &quot;temperature&quot;: 0.7</span>
+</span><span id="__span-25-9"><a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a><span class="s1">  }&#39;</span>
+</span></code></pre></div>
+<p><strong>Note:</strong> The ALB creation typically takes 2-5 minutes to provision and become available with a DNS name.</p>
+<p>The vLLM server provides several API endpoints compatible with the OpenAI API:
+- <code>/v1/completions</code> - For text completions
+- <code>/v1/chat/completions</code> - For chat completions
+- <code>/v1/embeddings</code> - For generating embeddings
+- <code>/v1/models</code> - For listing available models</p>
+<h2 id="cleanup">Cleanup<a class="headerlink" href="#cleanup" title="Permanent link">&para;</a></h2>
+<p>You can clean up all resources created in this deployment using either the provided cleanup script or by following the detailed manual steps below.</p>
+<h3 id="using-the-cleanup-script">Using the Cleanup Script<a class="headerlink" href="#using-the-cleanup-script" title="Permanent link">&para;</a></h3>
+<p>For a simplified cleanup process, you can use the provided cleanup.sh script:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-26-1"><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="c1"># Make the script executable</span>
+</span><span id="__span-26-2"><a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>chmod<span class="w"> </span>+x<span class="w"> </span>cleanup.sh
+</span><span id="__span-26-3"><a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a>
+</span><span id="__span-26-4"><a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="c1"># Run the cleanup script</span>
+</span><span id="__span-26-5"><a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>./cleanup.sh
+</span></code></pre></div>
+<p>This script will automatically delete all resources in the correct order, with appropriate wait times between steps to ensure proper deletion. The script handles:
+- Kubernetes resources (ingress, LeaderWorkerSet, PVC, PV, AWS Load Balancer Controller)
+- IAM resources (service accounts and policies)
+- FSx for Lustre file system
+- Security groups
+- EKS node group
+- EKS cluster</p>
+<h3 id="manual-cleanup-steps">Manual Cleanup Steps<a class="headerlink" href="#manual-cleanup-steps" title="Permanent link">&para;</a></h3>
+<p>If you prefer to clean up resources manually or need more control over the process, follow these steps in order:</p>
+<h3 id="1-delete-kubernetes-resources">1. Delete Kubernetes Resources<a class="headerlink" href="#1-delete-kubernetes-resources" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-27-1"><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="c1"># Delete the vLLM ingress</span>
+</span><span id="__span-27-2"><a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>vllm-deepseek-32b-lws-ingress.yaml
+</span><span id="__span-27-3"><a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>
+</span><span id="__span-27-4"><a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a><span class="c1"># Delete the vLLM LeaderWorkerSet</span>
+</span><span id="__span-27-5"><a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>vllm-deepseek-32b-lws.yaml
+</span><span id="__span-27-6"><a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>
+</span><span id="__span-27-7"><a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="c1"># Delete the FSx Lustre PVC and PV</span>
+</span><span id="__span-27-8"><a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>fsx-lustre-pvc.yaml
+</span><span id="__span-27-9"><a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>fsx-lustre-pv.yaml
+</span><span id="__span-27-10"><a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>
+</span><span id="__span-27-11"><a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a><span class="c1"># Delete the storage class</span>
+</span><span id="__span-27-12"><a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>kubectl<span class="w"> </span>delete<span class="w"> </span>-f<span class="w"> </span>fsx-storage-class.yaml
+</span><span id="__span-27-13"><a id="__codelineno-27-13" name="__codelineno-27-13" href="#__codelineno-27-13"></a>
+</span><span id="__span-27-14"><a id="__codelineno-27-14" name="__codelineno-27-14" href="#__codelineno-27-14"></a><span class="c1"># Delete the AWS Load Balancer Controller</span>
+</span><span id="__span-27-15"><a id="__codelineno-27-15" name="__codelineno-27-15" href="#__codelineno-27-15"></a>helm<span class="w"> </span>uninstall<span class="w"> </span>aws-load-balancer-controller<span class="w"> </span>-n<span class="w"> </span>kube-system
+</span><span id="__span-27-16"><a id="__codelineno-27-16" name="__codelineno-27-16" href="#__codelineno-27-16"></a>
+</span><span id="__span-27-17"><a id="__codelineno-27-17" name="__codelineno-27-17" href="#__codelineno-27-17"></a><span class="c1"># Verify all Kubernetes resources are deleted</span>
+</span><span id="__span-27-18"><a id="__codelineno-27-18" name="__codelineno-27-18" href="#__codelineno-27-18"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods,svc,ingress,pv,pvc
+</span></code></pre></div>
+<h3 id="2-delete-the-iam-service-account-cloudformation-stack">2. Delete the IAM Service Account CloudFormation Stack<a class="headerlink" href="#2-delete-the-iam-service-account-cloudformation-stack" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-28-1"><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="c1"># Delete the CloudFormation stack for the IAM service account</span>
+</span><span id="__span-28-2"><a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>delete-stack<span class="w"> </span>--stack-name<span class="w"> </span>eksctl-vllm-cluster-addon-iamserviceaccount-kube-system-aws-load-balancer-controller
+</span><span id="__span-28-3"><a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>
+</span><span id="__span-28-4"><a id="__codelineno-28-4" name="__codelineno-28-4" href="#__codelineno-28-4"></a><span class="c1"># Verify the stack is being deleted</span>
+</span><span id="__span-28-5"><a id="__codelineno-28-5" name="__codelineno-28-5" href="#__codelineno-28-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>describe-stacks<span class="w"> </span>--stack-name<span class="w"> </span>eksctl-vllm-cluster-addon-iamserviceaccount-kube-system-aws-load-balancer-controller<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Stacks[0].StackStatus&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Stack deleted&quot;</span>
+</span></code></pre></div>
+<h3 id="3-delete-the-iam-policy">3. Delete the IAM Policy<a class="headerlink" href="#3-delete-the-iam-policy" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-29-1"><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="c1"># Get the ARN of the IAM policy</span>
+</span><span id="__span-29-2"><a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="nv">POLICY_ARN</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>iam<span class="w"> </span>list-policies<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Policies[?PolicyName==&#39;AWSLoadBalancerControllerIAMPolicy&#39;].Arn&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-29-3"><a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>
+</span><span id="__span-29-4"><a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a><span class="c1"># Delete the IAM policy</span>
+</span><span id="__span-29-5"><a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>iam<span class="w"> </span>delete-policy<span class="w"> </span>--policy-arn<span class="w"> </span><span class="nv">$POLICY_ARN</span>
+</span></code></pre></div>
+<h3 id="4-delete-the-fsx-lustre-filesystem">4. Delete the FSx Lustre Filesystem<a class="headerlink" href="#4-delete-the-fsx-lustre-filesystem" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-30-1"><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="c1"># Get the FSx Lustre filesystem ID if not already set</span>
+</span><span id="__span-30-2"><a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="k">if</span><span class="w"> </span><span class="o">[</span><span class="w"> </span>-z<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$FSX_ID</span><span class="s2">&quot;</span><span class="w"> </span><span class="o">]</span><span class="p">;</span><span class="w"> </span><span class="k">then</span>
+</span><span id="__span-30-3"><a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="w">  </span><span class="nv">FSX_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;FileSystems[?Tags[?Key==&#39;Name&#39; &amp;&amp; Value==&#39;vllm-model-storage&#39;]].FileSystemId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-30-4"><a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="w">  </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Found FSx Lustre filesystem ID: </span><span class="nv">$FSX_ID</span><span class="s2">&quot;</span>
+</span><span id="__span-30-5"><a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="k">fi</span>
+</span><span id="__span-30-6"><a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a>
+</span><span id="__span-30-7"><a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="c1"># Delete the FSx Lustre filesystem</span>
+</span><span id="__span-30-8"><a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="c1"># Timeline: FSx Lustre deletion takes 5-10 minutes</span>
+</span><span id="__span-30-9"><a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>delete-file-system<span class="w"> </span>--file-system-id<span class="w"> </span><span class="nv">$FSX_ID</span>
+</span><span id="__span-30-10"><a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a>
+</span><span id="__span-30-11"><a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="c1"># Verify the filesystem is deleted</span>
+</span><span id="__span-30-12"><a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems<span class="w"> </span>--file-system-id<span class="w"> </span><span class="nv">$FSX_ID</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Filesystem deleted&quot;</span>
+</span></code></pre></div>
+<h3 id="5-check-for-any-remaining-load-balancers">5. Check for Any Remaining Load Balancers<a class="headerlink" href="#5-check-for-any-remaining-load-balancers" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-31-1"><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Check for any remaining ALBs or NLBs</span>
+</span><span id="__span-31-2"><a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>elbv2<span class="w"> </span>describe-load-balancers
+</span><span id="__span-31-3"><a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+</span><span id="__span-31-4"><a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Check for any remaining Classic ELBs</span>
+</span><span id="__span-31-5"><a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>elb<span class="w"> </span>describe-load-balancers
+</span></code></pre></div>
+<h3 id="6-delete-the-node-group">6. Delete the Node Group<a class="headerlink" href="#6-delete-the-node-group" title="Permanent link">&para;</a></h3>
+<p>It's recommended to delete the node group separately before deleting the cluster, especially when using p4d.24xlarge instances with EFA and system pods that may be difficult to evict:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-32-1"><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="c1"># First, check the status of the node group</span>
+</span><span id="__span-32-2"><a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a>eksctl<span class="w"> </span>get<span class="w"> </span>nodegroup<span class="w"> </span>--cluster<span class="o">=</span>vllm-cluster<span class="w"> </span>--region<span class="o">=</span>us-west-2<span class="w"> </span>--profile<span class="o">=</span>vllm-profile
+</span><span id="__span-32-3"><a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+</span><span id="__span-32-4"><a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a><span class="c1"># Delete the node group without draining (recommended approach)</span>
+</span><span id="__span-32-5"><a id="__codelineno-32-5" name="__codelineno-32-5" href="#__codelineno-32-5"></a><span class="c1"># This skips the pod eviction process which can get stuck with system pods</span>
+</span><span id="__span-32-6"><a id="__codelineno-32-6" name="__codelineno-32-6" href="#__codelineno-32-6"></a>eksctl<span class="w"> </span>delete<span class="w"> </span>nodegroup<span class="w"> </span>--cluster<span class="o">=</span>vllm-cluster<span class="w"> </span>--name<span class="o">=</span>vllm-p4d-nodes-efa<span class="w"> </span>--region<span class="o">=</span>us-west-2<span class="w"> </span>--profile<span class="o">=</span>vllm-profile<span class="w"> </span>--drain<span class="o">=</span><span class="nb">false</span>
+</span><span id="__span-32-7"><a id="__codelineno-32-7" name="__codelineno-32-7" href="#__codelineno-32-7"></a>
+</span><span id="__span-32-8"><a id="__codelineno-32-8" name="__codelineno-32-8" href="#__codelineno-32-8"></a><span class="c1"># Verify the node group deletion is in progress</span>
+</span><span id="__span-32-9"><a id="__codelineno-32-9" name="__codelineno-32-9" href="#__codelineno-32-9"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>list-stacks<span class="w"> </span>--stack-status-filter<span class="w"> </span>DELETE_IN_PROGRESS<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;StackSummaries[?contains(StackName, &#39;vllm-p4d-nodes-efa&#39;)].{Name:StackName, Status:StackStatus}&quot;</span><span class="w"> </span>--output<span class="w"> </span>table
+</span><span id="__span-32-10"><a id="__codelineno-32-10" name="__codelineno-32-10" href="#__codelineno-32-10"></a>
+</span><span id="__span-32-11"><a id="__codelineno-32-11" name="__codelineno-32-11" href="#__codelineno-32-11"></a><span class="c1"># Verify the node group is deleted (this command should return &quot;Node group deleted&quot; when complete)</span>
+</span><span id="__span-32-12"><a id="__codelineno-32-12" name="__codelineno-32-12" href="#__codelineno-32-12"></a>eksctl<span class="w"> </span>get<span class="w"> </span>nodegroup<span class="w"> </span>--cluster<span class="o">=</span>vllm-cluster<span class="w"> </span>--name<span class="o">=</span>vllm-p4d-nodes-efa<span class="w"> </span>--region<span class="o">=</span>us-west-2<span class="w"> </span>--profile<span class="o">=</span>vllm-profile<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;not found&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Node group deleted&quot;</span>
+</span></code></pre></div>
+<p><strong>Note:</strong> Using the <code>--drain=false</code> flag is important when deleting node groups with p4d.24xlarge instances, as system pods like EFA device plugins, NVIDIA device plugins, and CSI drivers may prevent normal draining operations.</p>
+<h3 id="7-delete-the-security-groups">7. Delete the Security Groups<a class="headerlink" href="#7-delete-the-security-groups" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-33-1"><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Delete the security group created for the ALB</span>
+</span><span id="__span-33-2"><a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>delete-security-group<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$ALB_SG</span>
+</span><span id="__span-33-3"><a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+</span><span id="__span-33-4"><a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># Verify the ALB security group is deleted</span>
+</span><span id="__span-33-5"><a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-security-groups<span class="w"> </span>--group-ids<span class="w"> </span><span class="nv">$ALB_SG</span><span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;InvalidGroup.NotFound&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;ALB security group deleted&quot;</span>
+</span><span id="__span-33-6"><a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+</span><span id="__span-33-7"><a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># Delete the security group created for FSx Lustre</span>
+</span><span id="__span-33-8"><a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>delete-security-group<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$SG_ID</span>
+</span><span id="__span-33-9"><a id="__codelineno-33-9" name="__codelineno-33-9" href="#__codelineno-33-9"></a>
+</span><span id="__span-33-10"><a id="__codelineno-33-10" name="__codelineno-33-10" href="#__codelineno-33-10"></a><span class="c1"># Verify the FSx security group is deleted</span>
+</span><span id="__span-33-11"><a id="__codelineno-33-11" name="__codelineno-33-11" href="#__codelineno-33-11"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-security-groups<span class="w"> </span>--group-ids<span class="w"> </span><span class="nv">$SG_ID</span><span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;InvalidGroup.NotFound&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;FSx security group deleted&quot;</span>
+</span></code></pre></div>
+<h3 id="8-delete-the-eks-cluster">8. Delete the EKS Cluster<a class="headerlink" href="#8-delete-the-eks-cluster" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-34-1"><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># Delete the EKS cluster</span>
+</span><span id="__span-34-2"><a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="c1"># Timeline: EKS cluster deletion takes 10-15 minutes</span>
+</span><span id="__span-34-3"><a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>eksctl<span class="w"> </span>delete<span class="w"> </span>cluster<span class="w"> </span>--name<span class="o">=</span>vllm-cluster<span class="w"> </span>--region<span class="o">=</span>us-west-2<span class="w"> </span>--profile<span class="o">=</span>vllm-profile
+</span><span id="__span-34-4"><a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>
+</span><span id="__span-34-5"><a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a><span class="c1"># Verify the cluster is deleted</span>
+</span><span id="__span-34-6"><a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>describe-cluster<span class="w"> </span>--name<span class="w"> </span>vllm-cluster<span class="w"> </span><span class="m">2</span>&gt;<span class="p">&amp;</span><span class="m">1</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-q<span class="w"> </span><span class="s2">&quot;ResourceNotFoundException&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;Cluster deleted&quot;</span>
+</span></code></pre></div>
+<h3 id="9-troubleshooting-cloudformation-stack-deletion-failures">9. Troubleshooting CloudFormation Stack Deletion Failures<a class="headerlink" href="#9-troubleshooting-cloudformation-stack-deletion-failures" title="Permanent link">&para;</a></h3>
+<p>EKS cluster CloudFormation stack deletion often fails on the VPC deletion step. Common issues include pending default security group cleanup and route table dependencies. Follow these steps to troubleshoot and resolve these issues:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-35-1"><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="c1"># Check the status of the CloudFormation stacks</span>
+</span><span id="__span-35-2"><a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>list-stacks<span class="w"> </span>--stack-status-filter<span class="w"> </span>DELETE_FAILED<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;StackSummaries[?contains(StackName, &#39;vllm-cluster&#39;)].{Name:StackName, Status:StackStatus}&quot;</span><span class="w"> </span>--output<span class="w"> </span>table
+</span><span id="__span-35-3"><a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a>
+</span><span id="__span-35-4"><a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a><span class="c1"># Identify the resources that failed to delete</span>
+</span><span id="__span-35-5"><a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>describe-stacks<span class="w"> </span>--stack-name<span class="w"> </span>&lt;stack-name&gt;<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Stacks[0].StackStatusReason&quot;</span><span class="w"> </span>--output<span class="w"> </span>text
+</span><span id="__span-35-6"><a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a>
+</span><span id="__span-35-7"><a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a><span class="c1"># Get the VPC ID</span>
+</span><span id="__span-35-8"><a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a><span class="nv">VPC_ID</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-vpcs<span class="w"> </span>--filters<span class="w"> </span><span class="s2">&quot;Name=tag:Name,Values=*vllm-cluster*&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;Vpcs[0].VpcId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-35-9"><a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>
+</span><span id="__span-35-10"><a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a><span class="c1"># Check for network interfaces still attached to the VPC (these prevent deletion)</span>
+</span><span id="__span-35-11"><a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-network-interfaces<span class="w"> </span>--filters<span class="w"> </span><span class="s2">&quot;Name=vpc-id,Values=</span><span class="nv">$VPC_ID</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;NetworkInterfaces[*].[NetworkInterfaceId, SubnetId, Description]&quot;</span><span class="w"> </span>--output<span class="w"> </span>table
+</span><span id="__span-35-12"><a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a>
+</span><span id="__span-35-13"><a id="__codelineno-35-13" name="__codelineno-35-13" href="#__codelineno-35-13"></a><span class="c1"># For VPC endpoint issues, identify and delete VPC endpoints</span>
+</span><span id="__span-35-14"><a id="__codelineno-35-14" name="__codelineno-35-14" href="#__codelineno-35-14"></a><span class="nv">ENDPOINT_IDS</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-vpc-endpoints<span class="w"> </span>--filters<span class="w"> </span><span class="s2">&quot;Name=vpc-id,Values=</span><span class="nv">$VPC_ID</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;VpcEndpoints[*].VpcEndpointId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-35-15"><a id="__codelineno-35-15" name="__codelineno-35-15" href="#__codelineno-35-15"></a>
+</span><span id="__span-35-16"><a id="__codelineno-35-16" name="__codelineno-35-16" href="#__codelineno-35-16"></a><span class="c1"># Delete VPC endpoints</span>
+</span><span id="__span-35-17"><a id="__codelineno-35-17" name="__codelineno-35-17" href="#__codelineno-35-17"></a><span class="k">for</span><span class="w"> </span>endpoint<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="nv">$ENDPOINT_IDS</span><span class="p">;</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-35-18"><a id="__codelineno-35-18" name="__codelineno-35-18" href="#__codelineno-35-18"></a><span class="w">  </span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>delete-vpc-endpoints<span class="w"> </span>--vpc-endpoint-ids<span class="w"> </span><span class="nv">$endpoint</span>
+</span><span id="__span-35-19"><a id="__codelineno-35-19" name="__codelineno-35-19" href="#__codelineno-35-19"></a><span class="k">done</span>
+</span><span id="__span-35-20"><a id="__codelineno-35-20" name="__codelineno-35-20" href="#__codelineno-35-20"></a>
+</span><span id="__span-35-21"><a id="__codelineno-35-21" name="__codelineno-35-21" href="#__codelineno-35-21"></a><span class="c1"># Check for default security group rules that need to be removed</span>
+</span><span id="__span-35-22"><a id="__codelineno-35-22" name="__codelineno-35-22" href="#__codelineno-35-22"></a><span class="nv">DEFAULT_SG</span><span class="o">=</span><span class="k">$(</span>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-security-groups<span class="w"> </span>--filters<span class="w"> </span><span class="s2">&quot;Name=vpc-id,Values=</span><span class="nv">$VPC_ID</span><span class="s2">&quot;</span><span class="w"> </span><span class="s2">&quot;Name=group-name,Values=default&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;SecurityGroups[0].GroupId&quot;</span><span class="w"> </span>--output<span class="w"> </span>text<span class="k">)</span>
+</span><span id="__span-35-23"><a id="__codelineno-35-23" name="__codelineno-35-23" href="#__codelineno-35-23"></a>
+</span><span id="__span-35-24"><a id="__codelineno-35-24" name="__codelineno-35-24" href="#__codelineno-35-24"></a><span class="c1"># Remove all ingress and egress rules from the default security group</span>
+</span><span id="__span-35-25"><a id="__codelineno-35-25" name="__codelineno-35-25" href="#__codelineno-35-25"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>revoke-security-group-ingress<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$DEFAULT_SG</span><span class="w"> </span>--protocol<span class="w"> </span>all<span class="w"> </span>--source-group<span class="w"> </span><span class="nv">$DEFAULT_SG</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;No ingress rules to delete&quot;</span>
+</span><span id="__span-35-26"><a id="__codelineno-35-26" name="__codelineno-35-26" href="#__codelineno-35-26"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>revoke-security-group-egress<span class="w"> </span>--group-id<span class="w"> </span><span class="nv">$DEFAULT_SG</span><span class="w"> </span>--protocol<span class="w"> </span>all<span class="w"> </span>--cidr<span class="w"> </span><span class="m">0</span>.0.0.0/0<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;No egress rules to delete&quot;</span>
+</span><span id="__span-35-27"><a id="__codelineno-35-27" name="__codelineno-35-27" href="#__codelineno-35-27"></a>
+</span><span id="__span-35-28"><a id="__codelineno-35-28" name="__codelineno-35-28" href="#__codelineno-35-28"></a><span class="c1"># Check for route tables with dependencies</span>
+</span><span id="__span-35-29"><a id="__codelineno-35-29" name="__codelineno-35-29" href="#__codelineno-35-29"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>ec2<span class="w"> </span>describe-route-tables<span class="w"> </span>--filters<span class="w"> </span><span class="s2">&quot;Name=vpc-id,Values=</span><span class="nv">$VPC_ID</span><span class="s2">&quot;</span><span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;RouteTables[*].[RouteTableId,Associations[*].RouteTableAssociationId]&quot;</span><span class="w"> </span>--output<span class="w"> </span>table
+</span><span id="__span-35-30"><a id="__codelineno-35-30" name="__codelineno-35-30" href="#__codelineno-35-30"></a>
+</span><span id="__span-35-31"><a id="__codelineno-35-31" name="__codelineno-35-31" href="#__codelineno-35-31"></a><span class="c1"># Disassociate route tables if needed</span>
+</span><span id="__span-35-32"><a id="__codelineno-35-32" name="__codelineno-35-32" href="#__codelineno-35-32"></a><span class="c1"># aws --profile vllm-profile ec2 disassociate-route-table --association-id rtbassoc-XXXXXXXXXXXXXXXXX</span>
+</span><span id="__span-35-33"><a id="__codelineno-35-33" name="__codelineno-35-33" href="#__codelineno-35-33"></a>
+</span><span id="__span-35-34"><a id="__codelineno-35-34" name="__codelineno-35-34" href="#__codelineno-35-34"></a><span class="c1"># Retry the CloudFormation stack deletion</span>
+</span><span id="__span-35-35"><a id="__codelineno-35-35" name="__codelineno-35-35" href="#__codelineno-35-35"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>delete-stack<span class="w"> </span>--stack-name<span class="w"> </span>&lt;stack-name&gt;
+</span></code></pre></div>
+<h3 id="10-verify-all-resources-are-deleted">10. Verify All Resources Are Deleted<a class="headerlink" href="#10-verify-all-resources-are-deleted" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-36-1"><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># Verify no EKS clusters remain</span>
+</span><span id="__span-36-2"><a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>eks<span class="w"> </span>list-clusters
+</span><span id="__span-36-3"><a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>
+</span><span id="__span-36-4"><a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="c1"># Verify no FSx Lustre filesystems remain</span>
+</span><span id="__span-36-5"><a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>fsx<span class="w"> </span>describe-file-systems
+</span><span id="__span-36-6"><a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>
+</span><span id="__span-36-7"><a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="c1"># Verify no CloudFormation stacks remain</span>
+</span><span id="__span-36-8"><a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>aws<span class="w"> </span>--profile<span class="w"> </span>vllm-profile<span class="w"> </span>cloudformation<span class="w"> </span>list-stacks<span class="w"> </span>--stack-status-filter<span class="w"> </span>CREATE_COMPLETE<span class="w"> </span>UPDATE_COMPLETE<span class="w"> </span>DELETE_FAILED<span class="w"> </span>--query<span class="w"> </span><span class="s2">&quot;StackSummaries[?contains(StackName, &#39;vllm-cluster&#39;)].{Name:StackName, Status:StackStatus}&quot;</span><span class="w"> </span>--output<span class="w"> </span>table
+</span></code></pre></div>
+<h2 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h2>
+<p>You can monitor the deployment with:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-37-1"><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># Check if the pods are running</span>
+</span><span id="__span-37-2"><a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>kubectl<span class="w"> </span>get<span class="w"> </span>pods
+</span><span id="__span-37-3"><a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
+</span><span id="__span-37-4"><a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="c1"># Check the logs of the vLLM pod</span>
+</span><span id="__span-37-5"><a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>kubectl<span class="w"> </span>logs<span class="w"> </span>-f<span class="w"> </span>daemonset/vllm-deepseek-32b
+</span><span id="__span-37-6"><a id="__codelineno-37-6" name="__codelineno-37-6" href="#__codelineno-37-6"></a>
+</span><span id="__span-37-7"><a id="__codelineno-37-7" name="__codelineno-37-7" href="#__codelineno-37-7"></a><span class="c1"># Get the ALB endpoint</span>
+</span><span id="__span-37-8"><a id="__codelineno-37-8" name="__codelineno-37-8" href="#__codelineno-37-8"></a>kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>vllm-deepseek-32b-ingress
+</span></code></pre></div>
+<h2 id="notes">Notes<a class="headerlink" href="#notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The deployment uses p4d.24xlarge instances with NVIDIA A100 GPUs</li>
+<li>The nodes are configured with Elastic Fabric Adapter (EFA) for high-performance networking between nodes</li>
+<li>The vLLM server is configured to use 85% of the GPU memory. You can adjust this in the <code>vllm-deepseek-32b-lws.yaml</code> file.</li>
+<li>The service is exposed using an Application Load Balancer (ALB) through the AWS Load Balancer Controller. This provides better integration with AWS services and supports features like path-based routing and SSL termination.</li>
+<li>The max model length is set to 4096 tokens to fit in the GPU memory. You can adjust this in the <code>vllm-deepseek-32b-lws.yaml</code> file.</li>
+<li>The FSx Lustre filesystem is used to store the model weights, which provides faster loading times and persistent storage.</li>
+<li>The nodegroup uses an EKS-optimized AMI with GPU support which already includes the NVIDIA device plugin, eliminating the need for a separate Helm installation.</li>
+</ul>
+<h2 id="leaderworkerset-implementation">LeaderWorkerSet Implementation<a class="headerlink" href="#leaderworkerset-implementation" title="Permanent link">&para;</a></h2>
+<p>We've implemented the LeaderWorkerSet (LWS) pattern to fix the vLLM node parallelism issue. This approach provides several advantages over the DaemonSet approach:</p>
+<ol>
+<li><strong>Better Control Over Pod Placement</strong>: LWS allows us to explicitly define which nodes should run the leader and worker pods.</li>
+<li><strong>Improved Ray Cluster Formation</strong>: The leader pod starts the Ray head node, and worker pods connect to it using the leader's address.</li>
+<li><strong>Proper Pipeline Parallelism</strong>: With LWS, we can configure tensor parallelism (TP=8) and pipeline parallelism (PP=2) to utilize both nodes effectively.</li>
+</ol>
+<h3 id="key-configuration-files">Key Configuration Files<a class="headerlink" href="#key-configuration-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>vllm-deepseek-32b-lws.yaml</code>: Contains the LeaderWorkerSet configuration with leader and worker templates</li>
+<li><code>vllm-deepseek-32b-lws-ingress.yaml</code>: Contains the ingress configuration for the ALB</li>
+</ul>
+<h3 id="ray-cluster-configuration">Ray Cluster Configuration<a class="headerlink" href="#ray-cluster-configuration" title="Permanent link">&para;</a></h3>
+<p>The Ray cluster is configured as follows:
+- Leader node: Starts Ray with <code>--head --port=6379 --num-cpus=48 --num-gpus=8</code>
+- Worker node: Connects to the leader with <code>--address=$(LWS_LEADER_ADDRESS):6379 --num-cpus=48 --num-gpus=8</code></p>
+<h3 id="vllm-server-configuration">vLLM Server Configuration<a class="headerlink" href="#vllm-server-configuration" title="Permanent link">&para;</a></h3>
+<p>The vLLM server is configured with:
+- Tensor parallelism: 8 (utilizing all GPUs on a single node)
+- Pipeline parallelism: 2 (distributing the model across 2 nodes)
+- GPU memory utilization: 85%
+- Max model length: 4096 tokens</p>
+<h3 id="troubleshooting-aws-load-balancer-controller">Troubleshooting AWS Load Balancer Controller<a class="headerlink" href="#troubleshooting-aws-load-balancer-controller" title="Permanent link">&para;</a></h3>
+<p>If you encounter permission issues with the AWS Load Balancer Controller, check:
+1. The IAM role ARN in the service account annotation
+2. The IAM role ARN in the pod environment variables
+3. The trust relationship policy for the IAM role</p>
+<p>If there's a mismatch, restart the AWS Load Balancer Controller pods:
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-38-1"><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a>kubectl<span class="w"> </span>rollout<span class="w"> </span>restart<span class="w"> </span>deployment<span class="w"> </span>-n<span class="w"> </span>kube-system<span class="w"> </span>aws-load-balancer-controller
+</span></code></pre></div></p>
+<h2 id="elastic-fabric-adapter-efa-configuration">Elastic Fabric Adapter (EFA) Configuration<a class="headerlink" href="#elastic-fabric-adapter-efa-configuration" title="Permanent link">&para;</a></h2>
+<p>This deployment uses Amazon's Elastic Fabric Adapter (EFA) technology, which is a network interface for Amazon EC2 instances that enables high-performance computing and machine learning applications to scale efficiently. EFA provides lower and more consistent latency and higher throughput than the TCP transport traditionally used in cloud-based HPC systems.</p>
+<h3 id="efa-setup-in-the-nodegroup">EFA Setup in the Nodegroup<a class="headerlink" href="#efa-setup-in-the-nodegroup" title="Permanent link">&para;</a></h3>
+<p>The <code>large-model-nodegroup.yaml</code> file (included in this repository) configures the p4d.24xlarge instances with EFA support:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-39-1"><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="c1"># Enable EFA interfaces</span>
+</span><span id="__span-39-2"><a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="nt">efaEnabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</span><span id="__span-39-3"><a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>
+</span><span id="__span-39-4"><a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="c1"># Add bootstrap commands to install EFA drivers</span>
+</span><span id="__span-39-5"><a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a><span class="nt">preBootstrapCommands</span><span class="p">:</span>
+</span><span id="__span-39-6"><a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">|</span>
+</span><span id="__span-39-7"><a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a><span class="w">    </span><span class="no">#!/bin/bash</span>
+</span><span id="__span-39-8"><a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a><span class="w">    </span><span class="no">set -ex</span>
+</span><span id="__span-39-9"><a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>
+</span><span id="__span-39-10"><a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a><span class="w">    </span><span class="no"># Install EFA driver and related packages</span>
+</span><span id="__span-39-11"><a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="w">    </span><span class="no">curl -O https://efa-installer.amazonaws.com/aws-efa-installer-latest.tar.gz</span>
+</span><span id="__span-39-12"><a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a><span class="w">    </span><span class="no">tar -xf aws-efa-installer-latest.tar.gz</span>
+</span><span id="__span-39-13"><a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a><span class="w">    </span><span class="no">cd aws-efa-installer</span>
+</span><span id="__span-39-14"><a id="__codelineno-39-14" name="__codelineno-39-14" href="#__codelineno-39-14"></a><span class="w">    </span><span class="no">./efa_installer.sh -y</span>
+</span><span id="__span-39-15"><a id="__codelineno-39-15" name="__codelineno-39-15" href="#__codelineno-39-15"></a>
+</span><span id="__span-39-16"><a id="__codelineno-39-16" name="__codelineno-39-16" href="#__codelineno-39-16"></a><span class="w">    </span><span class="no"># Configure NCCL to use EFA</span>
+</span><span id="__span-39-17"><a id="__codelineno-39-17" name="__codelineno-39-17" href="#__codelineno-39-17"></a><span class="w">    </span><span class="no">echo &quot;export FI_PROVIDER=efa&quot; &gt;&gt; /etc/environment</span>
+</span><span id="__span-39-18"><a id="__codelineno-39-18" name="__codelineno-39-18" href="#__codelineno-39-18"></a><span class="w">    </span><span class="no">echo &quot;export FI_EFA_USE_DEVICE_RDMA=1&quot; &gt;&gt; /etc/environment</span>
+</span><span id="__span-39-19"><a id="__codelineno-39-19" name="__codelineno-39-19" href="#__codelineno-39-19"></a><span class="w">    </span><span class="no">echo &quot;export NCCL_DEBUG=INFO&quot; &gt;&gt; /etc/environment</span>
+</span></code></pre></div>
+<p>The EFA installation process:
+1. Downloads and installs the EFA installer
+2. Runs the installer with the <code>-y</code> flag to automatically accept all prompts
+3. Configures environment variables to enable NCCL (NVIDIA Collective Communications Library) to use EFA for GPU-to-GPU communication</p>
+<h3 id="benefits-of-efa-for-large-language-models">Benefits of EFA for Large Language Models<a class="headerlink" href="#benefits-of-efa-for-large-language-models" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Reduced latency</strong>: EFA provides lower and more consistent latency for communication between GPUs across nodes</li>
+<li><strong>Higher throughput</strong>: EFA enables higher throughput for data transfer between nodes</li>
+<li><strong>Improved scaling</strong>: EFA allows large language models to scale more efficiently across multiple nodes</li>
+<li><strong>Better performance</strong>: EFA can significantly improve the performance of distributed training and inference workloads</li>
+</ul>
+<h2 id="advanced-configuration-using-application-load-balancer-alb">Advanced Configuration: Using Application Load Balancer (ALB)<a class="headerlink" href="#advanced-configuration-using-application-load-balancer-alb" title="Permanent link">&para;</a></h2>
+<p>We've configured the vLLM service to use an Application Load Balancer (ALB) through the AWS Load Balancer Controller. This provides several advantages over a standard Kubernetes LoadBalancer service:</p>
+<ol>
+<li><strong>Path-based routing</strong>: ALB supports routing traffic to different services based on the URL path</li>
+<li><strong>SSL/TLS termination</strong>: ALB can handle SSL/TLS termination, reducing the load on your pods</li>
+<li><strong>Authentication</strong>: ALB supports authentication through Amazon Cognito or OIDC</li>
+<li><strong>Web Application Firewall (WAF)</strong>: ALB can be integrated with AWS WAF for additional security</li>
+<li><strong>Access Logs</strong>: ALB can log all requests to an S3 bucket for auditing and analysis</li>
+</ol>
+<p>The ALB is configured through the <code>vllm-deepseek-32b-lws-ingress</code> file, which includes annotations for the AWS Load Balancer Controller. You can customize the ALB configuration by modifying these annotations.</p>
+<h3 id="security-group-configuration">Security Group Configuration<a class="headerlink" href="#security-group-configuration" title="Permanent link">&para;</a></h3>
+<p>The ALB security group must allow inbound traffic on port 80 (and 443 if using HTTPS) from the clients that will access the vLLM service. You can update the security group configuration in the <code>vllm-deepseek-32b-lws-ingress</code> file:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-40-1"><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="nt">alb.ingress.kubernetes.io/security-groups</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">&lt;sg-id&gt;</span>
+</span></code></pre></div>
+<h3 id="ssltls-configuration">SSL/TLS Configuration<a class="headerlink" href="#ssltls-configuration" title="Permanent link">&para;</a></h3>
+<p>To enable HTTPS, you can add the following annotations to the <code>vllm-deepseek-32b-lws-ingress</code> file:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-41-1"><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="nt">alb.ingress.kubernetes.io/listen-ports</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;[{&quot;HTTP&quot;:</span><span class="nv"> </span><span class="s">80},</span><span class="nv"> </span><span class="s">{&quot;HTTPS&quot;:</span><span class="nv"> </span><span class="s">443}]&#39;</span>
+</span><span id="__span-41-2"><a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="nt">alb.ingress.kubernetes.io/certificate-arn</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">arn:aws:acm:region:account-id:certificate/certificate-id</span>
+</span><span id="__span-41-3"><a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="nt">alb.ingress.kubernetes.io/ssl-policy</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ELBSecurityPolicy-2016-08</span>
+</span></code></pre></div>
+<h3 id="access-logs">Access Logs<a class="headerlink" href="#access-logs" title="Permanent link">&para;</a></h3>
+<p>To enable access logs, add the following annotation to the <code>vllm-deepseek-32b-lws-ingress</code> file:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-42-1"><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="nt">alb.ingress.kubernetes.io/load-balancer-attributes</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">access_logs.s3.enabled=true,access_logs.s3.bucket=your-bucket-name,access_logs.s3.prefix=your-prefix</span>
+</span></code></pre></div>
+<h2 id="fsx-lustre-integration-benefits">FSx Lustre Integration Benefits<a class="headerlink" href="#fsx-lustre-integration-benefits" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Persistent Storage</strong>: Model weights are stored on the FSx Lustre filesystem and persist across pod restarts</li>
+<li><strong>Faster Loading</strong>: After the initial download, model loading will be much faster</li>
+<li><strong>Shared Storage</strong>: Multiple pods can access the same model weights</li>
+<li><strong>High Performance</strong>: FSx Lustre provides high-throughput, low-latency access to the model weights</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+      <div class="md-progress" data-md-component="progress" role="progressbar"></div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["content.code.copy", "content.tabs.link", "navigation.instant", "navigation.instant.progress", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.top", "search.highlight", "search.share", "toc.follow"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
