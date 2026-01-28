@@ -134,12 +134,12 @@ jobs:
             --source-image-uri "${{ inputs.source-image-uri }}" \
             --metadata-file "${METADATA_FILE}"
 
-          # Capture IMAGES_PUBLISHED env var set by the Python script
-          # This indicates whether images were actually published (1) or skipped (0)
-          IMAGES_PUBLISHED="${RELEASE_SUCCESSFUL:-0}"
-          echo "images-published=${IMAGES_PUBLISHED}" >> ${GITHUB_OUTPUT}
-
+          # Read IMAGES_PUBLISHED from the metadata file
+          # The Python script sets this in the metadata, but env vars don't propagate from subprocess
           if [ -f "${METADATA_FILE}" ]; then
+            IMAGES_PUBLISHED=$(python3 -c "import json; print(json.load(open('${METADATA_FILE}'))['release_successful'])")
+            echo "images-published=${IMAGES_PUBLISHED}" >> ${GITHUB_OUTPUT}
+
             if [ "${IMAGES_PUBLISHED}" == "1" ]; then
               echo "✅ Step 1 completed: Images published successfully"
             else
