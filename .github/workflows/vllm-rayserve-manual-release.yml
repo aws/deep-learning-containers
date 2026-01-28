@@ -1,6 +1,10 @@
 name: vLLM RayServe Manual Release
 
 on:
+  pull_request:
+    branches: [yadan-v2]
+    paths:
+      - ".github/workflows/vllm-rayserve-manual-release.yml"
   workflow_dispatch:
     inputs:
       source-image-uri:
