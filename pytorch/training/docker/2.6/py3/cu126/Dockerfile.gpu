@@ -323,6 +323,9 @@ RUN pip install --no-cache-dir -U \
     numpy \
  && pip uninstall dataclasses
 
+# Patch protobuf CVE-85151 - upgrade to fixed version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf>=6.33.5"
+
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
 # So update the linker path to point to it to avoid -Lcuda not found
@@ -431,6 +434,9 @@ RUN pip install --no-cache-dir -U \
     blis \
     numpy \
  && pip uninstall -y dataclasses
+
+# Patch protobuf CVE-85151 - upgrade to fixed version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf>=6.33.5"
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda

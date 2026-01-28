@@ -257,6 +257,9 @@ RUN pip install --no-cache-dir -U \
     numpy \
  && pip uninstall -y dataclasses
 
+# Patch protobuf CVE-85151 - upgrade to fixed version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf>=6.33.5"
+
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
  && unzip ${HOME_DIR}/oss_compliance.zip -d ${HOME_DIR}/ \
@@ -330,6 +333,9 @@ RUN pip install --no-cache-dir -U \
     blis \
     numpy \
  && pip uninstall -y dataclasses
+
+# Patch protobuf CVE-85151 - upgrade to fixed version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf>=6.33.5"
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
