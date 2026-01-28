@@ -329,7 +329,7 @@ RUN pip install --no-cache-dir -U \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && sed -ie '13s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
@@ -438,7 +438,7 @@ RUN pip install --no-cache-dir -U \
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/gdrcopy.git -b R${GDRCOPY_VERSION} \
  && cd gdrcopy \
- && sed -ie '12s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
+ && sed -ie '13s@$@ -L $(CUDA)/lib64/stubs@' tests/Makefile \
  && CUDA=${CUDA_HOME} make install \
  && rm -rf /tmp/gdrcopy
 
