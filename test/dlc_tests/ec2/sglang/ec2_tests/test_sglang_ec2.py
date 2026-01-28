@@ -203,38 +203,51 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
             f"https://github.com/sgl-project/sglang.git /tmp/sglang_source"
         )
 
-        # Start container with bash entrypoint
+        # Start container with bash entrypoint as root user
         container_name = "sglang_upstream"
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
+            --user root \
             --entrypoint /bin/bash \
             -v /home/ec2-user/.cache/huggingface:/root/.cache/huggingface \
             -v /tmp/sglang_source:/workdir \
             --workdir /workdir \
             -e HF_TOKEN={hf_token} \
+            -e HUGGINGFACE_HUB_TOKEN={hf_token} \
             {sglang} \
             -c "tail -f /dev/null"
         """
 
-        print("Starting SGLang container with bash entrypoint...")
+        print("Starting SGLang container with bash entrypoint (as root)...")
         ec2_connection.run(container_cmd)
 
-        # Note: HF_TOKEN environment variable is automatically used by huggingface_hub
-        # No need for huggingface-cli login - v2 infrastructure proves this works
-        print("\n✓ HF_TOKEN environment variable set for gated model access")
+        # Verify HF token is available
+        print("\nVerifying HuggingFace token...")
+        ec2_connection.run(
+            f"""docker exec -u root {container_name} bash -c '
+                env | grep -E "HF_TOKEN|HUGGINGFACE_HUB_TOKEN" || echo "No HF tokens found"
+            '""",
+            warn=True
+        )
 
         # Install test dependencies
         print("\nInstalling SGLang test dependencies...")
-        ec2_connection.run(f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh")
+        ec2_connection.run(f"docker exec -u root {container_name} bash scripts/ci/ci_install_dependency.sh")
+
+        # Authenticate with HuggingFace for gated models
+        # Environment variable alone is insufficient - explicit login required for gated models like Llama
+        print("\nAuthenticating with HuggingFace for gated model access...")
+        ec2_connection.run(f"docker exec -u root {container_name} huggingface-cli login --token {hf_token}")
+        print("✓ Successfully authenticated with HuggingFace")
 
         # Check GPU availability
         print("\nChecking GPU availability:")
-        ec2_connection.run(f"docker exec {container_name} nvidia-smi")
+        ec2_connection.run(f"docker exec -u root {container_name} nvidia-smi")
 
         # Run upstream test suite
         print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
         test_cmd = f"""
-        docker exec {container_name} sh -c '
+        docker exec -u root {container_name} sh -c '
             set -eux
             cd /workdir/test
             python3 run_suite.py --hw cuda --suite stage-a-test-1
@@ -242,6 +255,11 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         """
 
         result = ec2_connection.run(test_cmd)
+
+        # Capture logs if test fails
+        if result.return_code != 0:
+            print("\nCapturing container logs for debugging...")
+            ec2_connection.run(f"docker logs {container_name} --tail 200", warn=True)
 
         if result.return_code == 0:
             print("\n✓ SGLang upstream test passed successfully")
@@ -251,4 +269,5 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
 
     finally:
         cleanup_containers(ec2_connection)
-        ec2_connection.run("rm -rf /tmp/sglang_source", warn=True)
+        # Run as sudo since files may have been created by root in container
+        ec2_connection.run("sudo rm -rf /tmp/sglang_source", warn=True)
