@@ -1,10 +1,3 @@
 {
-  "protobuf": [
-    {
-      "description": "Affected versions of the protobuf package are vulnerable to Denial of Service (DoS) due to missing recursion depth accounting that allows the max_recursion_depth limit to be bypassed. The google.protobuf.json_format.ParseDict() parser fails to increment or enforce max_recursion_depth when traversing nested google.protobuf.Any messages in its internal Any-handling logic, allowing attacker-controlled JSON to recurse far deeper than intended.",
-      "vulnerability_id": "85151",
-      "reason_to_ignore": "Patched to latest available version 6.33.4. Version 6.33.5+ does not exist yet.",
-      "spec": "<=6.33.4"
-    }
-  ]
+  "85151": "Protobuf CVE-85151: Patched to latest available version 6.33.4. Version 6.33.5+ does not exist yet."
 }
