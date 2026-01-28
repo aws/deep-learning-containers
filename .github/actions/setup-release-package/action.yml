@@ -1,0 +1,68 @@
+name: 'Setup Release Package'
+description: 'Download and install release package from S3'
+
+inputs:
+  aws-region:
+    description: 'AWS region for S3'
+    required: false
+    default: 'us-west-2'
+  release-package-s3-bucket:
+    description: 'S3 bucket containing the release package'
+    required: false
+    default: 'dlc-release-logic-v2'
+  release-package-s3-prefix:
+    description: 'S3 prefix/folder path to the package'
+    required: false
+    default: 'DLContainersReleaseLogicV2/DLContainersReleaseLogicV2'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Download release package from S3
+      shell: bash
+      run: |
+        echo "Downloading fresh release package from S3..."
+        PACKAGE_DIR="release_package"
+        mkdir -p ${PACKAGE_DIR}
+
+        aws s3 sync \
+          s3://${{ inputs.release-package-s3-bucket }}/${{ inputs.release-package-s3-prefix }} \
+          ${PACKAGE_DIR} \
+          --region ${{ inputs.aws-region }}
+
+        if [ ! -d "${PACKAGE_DIR}" ] || [ -z "$(ls -A ${PACKAGE_DIR})" ]; then
+          echo "Error: Failed to download package from S3"
+          exit 1
+        fi
+
+        echo "Package downloaded successfully"
+
+    - name: Setup virtual environment and install package
+      shell: bash
+      run: |
+        PACKAGE_DIR="release_package"
+
+        echo "Creating virtual environment with uv..."
+        uv venv --python 3.12 .venv
+
+        echo "Installing release package..."
+        uv pip install -e ./${PACKAGE_DIR}
+
+        echo "Making scripts executable..."
+        chmod +x ${PACKAGE_DIR}/scripts/*
+
+        echo "Package installed successfully"
+
+    - name: Activate environment
+      shell: bash
+      run: |
+        PACKAGE_DIR="release_package"
+
+        echo "PACKAGE_DIR=${PACKAGE_DIR}" >> ${GITHUB_ENV}
+        echo "VIRTUAL_ENV=${PWD}/.venv" >> ${GITHUB_ENV}
+
+        # Add both venv/bin and scripts directory to PATH
+        echo "${PWD}/.venv/bin" >> ${GITHUB_PATH}
+        echo "${PWD}/${PACKAGE_DIR}/scripts" >> ${GITHUB_PATH}
+
+        echo "Environment activated"
