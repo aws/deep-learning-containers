@@ -143,8 +143,9 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
     1. Clones SGLang upstream repository (v0.5.6)
     2. Starts SGLang container with bash entrypoint
     3. Installs test dependencies
-    4. Runs upstream test suite (stage-a-test-1)
-    5. Validates test results
+    4. Authenticates with HuggingFace for gated models
+    5. Runs upstream test suite (stage-a-test-1)
+    6. Validates test results
     """
     try:
         print("\n" + "=" * 80)
@@ -156,6 +157,8 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
 
         # Get HuggingFace token
         hf_token = os.environ.get("HF_TOKEN", "")
+        if not hf_token:
+            pytest.skip("HF_TOKEN not found in environment. Skipping test requiring gated models.")
 
         # Clone SGLang source
         print("Cloning SGLang source repository...")
@@ -167,14 +170,13 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
 
         # Start container with bash entrypoint
         container_name = "sglang_upstream"
-        hf_token_env = f"-e HF_TOKEN={hf_token}" if hf_token else ""
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
             --entrypoint /bin/bash \
             -v /home/ec2-user/.cache/huggingface:/root/.cache/huggingface \
             -v /tmp/sglang_source:/workdir \
             --workdir /workdir \
-            {hf_token_env} \
+            -e HF_TOKEN={hf_token} \
             {sglang} \
             -c "tail -f /dev/null"
         """
@@ -185,6 +187,12 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         # Install test dependencies
         print("\nInstalling SGLang test dependencies...")
         ec2_connection.run(f"docker exec {container_name} bash scripts/ci/ci_install_dependency.sh")
+
+        # Authenticate with HuggingFace for gated models
+        print("\nAuthenticating with HuggingFace...")
+        ec2_connection.run(
+            f"docker exec {container_name} huggingface-cli login --token {hf_token}"
+        )
 
         # Check GPU availability
         print("\nChecking GPU availability:")
