@@ -175,7 +175,7 @@ columns:
   # Add/remove/reorder columns here
 ```
 
-**Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_url`, `tag`, `release_note_link`
+**Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_url`, `version`, `ga`, `eop`, `framework_group`, `repository`, `release_note_link`
 
 ______________________________________________________________________
 

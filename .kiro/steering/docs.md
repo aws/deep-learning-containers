@@ -24,6 +24,9 @@ docs/src/
 │       ├── release_note.template.md
 │       └── index.template.md
 ├── tables/                        # Table column configs (one per repository)
+│   ├── extra/                     # Special table configs for generated pages
+│   │   ├── support_policy.yml     # Columns for support_policy.md
+│   │   └── release_notes.yml      # Columns for release notes index pages
 │   ├── pytorch-training.yml
 │   ├── pytorch-inference.yml
 │   └── ...
@@ -54,9 +57,9 @@ docs/src/
 ### File Responsibilities
 
 - `constants.py` - Path constants, global variables, `GLOBAL_CONFIG`, and `RELEASE_NOTES_REQUIRED_FIELDS`
-- `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`
-- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_public_registry_note()`, `get_framework_order()`
-- `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`), `sort_by_version`, `get_latest_image`, `build_image_row`, `check_public_registry`
+- `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`, `repository_sorter`
+- `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_ecr_uri()`, `build_public_ecr_uri()`, `get_framework_order()`
+- `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`, `load_images_by_framework_group`), `sort_by_version`, `get_latest_image_uri`, `build_image_row`, `check_public_registry`
 - `generate.py` - `generate_support_policy()`, `generate_available_images()`, `generate_release_notes()`, `generate_all()`
 - `macros.py` - MkDocs macros plugin integration
 - `hooks.py` - MkDocs hooks entry point
@@ -85,7 +88,6 @@ from constants import GLOBAL_CONFIG
 # Access any config value
 table_order = GLOBAL_CONFIG.get("table_order", [])
 display_names = GLOBAL_CONFIG["display_names"]
-package_display_names = GLOBAL_CONFIG["package_display_names"]
 ```
 
 ### ImageConfig Class
@@ -203,7 +205,7 @@ table = render_table(headers, rows)
    public_registry: true        # If in ECR Public Gallery
    ga: "2025-10-15"             # GA date (for support policy)
    eop: "2026-10-15"            # EOP date (for support policy)
-   ecr_account: "007439368137"  # Override default ECR account
+   example_ecr_account: "007439368137"  # Override default ECR account
    ```
 
 1. GA/EOP dates are only needed for repositories that appear in support policy (base, pytorch-*, tensorflow-* excluding neuronx).
@@ -217,7 +219,6 @@ To generate release notes for an image, add the following fields to the image co
 announcement:
   - "Introduced containers for PyTorch 2.9 for Training"
   - "Added Python 3.12 support"
-  - "Added CUDA 13.0, Ubuntu 22.04 support"
 
 packages:
   python: "3.12"
@@ -225,12 +226,11 @@ packages:
   cuda: "13.0"
   cudnn: "9.13.0.50"
   nccl: "2.27.7-1"
-  torchvision: "0.24.0"
-  torchaudio: "2.9.0"
 
-# Optional
-known_issues:
-  - "Description of known issue"
+# Optional sections (rendered dynamically at end of release notes)
+optional:
+  known_issues:
+    - "Description of known issue"
 ```
 
 **Required fields for release notes** are defined in `constants.py`:
@@ -239,7 +239,7 @@ known_issues:
 RELEASE_NOTES_REQUIRED_FIELDS = ["announcement", "packages"]
 ```
 
-The `packages` field uses keys that map to display names in `global.yml` under `package_display_names`.
+The `packages` field uses keys that map to display names in `global.yml` under `display_names`.
 
 ### Release Notes Generation
 
@@ -262,9 +262,9 @@ docs/releasenotes/
 
 **Framework index page structure:**
 
-The framework-specific `index.md` uses table rendering (like `available_images.md` and `support_policy.md`) with columns defined in `tables/release_notes.yml`:
+The framework-specific `index.md` uses table rendering (like `available_images.md` and `support_policy.md`) with columns defined in `tables/extra/release_notes.yml`:
 
-- Repository, Framework, Platform, Accelerator, Link
+- Repository (displayed as Framework), Accelerator, Platform, Link
 
 The index separates release notes into two sections:
 
@@ -276,7 +276,7 @@ This separation uses the `ImageConfig.is_supported` property.
 **Generated release note sections:**
 
 1. **Announcement** - Bullet list from `announcement` field
-1. **Core Packages** - Table from `packages` field (keys mapped via `package_display_names`)
+1. **Core Packages** - Table from `packages` field (keys mapped via `display_names`)
 1. **Security Advisory** - Hardcoded section with link to AWS Security Bulletin
 1. **Reference** - Docker image URIs (private ECR + public ECR if `public_registry: true`) and links to available_images.md and support_policy.md
 1. **Known Issues** (optional) - Bullet list from `known_issues` field
@@ -293,9 +293,6 @@ This separation uses the `ImageConfig.is_supported` property.
        header: "Framework"
      - field: python
        header: "Python"
-     - field: framework
-       data: framework_group  # optional: use different data source for display
-       header: "Framework"
      # ... add columns in desired order
    ```
 
@@ -315,31 +312,27 @@ amazon: "Amazon"
 dlc: "Deep Learning Containers"
 
 # Composed terminology (resolved at load time)
-dlc_long: "${aws} ${dlc}"        # -> "AWS Deep Learning Containers"
-sagemaker: "${amazon} SageMaker" # -> "Amazon SageMaker"
-
-# External URLs
-security_bulletin_url: "https://aws.amazon.com/security/security-bulletins/"
-github_repo_url: "https://github.com/aws/deep-learning-containers"
+dlc_long: "${aws} ${dlc}"            # -> "AWS Deep Learning Containers"
+sagemaker: "${amazon} SageMaker AI"  # -> "Amazon SageMaker AI"
 
 # Platform display mappings
 platforms:
   ec2: "EC2, ECS, EKS"
   sagemaker: "SageMaker"
 
-# Package display names for release notes
-package_display_names:
-  python: "Python"
+# Consolidated display names (repositories, frameworks, packages, optional sections)
+display_names:
+  # Framework groups
   pytorch: "PyTorch"
+  tensorflow: "TensorFlow"
+  # Repositories
+  pytorch-training: "PyTorch Training"
+  # Packages (for release notes Core Packages table)
+  python: "Python"
   cuda: "CUDA"
   cudnn: "cuDNN"
-  nccl: "NCCL"
-  # ... add new packages as needed
-
-# Repository display names (required for all repositories)
-display_names:
-  pytorch-training: "PyTorch Training"
-  # ...
+  # Optional sections
+  known_issues: "Known Issues"
 
 # Framework groups for support policy consolidation (lowercase keys)
 framework_groups:
