@@ -105,7 +105,7 @@ RUN ${PIP} install --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    "protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.20.3" \
+    "protobuf>=6.34.0" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
