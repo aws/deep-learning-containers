@@ -227,29 +227,36 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
             f"""docker exec -u root {container_name} bash -c '
                 env | grep -E "HF_TOKEN|HUGGINGFACE_HUB_TOKEN" || echo "No HF tokens found"
             '""",
-            warn=True
+            warn=True,
         )
 
         # Install test dependencies
         print("\nInstalling SGLang test dependencies...")
-        ec2_connection.run(f"docker exec -u root {container_name} bash scripts/ci/ci_install_dependency.sh")
+        ec2_connection.run(
+            f"docker exec -u root {container_name} bash scripts/ci/ci_install_dependency.sh"
+        )
 
         # Authenticate with HuggingFace for gated models
         # Environment variable alone is insufficient - explicit login required for gated models like Llama
         print("\nAuthenticating with HuggingFace for gated model access...")
-        ec2_connection.run(f"docker exec -u root {container_name} huggingface-cli login --token {hf_token}")
+        ec2_connection.run(
+            f"docker exec -u root {container_name} huggingface-cli login --token {hf_token}"
+        )
         print("✓ Successfully authenticated with HuggingFace")
 
         # Check GPU availability
         print("\nChecking GPU availability:")
         ec2_connection.run(f"docker exec -u root {container_name} nvidia-smi")
 
-        # Run upstream test suite
+        # Run upstream test suite with tensor parallelism to avoid OOM
+        # Llama-3.1-8B requires ~16GB, split across 4 GPUs on g5.12xlarge
         print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
+        print("Using tensor parallelism (tp=4) to distribute model across 4 A10G GPUs...")
         test_cmd = f"""
         docker exec -u root {container_name} sh -c '
             set -eux
             cd /workdir/test
+            export SGLANG_TP_SIZE=4
             python3 run_suite.py --hw cuda --suite stage-a-test-1
         '
         """
