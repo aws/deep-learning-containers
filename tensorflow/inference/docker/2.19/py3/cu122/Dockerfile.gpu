@@ -145,7 +145,7 @@ RUN apt-get update \
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    "setuptools>=75.0.0"
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
