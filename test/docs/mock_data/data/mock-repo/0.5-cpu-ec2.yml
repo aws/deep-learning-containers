@@ -1,0 +1,19 @@
+framework: MockFramework
+version: "0.5"
+accelerator: cpu
+python: py39
+os: ubuntu20.04
+platform: ec2
+ga: "2024-01-01"
+eop: "2025-01-01"
+public_registry: false
+
+tags:
+  - "0.5.0-cpu-py39-ubuntu20.04-ec2"
+
+announcement:
+  - "Initial MockFramework 0.5 release"
+
+packages:
+  python: "3.9"
+  mockframework: "0.5.0"

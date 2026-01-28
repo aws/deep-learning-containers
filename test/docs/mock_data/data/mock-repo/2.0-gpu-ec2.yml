@@ -6,7 +6,7 @@ cuda: cu121
 os: ubuntu22.04
 platform: ec2
 ga: "2025-01-01"
-eop: "2027-01-01"
+eop: "2500-01-01"
 public_registry: true
 
 tags:

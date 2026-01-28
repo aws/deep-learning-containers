@@ -17,8 +17,8 @@ from datetime import date
 from pathlib import Path
 from typing import Any
 
-from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR
-from utils import build_ecr_uri, load_yaml, parse_version
+from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR, RELEASE_NOTES_REQUIRED_FIELDS
+from utils import build_ecr_uri, build_public_ecr_uri, load_yaml, parse_version
 
 LOGGER = logging.getLogger(__name__)
 
@@ -77,6 +77,38 @@ class ImageConfig:
     def has_support_dates(self) -> bool:
         """Check if image has GA and EOP dates defined."""
         return "ga" in self._data and "eop" in self._data
+
+    @property
+    def has_release_notes(self) -> bool:
+        """Check if image has all required fields for release notes generation."""
+        return all(field in self._data for field in RELEASE_NOTES_REQUIRED_FIELDS)
+
+    @property
+    def release_note_filename(self) -> str:
+        """Generate release note filename: <repo>-<version>-<accelerator>-<platform>.md"""
+        return f"{self._repository}-{self.get('version')}-{self.get('accelerator')}-{self.get('platform')}.md"
+
+    @property
+    def display_release_note_link(self) -> str:
+        """Markdown link to the release note file."""
+        return f"[Release Notes]({self.release_note_filename})"
+
+    def get_image_uris(self) -> list[str]:
+        """Get list of image URIs (private ECR + public ECR if available)."""
+        account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
+        tags = self.get("tags", [])
+        if not isinstance(tags, list):
+            raise ValueError(f"'tags' field must be a list in {self._repository}")
+
+        uris = []
+        for tag in tags:
+            uris.append(build_ecr_uri(account, self._repository, tag))
+
+        if self.get("public_registry"):
+            for tag in tags:
+                uris.append(build_public_ecr_uri(self._repository, tag))
+
+        return uris
 
     @property
     def display_repository(self) -> str:
@@ -149,6 +181,28 @@ def load_repository_images(repository: str) -> list[ImageConfig]:
     if not repo_dir.exists():
         return []
     return [ImageConfig.from_yaml(f, repository) for f in sorted(repo_dir.glob("*.yml"))]
+
+
+def load_images_by_framework_group(
+    filter_fn: callable = None,
+) -> dict[str, list[ImageConfig]]:
+    """Load images grouped by framework_group, optionally filtered.
+
+    Args:
+        filter_fn: Optional function to filter images (e.g., lambda img: img.has_release_notes)
+
+    Returns:
+        Dict mapping framework_group to list of ImageConfig objects.
+    """
+    table_order = GLOBAL_CONFIG.get("table_order", [])
+    images_by_group: dict[str, list[ImageConfig]] = {}
+
+    for repository in table_order:
+        for img in load_repository_images(repository):
+            if filter_fn is None or filter_fn(img):
+                images_by_group.setdefault(img.framework_group, []).append(img)
+
+    return images_by_group
 
 
 def load_legacy_images() -> dict[str, list[ImageConfig]]:

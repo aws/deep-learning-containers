@@ -1,0 +1,9 @@
+columns:
+  - field: repository
+    header: "Framework"
+  - field: accelerator
+    header: "Accelerator"
+  - field: platform
+    header: "Platform"
+  - field: release_note_link
+    header: "Link"

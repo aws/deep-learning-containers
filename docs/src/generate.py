@@ -13,27 +13,155 @@
 """Documentation generation functions."""
 
 import logging
+from pathlib import Path
 
-from constants import AVAILABLE_IMAGES_TABLE_HEADER, GLOBAL_CONFIG, REFERENCE_DIR, TEMPLATES_DIR
+from constants import (
+    AVAILABLE_IMAGES_TABLE_HEADER,
+    GLOBAL_CONFIG,
+    PUBLIC_GALLERY_URL,
+    REFERENCE_DIR,
+    RELEASE_NOTES_DIR,
+    RELEASE_NOTES_TABLE_HEADER,
+    TEMPLATES_DIR,
+)
 from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
+    load_images_by_framework_group,
     load_legacy_images,
     load_repository_images,
     sort_by_version,
 )
 from jinja2 import Template
-from sorter import accelerator_sorter, platform_sorter
+from sorter import accelerator_sorter, platform_sorter, repository_sorter
 from utils import (
     get_framework_order,
     load_jinja2,
     load_table_config,
+    parse_version,
     render_table,
     write_output,
 )
 
 LOGGER = logging.getLogger(__name__)
+
+
+def _generate_individual_release_note(
+    img: ImageConfig, template: Template, output_dir: Path, dry_run: bool = False
+) -> str:
+    """Generate a single release note page for an image."""
+    content = template.render(
+        title=f"{img.display_repository} {img.version} on {img.display_platform}",
+        framework=img.get("framework"),
+        version=img.get("version"),
+        platform_display=img.display_platform,
+        announcement=img.get("announcement", []),
+        packages=img.get("packages", {}),
+        image_uris=img.get_image_uris(),
+        optional=img.get("optional", {}),
+        **GLOBAL_CONFIG,
+    )
+
+    if not dry_run:
+        output_path = output_dir / img.release_note_filename
+        write_output(output_path, content)
+        LOGGER.debug(f"Wrote {output_path}")
+
+    return content
+
+
+def _generate_framework_index(
+    framework_group: str,
+    images: list[ImageConfig],
+    template: Template,
+    table_config: dict,
+    output_dir: Path,
+    dry_run: bool = False,
+) -> str:
+    """Generate the index page for a framework group's release notes."""
+    display_names = GLOBAL_CONFIG.get("display_names", {})
+    framework_display = display_names.get(framework_group, framework_group)
+    columns = table_config.get("columns", [])
+    headers = [col["header"] for col in columns]
+
+    # Group images by framework version
+    images_by_version: dict[str, list[ImageConfig]] = {}
+    for img in images:
+        images_by_version.setdefault(img.version, []).append(img)
+
+    # Sort framework versions descending
+    sorted_versions = sorted(images_by_version.keys(), key=parse_version, reverse=True)
+
+    # Build version-separated content for supported and deprecated
+    supported_sections, deprecated_sections = [], []
+    for version in sorted_versions:
+        sorted_images = sort_by_version(
+            images_by_version[version],
+            tiebreakers=[repository_sorter, platform_sorter, accelerator_sorter],
+        )
+
+        supported = [img for img in sorted_images if img.is_supported]
+        deprecated = [img for img in sorted_images if not img.is_supported]
+
+        if supported:
+            table = render_table(headers, [build_image_row(img, columns) for img in supported])
+            supported_sections.append(
+                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version}\n\n{table}"
+            )
+
+        if deprecated:
+            table = render_table(headers, [build_image_row(img, columns) for img in deprecated])
+            deprecated_sections.append(
+                f"{RELEASE_NOTES_TABLE_HEADER} {framework_display} {version}\n\n{table}"
+            )
+
+    content = template.render(
+        framework_display=framework_display,
+        supported_content="\n\n".join(supported_sections),
+        deprecated_content="\n\n".join(deprecated_sections),
+        **GLOBAL_CONFIG,
+    )
+
+    if not dry_run:
+        write_output(output_dir / "index.md", content)
+        LOGGER.debug(f"Wrote {output_dir / 'index.md'}")
+
+    return content
+
+
+def generate_release_notes(dry_run: bool = False) -> None:
+    """Generate release notes from image configs with release notes fields."""
+    LOGGER.debug("Generating release notes")
+
+    release_template = Template(
+        load_jinja2(TEMPLATES_DIR / "releasenotes" / "release_note.template.md")
+    )
+    index_template = Template(load_jinja2(TEMPLATES_DIR / "releasenotes" / "index.template.md"))
+    table_config = load_table_config("extra/release_notes")
+
+    images_by_group = load_images_by_framework_group(lambda img: img.has_release_notes)
+    if not images_by_group:
+        LOGGER.info("No release notes to generate")
+        return
+
+    for framework_group in get_framework_order():
+        group_images = images_by_group.get(framework_group, [])
+        if not group_images:
+            continue
+
+        group_dir = RELEASE_NOTES_DIR / framework_group
+        if not dry_run:
+            group_dir.mkdir(parents=True, exist_ok=True)
+
+        for img in group_images:
+            _generate_individual_release_note(img, release_template, group_dir, dry_run)
+
+        _generate_framework_index(
+            framework_group, group_images, index_template, table_config, group_dir, dry_run
+        )
+
+    LOGGER.info("Generated release notes")
 
 
 def generate_support_policy(dry_run: bool = False) -> str:
@@ -42,19 +170,20 @@ def generate_support_policy(dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "support_policy.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    framework_groups = GLOBAL_CONFIG.get("framework_groups", {})
     legacy_data = load_legacy_images()
-
     supported, unsupported = [], []
 
-    for framework_key in get_framework_order():
-        # Get repos for this framework (group or single repo)
-        repos = framework_groups.get(framework_key, [framework_key])
+    # Load images with support dates, grouped by framework_group
+    images_by_group = load_images_by_framework_group(lambda img: img.has_support_dates)
 
-        # Load images with support dates from all repos in group
-        images = []
-        for repo in repos:
-            images.extend(img for img in load_repository_images(repo) if img.has_support_dates)
+    if not images_by_group:
+        LOGGER.info("No support policy tables to generate")
+        return
+
+    for framework_group in get_framework_order():
+        images = images_by_group.get(framework_group, [])
+        if not images:
+            continue
 
         # Deduplicate by version, validating date consistency
         version_map: dict[str, ImageConfig] = {}
@@ -62,13 +191,15 @@ def generate_support_policy(dry_run: bool = False) -> str:
             existing = version_map.get(img.version)
             if existing and (existing.ga != img.ga or existing.eop != img.eop):
                 raise ValueError(
-                    f"Inconsistent dates for {framework_key} {img.version}: "
-                    f"({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
+                    f"Inconsistent dates for {framework_group} {img.version}: \n"
+                    f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
+                    f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
+                    f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
                 )
             version_map[img.version] = img
 
         # Merge legacy entries for this framework
-        for legacy_img in legacy_data.get(framework_key, []):
+        for legacy_img in legacy_data.get(framework_group, []):
             if legacy_img.version not in version_map:
                 version_map[legacy_img.version] = legacy_img
 
@@ -77,7 +208,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
             (supported if img.is_supported else unsupported).append(img)
 
     # Build tables
-    table_config = load_table_config("support_policy")
+    table_config = load_table_config("extra/support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
@@ -136,7 +267,7 @@ def generate_available_images(dry_run: bool = False) -> str:
 
         section = f"{AVAILABLE_IMAGES_TABLE_HEADER} {display_name}\n"
         if has_public_registry:
-            url = f"{GLOBAL_CONFIG['public_gallery_url']}/{repository}"
+            url = f"{PUBLIC_GALLERY_URL}/{repository}"
             section += (
                 f"\nThese images are also available in ECR Public Gallery: [{repository}]({url})\n"
             )
@@ -164,5 +295,6 @@ def generate_all(dry_run: bool = False) -> None:
 
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
+    generate_release_notes(dry_run)
 
     LOGGER.info("Documentation generation complete")
