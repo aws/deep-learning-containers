@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      # - "**vllm**"
+      - "**vllm**"
       - "!docs/**"
 
 permissions:
@@ -631,11 +631,13 @@ jobs:
           config-json: ${{ needs.load-config.outputs.rayserve-config }}
 
   release-rayserve-image:
-    needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
+    # needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
+    needs: [load-config, generate-rayserve-release-spec]
     if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
     uses: ./.github/workflows/reusable-release-image.yml
     with:
-      source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+      # source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+      source-image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.10.2-gpu-py312-cu129-ubuntu22.04-rayserve-ec2-pr-5594"
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
       source-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.source_stage }}
       target-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.target_stage }}

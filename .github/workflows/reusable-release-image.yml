@@ -46,6 +46,7 @@ jobs:
     outputs:
       run-identifier: ${{ steps.setup.outputs.run-identifier }}
       metadata-file-name: ${{ steps.setup.outputs.metadata-file-name }}
+      images-published: ${{ steps.publish.outputs.images-published }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -115,6 +116,7 @@ jobs:
           echo "Generated run identifier: ${RUN_IDENTIFIER}"
 
       - name: Publish DLC Images
+        id: publish
         run: |
           echo "=========================================="
           echo "Step 1: Publishing DLC Images"
@@ -132,10 +134,18 @@ jobs:
             --source-image-uri "${{ inputs.source-image-uri }}" \
             --metadata-file "${METADATA_FILE}"
 
-          echo "✅ Step 1 completed: Images published successfully"
+          # Capture IMAGES_PUBLISHED env var set by the Python script
+          # This indicates whether images were actually published (1) or skipped (0)
+          IMAGES_PUBLISHED="${RELEASE_SUCCESSFUL:-0}"
+          echo "images-published=${IMAGES_PUBLISHED}" >> ${GITHUB_OUTPUT}
 
           if [ -f "${METADATA_FILE}" ]; then
-            echo "Release metadata created:"
+            if [ "${IMAGES_PUBLISHED}" == "1" ]; then
+              echo "✅ Step 1 completed: Images published successfully"
+            else
+              echo "⚠️ Step 1 completed but release was skipped (no images published)"
+            fi
+            echo "Release metadata:"
             cat ${METADATA_FILE}
           else
             echo "❌ Error: Metadata file not found"
@@ -151,6 +161,7 @@ jobs:
 
   step2-generate-info:
     needs: [step1-publish-images]
+    if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -203,6 +214,7 @@ jobs:
 
   step3-publish-notifications:
     needs: [step1-publish-images, step2-generate-info]
+    if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
