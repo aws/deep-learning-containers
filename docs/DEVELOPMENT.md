@@ -94,7 +94,7 @@ ______________________________________________________________________
 Add these fields to an image config:
 
 ```yaml
-announcement:
+announcements:
   - "Introduced containers for PyTorch 2.9"
   - "Added Python 3.12 support"
 
@@ -109,7 +109,7 @@ optional:
     - "Description of known issue"
 ```
 
-Release notes are generated automatically for images with `announcement` and `packages` fields.
+Release notes are generated automatically for images with `announcements` and `packages` fields.
 
 ### Adding New Optional Sections
 
@@ -228,4 +228,4 @@ ______________________________________________________________________
 | "Display name not found" | Add repository to `display_names` in `global.yml` |
 | "Inconsistent dates" | Ensure all images in same framework group/version have identical GA/EOP |
 | Images not appearing | Check repository is in `table_order` |
-| Release notes not generating | Ensure `announcement` and `packages` fields are present |
+| Release notes not generating | Ensure `announcements` and `packages` fields are present |

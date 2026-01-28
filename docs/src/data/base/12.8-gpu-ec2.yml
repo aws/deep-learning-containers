@@ -12,3 +12,5 @@ public_registry: true
 # Image tags (first tag is used in available_images.md)
 tags:
   - "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+
+announcements:

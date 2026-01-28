@@ -56,7 +56,7 @@ def _generate_individual_release_note(
         framework=img.get("framework"),
         version=img.get("version"),
         platform_display=img.display_platform,
-        announcement=img.get("announcement", []),
+        announcements=img.get("announcements", []),
         packages=img.get("packages", {}),
         image_uris=img.get_image_uris(),
         optional=img.get("optional", {}),

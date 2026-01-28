@@ -28,7 +28,7 @@ RELEASE_NOTES_DIR = DOCS_DIR / "releasenotes"
 TUTORIALS_DIR = DOCS_DIR / "tutorials"
 
 # Release notes configuration
-RELEASE_NOTES_REQUIRED_FIELDS = ["announcement", "packages"]
+RELEASE_NOTES_REQUIRED_FIELDS = ["announcements", "packages"]
 GLOBAL_CONFIG_PATH = SRC_DIR / "global.yml"
 
 AVAILABLE_IMAGES_TABLE_HEADER = "##"
