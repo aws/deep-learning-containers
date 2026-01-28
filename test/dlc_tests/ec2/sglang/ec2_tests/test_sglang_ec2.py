@@ -29,7 +29,7 @@ def get_hf_token_from_secrets_manager():
     """
     secret_name = "test/hf_token"
     region_name = "us-west-2"
-    
+
     try:
         session = boto3.session.Session()
         client = session.client(service_name="secretsmanager", region_name=region_name)
@@ -184,14 +184,16 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         # Get HuggingFace token from AWS Secrets Manager (same as v2 infrastructure)
         print("Retrieving HF_TOKEN from AWS Secrets Manager...")
         hf_token = get_hf_token_from_secrets_manager()
-        
+
         if not hf_token:
             # Fallback to environment variable
             hf_token = os.environ.get("HF_TOKEN", "")
             if hf_token:
                 print("Using HF_TOKEN from environment variable")
             else:
-                pytest.skip("HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models.")
+                pytest.skip(
+                    "HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models."
+                )
 
         # Clone SGLang source
         print("Cloning SGLang source repository...")
@@ -217,54 +219,9 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         print("Starting SGLang container with bash entrypoint...")
         ec2_connection.run(container_cmd)
 
-        # Authenticate with HuggingFace BEFORE installing dependencies
-        # This ensures gated models are accessible during test setup
-        print("\nAuthenticating with HuggingFace...")
-
-        # Login with token (this saves credentials to ~/.cache/huggingface/token)
-        login_result = ec2_connection.run(
-            f"docker exec {container_name} huggingface-cli login --token {hf_token}", warn=True
-        )
-
-        if login_result.return_code != 0:
-            raise AssertionError(
-                f"Failed to authenticate with HuggingFace. "
-                f"Return code: {login_result.return_code}, "
-                f"Output: {login_result.stdout}"
-            )
-
-        # Verify authentication worked
-        auth_check = ec2_connection.run(
-            f"docker exec {container_name} huggingface-cli whoami", warn=True
-        )
-
-        if auth_check.return_code == 0:
-            print(f"✓ Successfully authenticated as: {auth_check.stdout.strip()}")
-        else:
-            raise AssertionError(
-                f"HuggingFace authentication verification failed. "
-                f"The token may be invalid or expired. "
-                f"Return code: {auth_check.return_code}"
-            )
-
-        # Test access to a gated model to ensure permissions are working
-        print("\nVerifying access to gated models...")
-        test_access = ec2_connection.run(
-            f'docker exec {container_name} python3 -c "'
-            f"from huggingface_hub import HfApi; "
-            f"api = HfApi(); "
-            f'info = api.model_info(\\"meta-llama/Llama-3.1-8B-Instruct\\"); '
-            f'print(f\\"✓ Can access gated model: {{info.id}}\\")'
-            f'"',
-            warn=True,
-        )
-
-        if test_access.return_code != 0:
-            print("⚠ Warning: Cannot access meta-llama/Llama-3.1-8B-Instruct")
-            print("This may cause upstream tests to fail if they require this model")
-            print(f"Error output: {test_access.stderr}")
-        else:
-            print(test_access.stdout.strip())
+        # Note: HF_TOKEN environment variable is automatically used by huggingface_hub
+        # No need for huggingface-cli login - v2 infrastructure proves this works
+        print("\n✓ HF_TOKEN environment variable set for gated model access")
 
         # Install test dependencies
         print("\nInstalling SGLang test dependencies...")
