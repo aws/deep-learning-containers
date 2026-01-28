@@ -3,20 +3,27 @@ SGLang EC2 Tests
 Tests SGLang inference capabilities on EC2 instances
 """
 
-import time
-import os
 import json
+import logging
+import os
+import sys
+import time
+
 import boto3
 import pytest
 from botocore.exceptions import ClientError
-from test.test_utils.ec2 import (
-    get_account_id_from_image_uri,
-    login_to_ecr_registry,
-)
+
+from test.test_utils import get_account_id_from_image_uri
+from test.test_utils.ec2 import login_to_ecr_registry
+
+# Setup logging
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
+LOGGER.setLevel(logging.INFO)
 
 # Test constants
 SGLANG_EC2_GPU_INSTANCE_TYPE = "g5.2xlarge"
-SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g6e.xlarge"  # 1x L40S 48GB GPU (matches v2)
+SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g6e.xlarge"
 SGLANG_VERSION = "0.5.6"
 DATASET_URL = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json"
 DEFAULT_REGION = "us-west-2"
@@ -25,7 +32,9 @@ DEFAULT_REGION = "us-west-2"
 def get_hf_token_from_secrets_manager():
     """
     Retrieve HuggingFace token from AWS Secrets Manager
-    Same approach as v2 infrastructure
+
+    Returns:
+        str: HuggingFace token or empty string if not found
     """
     secret_name = "test/hf_token"
     region_name = "us-west-2"
@@ -38,23 +47,34 @@ def get_hf_token_from_secrets_manager():
         hf_token = response.get("HF_TOKEN", "")
         return hf_token
     except ClientError as e:
-        print(f"Warning: Failed to retrieve HF_TOKEN from Secrets Manager: {e}")
+        LOGGER.warning(f"Failed to retrieve HF_TOKEN from Secrets Manager: {e}")
         return ""
     except Exception as e:
-        print(f"Warning: Unexpected error retrieving HF_TOKEN: {e}")
+        LOGGER.warning(f"Unexpected error retrieving HF_TOKEN: {e}")
         return ""
 
 
 def setup_docker_image(ec2_connection, image_uri):
-    """Pull SGLang Docker image from ECR"""
+    """
+    Pull SGLang Docker image from ECR
+
+    Args:
+        ec2_connection: Fabric connection to EC2 instance
+        image_uri: Docker image URI
+    """
     account_id = get_account_id_from_image_uri(image_uri)
     login_to_ecr_registry(ec2_connection, account_id, DEFAULT_REGION)
-    print(f"Pulling SGLang image: {image_uri}")
+    LOGGER.info(f"Pulling SGLang image: {image_uri}")
     ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
 
 def setup_dataset(ec2_connection):
-    """Download ShareGPT dataset for benchmarking"""
+    """
+    Download ShareGPT dataset for benchmarking
+
+    Args:
+        ec2_connection: Fabric connection to EC2 instance
+    """
     ec2_connection.run("mkdir -p /tmp/dataset")
 
     dataset_check = ec2_connection.run(
@@ -63,16 +83,21 @@ def setup_dataset(ec2_connection):
     )
 
     if "missing" in dataset_check.stdout:
-        print("Downloading ShareGPT dataset...")
+        LOGGER.info("Downloading ShareGPT dataset...")
         ec2_connection.run(f"wget -P /tmp/dataset {DATASET_URL}")
     else:
-        print("ShareGPT dataset already exists. Skipping download.")
+        LOGGER.info("ShareGPT dataset already exists, skipping download")
 
 
 def cleanup_containers(ec2_connection):
-    """Cleanup all Docker containers"""
+    """
+    Cleanup all Docker containers
+
+    Args:
+        ec2_connection: Fabric connection to EC2 instance
+    """
     try:
-        print("Cleaning up containers...")
+        LOGGER.info("Cleaning up Docker containers...")
         commands = [
             "docker ps -aq | xargs -r docker stop",
             "docker ps -aq | xargs -r docker rm",
@@ -80,7 +105,7 @@ def cleanup_containers(ec2_connection):
         for cmd in commands:
             ec2_connection.run(cmd, hide=True, warn=True)
     except Exception as e:
-        print(f"Cleanup warning: {e}")
+        LOGGER.warning(f"Cleanup warning: {e}")
 
 
 @pytest.mark.model("Qwen3-0.6B")
@@ -90,16 +115,19 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang):
     """
     Test SGLang local benchmark on EC2 using ShareGPT dataset
 
-    This test:
-    1. Downloads ShareGPT dataset
-    2. Starts SGLang server with Qwen3-0.6B model
-    3. Runs benchmark with 1000 prompts
-    4. Validates successful completion
+    This test validates:
+    - SGLang server startup with Qwen3-0.6B model
+    - Benchmark execution with 1000 prompts
+    - Basic inference capabilities
+
+    Args:
+        ec2_connection: Fabric connection to EC2 instance
+        sglang: SGLang Docker image URI
     """
     try:
-        print("\n" + "=" * 80)
-        print("Starting SGLang EC2 Local Benchmark Test")
-        print("=" * 80 + "\n")
+        LOGGER.info("\n" + "=" * 80)
+        LOGGER.info("Starting SGLang EC2 Local Benchmark Test")
+        LOGGER.info("=" * 80 + "\n")
 
         # Setup
         setup_docker_image(ec2_connection, sglang)
@@ -123,19 +151,19 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang):
             --port 30000
         """
 
-        print("Starting SGLang server container...")
+        LOGGER.info("Starting SGLang server container...")
         ec2_connection.run(container_cmd)
 
         # Wait for server startup
-        print("Waiting for serving endpoint startup (120s)...")
+        LOGGER.info("Waiting for server startup (120s)...")
         time.sleep(120)
 
         # Check container logs
-        print("\nContainer logs:")
+        LOGGER.info("Container logs:")
         ec2_connection.run(f"docker logs {container_name}")
 
         # Run benchmark
-        print("\nRunning SGLang benchmark...")
+        LOGGER.info("Running SGLang benchmark...")
         benchmark_cmd = f"""
         docker exec {container_name} python3 -m sglang.bench_serving \
             --backend sglang \
@@ -149,9 +177,9 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang):
         result = ec2_connection.run(benchmark_cmd)
 
         if result.return_code == 0:
-            print("\n✓ SGLang local benchmark test passed successfully")
+            LOGGER.info("\n✓ SGLang local benchmark test passed successfully")
         else:
-            print(f"\n✗ Benchmark test failed with return code {result.return_code}")
+            LOGGER.error(f"\n✗ Benchmark test failed with return code {result.return_code}")
             raise AssertionError(f"Benchmark test failed with return code {result.return_code}")
 
     finally:
@@ -165,47 +193,48 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
     """
     Test SGLang upstream test suite on EC2
 
-    This test:
-    1. Clones SGLang upstream repository (v0.5.6)
-    2. Starts SGLang container with bash entrypoint
-    3. Installs test dependencies
-    4. Authenticates with HuggingFace for gated models
-    5. Runs upstream test suite (stage-a-test-1) with Llama-3.1-8B
-    6. Validates test results
+    This test validates:
+    - Compatibility with SGLang upstream test suite (stage-a-test-1)
+    - Support for gated models (Llama-3.1-8B)
+    - Test execution in containerized environment
 
-    Note: Uses g6e.xlarge (1x L40S 48GB GPU) to avoid OOM with Llama-3.1-8B (~16GB)
+    Note: Uses g6e.xlarge (1x L40S 48GB GPU) to accommodate Llama-3.1-8B model
+
+    Args:
+        ec2_connection: Fabric connection to EC2 instance
+        sglang: SGLang Docker image URI
     """
     try:
-        print("\n" + "=" * 80)
-        print("Starting SGLang EC2 Upstream Test")
-        print("=" * 80 + "\n")
+        LOGGER.info("\n" + "=" * 80)
+        LOGGER.info("Starting SGLang EC2 Upstream Test")
+        LOGGER.info("=" * 80 + "\n")
 
         # Setup
         setup_docker_image(ec2_connection, sglang)
 
-        # Get HuggingFace token from AWS Secrets Manager (same as v2 infrastructure)
-        print("Retrieving HF_TOKEN from AWS Secrets Manager...")
+        # Get HuggingFace token from AWS Secrets Manager
+        LOGGER.info("Retrieving HF_TOKEN from AWS Secrets Manager...")
         hf_token = get_hf_token_from_secrets_manager()
 
         if not hf_token:
             # Fallback to environment variable
             hf_token = os.environ.get("HF_TOKEN", "")
             if hf_token:
-                print("Using HF_TOKEN from environment variable")
+                LOGGER.info("Using HF_TOKEN from environment variable")
             else:
                 pytest.skip(
                     "HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models."
                 )
 
         # Clone SGLang source
-        print("Cloning SGLang source repository...")
+        LOGGER.info("Cloning SGLang source repository...")
         ec2_connection.run("rm -rf /tmp/sglang_source", warn=True)
         ec2_connection.run(
             f"git clone --branch v{SGLANG_VERSION} --depth 1 "
             f"https://github.com/sgl-project/sglang.git /tmp/sglang_source"
         )
 
-        # Start container with bash entrypoint as root user
+        # Start container with bash entrypoint
         container_name = "sglang_upstream"
         container_cmd = f"""
         docker run -d --name {container_name} --rm --gpus=all \
@@ -220,11 +249,11 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
             -c "tail -f /dev/null"
         """
 
-        print("Starting SGLang container with bash entrypoint (as root)...")
+        LOGGER.info("Starting SGLang container with bash entrypoint...")
         ec2_connection.run(container_cmd)
 
         # Verify HF token is available
-        print("\nVerifying HuggingFace token...")
+        LOGGER.info("Verifying HuggingFace token...")
         ec2_connection.run(
             f"""docker exec -u root {container_name} bash -c '
                 env | grep -E "HF_TOKEN|HUGGINGFACE_HUB_TOKEN" || echo "No HF tokens found"
@@ -233,26 +262,24 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         )
 
         # Install test dependencies
-        print("\nInstalling SGLang test dependencies...")
+        LOGGER.info("Installing SGLang test dependencies...")
         ec2_connection.run(
             f"docker exec -u root {container_name} bash scripts/ci/ci_install_dependency.sh"
         )
 
         # Authenticate with HuggingFace for gated models
-        # Environment variable alone is insufficient - explicit login required for gated models like Llama
-        print("\nAuthenticating with HuggingFace for gated model access...")
+        LOGGER.info("Authenticating with HuggingFace for gated model access...")
         ec2_connection.run(
             f"docker exec -u root {container_name} huggingface-cli login --token {hf_token}"
         )
-        print("✓ Successfully authenticated with HuggingFace")
+        LOGGER.info("✓ Successfully authenticated with HuggingFace")
 
         # Check GPU availability
-        print("\nChecking GPU availability:")
+        LOGGER.info("Checking GPU availability:")
         ec2_connection.run(f"docker exec -u root {container_name} nvidia-smi")
 
         # Run upstream test suite
-        # Llama-3.1-8B requires ~16GB, fits on single L40S 48GB GPU
-        print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
+        LOGGER.info("Running SGLang upstream test suite (stage-a-test-1)...")
         test_cmd = f"""
         docker exec -u root {container_name} sh -c '
             set -eux
@@ -265,13 +292,13 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
 
         # Capture logs if test fails
         if result.return_code != 0:
-            print("\nCapturing container logs for debugging...")
+            LOGGER.error("Capturing container logs for debugging...")
             ec2_connection.run(f"docker logs {container_name} --tail 200", warn=True)
 
         if result.return_code == 0:
-            print("\n✓ SGLang upstream test passed successfully")
+            LOGGER.info("\n✓ SGLang upstream test passed successfully")
         else:
-            print(f"\n✗ Upstream test failed with return code {result.return_code}")
+            LOGGER.error(f"\n✗ Upstream test failed with return code {result.return_code}")
             raise AssertionError(f"Upstream test failed with return code {result.return_code}")
 
     finally:
