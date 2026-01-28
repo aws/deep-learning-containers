@@ -5,7 +5,10 @@ Tests SGLang inference capabilities on EC2 instances
 
 import time
 import os
+import json
+import boto3
 import pytest
+from botocore.exceptions import ClientError
 from test.test_utils.ec2 import (
     get_account_id_from_image_uri,
     login_to_ecr_registry,
@@ -17,6 +20,29 @@ SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g5.12xlarge"
 SGLANG_VERSION = "0.5.6"
 DATASET_URL = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json"
 DEFAULT_REGION = "us-west-2"
+
+
+def get_hf_token_from_secrets_manager():
+    """
+    Retrieve HuggingFace token from AWS Secrets Manager
+    Same approach as v2 infrastructure
+    """
+    secret_name = "test/hf_token"
+    region_name = "us-west-2"
+    
+    try:
+        session = boto3.session.Session()
+        client = session.client(service_name="secretsmanager", region_name=region_name)
+        get_secret_value_response = client.get_secret_value(SecretId=secret_name)
+        response = json.loads(get_secret_value_response["SecretString"])
+        hf_token = response.get("HF_TOKEN", "")
+        return hf_token
+    except ClientError as e:
+        print(f"Warning: Failed to retrieve HF_TOKEN from Secrets Manager: {e}")
+        return ""
+    except Exception as e:
+        print(f"Warning: Unexpected error retrieving HF_TOKEN: {e}")
+        return ""
 
 
 def setup_docker_image(ec2_connection, image_uri):
@@ -155,10 +181,17 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         # Setup
         setup_docker_image(ec2_connection, sglang)
 
-        # Get HuggingFace token
-        hf_token = os.environ.get("HF_TOKEN", "")
+        # Get HuggingFace token from AWS Secrets Manager (same as v2 infrastructure)
+        print("Retrieving HF_TOKEN from AWS Secrets Manager...")
+        hf_token = get_hf_token_from_secrets_manager()
+        
         if not hf_token:
-            pytest.skip("HF_TOKEN not found in environment. Skipping test requiring gated models.")
+            # Fallback to environment variable
+            hf_token = os.environ.get("HF_TOKEN", "")
+            if hf_token:
+                print("Using HF_TOKEN from environment variable")
+            else:
+                pytest.skip("HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models.")
 
         # Clone SGLang source
         print("Cloning SGLang source repository...")
