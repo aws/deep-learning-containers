@@ -321,6 +321,12 @@ RUN pip install --no-cache-dir -U \
     thinc==8.3.4 \
     blis \
     numpy \
+    # Explicitly install spacy dependencies to prevent regression
+    langcodes \
+    language-data \
+    marisa-trie \
+    typer \
+    sniffio \
  && pip uninstall dataclasses
 
 # Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
@@ -433,6 +439,12 @@ RUN pip install --no-cache-dir -U \
     thinc==8.3.4 \
     blis \
     numpy \
+    # Explicitly install spacy dependencies to prevent regression
+    langcodes \
+    language-data \
+    marisa-trie \
+    typer \
+    sniffio \
  && pip uninstall -y dataclasses
 
 # Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
