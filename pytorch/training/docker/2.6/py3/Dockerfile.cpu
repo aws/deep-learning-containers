@@ -261,6 +261,9 @@ RUN pip install --no-cache-dir -U \
     marisa-trie \
     typer \
     sniffio \
+    # Explicitly install time zone packages to prevent regression
+    pytz \
+    tzdata \
  && pip uninstall -y dataclasses
 
 # Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
@@ -344,6 +347,9 @@ RUN pip install --no-cache-dir -U \
     marisa-trie \
     typer \
     sniffio \
+    # Explicitly install time zone packages to prevent regression
+    pytz \
+    tzdata \
  && pip uninstall -y dataclasses
 
 # Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
