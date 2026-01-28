@@ -242,7 +242,7 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
+    "setuptools>=75.0.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
     ninja \
