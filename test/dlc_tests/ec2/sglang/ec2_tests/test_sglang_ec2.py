@@ -16,7 +16,7 @@ from test.test_utils.ec2 import (
 
 # Test constants
 SGLANG_EC2_GPU_INSTANCE_TYPE = "g5.2xlarge"
-SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g5.12xlarge"
+SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g6e.xlarge"  # 1x L40S 48GB GPU (matches v2)
 SGLANG_VERSION = "0.5.6"
 DATASET_URL = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json"
 DEFAULT_REGION = "us-west-2"
@@ -158,7 +158,7 @@ def test_sglang_ec2_local_benchmark(ec2_connection, sglang):
         cleanup_containers(ec2_connection)
 
 
-@pytest.mark.model("Qwen3-0.6B")
+@pytest.mark.model("Llama-3.1-8B")
 @pytest.mark.processor("gpu")
 @pytest.mark.parametrize("ec2_instance_type", [SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE], indirect=True)
 def test_sglang_ec2_upstream(ec2_connection, sglang):
@@ -170,8 +170,10 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
     2. Starts SGLang container with bash entrypoint
     3. Installs test dependencies
     4. Authenticates with HuggingFace for gated models
-    5. Runs upstream test suite (stage-a-test-1)
+    5. Runs upstream test suite (stage-a-test-1) with Llama-3.1-8B
     6. Validates test results
+
+    Note: Uses g6e.xlarge (1x L40S 48GB GPU) to avoid OOM with Llama-3.1-8B (~16GB)
     """
     try:
         print("\n" + "=" * 80)
@@ -248,15 +250,13 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
         print("\nChecking GPU availability:")
         ec2_connection.run(f"docker exec -u root {container_name} nvidia-smi")
 
-        # Run upstream test suite with tensor parallelism to avoid OOM
-        # Llama-3.1-8B requires ~16GB, split across 4 GPUs on g5.12xlarge
+        # Run upstream test suite
+        # Llama-3.1-8B requires ~16GB, fits on single L40S 48GB GPU
         print("\nRunning SGLang upstream test suite (stage-a-test-1)...")
-        print("Using tensor parallelism (tp=4) to distribute model across 4 A10G GPUs...")
         test_cmd = f"""
         docker exec -u root {container_name} sh -c '
             set -eux
             cd /workdir/test
-            export SGLANG_TP_SIZE=4
             python3 run_suite.py --hw cuda --suite stage-a-test-1
         '
         """
