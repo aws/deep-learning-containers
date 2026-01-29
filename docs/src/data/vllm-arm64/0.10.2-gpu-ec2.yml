@@ -23,4 +23,6 @@ packages:
   torchvision: "0.23.0"
   torchaudio: "2.8.0"
   transformers: "4.56.1"
-  cuda: "12.9"
+  cuda: "12.9.1"
+  cudnn: "9.10.2"
+  nccl: "2.27.3"
