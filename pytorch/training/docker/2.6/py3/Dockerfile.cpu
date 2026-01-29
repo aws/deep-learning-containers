@@ -184,7 +184,7 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
+    "setuptools>=75.0.0" \
     "urllib3>=2.5.0" \
     "awscli<2" \
     opencv-python==4.11.0.86 \
@@ -192,9 +192,10 @@ RUN pip install --no-cache-dir \
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
 
-COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+# Cache bust to force rebuild after setuptools upgrade and sitecustomize.py removal
+ENV CACHE_BUST_SETUPTOOLS_FIX=20260128
 
-COPY sitecustomize.py /usr/local/lib/${PYTHON_SHORT_VERSION}/sitecustomize.py
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py
 
@@ -252,7 +253,19 @@ RUN pip install --no-cache-dir -U \
     thinc==8.3.4 \
     blis \
     numpy \
+    # Explicitly install spacy dependencies to prevent regression
+    langcodes \
+    language-data \
+    marisa-trie \
+    typer \
+    sniffio \
+    # Explicitly install time zone packages to prevent regression
+    pytz \
+    tzdata \
  && pip uninstall -y dataclasses
+
+# Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf==6.33.4"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
@@ -326,7 +339,19 @@ RUN pip install --no-cache-dir -U \
     thinc==8.3.4 \
     blis \
     numpy \
+    # Explicitly install spacy dependencies to prevent regression
+    langcodes \
+    language-data \
+    marisa-trie \
+    typer \
+    sniffio \
+    # Explicitly install time zone packages to prevent regression
+    pytz \
+    tzdata \
  && pip uninstall -y dataclasses
+
+# Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf==6.33.4"
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
