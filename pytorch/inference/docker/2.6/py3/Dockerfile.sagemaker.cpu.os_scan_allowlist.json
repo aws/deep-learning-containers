@@ -1,0 +1,33 @@
+{
+  "jaraco.context": [
+    {
+      "description": "jaraco.context, an open-source software package that provides some useful decorators and context managers, has a Zip Slip path traversal vulnerability in the `jaraco.context.tarball()` function starting in version 5.2.0 and prior to version 6.1.0. The vulnerability may allow attackers to extract files outside the intended extraction directory when malicious tar archives are processed. The strip_first_component filter splits the path on the first `/` and extracts the second component, while allowing `../` sequences. Paths like `dummy_dir/../../etc/passwd` become `../../etc/passwd`. Note that this suffers from a nested tarball attack as well with multi-level tar files such as `dummy_dir/inner.tar.gz`, where the inner.tar.gz includes a traversal `dummy_dir/../../config/.env` that also gets translated to `../../config/.env`. Version 6.1.0 contains a patch for the issue.",
+      "vulnerability_id": "CVE-2026-23949",
+      "name": "CVE-2026-23949",
+      "package_name": "jaraco.context",
+      "package_details": {
+        "file_path": "/usr/local/lib/python3.12/site-packages/setuptools/_vendor/jaraco.context-5.3.0.dist-info/METADATA",
+        "name": "jaraco.context",
+        "package_manager": "PYTHON",
+        "version": "5.3.0",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 8.6,
+      "cvss_v30_score": 0.0,
+      "cvss_v31_score": 8.6,
+      "cvss_v2_score": 0.0,
+      "cvss_v3_severity": "HIGH",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-23949",
+      "source": "NVD",
+      "severity": "HIGH",
+      "status": "ACTIVE",
+      "title": "CVE-2026-23949 - jaraco.context",
+      "reason_to_ignore": "N/A"
+    }
+  ]
+}
