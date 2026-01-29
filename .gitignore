@@ -8,6 +8,6 @@ __pycache__
 
 # Generated docs
 docs/tutorials
-# docs/releasenotes/*/
+docs/releasenotes/*/
 docs/reference/available_images.md
 docs/reference/support_policy.md
