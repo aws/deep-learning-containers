@@ -2,8 +2,8 @@
 
 {{ dlc_long }} for {{ platform_display }} are now available with {{ framework }} {{ version }}.
 
-## Announcement
-{% for item in announcement %}
+## Announcements
+{% for item in announcements %}
 - {{ item }}
 {% endfor %}
 

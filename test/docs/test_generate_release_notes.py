@@ -60,7 +60,7 @@ def supported_image():
         python="py312",
         eop="2500-01-01",
         tags=["3.0.0-gpu-py312-ec2"],
-        announcement=["Introduced MockFramework 3.0", "Added GPU support"],
+        announcements=["Introduced MockFramework 3.0", "Added GPU support"],
         packages={"python": "3.12", "mockframework": "3.0.0"},
     )
 
@@ -77,7 +77,7 @@ def deprecated_image():
         python="py39",
         eop="2025-01-01",
         tags=["0.5.0-cpu-py39-ec2"],
-        announcement=["Initial release"],
+        announcements=["Initial release"],
         packages={"python": "3.9", "mockframework": "0.5.0"},
     )
 
@@ -95,7 +95,7 @@ def test_individual_release_note_content(
     assert "3.0" in content
     assert "EC2" in content
 
-    # Announcement section
+    # Announcements section
     assert "Introduced MockFramework 3.0" in content
     assert "Added GPU support" in content
 
