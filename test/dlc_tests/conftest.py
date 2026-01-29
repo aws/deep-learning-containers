@@ -979,10 +979,6 @@ def skip_telemetry_tests(request):
     """Skip specific telemetry tests based on test name and image version"""
     test_name = request.node.name.lower()
 
-    # Skip all telemetry tests for SGLang images
-    if "telemetry" in test_name:
-        _check_sglang_telemetry_skip(request)
-
     if "telemetry_entrypoint" in test_name:
         _check_telemetry_skip(request, "entrypoint")
     elif "telemetry_bashrc" in test_name:
@@ -1009,24 +1005,6 @@ def _get_telemetry_image_info(request):
             image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
             return image_framework, image_framework_version
     return None, None
-
-
-def _check_sglang_telemetry_skip(request):
-    """Skip all telemetry tests for SGLang images."""
-    # Check if sglang_inference fixture is being used
-    if "sglang_inference" in request.fixturenames:
-        pytest.skip("Telemetry tests are not supported for SGLang images")
-
-    # Also check for gpu/cpu fixtures with SGLang images
-    for fixture_name in ["gpu", "cpu"]:
-        if fixture_name in request.fixturenames:
-            try:
-                img_uri = request.getfixturevalue(fixture_name)
-                if "sglang" in img_uri.lower():
-                    pytest.skip("Telemetry tests are not supported for SGLang images")
-            except Exception:
-                # If we can't get the fixture value, continue
-                pass
 
 
 def _check_telemetry_skip(request, test_type):

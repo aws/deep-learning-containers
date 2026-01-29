@@ -298,6 +298,7 @@ def main():
             "security_sanity",
             "sagemaker",
             "ec2",
+            "telemetry",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
@@ -384,7 +385,7 @@ def main():
             pull_dlc_images(all_image_list)
         if specific_test_type == "bai":
             build_bai_docker_container()
-        if specific_test_type in ["eks", "ec2", "telemetry"] and not is_all_images_list_eia:
+        if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
                 for framework in ("mxnet", "pytorch", "tensorflow", "vllm", "sglang")
@@ -392,7 +393,7 @@ def main():
             ]
             if len(frameworks_in_images) != 1:
                 raise ValueError(
-                    f"All images in dlc_images must be of a single framework for EKS/EC2/telemetry tests.\n"
+                    f"All images in dlc_images must be of a single framework for EKS tests.\n"
                     f"Instead seeing {frameworks_in_images} frameworks."
                 )
             framework = frameworks_in_images[0]
@@ -402,17 +403,9 @@ def main():
                 return
 
             if framework == "sglang":
-                # Skip telemetry tests for sglang (similar to vllm)
-                if specific_test_type == "telemetry":
-                    LOGGER.info(f"Skipping telemetry tests for sglang images. Images: {dlc_images}")
-                    report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-                    sm_utils.generate_empty_report(report, test_type, "sglang")
-                    return
-                # sglang tests follow standard EC2/EKS test flow for other test types
+                # sglang tests follow standard EC2/EKS test flow
                 pass
 
-            # Only set up EKS cluster for EKS tests, not EC2 tests
-            if specific_test_type == "eks":
                 eks_cluster_name = f"dlc-{framework}-{build_context}"
                 eks_utils.eks_setup()
                 if eks_utils.is_eks_cluster_active(eks_cluster_name):
