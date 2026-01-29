@@ -88,12 +88,6 @@ def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
         return
     subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)
 
-    def version_key(img: dict) -> Version:
-        try:
-            return Version(img.get("version", "0"))
-        except Exception:
-            return Version("0")
-
 
 def get_framework_order() -> list[str]:
     """Derive framework order from table_order, collapsing framework groups."""
