@@ -218,6 +218,9 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     numpy \
  && pip uninstall -y dataclasses
 
+# Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf==6.33.4"
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py

@@ -149,6 +149,9 @@ RUN curl -LO https://github.com/Dao-AILab/flash-attention/releases/download/v${F
 # Install TE using instructions from https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/installation.html
 RUN pip install --no-cache-dir git+https://github.com/NVIDIA/TransformerEngine.git@release_v${TE_VERSION} --no-build-isolation
 
+# Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf==6.33.4"
+
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.8/license.txt
 
 COPY start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
