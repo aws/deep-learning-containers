@@ -186,8 +186,12 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
+    "setuptools>=75.0.0" \
     "urllib3>=2.5.0" \
+    "pyasn1>=0.6.2" \
+    "wheel>=0.46.2" \
+    pytz \
+    tzdata \
     awscli \
     opencv-python==4.11.0.86 \
     mpi4py \
@@ -314,4 +318,3 @@ RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
 ENTRYPOINT ["bash", "-m", "start_with_right_hostname.sh"]
 CMD ["/bin/bash"]
-

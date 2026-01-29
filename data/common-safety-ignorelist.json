@@ -2,5 +2,6 @@
     "51358": "Safety is not packaged with container, it is the result of security scanning process",
     "76769" : "A vulnerability, which was classified as problematic, was found in PyTorch 2.6.0. Which was built with container and cannot be patched.",
     "76771" : "A vulnerability, which was classified as problematic, was found in Pytorch version 2.5.1 and prior. Which was built with container and cannot be patched.",
-    "78828" : "A DoS vulnerability in MKLDNN pooling implementation affecting PyTorch versions < 2.7.1-rc1. Container is PyTorch 2.6.0 and cannot be upgraded to 2.7.1."
+    "78828" : "A DoS vulnerability in MKLDNN pooling implementation affecting PyTorch versions < 2.7.1-rc1. Container is PyTorch 2.6.0 and cannot be upgraded to 2.7.1.",
+    "85151" : "DoS vulnerability in protobuf <=6.33.4. Fix requires protobuf>6.33.4, but SageMaker SDK constraint protobuf<6.32 prevents upgrade."
 }
