@@ -310,6 +310,9 @@ RUN pip install --no-cache-dir -U \
     cloudpickle \
     "langcodes<=3.5.0"
 
+# Patch protobuf CVE-85151 - upgrade to latest available version (late stage to prevent downgrade)
+RUN pip install --no-cache-dir -U "protobuf==6.33.4"
+
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
