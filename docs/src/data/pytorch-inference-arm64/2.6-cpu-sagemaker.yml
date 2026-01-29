@@ -1,22 +1,21 @@
 framework: PyTorch
 version: "2.6"
-accelerator: gpu
+accelerator: cpu
 python: py312
-cuda: cu124
 os: ubuntu22.04
-platform: ec2
+platform: sagemaker
 ga: "2025-01-29"
 eop: "2026-01-29"
 public_registry: true
 
 tags:
-  - "2.6.0-gpu-py312-cu124-ubuntu22.04-ec2"
-  - "2.6-gpu-py312-cu124-ubuntu22.04-ec2-v1"
-  - "2.6.0-gpu-py312-ec2"
-  - "2.6-gpu-py312-ec2"
+  - "2.6.0-cpu-py312-ubuntu22.04-sagemaker"
+  - "2.6-cpu-py312-ubuntu22.04-sagemaker-v1"
+  - "2.6.0-cpu-py312"
+  - "2.6-cpu-py312"
 
 announcements:
-  - "Introduced containers for PyTorch 2.6.0 for Inference on EC2, ECS, EKS (ARM64)"
+  - "Introduced containers for PyTorch 2.6.0 for Inference on SageMaker (ARM64)"
   - "Added Python 3.12 support"
   - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
 
@@ -28,7 +27,4 @@ packages:
   torchtext: "0.18.0"
   torchdata: "0.10.1"
   torchserve: "0.12.0"
-  cuda: "12.4.1"
-  cudnn: "9.1.0.70"
-  nccl: "2.21.5"
   openmpi: "4.1.7"
