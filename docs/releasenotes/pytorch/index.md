@@ -2,57 +2,46 @@
 
 Release notes for AWS Deep Learning Containers with PyTorch.
 
-## PyTorch 2.9
+### PyTorch 2.9
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.9 Training on SageMaker](2.9-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.9 Training on EC2, ECS, EKS](2.9-training-ec2-ecs-eks.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| PyTorch Training | 2.9 | GPU | SageMaker | [Release Notes](pytorch-training-2.9-gpu-sagemaker.md) |
+| PyTorch Training | 2.9 | CPU | SageMaker | [Release Notes](pytorch-training-2.9-cpu-sagemaker.md) |
+| PyTorch Training | 2.9 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.9-gpu-ec2.md) |
+| PyTorch Training | 2.9 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.9-cpu-ec2.md) |
 
-## PyTorch 2.8
+### PyTorch 2.8
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.8 Training on SageMaker](2.8-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.8 Training on EC2, ECS, EKS](2.8-training-ec2-ecs-eks.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| PyTorch Training | 2.8 | GPU | SageMaker | [Release Notes](pytorch-training-2.8-gpu-sagemaker.md) |
+| PyTorch Training | 2.8 | CPU | SageMaker | [Release Notes](pytorch-training-2.8-cpu-sagemaker.md) |
+| PyTorch Training | 2.8 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.8-gpu-ec2.md) |
+| PyTorch Training | 2.8 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.8-cpu-ec2.md) |
 
-## PyTorch 2.7
+### PyTorch 2.7
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.7 Training on SageMaker](2.7-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.7 Training on EC2, ECS, EKS](2.7-training-ec2-ecs-eks.md) |
-| EC2 | ARM64 Training | [PyTorch 2.7 ARM64 Training on EC2](2.7-arm64-training-ec2.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| PyTorch Training | 2.7 | GPU | SageMaker | [Release Notes](pytorch-training-2.7-gpu-sagemaker.md) |
+| PyTorch Training | 2.7 | CPU | SageMaker | [Release Notes](pytorch-training-2.7-cpu-sagemaker.md) |
+| PyTorch Training | 2.7 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.7-gpu-ec2.md) |
+| PyTorch Training | 2.7 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.7-cpu-ec2.md) |
+| PyTorch Training ARM64 | 2.7 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-training-arm64-2.7-gpu-ec2.md) |
 
-## PyTorch 2.6
+### PyTorch 2.6
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.6 Training on SageMaker](2.6-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.6 Training on EC2, ECS, EKS](2.6-training-ec2-ecs-eks.md) |
-| SageMaker | Inference | [PyTorch 2.6 Inference on SageMaker](2.6-inference-sagemaker.md) |
-| EC2, ECS, EKS | Inference | [PyTorch 2.6 Inference on EC2, ECS, EKS](2.6-inference-ec2-ecs-eks.md) |
-| SageMaker | ARM64 Inference | [PyTorch 2.6 ARM64 Inference on SageMaker](2.6-arm64-inference-sagemaker.md) |
-| EC2, ECS, EKS | ARM64 Inference | [PyTorch 2.6 ARM64 Inference on EC2, ECS, EKS](2.6-arm64-inference-ec2-ecs-eks.md) |
-
-## PyTorch 2.5
-
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.5 Training on SageMaker](2.5-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.5 Training on EC2, ECS, EKS](2.5-training-ec2-ecs-eks.md) |
-| SageMaker | Inference | [PyTorch 2.5 Inference on SageMaker](2.5-inference-sagemaker.md) |
-| EC2, ECS, EKS | Inference | [PyTorch 2.5 Inference on EC2, ECS, EKS](2.5-inference-ec2-ecs-eks.md) |
-| SageMaker | ARM64 Inference | [PyTorch 2.5 ARM64 Inference on SageMaker](2.5-arm64-inference-sagemaker.md) |
-| EC2, ECS, EKS | ARM64 Inference | [PyTorch 2.5 ARM64 Inference on EC2, ECS, EKS](2.5-arm64-inference-ec2-ecs-eks.md) |
-
-## PyTorch 2.4
-
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | Training | [PyTorch 2.4 Training on SageMaker](2.4-training-sagemaker.md) |
-| EC2, ECS, EKS | Training | [PyTorch 2.4 Training on EC2, ECS, EKS](2.4-training-ec2-ecs-eks.md) |
-| SageMaker | Inference | [PyTorch 2.4 Inference on SageMaker](2.4-inference-sagemaker.md) |
-| EC2, ECS, EKS | Inference | [PyTorch 2.4 Inference on EC2, ECS, EKS](2.4-inference-ec2-ecs-eks.md) |
-| SageMaker | Graviton Inference | [PyTorch 2.4 Graviton Inference on SageMaker](2.4-graviton-sagemaker.md) |
-| EC2, ECS, EKS | Graviton Inference | [PyTorch 2.4 Graviton Inference on EC2, ECS, EKS](2.4-graviton-ec2-ecs-eks.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| PyTorch Training | 2.6 | GPU | SageMaker | [Release Notes](pytorch-training-2.6-gpu-sagemaker.md) |
+| PyTorch Training | 2.6 | CPU | SageMaker | [Release Notes](pytorch-training-2.6-cpu-sagemaker.md) |
+| PyTorch Training | 2.6 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.6-gpu-ec2.md) |
+| PyTorch Training | 2.6 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-training-2.6-cpu-ec2.md) |
+| PyTorch Inference | 2.6 | GPU | SageMaker | [Release Notes](pytorch-inference-2.6-gpu-sagemaker.md) |
+| PyTorch Inference | 2.6 | CPU | SageMaker | [Release Notes](pytorch-inference-2.6-cpu-sagemaker.md) |
+| PyTorch Inference | 2.6 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-inference-2.6-gpu-ec2.md) |
+| PyTorch Inference | 2.6 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-inference-2.6-cpu-ec2.md) |
+| PyTorch Inference ARM64 | 2.6 | CPU | SageMaker | [Release Notes](pytorch-inference-arm64-2.6-cpu-sagemaker.md) |
+| PyTorch Inference ARM64 | 2.6 | GPU | EC2, ECS, EKS | [Release Notes](pytorch-inference-arm64-2.6-gpu-ec2.md) |
+| PyTorch Inference ARM64 | 2.6 | CPU | EC2, ECS, EKS | [Release Notes](pytorch-inference-arm64-2.6-cpu-ec2.md) |

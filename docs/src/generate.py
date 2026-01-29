@@ -85,10 +85,12 @@ def _generate_framework_index(
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    # Group images by framework version
+    # Group images by major.minor version
     images_by_version: dict[str, list[ImageConfig]] = {}
     for img in images:
-        images_by_version.setdefault(img.version, []).append(img)
+        ver = parse_version(img.version)
+        major_minor = f"{ver.major}.{ver.minor}"
+        images_by_version.setdefault(major_minor, []).append(img)
 
     # Sort framework versions descending
     sorted_versions = sorted(images_by_version.keys(), key=parse_version, reverse=True)

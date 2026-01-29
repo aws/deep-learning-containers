@@ -1,6 +1,8 @@
 columns:
   - field: repository
     header: "Framework"
+  - field: version
+    header: "Version"
   - field: accelerator
     header: "Accelerator"
   - field: platform

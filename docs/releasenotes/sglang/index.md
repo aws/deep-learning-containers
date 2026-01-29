@@ -1,9 +1,12 @@
 # SGLang Release Notes
 
-Release notes for AWS Deep Learning Containers with SGLang for large language model serving.
+Release notes for AWS Deep Learning Containers with SGLang.
 
-## SGLang 0.5
+### SGLang 0.5
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | General | [SGLang on SageMaker](0.5-sagemaker.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| SGLang | 0.5.8 | GPU | SageMaker | [Release Notes](sglang-0.5.8-gpu-sagemaker.md) |
+| SGLang | 0.5.7 | GPU | SageMaker | [Release Notes](sglang-0.5.7-gpu-sagemaker.md) |
+| SGLang | 0.5.6 | GPU | SageMaker | [Release Notes](sglang-0.5.6-gpu-sagemaker.md) |
+| SGLang | 0.5.5 | GPU | SageMaker | [Release Notes](sglang-0.5.5-gpu-sagemaker.md) |

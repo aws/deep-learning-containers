@@ -120,6 +120,9 @@ framework_groups:
     - tensorflow-training
     - tensorflow-inference
     - tensorflow-inference-arm64
+  vllm:
+    - vllm
+    - vllm-arm64
 
 # =============================================================================
 # Table Order

@@ -1,16 +1,23 @@
 # vLLM Release Notes
 
-Release notes for AWS Deep Learning Containers with vLLM for large language model serving.
+Release notes for AWS Deep Learning Containers with vLLM.
 
-## vLLM 0.13
+### vLLM 0.14
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| SageMaker | General | [vLLM on SageMaker](0.13-sagemaker.md) |
-| EC2, ECS, EKS | General | [vLLM on EC2, ECS, EKS](0.13-ec2-ecs-eks.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| vLLM | 0.14.0 | GPU | SageMaker | [Release Notes](vllm-0.14.0-gpu-sagemaker.md) |
+| vLLM | 0.14.0 | GPU | EC2, ECS, EKS | [Release Notes](vllm-0.14.0-gpu-ec2.md) |
 
-## vLLM 0.10
+### vLLM 0.13
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| EC2, ECS, EKS | ARM64 | [vLLM ARM64 on EC2, ECS, EKS](0.10-arm64-ec2.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| vLLM | 0.13.0 | GPU | SageMaker | [Release Notes](vllm-0.13.0-gpu-sagemaker.md) |
+| vLLM | 0.13.0 | GPU | EC2, ECS, EKS | [Release Notes](vllm-0.13.0-gpu-ec2.md) |
+
+### vLLM 0.10
+
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| vLLM ARM64 | 0.10.2 | GPU | EC2, ECS, EKS | [Release Notes](vllm-arm64-0.10.2-gpu-ec2.md) |

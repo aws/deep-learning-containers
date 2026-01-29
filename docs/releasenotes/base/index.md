@@ -1,21 +1,22 @@
-# Base Container Release Notes
+# Base Release Notes
 
-Release notes for AWS Deep Learning Base Containers with CUDA support.
+Release notes for AWS Deep Learning Containers with Base.
 
-## CUDA 13.0
+### Base 13.0
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| EC2, ECS, EKS | General | [Base CUDA 13.0 on EC2, ECS, EKS](cuda-13.0-ec2.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| Base | 13.0 | GPU | EC2, ECS, EKS | [Release Notes](base-13.0-gpu-ec2.md) |
 
-## CUDA 12.9
+### Base 12.9
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| EC2, ECS, EKS | General | [Base CUDA 12.9 on EC2, ECS, EKS](cuda-12.9-ec2.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| Base | 12.9 | GPU | EC2, ECS, EKS | [Release Notes](base-12.9-gpu-ec2.md) |
 
-## CUDA 12.8
+### Base 12.8
 
-| Platform | Type | Link |
-| --- | --- | --- |
-| EC2, ECS, EKS | General | [Base CUDA 12.8 on EC2, ECS, EKS](cuda-12.8-ec2.md) |
+| Framework | Version | Accelerator | Platform | Link |
+| --- | --- | --- | --- | --- |
+| Base | 12.8.1 | GPU | EC2, ECS, EKS | [Release Notes](base-12.8.1-gpu-ec2.md) |
+| Base | 12.8.0 | GPU | EC2, ECS, EKS | [Release Notes](base-12.8.0-gpu-ec2.md) |
