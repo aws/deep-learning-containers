@@ -38,6 +38,7 @@ accelerators:
 
 # ECR configuration
 example_ecr_account: "763104351884"
+example_region: "us-west-2"
 
 # =============================================================================
 # Display Names
