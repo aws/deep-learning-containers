@@ -96,13 +96,14 @@ class ImageConfig:
     def get_image_uris(self) -> list[str]:
         """Get list of image URIs (private ECR + public ECR if available)."""
         account = self.get("example_ecr_account", GLOBAL_CONFIG["example_ecr_account"])
+        region = self.get("example_region", GLOBAL_CONFIG["example_region"])
         tags = self.get("tags", [])
         if not isinstance(tags, list):
             raise ValueError(f"'tags' field must be a list in {self._repository}")
 
         uris = []
         for tag in tags:
-            uris.append(build_ecr_uri(account, self._repository, tag))
+            uris.append(build_ecr_uri(account, self._repository, tag, region))
 
         if self.get("public_registry"):
             for tag in tags:

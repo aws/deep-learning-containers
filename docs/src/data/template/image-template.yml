@@ -67,10 +67,10 @@ eop: "2026-10-15"
 # -----------------------------------------------------------------------------
 # Release Notes Fields
 # -----------------------------------------------------------------------------
-# Required for release notes generation: announcement and packages
+# Required for release notes generation: announcements and packages
 
-# Announcement bullet points for the release note
-announcement:
+# Announcements bullet points for the release note
+announcements:
   - "Introduced containers for PyTorch 2.9 for Training"
   - "Added Python 3.12 support"
 
