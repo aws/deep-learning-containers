@@ -19,43 +19,6 @@ env:
 
 
 jobs:
-  load-config:
-    runs-on: ubuntu-latest
-    outputs:
-      ec2-config: ${{ steps.load-configs.outputs.ec2-config }}
-      sagemaker-config: ${{ steps.load-configs.outputs.sagemaker-config }}
-      rayserve-config: ${{ steps.load-configs.outputs.rayserve-config }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Load configuration files
-        id: load-configs
-        run: |
-          # Install yq for YAML parsing
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
-          # Load and output configs as JSON for easy parsing in other jobs
-          # Using multiline output format to handle special characters
-          {
-            echo "ec2-config<<EOF"
-            yq eval -o=json '.' ${{ env.EC2_CONFIG }}
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-          {
-            echo "sagemaker-config<<EOF"
-            yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }}
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
-          {
-            echo "rayserve-config<<EOF"
-            yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
-            echo "EOF"
-          } >> $GITHUB_OUTPUT
-
   gatekeeper:
     runs-on: ubuntu-latest
     concurrency:
@@ -72,7 +35,7 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   check-changes:
-    needs: [gatekeeper, load-config]
+    needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
     concurrency:
@@ -108,6 +71,45 @@ jobs:
               - ".github/workflows/vllm-release*"
             test-change:
               - "test/vllm/**"
+
+  load-config:
+    needs: [check-changes]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      ec2-config: ${{ steps.load-configs.outputs.ec2-config }}
+      sagemaker-config: ${{ steps.load-configs.outputs.sagemaker-config }}
+      rayserve-config: ${{ steps.load-configs.outputs.rayserve-config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration files
+        id: load-configs
+        run: |
+          # Install yq for YAML parsing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          # Load and output configs as JSON for easy parsing in other jobs
+          # Using multiline output format to handle special characters
+          {
+            echo "ec2-config<<EOF"
+            yq eval -o=json '.' ${{ env.EC2_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "sagemaker-config<<EOF"
+            yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "rayserve-config<<EOF"
+            yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   # ==============================================
   # =============== vLLM EC2 jobs ================
