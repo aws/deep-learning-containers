@@ -1,5 +1,5 @@
 framework: Base
-version: "12.8"
+version: "12.8.0"
 accelerator: gpu
 python: py312
 cuda: cu128
@@ -16,10 +16,12 @@ tags:
   - "12.8-gpu-py312-ubuntu22.04-ec2"
 
 announcements:
-  - "Introduced Base containers with CUDA 12.8 for EC2, ECS, EKS"
+  - "Introduced Base containers with CUDA 12.8.0 for EC2, ECS, EKS"
   - "Added Python 3.12 support"
 
 packages:
   python: "3.12.10"
   cuda: "12.8.0"
+  cudnn: "9.7.1.26"
+  nccl: "2.26.2-1"
   efa: "1.40.0"

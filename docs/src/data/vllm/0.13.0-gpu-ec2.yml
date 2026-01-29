@@ -1,5 +1,5 @@
 framework: vLLM
-version: "0.13"
+version: "0.13.0"
 accelerator: gpu
 python: py312
 cuda: cu129
@@ -14,7 +14,7 @@ tags:
   - "0.13-gpu-py312-ec2"
 
 announcements:
-  - "Introduced vLLM containers for EC2, ECS, EKS"
+  - "Introduced vLLM 0.13.0 containers for EC2, ECS, EKS"
   - "Added Python 3.12 support"
 
 packages:

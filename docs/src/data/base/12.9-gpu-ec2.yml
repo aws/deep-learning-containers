@@ -22,4 +22,6 @@ announcements:
 packages:
   python: "3.12.10"
   cuda: "12.9.1"
+  cudnn: "9.10.2.21"
+  nccl: "2.27.3-1"
   efa: "1.43.1"

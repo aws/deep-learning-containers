@@ -1,0 +1,27 @@
+framework: SGLang
+version: "0.5.8"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "0.5.8-gpu-py312-cu129-ubuntu22.04-sagemaker"
+  - "0.5-gpu-py312-cu129-ubuntu22.04-sagemaker-v1"
+  - "0.5.8-gpu-py312"
+  - "0.5-gpu-py312"
+
+announcements:
+  - "Introduced SGLang 0.5.8 containers for SageMaker"
+  - "Added Python 3.12 support"
+
+packages:
+  sglang: "0.5.8"
+  pytorch: "2.8.0"
+  torchvision: "0.23.0"
+  torchaudio: "2.8.0"
+  transformers: "4.57.1"
+  cuda: "12.9"
+  efa: "1.46.0"

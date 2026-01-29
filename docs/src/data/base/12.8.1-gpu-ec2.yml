@@ -1,0 +1,28 @@
+framework: Base
+version: "12.8.1"
+accelerator: gpu
+python: py312
+cuda: cu128
+os: ubuntu24.04
+platform: ec2
+ga: "2025-06-05"
+eop: "2026-06-05"
+public_registry: true
+
+tags:
+  - "12.8.1-gpu-py312-cu128-ubuntu24.04-ec2"
+  - "12.8-gpu-py312-cu128-ubuntu24.04-ec2-v1"
+  - "12.8.1-gpu-py312-ubuntu24.04-ec2"
+  - "12.8-gpu-py312-ubuntu24.04-ec2"
+
+announcements:
+  - "Introduced Base containers with CUDA 12.8.1 for EC2, ECS, EKS"
+  - "Added Python 3.12 support"
+  - "Ubuntu 24.04 support"
+
+packages:
+  python: "3.12.10"
+  cuda: "12.8.1"
+  cudnn: "9.8.0.87"
+  nccl: "2.26.2-1"
+  efa: "1.42.0"

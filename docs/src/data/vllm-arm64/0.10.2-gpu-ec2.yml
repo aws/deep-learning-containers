@@ -1,5 +1,5 @@
 framework: vLLM
-version: "0.10"
+version: "0.10.2"
 accelerator: gpu
 python: py312
 cuda: cu129
@@ -14,7 +14,7 @@ tags:
   - "0.10-gpu-py312-ec2"
 
 announcements:
-  - "Introduced vLLM ARM64 containers for EC2, ECS, EKS"
+  - "Introduced vLLM ARM64 0.10.2 containers for EC2, ECS, EKS"
   - "Added Python 3.12 support"
 
 packages:
