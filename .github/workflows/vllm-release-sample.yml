@@ -1,41 +1,61 @@
-name: PR - vLLM
+name: vLLM_RELEASE_SAMPLE
 
 on:
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**vllm**"
-      - "!docs/**"
+  schedule:
+    - cron: '00 18 * * 1' #Each Monday PST 10:00 am
 
 permissions:
   contents: read
   pull-requests: read
 
 env:
-  # Common
-  CONTAINER_TYPE: "general"
-  FRAMEWORK: "vllm"
-  PYTHON_VERSION: "py312"
-  CUDA_VERSION: "cu129"
-  OS_VERSION: "ubuntu22.04"
-
-  # vLLM EC2
-  VLLM_VERSION: 0.14.0
-  PROD_EC2_IMAGE: vllm:0.14-gpu-py312-ec2
-
-  # vLLM SageMaker
-  PROD_SAGEMAKER_IMAGE: vllm:0.14-gpu-py312
-
-  # vLLM RayServe
-  VLLM_RAYSERVE_VERSION: 0.10.2
-  PROD_RAYSERVE_IMAGE: vllm:0.10-gpu-py312-rayserve
-
   # CI environment configuration
   FORCE_COLOR: "1"
 
+  # Config file paths
+  EC2_CONFIG: ".github/config/vllm-0.14.0-ec2.yml"
+  SAGEMAKER_CONFIG: ".github/config/vllm-0.14.0-sagemaker.yml"
+  RAYSERVE_CONFIG: ".github/config/vllm-0.10.2-rayserve.yml"
+
 
 jobs:
+  load-config:
+    runs-on: ubuntu-latest
+    outputs:
+      ec2-config: ${{ steps.load-configs.outputs.ec2-config }}
+      sagemaker-config: ${{ steps.load-configs.outputs.sagemaker-config }}
+      rayserve-config: ${{ steps.load-configs.outputs.rayserve-config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration files
+        id: load-configs
+        run: |
+          # Install yq for YAML parsing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          # Load and output configs as JSON for easy parsing in other jobs
+          # Using multiline output format to handle special characters
+          {
+            echo "ec2-config<<EOF"
+            yq eval -o=json '.' ${{ env.EC2_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "sagemaker-config<<EOF"
+            yq eval -o=json '.' ${{ env.SAGEMAKER_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
+          {
+            echo "rayserve-config<<EOF"
+            yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+
   gatekeeper:
     runs-on: ubuntu-latest
     concurrency:
@@ -52,7 +72,7 @@ jobs:
         uses: ./.github/actions/pr-permission-gate
 
   check-changes:
-    needs: [gatekeeper]
+    needs: [gatekeeper, load-config]
     if: success()
     runs-on: ubuntu-latest
     concurrency:
@@ -85,7 +105,7 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-vllm*"
+              - ".github/workflows/vllm-release*"
             test-change:
               - "test/vllm/**"
 
@@ -93,7 +113,7 @@ jobs:
   # =============== vLLM EC2 jobs ================
   # ==============================================
   build-vllm-ec2-image:
-    needs: [check-changes]
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -107,22 +127,35 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Parse EC2 config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.ec2-config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
-          framework: ${{ env.FRAMEWORK }}
+          framework: ${{ steps.config.outputs.framework }}
           target: vllm-ec2
-          base-image: vllm/vllm-openai:v${{ env.VLLM_VERSION }}
-          framework-version: ${{ env.VLLM_VERSION }}
-          container-type: ${{ env.CONTAINER_TYPE }}
+          base-image: vllm/vllm-openai:v${{ steps.config.outputs.framework-version }}
+          framework-version: ${{ steps.config.outputs.framework-version }}
+          container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-ec2-test-environment:
-    needs: [check-changes, build-vllm-ec2-image]
+    needs: [check-changes, build-vllm-ec2-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -133,9 +166,17 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Parse EC2 config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.ec2-config }}' > config.json
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
       - name: Set test environment
         id: set-env
@@ -145,7 +186,7 @@ jobs:
             IMAGE_URI=${{ needs.build-vllm-ec2-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ steps.config.outputs.prod-image }}
           fi
 
           echo "Image URI to test: ${IMAGE_URI}"
@@ -177,7 +218,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-ec2-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -223,7 +264,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-ec2-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -269,7 +310,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-ec2-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -290,11 +331,54 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_ec2_examples_test.sh
 
+  generate-ec2-release-spec:
+    needs: [load-config, build-vllm-ec2-image, vllm-ec2-regression-test, vllm-ec2-cuda-test, vllm-ec2-example-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-ec2-image.result == 'success' &&
+      needs.vllm-ec2-regression-test.result == 'success' &&
+      needs.vllm-ec2-cuda-test.result == 'success' &&
+      needs.vllm-ec2-example-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.ec2-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.ec2-config }}
+
+  release-ec2-image:
+    needs: [load-config, build-vllm-ec2-image, generate-ec2-release-spec]
+    if: needs.generate-ec2-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-vllm-ec2-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-ec2-release-spec.outputs.release-spec }}
+      source-stage: ${{ fromJson(needs.load-config.outputs.ec2-config).release.source_stage }}
+      target-stage: ${{ fromJson(needs.load-config.outputs.ec2-config).release.target_stage }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+
   # ===================================================
   # =============== vLLM RayServe jobs ================
   # ===================================================
   build-vllm-rayserve-image:
-    needs: [check-changes]
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -308,22 +392,34 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Parse RayServe config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
-          framework: ${{ env.FRAMEWORK }}
+          framework: ${{ steps.config.outputs.framework }}
           target: vllm-rayserve-ec2
-          base-image: vllm/vllm-openai:v${{ env.VLLM_RAYSERVE_VERSION }}
-          framework-version: ${{ env.VLLM_RAYSERVE_VERSION }}
-          container-type: ${{ env.CONTAINER_TYPE }}
+          base-image: vllm/vllm-openai:v${{ steps.config.outputs.framework-version }}
+          framework-version: ${{ steps.config.outputs.framework-version }}
+          container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-rayserve-test-environment:
-    needs: [check-changes, build-vllm-rayserve-image]
+    needs: [check-changes, build-vllm-rayserve-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -334,9 +430,17 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Parse RayServe config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
       - name: Set test environment
         id: set-env
@@ -346,7 +450,7 @@ jobs:
             IMAGE_URI=${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_RAYSERVE_IMAGE }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ steps.config.outputs.prod-image }}
           fi
 
           echo "Image URI to test: ${IMAGE_URI}"
@@ -378,7 +482,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_RAYSERVE_VERSION }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -424,7 +528,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_RAYSERVE_VERSION }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -470,7 +574,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_RAYSERVE_VERSION }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -491,11 +595,54 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_rayserve_examples_test.sh
 
+  generate-rayserve-release-spec:
+    needs: [load-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-rayserve-image.result == 'success' &&
+      needs.vllm-rayserve-regression-test.result == 'success' &&
+      needs.vllm-rayserve-cuda-test.result == 'success' &&
+      needs.vllm-rayserve-example-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.rayserve-config }}
+
+  release-rayserve-image:
+    needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
+    if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
+      source-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.source_stage }}
+      target-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.target_stage }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+
   # ====================================================
   # =============== vLLM SageMaker jobs ================
   # ====================================================
   build-vllm-sagemaker-image:
-    needs: [check-changes]
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -509,22 +656,35 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Parse SageMaker config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.sagemaker-config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
-          framework: ${{ env.FRAMEWORK }}
+          framework: ${{ steps.config.outputs.framework }}
           target: vllm-sagemaker
-          base-image: vllm/vllm-openai:v${{ env.VLLM_VERSION }}
-          framework-version: ${{ env.VLLM_VERSION }}
-          container-type: ${{ env.CONTAINER_TYPE }}
+          base-image: vllm/vllm-openai:v${{ steps.config.outputs.framework-version }}
+          framework-version: ${{ steps.config.outputs.framework-version }}
+          container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ env.FRAMEWORK }}-${{ env.VLLM_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-${{ steps.config.outputs.customer-type }}-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
 
   set-sagemaker-test-environment:
-    needs: [check-changes, build-vllm-sagemaker-image]
+    needs: [check-changes, build-vllm-sagemaker-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -535,9 +695,17 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Parse SageMaker config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.sagemaker-config }}' > config.json
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
       - name: Set test environment
         id: set-env
@@ -547,7 +715,7 @@ jobs:
             IMAGE_URI=${{ needs.build-vllm-sagemaker-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ steps.config.outputs.prod-image }}
           fi
 
           echo "Image URI to test: ${IMAGE_URI}"
@@ -579,7 +747,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-sagemaker-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -625,7 +793,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-sagemaker-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -671,7 +839,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ needs.set-sagemaker-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -710,7 +878,7 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          uv venv --python 3.12
+          uv venv
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
           uv pip install -r test/vllm/sagemaker/requirements.txt
@@ -720,3 +888,48 @@ jobs:
           source .venv/bin/activate
           cd test/
           python3 -m pytest -vs -rA --image-uri ${{ needs.set-sagemaker-test-environment.outputs.image-uri }} vllm/sagemaker
+
+  generate-sagemaker-release-spec:
+    needs: [load-config, build-vllm-sagemaker-image, vllm-sagemaker-regression-test, vllm-sagemaker-cuda-test, vllm-sagemaker-example-test, vllm-sagemaker-endpoint-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.build-vllm-sagemaker-image.result == 'success' &&
+      needs.vllm-sagemaker-regression-test.result == 'success' &&
+      needs.vllm-sagemaker-cuda-test.result == 'success' &&
+      needs.vllm-sagemaker-example-test.result == 'success' &&
+      needs.vllm-sagemaker-endpoint-test.result == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+      should-release: ${{ steps.check-release.outputs.should-release }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Check if release is enabled
+        id: check-release
+        run: |
+          echo '${{ needs.load-config.outputs.sagemaker-config }}' > config.json
+          RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
+          echo "Release enabled: ${RELEASE_ENABLED}"
+          echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
+
+      - name: Generate release spec
+        id: generate
+        if: steps.check-release.outputs.should-release == 'true'
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config.outputs.sagemaker-config }}
+
+  release-sagemaker-image:
+    needs: [load-config, build-vllm-sagemaker-image, generate-sagemaker-release-spec]
+    if: needs.generate-sagemaker-release-spec.outputs.should-release == 'true'
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-vllm-sagemaker-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-sagemaker-release-spec.outputs.release-spec }}
+      source-stage: ${{ fromJson(needs.load-config.outputs.sagemaker-config).release.source_stage }}
+      target-stage: ${{ fromJson(needs.load-config.outputs.sagemaker-config).release.target_stage }}
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+
