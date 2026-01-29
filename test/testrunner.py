@@ -401,10 +401,8 @@ def main():
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
 
-            if framework == "sglang":
-                # sglang tests follow standard EC2/EKS test flow
-                pass
-
+            # Only set up EKS cluster for EKS tests, not EC2 tests
+            if specific_test_type == "eks":
                 eks_cluster_name = f"dlc-{framework}-{build_context}"
                 eks_utils.eks_setup()
                 if eks_utils.is_eks_cluster_active(eks_cluster_name):
