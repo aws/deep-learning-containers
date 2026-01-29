@@ -8,6 +8,22 @@ ga: "2025-04-23"
 eop: "2026-04-23"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.7.1-cpu-py312-ubuntu22.04-sagemaker"
+  - "2.7-cpu-py312-ubuntu22.04-sagemaker-v1"
+  - "2.7.1-cpu-py312"
+  - "2.7-cpu-py312"
+
+announcements:
+  - "Introduced containers for PyTorch 2.7 for Training on SageMaker"
+  - "Added Python 3.12 support"
+  - "Added PyTorch domain libraries: torchtnt 0.2.4, torchdata 0.11.0, torchaudio 2.7.1, torchvision 0.22.1"
+  - "Added Ubuntu 22.04 support"
+
+packages:
+  python: "3.12.10"
+  pytorch: "2.7.1"
+  torchvision: "0.22.1"
+  torchaudio: "2.7.1"
+  torchdata: "0.11.0"
+  torchtnt: "0.2.4"

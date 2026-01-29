@@ -90,14 +90,18 @@ display_names:
   cudnn: "cuDNN"
   nccl: "NCCL"
   efa: "EFA"
+  gdrcopy: "GDRCopy"
   torchvision: "TorchVision"
   torchaudio: "TorchAudio"
   torchdata: "TorchData"
   torchtnt: "TorchTNT"
+  torchtext: "TorchText"
+  torchserve: "TorchServe"
   transformers: "Transformers"
   transformer_engine: "Transformer Engine"
   flash_attn: "Flash Attention"
   neuronx_sdk: "NeuronX SDK"
+  openmpi: "OpenMPI"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation

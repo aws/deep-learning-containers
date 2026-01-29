@@ -9,6 +9,27 @@ ga: "2025-01-29"
 eop: "2026-01-29"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-gpu-py312-cu126-ubuntu22.04-ec2"
+  - "2.6-gpu-py312-cu126-ubuntu22.04-ec2-v1"
+  - "2.6.0-gpu-py312-ec2"
+  - "2.6-gpu-py312-ec2"
+
+announcements:
+  - "Introduced containers for PyTorch 2.6 for Training on EC2, ECS, EKS"
+  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+  - "Added Python 3.12, CUDA 12.6, Ubuntu 22.04 support"
+
+packages:
+  python: "3.12.8"
+  pytorch: "2.6.0"
+  torchvision: "0.21.0"
+  torchaudio: "2.6.0"
+  torchdata: "0.10.1"
+  cuda: "12.6.3"
+  cudnn: "9.7.0.66"
+  nccl: "2.23.4"
+  efa: "1.38.0"
+  transformer_engine: "2.0"
+  flash_attn: "2.7.3"
+  gdrcopy: "2.5"
