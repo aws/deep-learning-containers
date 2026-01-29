@@ -14,6 +14,7 @@
 
 import logging
 import sys
+from datetime import date
 from pathlib import Path
 from unittest.mock import patch
 
@@ -27,6 +28,11 @@ sys.path.insert(0, str(DOCS_SRC_DIR))
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
+# Fixed date for testing - ensures tests are time-independent.
+# Mock images use EOP dates like 2500-01-01 (supported) and 2025-01-01 (unsupported)
+# for readability, but we also mock today's date for robustness.
+MOCK_TODAY = date(2026, 1, 15)
+
 
 @pytest.fixture(scope="module")
 def mock_data_dir():
@@ -35,8 +41,17 @@ def mock_data_dir():
     return MOCK_DATA_DIR
 
 
-@pytest.fixture(scope="function")
-def mock_paths():
+@pytest.fixture(scope="module")
+def mock_today():
+    """Mock date.today() to a fixed date for time-independent tests."""
+    with patch("image_config.date") as mock_date:
+        mock_date.today.return_value = MOCK_TODAY
+        mock_date.fromisoformat = date.fromisoformat
+        yield MOCK_TODAY
+
+
+@pytest.fixture(scope="module")
+def mock_paths(mock_today):
     """Patch DATA_DIR, LEGACY_DIR, TABLES_DIR to use mock data."""
     import constants
     import image_config
@@ -73,7 +88,7 @@ def mock_paths():
     utils.TABLES_DIR = original["utils.TABLES_DIR"]
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture(scope="module")
 def mock_display_names(mock_paths):
     """Patch display_names to include mock-repo and mock-framework."""
     from constants import GLOBAL_CONFIG

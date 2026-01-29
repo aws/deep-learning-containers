@@ -30,13 +30,13 @@ def load_yaml(path: str | Path) -> dict:
         return yaml.safe_load(f)
 
 
-def load_table_config(repository: str) -> dict:
+def load_table_config(table_path: str) -> dict:
     """Load table column configuration for a repository.
 
     Raises:
         FileNotFoundError: If table config file does not exist.
     """
-    path = TABLES_DIR / f"{repository}.yml"
+    path = TABLES_DIR / f"{table_path}.yml"
     if not path.exists():
         raise FileNotFoundError(f"Table config not found: {path}")
     return load_yaml(path)
@@ -62,6 +62,16 @@ def render_table(headers: list[str], rows: list[list[str]]) -> str:
     separator = "| " + " | ".join(["---"] * len(headers)) + " |"
     row_lines = ["| " + " | ".join(str(cell) for cell in row) + " |" for row in rows]
     return "\n".join([header_line, separator] + row_lines)
+
+
+def build_ecr_uri(account: str, repository: str, tag: str, region: str = "<region>") -> str:
+    """Build ECR URI string."""
+    return f"{account}.dkr.ecr.{region}.amazonaws.com/{repository}:{tag}"
+
+
+def build_public_ecr_uri(repository: str, tag: str) -> str:
+    """Build public ECR URI string."""
+    return f"public.ecr.aws/deep-learning-containers/{repository}:{tag}"
 
 
 def parse_version(version_str: str | None) -> Version:

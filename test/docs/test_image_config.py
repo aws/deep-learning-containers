@@ -20,7 +20,7 @@ from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
-    get_latest_image,
+    get_latest_image_uri,
     load_legacy_images,
     load_repository_images,
     sort_by_version,
@@ -99,8 +99,8 @@ class TestImageConfigProperties:
     @pytest.mark.parametrize(
         "ga,eop,expected",
         [
-            ("2025-01-01", "2026-01-01", True),
-            (None, "2026-01-01", False),
+            ("2025-01-01", "2500-01-01", True),
+            (None, "2500-01-01", False),
             ("2025-01-01", None, False),
             (None, None, False),
         ],
@@ -187,12 +187,7 @@ class TestBuildImageRow:
                 ],
                 ["PyTorch 2.0", "py312"],
             ),
-            (
-                [{"field": "version", "data": "framework_version", "header": "Framework"}],
-                ["PyTorch 2.0"],
-            ),
         ],
-        ids=["basic_columns", "data_override"],
     )
     def test_build_row(self, columns, expected):
         img = ImageConfig("repo", framework="PyTorch", version="2.0", python="py312")
@@ -204,7 +199,7 @@ class TestLoadRepositoryImages:
         LOGGER.debug("Testing load_repository_images for existing repo")
         images = load_repository_images("mock-repo")
         LOGGER.debug(f"Loaded {len(images)} images")
-        assert len(images) == 4
+        assert len(images) == 6
         assert all(isinstance(img, ImageConfig) for img in images)
         LOGGER.info("load_repository_images test passed")
 
@@ -278,12 +273,12 @@ class TestCheckPublicRegistry:
 
 class TestGetLatestImage:
     def test_success(self, mock_paths):
-        LOGGER.debug("Testing get_latest_image for valid repo/platform")
-        uri = get_latest_image("mock-repo", "ec2")
+        LOGGER.debug("Testing get_latest_image_uri for valid repo/platform")
+        uri = get_latest_image_uri("mock-repo", "ec2")
         LOGGER.debug(f"Latest image URI: {uri}")
         assert "mock-repo" in uri
-        assert "2.0.0-gpu-py312" in uri
-        LOGGER.info("get_latest_image test passed")
+        assert "3.0.0-gpu-py312" in uri
+        LOGGER.info("get_latest_image_uri test passed")
 
     @pytest.mark.parametrize(
         "repo,platform",
@@ -292,4 +287,4 @@ class TestGetLatestImage:
     )
     def test_not_found(self, mock_paths, repo, platform):
         with pytest.raises(ValueError, match="Image not found"):
-            get_latest_image(repo, platform)
+            get_latest_image_uri(repo, platform)

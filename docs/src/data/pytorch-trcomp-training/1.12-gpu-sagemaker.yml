@@ -5,4 +5,7 @@ python: py38
 cuda: cu113
 os: ubuntu20.04
 platform: sagemaker
-tag: "1.12.0-gpu-py38-cu113-ubuntu20.04-sagemaker"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "1.12.0-gpu-py38-cu113-ubuntu20.04-sagemaker"

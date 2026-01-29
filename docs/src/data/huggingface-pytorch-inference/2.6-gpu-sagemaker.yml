@@ -6,4 +6,7 @@ cuda: cu124
 transformers: "4.49.0"
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.6.0-transformers4.49.0-gpu-py312-cu124-ubuntu22.04"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.6.0-transformers4.49.0-gpu-py312-cu124-ubuntu22.04"

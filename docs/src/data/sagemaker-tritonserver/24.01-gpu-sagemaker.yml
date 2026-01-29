@@ -3,5 +3,8 @@ version: "24.01"
 accelerator: gpu
 python: py3
 platform: sagemaker
-tag: "24.01-py3"
 example_ecr_account: "007439368137"
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "24.01-py3"

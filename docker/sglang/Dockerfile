@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/lmsysorg/sglang/tags
-ARG BASE_IMAGE=lmsysorg/sglang:v0.5.7-cu129-amd64
+ARG BASE_IMAGE=lmsysorg/sglang:v0.5.8-cu129-amd64
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base

@@ -5,7 +5,9 @@ python: py312
 cuda: cu121
 os: ubuntu22.04
 platform: sagemaker
-tag: "2.0.0-gpu-py312-cu121-ubuntu22.04-sagemaker"
 ga: "2025-01-01"
-eop: "2027-01-01"
+eop: "2500-01-01"
 public_registry: true
+
+tags:
+  - "2.0.0-gpu-py312-cu121-ubuntu22.04-sagemaker"
