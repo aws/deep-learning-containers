@@ -145,7 +145,7 @@ RUN apt-get update \
 
 RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    setuptools
+    "setuptools>=75.0.0"
 
 # Upgrade libsasl2-2 for fixing cyrus-sasl2 related CVE
 RUN apt-get install -y --only-upgrade libsasl2-2
@@ -182,7 +182,7 @@ RUN ${PIP} install -U --no-cache-dir \
     gevent \
     requests \
     grpcio \
-    "protobuf!=4.21.0,!=4.21.1,!=4.21.2,!=4.21.3,!=4.21.4,!=4.21.5,<5.0.0dev,>=3.20.3" \
+    "protobuf==6.33.4" \
     packaging \
 # using --no-dependencies to avoid installing tensorflow binary
  && ${PIP} install --no-dependencies --no-cache-dir \
