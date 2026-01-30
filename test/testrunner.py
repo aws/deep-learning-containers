@@ -303,14 +303,14 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
-    
+
     # For PR context: Check if we need to skip telemetry for sglang ec2 tests
     skip_sglang_telemetry_in_ec2 = (
         build_context == "PR"
         and all("sglang" in image_uri for image_uri in all_image_list)
         and test_type == "ec2"
     )
-    
+
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -431,7 +431,7 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
-        
+
         # Handle pytest -k parameter for test filtering
         if skip_sglang_telemetry_in_ec2 and specified_tests:
             # Both telemetry skip and specified tests
