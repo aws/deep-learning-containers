@@ -187,36 +187,66 @@ def generate_support_policy(dry_run: bool = False) -> str:
         if not images:
             continue
 
-        # Deduplicate by version, validating date consistency
-        version_map: dict[str, ImageConfig] = {}
+        # Group by major.minor, then decide display format based on date consistency
+        major_minor_groups: dict[str, list[ImageConfig]] = {}
         for img in images:
-            existing = version_map.get(img.version)
-            if existing and (existing.ga != img.ga or existing.eop != img.eop):
-                raise ValueError(
-                    f"Inconsistent dates for {framework_group} {img.version}: \n"
-                    f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
-                    f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
-                    f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
+            v = parse_version(img.version)
+            major_minor = f"{v.major}.{v.minor}"
+            major_minor_groups.setdefault(major_minor, []).append(img)
+
+        version_map: dict[str, ImageConfig] = {}
+        for major_minor, group in major_minor_groups.items():
+            # Check if all images in group have same ga/eop
+            first = group[0]
+            all_same_dates = all(img.ga == first.ga and img.eop == first.eop for img in group)
+
+            if all_same_dates:
+                # Consolidate to major.minor display
+                version_map[major_minor] = first
+            else:
+                # Keep full versions, warn about inconsistency
+                versions_info = ", ".join(f"{img.version} ({img.ga}, {img.eop})" for img in group)
+                LOGGER.warning(
+                    f"Different GA/EOP dates for {framework_group} patch versions: {versions_info}"
                 )
-            version_map[img.version] = img
+                # Keep each patch version as separate row with full version display
+                for img in group:
+                    existing = version_map.get(img.version)
+                    # Error if same full version (e.g., X.Y.Z) has different dates across images
+                    if existing and (existing.ga != img.ga or existing.eop != img.eop):
+                        raise ValueError(
+                            f"Inconsistent dates for {framework_group} {img.version}: \n"
+                            f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
+                            f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
+                            f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
+                        )
+                    # Deduplicate same full version with same dates
+                    version_map[img.version] = img
 
         # Merge legacy entries for this framework
         for legacy_img in legacy_data.get(framework_group, []):
             if legacy_img.version not in version_map:
                 version_map[legacy_img.version] = legacy_img
 
-        # Sort by version descending and separate supported/unsupported
-        for img in sort_by_version(list(version_map.values())):
-            (supported if img.is_supported else unsupported).append(img)
+        # Sort by version descending within this framework group
+        # Key is the display version (major.minor if consolidated, full version otherwise)
+        sorted_keys = sorted(
+            version_map.keys(), key=lambda k: parse_version(version_map[k].version), reverse=True
+        )
+        for key in sorted_keys:
+            img = version_map[key]
+            (supported if img.is_supported else unsupported).append((img, key))
 
     # Build tables
     table_config = load_table_config("extra/support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    supported_table = render_table(headers, [build_image_row(img, columns) for img in supported])
+    supported_table = render_table(
+        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in supported]
+    )
     unsupported_table = render_table(
-        headers, [build_image_row(img, columns) for img in unsupported]
+        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in unsupported]
     )
 
     # Render template

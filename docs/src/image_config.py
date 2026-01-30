@@ -167,13 +167,17 @@ class ImageConfig:
         return str(value) if value is not None else "-"
 
 
-def build_image_row(img: ImageConfig, columns: list[dict]) -> list[str]:
+def build_image_row(img: ImageConfig, columns: list[dict], overrides: dict = None) -> list[str]:
     """Build a table row from an ImageConfig using column definitions.
 
     In tables/<table>.yml, the <field> name will map to img.<field> / img.get(<field>) attribute.
     If you need to do string manipulation on the field, create a new property with convention display_<field>.
+
+    Args:
+        overrides: Optional dict of field -> value to override img values (e.g., {"version": "2.6"})
     """
-    return [img.get_display(col["field"]) for col in columns]
+    overrides = overrides or {}
+    return [overrides.get(col["field"], img.get_display(col["field"])) for col in columns]
 
 
 def load_repository_images(repository: str) -> list[ImageConfig]:
