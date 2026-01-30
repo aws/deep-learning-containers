@@ -170,7 +170,9 @@ RUN pip install --no-cache-dir \
     urllib3 \
     awscli \
     types-python-dateutil \
-    opencv-python
+    opencv-python \
+    pytz \
+    tzdata
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
