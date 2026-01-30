@@ -271,6 +271,21 @@ def main():
     )
     build_context = get_build_context()
 
+    # ALWAYS log for telemetry tests to debug skip logic
+    if test_type == "telemetry":
+        LOGGER.info(f"===== TELEMETRY TEST DEBUG START =====")
+        LOGGER.info(f"build_context='{build_context}'")
+        LOGGER.info(f"test_type='{test_type}'")
+        LOGGER.info(f"dlc_images='{dlc_images}'")
+        LOGGER.info(f"all_image_list={all_image_list}")
+        LOGGER.info(
+            f"any('sglang' in image_uri for image_uri in all_image_list)={any('sglang' in image_uri for image_uri in all_image_list)}"
+        )
+        LOGGER.info(
+            f"all('sglang' in image_uri for image_uri in all_image_list)={all('sglang' in image_uri for image_uri in all_image_list)}"
+        )
+        LOGGER.info(f"===== TELEMETRY TEST DEBUG END =====")
+
     # Skip non-sanity/security test suites for base images in MAINLINE context
     # Skip non-sanity/security/eks test suites for vllm images in MAINLINE context
     if build_context == "MAINLINE":
