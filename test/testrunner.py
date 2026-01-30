@@ -310,9 +310,13 @@ def main():
         LOGGER.info(f"DEBUG: test_type='{test_type}'")
         LOGGER.info(f"DEBUG: all_image_list={all_image_list}")
         has_sglang = all("sglang" in image_uri for image_uri in all_image_list)
-        LOGGER.info(f"DEBUG: all('sglang' in image_uri for image_uri in all_image_list)={has_sglang}")
-        LOGGER.info(f"DEBUG: Full skip condition would be: {build_context == 'PR' and has_sglang and test_type == 'telemetry'}")
-    
+        LOGGER.info(
+            f"DEBUG: all('sglang' in image_uri for image_uri in all_image_list)={has_sglang}"
+        )
+        LOGGER.info(
+            f"DEBUG: Full skip condition would be: {build_context == 'PR' and has_sglang and test_type == 'telemetry'}"
+        )
+
     # Skip telemetry tests for sglang in PR context
     if (
         build_context == "PR"
