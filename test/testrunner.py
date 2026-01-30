@@ -303,14 +303,14 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
-    
+
     # Skip telemetry tests for sglang in PR context
     if build_context == "PR" and "sglang" in dlc_images and test_type == "telemetry":
         LOGGER.info("NOTE: telemetry tests not supported on sglang images. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "sglang")
         return
-    
+
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
