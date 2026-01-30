@@ -175,11 +175,11 @@ function install_cuda130_stack_ul22 {
     rm -rf /usr/local/cuda-*
     rm -rf /usr/local/cuda
 
-    # install CUDA
-    wget -q https://developer.download.nvidia.com/compute/cuda/13.0.0/local_installers/cuda_13.0.0_580.65.06_linux.run
-    chmod +x cuda_13.0.0_580.65.06_linux.run
-    ./cuda_13.0.0_580.65.06_linux.run --toolkit --silent
-    rm -f cuda_13.0.0_580.65.06_linux.run
+    # install CUDA 13.0.2
+    wget -q https://developer.download.nvidia.com/compute/cuda/13.0.2/local_installers/cuda_13.0.2_580.95.05_linux.run
+    chmod +x cuda_13.0.2_580.95.05_linux.run
+    ./cuda_13.0.2_580.95.05_linux.run --toolkit --silent
+    rm -f cuda_13.0.2_580.95.05_linux.run
     ln -s /usr/local/cuda-13.0 /usr/local/cuda
     # bring back cuda-compat
     mv /usr/local/compat /usr/local/cuda/compat
