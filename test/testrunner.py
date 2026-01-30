@@ -271,20 +271,19 @@ def main():
     )
     build_context = get_build_context()
 
-    # ALWAYS log for telemetry tests to debug skip logic
-    if test_type == "telemetry":
-        LOGGER.info(f"===== TELEMETRY TEST DEBUG START =====")
-        LOGGER.info(f"build_context='{build_context}'")
-        LOGGER.info(f"test_type='{test_type}'")
-        LOGGER.info(f"dlc_images='{dlc_images}'")
-        LOGGER.info(f"all_image_list={all_image_list}")
-        LOGGER.info(
-            f"any('sglang' in image_uri for image_uri in all_image_list)={any('sglang' in image_uri for image_uri in all_image_list)}"
-        )
-        LOGGER.info(
-            f"all('sglang' in image_uri for image_uri in all_image_list)={all('sglang' in image_uri for image_uri in all_image_list)}"
-        )
-        LOGGER.info(f"===== TELEMETRY TEST DEBUG END =====")
+    # ALWAYS log to debug skip logic (no condition)
+    LOGGER.info(f"===== DEBUG START =====")
+    LOGGER.info(f"build_context='{build_context}'")
+    LOGGER.info(f"test_type='{test_type}'")
+    LOGGER.info(f"dlc_images='{dlc_images}'")
+    LOGGER.info(f"all_image_list={all_image_list}")
+    LOGGER.info(
+        f"any('sglang' in image_uri for image_uri in all_image_list)={any('sglang' in image_uri for image_uri in all_image_list)}"
+    )
+    LOGGER.info(
+        f"all('sglang' in image_uri for image_uri in all_image_list)={all('sglang' in image_uri for image_uri in all_image_list)}"
+    )
+    LOGGER.info(f"===== DEBUG END =====")
 
     # Skip non-sanity/security test suites for base images in MAINLINE context
     # Skip non-sanity/security/eks test suites for vllm images in MAINLINE context
@@ -319,18 +318,17 @@ def main():
             )
             return
 
-    # Debug logging for sglang telemetry skip condition
-    if test_type == "telemetry" and any("sglang" in image_uri for image_uri in all_image_list):
-        LOGGER.info(f"DEBUG: build_context='{build_context}' (expected 'PR' for skip)")
-        LOGGER.info(f"DEBUG: test_type='{test_type}'")
-        LOGGER.info(f"DEBUG: all_image_list={all_image_list}")
-        has_sglang = all("sglang" in image_uri for image_uri in all_image_list)
-        LOGGER.info(
-            f"DEBUG: all('sglang' in image_uri for image_uri in all_image_list)={has_sglang}"
-        )
-        LOGGER.info(
-            f"DEBUG: Full skip condition would be: {build_context == 'PR' and has_sglang and test_type == 'telemetry'}"
-        )
+    # Additional debug logging (no condition)
+    LOGGER.info(f"DEBUG: build_context='{build_context}' (expected 'PR' for skip)")
+    LOGGER.info(f"DEBUG: test_type='{test_type}'")
+    LOGGER.info(f"DEBUG: all_image_list={all_image_list}")
+    has_sglang = all("sglang" in image_uri for image_uri in all_image_list)
+    LOGGER.info(
+        f"DEBUG: all('sglang' in image_uri for image_uri in all_image_list)={has_sglang}"
+    )
+    LOGGER.info(
+        f"DEBUG: Full skip condition would be: {build_context == 'PR' and has_sglang and test_type == 'telemetry'}"
+    )
 
     # Skip telemetry tests for sglang in PR context
     if (
