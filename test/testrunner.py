@@ -303,19 +303,14 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
-
-    # Skip telemetry tests for sglang in PR context
-    # Note: telemetry can be run as test_type="telemetry" OR as part of test_type="ec2"
-    if (
+    
+    # For PR context: Check if we need to skip telemetry for sglang ec2 tests
+    skip_sglang_telemetry_in_ec2 = (
         build_context == "PR"
         and all("sglang" in image_uri for image_uri in all_image_list)
-        and (test_type == "telemetry" or specific_test_type == "telemetry")
-    ):
-        LOGGER.info("NOTE: telemetry tests not supported on sglang images. Skipping...")
-        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
-        sm_utils.generate_empty_report(report, test_type, "sglang")
-        return
-
+        and test_type == "ec2"
+    )
+    
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -436,7 +431,19 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
-        if specified_tests:
+        
+        # Handle pytest -k parameter for test filtering
+        if skip_sglang_telemetry_in_ec2 and specified_tests:
+            # Both telemetry skip and specified tests
+            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
+            pytest_cmd.extend(["-k", f"({test_expr}) and not telemetry"])
+            LOGGER.info("Excluding telemetry tests from sglang ec2 suite in PR context")
+        elif skip_sglang_telemetry_in_ec2:
+            # Only telemetry skip
+            pytest_cmd.extend(["-k", "not telemetry"])
+            LOGGER.info("Excluding telemetry tests from sglang ec2 suite in PR context")
+        elif specified_tests:
+            # Only specified tests
             test_expr = " or ".join(f"test_{t}" for t in specified_tests)
             pytest_cmd.extend(["-k", f"({test_expr})"])
 
