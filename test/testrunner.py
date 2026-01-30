@@ -305,7 +305,7 @@ def main():
             return
 
     # Skip telemetry tests for sglang in PR context
-    if build_context == "PR" and "sglang" in dlc_images and test_type == "telemetry":
+    if build_context == "PR" and all("sglang" in image_uri for image_uri in all_image_list) and test_type == "telemetry":
         LOGGER.info("NOTE: telemetry tests not supported on sglang images. Skipping...")
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "sglang")
