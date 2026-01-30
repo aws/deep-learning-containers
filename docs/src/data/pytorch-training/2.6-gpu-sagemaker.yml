@@ -25,6 +25,7 @@ packages:
   pytorch: "2.6.0"
   torchvision: "0.21.0"
   torchaudio: "2.6.0"
+  torchtext: "0.18.0"
   torchdata: "0.10.1"
   cuda: "12.6.3"
   cudnn: "9.7.0.66"

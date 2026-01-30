@@ -28,3 +28,4 @@ packages:
   torchdata: "0.10.1"
   torchserve: "0.12.0"
   openmpi: "4.1.7"
+  sagemaker_pytorch_inference: "2.0.25"

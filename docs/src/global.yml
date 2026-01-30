@@ -102,6 +102,7 @@ display_names:
   flash_attn: "Flash Attention"
   neuronx_sdk: "NeuronX SDK"
   openmpi: "OpenMPI"
+  sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
