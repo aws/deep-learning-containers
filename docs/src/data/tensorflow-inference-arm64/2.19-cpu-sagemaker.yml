@@ -8,6 +8,16 @@ ga: "2025-03-11"
 eop: "2026-03-11"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.19.0-cpu-py312-ubuntu22.04-sagemaker"
+  - "2.19-cpu-py312-ubuntu22.04-sagemaker-v1"
+  - "2.19.0-cpu-py312-sagemaker"
+  - "2.19-cpu-py312-sagemaker"
+
+announcements:
+  - "Introduced TensorFlow 2.19 ARM64 inference containers for SageMaker"
+  - "Added Python 3.12 support"
+
+packages:
+  tensorflow: "2.19.0"
+  python: "3.12.10"

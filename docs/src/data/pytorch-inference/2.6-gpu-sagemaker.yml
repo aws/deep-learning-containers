@@ -9,6 +9,27 @@ ga: "2025-01-29"
 eop: "2026-01-29"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-gpu-py312-cu124-ubuntu22.04-sagemaker"
+  - "2.6-gpu-py312-cu124-ubuntu22.04-sagemaker-v1"
+  - "2.6.0-gpu-py312"
+  - "2.6-gpu-py312"
+
+announcements:
+  - "Introduced containers for PyTorch 2.6.0 for Inference on SageMaker"
+  - "Added Python 3.12 support"
+  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+
+packages:
+  python: "3.12.12"
+  pytorch: "2.6.0"
+  torchvision: "0.21.0"
+  torchaudio: "2.6.0"
+  torchtext: "0.18.0"
+  torchdata: "0.10.1"
+  torchserve: "0.12.0"
+  cuda: "12.4.1"
+  cudnn: "9.1.0.70"
+  nccl: "2.23.4"
+  openmpi: "4.1.7"
+  sagemaker_pytorch_inference: "2.0.25"

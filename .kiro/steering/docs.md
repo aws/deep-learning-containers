@@ -172,6 +172,9 @@ from utils import render_table
 # Build a complete row (uses img.get_display() internally)
 row = build_image_row(img, columns)  # ["PyTorch 2.9", "py312", ...]
 
+# Build row with field overrides (e.g., for version consolidation in support_policy)
+row = build_image_row(img, columns, overrides={"version": "2.9"})
+
 # Render markdown table
 table = render_table(headers, rows)
 ```
@@ -216,7 +219,7 @@ To generate release notes for an image, add the following fields to the image co
 
 ```yaml
 # Required for release notes generation (both must be present)
-announcement:
+announcements:
   - "Introduced containers for PyTorch 2.9 for Training"
   - "Added Python 3.12 support"
 
@@ -236,14 +239,14 @@ optional:
 **Required fields for release notes** are defined in `constants.py`:
 
 ```python
-RELEASE_NOTES_REQUIRED_FIELDS = ["announcement", "packages"]
+RELEASE_NOTES_REQUIRED_FIELDS = ["announcements", "packages"]
 ```
 
 The `packages` field uses keys that map to display names in `global.yml` under `display_names`.
 
 ### Release Notes Generation
 
-Release notes are automatically generated for images that have all required fields (`announcement` and `packages`).
+Release notes are automatically generated for images that have all required fields (`announcements` and `packages`).
 
 **Output structure:**
 
@@ -275,7 +278,7 @@ This separation uses the `ImageConfig.is_supported` property.
 
 **Generated release note sections:**
 
-1. **Announcement** - Bullet list from `announcement` field
+1. **Announcements** - Bullet list from `announcements` field
 1. **Core Packages** - Table from `packages` field (keys mapped via `display_names`)
 1. **Security Advisory** - Hardcoded section with link to AWS Security Bulletin
 1. **Reference** - Docker image URIs (private ECR + public ECR if `public_registry: true`) and links to available_images.md and support_policy.md
@@ -357,11 +360,16 @@ table_order:
 
 The `framework_groups` configuration consolidates support policy rows by framework. Repositories in the same group are combined into a single row using the framework name (e.g., "PyTorch").
 
+**Version Display:**
+
+- Images with the same major.minor version (e.g., `2.6.0` and `2.6.1`) are consolidated into a single row displayed as `2.6` if they have identical GA/EOP dates
+- If patch versions have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
+
 **Requirements:**
 
-- All repositories in a group that have a given version must have identical GA/EOP dates
+- All repositories in a group that have a given full version (X.Y.Z) must have identical GA/EOP dates
 - Missing versions in some repositories are allowed (only present repos are consolidated)
-- A `ValueError` is raised if dates differ within a group for the same version
+- A `ValueError` is raised if dates differ within a group for the same full version
 
 To add a new framework group, add an entry to `framework_groups` with the framework name as key and list of repositories as value.
 

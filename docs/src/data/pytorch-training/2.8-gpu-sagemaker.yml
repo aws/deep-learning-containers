@@ -9,6 +9,29 @@ ga: "2025-08-06"
 eop: "2026-08-06"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.8.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
+  - "2.8-gpu-py312-cu129-ubuntu22.04-sagemaker-v1"
+  - "2.8.0-gpu-py312"
+  - "2.8-gpu-py312"
+
+announcements:
+  - "Introduced containers for PyTorch 2.8 for Training on SageMaker"
+  - "Added Python 3.12 support"
+  - "Added PyTorch domain libraries: torchtnt 0.2.4, torchdata 0.11.0, torchaudio 2.8.0, torchvision 0.23.0"
+  - "Added CUDA 12.9, Ubuntu 22.04 support"
+
+packages:
+  python: "3.12.10"
+  pytorch: "2.8.0"
+  torchvision: "0.23.0"
+  torchaudio: "2.8.0"
+  torchdata: "0.11.0"
+  torchtnt: "0.2.4"
+  cuda: "12.9.1"
+  cudnn: "9.10.2.21"
+  nccl: "2.27.3-1"
+  efa: "1.43.1"
+  transformer_engine: "2.5"
+  flash_attn: "2.8.3"
+  gdrcopy: "2.5.1"
