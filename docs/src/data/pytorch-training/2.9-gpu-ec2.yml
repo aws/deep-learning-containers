@@ -31,7 +31,7 @@ packages:
   cuda: "13.0.0"
   cudnn: "9.13.0.50"
   nccl: "2.27.7-1"
-  efa: "1.43.3"
+  efa: "1.44.0"
   transformer_engine: "2.9"
   flash_attn: "2.8.3"
   gdrcopy: "2.5.1"
