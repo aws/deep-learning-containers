@@ -285,7 +285,7 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker==2.254.1" \
+    "sagemaker>=2.254.1,<=v2.256.1" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training
