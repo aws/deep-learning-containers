@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 
-
 flags = tf.compat.v1.app.flags
 
 flags.DEFINE_bool("local", False, "Run data service in process")

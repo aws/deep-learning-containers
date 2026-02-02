@@ -22,7 +22,6 @@ from test.test_utils import ec2 as ec2_utils
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-
 ECS_AMI_ID = {
     "cpu": "ami-0fb71e703258ab7eb",
     "gpu": "ami-0a36be2e955646bb2",

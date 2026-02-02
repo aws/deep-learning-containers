@@ -20,6 +20,7 @@ on a text file or a dataset without using HuggingFace Trainer.
 Here is the full list of checkpoints on the hub that can be fine-tuned by this script:
 https://huggingface.co/models?filter=fill-mask
 """
+
 # You can also adapt this script on your own mlm task. Pointers for this are left as comments.
 
 # TODO Do multi-GPU and TPU tests and make sure the dataset length works as expected
@@ -56,7 +57,6 @@ from transformers import (
     set_seed,
 )
 from transformers.utils.versions import require_version
-
 
 logger = logging.getLogger(__name__)
 require_version(

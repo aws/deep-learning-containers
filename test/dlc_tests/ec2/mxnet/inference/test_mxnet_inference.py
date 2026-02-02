@@ -17,7 +17,6 @@ from test.test_utils.ec2 import (
 )
 from test.dlc_tests.conftest import LOGGER
 
-
 SQUEEZENET_MODEL = "squeezenet"
 BERT_MODEL = "bert_sst"
 RESNET_EIA_MODEL = "resnet-152-eia"

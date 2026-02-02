@@ -15,7 +15,6 @@ from packaging.version import Version
 from pathlib import Path
 from buildspec import Buildspec
 
-
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

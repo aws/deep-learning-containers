@@ -70,9 +70,9 @@ def _test_vllm_model(
     **kwargs,
 ):
     """Test vLLM model deployment and inference using OpenAI-compatible API format
-    
+
     Uses sagemaker.model.Model for SDK v3 compatibility instead of HuggingFaceModel.
-    
+
     Args:
         image_uri: ECR image URI
         sagemaker_session: SageMaker session

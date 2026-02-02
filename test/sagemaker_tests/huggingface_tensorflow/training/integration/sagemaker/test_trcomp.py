@@ -26,7 +26,6 @@ from test.test_utils import get_framework_and_version_from_tag, get_cuda_version
 
 import unittest.mock as mock
 
-
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 BERT_PATH = os.path.join(RESOURCE_PATH, "scripts")
 

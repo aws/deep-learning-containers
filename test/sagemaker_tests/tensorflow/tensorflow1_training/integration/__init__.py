@@ -20,7 +20,6 @@ import botocore
 from base64 import b64decode
 import subprocess
 
-
 logging.getLogger("boto3").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)
 

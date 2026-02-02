@@ -58,7 +58,6 @@ from mxnet import nd
 import gluonnlp as nlp
 import re
 
-
 # ## Creating Vocabulary with Word Embeddings
 #
 # Now we'll demonstrate how to index words,

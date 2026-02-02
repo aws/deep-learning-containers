@@ -24,7 +24,6 @@ from sagemaker.training_compiler.config import TrainingCompilerConfig
 
 from ...integration.utils import processor, py_version, unique_name_from_base  # noqa: F401
 
-
 resource_path = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 

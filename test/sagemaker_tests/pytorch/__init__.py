@@ -20,7 +20,6 @@ import sagemaker.exceptions
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
-
 NO_P4_REGIONS = [
     "af-south-1",
     "ap-east-1",

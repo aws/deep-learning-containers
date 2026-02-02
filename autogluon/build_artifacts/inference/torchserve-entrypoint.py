@@ -16,7 +16,6 @@ import shlex
 import subprocess
 import sys
 
-
 if sys.argv[1] == "serve":
     from sagemaker_pytorch_serving_container import serving
 

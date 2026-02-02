@@ -160,11 +160,8 @@ def main():
             )
 
         if hvd.rank() == 0 and epoch == args.epochs - 1:
-            assert val_acc > 0.96, (
-                "Achieved accuracy (%f) is lower than expected\
-                                    (0.96)"
-                % val_acc
-            )
+            assert val_acc > 0.96, "Achieved accuracy (%f) is lower than expected\
+                                    (0.96)" % val_acc
 
     if hvd.rank() == 0:
         global_training_time = time.time() - global_tic

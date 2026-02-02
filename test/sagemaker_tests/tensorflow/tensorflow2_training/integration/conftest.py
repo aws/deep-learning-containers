@@ -32,7 +32,6 @@ from ..integration import (
 )
 from ... import NO_P4_REGIONS, NO_G5_REGIONS
 
-
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
 logging.getLogger("botocore").setLevel(logging.INFO)

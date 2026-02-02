@@ -15,7 +15,6 @@ from __future__ import absolute_import
 import re
 import os
 
-
 resources_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "resources"))
 scripts_path = os.path.join(resources_path, "scripts")
 distilbert_script = os.path.join(scripts_path, "train.py")

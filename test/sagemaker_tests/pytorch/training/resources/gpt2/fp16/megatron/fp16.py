@@ -4,6 +4,7 @@
 # Modifications Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 """Megatron optimizer."""
+
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 
