@@ -319,8 +319,10 @@ def launch_instance(
     response = client.run_instances(**arguments_dict)
 
     if not response or len(response["Instances"]) < 1:
-        raise Exception("Unable to launch the instance. \
-                         Did not return any response")
+        raise Exception(
+            "Unable to launch the instance. \
+                         Did not return any response"
+        )
 
     return response["Instances"][0]
 
@@ -712,8 +714,10 @@ def get_instance_from_id(instance_id, region=DEFAULT_REGION):
     client = boto3.Session(region_name=region).client("ec2")
     instance = client.describe_instances(InstanceIds=[instance_id])
     if not instance:
-        raise Exception("Unable to launch the instance. \
-                         Did not return any reservations object")
+        raise Exception(
+            "Unable to launch the instance. \
+                         Did not return any reservations object"
+        )
     return instance["Reservations"][0]["Instances"][0]
 
 
@@ -812,15 +816,23 @@ def get_system_state(instance_id, region=DEFAULT_REGION):
     client = boto3.Session(region_name=region).client("ec2")
     response = client.describe_instance_status(InstanceIds=[instance_id])
     if not response:
-        raise Exception("Unable to launch the instance. \
-                         Did not return any reservations object")
+        raise Exception(
+            "Unable to launch the instance. \
+                         Did not return any reservations object"
+        )
     instance_status_list = response["InstanceStatuses"]
     if not instance_status_list:
-        raise Exception("Unable to launch the instance. \
-                         Did not return any reservations object")
+        raise Exception(
+            "Unable to launch the instance. \
+                         Did not return any reservations object"
+        )
     if len(instance_status_list) < 1:
-        raise Exception("The instance id seems to be incorrect {}. \
-                         reservations seems to be empty".format(instance_id))
+        raise Exception(
+            "The instance id seems to be incorrect {}. \
+                         reservations seems to be empty".format(
+                instance_id
+            )
+        )
 
     instance_status = instance_status_list[0]
     return (
@@ -844,8 +856,12 @@ def check_system_state(
     """
     instance_state = get_system_state(instance_id, region=region)
     if system_status != instance_state[0] or instance_status != instance_state[1]:
-        raise Exception("Instance {} not in \
-                         required state".format(instance_id))
+        raise Exception(
+            "Instance {} not in \
+                         required state".format(
+                instance_id
+            )
+        )
     return instance_state
 
 

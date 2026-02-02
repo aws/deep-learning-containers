@@ -12,6 +12,7 @@ from src.benchmark_metrics import (
     get_threshold_for_image,
 )
 
+
 MX_PERFORMANCE_TRAINING_GPU_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "benchmark", "run_mxnet_training_performance_gpu"
 )

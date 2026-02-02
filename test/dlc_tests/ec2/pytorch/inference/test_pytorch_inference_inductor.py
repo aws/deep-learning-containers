@@ -15,6 +15,7 @@ from test.test_utils import (
 from test.test_utils.ec2 import get_ec2_instance_type, is_mainline_context
 from test.dlc_tests.conftest import LOGGER
 
+
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_CPU_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
 PT_EC2_GPU_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(

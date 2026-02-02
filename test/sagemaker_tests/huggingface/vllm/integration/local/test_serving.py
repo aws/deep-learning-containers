@@ -27,13 +27,13 @@ from ...utils import local_mode_utils
 @contextmanager
 def _predictor(image, sagemaker_local_session, instance_type):
     """Context manager for vLLM model deployment and cleanup.
-
+    
     Model is extracted to /opt/ml/model by SageMaker from model_data tar.gz.
     vLLM loads the model from this local path.
     """
     # Download model from HuggingFace Hub if not already present
     model_data_path = ensure_model_downloaded()
-
+    
     env = {
         "SM_VLLM_MODEL": "/opt/ml/model",
         "SM_VLLM_MAX_MODEL_LEN": "512",

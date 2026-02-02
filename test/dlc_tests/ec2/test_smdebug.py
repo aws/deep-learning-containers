@@ -17,6 +17,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import get_ec2_instance_type
 
+
 SMDEBUG_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmdebug")
 SMPROFILER_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "testSmprofiler")
 

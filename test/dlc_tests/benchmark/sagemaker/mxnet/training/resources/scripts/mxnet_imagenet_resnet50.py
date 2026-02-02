@@ -28,6 +28,7 @@ import numpy as np
 from mxnet import autograd, gluon, lr_scheduler
 from mxnet.io import DataBatch, DataIter
 
+
 # Training settings
 parser = argparse.ArgumentParser(
     description="MXNet ImageNet Example", formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -473,7 +474,7 @@ def train_module():
     mod.init_params(initializer, arg_params=arg_params, aux_params=aux_params)
 
     # Horovod: fetch and broadcast parameters
-    arg_params, aux_params = mod.get_params()
+    (arg_params, aux_params) = mod.get_params()
     if arg_params is not None:
         hvd.broadcast_parameters(arg_params, root_rank=0)
     if aux_params is not None:

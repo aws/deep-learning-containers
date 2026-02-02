@@ -7,6 +7,7 @@ import torch
 import torchvision
 from transformers import BertModel, RobertaModel, DistilBertModel, Wav2Vec2Model, AutoModel
 
+
 cpu_models = [
     "ResNet18",
     "MobileNet_V2",

@@ -16,6 +16,7 @@ import shlex
 import subprocess
 import sys
 
+
 try:
     subprocess.call(
         ["/bin/bash", "/usr/local/bin/bash_telemetry.sh"],

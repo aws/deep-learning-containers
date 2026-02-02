@@ -23,6 +23,7 @@ from test.test_utils.ec2 import (
     get_ec2_instance_type,
 )
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))

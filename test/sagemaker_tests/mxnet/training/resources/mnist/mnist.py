@@ -70,8 +70,8 @@ def train(
     current_host,
     model_dir,
 ):
-    train_labels, train_images = load_data(training_channel)
-    test_labels, test_images = load_data(testing_channel)
+    (train_labels, train_images) = load_data(training_channel)
+    (test_labels, test_images) = load_data(testing_channel)
 
     # Data parallel training - shard the data so each host
     # only trains on a subset of the total data.

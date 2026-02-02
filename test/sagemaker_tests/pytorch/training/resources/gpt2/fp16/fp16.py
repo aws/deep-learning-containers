@@ -4,7 +4,6 @@
 # Modifications Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 """Stable version of apex FP16 Optimizer"""
-
 import copy
 
 import amp_C

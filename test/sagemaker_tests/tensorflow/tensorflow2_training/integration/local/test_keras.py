@@ -22,6 +22,7 @@ from sagemaker.tensorflow import serving, TensorFlow
 from ...integration import RESOURCE_PATH
 from ...integration.utils import processor, py_version  # noqa: F401
 
+
 logging.basicConfig(level=logging.DEBUG)
 
 

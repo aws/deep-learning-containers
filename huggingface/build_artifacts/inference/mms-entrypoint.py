@@ -16,6 +16,7 @@ import shlex
 import subprocess
 import sys
 
+
 if sys.argv[1] == "serve":
     from sagemaker_huggingface_inference_toolkit import serving
 

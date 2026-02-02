@@ -26,6 +26,7 @@ import utils
 
 from codebuild_environment import get_codebuild_project_name
 
+
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.DEBUG)
 LOGGER.addHandler(logging.StreamHandler(sys.stdout))

@@ -7,7 +7,6 @@ References:
 - Paper: https://arxiv.org/abs/1609.02907
 - Code: https://github.com/tkipf/gcn
 """
-
 import os
 import time
 import argparse

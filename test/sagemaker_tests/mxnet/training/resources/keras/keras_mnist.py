@@ -13,7 +13,6 @@
 """Adapted from the Keras-MXNet example found at
 https://github.com/awslabs/keras-apache-mxnet/blob/master/examples/mnist_cnn.py
 """
-
 from __future__ import absolute_import, print_function
 
 import argparse

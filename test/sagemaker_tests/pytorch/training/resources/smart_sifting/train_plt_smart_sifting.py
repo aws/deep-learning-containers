@@ -32,6 +32,7 @@ from smart_sifting.sift_config.sift_configs import (
     SiftingBaseConfig,
 )
 
+
 RANDOM_SEED = 7
 logger = logging.getLogger(__name__)
 

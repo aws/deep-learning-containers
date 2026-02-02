@@ -21,6 +21,7 @@ import pytest
 
 import requests
 
+
 PING_URL = "http://localhost:8080/ping"
 INVOCATIONS_URL = "http://localhost:8080/invocations"
 

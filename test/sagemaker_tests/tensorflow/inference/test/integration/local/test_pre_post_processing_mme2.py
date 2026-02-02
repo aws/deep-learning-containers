@@ -27,6 +27,7 @@ import requests
 
 from .multi_model_endpoint_test_utils import make_load_model_request, make_headers
 
+
 PING_URL = "http://localhost:8080/ping"
 INVOCATION_URL = "http://localhost:8080/models/{}/invoke"
 MODEL_NAMES = ["half_plus_three", "half_plus_two"]

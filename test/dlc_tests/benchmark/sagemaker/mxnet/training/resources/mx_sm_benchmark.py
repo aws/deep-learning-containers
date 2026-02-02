@@ -6,6 +6,7 @@ import sagemaker
 
 from sagemaker.mxnet import MXNet
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--framework-version", type=str, help="framework version in image to be used", required=True

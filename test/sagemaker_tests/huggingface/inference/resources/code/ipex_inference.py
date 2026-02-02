@@ -5,6 +5,7 @@ import numpy as np
 import intel_extension_for_pytorch as ipex
 from sagemaker_huggingface_inference_toolkit import decoder_encoder
 
+
 model_id2label = {"0": "NEGATIVE", "1": "POSITIVE"}
 
 print("running IPex... test")
