@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.14.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.15.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -8,7 +8,7 @@ FROM $BASE_IMAGE AS base
 # ====================== common =========================================
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
-ARG EFA_VERSION="1.46.0"
+ARG EFA_VERSION="1.47.0"
 LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
