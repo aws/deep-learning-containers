@@ -166,11 +166,13 @@ RUN pip install --no-cache-dir \
     idna \
     tqdm \
     requests \
-    setuptools \
+    "setuptools>=80.10.1" \
     urllib3 \
     awscli \
     types-python-dateutil \
-    opencv-python
+    opencv-python \
+    pytz \
+    tzdata
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
