@@ -221,7 +221,7 @@ RUN pip install --no-cache-dir -U \
     idna \
     tqdm \
     requests \
-    setuptools \
+    "setuptools>=80.10.1" \
     urllib3 \
     awscli \
     types-python-dateutil \
