@@ -184,7 +184,8 @@ RUN pip install --no-cache-dir \
     urllib3 \
     idna \
     tqdm \
-    requests
+    requests \
+    tzdata
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U \
