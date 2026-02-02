@@ -105,14 +105,16 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
+    "setuptools>=80.10.1" \
     "urllib3>=2.5.0" \
     ninja \
     opencv-python==4.11.0.86 \
     mpi4py \
     jinja2>=3.1.6 \
     tornado>=6.5.1 \
-    "filelock>=3.20.1"
+    "filelock>=3.20.1" \
+    pytz \
+    tzdata
 
 # Install PyTorch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
@@ -250,7 +252,7 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     smclarify \
-    "sagemaker==2.254.1" \
+    "sagemaker>=2.254.1,<3" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training
