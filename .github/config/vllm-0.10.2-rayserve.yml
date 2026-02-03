@@ -26,5 +26,5 @@ release:
   public_registry: true
   private_registry: false
   enable_soci: true
-  source_stage: private
-  target_stage: gamma
+  source_stage: beta # private for gamma test
+  target_stage: release # gamma for gamma test
