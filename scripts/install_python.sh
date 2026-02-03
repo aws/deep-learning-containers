@@ -24,10 +24,6 @@ function install_python {
     # this will add pip systemlink to pip${PYTHON_MAJOR_VERSION}
     python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
     python -m pip install --no-cache-dir awscli boto3 requests setuptools
-    
-    # Create pip symlinks for compatibility (force overwrite if exists)
-    ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
-    ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3
 }
 
 # idiomatic parameter and option handling in sh
