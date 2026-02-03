@@ -8,6 +8,23 @@ ga: "2025-01-29"
 eop: "2026-01-29"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.6.0-cpu-py312-ubuntu22.04-ec2"
+  - "2.6-cpu-py312-ubuntu22.04-ec2-v1"
+  - "2.6.0-cpu-py312-ec2"
+  - "2.6-cpu-py312-ec2"
+
+announcements:
+  - "Introduced containers for PyTorch 2.6.0 for Inference on EC2, ECS, EKS (ARM64)"
+  - "Added Python 3.12 support"
+  - "Starting with PyTorch 2.6, we are removing Conda from the DLCs and installing all Python packages from PyPI"
+
+packages:
+  python: "3.12.8"
+  pytorch: "2.6.0"
+  torchvision: "0.21.0"
+  torchaudio: "2.6.0"
+  torchtext: "0.18.0"
+  torchdata: "0.10.1"
+  torchserve: "0.12.0"
+  openmpi: "4.1.7"

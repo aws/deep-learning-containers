@@ -1,0 +1,30 @@
+framework: vLLM
+version: "0.14.0"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: sagemaker
+public_registry: true
+
+tags:
+  - "0.14.0-gpu-py312-cu129-ubuntu22.04-sagemaker"
+  - "0.14-gpu-py312-cu129-ubuntu22.04-sagemaker-v1"
+  - "0.14.0-gpu-py312"
+  - "0.14-gpu-py312"
+
+announcements:
+  - "Introduced vLLM 0.14.0 containers for SageMaker"
+  - "Added Python 3.12 support"
+
+packages:
+  vllm: "0.14.0"
+  pytorch: "2.9.1"
+  torchvision: "0.24.1"
+  torchaudio: "2.9.1"
+  flashinfer: "0.5.3"
+  cuda: "12.9.1"
+  cudnn: "9.10.2.21"
+  nccl: "2.28.3"
+  efa: "1.46.0"
+  gdrcopy: "2.5.1"

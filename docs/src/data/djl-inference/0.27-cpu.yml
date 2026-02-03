@@ -1,0 +1,8 @@
+framework: DJLServing
+version: "0.27"
+accelerator: cpu
+engine: "CPU Full"
+platform: sagemaker
+
+tags:
+  - "0.27.0-cpu-full"

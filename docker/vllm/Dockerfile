@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.14.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.15.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -19,7 +19,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
   PYTHONIOENCODING=UTF-8 \
-  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -64,6 +64,11 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove cuobjdump and nvdisasm
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# TODO: remove this code when issue is fixed:
+# issue introduced by https://github.com/vllm-project/vllm/pull/30784
+# until https://github.com/vllm-project/vllm/pull/32377 is merged
+RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2

@@ -90,14 +90,22 @@ display_names:
   cudnn: "cuDNN"
   nccl: "NCCL"
   efa: "EFA"
+  gdrcopy: "GDRCopy"
   torchvision: "TorchVision"
   torchaudio: "TorchAudio"
   torchdata: "TorchData"
+  torchao: "TorchAO"
   torchtnt: "TorchTNT"
+  torchtext: "TorchText"
+  torchserve: "TorchServe"
+  sgl-kernel: "SGLang Kernel"
   transformers: "Transformers"
   transformer_engine: "Transformer Engine"
   flash_attn: "Flash Attention"
+  flashinfer: "FlashInfer"
   neuronx_sdk: "NeuronX SDK"
+  openmpi: "OpenMPI"
+  sagemaker_pytorch_inference: "SageMaker PyTorch Inference Toolkit"
 
 # =============================================================================
 # Framework Groups for Support Policy Consolidation
@@ -116,6 +124,9 @@ framework_groups:
     - tensorflow-training
     - tensorflow-inference
     - tensorflow-inference-arm64
+  vllm:
+    - vllm
+    - vllm-arm64
 
 # =============================================================================
 # Table Order

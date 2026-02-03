@@ -9,6 +9,30 @@ ga: "2025-04-23"
 eop: "2026-04-23"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.7.1-gpu-py312-cu128-ubuntu22.04-ec2"
+  - "2.7-gpu-py312-cu128-ubuntu22.04-ec2-v1"
+  - "2.7.1-gpu-py312-ec2"
+  - "2.7-gpu-py312-ec2"
+
+announcements:
+  - "Introduced containers for PyTorch 2.7 for Training on EC2, ECS, EKS"
+  - "Added Python 3.12 support"
+  - "Added PyTorch domain libraries: torchtnt 0.2.4, torchdata 0.11.0, torchaudio 2.7.1, torchvision 0.22.1"
+  - "Added CUDA 12.8, Ubuntu 22.04 support"
+  - "Added fastai 2.8.2 support"
+
+packages:
+  python: "3.12.10"
+  pytorch: "2.7.1"
+  torchvision: "0.22.1"
+  torchaudio: "2.7.1"
+  torchdata: "0.11.0"
+  torchtnt: "0.2.4"
+  cuda: "12.8.0"
+  cudnn: "9.7.1.26"
+  nccl: "2.26.2"
+  efa: "1.40.0"
+  transformer_engine: "2.3"
+  flash_attn: "2.7.4.post1"
+  gdrcopy: "2.5"

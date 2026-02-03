@@ -9,6 +9,19 @@ ga: "2025-08-18"
 eop: "2027-08-18"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "12.9.1-gpu-py312-cu129-ubuntu22.04-ec2"
+  - "12.9-gpu-py312-cu129-ubuntu22.04-ec2-v1"
+  - "12.9.1-gpu-py312-ubuntu22.04-ec2"
+  - "12.9-gpu-py312-ubuntu22.04-ec2"
+
+announcements:
+  - "Introduced Base containers with CUDA 12.9 for EC2, ECS, EKS"
+  - "Added Python 3.12 support"
+
+packages:
+  python: "3.12.10"
+  cuda: "12.9.1"
+  cudnn: "9.10.2.21"
+  nccl: "2.27.3-1"
+  efa: "1.43.1"

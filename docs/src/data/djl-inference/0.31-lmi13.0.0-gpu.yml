@@ -1,0 +1,9 @@
+framework: DJLServing
+version: "0.31"
+accelerator: gpu
+cuda: cu124
+engine: "LMI 13.0.0"
+platform: sagemaker
+
+tags:
+  - "0.31.0-lmi13.0.0-cu124"

@@ -1,0 +1,9 @@
+framework: DJLServing
+version: "0.29"
+accelerator: gpu
+cuda: cu124
+engine: "TensorRT-LLM 0.11.0"
+platform: sagemaker
+
+tags:
+  - "0.29.0-tensorrtllm0.11.0-cu124"

@@ -1,0 +1,28 @@
+framework: vLLM
+version: "0.10.2"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: ec2
+public_registry: true
+
+tags:
+  - "0.10.2-gpu-py312-cu129-ubuntu22.04-ec2"
+  - "0.10-gpu-py312-cu129-ubuntu22.04-ec2-v1"
+  - "0.10.2-gpu-py312-ec2"
+  - "0.10-gpu-py312-ec2"
+
+announcements:
+  - "Introduced vLLM ARM64 0.10.2 containers for EC2, ECS, EKS"
+  - "Added Python 3.12 support"
+
+packages:
+  vllm: "0.10.2"
+  pytorch: "2.8.0"
+  torchvision: "0.23.0"
+  torchaudio: "2.8.0"
+  cuda: "12.9.1"
+  cudnn: "9.10.2.21"
+  nccl: "2.27.3-1"
+  efa: "1.43.2"

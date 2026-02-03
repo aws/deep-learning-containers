@@ -8,6 +8,22 @@ ga: "2025-08-06"
 eop: "2026-08-06"
 public_registry: true
 
-# Image tags (first tag is used in available_images.md)
 tags:
   - "2.8.0-cpu-py312-ubuntu22.04-ec2"
+  - "2.8-cpu-py312-ubuntu22.04-ec2-v1"
+  - "2.8.0-cpu-py312-ec2"
+  - "2.8-cpu-py312-ec2"
+
+announcements:
+  - "Introduced containers for PyTorch 2.8 for Training on EC2, ECS, EKS"
+  - "Added Python 3.12 support"
+  - "Added PyTorch domain libraries: torchtnt 0.2.4, torchdata 0.11.0, torchaudio 2.8.0, torchvision 0.23.0"
+  - "Added Ubuntu 22.04 support"
+
+packages:
+  python: "3.12.10"
+  pytorch: "2.8.0"
+  torchvision: "0.23.0"
+  torchaudio: "2.8.0"
+  torchdata: "0.11.0"
+  torchtnt: "0.2.4"
