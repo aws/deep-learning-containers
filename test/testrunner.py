@@ -434,7 +434,12 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
-        if specified_tests:
+        
+        # Skip telemetry tests for sglang images
+        if is_sglang_image and specific_test_type == "ec2":
+            pytest_cmd.extend(["-k", "not telemetry"])
+            LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
+        elif specified_tests:
             test_expr = " or ".join(f"test_{t}" for t in specified_tests)
             pytest_cmd.extend(["-k", f"({test_expr})"])
 
