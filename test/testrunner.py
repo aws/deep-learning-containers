@@ -333,7 +333,10 @@ def main():
     is_hf_image_present = any("huggingface" in image_uri for image_uri in all_image_list)
     is_ag_image_present = any("autogluon" in image_uri for image_uri in all_image_list)
     is_trcomp_image_present = any("trcomp" in image_uri for image_uri in all_image_list)
-    is_hf_image_present = is_hf_image_present and not is_trcomp_image_present
+    is_vllm_image_present = any("vllm" in image_uri for image_uri in all_image_list)
+    is_hf_image_present = (
+        is_hf_image_present and not is_trcomp_image_present and not is_vllm_image_present
+    )
     is_hf_trcomp_image_present = is_hf_image_present and is_trcomp_image_present
     if (
         (is_hf_image_present or is_ag_image_present)
@@ -499,7 +502,8 @@ def main():
             if os.path.exists(KEYS_TO_DESTROY_FILE):
                 delete_key_pairs(KEYS_TO_DESTROY_FILE)
     elif specific_test_type == "sagemaker":
-        if "vllm" in dlc_images:
+        # Route generic vLLM (not HuggingFace vLLM) to vllm-specific tests
+        if "vllm" in dlc_images and "huggingface" not in dlc_images:
             run_vllm_tests("sagemaker", all_image_list, new_test_structure_enabled)
             return
 
@@ -557,7 +561,6 @@ def main():
             "habana": "Skipping SM tests because SM does not yet support Habana",
             "neuron": "Skipping - there are no local mode tests for Neuron",
             "huggingface-tensorflow-training": "Skipping - there are no local mode tests for HF TF training",
-            "vllm": "Skipping - there are no local mode tests for VLLM",
             "sglang": "Skipping - there are no local mode tests for sglang",
         }
 
@@ -568,6 +571,15 @@ def main():
                 report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
                 sm_utils.generate_empty_report(report, test_type, skip_condition)
                 return
+
+        # Skip base vllm (not huggingface_vllm) - huggingface_vllm has local tests
+        if "vllm" in dlc_images and "huggingface" not in dlc_images:
+            LOGGER.info(
+                f"Skipping - there are no local mode tests for base VLLM. Images: {dlc_images}"
+            )
+            report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+            sm_utils.generate_empty_report(report, test_type, "vllm")
+            return
 
         testing_image_list = [
             image
