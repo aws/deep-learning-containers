@@ -121,7 +121,7 @@ nightly_pr_test_mode = false
 ### TRAINING PR JOBS ###
 
 # Base
-dlc-pr-base = "base/buildspec-cu1302-ubuntu22.yml"
+dlc-pr-base = "base/buildspec-cu130-ubuntu22.yml"
 
 # Standard Framework Training
 dlc-pr-pytorch-training = ""
