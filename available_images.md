@@ -2,7 +2,7 @@
 
 > **📢 Announcement:** We have transitioned to automated documentation generation. The available images documentation is now hosted at:
 >
-> **https://aws.github.io/deep-learning-containers/reference/available_images/
+> **https://aws.github.io/deep-learning-containers/reference/available_images/**
 
 ## Updating Documentation
 
