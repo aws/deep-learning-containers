@@ -303,11 +303,13 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
-    
+
     # Skip telemetry tests for sglang in all contexts (PR and MAINLINE)
     is_sglang_image = all("sglang" in image_uri for image_uri in all_image_list)
     if is_sglang_image and specific_test_type == "telemetry":
-        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on SGLang Containers. Skipping...")
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on SGLang Containers. Skipping..."
+        )
         report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
         sm_utils.generate_empty_report(report, test_type, "sglang")
         return
@@ -410,7 +412,7 @@ def main():
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
 
-        #set up EKS cluster for EKS tests.
+        # set up EKS cluster for EKS tests.
         if specific_test_type == "eks":
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
