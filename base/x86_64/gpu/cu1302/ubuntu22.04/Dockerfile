@@ -1,11 +1,12 @@
 ARG PYTHON="python3"
-ARG PYTHON_VERSION="3.12.10"
-ARG PYTHON_SHORT_VERSION="3.12"
+ARG PYTHON_VERSION="3.13.11"
+ARG PYTHON_SHORT_VERSION="3.13"
 ARG CUDA_MAJOR="13"
 ARG CUDA_MINOR="0"
-ARG EFA_VERSION="1.44.0"
+ARG CUDA_PATCH="2"
+ARG EFA_VERSION="1.46.0"
 ARG OS_VERSION="ubuntu22.04"
-FROM nvidia/cuda:13.0.0-base-${OS_VERSION} AS base-builder
+FROM nvidia/cuda:${CUDA_MAJOR}.${CUDA_MINOR}.${CUDA_PATCH}-base-${OS_VERSION} AS base-builder
 
 
 RUN mv /usr/local/cuda/compat /usr/local \
@@ -63,12 +64,13 @@ RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 FROM base-builder AS cuda-builder
 ARG CUDA_MAJOR
 ARG CUDA_MINOR
+ARG CUDA_PATCH
 ARG OS_VERSION
 COPY install_cuda.sh install_cuda.sh
-RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "${OS_VERSION}" && rm install_cuda.sh
+RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}.${CUDA_PATCH}" "${OS_VERSION}" && rm install_cuda.sh
 
 ##############################################################################
-FROM nvidia/cuda:13.0.0-base-${OS_VERSION} AS final 
+FROM nvidia/cuda:${CUDA_MAJOR}.${CUDA_MINOR}.${CUDA_PATCH}-base-${OS_VERSION} AS final 
 ARG PYTHON
 ARG PYTHON_SHORT_VERSION
 ARG CUDA_MAJOR
@@ -80,7 +82,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     DLC_CONTAINER_TYPE=base \
-    # Python won’t try to write .pyc or .pyo files on the import of source modules
+    # Python won't try to write .pyc or .pyo files on the import of source modules
     # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

@@ -175,6 +175,45 @@ function install_cuda130_stack_ul22 {
     rm -rf /usr/local/cuda-*
     rm -rf /usr/local/cuda
 
+    # install CUDA
+    wget -q https://developer.download.nvidia.com/compute/cuda/13.0.0/local_installers/cuda_13.0.0_580.65.06_linux.run
+    chmod +x cuda_13.0.0_580.65.06_linux.run
+    ./cuda_13.0.0_580.65.06_linux.run --toolkit --silent
+    rm -f cuda_13.0.0_580.65.06_linux.run
+    ln -s /usr/local/cuda-13.0 /usr/local/cuda
+    # bring back cuda-compat
+    mv /usr/local/compat /usr/local/cuda/compat
+
+    # install cudnn
+    mkdir -p /tmp/cudnn
+    cd /tmp/cudnn
+    wget -q https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda13-archive.tar.xz -O cudnn-linux-x86_64-${CUDNN_VERSION}_cuda13-archive.tar.xz
+    tar xf cudnn-linux-x86_64-${CUDNN_VERSION}_cuda13-archive.tar.xz
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda13-archive/include/* /usr/local/cuda/include/
+    cp -a cudnn-linux-x86_64-${CUDNN_VERSION}_cuda13-archive/lib/* /usr/local/cuda/lib64/
+
+    # install nccl
+    mkdir -p /tmp/nccl
+    cd /tmp/nccl
+    git clone -b $NCCL_VERSION --depth 1 https://github.com/NVIDIA/nccl.git
+    cd nccl 
+    make -j src.build
+    cp -a build/include/* /usr/local/cuda/include/
+    cp -a build/lib/* /usr/local/cuda/lib64/
+
+    prune_cuda
+    ldconfig
+}
+
+function install_cuda1302_stack_ul22 {
+    CUDNN_VERSION="9.15.1.9"
+    NCCL_VERSION="v2.28.9-1"
+    CUDA_HOME="/usr/local/cuda"
+    
+    # move cuda-compt and remove existing cuda dir from nvidia/cuda:**.*.*-base-*
+    rm -rf /usr/local/cuda-*
+    rm -rf /usr/local/cuda
+
     # install CUDA 13.0.2
     wget -q https://developer.download.nvidia.com/compute/cuda/13.0.2/local_installers/cuda_13.0.2_580.95.05_linux.run
     chmod +x cuda_13.0.2_580.95.05_linux.run
@@ -225,6 +264,12 @@ do
         13.0)
             case "$2" in
                 "ubuntu22.04") install_cuda130_stack_ul22 ;;
+                *) echo "bad OS version $2"; exit 1 ;;
+            esac
+            ;;
+        13.0.2)
+            case "$2" in
+                "ubuntu22.04") install_cuda1302_stack_ul22 ;;
                 *) echo "bad OS version $2"; exit 1 ;;
             esac
             ;;
