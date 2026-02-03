@@ -251,12 +251,13 @@ WORKDIR /
 
 # Install SM packages
 RUN pip install --no-cache-dir -U \
+    "boto3>=1.42.2" \
+    "awscli>=1.42.2" \
+    smclarify \
     "sagemaker==2.256.0" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training \
-    smclarify \
-    # Add sniffio explicitly as it's not included in sagemaker==2.256.0 dependencies
     sniffio
 
 # Install extra packages
