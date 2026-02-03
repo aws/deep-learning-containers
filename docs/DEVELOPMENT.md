@@ -15,30 +15,30 @@ cd docs/src && python main.py --verbose
 ```
 docs/
 ├── src/
-│   ├── data/                    # Per-image configuration files
+│   ├── data/                                           # Per-image configuration files
 │   │   ├── template/
-│   │   │   └── image-template.yml  # Template with all fields documented
+│   │   │   └── image-template.yml                      # Template with all fields documented
 │   │   ├── pytorch-training/
-│   │   │   └── <version>-<accelerator>-<platform>.yml
+│   │   │   └── <version>-<accelerator>-<platform>.yml  # Naming is for organization only
 │   │   └── ...
-│   ├── legacy/                  # Historical support data
+│   ├── legacy/                                         # Historical support data
 │   │   └── legacy_support.yml
-│   ├── tables/                  # Table column configurations
+│   ├── tables/                                         # Table column configurations
 │   │   └── <repository>.yml
 │   ├── templates/
-│   │   ├── reference/           # Reference page templates
-│   │   └── releasenotes/        # Release notes templates
-│   ├── constants.py             # Path constants and GLOBAL_CONFIG
-│   ├── generate.py              # Generation logic
-│   ├── global.yml               # Shared terminology and configuration
-│   ├── hooks.py                 # MkDocs hooks
-│   ├── image_config.py          # ImageConfig class
-│   ├── macros.py                # MkDocs macros plugin
-│   ├── main.py                  # CLI entry point
-│   ├── sorter.py                # Sorting tiebreaker functions
-│   └── utils.py                 # Utility functions
-├── reference/                   # Generated reference pages
-├── releasenotes/                # Generated release notes
+│   │   ├── reference/                                  # Reference page templates
+│   │   └── releasenotes/                               # Release notes templates
+│   ├── constants.py                                    # Path constants and GLOBAL_CONFIG
+│   ├── generate.py                                     # Generation logic
+│   ├── global.yml                                      # Shared terminology and configuration
+│   ├── hooks.py                                        # MkDocs hooks
+│   ├── image_config.py                                 # ImageConfig class
+│   ├── macros.py                                       # MkDocs macros plugin
+│   ├── main.py                                         # CLI entry point
+│   ├── sorter.py                                       # Sorting tiebreaker functions
+│   └── utils.py                                        # Utility functions
+├── reference/                                          # Generated reference pages
+├── releasenotes/                                       # Generated release notes
 └── mkdocs.yml
 ```
 
@@ -55,16 +55,18 @@ Create `docs/src/data/<repository>/<version>-<accelerator>-<platform>.yml`:
 framework: PyTorch
 version: "2.9"
 accelerator: gpu              # gpu, cpu, or neuronx
-python: py312
 platform: ec2                 # ec2 or sagemaker
 tags:
   - "2.9.0-gpu-py312-cu130-ubuntu22.04-ec2"
 
 # Optional metadata
+python: py312
 cuda: cu130
 os: ubuntu22.04
 public_registry: true
 ```
+
+The YAML file name is for organizational purposes only. However, make sure that the image configuration file lives in the correct repository directory.
 
 See `docs/src/data/template/image-template.yml` for all available fields.
 
@@ -137,6 +139,10 @@ Release notes are generated automatically for images with `announcements` and `p
 
 Sections render in YAML order as bullet lists.
 
+Section headers in optional sections are rendered via the section key.
+To format your optional section headers, add a new field in `docs/src/global.yml` under `display_names` section.
+Eg: deprecation_notice section will render its header as `## deprecation_notice` unless a formatted string is provided in `docs/src/global.yml`.
+
 ______________________________________________________________________
 
 ## Adding a New Repository
@@ -181,6 +187,8 @@ columns:
 ```
 
 **Available fields:** `framework_version`, `python`, `cuda`, `sdk`, `accelerator`, `platform`, `os`, `example_url`, `version`, `ga`, `eop`, `framework_group`, `repository`, `release_note_link`
+To add additional fields, ensure that the image configuration YAML file contains said field of the same name.
+Additionally, if you require the field to be formatted, add an additional attribute in `ImageConfig` class of `display_<field_name>` to grab the formatted field.
 
 ______________________________________________________________________
 
@@ -195,6 +203,8 @@ pytorch:
     eop: "2025-10-29"
 ```
 
+Generally, this is only required if an image configuration file does not already exist and the image is already past its support.
+
 ______________________________________________________________________
 
 ## Global Configuration
@@ -204,7 +214,7 @@ ______________________________________________________________________
 - **Terminology:** `aws`, `dlc_long`, `sagemaker`, etc.
 - **display_names:** Repository and package display names
 - **framework_groups:** Support policy consolidation groups
-- **table_order:** Order of tables in available_images.md
+- **table_order:** Order of tables displayed within the documentations website (eg: available_images.md and support_policy.md)
 - **platforms/accelerators:** Display mappings
 
 ______________________________________________________________________
@@ -212,6 +222,9 @@ ______________________________________________________________________
 ## Running Generation
 
 ```bash
+# Help
+python main.py --help
+
 # Full generation
 python main.py --verbose
 
