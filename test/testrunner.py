@@ -303,13 +303,14 @@ def main():
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
-
-    # For PR context: Check if we need to skip telemetry for sglang ec2 tests
-    skip_sglang_telemetry_in_ec2 = (
-        build_context == "PR"
-        and all("sglang" in image_uri for image_uri in all_image_list)
-        and test_type == "ec2"
-    )
+    
+    # Skip telemetry tests for sglang in all contexts (PR and MAINLINE)
+    is_sglang_image = all("sglang" in image_uri for image_uri in all_image_list)
+    if is_sglang_image and specific_test_type == "telemetry":
+        LOGGER.info(f"NOTE: {specific_test_type} tests not supported on SGLang Containers. Skipping...")
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "sglang")
+        return
 
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
@@ -409,14 +410,14 @@ def main():
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
 
-            # Only set up EKS cluster for EKS tests, not EC2 tests
-            if specific_test_type == "eks":
-                eks_cluster_name = f"dlc-{framework}-{build_context}"
-                eks_utils.eks_setup()
-                if eks_utils.is_eks_cluster_active(eks_cluster_name):
-                    eks_utils.eks_write_kubeconfig(eks_cluster_name)
-                else:
-                    raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
+        #set up EKS cluster for EKS tests.
+        if specific_test_type == "eks":
+            eks_cluster_name = f"dlc-{framework}-{build_context}"
+            eks_utils.eks_setup()
+            if eks_utils.is_eks_cluster_active(eks_cluster_name):
+                eks_utils.eks_write_kubeconfig(eks_cluster_name)
+            else:
+                raise Exception(f"EKS cluster {eks_cluster_name} is not in active state")
 
         # Get specified tests if any
         specified_tests = os.getenv("SPECIFIED_TESTS")
@@ -431,19 +432,7 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
-
-        # Handle pytest -k parameter for test filtering
-        if skip_sglang_telemetry_in_ec2 and specified_tests:
-            # Both telemetry skip and specified tests
-            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
-            pytest_cmd.extend(["-k", f"({test_expr}) and not telemetry"])
-            LOGGER.info("Excluding telemetry tests from sglang ec2 suite in PR context")
-        elif skip_sglang_telemetry_in_ec2:
-            # Only telemetry skip
-            pytest_cmd.extend(["-k", "not telemetry"])
-            LOGGER.info("Excluding telemetry tests from sglang ec2 suite in PR context")
-        elif specified_tests:
-            # Only specified tests
+        if specified_tests:
             test_expr = " or ".join(f"test_{t}" for t in specified_tests)
             pytest_cmd.extend(["-k", f"({test_expr})"])
 

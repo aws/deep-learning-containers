@@ -13,7 +13,7 @@ import boto3
 import pytest
 from botocore.exceptions import ClientError
 
-from test.test_utils import get_account_id_from_image_uri
+from test.test_utils import get_account_id_from_image_uri, get_framework_and_version_from_tag
 from test.test_utils.ec2 import login_to_ecr_registry
 
 # Setup logging
@@ -24,7 +24,6 @@ LOGGER.setLevel(logging.INFO)
 # Test constants
 SGLANG_EC2_GPU_INSTANCE_TYPE = "g5.2xlarge"
 SGLANG_EC2_LARGE_GPU_INSTANCE_TYPE = "g6e.xlarge"
-SGLANG_VERSION = "0.5.6"
 DATASET_URL = "https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json"
 DEFAULT_REGION = "us-west-2"
 
@@ -226,11 +225,15 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
                     "HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models."
                 )
 
+        # Get SGLang version dynamically from image URI
+        _, sglang_version = get_framework_and_version_from_tag(sglang)
+        LOGGER.info(f"Detected SGLang version: {sglang_version}")
+
         # Clone SGLang source
         LOGGER.info("Cloning SGLang source repository...")
         ec2_connection.run("rm -rf /tmp/sglang_source", warn=True)
         ec2_connection.run(
-            f"git clone --branch v{SGLANG_VERSION} --depth 1 "
+            f"git clone --branch v{sglang_version} --depth 1 "
             f"https://github.com/sgl-project/sglang.git /tmp/sglang_source"
         )
 

@@ -1,1 +1,1 @@
-buildspec_pointer: buildspec-ec2.yml
+buildspec_pointer: buildspec-sm.yml
