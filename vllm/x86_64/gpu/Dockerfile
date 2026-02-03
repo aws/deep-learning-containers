@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONIOENCODING=UTF-8 \
-    LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib/x86_64-linux-gnu:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
     PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -57,6 +57,11 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
     && rm -rf /usr/local/cuda/bin/nvdisasm*  \
     && apt-get install -y git
+
+# TODO: remove this code when issue is fixed:
+# issue introduced by https://github.com/vllm-project/vllm/pull/30784
+# until https://github.com/vllm-project/vllm/pull/32377 is merged
+RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
