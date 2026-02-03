@@ -4,6 +4,22 @@ Available in Amazon ECR Public Gallery: https://gallery.ecr.aws/deep-learning-co
 
 All notable changes to SGLang Deep Learning Containers will be documented in this file.
 
+## [0.5.8] - 2025-01-27
+
+### Updated
+
+- SageMaker support for lmsysorg/sglang version `v0.5.8`, see [release note](https://github.com/sgl-project/sglang/releases/tag/v0.5.8) for details.
+- CUDA 12.9 and Python 3.12 compatibility
+- EFA installer version `1.46.0`
+
+## [0.5.7] - 2025-01-26
+
+### Updated
+
+- SageMaker support for lmsysorg/sglang version `v0.5.7`, see [release note](https://github.com/sgl-project/sglang/releases/tag/v0.5.7) for details.
+- CUDA 12.9 and Python 3.12 compatibility
+- EFA installer version `1.46.0`
+
 ## [0.5.6] - 2025-12-29
 
 ### Updated

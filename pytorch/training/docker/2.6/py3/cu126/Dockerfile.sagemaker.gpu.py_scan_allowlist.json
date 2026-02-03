@@ -1,3 +1,4 @@
 {
-  "77740": "Affected versions of this package are vulnerable to a potential Denial of Service (DoS) attack due to unbounded recursion when parsing untrusted Protocol Buffers data. The pure-Python implementation fails to enforce recursion depth limits when processing recursive groups, recursive messages, or a series of SGROUP tags, leading to stack overflow conditions that can crash the application by exceeding Python's recursion limit."
+  "77740": "Affected versions of this package are vulnerable to a potential Denial of Service (DoS) attack due to unbounded recursion when parsing untrusted Protocol Buffers data. The pure-Python implementation fails to enforce recursion depth limits when processing recursive groups, recursive messages, or a series of SGROUP tags, leading to stack overflow conditions that can crash the application by exceeding Python's recursion limit.",
+  "85151": "Protocol Buffers (protobuf) vulnerability CVE-85151 affecting versions prior to 6.33.5. Using latest available version 6.33.4 as 6.33.5 is not yet released on PyPI. Will upgrade when 6.33.5 becomes available."
 }
