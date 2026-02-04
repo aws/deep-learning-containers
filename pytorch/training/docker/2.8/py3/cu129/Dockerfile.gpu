@@ -252,8 +252,7 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify dependency s3fs
-    "awscli<1.42.50" \
-    "boto3<1.40.50" \
+    "awscli<=1.42.61" \
     smclarify \
     "sagemaker>=2.256.0,<3" \
     sagemaker-experiments \
