@@ -253,9 +253,10 @@ WORKDIR /
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify dependency s3fs
     "awscli<=1.42.61" \
+    "boto3<=1.40.61" \
     smclarify \
-    "sagemaker>=2.256.0,<3" \
-    sagemaker-experiments \
+    "sagemaker>=2.9.0,<3" \
+    "sagemaker-experiments<1" \
     sagemaker-pytorch-training \
     sagemaker-training \
     sniffio
