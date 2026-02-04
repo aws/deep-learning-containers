@@ -15,6 +15,7 @@
 import logging
 from pathlib import Path
 
+import sorter as sorter_module
 from constants import (
     AVAILABLE_IMAGES_TABLE_HEADER,
     GLOBAL_CONFIG,
@@ -34,7 +35,6 @@ from image_config import (
     sort_by_version,
 )
 from jinja2 import Template
-from sorter import accelerator_sorter, platform_sorter, repository_sorter
 from utils import (
     get_framework_order,
     load_jinja2,
@@ -43,6 +43,9 @@ from utils import (
     render_table,
     write_output,
 )
+
+DEFAULT_TIEBREAKERS = [sorter_module.platform_sorter, sorter_module.accelerator_sorter]
+
 
 LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +103,11 @@ def _generate_framework_index(
     for version in sorted_versions:
         sorted_images = sort_by_version(
             images_by_version[version],
-            tiebreakers=[repository_sorter, platform_sorter, accelerator_sorter],
+            tiebreakers=[
+                sorter_module.repository_sorter,
+                sorter_module.platform_sorter,
+                sorter_module.accelerator_sorter,
+            ],
         )
 
         supported = [img for img in sorted_images if img.is_supported]
@@ -290,8 +297,14 @@ def generate_available_images(dry_run: bool = False) -> str:
         columns = table_config.get("columns", [])
         has_public_registry = check_public_registry(images, repository)
 
-        # Sort images by version desc, platform, accelerator
-        images = sort_by_version(images, tiebreakers=[platform_sorter, accelerator_sorter])
+        # Sort images by version desc with tiebreakers from config or defaults
+        tiebreaker_names = table_config.get("tiebreakers")
+        tiebreakers = (
+            [getattr(sorter_module, name) for name in tiebreaker_names]
+            if tiebreaker_names
+            else DEFAULT_TIEBREAKERS
+        )
+        images = sort_by_version(images, tiebreakers=tiebreakers)
 
         # Build table
         headers = [col["header"] for col in columns]
