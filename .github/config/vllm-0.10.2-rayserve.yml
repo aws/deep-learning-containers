@@ -12,7 +12,7 @@ common:
   framework_version: "0.10.2"
   job_type: "general"
   python_version: "py312"
-  cuda_version: "cu129"
+  cuda_version: "cu128"
   os_version: "ubuntu22.04"
   customer_type: "rayserve_ec2"
   arch_type: "x86"
