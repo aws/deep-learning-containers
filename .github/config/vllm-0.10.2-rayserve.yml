@@ -1,0 +1,30 @@
+# vLLM RayServe Image Configuration
+# This file contains all configuration for building, testing, and releasing the vLLM RayServe image
+
+# Image identification
+image:
+  name: "vllm-rayserve"
+  description: "vLLM with RayServe for EC2 instances"
+
+# Build configuration
+common:
+  framework: "vllm"
+  framework_version: "0.10.2"
+  job_type: "general"
+  python_version: "py312"
+  cuda_version: "cu129"
+  os_version: "ubuntu22.04"
+  customer_type: "rayserve_ec2"
+  arch_type: "x86"
+  prod_image: "vllm:0.10-gpu-py312-rayserve"
+  device_type: "gpu"
+
+# Release configuration
+release:
+  release: true
+  force_release: false
+  public_registry: true
+  private_registry: false
+  enable_soci: true
+  source_stage: beta # private for gamma test
+  target_stage: release # gamma for gamma test
