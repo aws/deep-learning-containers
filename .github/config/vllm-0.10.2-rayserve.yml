@@ -21,7 +21,7 @@ common:
 
 # Release configuration
 release:
-  release: true
+  release: false
   force_release: false
   public_registry: true
   private_registry: false
