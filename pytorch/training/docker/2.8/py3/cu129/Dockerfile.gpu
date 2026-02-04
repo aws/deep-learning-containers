@@ -253,6 +253,7 @@ WORKDIR /
 RUN pip install --no-cache-dir -U \
     smclarify \
     "sagemaker>=2.256.0,<3" \
+    "s3fs>=2025.12.0" \
     sagemaker-experiments \
     sagemaker-pytorch-training \
     sagemaker-training \
