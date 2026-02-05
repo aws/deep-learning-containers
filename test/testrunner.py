@@ -297,11 +297,23 @@ def main():
             "functionality_sanity",
             "security_sanity",
             "sagemaker",
+            "ec2",
         }:
             LOGGER.info(
                 f"NOTE: {specific_test_type} tests not supported on sglang images. Skipping..."
             )
             return
+
+    # Skip telemetry tests for sglang in all contexts (PR and MAINLINE)
+    is_sglang_image = all("sglang" in image_uri for image_uri in all_image_list)
+    if is_sglang_image and specific_test_type == "telemetry":
+        LOGGER.info(
+            f"NOTE: {specific_test_type} tests not supported on SGLang Containers. Skipping..."
+        )
+        report = os.path.join(os.getcwd(), "test", f"{test_type}.xml")
+        sm_utils.generate_empty_report(report, test_type, "sglang")
+        return
+
     # quick_checks tests don't have images in it. Using a placeholder here for jobs like that
     try:
         framework, version = get_framework_and_version_from_tag(all_image_list[0])
@@ -389,7 +401,7 @@ def main():
         if specific_test_type in ["eks", "ec2"] and not is_all_images_list_eia:
             frameworks_in_images = [
                 framework
-                for framework in ("mxnet", "pytorch", "tensorflow", "vllm")
+                for framework in ("mxnet", "pytorch", "tensorflow", "vllm", "sglang")
                 if framework in dlc_images
             ]
             if len(frameworks_in_images) != 1:
@@ -403,6 +415,8 @@ def main():
                 run_vllm_tests(f"{specific_test_type}", all_image_list, new_test_structure_enabled)
                 return
 
+        # set up EKS cluster for EKS tests.
+        if specific_test_type == "eks":
             eks_cluster_name = f"dlc-{framework}-{build_context}"
             eks_utils.eks_setup()
             if eks_utils.is_eks_cluster_active(eks_cluster_name):
@@ -423,9 +437,17 @@ def main():
             f"--junitxml={report}",
             "-n=auto",
         ]
+
+        # Skip telemetry tests for sglang images or add specified tests filter
         if specified_tests:
             test_expr = " or ".join(f"test_{t}" for t in specified_tests)
+            if is_sglang_image and specific_test_type == "ec2":
+                test_expr = f"({test_expr}) and not telemetry"
+                LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
             pytest_cmd.extend(["-k", f"({test_expr})"])
+        elif is_sglang_image and specific_test_type == "ec2":
+            pytest_cmd.extend(["-k", "not telemetry"])
+            LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
