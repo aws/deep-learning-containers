@@ -322,13 +322,15 @@ jobs:
 
   release-rayserve-image:
     needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
-    if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
+    # Allow gamma releases from PRs (for testing), but block production releases
+    if: |
+      needs.generate-rayserve-release-spec.outputs.should-release == 'true' &&
+      (github.event_name != 'pull_request' || fromJson(needs.load-config.outputs.rayserve-config).release.environment == 'gamma')
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      source-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.source_stage }}
-      target-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.target_stage }}
+      environment: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
 

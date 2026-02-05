@@ -21,10 +21,9 @@ common:
 
 # Release configuration
 release:
-  release: false
+  release: true
   force_release: false
   public_registry: true
   private_registry: false
   enable_soci: true
-  source_stage: beta # private for gamma test
-  target_stage: release # gamma for gamma test
+  environment: production  # gamma or production
