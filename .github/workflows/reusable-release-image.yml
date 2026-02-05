@@ -200,6 +200,7 @@ jobs:
 
   step2-generate-info:
     needs: [step1-publish-images]
+    environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -253,6 +254,7 @@ jobs:
 
   step3-publish-notifications:
     needs: [step1-publish-images, step2-generate-info]
+    environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
