@@ -435,13 +435,16 @@ def main():
             "-n=auto",
         ]
 
-        # Skip telemetry tests for sglang images
-        if is_sglang_image and specific_test_type == "ec2":
+        # Skip telemetry tests for sglang images or add specified tests filter
+        if specified_tests:
+            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
+            if is_sglang_image and specific_test_type == "ec2":
+                test_expr = f"({test_expr}) and not telemetry"
+                LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
+            pytest_cmd.extend(["-k", f"({test_expr})"])
+        elif is_sglang_image and specific_test_type == "ec2":
             pytest_cmd.extend(["-k", "not telemetry"])
             LOGGER.info("Excluding telemetry tests from sglang ec2 suite")
-        elif specified_tests:
-            test_expr = " or ".join(f"test_{t}" for t in specified_tests)
-            pytest_cmd.extend(["-k", f"({test_expr})"])
 
         is_habana_image = any("habana" in image_uri for image_uri in all_image_list)
         if specific_test_type == "ec2":
