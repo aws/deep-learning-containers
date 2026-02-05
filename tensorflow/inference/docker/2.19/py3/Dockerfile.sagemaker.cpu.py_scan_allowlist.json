@@ -1,0 +1,3 @@
+{
+  "85151": "Protocol Buffers (protobuf) vulnerability CVE-85151 affecting versions prior to 6.33.5. Using latest available version 6.33.4 as 6.33.5 is not yet released on PyPI. Will upgrade when 6.33.5 becomes available."
+}
