@@ -40,7 +40,6 @@ jobs:
       - name: Validate release context
         run: |
           ENVIRONMENT="${{ inputs.environment }}"
-          EVENT_NAME="${{ github.event_name }}"
 
           # Validate environment input
           if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" ]]; then
@@ -49,26 +48,7 @@ jobs:
             exit 1
           fi
 
-          # # Block production releases from PRs
-          # if [ "${EVENT_NAME}" == "pull_request" ] && [ "${ENVIRONMENT}" == "production" ]; then
-          #   echo "❌ ERROR: Production releases cannot be triggered from pull requests"
-          #   echo "Production releases can only be triggered from main branch or scheduled runs"
-          #   echo ""
-          #   echo "Current context:"
-          #   echo "  Event: ${EVENT_NAME}"
-          #   echo "  Environment: ${ENVIRONMENT}"
-          #   echo ""
-          #   echo "To release to production, merge to main branch first."
-          #   exit 1
-          # fi
-
-          # # Allow gamma releases from PRs (for testing)
-          # if [ "${EVENT_NAME}" == "pull_request" ] && [ "${ENVIRONMENT}" == "gamma" ]; then
-          #   echo "✅ Gamma release from PR allowed (testing)"
-          # fi
-
           echo "✅ Release context validation passed"
-          echo "Event: ${EVENT_NAME}"
           echo "Ref: ${{ github.ref }}"
           echo "Environment: ${ENVIRONMENT}"
 
