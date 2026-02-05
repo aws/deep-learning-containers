@@ -221,8 +221,9 @@ def test_sglang_ec2_upstream(ec2_connection, sglang):
             if hf_token:
                 LOGGER.info("Using HF_TOKEN from environment variable")
             else:
-                pytest.skip(
-                    "HF_TOKEN not found in Secrets Manager or environment. Skipping test requiring gated models."
+                raise RuntimeError(
+                    "HF_TOKEN not found in Secrets Manager or environment. "
+                    "This test requires HF_TOKEN to access gated models."
                 )
 
         # Get SGLang version dynamically from image URI
