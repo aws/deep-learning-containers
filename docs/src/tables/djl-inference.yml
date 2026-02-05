@@ -12,3 +12,8 @@ columns:
     header: "Platform"
   - field: example_url
     header: "Example URL"
+
+tiebreakers:
+  - platform_sorter
+  - accelerator_sorter
+  - engine_sorter
