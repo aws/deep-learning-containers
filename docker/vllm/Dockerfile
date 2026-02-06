@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.15.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.15.1
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base

@@ -21,7 +21,7 @@ env:
   OS_VERSION: "ubuntu22.04"
 
   # vLLM EC2
-  VLLM_VERSION: 0.15.0
+  VLLM_VERSION: 0.15.1
   PROD_EC2_IMAGE: vllm:0.15-gpu-py312-ec2
 
   # vLLM SageMaker
@@ -192,7 +192,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -238,7 +238,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -284,7 +284,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -594,7 +594,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -640,7 +640,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
@@ -686,7 +686,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_0_test_setup.sh
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM tests
         run: |
