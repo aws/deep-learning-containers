@@ -1,7 +1,8 @@
 name: vLLM_RAYSERVE_AUTO_RELEASE
 
 on:
-
+  # schedule run must be on the default branch
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
   schedule:
     # Runs at 10:00 AM PST/PDT on Monday and Wednesday
     # Note: GitHub Actions uses UTC time. PST is UTC-8, PDT is UTC-7
@@ -318,8 +319,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      source-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.source_stage }}
-      target-stage: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.target_stage }}
+      environment: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
 

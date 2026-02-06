@@ -14,12 +14,8 @@ on:
         description: 'Release specification YAML content'
         required: true
         type: string
-      source-stage:
-        description: 'Source stage (e.g., private, beta)'
-        required: true
-        type: string
-      target-stage:
-        description: 'Target stage (e.g., gamma, release)'
+      environment:
+        description: 'Deployment environment (gamma or production)'
         required: true
         type: string
       aws-region:
@@ -38,7 +34,27 @@ on:
         value: ${{ jobs.step1-publish-images.outputs.run-identifier }}
 
 jobs:
+  validate-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release context
+        run: |
+          ENVIRONMENT="${{ inputs.environment }}"
+
+          # Validate environment input
+          if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" ]]; then
+            echo "❌ ERROR: Invalid environment '${ENVIRONMENT}'"
+            echo "Valid environments: gamma, production"
+            exit 1
+          fi
+
+          echo "✅ Release context validation passed"
+          echo "Ref: ${{ github.ref }}"
+          echo "Environment: ${ENVIRONMENT}"
+
   step1-publish-images:
+    needs: [validate-release]
+    environment: ${{ inputs.environment }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -107,13 +123,16 @@ jobs:
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
           echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
           echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
-          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
-          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
 
           echo "run-identifier=${RUN_IDENTIFIER}" >> ${GITHUB_OUTPUT}
           echo "metadata-file-name=release_metadata_${RUN_IDENTIFIER}.dict" >> ${GITHUB_OUTPUT}
 
           echo "Generated run identifier: ${RUN_IDENTIFIER}"
+          echo "Environment: ${{ inputs.environment }}"
+          echo "Source stage: ${{ vars.SOURCE_STAGE }}"
+          echo "Target stage: ${{ vars.TARGET_STAGE }}"
 
       - name: Publish DLC Images
         id: publish
@@ -161,6 +180,7 @@ jobs:
 
   step2-generate-info:
     needs: [step1-publish-images]
+    environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -189,8 +209,8 @@ jobs:
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
           echo "METADATA_FILE=${METADATA_FILE}" >> ${GITHUB_ENV}
           echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
-          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
-          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
 
       - name: Generate Release Information
         run: |
@@ -214,6 +234,7 @@ jobs:
 
   step3-publish-notifications:
     needs: [step1-publish-images, step2-generate-info]
+    environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -233,8 +254,8 @@ jobs:
           RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
           echo "RUN_IDENTIFIER=${RUN_IDENTIFIER}" >> ${GITHUB_ENV}
           echo "REGION=${{ inputs.aws-region }}" >> ${GITHUB_ENV}
-          echo "SOURCE_STAGE=${{ inputs.source-stage }}" >> ${GITHUB_ENV}
-          echo "TARGET_STAGE=${{ inputs.target-stage }}" >> ${GITHUB_ENV}
+          echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
+          echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
 
       - name: Publish Release Information
         run: |
