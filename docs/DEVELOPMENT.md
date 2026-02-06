@@ -239,6 +239,46 @@ cd docs && mkdocs serve
 
 ______________________________________________________________________
 
+## Local Documentation Development
+
+### Generation Only (No Server)
+
+Run `main.py` to generate documentation without serving:
+
+```bash
+cd docs/src && python main.py --verbose
+```
+
+This automatically clones `tutorials/` repository and generates markdown files in `reference/` and `releasenotes/` directories without starting a web server.
+
+### Serving Locally
+
+Use `mkdocs serve` to automatically clone `tutorials/` and generate documentation in `reference/` and `releasenotes/` and serve the website:
+
+```bash
+cd docs && mkdocs serve
+```
+
+The site is typically available at `http://127.0.0.1:8000/deep-learning-containers/` - check the command output for the actual URL.
+
+### Live Reload
+
+Enable automatic reload on content changes:
+
+```bash
+mkdocs serve --livereload
+```
+
+**Note:** Live reload only detects changes to:
+
+- Markdown file content
+- `.nav.yml` content
+- `mkdocs.yml` content
+
+Live reload does **not** detect changes requiring documentation regeneration (e.g., image config YAML files, templates). To regenerate documentation, stop the server (`Ctrl+C`) and rerun `mkdocs serve`.
+
+______________________________________________________________________
+
 ## Troubleshooting
 
 | Error | Solution |
