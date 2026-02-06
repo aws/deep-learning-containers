@@ -1,0 +1,3 @@
+{
+    "85151": "DoS vulnerability in protobuf <=6.33.4. Fix requires protobuf>6.33.4, but SageMaker SDK 2.254.1 constrains protobuf. This is SageMaker-specific and does not affect EC2 images."
+}
