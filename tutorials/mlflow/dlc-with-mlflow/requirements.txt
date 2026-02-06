@@ -1,0 +1,8 @@
+pandas==2.3.2
+scikit-learn==1.7.1
+matplotlib==3.10.5
+seaborn==0.13.2
+boto3==1.40.20
+sagemaker-mlflow==0.1.0
+mlflow==3.0.0
+joblib==1.5.2

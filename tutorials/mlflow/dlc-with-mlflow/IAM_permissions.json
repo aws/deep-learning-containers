@@ -1,0 +1,55 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sagemaker:DescribeMLflowTrackingServer",
+                "sagemaker-mlflow:CreateExperiment",
+                "sagemaker-mlflow:GetExperiment",
+                "sagemaker-mlflow:SearchExperiments",
+                "sagemaker-mlflow:CreateRun",
+                "sagemaker-mlflow:UpdateRun",
+                "sagemaker-mlflow:LogMetric",
+                "sagemaker-mlflow:LogParam",
+                "sagemaker-mlflow:LogModel",
+                "sagemaker-mlflow:CreateRegisteredModel",
+                "sagemaker-mlflow:GetExperimentByName",
+                "sagemaker-mlflow:GetRun",
+                "sagemaker-mlflow:LogOutputs",
+                "sagemaker-mlflow:FinalizeLoggedModel",
+                "sagemaker-mlflow:GetMetricHistory",
+                "sagemaker-mlflow:LogBatch",
+                "sagemaker-mlflow:GetLoggedModel",
+                "sagemaker-mlflow:CreateModelVersion",
+                "sagemaker-mlflow:SetLoggedModelTags",
+                "sagemaker-mlflow:LogInputs",
+                "sagemaker-mlflow:SetTag"
+            ],
+            "Resource": "arn:aws:sagemaker:us-east-1:999999999999:mlflow-tracking-server/Mlflow3"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ecr:GetAuthorizationToken",
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage"
+            ],
+            "Resource": "arn:aws:ecr:us-east-1:763104351884:repository/tensorflow-training"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "s3:PutObject"
+            ],
+            "Resource": [
+                "arn:aws:s3:::999999999999-mlflow/Mlflow3/*"
+            ]
+        }
+    ]
+}

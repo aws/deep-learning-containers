@@ -1,0 +1,11 @@
+# Streamlit UI requirements
+streamlit>=1.39.0
+strands-agents==1.13.0
+strands-agents-tools==0.2.12
+boto3>=1.35.0
+mcp==1.16.0
+fastmcp==2.12.5
+plotly==5.24.1
+pandas==2.2.3
+requests==2.32.5
+rich>=14.0.0
