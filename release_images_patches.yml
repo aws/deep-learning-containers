@@ -5,13 +5,13 @@ release_images:
   1:
     framework: "pytorch"
     version: "2.6.0"
-    customer_type: "ec2"
     arch_type: "x86"
-    training:
+    customer_type: "ec2"
+    inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
-      cuda_version: "cu126"
+      cuda_version: "cu124"
       example: False
       disable_sm_tag: False
       force_release: False
@@ -19,46 +19,18 @@ release_images:
   2:
     framework: "pytorch"
     version: "2.6.0"
-    customer_type: "sagemaker"
     arch_type: "x86"
-    training:
+    customer_type: "sagemaker"
+    inference:
       device_types: [ "cpu", "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
-      cuda_version: "cu126"
+      cuda_version: "cu124"
       example: False
       disable_sm_tag: False
       force_release: False
       public_registry: True
   3:
-    framework: "pytorch"
-    version: "2.6.0"
-    arch_type: "x86"
-    customer_type: "ec2"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-  4:
-    framework: "pytorch"
-    version: "2.6.0"
-    arch_type: "x86"
-    customer_type: "sagemaker"
-    inference:
-      device_types: [ "cpu", "gpu" ]
-      python_versions: [ "py312" ]
-      os_version: "ubuntu22.04"
-      cuda_version: "cu124"
-      example: False
-      disable_sm_tag: False
-      force_release: False
-      public_registry: True
-  5:
     framework: "pytorch"
     version: "2.6.0"
     arch_type: "arm64"
@@ -72,7 +44,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
-  6:
+  4:
     framework: "pytorch"
     version: "2.6.0"
     arch_type: "arm64"
@@ -87,7 +59,7 @@ release_images:
       public_registry: True
   
   # PyTorch 2.7 Images
-  7:
+  5:
     framework: "pytorch"
     version: "2.7.0"
     customer_type: "ec2"
@@ -102,7 +74,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  8:
+  6:
     framework: "pytorch"
     version: "2.7.1"
     customer_type: "ec2"
@@ -117,7 +89,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  9:
+  7:
     framework: "pytorch"
     version: "2.7.1"
     customer_type: "sagemaker"
@@ -134,7 +106,7 @@ release_images:
       enable_soci: True
   
   # PyTorch 2.8 Images
-  10:
+  8:
     framework: "pytorch"
     version: "2.8.0"
     customer_type: "ec2"
@@ -149,7 +121,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  11:
+  9:
     framework: "pytorch"
     version: "2.8.0"
     customer_type: "sagemaker"
@@ -166,7 +138,7 @@ release_images:
       enable_soci: True
 
   # PyTorch 2.9 Images
-  12:
+  10:
     framework: "pytorch"
     version: "2.9.0"
     customer_type: "ec2"
@@ -181,7 +153,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  13:
+  11:
     framework: "pytorch"
     version: "2.9.0"
     customer_type: "sagemaker"
@@ -198,7 +170,7 @@ release_images:
       enable_soci: True
 
   # TensorFlow 2.19 Images
-  14:
+  12:
     framework: "tensorflow"
     version: "2.19.0"
     customer_type: "sagemaker"
@@ -213,7 +185,7 @@ release_images:
       force_release: False
       public_registry: True
       enable_soci: True
-  15:
+  13:
     framework: "tensorflow"
     version: "2.19.0"
     arch_type: "x86"
@@ -227,7 +199,7 @@ release_images:
       disable_sm_tag: False
       force_release: False
       public_registry: True
-  16:
+  14:
     framework: "tensorflow"
     version: "2.19.0"
     arch_type: "arm64"
