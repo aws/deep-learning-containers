@@ -253,7 +253,7 @@ This automatically clones `tutorials/` repository and generates markdown files i
 
 ### Serving Locally
 
-Use `mkdocs serve` to automatically clone `tutorials/` generate documentation in `reference/` and `releasenotes/` and serve the website:
+Use `mkdocs serve` to automatically clone `tutorials/` and generate documentation in `reference/` and `releasenotes/` and serve the website:
 
 ```bash
 cd docs && mkdocs serve
