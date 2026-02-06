@@ -193,7 +193,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   "setuptools>=75.6.0" \
+   "setuptools==75.6.0" \
    wheel
 
 # Some TF tools expect a "python" binary
@@ -361,7 +361,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     shap
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    "jupyterlab>=4.3.5" \
+    "jupyterlab==4.3.5" \
     sagemaker \
     sagemaker-experiments==0.* \
     sagemaker-tensorflow-training \
