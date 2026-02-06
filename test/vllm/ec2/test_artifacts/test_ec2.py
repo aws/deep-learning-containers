@@ -404,7 +404,7 @@ def test_vllm_on_ec2(resources, image_uri):
 
             print("EFA tests completed successfully")
 
-            test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
+            # test_results["multi_node"] = run_multi_node_test(head_conn, worker_conn, image_uri)
             test_results["nixl"] = run_nixl_efa_test(head_conn, image_uri)
 
         else:

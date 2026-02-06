@@ -148,7 +148,7 @@ release_images:
       enable_soci: True
   11:
     framework: "vllm"
-    version: "0.15.0"
+    version: "0.15.1"
     arch_type: "x86"
     customer_type: "ec2"
     general:
@@ -163,7 +163,7 @@ release_images:
       enable_soci: True
   12:
     framework: "vllm"
-    version: "0.15.0"
+    version: "0.15.1"
     arch_type: "x86"
     customer_type: "sagemaker"
     general:
