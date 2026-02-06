@@ -6,7 +6,7 @@
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# Required Fields
+# Common Fields
 # -----------------------------------------------------------------------------
 
 # Framework display name (e.g., "PyTorch", "TensorFlow")
@@ -17,9 +17,6 @@ version: "2.9"
 
 # Accelerator type: gpu, cpu, or neuronx
 accelerator: gpu
-
-# Python version identifier (e.g., py310, py311, py312)
-python: py312
 
 # Target platform: ec2 or sagemaker
 platform: ec2
@@ -36,6 +33,9 @@ tags:
 # These fields are used as part of columns in tables/<repository>.yml
 # For example, if you require a column called "foo",
 # add foo field here and in your desired table YAML file.
+
+# Python version identifier (e.g., py310, py311, py312)
+python: py312
 
 # CUDA version identifier (for GPU images)
 cuda: cu130

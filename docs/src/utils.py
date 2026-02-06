@@ -85,6 +85,11 @@ def parse_version(version_str: str | None) -> Version:
 def clone_git_repository(git_repository: str, target_dir: str | Path) -> None:
     """Clone a git repository to target directory if it doesn't exist."""
     if os.path.exists(target_dir):
+        LOGGER.info(
+            f"{git_repository} already exists within {target_dir}"
+            "If you want to pull the latest commit of the repository, either delete the repository and re-run generation"
+            f"or manually run `git pull` within the {target_dir}"
+        )
         return
     subprocess.run(["git", "clone", "--depth", "1", git_repository, target_dir], check=True)
 
