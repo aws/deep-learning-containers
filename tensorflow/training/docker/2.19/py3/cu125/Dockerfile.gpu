@@ -193,7 +193,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   "setuptools>=75.6.0" \
+   "setuptools>=81.0.0" \
    wheel
 
 # Some TF tools expect a "python" binary
