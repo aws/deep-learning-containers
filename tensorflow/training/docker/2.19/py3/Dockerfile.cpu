@@ -133,10 +133,13 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 # Install uv for faster package management
 RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
 
-# Upgrade pip and setuptools (setuptools>=81.0.0 fixes CVE-2026-23949)
+# Upgrade pip and setuptools
+# setuptools==81.0.0 fixes CVE-2026-23949 and still includes pkg_resources
+# (pkg_resources is deprecated but not removed until late 2025)
 RUN uv pip install --system --no-cache \
     pip \
-    "setuptools>=81.0.0"
+    "setuptools==81.0.0" \
+    wheel
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
