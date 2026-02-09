@@ -1,0 +1,27 @@
+framework: Base
+version: "13.0.2"
+accelerator: gpu
+python: py313
+cuda: cu130
+os: ubuntu22.04
+platform: ec2
+ga: "2026-02-09"
+eop: "2027-02-09"
+public_registry: true
+
+tags:
+  - "13.0.2-gpu-py313-cu130-ubuntu22.04-ec2"
+  - "13.0.2-gpu-py313-ubuntu22.04-ec2"
+  - "13.0-gpu-py313-cu130-ubuntu22.04-ec2"
+  - "13.0-gpu-py313-ubuntu22.04-ec2"
+
+announcements:
+  - "Introduced Base containers with CUDA 13.0.2 for EC2, ECS, EKS"
+  - "Added Python 3.13 support"
+
+packages:
+  python: "3.13.11"
+  cuda: "13.0.2"
+  cudnn: "9.15.1.9"
+  nccl: "2.28.9-1"
+  efa: "1.47.0"
