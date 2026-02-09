@@ -5,7 +5,7 @@ framework: &FRAMEWORK tensorflow
 version: &VERSION 2.19.0
 short_version: &SHORT_VERSION "2.19"
 arch_type: x86
-autopatch_build: "True"
+autopatch_build: "False"
 
 repository_info:
   training_repository: &TRAINING_REPOSITORY
@@ -36,7 +36,7 @@ images:
   BuildTensorflowSageMakerCpuPy310TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_CPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 7500
+    image_size_baseline: &IMAGE_SIZE_BASELINE 14000
     device_type: &DEVICE_TYPE cpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
@@ -52,7 +52,7 @@ images:
   BuildTensorflowSageMakerGpuPy310Cu125TrainingDockerImage:
     <<: *TRAINING_REPOSITORY
     build: &TENSORFLOW_GPU_TRAINING_PY3 false
-    image_size_baseline: &IMAGE_SIZE_BASELINE 11998
+    image_size_baseline: &IMAGE_SIZE_BASELINE 21000
     device_type: &DEVICE_TYPE gpu
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
