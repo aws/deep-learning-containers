@@ -249,17 +249,11 @@ RUN apt-get update  \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# https://github.com/yaml/pyyaml/issues/601
-# PyYaml less than 6.0.1 failes to build with cython v3 and above.
-# tf-models-official uses older versions, breaking the install.
-# going to install the older pyyaml and cython to get tfd-models-official
-# the sagemaker package will revert pyyaml back to 6 for its requirement
-# and this is fine since sagemaker is more important than the models and
-# the models still work on pyyaml 6 in this context.
+# Install wheel first, then pyyaml>=6.0.1 which has pre-built wheels
+# Note: pyyaml<6 is incompatible with setuptools>=81.0.0
 RUN uv pip install --system --no-cache \
     wheel \
-    "cython<3" \
-    "pyyaml<6"
+    "pyyaml>=6.0.1"
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF

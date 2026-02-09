@@ -319,13 +319,11 @@ ARG TF_URL
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-# https://github.com/yaml/pyyaml/issues/601
-# PyYaml less than 6.0.1 failes to build with cython v3 and above.
-# tf-models-official uses older versions, breaking the install.
+# Install wheel first, then pyyaml>=6.0.1 which has pre-built wheels
+# Note: pyyaml<6 is incompatible with setuptools>=81.0.0
 RUN uv pip install --system --no-cache \
     wheel \
-    "cython<3" \
-    "pyyaml<6"
+    "pyyaml>=6.0.1"
 
 # Pin numpy to 1.26.4
 RUN uv pip install --system --no-cache "numpy==1.26.4"
