@@ -1,9 +1,9 @@
 account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
 prod_account_id: &PROD_ACCOUNT_ID 763104351884
 region: &REGION <set-$REGION-in-environment>
-framework: &FRAMEWORK vllm
-version: &VERSION "0.15.1"
-short_version: &SHORT_VERSION "0.15"
+framework: &FRAMEWORK sglang
+version: &VERSION "0.5.6"
+short_version: &SHORT_VERSION "0.5"
 arch_type: &ARCH_TYPE x86_64
 autopatch_build: "False"
 
@@ -24,12 +24,15 @@ context:
     install_efa:
       source: scripts/install_efa.sh
       target: install_efa.sh
+    start_cuda_compat:
+      source: sglang/build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
     sagemaker_entrypoint:
-      source: vllm/build_artifacts/sagemaker_entrypoint.sh
-      target: sagemaker_entrypoint.sh
+      source: sglang/build_artifacts/dockerd_entrypoint.sh
+      target: dockerd_entrypoint.sh
 
 images:
-  vllm_sm:
+  sglang_ec2:
     <<: *BUILD_REPOSITORY
     context:
       <<: *BUILD_CONTEXT
@@ -39,15 +42,15 @@ images:
     python_version: &DOCKER_PYTHON_VERSION py3
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
-    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    latest_release_tag: !join [ *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-ec2" ]
+    skip_build: "False"
     docker_file: !join [ *FRAMEWORK, /, *ARCH_TYPE, /, *DEVICE_TYPE, /Dockerfile ]
-    target: vllm-sagemaker
+    target: sglang-ec2
     build: true
     enable_common_stage_build: false
     test_configs:
       test_platforms:
         - sanity
         - security
-        - sagemaker
-        # - eks
+        - ec2

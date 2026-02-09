@@ -109,6 +109,8 @@ FRAMEWORK_FIXTURES = (
     "pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
+    # SGLang
+    "sglang",
     # Processor fixtures
     "gpu",
     "cpu",
