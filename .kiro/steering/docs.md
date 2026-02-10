@@ -14,13 +14,16 @@ The documentation uses an automatic generation system for `index.md`, `available
 
 ### Homepage Generation (README.md → index.md)
 
-`README.md` at the repository root is the **source of truth** for the homepage. It uses hardcoded display names and absolute URLs to `SITE_URL` (`https://aws.github.io/deep-learning-containers/`) so it renders correctly on GitHub.
+`README.md` at the repository root is the **source of truth** for the homepage. It uses hardcoded display names and absolute URLs to `SITE_URL` (`https://aws.github.io/deep-learning-containers/`) so it renders correctly on GitHub. HTML elements use `align="center"` (not `style="text-align:center"`) for GitHub compatibility.
 
 `docs/index.md` is **generated** (listed in `.gitignore`) by `generate_index()` which:
 
 1. Reads `README.md` content
 1. Strips `SITE_URL` prefix from absolute URLs to produce relative links (e.g., `reference/available_images/`)
+1. Expands the single README logo into dual MkDocs theme-aware logos (`#only-light`/`#only-dark`)
 1. Wraps content in `templates/index.template.md` (adds MkDocs frontmatter)
+
+**Logo handling:** README.md contains a single light logo (`AWS_logo_RGB.svg`) so GitHub shows one image. `generate_index()` uses `str.replace()` to expand it into two `<img>` tags with `#only-light` and `#only-dark` fragment identifiers that MkDocs Material uses for theme switching.
 
 Internal doc links in README.md use trailing-slash format (e.g., `https://aws.github.io/deep-learning-containers/security/`). After SITE_URL stripping, these become relative directory-style links that MkDocs resolves automatically.
 
