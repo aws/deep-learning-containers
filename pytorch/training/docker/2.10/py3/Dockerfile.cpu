@@ -229,6 +229,9 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
+# Install setuptools for pkg_resources required by piplicenses (Python 3.12+ compatibility)
+RUN pip install --no-cache-dir setuptools
+
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
