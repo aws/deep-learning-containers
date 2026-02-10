@@ -10,13 +10,28 @@ Within this documentations page, website navigation through `.nav.yml` file shou
 
 ## Documentation Generation System
 
-The documentation uses an automatic generation system for `available_images.md`, `support_policy.md`, and release notes.
+The documentation uses an automatic generation system for `index.md`, `available_images.md`, `support_policy.md`, and release notes.
+
+### Homepage Generation (README.md → index.md)
+
+`README.md` at the repository root is the **source of truth** for the homepage. It uses hardcoded display names and absolute URLs to `SITE_URL` (`https://aws.github.io/deep-learning-containers/`) so it renders correctly on GitHub.
+
+`docs/index.md` is **generated** (listed in `.gitignore`) by `generate_index()` which:
+
+1. Reads `README.md` content
+1. Strips `SITE_URL` prefix from absolute URLs to produce relative links (e.g., `reference/available_images/`)
+1. Wraps content in `templates/index.template.md` (adds MkDocs frontmatter)
+
+Internal doc links in README.md use trailing-slash format (e.g., `https://aws.github.io/deep-learning-containers/security/`). After SITE_URL stripping, these become relative directory-style links that MkDocs resolves automatically.
+
+To update the homepage, edit `README.md` and regenerate: `python docs/src/main.py --index-only`
 
 ### Directory Structure
 
 ```
 docs/src/
 ├── templates/
+│   ├── index.template.md          # Homepage template (wraps README.md content)
 │   ├── reference/                 # Reference page templates
 │   │   ├── available_images.template.md
 │   │   └── support_policy.template.md
@@ -56,11 +71,11 @@ docs/src/
 
 ### File Responsibilities
 
-- `constants.py` - Path constants, global variables, `GLOBAL_CONFIG`, and `RELEASE_NOTES_REQUIRED_FIELDS`
+- `constants.py` - Path constants, global variables, `GLOBAL_CONFIG`, `SITE_URL`, `README_PATH`, and `RELEASE_NOTES_REQUIRED_FIELDS`
 - `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`, `repository_sorter`
 - `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_ecr_uri()`, `build_public_ecr_uri()`, `get_framework_order()`
 - `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`, `load_images_by_framework_group`), `sort_by_version`, `get_latest_image_uri`, `build_image_row`, `check_public_registry`
-- `generate.py` - `generate_support_policy()`, `generate_available_images()`, `generate_release_notes()`, `generate_all()`
+- `generate.py` - `generate_index()`, `generate_support_policy()`, `generate_available_images()`, `generate_release_notes()`, `generate_all()`
 - `macros.py` - MkDocs macros plugin integration
 - `hooks.py` - MkDocs hooks entry point
 
@@ -398,6 +413,7 @@ cd docs/src && python main.py --verbose
 python main.py --available-images-only
 python main.py --support-policy-only
 python main.py --release-notes-only
+python main.py --index-only
 
 # With MkDocs (automatic via hooks)
 mkdocs serve
