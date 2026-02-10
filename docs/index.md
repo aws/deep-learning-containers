@@ -11,7 +11,7 @@ hide:
 <p style="text-align:center"><strong>One stop shop for running AI/ML on {{ aws }}</strong></p>
 
 <p style="text-align:center"><a href="https://aws.amazon.com/ai/machine-learning/containers/"><strong>{{ aws }} Doc</strong></a> ·
-<a href="reference/available_images.md"><strong>Available Images</strong></a> · <a href="tutorials/index.md"><strong>Tutorials</strong></a></p>
+<a href="reference/available_images/"><strong>Available Images</strong></a> · <a href="tutorials/"><strong>Tutorials</strong></a></p>
 
 * * *
 
