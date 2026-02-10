@@ -19,6 +19,12 @@ ______________________________________________________________________
 - **[2025/11/17]** Released first [SGLang DLCs](https://gallery.ecr.aws/deep-learning-containers/sglang)
   - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 
+### 📢 Support Updates
+
+- **[2026/02/10]** Extended support for PyTorch 2.6 Inference containers until June 30, 2026
+  - PyTorch 2.6 Inference images will continue to receive security patches and updates through end of June 2026
+  - For complete framework support timelines, see our [Support Policy](https://aws.github.io/deep-learning-containers/reference/support_policy/)
+
 ### 🎉 Hot Off the Press
 
 - 🌐
