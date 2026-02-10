@@ -1,10 +1,4 @@
-<div style="text-align:center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB_REV.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB.svg">
-  <img alt="AWS Deep Learning Containers" src="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB.svg" width="30%">
-</picture>
-</div>
+<div style="text-align:center"> <img src="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%"> </div>
 
 <h1 style="text-align: center;">AWS Deep Learning Containers</h1>
 
