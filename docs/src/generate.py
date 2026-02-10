@@ -25,6 +25,7 @@ from constants import (
     REFERENCE_DIR,
     RELEASE_NOTES_DIR,
     RELEASE_NOTES_TABLE_HEADER,
+    SITE_URL,
     TEMPLATES_DIR,
 )
 from image_config import (
@@ -343,6 +344,7 @@ def generate_index(dry_run: bool = False) -> str:
     LOGGER.debug(f"Generating {output_path}")
 
     readme_content = README_PATH.read_text()
+    readme_content = readme_content.replace(SITE_URL, "")
     template = Template(load_jinja2(template_path))
     content = template.render(readme_content=readme_content)
 
