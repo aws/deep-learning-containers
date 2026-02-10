@@ -1,10 +1,10 @@
-<div style="text-align:center"> <img src="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%"> </div>
+<div align="center"> <img src="https://aws.github.io/deep-learning-containers/assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%"> </div>
 
-<h1 style="text-align: center;">AWS Deep Learning Containers</h1>
+<h1 align="center">AWS Deep Learning Containers</h1>
 
-<p style="text-align:center"><strong>One stop shop for running AI/ML on AWS</strong></p>
+<p align="center"><strong>One stop shop for running AI/ML on AWS</strong></p>
 
-<p style="text-align:center"><a href="https://aws.amazon.com/ai/machine-learning/containers/"><strong>AWS Doc</strong></a> ·
+<p align="center"><a href="https://aws.amazon.com/ai/machine-learning/containers/"><strong>AWS Doc</strong></a> ·
 <a href="https://aws.github.io/deep-learning-containers/reference/available_images/"><strong>Available Images</strong></a> · <a href="https://aws.github.io/deep-learning-containers/tutorials/"><strong>Tutorials</strong></a></p>
 
 ______________________________________________________________________
