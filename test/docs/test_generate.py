@@ -119,7 +119,9 @@ class TestDateConsistencyValidation:
         indirect=True,
         ids=["inconsistent_eop", "inconsistent_ga", "both_inconsistent"],
     )
-    def test_inconsistent_dates_raises(self, mock_paths, mock_repo_images):
-        """Test that inconsistent dates across repos in same framework group raise ValueError."""
-        with pytest.raises(ValueError, match="Inconsistent dates"):
-            generate_support_policy(dry_run=True)
+    def test_inconsistent_dates_splits_rows(self, mock_paths, mock_repo_images):
+        """Test that inconsistent dates across repos split into individual repository rows."""
+        content = generate_support_policy(dry_run=True)
+        assert "Repo A" in content
+        assert "Repo B" in content
+        assert "Test Group" not in content
