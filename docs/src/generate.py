@@ -18,11 +18,14 @@ from pathlib import Path
 import sorter as sorter_module
 from constants import (
     AVAILABLE_IMAGES_TABLE_HEADER,
+    DOCS_DIR,
     GLOBAL_CONFIG,
     PUBLIC_GALLERY_URL,
+    README_PATH,
     REFERENCE_DIR,
     RELEASE_NOTES_DIR,
     RELEASE_NOTES_TABLE_HEADER,
+    SITE_URL,
     TEMPLATES_DIR,
 )
 from image_config import (
@@ -334,10 +337,39 @@ def generate_available_images(dry_run: bool = False) -> str:
     return content
 
 
+def generate_index(dry_run: bool = False) -> str:
+    """Generate docs/index.md from README.md content."""
+    output_path = DOCS_DIR / "index.md"
+    template_path = TEMPLATES_DIR / "index.template.md"
+    LOGGER.debug(f"Generating {output_path}")
+
+    readme_content = README_PATH.read_text()
+    readme_content = readme_content.replace(SITE_URL, "")
+
+    # Expand single logo into MkDocs theme-aware light/dark logos
+    readme_logo = '<img src="assets/logos/AWS_logo_RGB.svg" alt="AWS Logo" width="30%">'
+    mkdocs_logos = (
+        '<img src="assets/logos/AWS_logo_RGB.svg#only-light" alt="AWS Logo" width="30%">\n'
+        '<img src="assets/logos/AWS_logo_RGB_REV.svg#only-dark" alt="AWS Logo" width="30%">'
+    )
+    readme_content = readme_content.replace(readme_logo, mkdocs_logos)
+
+    template = Template(load_jinja2(template_path))
+    content = template.render(readme_content=readme_content)
+
+    if not dry_run:
+        write_output(output_path, content)
+        LOGGER.debug(f"Wrote {output_path}")
+
+    LOGGER.info("Generated index.md")
+    return content
+
+
 def generate_all(dry_run: bool = False) -> None:
     """Generate all documentation files."""
     LOGGER.info("Loaded global config")
 
+    generate_index(dry_run)
     generate_support_policy(dry_run)
     generate_available_images(dry_run)
     generate_release_notes(dry_run)
