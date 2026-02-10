@@ -1,25 +1,59 @@
-# Documentation Development Runbook
+# Documentation Website Guide
+
+Guide for setting up, running, and configuring the MkDocs documentation site. For adding or modifying generated content (images, release notes, support policy), see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Prerequisites
 
-Follow the environment setup instructions in [DEVELOPMENT.md](../DEVELOPMENT.md), then install documentation dependencies:
-
 ```bash
+# Set up virtual environment from repository root
+cd /path/to/deep-learning-containers
+python -m venv .venv
+source .venv/bin/activate
 pip install -r docs/requirements.txt
 ```
 
 ## Local Development
 
-Start the development server with live reload:
+### Generation Only
 
+Run the generation system without serving:
 ```bash
-mkdocs serve
+cd docs/src && python main.py --verbose
 ```
+This clones the `tutorials/` repository and generates markdown files in `reference/` and `releasenotes/` directories.
+
+Generation flags:
+```bash
+python main.py --available-images-only
+python main.py --support-policy-only
+python main.py --release-notes-only
+python main.py --index-only
+```
+
+### Serving
+
+Use `mkdocs serve` to generate documentation and serve the website:
+```bash
+cd docs && mkdocs serve
+```
+The site is typically available at `http://127.0.0.1:8000/deep-learning-containers/` - check the command output for the actual URL.
+
+### Live Reload
+
+Enable automatic reload on content changes:
+```bash
+mkdocs serve --livereload
+```
+**Note:** Live reload only detects changes to:
+- Markdown file content
+- `.nav.yml` content
+- `mkdocs.yml` content
+
+Live reload does **not** detect changes requiring documentation regeneration (e.g., image config YAML files, templates). To regenerate documentation, stop the server (`Ctrl+C`) and rerun `mkdocs serve`.
 
 ## Navigation
 
 Site navigation is managed centrally in `docs/.nav.yml` using the `awesome-nav` plugin. Structure:
-
 ```yaml
 nav:
   - Home: index.md
@@ -34,7 +68,6 @@ nav:
 Key settings in `mkdocs.yaml`:
 
 **Theme Palette** - Modify color scheme under `theme.palette`:
-
 ```yaml
 theme:
   palette:
@@ -44,7 +77,6 @@ theme:
 ```
 
 **Plugins** - Add/remove plugins under `plugins`:
-
 ```yaml
 plugins:
   - search
@@ -52,11 +84,3 @@ plugins:
   - awesome-nav
 ```
 
-## Tutorials Changes
-
-For any changes required to the tutorial pages, create a new PR in
-[aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
-
-> **Important**: When making changes to the tutorials page, make sure that you update the tutorials
-> [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and
-> [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.

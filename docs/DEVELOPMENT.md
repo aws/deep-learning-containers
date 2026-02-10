@@ -1,14 +1,6 @@
-# Documentation Development Guide
+# Content Development Guide
 
-Guide for developers working with AWS Deep Learning Containers documentation.
-
-## Quick Start
-
-```bash
-cd /path/to/deep-learning-containers
-source .venv/bin/activate
-cd docs/src && python main.py --verbose
-```
+Guide for adding and modifying generated content in AWS Deep Learning Containers documentation. For site setup and local development, see [README.md](README.md).
 
 ## Directory Structure
 
@@ -42,7 +34,7 @@ docs/
 └── mkdocs.yml
 ```
 
-______________________________________________________________________
+---
 
 ## Adding a New Image
 
@@ -76,7 +68,7 @@ See `docs/src/data/template/image-template.yml` for all available fields.
 cd docs/src && python main.py --verbose
 ```
 
-______________________________________________________________________
+---
 
 ## Adding Support Policy Dates
 
@@ -94,7 +86,7 @@ eop: "2026-10-15"   # End of Patch date
 
 **Validation:** All images in the same framework group with the same full version (X.Y.Z) must have identical GA/EOP dates.
 
-______________________________________________________________________
+---
 
 ## Adding Release Notes
 
@@ -143,7 +135,7 @@ Section headers in optional sections are rendered via the section key.
 To format your optional section headers, add a new field in `docs/src/global.yml` under `display_names` section.
 Eg: deprecation_notice section will render its header as `## deprecation_notice` unless a formatted string is provided in `docs/src/global.yml`.
 
-______________________________________________________________________
+---
 
 ## Adding a New Repository
 
@@ -171,7 +163,7 @@ ______________________________________________________________________
      - my-repo
    ```
 
-______________________________________________________________________
+---
 
 ## Editing Table Columns
 
@@ -190,7 +182,7 @@ columns:
 To add additional fields, ensure that the image configuration YAML file contains said field of the same name.
 Additionally, if you require the field to be formatted, add an additional attribute in `ImageConfig` class of `display_<field_name>` to grab the formatted field.
 
-______________________________________________________________________
+---
 
 ## Legacy Support Data
 
@@ -205,7 +197,7 @@ pytorch:
 
 Generally, this is only required if an image configuration file does not already exist and the image is already past its support.
 
-______________________________________________________________________
+---
 
 ## Global Configuration
 
@@ -217,67 +209,18 @@ ______________________________________________________________________
 - **table_order:** Order of tables displayed within the documentations website (eg: available_images.md and support_policy.md)
 - **platforms/accelerators:** Display mappings
 
-______________________________________________________________________
+---
 
-## Running Generation
+## Tutorials Changes
 
-```bash
-# Help
-python main.py --help
+For any changes required to the tutorial pages, create a new PR in
+[aws-samples/sample-aws-deep-learning-containers](https://github.com/aws-samples/sample-aws-deep-learning-containers.git).
 
-# Full generation
-python main.py --verbose
+> **Important**: When making changes to the tutorials page, make sure that you update the tutorials
+> [index.md](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/index.md) and
+> [.nav.yaml](https://github.com/aws-samples/sample-aws-deep-learning-containers/blob/main/.nav.yml) accordingly.
 
-# Specific outputs
-python main.py --available-images-only
-python main.py --support-policy-only
-python main.py --release-notes-only
-
-# Preview site
-cd docs && mkdocs serve
-```
-
-______________________________________________________________________
-
-## Local Documentation Development
-
-### Generation Only (No Server)
-
-Run `main.py` to generate documentation without serving:
-
-```bash
-cd docs/src && python main.py --verbose
-```
-
-This automatically clones `tutorials/` repository and generates markdown files in `reference/` and `releasenotes/` directories without starting a web server.
-
-### Serving Locally
-
-Use `mkdocs serve` to automatically clone `tutorials/` and generate documentation in `reference/` and `releasenotes/` and serve the website:
-
-```bash
-cd docs && mkdocs serve
-```
-
-The site is typically available at `http://127.0.0.1:8000/deep-learning-containers/` - check the command output for the actual URL.
-
-### Live Reload
-
-Enable automatic reload on content changes:
-
-```bash
-mkdocs serve --livereload
-```
-
-**Note:** Live reload only detects changes to:
-
-- Markdown file content
-- `.nav.yml` content
-- `mkdocs.yml` content
-
-Live reload does **not** detect changes requiring documentation regeneration (e.g., image config YAML files, templates). To regenerate documentation, stop the server (`Ctrl+C`) and rerun `mkdocs serve`.
-
-______________________________________________________________________
+---
 
 ## Troubleshooting
 
