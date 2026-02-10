@@ -229,9 +229,6 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc
 # Removing the cache as it is needed for security verification
 RUN rm -rf /root/.cache | true
 
-# Install setuptools for pkg_resources required by piplicenses (Python 3.12+ compatibility)
-RUN pip install --no-cache-dir setuptools
-
 ########################################################
 #  _____ ____ ____    ___
 # | ____/ ___|___ \  |_ _|_ __ ___   __ _  __ _  ___
@@ -250,6 +247,9 @@ RUN pip install --no-cache-dir setuptools
 FROM common AS ec2
 
 WORKDIR /
+
+# Ensure setuptools is available for OSS compliance (pkg_resources needed by piplicenses)
+RUN pip install --no-cache-dir setuptools
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
@@ -310,6 +310,9 @@ COPY changehostname.c /
 COPY start_with_right_hostname.sh /usr/local/bin/start_with_right_hostname.sh
 
 RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
+
+# Ensure setuptools is available for OSS compliance (pkg_resources needed by piplicenses)
+RUN pip install --no-cache-dir setuptools
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
