@@ -359,9 +359,9 @@ RUN uv pip install --system --no-cache \
 # Use --no-build-isolation to ensure pandas 1.5.3 can access pkg_resources during build
 RUN uv pip install --system --no-cache --no-build-isolation \
     "sagemaker<3" \
-    sagemaker-experiments==0.1.45 \
-    sagemaker-tensorflow-training==20.4.1 \
-    sagemaker-training==4.8.4 \
+    sagemaker-experiments \
+    sagemaker-tensorflow-training \
+    sagemaker-training \
     y-py \
     sagemaker-studio-analytics-extension==0.1.4 \
     "sparkmagic==0.21.0" \
