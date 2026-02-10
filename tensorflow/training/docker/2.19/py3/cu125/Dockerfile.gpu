@@ -341,8 +341,8 @@ RUN uv pip install --system --no-cache \
     "tensorflow-io==0.37.*" \
     tensorflow-datasets
 
-# Install rust and cargo (required for some packages)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# Install rust and cargo (required for some packages) - minimal install
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # Install data science packages
@@ -357,17 +357,17 @@ RUN uv pip install --system --no-cache \
 
 # Install SageMaker packages
 RUN uv pip install --system --no-cache \
-    sagemaker \
-    sagemaker-experiments==0.* \
-    sagemaker-tensorflow-training \
-    sagemaker-training \
+    "sagemaker<3" \
+    sagemaker-experiments==0.1.45 \
+    sagemaker-tensorflow-training==20.4.1 \
+    sagemaker-training==4.8.4 \
     y-py \
-    sagemaker-studio-analytics-extension \
-    "sparkmagic==0.23.0" \
-    sagemaker-studio-sparkmagic-lib \
+    sagemaker-studio-analytics-extension==0.1.4 \
+    "sparkmagic==0.21.0" \
+    sagemaker-studio-sparkmagic-lib==0.2.0 \
     smclarify
 
-# install boost
+# install boost (headers only - skip full compilation to save space)
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.tar.gz/download -O boost_1_82_0.tar.gz \
    && tar -xzf boost_1_82_0.tar.gz \
@@ -377,6 +377,7 @@ RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.
    && cd .. \
    && rm -rf boost_1_82_0.tar.gz \
    && rm -rf boost_1_82_0 \
+   && rm -rf /usr/lib/libboost_*.a \
    && cd /usr/include/boost
 
 # Add NGC vars
@@ -390,7 +391,35 @@ RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
 # Clean up JupyterLab staging and test directories to reduce image size
 RUN rm -rf /usr/local/lib/python*/site-packages/jupyterlab/staging \
-    && rm -rf /usr/local/lib/python*/site-packages/jupyterlab/tests
+    && rm -rf /usr/local/lib/python*/site-packages/jupyterlab/tests \
+    && rm -rf /usr/local/share/jupyter/lab/staging \
+    && rm -rf /root/.cache \
+    && rm -rf /root/.local \
+    && rm -rf /var/cache/* \
+    && rm -rf /root/.cargo/registry \
+    && rm -rf /root/.cargo/git \
+    && rm -rf /root/.rustup/toolchains/*/share/doc \
+    && rm -rf /root/.rustup/toolchains/*/share/man \
+    && rm -rf /root/.rustup/tmp \
+    && rm -rf /usr/local/cuda/extras \
+    && rm -rf /usr/local/cuda/nsight* \
+    && rm -rf /usr/local/cuda/compute-sanitizer \
+    && rm -rf /usr/local/cuda/libnvvp \
+    && rm -rf /usr/share/doc/* \
+    && rm -rf /usr/share/man/* \
+    && rm -rf /usr/share/info/* \
+    && rm -rf /var/log/* \
+    && find /usr/local/lib/python*/site-packages -name "*.pyc" -delete \
+    && find /usr/local/lib/python*/site-packages -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "test" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "*.pyx" -delete \
+    && find /usr/local/lib/python*/site-packages -name "*.c" -delete \
+    && find /usr/local/lib/python*/site-packages -name "*.h" -delete \
+    && find /usr/local -name "*.a" -delete \
+    && find /usr/local/lib/python*/site-packages -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -type d -name "doc" -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true
 
 # remove tmp files
 RUN rm -rf /tmp/*
