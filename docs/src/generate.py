@@ -13,6 +13,7 @@
 """Documentation generation functions."""
 
 import logging
+import re
 from pathlib import Path
 
 import sorter as sorter_module
@@ -345,6 +346,12 @@ def generate_index(dry_run: bool = False) -> str:
 
     readme_content = README_PATH.read_text()
     readme_content = readme_content.replace(SITE_URL, "")
+    readme_content = re.sub(
+        r'<picture>\s*<source media="\(prefers-color-scheme: dark\)" srcset="([^"]+)">\s*<source media="\(prefers-color-scheme: light\)" srcset="([^"]+)">\s*<img alt="([^"]*)" src="[^"]*" width="([^"]*)">\s*</picture>',
+        r'<img src="\2#only-light" alt="\3" width="\4">\n<img src="\1#only-dark" alt="\3" width="\4">',
+        readme_content,
+        flags=re.DOTALL,
+    )
     template = Template(load_jinja2(template_path))
     content = template.render(readme_content=readme_content)
 
