@@ -130,23 +130,15 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
     && make install \
     && rm -rf ../Python-$PYTHON_VERSION*
 
-# Install uv for faster package management
-RUN curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh
-
-# Upgrade pip and setuptools
-# setuptools 78.1.1 fixes CVE-2025-47273 (path traversal vulnerability)
-# and still includes pkg_resources (needed by pandas 1.5.3 build)
-RUN uv pip install --system --no-cache \
+RUN ${PIP} --no-cache-dir install --upgrade \
     pip \
-    "setuptools==78.1.1" \
-    wheel
+    "setuptools==81.0.0"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
     && ln -s $(which ${PIP}) /usr/bin/pip
 
-# Install common dependencies using uv
-RUN uv pip install --system --no-cache \
+RUN ${PIP} install --no-cache-dir -U \
     pybind11 \
     cmake \
     scipy \
@@ -156,6 +148,9 @@ RUN uv pip install --system --no-cache \
     "awscli<2" \
     urllib3 \
     mpi4py \
+    # Let's install TensorFlow separately in the end to avoid
+    # the library version to be overwritten
+ && ${PIP} install --no-cache-dir -U \
     h5py \
     absl-py \
     opencv-python \
@@ -194,7 +189,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 ARG TF_URL
 
-RUN uv pip install --system --no-cache \
+RUN ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     tensorflow-datasets
@@ -252,29 +247,39 @@ RUN apt-get update  \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install wheel first, then pyyaml>=6.0.1 which has pre-built wheels
-# Note: pyyaml<6 is incompatible with setuptools>=81.0.0
-RUN uv pip install --system --no-cache \
+# https://github.com/yaml/pyyaml/issues/601
+# PyYaml less than 6.0.1 failes to build with cython v3 and above.
+# tf-models-official uses older versions, breaking the install.
+# going to install the older pyyaml and cython to get tfd-models-official
+# the sagemaker package will revert pyyaml back to 6 for its requirement
+# and this is fine since sagemaker is more important than the models and
+# the models still work on pyyaml 6 in this context.
+# Need to install wheel before we can fix the pyyaml issue below
+RUN pip install --no-cache-dir -U \
     wheel \
-    "pyyaml>=6.0.1"
+    "cython<3" \
+    "pyyaml<6" \
+    --no-build-isolation
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
-RUN uv pip install --system --no-cache \
+RUN ${PIP} install \
+    --default-timeout=300 \
+    --retries 5 \
+    --no-cache-dir -U \
     "tf-models-official==${TF_VERSION}.1" \
     "tensorflow-text==${TF_VERSION}.0" \
- && uv pip uninstall --system tensorflow tensorflow-gpu \
- && uv pip install --system --no-cache \
+ && ${PIP} uninstall -y tensorflow tensorflow-gpu \
+ && ${PIP} install --no-cache-dir -U \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     tensorflow-datasets
 
-# Install rust and cargo (required for some packages) - minimal install
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable
+# Install rust and cargo
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# Install data science packages
-RUN uv pip install --system --no-cache \
+RUN $PYTHON -m pip install --no-cache-dir -U \
     numba \
     bokeh \
     imageio \
@@ -283,17 +288,15 @@ RUN uv pip install --system --no-cache \
     seaborn \
     shap
 
-# Install SageMaker packages
-# Use --no-build-isolation to ensure pandas 1.5.3 can access pkg_resources during build
-RUN uv pip install --system --no-cache --no-build-isolation \
-    "sagemaker<3" \
+RUN $PYTHON -m pip install --no-cache-dir -U \
+    sagemaker \
     sagemaker-experiments \
     sagemaker-tensorflow-training \
     sagemaker-training \
     y-py \
-    sagemaker-studio-analytics-extension==0.1.4 \
-    "sparkmagic==0.21.0" \
-    sagemaker-studio-sparkmagic-lib==0.2.0 \
+    sagemaker-studio-analytics-extension \
+    "sparkmagic<1" \
+    sagemaker-studio-sparkmagic-lib \
     smclarify
 
 # Remove python kernel installed by sparkmagic
@@ -301,34 +304,6 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # Remove ipykernel
 RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
-
-# Clean up JupyterLab staging and test directories to reduce image size
-RUN rm -rf /usr/local/lib/python*/site-packages/jupyterlab/staging \
-    && rm -rf /usr/local/lib/python*/site-packages/jupyterlab/tests \
-    && rm -rf /usr/local/share/jupyter/lab/staging \
-    && rm -rf /root/.cache \
-    && rm -rf /root/.local \
-    && rm -rf /var/cache/* \
-    && rm -rf /root/.cargo/registry \
-    && rm -rf /root/.cargo/git \
-    && rm -rf /root/.rustup/toolchains/*/share/doc \
-    && rm -rf /root/.rustup/toolchains/*/share/man \
-    && rm -rf /root/.rustup/tmp \
-    && rm -rf /usr/share/doc/* \
-    && rm -rf /usr/share/man/* \
-    && rm -rf /usr/share/info/* \
-    && rm -rf /var/log/* \
-    && find /usr/local/lib/python*/site-packages -name "*.pyc" -delete \
-    && find /usr/local/lib/python*/site-packages -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python*/site-packages -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python*/site-packages -name "test" -type d -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python*/site-packages -name "*.pyx" -delete \
-    && find /usr/local/lib/python*/site-packages -name "*.c" -delete \
-    && find /usr/local/lib/python*/site-packages -name "*.h" -delete \
-    && find /usr/local -name "*.a" -delete \
-    && find /usr/local/lib/python*/site-packages -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python*/site-packages -type d -name "doc" -exec rm -rf {} + 2>/dev/null || true \
-    && find /usr/local/lib/python*/site-packages -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true
 
 # remove tmp files
 RUN rm -rf /tmp/*
