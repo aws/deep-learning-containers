@@ -117,6 +117,35 @@ def test_nav_yml_paths_exist():
     assert not errors, f"Missing nav paths:\n{error_msg}"
 
 
+def test_internal_directory_links_valid(markdown_files):
+    """Test that internal directory-style links (trailing slash) resolve to existing paths."""
+    errors = []
+    # Match relative links with trailing slash: ](path/) or href="path/"
+    md_pattern = re.compile(r"\]\(([^)h][^)]*?/)\)")
+    href_pattern = re.compile(r'href="([^"h][^"]*?/)"')
+
+    for md_file in markdown_files:
+        with open(md_file) as f:
+            content = f.read()
+        file_dir = os.path.dirname(md_file)
+
+        for pattern in [md_pattern, href_pattern]:
+            for match in pattern.finditer(content):
+                link = match.group(1)
+                target_dir = os.path.normpath(os.path.join(file_dir, link))
+                target_index = os.path.join(target_dir, "index.md")
+                # A trailing-slash link is valid if the directory has index.md
+                # or if a .md file exists with the same name (MkDocs resolves both)
+                target_md = os.path.normpath(os.path.join(file_dir, link.rstrip("/"))) + ".md"
+
+                if not (os.path.exists(target_index) or os.path.exists(target_md)):
+                    rel_path = os.path.relpath(md_file, DOCS_DIR)
+                    errors.append(f"{rel_path} -> {link}")
+
+    error_msg = "\n".join(errors)
+    assert not errors, f"Broken internal directory links:\n{error_msg}"
+
+
 def test_no_trailing_spaces_in_urls(markdown_files):
     """Test that URLs don't have trailing spaces before closing paren."""
     errors = []
