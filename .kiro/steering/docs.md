@@ -376,18 +376,22 @@ table_order:
 
 ### Support Policy Consolidation
 
-The `framework_groups` configuration consolidates support policy rows by framework. Repositories in the same group are combined into a single row using the framework name (e.g., "PyTorch").
+The `framework_groups` configuration consolidates support policy rows by framework. The generation follows a 3-step flow:
 
-**Version Display:**
+**Validation (at load time):** `load_repository_images` validates that images sharing the same full version within a single repository have identical GA/EOP dates. Raises `ValueError` if not (this is a data bug).
 
-- Images with the same major.minor version (e.g., `2.6.0` and `2.6.1`) are consolidated into a single row displayed as `2.6` if they have identical GA/EOP dates
-- If patch versions have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
+**Step 1 — Group by full version:** All images in a framework group are grouped by full version (e.g., `2.6.0`), deduplicated per repository (one representative image per repo since intra-repo consistency is guaranteed).
+
+**Step 2 — Cross-repo agreement check:** For each full version, check if all repositories agree on GA/EOP dates:
+
+- If all repositories agree → one entry using the framework group name (e.g., "PyTorch")
+- If repositories disagree → warning logged, each repository gets its own row using its individual display name (e.g., "PyTorch Inference")
+
+**Step 3 — Major.minor collapse:** Non-split entries are grouped by major.minor. If all full versions within a major.minor share the same dates, they collapse into a single row displayed as the major.minor (e.g., `2.6`). Collapse is skipped for any major.minor that has split (per-repo) rows.
 
 **Requirements:**
 
-- All repositories in a group that have a given full version (X.Y.Z) must have identical GA/EOP dates
 - Missing versions in some repositories are allowed (only present repos are consolidated)
-- A `ValueError` is raised if dates differ within a group for the same full version
 
 To add a new framework group, add an entry to `framework_groups` with the framework name as key and list of repositories as value.
 

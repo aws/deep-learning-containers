@@ -185,7 +185,24 @@ def load_repository_images(repository: str) -> list[ImageConfig]:
     repo_dir = DATA_DIR / repository
     if not repo_dir.exists():
         return []
-    return [ImageConfig.from_yaml(f, repository) for f in sorted(repo_dir.glob("*.yml"))]
+    images = [ImageConfig.from_yaml(f, repository) for f in sorted(repo_dir.glob("*.yml"))]
+
+    # Validate: images in the same repository sharing same full version must have identical GA/EOP dates
+    date_by_version: dict[str, ImageConfig] = {}
+    for img in images:
+        if not img.has_support_dates:
+            continue
+        if img.version in date_by_version:
+            ref = date_by_version[img.version]
+            if ref.ga != img.ga or ref.eop != img.eop:
+                raise ValueError(
+                    f"Inconsistent dates within {repository} for version {img.version}: "
+                    f"({ref.ga}, {ref.eop}) vs ({img.ga}, {img.eop})"
+                )
+        else:
+            date_by_version[img.version] = img
+
+    return images
 
 
 def load_images_by_framework_group(
