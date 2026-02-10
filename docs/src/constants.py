@@ -24,6 +24,7 @@ LEGACY_DIR = SRC_DIR / "legacy"
 TABLES_DIR = SRC_DIR / "tables"
 TEMPLATES_DIR = SRC_DIR / "templates"
 REFERENCE_DIR = DOCS_DIR / "reference"
+README_PATH = DOCS_DIR.parent / "README.md"
 RELEASE_NOTES_DIR = DOCS_DIR / "releasenotes"
 TUTORIALS_DIR = DOCS_DIR / "tutorials"
 
