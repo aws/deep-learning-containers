@@ -7,8 +7,9 @@ Guide for setting up, running, and configuring the MkDocs documentation site. Fo
 ```bash
 # Set up virtual environment from repository root
 cd /path/to/deep-learning-containers
-python -m venv .venv
+uv venv --python 3.12
 source .venv/bin/activate
+uv pip install -r docs/requirements.txt
 pip install -r docs/requirements.txt
 ```
 
@@ -83,4 +84,3 @@ plugins:
   - autorefs
   - awesome-nav
 ```
-
