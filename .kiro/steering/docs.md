@@ -376,18 +376,28 @@ table_order:
 
 ### Support Policy Consolidation
 
-The `framework_groups` configuration consolidates support policy rows by framework. Repositories in the same group are combined into a single row using the framework name (e.g., "PyTorch").
+The `framework_groups` configuration consolidates support policy rows by framework. Repositories in the same group are combined into a single row using the framework name (e.g., "PyTorch") when they share the same GA/EOP dates.
 
 **Version Display:**
 
-- Images with the same major.minor version (e.g., `2.6.0` and `2.6.1`) are consolidated into a single row displayed as `2.6` if they have identical GA/EOP dates
-- If patch versions have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
+- Images with the same major.minor version and identical GA/EOP dates are consolidated into a single row displayed as `2.6` with the framework group name (e.g., "PyTorch")
+- If the same version has different GA/EOP dates across repository types (e.g., training vs inference), separate rows are created showing the specific repository type: "PyTorch Training" and "PyTorch Inference"
+- ARM64 variants are automatically consolidated with their base repository (e.g., "PyTorch Training" and "PyTorch Training ARM64" both show as "PyTorch Training")
+- If patch versions within the same repository have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
 
-**Requirements:**
+**Behavior:**
 
-- All repositories in a group that have a given full version (X.Y.Z) must have identical GA/EOP dates
-- Missing versions in some repositories are allowed (only present repos are consolidated)
-- A `ValueError` is raised if dates differ within a group for the same full version
+- Repositories in the same framework group can have different GA/EOP dates for the same version (e.g., inference can have a different EOP than training)
+- When dates match across all repositories in a group, they are consolidated into a single row with the framework group name
+- When dates differ by repository type (training vs inference), separate rows show the specific repository type names
+- Missing versions in some repositories are allowed (only present repos are included)
+
+**Example:**
+
+If PyTorch 2.6 Training has EOP 2025-10-15 but PyTorch 2.6 Inference has EOP 2026-10-15, the support policy table will show:
+
+- Row 1: Framework="PyTorch Training", Version="2.6", EOP="2025-10-15"
+- Row 2: Framework="PyTorch Inference", Version="2.6", EOP="2026-10-15"
 
 To add a new framework group, add an entry to `framework_groups` with the framework name as key and list of repositories as value.
 
