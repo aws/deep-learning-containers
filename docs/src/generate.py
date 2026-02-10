@@ -197,67 +197,156 @@ def generate_support_policy(dry_run: bool = False) -> str:
         if not images:
             continue
 
-        # Group by major.minor, then decide display format based on date consistency
-        major_minor_groups: dict[str, list[ImageConfig]] = {}
+        # Group by (major.minor, ga, eop) to allow different dates for same version
+        # This enables training and inference to have different EOP dates
+        date_groups: dict[tuple[str, str, str], list[ImageConfig]] = {}
         for img in images:
             v = parse_version(img.version)
             major_minor = f"{v.major}.{v.minor}"
-            major_minor_groups.setdefault(major_minor, []).append(img)
+            key = (major_minor, img.ga, img.eop)
+            date_groups.setdefault(key, []).append(img)
 
-        version_map: dict[str, ImageConfig] = {}
-        for major_minor, group in major_minor_groups.items():
-            # Check if all images in group have same ga/eop
-            first = group[0]
-            all_same_dates = all(img.ga == first.ga and img.eop == first.eop for img in group)
+        # Track which versions have multiple date groups (need repository-specific display)
+        version_date_count: dict[str, int] = {}
+        for (major_minor, ga, eop), group in date_groups.items():
+            version_date_count[major_minor] = version_date_count.get(major_minor, 0) + 1
 
-            if all_same_dates:
-                # Consolidate to major.minor display
-                version_map[major_minor] = first
+        version_map: dict[str, tuple[ImageConfig, bool]] = {}
+
+        # Process each unique (version, ga, eop) combination
+        for (major_minor, ga, eop), group in date_groups.items():
+            # Check if all images in this date group have the same full version
+            versions_in_group = {img.version for img in group}
+
+            # Determine if this version needs repository-specific display
+            needs_repo_display = version_date_count[major_minor] > 1
+
+            if len(versions_in_group) == 1:
+                # All images have same patch version
+                first = group[0]
+
+                if needs_repo_display:
+                    # Same version exists with different dates - use repository-specific display
+                    # Store with flag indicating we need to override framework_group display
+                    repos_in_group = {img._repository for img in group}
+                    # Create a unique key for this date group
+                    repo_suffix = "-".join(sorted(repos_in_group))
+                    display_key = f"{major_minor}:{repo_suffix}"
+                    version_map[display_key] = (first, True)  # True = use repo display
+                else:
+                    # No conflict - use simple major.minor key with framework display
+                    version_map[major_minor] = (first, False)  # False = use framework display
             else:
-                # Keep full versions, warn about inconsistency
-                versions_info = ", ".join(f"{img.version} ({img.ga}, {img.eop})" for img in group)
+                # Multiple patch versions with same dates - warn and keep separate
+                versions_info = ", ".join(sorted(versions_in_group))
                 LOGGER.warning(
-                    f"Different GA/EOP dates for {framework_group} patch versions: {versions_info}"
+                    f"Different patch versions for {framework_group} with same GA/EOP dates: {versions_info}"
                 )
-                # Keep each patch version as separate row with full version display
                 for img in group:
-                    existing = version_map.get(img.version)
-                    # Error if same full version (e.g., X.Y.Z) has different dates across images
-                    if existing and (existing.ga != img.ga or existing.eop != img.eop):
-                        raise ValueError(
-                            f"Inconsistent dates for {framework_group} {img.version}: \n"
-                            f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
-                            f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
-                            f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
-                        )
-                    # Deduplicate same full version with same dates
-                    version_map[img.version] = img
+                    version_map[img.version] = (img, needs_repo_display)
 
         # Merge legacy entries for this framework
         for legacy_img in legacy_data.get(framework_group, []):
             if legacy_img.version not in version_map:
-                version_map[legacy_img.version] = legacy_img
+                version_map[legacy_img.version] = (
+                    legacy_img,
+                    False,
+                )  # Legacy uses framework display
 
         # Sort by version descending within this framework group
-        # Key is the display version (major.minor if consolidated, full version otherwise)
+        # Extract version for sorting from the tuple
         sorted_keys = sorted(
-            version_map.keys(), key=lambda k: parse_version(version_map[k].version), reverse=True
+            version_map.keys(), key=lambda k: parse_version(version_map[k][0].version), reverse=True
         )
         for key in sorted_keys:
-            img = version_map[key]
-            (supported if img.is_supported else unsupported).append((img, key))
+            img, use_repo_display = version_map[key]
+            # Extract clean version for display (remove repo suffix if present)
+            display_version = key.split(":")[0] if ":" in key else key
+            (supported if img.is_supported else unsupported).append(
+                (img, display_version, use_repo_display)
+            )
 
     # Build tables
     table_config = load_table_config("extra/support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    supported_table = render_table(
-        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in supported]
-    )
-    unsupported_table = render_table(
-        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in unsupported]
-    )
+    # Build rows with appropriate framework display
+    supported_rows = []
+    for img, ver, use_repo_display in supported:
+        overrides = {"version": ver}
+        if use_repo_display:
+            # Find all repositories in this framework group with this version and same dates
+            # to create a comprehensive display name
+            all_repos_with_dates = [
+                i
+                for i in images_by_group.get(img.framework_group, [])
+                if parse_version(i.version).major == parse_version(img.version).major
+                and parse_version(i.version).minor == parse_version(img.version).minor
+                and i.ga == img.ga
+                and i.eop == img.eop
+            ]
+            unique_repos = sorted(set(i._repository for i in all_repos_with_dates))
+            display_names = GLOBAL_CONFIG.get("display_names", {})
+
+            # Determine the common prefix (e.g., "PyTorch") and suffix (e.g., "Training", "Inference")
+            repo_displays = [display_names.get(repo, repo) for repo in unique_repos]
+
+            # If all repos share a common framework prefix, consolidate intelligently
+            # e.g., ["PyTorch Training", "PyTorch Training ARM64"] -> "PyTorch Training"
+            # e.g., ["PyTorch Inference", "PyTorch Inference ARM64"] -> "PyTorch Inference"
+            if len(repo_displays) > 1:
+                # Check if we can consolidate (e.g., remove ARM64 variants)
+                base_displays = set()
+                for display in repo_displays:
+                    # Remove " ARM64" suffix if present
+                    base = display.replace(" ARM64", "").strip()
+                    base_displays.add(base)
+
+                if len(base_displays) == 1:
+                    # All are variants of the same base (e.g., all "PyTorch Training")
+                    overrides["framework_group"] = base_displays.pop()
+                else:
+                    # Multiple different bases - show them all
+                    overrides["framework_group"] = ", ".join(sorted(base_displays))
+            else:
+                overrides["framework_group"] = repo_displays[0]
+        supported_rows.append(build_image_row(img, columns, overrides))
+
+    unsupported_rows = []
+    for img, ver, use_repo_display in unsupported:
+        overrides = {"version": ver}
+        if use_repo_display:
+            # Find all repositories in this framework group with this version and same dates
+            all_repos_with_dates = [
+                i
+                for i in images_by_group.get(img.framework_group, [])
+                if parse_version(i.version).major == parse_version(img.version).major
+                and parse_version(i.version).minor == parse_version(img.version).minor
+                and i.ga == img.ga
+                and i.eop == img.eop
+            ]
+            unique_repos = sorted(set(i._repository for i in all_repos_with_dates))
+            display_names = GLOBAL_CONFIG.get("display_names", {})
+
+            repo_displays = [display_names.get(repo, repo) for repo in unique_repos]
+
+            if len(repo_displays) > 1:
+                base_displays = set()
+                for display in repo_displays:
+                    base = display.replace(" ARM64", "").strip()
+                    base_displays.add(base)
+
+                if len(base_displays) == 1:
+                    overrides["framework_group"] = base_displays.pop()
+                else:
+                    overrides["framework_group"] = ", ".join(sorted(base_displays))
+            else:
+                overrides["framework_group"] = repo_displays[0]
+        unsupported_rows.append(build_image_row(img, columns, overrides))
+
+    supported_table = render_table(headers, supported_rows)
+    unsupported_table = render_table(headers, unsupported_rows)
 
     # Render template
     template = Template(load_jinja2(template_path))
