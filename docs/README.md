@@ -10,7 +10,6 @@ cd /path/to/deep-learning-containers
 uv venv --python 3.12
 source .venv/bin/activate
 uv pip install -r docs/requirements.txt
-pip install -r docs/requirements.txt
 ```
 
 ## Local Development
