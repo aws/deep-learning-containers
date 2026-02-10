@@ -18,23 +18,23 @@ uv pip install -r docs/requirements.txt
 
 Run the generation system without serving:
 ```bash
-cd docs/src && python main.py --verbose
+python docs/src/main.py --verbose
 ```
 This clones the `tutorials/` repository and generates markdown files in `reference/` and `releasenotes/` directories.
 
 Generation flags:
 ```bash
-python main.py --available-images-only
-python main.py --support-policy-only
-python main.py --release-notes-only
-python main.py --index-only
+python docs/src/main.py --available-images-only
+python docs/src/main.py --support-policy-only
+python docs/src/main.py --release-notes-only
+python docs/src/main.py --index-only
 ```
 
 ### Serving
 
 Use `mkdocs serve` to generate documentation and serve the website:
 ```bash
-cd docs && mkdocs serve
+mkdocs serve
 ```
 The site is typically available at `http://127.0.0.1:8000/deep-learning-containers/` - check the command output for the actual URL.
 

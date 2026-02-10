@@ -65,7 +65,7 @@ See `docs/src/data/template/image-template.yml` for all available fields.
 ### Step 2: Regenerate
 
 ```bash
-cd docs/src && python main.py --verbose
+python docs/src/main.py --verbose
 ```
 
 ---
@@ -76,7 +76,7 @@ Add `ga` and `eop` fields to image configs for repositories that appear in suppo
 
 ```yaml
 ga: "2025-10-15"    # General Availability date
-eop: "2026-10-15"   # End of Patch date
+eop: "2035-10-15"   # End of Patch date
 ```
 
 **Version Consolidation:**
