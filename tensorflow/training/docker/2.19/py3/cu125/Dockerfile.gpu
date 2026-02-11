@@ -392,6 +392,34 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 # Remove ipykernel
 RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
 
+# Clean up JupyterLab staging and test directories to reduce image size
+RUN rm -rf /usr/local/lib/python*/site-packages/jupyterlab/staging \
+    && rm -rf /usr/local/lib/python*/site-packages/jupyterlab/tests \
+    && rm -rf /usr/local/share/jupyter/lab/staging \
+    && rm -rf /root/.cache \
+    && rm -rf /root/.local \
+    && rm -rf /var/cache/* \
+    && rm -rf /root/.cargo/registry \
+    && rm -rf /root/.cargo/git \
+    && rm -rf /root/.rustup/toolchains/*/share/doc \
+    && rm -rf /root/.rustup/toolchains/*/share/man \
+    && rm -rf /root/.rustup/tmp \
+    && rm -rf /usr/share/doc/* \
+    && rm -rf /usr/share/man/* \
+    && rm -rf /usr/share/info/* \
+    && rm -rf /var/log/* \
+    && find /usr/local/lib/python*/site-packages -name "*.pyc" -delete \
+    && find /usr/local/lib/python*/site-packages -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "test" -type d -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -name "*.pyx" -delete \
+    && find /usr/local/lib/python*/site-packages -name "*.c" -delete \
+    && find /usr/local/lib/python*/site-packages -name "*.h" -delete \
+    && find /usr/local -name "*.a" -delete \
+    && find /usr/local/lib/python*/site-packages -type d -name "docs" -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -type d -name "doc" -exec rm -rf {} + 2>/dev/null || true \
+    && find /usr/local/lib/python*/site-packages -type d -name "examples" -exec rm -rf {} + 2>/dev/null || true
+
 # remove tmp files
 RUN rm -rf /tmp/*
 
