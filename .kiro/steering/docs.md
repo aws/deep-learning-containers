@@ -78,7 +78,7 @@ docs/src/
 - `sorter.py` - Sorting tiebreaker functions: `platform_sorter`, `accelerator_sorter`, `repository_sorter`
 - `utils.py` - Utility functions: `load_yaml()`, `load_table_config()`, `load_jinja2()`, `render_table()`, `write_output()`, `parse_version()`, `clone_git_repository()`, `build_ecr_uri()`, `build_public_ecr_uri()`, `get_framework_order()`, `flatten_group_repos()`
 - `image_config.py` - `ImageConfig` class, image loaders (`load_repository_images`, `load_legacy_images`, `load_images_by_framework_group`), `sort_by_version`, `get_latest_image_uri`, `build_image_row`, `check_public_registry`
-- `generate.py` - `generate_index()`, `generate_support_policy()`, `generate_available_images()`, `generate_release_notes()`, `generate_all()`, helpers: `_split_by_subgroup()`, `_collapse_minor_versions()`
+- `generate.py` - `generate_index()`, `generate_support_policy()`, `generate_available_images()`, `generate_release_notes()`, `generate_all()`, helpers: `_consolidate_framework_version()`, `_collapse_minor_versions()`
 - `macros.py` - MkDocs macros plugin integration
 - `hooks.py` - MkDocs hooks entry point
 
@@ -385,11 +385,11 @@ The `framework_groups` configuration consolidates support policy rows by framewo
 
 **Step 1 — Group by full version:** All images in a framework group are grouped by full version (e.g., `2.6.0`), deduplicated per repository (one representative image per repo since intra-repo consistency is guaranteed).
 
-**Step 2 — Cross-repo agreement check:** For each full version, check if all repositories agree on GA/EOP dates:
+**Step 2 — Hierarchical consolidation** via `_consolidate_framework_version()`: For each full version, tries three levels of date agreement, stopping at the first that succeeds:
 
-- If all repositories agree → one entry using the framework group name (e.g., "PyTorch")
-- If repositories disagree and sub-groups are configured (dict format) → consolidate by sub-group first. If all repos in a sub-group agree, one row with sub-group display name (e.g., "PyTorch Inference"). If sub-group also disagrees, per-repo rows.
-- If repositories disagree and no sub-groups (list format) → each repository gets its own row using its individual display name
+1. Framework group — all repos agree → single row (e.g., "PyTorch")
+1. Sub-group — repos within a sub-group agree → one row per sub-group (e.g., "PyTorch Inference"). Only applies to nested dict groups in `framework_groups`.
+1. Per-repo — no agreement → one row per repository using its individual display name
 
 **Step 3 — Major.minor collapse:** Non-split entries are grouped by major.minor. If all full versions within a major.minor share the same dates, they collapse into a single row displayed as the major.minor (e.g., `2.6`). Collapse is skipped for any major.minor that has split (per-repo) rows.
 
