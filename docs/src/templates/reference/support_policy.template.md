@@ -7,6 +7,10 @@
 - **GA (General Availability)**: The date when a framework version becomes officially supported and available for production use.
 - **EOP (End of Patch)**: The date after which a framework version no longer receives security patches or bug fixes.
 
+## Notice
+
+- We are extending support for PyTorch 2.6 Inference images until end of June 2026 as these are the last available PyTorch inference images with torchserve support.
+
 ## Supported Frameworks
 
 {{ supported_table }}

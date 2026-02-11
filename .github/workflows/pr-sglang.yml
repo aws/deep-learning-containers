@@ -19,7 +19,7 @@ env:
   SGLANG_VERSION: "0.5.8"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
-  OS_VERSION: "ubuntu22.04"
+  OS_VERSION: "ubuntu24.04"
 
   # SGLang EC2
   PROD_EC2_IMAGE: sglang:0.5-gpu-py312-ec2
