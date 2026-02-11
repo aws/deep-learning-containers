@@ -105,7 +105,7 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools==80.10.1" \
+    "setuptools==81.0.0" \
     "urllib3>=2.5.0" \
     ninja \
     opencv-python==4.11.0.86 \
@@ -208,9 +208,6 @@ WORKDIR /
 COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
-# Ensure setuptools is available for OSS compliance (pkg_resources needed by piplicenses)
-RUN pip install --no-cache-dir setuptools
-
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
 
@@ -271,9 +268,6 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     cloudpickle
-
-# Ensure setuptools is available for OSS compliance (pkg_resources needed by piplicenses)
-RUN pip install --no-cache-dir setuptools
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
