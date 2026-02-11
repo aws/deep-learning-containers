@@ -193,7 +193,7 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   "setuptools>=81.0.0" \
+   setuptools \
    wheel
 
 # Some TF tools expect a "python" binary
@@ -391,11 +391,6 @@ RUN /usr/local/bin/jupyter-kernelspec remove -f python3
 
 # Remove ipykernel
 RUN rm -rf /usr/local/share/jupyter/kernels/python3/kernel.json
-
-# Clean up JupyterLab staging and test directories to remove CVEs
-RUN rm -rf /usr/local/lib/python*/site-packages/jupyterlab/staging \
-    && rm -rf /usr/local/lib/python*/site-packages/jupyterlab/tests \
-    && rm -rf /usr/local/share/jupyter/lab/staging
 
 # remove tmp files
 RUN rm -rf /tmp/*
