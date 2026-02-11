@@ -1094,7 +1094,7 @@ def test_safety(image):
         hide=True,
     )
     try:
-        run(f"{docker_exec_cmd} pip install 'setuptools<82' 'safety>=2.2.0' yolk3k ", hide=True)
+        run(f"{docker_exec_cmd} pip install 'safety>=2.2.0' yolk3k ", hide=True)
         json_str_safety_result = extract_json_from_safety_output(
             safety_check.run_safety_check_on_container(docker_exec_cmd)
         )
