@@ -393,7 +393,7 @@ The `framework_groups` configuration consolidates support policy rows by framewo
 
 **Step 3 — Major.minor collapse:** Non-split entries are grouped by major.minor. If all full versions within a major.minor share the same dates, they collapse into a single row displayed as the major.minor (e.g., `2.6`). Collapse is skipped for any major.minor that has split (per-repo) rows.
 
-**Requirements:**
+**Behavior:**
 
 - Missing versions in some repositories are allowed (only present repos are consolidated)
 
