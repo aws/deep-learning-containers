@@ -116,21 +116,27 @@ RUN pip install --no-cache-dir \
     pytz \
     tzdata
 
-# Install PyTorch
+# Install PyTorch - split into separate commands to prevent dependency resolver from downgrading torch
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
-    --index-url https://download.pytorch.org/whl/cu130 \
-    && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
+    --index-url https://download.pytorch.org/whl/cu130
+
+# Install torch ecosystem packages
+RUN pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
-    s3torchconnector \
+    s3torchconnector
+
+# Install ML packages with torch version constraint to prevent downgrade
+# pin numpy requirement for fastai dependency
+# requires explicit declaration of spacy, thinc, blis
+# pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
+RUN pip install --no-cache-dir -U \
+    "torch==${PYTORCH_VERSION}" \
     fastai \
     accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
     spacy \
-    # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc \
     blis \
     numpy \
