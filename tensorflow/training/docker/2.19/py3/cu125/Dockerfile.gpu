@@ -362,13 +362,13 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
 
 RUN $PYTHON -m pip install --no-cache-dir -U \
     sagemaker \
-    sagemaker-experiments==0.* \
-    sagemaker-tensorflow-training \
+    sagemaker-experiments \
+    sagemaker-tensorflow-training==20.4.1 \
     sagemaker-training \
-    y-py \
-    sagemaker-studio-analytics-extension \
-    "sparkmagic<1" \
-    sagemaker-studio-sparkmagic-lib \
+    y-py==0.6.2 \
+    sagemaker-studio-analytics-extension==0.1.7 \
+    sparkmagic==0.22.0 \
+    sagemaker-studio-sparkmagic-lib==0.1.4 \
     smclarify
 
 # install boost
