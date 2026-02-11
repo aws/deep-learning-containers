@@ -105,7 +105,7 @@ RUN pip install --no-cache-dir \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
     "requests>=2.32.0" \
-    "setuptools==81.0.0" \
+    "setuptools>=80.10.1" \
     "urllib3>=2.5.0" \
     ninja \
     opencv-python==4.11.0.86 \
