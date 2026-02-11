@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -14,7 +14,6 @@
 
 import logging
 from pathlib import Path
-from pprint import pformat
 
 import sorter as sorter_module
 from constants import (
@@ -302,26 +301,14 @@ def generate_support_policy(dry_run: bool = False) -> str:
             bucket = version_entries.setdefault(img.version, [])
             if not any(existing._repository == img._repository for existing in bucket):
                 bucket.append(img)
-        LOGGER.debug(
-            f"[{framework_group}] Step 1 - versions:\n"
-            f"{pformat({v: [i._repository for i in imgs] for v, imgs in version_entries.items()})}"
-        )
 
         # Step 2: Consolidate across repos (framework → sub-group → per-repo fallback)
         entries: list[tuple[ImageConfig, dict[str, str]]] = []
         for full_ver, repo_imgs in version_entries.items():
             entries.extend(_consolidate_framework_version(framework_group, full_ver, repo_imgs))
-        LOGGER.debug(
-            f"[{framework_group}] Step 2 - entries:\n"
-            f"{pformat([overrides for _, overrides in entries])}"
-        )
 
         # Step 3: Collapse patch versions into major.minor where possible
         entries = _collapse_minor_versions(entries)
-        LOGGER.debug(
-            f"[{framework_group}] Step 3 - collapsed:\n"
-            f"{pformat([(img._repository, overrides) for img, overrides in entries])}"
-        )
 
         # Merge legacy entries for this framework
         for legacy_img in legacy_data.get(framework_group, []):
