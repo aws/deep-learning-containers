@@ -33,6 +33,7 @@ from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
+    dates_agree,
     load_images_by_framework_group,
     load_legacy_images,
     load_repository_images,
@@ -40,6 +41,7 @@ from image_config import (
 )
 from jinja2 import Template
 from utils import (
+    build_repo_map,
     get_framework_order,
     load_jinja2,
     load_table_config,
@@ -177,6 +179,52 @@ def generate_release_notes(dry_run: bool = False) -> None:
     LOGGER.info("Generated release notes")
 
 
+def _split_by_subgroup(
+    framework_group: str,
+    full_ver: str,
+    repo_imgs: list[ImageConfig],
+) -> list[tuple[ImageConfig, dict[str, str]]]:
+    """Split mismatched images by sub-group, falling back to per-repo if sub-group also disagrees.
+
+    When a framework group has nested sub-groups (dict format in global.yml), images are first
+    grouped by sub-group. If all images in a sub-group agree on dates, they consolidate into one
+    row with the sub-group display name. Otherwise, each repo gets its own row.
+
+    For flat groups (list format), falls back directly to per-repo rows.
+    """
+    group_config = GLOBAL_CONFIG.get("framework_groups", {}).get(framework_group, [])
+    entries: list[tuple[ImageConfig, dict[str, str]]] = []
+
+    # Flat group — no sub-groups, split directly to per-repo
+    if not isinstance(group_config, dict):
+        for img in repo_imgs:
+            entries.append((img, {"version": full_ver, "framework_group": img.display_repository}))
+        return entries
+
+    # Nested group
+    repo_to_subgroup = build_repo_map(group_config)
+
+    # Group images by sub-group
+    subgroup_imgs: dict[str, list[ImageConfig]] = {}
+    for img in repo_imgs:
+        subgroup_name = repo_to_subgroup.get(img._repository, img._repository)
+        subgroup_imgs.setdefault(subgroup_name, []).append(img)
+
+    # Try to consolidate within each sub-group
+    for subgroup_name, subgroup_images in subgroup_imgs.items():
+        ref_img = subgroup_images[0]
+        if dates_agree(subgroup_images):
+            display_name = GLOBAL_CONFIG.get("display_names", {}).get(subgroup_name, subgroup_name)
+            entries.append((ref_img, {"version": full_ver, "framework_group": display_name}))
+        else:
+            for img in subgroup_images:
+                entries.append(
+                    (img, {"version": full_ver, "framework_group": img.display_repository})
+                )
+
+    return entries
+
+
 def _collapse_minor_versions(
     entries: list[tuple[ImageConfig, dict[str, str]]],
 ) -> list[tuple[ImageConfig, dict[str, str]]]:
@@ -209,19 +257,14 @@ def _collapse_minor_versions(
             continue
         group_imgs = [entries[idx][0] for idx in indices]
         ref_img = group_imgs[0]
-        if all(cmp_img.ga == ref_img.ga and cmp_img.eop == ref_img.eop for cmp_img in group_imgs):
+        if dates_agree(group_imgs):
             entries[indices[0]] = (ref_img, {"version": mm})
             for idx in indices[1:]:
                 entries[idx] = None  # mark duplicates for removal
         else:
-            # Log images that have different ga/eop dates
-            for cmp_img in group_imgs[1:]:
-                if cmp_img.ga != ref_img.ga or cmp_img.eop != ref_img.eop:
-                    LOGGER.warning(
-                        f"Cannot collapse {mm}: "
-                        f"{ref_img._repository} {ref_img.version} ({ref_img.ga}, {ref_img.eop}) vs "
-                        f"{cmp_img._repository} {cmp_img.version} ({cmp_img.ga}, {cmp_img.eop})"
-                    )
+            LOGGER.warning(
+                f"Cannot collapse {ref_img._repository} {mm}. Please check images GA/EOP dates within this framework."
+            )
 
     return [e for e in entries if e is not None]
 
@@ -255,9 +298,8 @@ def generate_support_policy(dry_run: bool = False) -> str:
             if not any(existing._repository == img._repository for existing in bucket):
                 bucket.append(img)
         LOGGER.debug(
-            "[%s] Step 1 - versions:\n%s",
-            framework_group,
-            pformat({v: [i._repository for i in imgs] for v, imgs in version_entries.items()}),
+            f"[{framework_group}] Step 1 - versions:\n"
+            f"{pformat({v: [i._repository for i in imgs] for v, imgs in version_entries.items()})}"
         )
 
         # Step 2: Cross-repo agreement check
@@ -266,32 +308,25 @@ def generate_support_policy(dry_run: bool = False) -> str:
         for full_ver, repo_imgs in version_entries.items():
             seen_versions.add(full_ver)
             ref_img = repo_imgs[0]
-            if all(
-                cmp_img.ga == ref_img.ga and cmp_img.eop == ref_img.eop for cmp_img in repo_imgs
-            ):
+            if dates_agree(repo_imgs):
                 entries.append((ref_img, {"version": full_ver}))
             else:
                 LOGGER.warning(
                     f"GA/EOP mismatch in {framework_group} {full_ver} across repositories. "
                     f"Splitting into individual repository rows."
                 )
-                for img in repo_imgs:
-                    entries.append(
-                        (img, {"version": full_ver, "framework_group": img.display_repository})
-                    )
+                entries.extend(_split_by_subgroup(framework_group, full_ver, repo_imgs))
         LOGGER.debug(
-            "[%s] Step 2 - entries:\n%s",
-            framework_group,
-            pformat([(img._repository, overrides) for img, overrides in entries]),
+            f"[{framework_group}] Step 2 - entries:\n"
+            f"{pformat([overrides for _, overrides in entries])}"
         )
 
         # Step 3: Collapse patch versions into major.minor where possible
         # Result: entries with "version" collapsed (e.g., "2.7.0" -> "2.7"), split rows unchanged
         entries = _collapse_minor_versions(entries)
         LOGGER.debug(
-            "[%s] Step 3 - collapsed:\n%s",
-            framework_group,
-            pformat([(img._repository, overrides) for img, overrides in entries]),
+            f"[{framework_group}] Step 3 - collapsed:\n"
+            f"{pformat([(img._repository, overrides) for img, overrides in entries])}"
         )
 
         # Merge legacy entries for this framework

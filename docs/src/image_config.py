@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from constants import DATA_DIR, GLOBAL_CONFIG, LEGACY_DIR, RELEASE_NOTES_REQUIRED_FIELDS
-from utils import build_ecr_uri, build_public_ecr_uri, load_yaml, parse_version
+from utils import build_ecr_uri, build_public_ecr_uri, flatten_group_repos, load_yaml, parse_version
 
 LOGGER = logging.getLogger(__name__)
 
@@ -60,8 +60,8 @@ class ImageConfig:
     @property
     def framework_group(self) -> str:
         """Framework group key (or repository if not in a group)."""
-        for group_key, repos in GLOBAL_CONFIG.get("framework_groups", {}).items():
-            if self._repository in repos:
+        for group_key, group_config in GLOBAL_CONFIG.get("framework_groups", {}).items():
+            if self._repository in flatten_group_repos(group_config):
                 return group_key
         return self._repository
 
@@ -165,6 +165,12 @@ class ImageConfig:
             return getattr(self, display_attr)
         value = self.get(field)
         return str(value) if value is not None else "-"
+
+
+def dates_agree(images: list[ImageConfig]) -> bool:
+    """Check if all images share the same GA and EOP dates."""
+    ref = images[0]
+    return all(img.ga == ref.ga and img.eop == ref.eop for img in images)
 
 
 def build_image_row(img: ImageConfig, columns: list[dict], overrides: dict = None) -> list[str]:
