@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -32,6 +32,7 @@ from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
+    dates_agree,
     load_images_by_framework_group,
     load_legacy_images,
     load_repository_images,
@@ -39,6 +40,7 @@ from image_config import (
 )
 from jinja2 import Template
 from utils import (
+    build_repo_map,
     get_framework_order,
     load_jinja2,
     load_table_config,
@@ -176,6 +178,102 @@ def generate_release_notes(dry_run: bool = False) -> None:
     LOGGER.info("Generated release notes")
 
 
+def _consolidate_framework_version(
+    framework_group: str,
+    full_ver: str,
+    repo_imgs: list[ImageConfig],
+) -> list[tuple[ImageConfig, dict[str, str]]]:
+    """Consolidate images for a single framework version using hierarchical date agreement.
+
+    Tries three levels of consolidation, stopping at the first that succeeds:
+      1. Framework group — all repos agree → single row
+      2. Sub-group — repos within a sub-group agree → one row per sub-group (nested groups only)
+      3. Per-repo — no agreement → one row per repository
+    """
+    # All repos agree → single framework-level row (Level 1 consolidation)
+    if dates_agree(repo_imgs):
+        return [(repo_imgs[0], {"version": full_ver})]
+
+    LOGGER.warning(
+        f"GA/EOP mismatch in {framework_group} {full_ver} across repositories. "
+        f"Splitting into sub-group/repository rows."
+    )
+
+    group_config = GLOBAL_CONFIG.get("framework_groups", {}).get(framework_group, [])
+
+    # Flat group — no sub-groups, fall back directly to per-repo rows (Level 3 consolidation)
+    if not isinstance(group_config, dict):
+        return [
+            (img, {"version": full_ver, "framework_group": img.display_repository})
+            for img in repo_imgs
+        ]
+
+    # Nested group — try sub-group consolidation (Level 2 consolidation), per-repo fallback (Level 3 consolidation)
+    repo_to_subgroup = build_repo_map(group_config)
+    subgroup_imgs: dict[str, list[ImageConfig]] = {}
+    for img in repo_imgs:
+        subgroup_name = repo_to_subgroup.get(img._repository, img._repository)
+        subgroup_imgs.setdefault(subgroup_name, []).append(img)
+
+    entries: list[tuple[ImageConfig, dict[str, str]]] = []
+    for subgroup_name, images in subgroup_imgs.items():
+        if dates_agree(images):
+            display_name = GLOBAL_CONFIG.get("display_names", {}).get(subgroup_name, subgroup_name)
+            entries.append((images[0], {"version": full_ver, "framework_group": display_name}))
+        else:
+            entries.extend(
+                (img, {"version": full_ver, "framework_group": img.display_repository})
+                for img in images
+            )
+
+    return entries
+
+
+def _collapse_minor_versions(
+    entries: list[tuple[ImageConfig, dict[str, str]]],
+) -> list[tuple[ImageConfig, dict[str, str]]]:
+    """Collapse patch versions (e.g., A.B.C, A.B.D) into major.minor (A.B) when all share identical dates.
+
+    Skips any major.minor that has split (per-repo) rows, since mixing collapsed and split rows
+    under the same major.minor would be confusing.
+
+    Args:
+        entries: List of (image, overrides) tuples. Split rows have "framework_group" in overrides.
+
+    Returns:
+        New list with collapsible groups replaced by a single major.minor entry.
+    """
+    uncollapsible: set[str] = set()
+    collapsible_groups: dict[str, list[int]] = {}
+    for idx, (img, overrides) in enumerate(entries):
+        version_obj = parse_version(img.version)
+        mm = f"{version_obj.major}.{version_obj.minor}"
+        if "framework_group" in overrides:
+            # Find major.minors that have split rows by repository — these cannot be collapsed
+            # Collapsing split rows will create ambiguity between patch versions
+            uncollapsible.add(mm)
+        else:
+            collapsible_groups.setdefault(mm, []).append(idx)
+
+    # Collapse: if all entries in a major.minor group share dates, keep one with major.minor display
+    for mm, indices in collapsible_groups.items():
+        if mm in uncollapsible:
+            continue
+        group_imgs = [entries[idx][0] for idx in indices]
+        ref_img = group_imgs[0]
+        if dates_agree(group_imgs):
+            entries[indices[0]] = (ref_img, {"version": mm})
+            for idx in indices[1:]:
+                entries[idx] = None  # mark duplicates for removal
+        else:
+            LOGGER.warning(
+                f"Cannot collapse {ref_img._repository} {mm}. "
+                f"Please confirm images GA/EOP dates within this framework are intentional."
+            )
+
+    return [e for e in entries if e is not None]
+
+
 def generate_support_policy(dry_run: bool = False) -> str:
     """Generate support_policy.md from image configs with GA/EOP dates."""
     output_path = REFERENCE_DIR / "support_policy.md"
@@ -197,156 +295,41 @@ def generate_support_policy(dry_run: bool = False) -> str:
         if not images:
             continue
 
-        # Group by (major.minor, ga, eop) to allow different dates for same version
-        # This enables training and inference to have different EOP dates
-        date_groups: dict[tuple[str, str, str], list[ImageConfig]] = {}
+        # Step 1: Group by full version, deduplicate per repo
+        version_entries: dict[str, list[ImageConfig]] = {}
         for img in images:
-            v = parse_version(img.version)
-            major_minor = f"{v.major}.{v.minor}"
-            key = (major_minor, img.ga, img.eop)
-            date_groups.setdefault(key, []).append(img)
+            bucket = version_entries.setdefault(img.version, [])
+            if not any(existing._repository == img._repository for existing in bucket):
+                bucket.append(img)
 
-        # Track which versions have multiple date groups (need repository-specific display)
-        version_date_count: dict[str, int] = {}
-        for (major_minor, ga, eop), group in date_groups.items():
-            version_date_count[major_minor] = version_date_count.get(major_minor, 0) + 1
+        # Step 2: Consolidate across repos (framework → sub-group → per-repo fallback)
+        entries: list[tuple[ImageConfig, dict[str, str]]] = []
+        for full_ver, repo_imgs in version_entries.items():
+            entries.extend(_consolidate_framework_version(framework_group, full_ver, repo_imgs))
 
-        version_map: dict[str, tuple[ImageConfig, bool]] = {}
-
-        # Process each unique (version, ga, eop) combination
-        for (major_minor, ga, eop), group in date_groups.items():
-            # Check if all images in this date group have the same full version
-            versions_in_group = {img.version for img in group}
-
-            # Determine if this version needs repository-specific display
-            needs_repo_display = version_date_count[major_minor] > 1
-
-            if len(versions_in_group) == 1:
-                # All images have same patch version
-                first = group[0]
-
-                if needs_repo_display:
-                    # Same version exists with different dates - use repository-specific display
-                    # Store with flag indicating we need to override framework_group display
-                    repos_in_group = {img._repository for img in group}
-                    # Create a unique key for this date group
-                    repo_suffix = "-".join(sorted(repos_in_group))
-                    display_key = f"{major_minor}:{repo_suffix}"
-                    version_map[display_key] = (first, True)  # True = use repo display
-                else:
-                    # No conflict - use simple major.minor key with framework display
-                    version_map[major_minor] = (first, False)  # False = use framework display
-            else:
-                # Multiple patch versions with same dates - warn and keep separate
-                versions_info = ", ".join(sorted(versions_in_group))
-                LOGGER.warning(
-                    f"Different patch versions for {framework_group} with same GA/EOP dates: {versions_info}"
-                )
-                for img in group:
-                    version_map[img.version] = (img, needs_repo_display)
+        # Step 3: Collapse patch versions into major.minor where possible
+        entries = _collapse_minor_versions(entries)
 
         # Merge legacy entries for this framework
         for legacy_img in legacy_data.get(framework_group, []):
-            if legacy_img.version not in version_map:
-                version_map[legacy_img.version] = (
-                    legacy_img,
-                    False,
-                )  # Legacy uses framework display
+            entries.append((legacy_img, {"version": legacy_img.version}))
 
         # Sort by version descending within this framework group
-        # Extract version for sorting from the tuple
-        sorted_keys = sorted(
-            version_map.keys(), key=lambda k: parse_version(version_map[k][0].version), reverse=True
-        )
-        for key in sorted_keys:
-            img, use_repo_display = version_map[key]
-            # Extract clean version for display (remove repo suffix if present)
-            display_version = key.split(":")[0] if ":" in key else key
-            (supported if img.is_supported else unsupported).append(
-                (img, display_version, use_repo_display)
-            )
+        entries.sort(key=lambda e: parse_version(e[0].version), reverse=True)
+        for img, overrides in entries:
+            (supported if img.is_supported else unsupported).append((img, overrides))
 
     # Build tables
     table_config = load_table_config("extra/support_policy")
     columns = table_config.get("columns", [])
     headers = [col["header"] for col in columns]
 
-    # Build rows with appropriate framework display
-    supported_rows = []
-    for img, ver, use_repo_display in supported:
-        overrides = {"version": ver}
-        if use_repo_display:
-            # Find all repositories in this framework group with this version and same dates
-            # to create a comprehensive display name
-            all_repos_with_dates = [
-                i
-                for i in images_by_group.get(img.framework_group, [])
-                if parse_version(i.version).major == parse_version(img.version).major
-                and parse_version(i.version).minor == parse_version(img.version).minor
-                and i.ga == img.ga
-                and i.eop == img.eop
-            ]
-            unique_repos = sorted(set(i._repository for i in all_repos_with_dates))
-            display_names = GLOBAL_CONFIG.get("display_names", {})
-
-            # Determine the common prefix (e.g., "PyTorch") and suffix (e.g., "Training", "Inference")
-            repo_displays = [display_names.get(repo, repo) for repo in unique_repos]
-
-            # If all repos share a common framework prefix, consolidate intelligently
-            # e.g., ["PyTorch Training", "PyTorch Training ARM64"] -> "PyTorch Training"
-            # e.g., ["PyTorch Inference", "PyTorch Inference ARM64"] -> "PyTorch Inference"
-            if len(repo_displays) > 1:
-                # Check if we can consolidate (e.g., remove ARM64 variants)
-                base_displays = set()
-                for display in repo_displays:
-                    # Remove " ARM64" suffix if present
-                    base = display.replace(" ARM64", "").strip()
-                    base_displays.add(base)
-
-                if len(base_displays) == 1:
-                    # All are variants of the same base (e.g., all "PyTorch Training")
-                    overrides["framework_group"] = base_displays.pop()
-                else:
-                    # Multiple different bases - show them all
-                    overrides["framework_group"] = ", ".join(sorted(base_displays))
-            else:
-                overrides["framework_group"] = repo_displays[0]
-        supported_rows.append(build_image_row(img, columns, overrides))
-
-    unsupported_rows = []
-    for img, ver, use_repo_display in unsupported:
-        overrides = {"version": ver}
-        if use_repo_display:
-            # Find all repositories in this framework group with this version and same dates
-            all_repos_with_dates = [
-                i
-                for i in images_by_group.get(img.framework_group, [])
-                if parse_version(i.version).major == parse_version(img.version).major
-                and parse_version(i.version).minor == parse_version(img.version).minor
-                and i.ga == img.ga
-                and i.eop == img.eop
-            ]
-            unique_repos = sorted(set(i._repository for i in all_repos_with_dates))
-            display_names = GLOBAL_CONFIG.get("display_names", {})
-
-            repo_displays = [display_names.get(repo, repo) for repo in unique_repos]
-
-            if len(repo_displays) > 1:
-                base_displays = set()
-                for display in repo_displays:
-                    base = display.replace(" ARM64", "").strip()
-                    base_displays.add(base)
-
-                if len(base_displays) == 1:
-                    overrides["framework_group"] = base_displays.pop()
-                else:
-                    overrides["framework_group"] = ", ".join(sorted(base_displays))
-            else:
-                overrides["framework_group"] = repo_displays[0]
-        unsupported_rows.append(build_image_row(img, columns, overrides))
-
-    supported_table = render_table(headers, supported_rows)
-    unsupported_table = render_table(headers, unsupported_rows)
+    supported_table = render_table(
+        headers, [build_image_row(img, columns, overrides) for img, overrides in supported]
+    )
+    unsupported_table = render_table(
+        headers, [build_image_row(img, columns, overrides) for img, overrides in unsupported]
+    )
 
     # Render template
     template = Template(load_jinja2(template_path))

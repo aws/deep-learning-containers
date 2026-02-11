@@ -109,17 +109,19 @@ class TestDateConsistencyValidation:
         content = generate_support_policy(dry_run=True)
         assert "Test Group" in content
 
-    # @pytest.mark.parametrize(
-    #     "mock_repo_images",
-    #     [
-    #         (("2025-01-01", "2500-01-01"), ("2025-01-01", "2500-06-01")),
-    #         (("2025-01-01", "2500-01-01"), ("2025-02-01", "2500-01-01")),
-    #         (("2025-01-01", "2500-01-01"), ("2025-06-01", "2500-06-01")),
-    #     ],
-    #     indirect=True,
-    #     ids=["inconsistent_eop", "inconsistent_ga", "both_inconsistent"],
-    # )
-    # def test_inconsistent_dates_raises(self, mock_paths, mock_repo_images):
-    #     """Test that inconsistent dates across repos in same framework group raise ValueError."""
-    #     with pytest.raises(ValueError, match="Inconsistent dates"):
-    #         generate_support_policy(dry_run=True)
+    @pytest.mark.parametrize(
+        "mock_repo_images",
+        [
+            (("2025-01-01", "2500-01-01"), ("2025-01-01", "2500-06-01")),
+            (("2025-01-01", "2500-01-01"), ("2025-02-01", "2500-01-01")),
+            (("2025-01-01", "2500-01-01"), ("2025-06-01", "2500-06-01")),
+        ],
+        indirect=True,
+        ids=["inconsistent_eop", "inconsistent_ga", "both_inconsistent"],
+    )
+    def test_inconsistent_dates_splits_rows(self, mock_paths, mock_repo_images):
+        """Test that inconsistent dates across repos split into individual repository rows."""
+        content = generate_support_policy(dry_run=True)
+        assert "Repo A" in content
+        assert "Repo B" in content
+        assert "Test Group" not in content
