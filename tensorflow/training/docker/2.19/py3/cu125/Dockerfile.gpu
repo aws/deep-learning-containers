@@ -196,6 +196,10 @@ RUN ${PIP} --no-cache-dir install --upgrade \
    "setuptools>=81" \
    wheel
 
+# Install UV for faster package installation
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
@@ -269,7 +273,7 @@ FROM common AS ec2
 
 ARG TF_URL
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
    ${TF_URL} \
    "tensorflow-io==0.37.*" \
    tensorflow-datasets
@@ -315,10 +319,6 @@ ARG TF_URL
 # sagemaker-specific environment variable
 ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 
-# Install UV for faster package installation
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:${PATH}"
-
 # https://github.com/yaml/pyyaml/issues/601
 # PyYaml less than 6.0.1 failes to build with cython v3 and above.
 # tf-models-official uses older versions, breaking the install.
@@ -346,9 +346,8 @@ RUN uv pip install --system --no-cache-dir \
  && uv pip install --system --no-cache-dir \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    tensorflow-datasets
-
-# Rust/cargo already installed with UV
+    tensorflow-datasets \
+ && rm -rf /root/.cache/uv /root/.cargo/registry
 
 RUN uv pip install --system --no-cache-dir \
     numba \
@@ -357,7 +356,8 @@ RUN uv pip install --system --no-cache-dir \
     "opencv-python==4.11.0.86" \
     plotly \
     seaborn \
-    shap
+    shap \
+ && rm -rf /root/.cache/uv
 
 RUN uv pip install --system --no-cache-dir \
     sagemaker \
@@ -368,7 +368,8 @@ RUN uv pip install --system --no-cache-dir \
     sagemaker-studio-analytics-extension \
     sparkmagic==0.22.0 \
     sagemaker-studio-sparkmagic-lib \
-    smclarify
+    smclarify \
+ && rm -rf /root/.cache/uv
 
 # Re-pin numpy after all installs to ensure TF compatibility
 RUN uv pip install --system --no-cache-dir "numpy==1.26.4"
