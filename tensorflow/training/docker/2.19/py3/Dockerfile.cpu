@@ -281,7 +281,7 @@ RUN uv pip install --system --no-cache-dir \
     "opencv-python==4.12.0.88" \
     plotly \
     seaborn \
-    shap \
+    "shap<0.50" \
  && rm -rf /root/.cache/uv
 
 RUN uv pip install --system --no-cache-dir \
