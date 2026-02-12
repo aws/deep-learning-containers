@@ -53,6 +53,10 @@ inputs:
     description: 'Contributor name'
     required: false
     default: 'None'
+  customer-type:
+    description: 'Customer type (e.g., sagemaker, ec2, rayserve_ec2)'
+    required: false
+    default: ''
   inference-toolkit-version:
     description: 'Inference toolkit version (e.g., 2.0.25)'
     required: false
@@ -132,8 +136,8 @@ runs:
           --build-arg FRAMEWORK=\"${{ inputs.framework }}\" \
           --build-arg FRAMEWORK_VERSION=\"${{ inputs.framework-version }}\""
 
-        # Add SageMaker labels if target contains 'sagemaker'
-        if [[ "${{ inputs.target }}" == *"sagemaker"* ]]; then
+        # Add SageMaker labels if customer-type is 'sagemaker'
+        if [[ "${{ inputs.customer-type }}" == "sagemaker" ]]; then
           BUILD_CMD="${BUILD_CMD} \
           --label \"com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true\" \
           --label \"com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true\" \

@@ -1,0 +1,51 @@
+name: 'Load Configuration Files'
+description: 'Load and parse YAML configuration files into JSON format'
+
+inputs:
+  config-files:
+    description: 'Comma-separated list of config file paths to load'
+    required: true
+
+outputs:
+  ec2-config:
+    description: 'EC2 configuration as JSON'
+    value: ${{ steps.load-configs.outputs.ec2-config }}
+  sagemaker-config:
+    description: 'SageMaker configuration as JSON'
+    value: ${{ steps.load-configs.outputs.sagemaker-config }}
+  rayserve-config:
+    description: 'RayServe configuration as JSON'
+    value: ${{ steps.load-configs.outputs.rayserve-config }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install yq
+      shell: bash
+      run: |
+        if ! command -v yq &> /dev/null; then
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+        fi
+
+    - name: Load configuration files
+      id: load-configs
+      shell: bash
+      run: |
+        # Split comma-separated config files
+        IFS=',' read -ra CONFIG_FILES <<< "${{ inputs.config-files }}"
+
+        # Load each config file and output individually
+        for CONFIG_FILE in "${CONFIG_FILES[@]}"; do
+          # Extract config name from file path (e.g., "ec2" from "sglang-ec2.yml")
+          CONFIG_NAME=$(basename "$CONFIG_FILE" .yml | sed 's/.*-//')
+
+          echo "Loading config: $CONFIG_FILE as '${CONFIG_NAME}-config'"
+
+          # Output individual config
+          {
+            echo "${CONFIG_NAME}-config<<EOF"
+            yq eval -o=json '.' $CONFIG_FILE
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
+        done
