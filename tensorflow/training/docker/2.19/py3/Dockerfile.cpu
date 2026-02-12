@@ -130,7 +130,11 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
     && make install \
     && rm -rf ../Python-$PYTHON_VERSION*
 
-RUN ${PIP} --no-cache-dir install --upgrade \
+# Install UV for faster package installation
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN uv pip install --system --no-cache-dir \
     pip \
     setuptools
 
@@ -138,7 +142,7 @@ RUN ${PIP} --no-cache-dir install --upgrade \
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
     && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     pybind11 \
     cmake \
     scipy \
@@ -148,9 +152,6 @@ RUN ${PIP} install --no-cache-dir -U \
     "awscli<2" \
     urllib3 \
     mpi4py \
-    # Let's install TensorFlow separately in the end to avoid
-    # the library version to be overwritten
- && ${PIP} install --no-cache-dir -U \
     h5py \
     absl-py \
     opencv-python \
@@ -189,7 +190,7 @@ RUN curl https://aws-dlc-licenses.s3.amazonaws.com/tensorflow-${TF_VERSION}/lice
 FROM common AS ec2
 ARG TF_URL
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     tensorflow-datasets
@@ -247,10 +248,6 @@ RUN apt-get update  \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
-# Install UV for faster package installation
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.cargo/bin:${PATH}"
-
 # https://github.com/yaml/pyyaml/issues/601
 # PyYaml less than 6.0.1 failes to build with cython v3 and above.
 # tf-models-official uses older versions, breaking the install.
@@ -274,9 +271,8 @@ RUN uv pip install --system --no-cache-dir \
  && uv pip install --system --no-cache-dir \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    tensorflow-datasets
-
-# Rust/cargo already installed with UV
+    tensorflow-datasets \
+ && rm -rf /root/.cache/uv /root/.cargo/registry
 
 RUN uv pip install --system --no-cache-dir \
     numba \
@@ -285,7 +281,8 @@ RUN uv pip install --system --no-cache-dir \
     "opencv-python==4.12.0.88" \
     plotly \
     seaborn \
-    shap
+    shap \
+ && rm -rf /root/.cache/uv
 
 RUN uv pip install --system --no-cache-dir \
     sagemaker \
@@ -296,7 +293,8 @@ RUN uv pip install --system --no-cache-dir \
     sagemaker-studio-analytics-extension \
     sparkmagic==0.22.0 \
     sagemaker-studio-sparkmagic-lib \
-    smclarify
+    smclarify \
+ && rm -rf /root/.cache/uv
     
 # Remove python kernel installed by sparkmagic
 RUN /usr/local/bin/jupyter-kernelspec remove -f python3
