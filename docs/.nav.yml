@@ -3,6 +3,7 @@ nav:
   - Getting Started:
     - get_started/index.md
     - Using Deep Learning Containers: get_started/using_dlcs.md
+    - Release Notifications: get_started/release_notifications.md
   - Release Notes:
     - releasenotes/index.md
     - Base: releasenotes/base/index.md
