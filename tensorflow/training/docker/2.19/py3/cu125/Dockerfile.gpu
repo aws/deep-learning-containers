@@ -359,17 +359,21 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     plotly \
     seaborn \
     shap
-    
+
 RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker==2.254.1 \
-    sagemaker-experiments==0.1.45 \
-    sagemaker-tensorflow-training==20.4.1 \
-    sagemaker-training==5.1.1 \
-    y-py==0.6.2 \
-    sagemaker-studio-analytics-extension==0.1.7 \
-    sparkmagic==0.22.0 \
-    sagemaker-studio-sparkmagic-lib==0.1.4 \
-    smclarify==0.5
+    sagemaker \
+    sagemaker-experiments \
+    sagemaker-tensorflow-training \
+    sagemaker-training \
+    y-py \
+    sagemaker-studio-analytics-extension \
+    "sparkmagic<1" \
+    sagemaker-studio-sparkmagic-lib \
+    smclarify
+
+# Re-pin numpy after all installs to ensure TF compatibility
+RUN ${PIP} install --no-cache-dir -U "numpy==1.26.4"
+
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
 RUN wget https://sourceforge.net/projects/boost/files/boost/1.82.0/boost_1_82_0.tar.gz/download -O boost_1_82_0.tar.gz \
