@@ -117,6 +117,7 @@ RUN pip install --no-cache-dir \
     tzdata
 
 # Install PyTorch
+# Note: fastai removed - requires torch<2.10, not compatible with PyTorch 2.10
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
@@ -125,12 +126,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     triton \
     s3torchconnector \
-    fastai \
     accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
     spacy \
-    # pin thinc due to incompatibility with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc \
     blis \
     numpy \
