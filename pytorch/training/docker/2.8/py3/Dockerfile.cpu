@@ -305,7 +305,7 @@ RUN pip install --no-cache-dir -U \
     seaborn \
     shap \
     cloudpickle \
-    "langcodes<=3.5.0"
+    langcodes
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

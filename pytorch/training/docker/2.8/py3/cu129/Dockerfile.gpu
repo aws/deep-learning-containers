@@ -252,8 +252,8 @@ WORKDIR /
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
-    "awscli<1.42.50" \
-    "boto3<1.40.50" \
+    awscli \
+    boto3 \
     smclarify \
     "sagemaker>2.256,<3" \
     sagemaker-experiments \
@@ -273,7 +273,7 @@ RUN pip install --no-cache-dir -U \
     scikit-learn \
     seaborn \
     cloudpickle \
-    "langcodes<=3.5.0"
+    langcodes
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
 RUN bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh
