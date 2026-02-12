@@ -1,7 +1,4 @@
 {
-  "setuptools": {
-    "version_specifier": ">=81.0.0"
-  },
   "awscli": {
     "version_specifier": "<2"
   },

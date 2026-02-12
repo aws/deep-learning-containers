@@ -247,6 +247,10 @@ RUN apt-get update  \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+# Install UV for faster package installation
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.cargo/bin:${PATH}"
+
 # https://github.com/yaml/pyyaml/issues/601
 # PyYaml less than 6.0.1 failes to build with cython v3 and above.
 # tf-models-official uses older versions, breaking the install.
@@ -255,7 +259,7 @@ RUN apt-get update  \
 # and this is fine since sagemaker is more important than the models and
 # the models still work on pyyaml 6 in this context.
 # Need to install wheel before we can fix the pyyaml issue below
-RUN pip install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     wheel \
     "cython<3" \
     "pyyaml<6" \
@@ -263,23 +267,18 @@ RUN pip install --no-cache-dir -U \
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
-RUN ${PIP} install \
-    --default-timeout=300 \
-    --retries 5 \
-    --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     "tf-models-official==${TF_VERSION}.1" \
     "tensorflow-text==${TF_VERSION}.0" \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
- && ${PIP} install --no-cache-dir -U \
+ && uv pip install --system --no-cache-dir \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
     tensorflow-datasets
 
-# Install rust and cargo
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Rust/cargo already installed with UV
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     numba \
     bokeh \
     imageio \
@@ -288,7 +287,7 @@ RUN $PYTHON -m pip install --no-cache-dir -U \
     seaborn \
     shap
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     sagemaker \
     sagemaker-experiments \
     sagemaker-tensorflow-training \
