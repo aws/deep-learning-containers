@@ -13,6 +13,7 @@ pytest-timeout
 pytest-json-report
 pytest-xdist
 sagemaker>=2,<3
+sagemaker-experiments
 xmltodict
 retrying
 gitpython
