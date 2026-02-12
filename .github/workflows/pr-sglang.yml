@@ -296,6 +296,12 @@ jobs:
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: ${{ env.FRAMEWORK }}-${{ env.SGLANG_VERSION }}-gpu-${{ env.PYTHON_VERSION }}-${{ env.CUDA_VERSION }}-${{ env.OS_VERSION }}-sagemaker-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
+          arch-type: x86
+          device-type: gpu
+          cuda-version: ${{ env.CUDA_VERSION }}
+          python-version: ${{ env.PYTHON_VERSION }}
+          os-version: ${{ env.OS_VERSION }}
+          contributor: None
 
   set-sagemaker-test-environment:
     needs: [check-changes, build-sglang-sagemaker-image]
