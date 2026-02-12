@@ -242,7 +242,7 @@ release_images:
     arch_type: "x86"
     hf_transformers: "4.57.3"
     vllm_version: "0.14.0"
-    inference:
+    general:  # vLLM is categorized as general type
       device_types: [ "gpu" ]
       python_versions: [ "py312" ]
       os_version: "ubuntu22.04"
