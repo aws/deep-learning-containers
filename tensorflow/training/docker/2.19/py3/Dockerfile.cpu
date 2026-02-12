@@ -285,7 +285,7 @@ RUN uv pip install --system --no-cache-dir \
  && rm -rf /root/.cache/uv
 
 RUN uv pip install --system --no-cache-dir \
-    "sagemaker>=2,<3" \
+    "sagemaker>=2.256.0,<3" \
     sagemaker-experiments==0.1.45 \
     sagemaker-tensorflow-training \
     sagemaker-training \
