@@ -81,10 +81,14 @@ eop: "2035-10-15"   # End of Patch date
 
 **Version Consolidation:**
 
-- Images with the same major.minor version (e.g., `2.6.0` and `2.6.1`) are consolidated into a single row displayed as `2.6` if they have identical GA/EOP dates
-- If patch versions have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
+- Images with the same major.minor version and identical GA/EOP dates are consolidated into a single row displayed as `2.6` with the framework group name (e.g., "PyTorch")
+- If the same version has different GA/EOP dates across repository types (e.g., training vs inference), separate rows are created showing the specific repository type: "PyTorch Training" and "PyTorch Inference"
+- ARM64 variants are automatically consolidated with their base repository
+- If patch versions within the same repository have different GA/EOP dates, each is displayed separately with full version (e.g., `2.6.0`, `2.6.1`) and a warning is logged
 
-**Validation:** All images in the same framework group with the same full version (X.Y.Z) must have identical GA/EOP dates.
+**Flexibility:** Repositories in the same framework group (e.g., pytorch-training and pytorch-inference) can have different GA/EOP dates for the same version. The system will automatically create separate rows showing the specific repository type when dates differ.
+
+**Example:** If PyTorch 2.6 Training has EOP 2025-10-15 but PyTorch 2.6 Inference has EOP 2026-10-15, the support policy table will show two separate rows with "PyTorch Training" and "PyTorch Inference" in the Framework column.
 
 ---
 

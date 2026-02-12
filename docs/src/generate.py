@@ -1,4 +1,4 @@
-# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+## Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"). You
 # may not use this file except in compliance with the License. A copy of
@@ -32,6 +32,7 @@ from image_config import (
     ImageConfig,
     build_image_row,
     check_public_registry,
+    dates_agree,
     load_images_by_framework_group,
     load_legacy_images,
     load_repository_images,
@@ -39,6 +40,7 @@ from image_config import (
 )
 from jinja2 import Template
 from utils import (
+    build_repo_map,
     get_framework_order,
     load_jinja2,
     load_table_config,
@@ -176,6 +178,102 @@ def generate_release_notes(dry_run: bool = False) -> None:
     LOGGER.info("Generated release notes")
 
 
+def _consolidate_framework_version(
+    framework_group: str,
+    full_ver: str,
+    repo_imgs: list[ImageConfig],
+) -> list[tuple[ImageConfig, dict[str, str]]]:
+    """Consolidate images for a single framework version using hierarchical date agreement.
+
+    Tries three levels of consolidation, stopping at the first that succeeds:
+      1. Framework group — all repos agree → single row
+      2. Sub-group — repos within a sub-group agree → one row per sub-group (nested groups only)
+      3. Per-repo — no agreement → one row per repository
+    """
+    # All repos agree → single framework-level row (Level 1 consolidation)
+    if dates_agree(repo_imgs):
+        return [(repo_imgs[0], {"version": full_ver})]
+
+    LOGGER.warning(
+        f"GA/EOP mismatch in {framework_group} {full_ver} across repositories. "
+        f"Splitting into sub-group/repository rows."
+    )
+
+    group_config = GLOBAL_CONFIG.get("framework_groups", {}).get(framework_group, [])
+
+    # Flat group — no sub-groups, fall back directly to per-repo rows (Level 3 consolidation)
+    if not isinstance(group_config, dict):
+        return [
+            (img, {"version": full_ver, "framework_group": img.display_repository})
+            for img in repo_imgs
+        ]
+
+    # Nested group — try sub-group consolidation (Level 2 consolidation), per-repo fallback (Level 3 consolidation)
+    repo_to_subgroup = build_repo_map(group_config)
+    subgroup_imgs: dict[str, list[ImageConfig]] = {}
+    for img in repo_imgs:
+        subgroup_name = repo_to_subgroup.get(img._repository, img._repository)
+        subgroup_imgs.setdefault(subgroup_name, []).append(img)
+
+    entries: list[tuple[ImageConfig, dict[str, str]]] = []
+    for subgroup_name, images in subgroup_imgs.items():
+        if dates_agree(images):
+            display_name = GLOBAL_CONFIG.get("display_names", {}).get(subgroup_name, subgroup_name)
+            entries.append((images[0], {"version": full_ver, "framework_group": display_name}))
+        else:
+            entries.extend(
+                (img, {"version": full_ver, "framework_group": img.display_repository})
+                for img in images
+            )
+
+    return entries
+
+
+def _collapse_minor_versions(
+    entries: list[tuple[ImageConfig, dict[str, str]]],
+) -> list[tuple[ImageConfig, dict[str, str]]]:
+    """Collapse patch versions (e.g., A.B.C, A.B.D) into major.minor (A.B) when all share identical dates.
+
+    Skips any major.minor that has split (per-repo) rows, since mixing collapsed and split rows
+    under the same major.minor would be confusing.
+
+    Args:
+        entries: List of (image, overrides) tuples. Split rows have "framework_group" in overrides.
+
+    Returns:
+        New list with collapsible groups replaced by a single major.minor entry.
+    """
+    uncollapsible: set[str] = set()
+    collapsible_groups: dict[str, list[int]] = {}
+    for idx, (img, overrides) in enumerate(entries):
+        version_obj = parse_version(img.version)
+        mm = f"{version_obj.major}.{version_obj.minor}"
+        if "framework_group" in overrides:
+            # Find major.minors that have split rows by repository — these cannot be collapsed
+            # Collapsing split rows will create ambiguity between patch versions
+            uncollapsible.add(mm)
+        else:
+            collapsible_groups.setdefault(mm, []).append(idx)
+
+    # Collapse: if all entries in a major.minor group share dates, keep one with major.minor display
+    for mm, indices in collapsible_groups.items():
+        if mm in uncollapsible:
+            continue
+        group_imgs = [entries[idx][0] for idx in indices]
+        ref_img = group_imgs[0]
+        if dates_agree(group_imgs):
+            entries[indices[0]] = (ref_img, {"version": mm})
+            for idx in indices[1:]:
+                entries[idx] = None  # mark duplicates for removal
+        else:
+            LOGGER.warning(
+                f"Cannot collapse {ref_img._repository} {mm}. "
+                f"Please confirm images GA/EOP dates within this framework are intentional."
+            )
+
+    return [e for e in entries if e is not None]
+
+
 def generate_support_policy(dry_run: bool = False) -> str:
     """Generate support_policy.md from image configs with GA/EOP dates."""
     output_path = REFERENCE_DIR / "support_policy.md"
@@ -197,55 +295,29 @@ def generate_support_policy(dry_run: bool = False) -> str:
         if not images:
             continue
 
-        # Group by major.minor, then decide display format based on date consistency
-        major_minor_groups: dict[str, list[ImageConfig]] = {}
+        # Step 1: Group by full version, deduplicate per repo
+        version_entries: dict[str, list[ImageConfig]] = {}
         for img in images:
-            v = parse_version(img.version)
-            major_minor = f"{v.major}.{v.minor}"
-            major_minor_groups.setdefault(major_minor, []).append(img)
+            bucket = version_entries.setdefault(img.version, [])
+            if not any(existing._repository == img._repository for existing in bucket):
+                bucket.append(img)
 
-        version_map: dict[str, ImageConfig] = {}
-        for major_minor, group in major_minor_groups.items():
-            # Check if all images in group have same ga/eop
-            first = group[0]
-            all_same_dates = all(img.ga == first.ga and img.eop == first.eop for img in group)
+        # Step 2: Consolidate across repos (framework → sub-group → per-repo fallback)
+        entries: list[tuple[ImageConfig, dict[str, str]]] = []
+        for full_ver, repo_imgs in version_entries.items():
+            entries.extend(_consolidate_framework_version(framework_group, full_ver, repo_imgs))
 
-            if all_same_dates:
-                # Consolidate to major.minor display
-                version_map[major_minor] = first
-            else:
-                # Keep full versions, warn about inconsistency
-                versions_info = ", ".join(f"{img.version} ({img.ga}, {img.eop})" for img in group)
-                LOGGER.warning(
-                    f"Different GA/EOP dates for {framework_group} patch versions: {versions_info}"
-                )
-                # Keep each patch version as separate row with full version display
-                for img in group:
-                    existing = version_map.get(img.version)
-                    # Error if same full version (e.g., X.Y.Z) has different dates across images
-                    if existing and (existing.ga != img.ga or existing.eop != img.eop):
-                        raise ValueError(
-                            f"Inconsistent dates for {framework_group} {img.version}: \n"
-                            f"\tExisting: {existing._repository}-{existing.version}-{existing.accelerator}-{existing.platform}\n"
-                            f"\tImage: {img._repository}-{img.version}-{img.accelerator}-{img.platform}\n"
-                            f"\t({existing.ga}, {existing.eop}) vs ({img.ga}, {img.eop})"
-                        )
-                    # Deduplicate same full version with same dates
-                    version_map[img.version] = img
+        # Step 3: Collapse patch versions into major.minor where possible
+        entries = _collapse_minor_versions(entries)
 
         # Merge legacy entries for this framework
         for legacy_img in legacy_data.get(framework_group, []):
-            if legacy_img.version not in version_map:
-                version_map[legacy_img.version] = legacy_img
+            entries.append((legacy_img, {"version": legacy_img.version}))
 
         # Sort by version descending within this framework group
-        # Key is the display version (major.minor if consolidated, full version otherwise)
-        sorted_keys = sorted(
-            version_map.keys(), key=lambda k: parse_version(version_map[k].version), reverse=True
-        )
-        for key in sorted_keys:
-            img = version_map[key]
-            (supported if img.is_supported else unsupported).append((img, key))
+        entries.sort(key=lambda e: parse_version(e[0].version), reverse=True)
+        for img, overrides in entries:
+            (supported if img.is_supported else unsupported).append((img, overrides))
 
     # Build tables
     table_config = load_table_config("extra/support_policy")
@@ -253,10 +325,10 @@ def generate_support_policy(dry_run: bool = False) -> str:
     headers = [col["header"] for col in columns]
 
     supported_table = render_table(
-        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in supported]
+        headers, [build_image_row(img, columns, overrides) for img, overrides in supported]
     )
     unsupported_table = render_table(
-        headers, [build_image_row(img, columns, {"version": ver}) for img, ver in unsupported]
+        headers, [build_image_row(img, columns, overrides) for img, overrides in unsupported]
     )
 
     # Render template

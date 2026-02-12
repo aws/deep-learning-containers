@@ -21,6 +21,9 @@ eks: "${amazon} EKS"
 eks_short: "EKS"
 ecr: "${amazon} ECR"
 ecr_short: "ECR"
+sns: "${amazon} SNS"
+sqs: "${amazon} SQS"
+lambda: "${aws} Lambda"
 
 # Default value for empty/missing fields in tables
 default_empty_field: "-"
@@ -113,17 +116,26 @@ display_names:
 # Repositories in the same group with matching GA/EOP dates for a version
 # are consolidated into a single row. Use lowercase keys.
 # Display names are defined in the display_names section.
+#
+# Supports two formats:
+#   Flat list:   group: [repo-a, repo-b]
+#   Nested dict: group: { sub-group-a: [repo-a, repo-a-arm64], sub-group-b: [repo-b] }
+# Nested sub-groups enable intermediate consolidation when the full group disagrees.
 # =============================================================================
 framework_groups:
   pytorch:
-    - pytorch-training
-    - pytorch-inference
-    - pytorch-training-arm64
-    - pytorch-inference-arm64
+    pytorch-training:
+      - pytorch-training
+      - pytorch-training-arm64
+    pytorch-inference:
+      - pytorch-inference
+      - pytorch-inference-arm64
   tensorflow:
-    - tensorflow-training
-    - tensorflow-inference
-    - tensorflow-inference-arm64
+    tensorflow-training:
+      - tensorflow-training
+    tensorflow-inference:
+      - tensorflow-inference
+      - tensorflow-inference-arm64
   vllm:
     - vllm
     - vllm-arm64
