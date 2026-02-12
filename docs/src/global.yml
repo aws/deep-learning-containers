@@ -21,6 +21,9 @@ eks: "${amazon} EKS"
 eks_short: "EKS"
 ecr: "${amazon} ECR"
 ecr_short: "ECR"
+sns: "${amazon} SNS"
+sqs: "${amazon} SQS"
+lambda: "${aws} Lambda"
 
 # Default value for empty/missing fields in tables
 default_empty_field: "-"
