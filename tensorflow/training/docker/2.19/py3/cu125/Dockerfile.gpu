@@ -372,7 +372,8 @@ RUN uv pip install --system --no-cache-dir \
  && rm -rf /root/.cache/uv
 
 # Re-pin numpy after all installs to ensure TF compatibility
-RUN uv pip install --system --no-cache-dir "numpy==1.26.4"
+# Also re-sync awscli with botocore after sagemaker packages may have changed botocore version
+RUN uv pip install --system --no-cache-dir "numpy==1.26.4" "awscli<2"
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
