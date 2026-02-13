@@ -20,7 +20,7 @@ from utils import parse_version
 
 def repository_sorter(img) -> int:
     """Repository order: by table_order index."""
-    table_order = GLOBAL_CONFIG.get("table_order", [])
+    table_order = GLOBAL_CONFIG["table_order"]
     try:
         return table_order.index(img.repository)
     except ValueError:
