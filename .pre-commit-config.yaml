@@ -134,9 +134,6 @@ repos:
       - id: shfmt
         name: "🐚 shell · Format shell scripts"
         args: ["-s"]
-        entry: shfmt
-        language: system
-        types: [shell]
 
 
   # --------------------------- ✍️ Git Commit Quality -------------------------- #
