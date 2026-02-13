@@ -63,6 +63,8 @@ ENV UV_HTTP_TIMEOUT=500
 # Memory allocator + Intel OpenMP for x86_64 performance
 ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4:/opt/venv/lib/libiomp5.so"
 
+RUN echo 'ulimit -c 0' >> ~/.bashrc
+
 # ====================== vllm-build =========================================
 FROM base AS vllm-build
 
