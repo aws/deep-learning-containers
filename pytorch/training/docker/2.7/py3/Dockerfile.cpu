@@ -251,7 +251,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     thinc==8.3.4  \
     blis \
-    typer \ 
+    typer \
     langcodes \
     language_data \
     numpy \
@@ -325,7 +325,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     thinc==8.3.4  \
     blis \
     numpy \
-    typer \ 
+    typer \
     langcodes \
     language_data \
  && pip uninstall -y dataclasses
@@ -333,8 +333,8 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
-    "awscli<=1.42.61" \
-    "boto3<=1.40.61" \
+    awscli \
+    boto3 \
     smclarify \
     "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \
