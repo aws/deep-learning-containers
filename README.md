@@ -4,7 +4,7 @@
 
 <p align="center"><strong>One stop shop for running AI/ML on AWS</strong></p>
 
-<p align="center"><a href="https://aws.amazon.com/ai/machine-learning/containers/"><strong>AWS Doc</strong></a> ·
+<p align="center"><a href="https://aws.github.io/deep-learning-containers/"><strong>Docs</strong></a> ·
 <a href="https://aws.github.io/deep-learning-containers/reference/available_images/"><strong>Available Images</strong></a> · <a href="https://aws.github.io/deep-learning-containers/tutorials/"><strong>Tutorials</strong></a></p>
 
 ______________________________________________________________________
@@ -13,9 +13,9 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
-- **[2025/12/19]** Released v0.13.0 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
-  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.13-gpu-py312-cu130-ubuntu22.04-ec2`
-  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.13.0-gpu-py312`
+- **[2026/02/06]** Released v0.15.1 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312`
 - **[2025/11/17]** Released first [SGLang DLCs](https://gallery.ecr.aws/deep-learning-containers/sglang)
   - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 
