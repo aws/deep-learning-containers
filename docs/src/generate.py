@@ -88,9 +88,8 @@ def _generate_framework_index(
     dry_run: bool = False,
 ) -> str:
     """Generate the index page for a framework group's release notes."""
-    display_names = GLOBAL_CONFIG.get("display_names", {})
-    framework_display = display_names.get(framework_group, framework_group)
-    columns = table_config.get("columns", [])
+    framework_display = GLOBAL_CONFIG["display_names"].get(framework_group, framework_group)
+    columns = table_config["columns"]
     headers = [col["header"] for col in columns]
 
     # Group images by major.minor version
@@ -218,7 +217,7 @@ def _consolidate_framework_version(
     entries: list[tuple[ImageConfig, dict[str, str]]] = []
     for subgroup_name, images in subgroup_imgs.items():
         if dates_agree(images):
-            display_name = GLOBAL_CONFIG.get("display_names", {}).get(subgroup_name, subgroup_name)
+            display_name = GLOBAL_CONFIG["display_names"].get(subgroup_name, subgroup_name)
             entries.append((images[0], {"version": full_ver, "framework_group": display_name}))
         else:
             entries.extend(
@@ -321,7 +320,7 @@ def generate_support_policy(dry_run: bool = False) -> str:
 
     # Build tables
     table_config = load_table_config("extra/support_policy")
-    columns = table_config.get("columns", [])
+    columns = table_config["columns"]
     headers = [col["header"] for col in columns]
 
     supported_table = render_table(
@@ -353,8 +352,8 @@ def generate_available_images(dry_run: bool = False) -> str:
     template_path = TEMPLATES_DIR / "reference" / "available_images.template.md"
     LOGGER.debug(f"Generating {output_path}")
 
-    display_names = GLOBAL_CONFIG.get("display_names", {})
-    table_order = GLOBAL_CONFIG.get("table_order", [])
+    display_names = GLOBAL_CONFIG["display_names"]
+    table_order = GLOBAL_CONFIG["table_order"]
     tables_content = []
 
     for repository in table_order:
@@ -369,7 +368,7 @@ def generate_available_images(dry_run: bool = False) -> str:
             continue
 
         display_name = display_names[repository]
-        columns = table_config.get("columns", [])
+        columns = table_config["columns"]
         has_public_registry = check_public_registry(images, repository)
 
         # Sort images by version desc with tiebreakers from config or defaults

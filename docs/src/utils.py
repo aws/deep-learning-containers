@@ -112,7 +112,7 @@ def build_repo_map(groups: dict) -> dict[str, str]:
 
 def get_framework_order() -> list[str]:
     """Derive framework order from table_order, collapsing framework groups."""
-    table_order = GLOBAL_CONFIG.get("table_order", [])
+    table_order = GLOBAL_CONFIG["table_order"]
     repo_to_group = build_repo_map(GLOBAL_CONFIG.get("framework_groups", {}))
 
     seen = set()
