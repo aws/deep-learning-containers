@@ -5,8 +5,8 @@ python: py313
 cuda: cu130
 os: ubuntu22.04
 platform: ec2
-ga: "2026-02-09"
-eop: "2027-02-09"
+ga: "2025-10-22"
+eop: "2026-10-22"
 public_registry: true
 
 tags:
