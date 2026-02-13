@@ -77,6 +77,7 @@ display_names:
   tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
   huggingface-pytorch-training: "HuggingFace PyTorch Training"
   huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
+  huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
   huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
   huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
   huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
@@ -168,6 +169,7 @@ table_order:
   - tensorflow-inference-neuronx
   - huggingface-pytorch-training
   - huggingface-pytorch-inference
+  - huggingface-vllm-inference-neuronx
   - huggingface-pytorch-training-neuronx
   - huggingface-pytorch-inference-neuronx
   - huggingface-pytorch-trcomp-training
