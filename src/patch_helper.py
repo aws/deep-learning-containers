@@ -45,10 +45,8 @@ def trigger_language_patching(image_uri, s3_downloaded_path, python_version=None
     FORMATTER.print(f"[trigger_language] docker_run_cmd : {docker_run_cmd}")
     container_id = run(f"{docker_run_cmd}", hide=True).stdout.strip()
     docker_exec_cmd = f"docker exec -i {container_id}"
-    install_setuptools_cmd = "pip install 'setuptools<82'"
 
     try:
-        run(f"{docker_exec_cmd} {install_setuptools_cmd}", hide=True, warn=True)
         absolute_core_package_path = get_core_packages_path(image_uri, python_version)
         core_package_path_within_dlc_repo = ""
         if os.path.exists(absolute_core_package_path):
