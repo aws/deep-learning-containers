@@ -1,10 +1,11 @@
 framework: AutoGluon
-version: "1.3"
-accelerator: cpu
-python: py311
+version: "1.5"
+accelerator: gpu
+python: py312
+cuda: cu126
 os: ubuntu22.04
 platform: sagemaker
 
 # Image tags (first tag is used in available_images.md)
 tags:
-  - "1.3.0-cpu-py311-ubuntu22.04"
+  - "1.5.0-gpu-py312-cu126-ubuntu22.04"
