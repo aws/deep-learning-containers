@@ -12,6 +12,12 @@
   "pyyaml": {
     "version_specifier": ">=6.0,<6.1"
   },
+  "sagemaker": {
+    "version_specifier": ">=2.256.0,<3"
+  },
+  "sagemaker-experiments": {
+    "version_specifier": "<1"
+  },
   "sparkmagic": {
     "version_specifier": "<1"
   },
