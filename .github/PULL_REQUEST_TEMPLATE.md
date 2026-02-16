@@ -54,7 +54,7 @@ Use the code block below to uncomment commands and run the PR CodeBuild jobs. Th
 </details>
 
 ```
-/buildspec vllm/buildspec.yml
+# /buildspec <buildspec_path>
 # /tests <test_list>
 ```
 
