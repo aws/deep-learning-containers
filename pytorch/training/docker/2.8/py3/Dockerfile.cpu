@@ -305,8 +305,7 @@ RUN pip install --no-cache-dir -U \
     seaborn \
     shap \
     cloudpickle \
-    langcodes \
-    "protobuf>=6.33.5"
+    langcodes
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
