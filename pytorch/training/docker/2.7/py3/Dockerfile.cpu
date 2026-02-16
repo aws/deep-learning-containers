@@ -353,7 +353,8 @@ RUN pip install --no-cache-dir -U \
     seaborn \
     shap \
     # pinned for sagemaker==2.233.0
-    cloudpickle
+    cloudpickle \
+    "protobuf>=6.33.5"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /
