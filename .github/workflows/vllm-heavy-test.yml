@@ -35,22 +35,11 @@ jobs:
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
             docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-      - name: Prepare build context
-        run: |
-          mkdir -p build_context
-          cp src/deep_learning_container.py build_context/
-          cp miscellaneous_scripts/bash_telemetry.sh build_context/
-          cp scripts/install_efa.sh build_context/
-          cp vllm/build_artifacts/dockerd_entrypoint.sh build_context/
-          cp vllm/build_artifacts/sagemaker_entrypoint.sh build_context/ || true
-          cp vllm/x86_64/gpu/Dockerfile build_context/
-
       - name: Build vLLM EC2 image
         id: build
         run: |
           IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
-          cd build_context
-          docker build --target vllm-ec2 -t ${IMAGE_URI} .
+          docker build --target vllm-ec2 -t ${IMAGE_URI} -f docker/vllm/Dockerfile .
           echo "image-uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
 
       - name: Push to ECR
