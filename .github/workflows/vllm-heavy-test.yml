@@ -3,6 +3,9 @@
 name: vLLM GPU EFA Test
 
 on:
+  push:
+    branches:
+      - add-arc-workflows
   workflow_dispatch:
     inputs:
       force_build:
