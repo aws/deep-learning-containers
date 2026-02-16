@@ -1,3 +1,5 @@
+# vLLM GPU EFA Build & Test Workflow
+
 name: vLLM GPU EFA Test
 
 on:
@@ -8,13 +10,6 @@ on:
         required: false
         default: false
         type: boolean
-  push:
-    paths:
-      - 'vllm/x86_64/gpu/Dockerfile'
-      - 'vllm/build_artifacts/**'
-      - 'src/deep_learning_container.py'
-      - 'miscellaneous_scripts/bash_telemetry.sh'
-      - 'scripts/install_efa.sh'
 
 env:
   ECR_REGISTRY: 835370329810.dkr.ecr.us-west-2.amazonaws.com
@@ -25,7 +20,7 @@ env:
 
 jobs:
   build-and-push:
-    runs-on: gpu-efa-runners
+    runs-on: gpu-standard-runners
     outputs:
       image-uri: ${{ steps.build.outputs.image-uri }}
     steps:
