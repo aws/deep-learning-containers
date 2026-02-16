@@ -1,0 +1,107 @@
+name: vLLM GPU EFA Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      force_build:
+        description: 'Force build even without Dockerfile changes'
+        required: false
+        default: false
+        type: boolean
+  push:
+    paths:
+      - 'vllm/x86_64/gpu/Dockerfile'
+      - 'vllm/build_artifacts/**'
+      - 'src/deep_learning_container.py'
+      - 'miscellaneous_scripts/bash_telemetry.sh'
+      - 'scripts/install_efa.sh'
+
+env:
+  ECR_REGISTRY: 835370329810.dkr.ecr.us-west-2.amazonaws.com
+  ECR_REPOSITORY: jkottu-dev
+  IMAGE_TAG: vllm-ec2-efa-test
+  AWS_REGION: us-west-2
+  VLLM_VERSION: "0.15.1"
+
+jobs:
+  build-and-push:
+    runs-on: gpu-efa-runners
+    outputs:
+      image-uri: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Prepare build context
+        run: |
+          mkdir -p build_context
+          cp src/deep_learning_container.py build_context/
+          cp miscellaneous_scripts/bash_telemetry.sh build_context/
+          cp scripts/install_efa.sh build_context/
+          cp vllm/build_artifacts/dockerd_entrypoint.sh build_context/
+          cp vllm/build_artifacts/sagemaker_entrypoint.sh build_context/ || true
+          cp vllm/x86_64/gpu/Dockerfile build_context/
+
+      - name: Build vLLM EC2 image
+        id: build
+        run: |
+          IMAGE_URI="${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
+          cd build_context
+          docker build --target vllm-ec2 -t ${IMAGE_URI} .
+          echo "image-uri=${IMAGE_URI}" >> $GITHUB_OUTPUT
+
+      - name: Push to ECR
+        run: |
+          docker push ${{ steps.build.outputs.image-uri }}
+          echo "Pushed ${{ steps.build.outputs.image-uri }}"
+
+  vllm-ec2-example-test:
+    needs: [build-and-push]
+    if: success()
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Pull image
+        run: docker pull ${{ needs.build-and-push.outputs.image-uri }}
+
+      - name: Checkout vLLM tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v${{ env.VLLM_VERSION }}
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v .:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-and-push.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Setup for vLLM tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
+
+      - name: Run vLLM EC2 example tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_ec2_examples_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} || true
