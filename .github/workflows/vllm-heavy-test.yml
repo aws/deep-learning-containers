@@ -75,24 +75,18 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ${{ github.workspace }}:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.build-and-push.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Debug mount
-        run: |
-          echo "GITHUB_WORKSPACE=${{ github.workspace }}"
-          docker exec ${CONTAINER_ID} ls -la /workdir/
-          docker exec ${CONTAINER_ID} ls -la /workdir/scripts/vllm/ || echo "scripts/vllm not found"
+          docker cp ${{ github.workspace }}/. ${CONTAINER_ID}:/workdir
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM EC2 example tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_ec2_examples_test.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_ec2_examples_test.sh
 
       - name: Cleanup
         if: always()
