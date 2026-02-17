@@ -906,7 +906,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: i3c: master: cdns: Fix use after free vulnerability in cdns_i3c_master Driver Due to Race Condition",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\ni3c: master: cdns: Fix use after free vulnerability in cdns_i3c_master Driver Due to Race Condition\n\nIn the cdns_i3c_master_probe function, &master->hj_work is bound with\ncdns_i3c_master_hj. And cdns_i3c_master_interrupt can call\ncnds_i3c_master_demux_ibis function to start the work.\n\nIf we remove the module which will call cdns_i3c_master_remove to\nmake cleanup, it will free master->base through i3c_master_unregister\nwhile the work mentioned above will be used. The sequence of operations\nthat may lead to a UAF bug is as follows:\n\nCPU0                                      CPU1\n\n                                     | cdns_i3c_master_hj\ncdns_i3c_master_remove               |\ni3c_master_unregister(&master->base) |\ndevice_unregister(&master->dev)      |\ndevice_release                       |\n//free master->base                  |\n                                     | i3c_master_do_daa(&master->base)\n                                     | //use ",
       "vulnerability_id": "CVE-2024-50061",
       "name": "CVE-2024-50061",
       "package_name": "linux-libc-dev",
@@ -935,7 +935,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: ocfs2: validate l_tree_depth to avoid out-of-bounds access",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nocfs2: validate l_tree_depth to avoid out-of-bounds access\n\nThe l_tree_depth field is 16-bit (__le16), but the actual maximum depth is\nlimited to OCFS2_MAX_PATH_DEPTH.\n\nAdd a check to prevent out-of-bounds access if l_tree_depth has an invalid\nvalue, which may occur when reading from a corrupted mounted disk [1].",
       "vulnerability_id": "CVE-2025-22079",
       "name": "CVE-2025-22079",
       "package_name": "linux-libc-dev",
@@ -964,7 +964,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: padata: Fix refcnt handling in padata_free_shell()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\npadata: Fix refcnt handling in padata_free_shell()\n\nIn a high-load arm64 environment, the pcrypt_aead01 test in LTP can lead\nto system UAF (Use-After-Free) issues. Due to the lengthy analysis of\nthe pcrypt_aead01 function call, I'll describe the problem scenario\nusing a simplified model:\n\nSuppose there's a user of padata named `user_function` that adheres to\nthe padata requirement of calling `padata_free_shell` after `serial()`\nhas been invoked, as demonstrated in the following code:\n\n```c\nstruct request {\n    struct padata_priv padata;\n    struct completion *done;\n};\n\nvoid parallel(struct padata_priv *padata) {\n    do_something();\n}\n\nvoid serial(struct padata_priv *padata) {\n    struct request *request = container_of(padata,\n    \t\t\t\tstruct request,\n\t\t\t\tpadata);\n    complete(request->done);\n}\n\nvoid user_function() {\n    DECLARE_COMPLETION(done)\n    padata->parallel = parallel;\n    padata->serial = serial;\n    padata_do_parallel();\n    wait_f",
       "vulnerability_id": "CVE-2023-52854",
       "name": "CVE-2023-52854",
       "package_name": "linux-libc-dev",
@@ -993,7 +993,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: HSI: ssi_protocol: Fix use after free vulnerability in ssi_protocol Driver Due to Race Condition",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nHSI: ssi_protocol: Fix use after free vulnerability in ssi_protocol Driver Due to Race Condition\n\nIn the ssi_protocol_probe() function, &ssi->work is bound with\nssip_xmit_work(), In ssip_pn_setup(), the ssip_pn_xmit() function\nwithin the ssip_pn_ops structure is capable of starting the\nwork.\n\nIf we remove the module which will call ssi_protocol_remove()\nto make a cleanup, it will free ssi through kfree(ssi),\nwhile the work mentioned above will be used. The sequence\nof operations that may lead to a UAF bug is as follows:\n\nCPU0                                    CPU1\n\n                        | ssip_xmit_work\nssi_protocol_remove     |\nkfree(ssi);             |\n                        | struct hsi_client *cl = ssi->cl;\n                        | // use ssi\n\nFix it by ensuring that the work is canceled before proceeding\nwith the cleanup in ssi_protocol_remove().",
       "vulnerability_id": "CVE-2025-37838",
       "name": "CVE-2025-37838",
       "package_name": "linux-libc-dev",
@@ -1022,7 +1022,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: ntb_hw_switchtec: Fix shift-out-of-bounds in switchtec_ntb_mw_set_trans",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nntb_hw_switchtec: Fix shift-out-of-bounds in switchtec_ntb_mw_set_trans\n\nThere is a kernel API ntb_mw_clear_trans() would pass 0 to both addr and\nsize. This would make xlate_pos negative.\n\n[   23.734156] switchtec switchtec0: MW 0: part 0 addr 0x0000000000000000 size 0x0000000000000000\n[   23.734158] ================================================================================\n[   23.734172] UBSAN: shift-out-of-bounds in drivers/ntb/hw/mscc/ntb_hw_switchtec.c:293:7\n[   23.734418] shift exponent -1 is negative\n\nEnsuring xlate_pos is a positive or zero before BIT.",
       "vulnerability_id": "CVE-2023-53034",
       "name": "CVE-2023-53034",
       "package_name": "linux-libc-dev",
@@ -1051,7 +1051,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: e100: Fix possible use after free in e100_xmit_prepare",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\ne100: Fix possible use after free in e100_xmit_prepare\n\nIn e100_xmit_prepare(), if we can't map the skb, then return -ENOMEM, so\ne100_xmit_frame() will return NETDEV_TX_BUSY and the upper layer will\nresend the skb. But the skb is already freed, which will cause UAF bug\nwhen the upper layer resends the skb.\n\nRemove the harmful free.",
       "vulnerability_id": "CVE-2022-49026",
       "name": "CVE-2022-49026",
       "package_name": "linux-libc-dev",
@@ -1080,7 +1080,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: net_sched: sch_sfq: move the limit validation",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnet_sched: sch_sfq: move the limit validation\n\nIt is not sufficient to directly validate the limit on the data that\nthe user passes as it can be updated based on how the other parameters\nare changed.\n\nMove the check at the end of the configuration update process to also\ncatch scenarios where the limit is indirectly updated, for example\nwith the following configurations:\n\ntc qdisc add dev dummy0 handle 1: root sfq limit 2 flows 1 depth 1\ntc qdisc add dev dummy0 handle 1: root sfq limit 2 flows 1 divisor 1\n\nThis fixes the following syzkaller reported crash:\n\n------------[ cut here ]------------\nUBSAN: array-index-out-of-bounds in net/sched/sch_sfq.c:203:6\nindex 65535 is out of range for type 'struct sfq_head[128]'\nCPU: 1 UID: 0 PID: 3037 Comm: syz.2.16 Not tainted 6.14.0-rc2-syzkaller #0\nHardware name: Google Google Compute Engine/Google Compute Engine, BIOS Google 12/27/2024\nCall Trace:\n <TASK>\n __dump_stack lib/dump_stack.c:94 [inline]\n dump",
       "vulnerability_id": "CVE-2025-37752",
       "name": "CVE-2025-37752",
       "package_name": "linux-libc-dev",
@@ -1109,7 +1109,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: net_sched: hfsc: Fix a UAF vulnerability in class with netem as child qdisc",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnet_sched: hfsc: Fix a UAF vulnerability in class with netem as child qdisc\n\nAs described in Gerrard's report [1], we have a UAF case when an hfsc class\nhas a netem child qdisc. The crux of the issue is that hfsc is assuming\nthat checking for cl->qdisc->q.qlen == 0 guarantees that it hasn't inserted\nthe class in the vttree or eltree (which is not true for the netem\nduplicate case).\n\nThis patch checks the n_active class variable to make sure that the code\nwon't insert the class in the vttree or eltree twice, catering for the\nreentrant case.\n\n[1] https://lore.kernel.org/netdev/CAHcdcOm+03OD2j6R0=YHKqmy=VgJ8xEOKuP6c7mSgnp-TEJJbw@mail.gmail.com/",
       "vulnerability_id": "CVE-2025-37890",
       "name": "CVE-2025-37890",
       "package_name": "linux-libc-dev",
@@ -1138,7 +1138,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: sch_hfsc: Fix qlen accounting bug when using peek in hfsc_enqueue()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nsch_hfsc: Fix qlen accounting bug when using peek in hfsc_enqueue()\n\nWhen enqueuing the first packet to an HFSC class, hfsc_enqueue() calls the\nchild qdisc's peek() operation before incrementing sch->q.qlen and\nsch->qstats.backlog. If the child qdisc uses qdisc_peek_dequeued(), this may\ntrigger an immediate dequeue and potential packet drop. In such cases,\nqdisc_tree_reduce_backlog() is called, but the HFSC qdisc's qlen and backlog\nhave not yet been updated, leading to inconsistent queue accounting. This\ncan leave an empty HFSC class in the active list, causing further\nconsequences like use-after-free.\n\nThis patch fixes the bug by moving the increment of sch->q.qlen and\nsch->qstats.backlog before the call to the child qdisc's peek() operation.\nThis ensures that queue length and backlog are always accurate when packet\ndrops or dequeues are triggered during the peek.",
       "vulnerability_id": "CVE-2025-38000",
       "name": "CVE-2025-38000",
       "package_name": "linux-libc-dev",
@@ -1167,7 +1167,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: PCI/ASPM: Fix link state exit during switch upstream function removal",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nPCI/ASPM: Fix link state exit during switch upstream function removal\n\nBefore 456d8aa37d0f (\"PCI/ASPM: Disable ASPM on MFD function removal to\navoid use-after-free\"), we would free the ASPM link only after the last\nfunction on the bus pertaining to the given link was removed.\n\nThat was too late. If function 0 is removed before sibling function,\nlink->downstream would point to free'd memory after.\n\nAfter above change, we freed the ASPM parent link state upon any function\nremoval on the bus pertaining to a given link.\n\nThat is too early. If the link is to a PCIe switch with MFD on the upstream\nport, then removing functions other than 0 first would free a link which\nstill remains parent_link to the remaining downstream ports.\n\nThe resulting GPFs are especially frequent during hot-unplug, because\npciehp removes devices on the link bus in reverse order.\n\nOn that switch, function 0 is the virtual P2P bridge to the internal bus.\nFree exactly when f",
       "vulnerability_id": "CVE-2024-58093",
       "name": "CVE-2024-58093",
       "package_name": "linux-libc-dev",
@@ -1196,7 +1196,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: netfilter: use get_random_u32 instead of prandom",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnetfilter: use get_random_u32 instead of prandom\n\nbh might occur while updating per-cpu rnd_state from user context,\nie. local_out path.\n\nBUG: using smp_processor_id() in preemptible [00000000] code: nginx/2725\ncaller is nft_ng_random_eval+0x24/0x54 [nft_numgen]\nCall Trace:\n check_preemption_disabled+0xde/0xe0\n nft_ng_random_eval+0x24/0x54 [nft_numgen]\n\nUse the random driver instead, this also avoids need for local prandom\nstate. Moreover, prandom now uses the random driver since d4150779e60f\n(\"random32: use real rng for non-deterministic randomness\").\n\nBased on earlier patch from Pablo Neira.",
       "vulnerability_id": "CVE-2022-49698",
       "name": "CVE-2022-49698",
       "package_name": "linux-libc-dev",
@@ -1225,7 +1225,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: bpf, sockmap: Fix race between element replace and close()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nbpf, sockmap: Fix race between element replace and close()\n\nElement replace (with a socket different from the one stored) may race\nwith socket's close() link popping & unlinking. __sock_map_delete()\nunconditionally unrefs the (wrong) element:\n\n// set map[0] = s0\nmap_update_elem(map, 0, s0)\n\n// drop fd of s0\nclose(s0)\n  sock_map_close()\n    lock_sock(sk)               (s0!)\n    sock_map_remove_links(sk)\n      link = sk_psock_link_pop()\n      sock_map_unlink(sk, link)\n        sock_map_delete_from_link\n                                        // replace map[0] with s1\n                                        map_update_elem(map, 0, s1)\n                                          sock_map_update_elem\n                                (s1!)       lock_sock(sk)\n                                            sock_map_update_common\n                                              psock = sk_psock(sk)\n                                              spin_lock(&stab",
       "vulnerability_id": "CVE-2024-56664",
       "name": "CVE-2024-56664",
       "package_name": "linux-libc-dev",
@@ -1254,7 +1254,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: net_sched: hfsc: Fix a UAF vulnerability in class handling",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnet_sched: hfsc: Fix a UAF vulnerability in class handling\n\nThis patch fixes a Use-After-Free vulnerability in the HFSC qdisc class\nhandling. The issue occurs due to a time-of-check/time-of-use condition\nin hfsc_change_class() when working with certain child qdiscs like netem\nor codel.\n\nThe vulnerability works as follows:\n1. hfsc_change_class() checks if a class has packets (q.qlen != 0)\n2. It then calls qdisc_peek_len(), which for certain qdiscs (e.g.,\n   codel, netem) might drop packets and empty the queue\n3. The code continues assuming the queue is still non-empty, adding\n   the class to vttree\n4. This breaks HFSC scheduler assumptions that only non-empty classes\n   are in vttree\n5. Later, when the class is destroyed, this can lead to a Use-After-Free\n\nThe fix adds a second queue length check after qdisc_peek_len() to verify\nthe queue wasn't emptied.",
       "vulnerability_id": "CVE-2025-37797",
       "name": "CVE-2025-37797",
       "package_name": "linux-libc-dev",
@@ -1283,7 +1283,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: f2fs: fix to avoid use-after-free in f2fs_stop_gc_thread()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nf2fs: fix to avoid use-after-free in f2fs_stop_gc_thread()\n\nsyzbot reports a f2fs bug as below:\n\n __dump_stack lib/dump_stack.c:88 [inline]\n dump_stack_lvl+0x241/0x360 lib/dump_stack.c:114\n print_report+0xe8/0x550 mm/kasan/report.c:491\n kasan_report+0x143/0x180 mm/kasan/report.c:601\n kasan_check_range+0x282/0x290 mm/kasan/generic.c:189\n instrument_atomic_read_write include/linux/instrumented.h:96 [inline]\n atomic_fetch_add_relaxed include/linux/atomic/atomic-instrumented.h:252 [inline]\n __refcount_add include/linux/refcount.h:184 [inline]\n __refcount_inc include/linux/refcount.h:241 [inline]\n refcount_inc include/linux/refcount.h:258 [inline]\n get_task_struct include/linux/sched/task.h:118 [inline]\n kthread_stop+0xca/0x630 kernel/kthread.c:704\n f2fs_stop_gc_thread+0x65/0xb0 fs/f2fs/gc.c:210\n f2fs_do_shutdown+0x192/0x540 fs/f2fs/file.c:2283\n f2fs_ioc_shutdown fs/f2fs/file.c:2325 [inline]\n __f2fs_ioctl+0x443a/0xbe60 fs/f2fs/file.c:4325\n vfs_io",
       "vulnerability_id": "CVE-2024-47691",
       "name": "CVE-2024-47691",
       "package_name": "linux-libc-dev",
@@ -1312,7 +1312,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: codel: remove sch->q.qlen check before qdisc_tree_reduce_backlog()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\ncodel: remove sch->q.qlen check before qdisc_tree_reduce_backlog()\n\nAfter making all ->qlen_notify() callbacks idempotent, now it is safe to\nremove the check of qlen!=0 from both fq_codel_dequeue() and\ncodel_qdisc_dequeue().",
       "vulnerability_id": "CVE-2025-37798",
       "name": "CVE-2025-37798",
       "package_name": "linux-libc-dev",
@@ -1341,7 +1341,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: vsock: Do not allow binding to VMADDR_PORT_ANY",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nvsock: Do not allow binding to VMADDR_PORT_ANY\n\nIt is possible for a vsock to autobind to VMADDR_PORT_ANY. This can\ncause a use-after-free when a connection is made to the bound socket.\nThe socket returned by accept() also has port VMADDR_PORT_ANY but is not\non the list of unbound sockets. Binding it will result in an extra\nrefcount decrement similar to the one fixed in fcdd2242c023 (vsock: Keep\nthe binding until socket destruction).\n\nModify the check in __vsock_bind_connectible() to also prevent binding\nto VMADDR_PORT_ANY.",
       "vulnerability_id": "CVE-2025-38618",
       "name": "CVE-2025-38618",
       "package_name": "linux-libc-dev",
@@ -1370,7 +1370,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: padata: avoid UAF for reorder_work",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\npadata: avoid UAF for reorder_work\n\nAlthough the previous patch can avoid ps and ps UAF for _do_serial, it\ncan not avoid potential UAF issue for reorder_work. This issue can\nhappen just as below:\n\ncrypto_request\t\t\tcrypto_request\t\tcrypto_del_alg\npadata_do_serial\n  ...\n  padata_reorder\n    // processes all remaining\n    // requests then breaks\n    while (1) {\n      if (!padata)\n        break;\n      ...\n    }\n\n\t\t\t\tpadata_do_serial\n\t\t\t\t  // new request added\n\t\t\t\t  list_add\n    // sees the new request\n    queue_work(reorder_work)\n\t\t\t\t  padata_reorder\n\t\t\t\t    queue_work_on(squeue->work)\n...\n\n\t\t\t\t<kworker context>\n\t\t\t\tpadata_serial_worker\n\t\t\t\t// completes new request,\n\t\t\t\t// no more outstanding\n\t\t\t\t// requests\n\n\t\t\t\t\t\t\tcrypto_del_alg\n\t\t\t\t\t\t\t  // free pd\n\n<kworker context>\ninvoke_padata_reorder\n  // UAF of pd\n\nTo avoid UAF for 'reorder_work', get 'pd' ref before put 'reorder_work'\ninto the 'serial_wq' and put 'pd' ref until the 'serial_wq' finish.",
       "vulnerability_id": "CVE-2025-21726",
       "name": "CVE-2025-21726",
       "package_name": "linux-libc-dev",
@@ -1399,7 +1399,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: posix-cpu-timers: fix race between handle_posix_cpu_timers() and posix_cpu_timer_del()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nposix-cpu-timers: fix race between handle_posix_cpu_timers() and posix_cpu_timer_del()\n\nIf an exiting non-autoreaping task has already passed exit_notify() and\ncalls handle_posix_cpu_timers() from IRQ, it can be reaped by its parent\nor debugger right after unlock_task_sighand().\n\nIf a concurrent posix_cpu_timer_del() runs at that moment, it won't be\nable to detect timer->it.cpu.firing != 0: cpu_timer_task_rcu() and/or\nlock_task_sighand() will fail.\n\nAdd the tsk->exit_state check into run_posix_cpu_timers() to fix this.\n\nThis fix is not needed if CONFIG_POSIX_CPU_TIMERS_TASK_WORK=y, because\nexit_task_work() is called before exit_notify(). But the check still\nmakes sense, task_work_add(&tsk->posix_cputimers_work.work) will fail\nanyway in this case.",
       "vulnerability_id": "CVE-2025-38352",
       "name": "CVE-2025-38352",
       "package_name": "linux-libc-dev",
@@ -1428,7 +1428,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: net: appletalk: Fix use-after-free in AARP proxy probe",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnet: appletalk: Fix use-after-free in AARP proxy probe\n\nThe AARP proxy\u2010probe routine (aarp_proxy_probe_network) sends a probe,\nreleases the aarp_lock, sleeps, then re-acquires the lock.  During that\nwindow an expire timer thread (__aarp_expire_timer) can remove and\nkfree() the same entry, leading to a use-after-free.\n\nrace condition:\n\n         cpu 0                          |            cpu 1\n    atalk_sendmsg()                     |   atif_proxy_probe_device()\n    aarp_send_ddp()                     |   aarp_proxy_probe_network()\n    mod_timer()                         |   lock(aarp_lock) // LOCK!!\n    timeout around 200ms                |   alloc(aarp_entry)\n    and then call                       |   proxies[hash] = aarp_entry\n    aarp_expire_timeout()               |   aarp_send_probe()\n                                        |   unlock(aarp_lock) // UNLOCK!!\n    lock(aarp_lock) // LOCK!!           |   msleep(100);\n    __aarp_expire_time",
       "vulnerability_id": "CVE-2025-38666",
       "name": "CVE-2025-38666",
       "package_name": "linux-libc-dev",
@@ -1457,7 +1457,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: f2fs: fix race in concurrent f2fs_stop_gc_thread()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nf2fs: fix race in concurrent f2fs_stop_gc_thread\n\nIn my test case, concurrent calls to f2fs shutdown report the following\nstack trace:\n\n Oops: general protection fault, probably for non-canonical address 0xc6cfff63bb5513fc: 0000 [#1] PREEMPT SMP PTI\n CPU: 0 UID: 0 PID: 678 Comm: f2fs_rep_shutdo Not tainted 6.12.0-rc5-next-20241029-g6fb2fa9805c5-dirty #85\n Call Trace:\n  <TASK>\n  ? show_regs+0x8b/0xa0\n  ? __die_body+0x26/0xa0\n  ? die_addr+0x54/0x90\n  ? exc_general_protection+0x24b/0x5c0\n  ? asm_exc_general_protection+0x26/0x30\n  ? kthread_stop+0x46/0x390\n  f2fs_stop_gc_thread+0x6c/0x110\n  f2fs_do_shutdown+0x309/0x3a0\n  f2fs_ioc_shutdown+0x150/0x1c0\n  __f2fs_ioctl+0xffd/0x2ac0\n  f2fs_ioctl+0x76/0xe0\n  vfs_ioctl+0x23/0x60\n  __x64_sys_ioctl+0xce/0xf0\n  x64_sys_call+0x2b1b/0x4540\n  do_syscall_64+0xa7/0x240\n  entry_SYSCALL_64_after_hwframe+0x76/0x7e\n\nThe root cause is a race condition in f2fs_stop_gc_thread() called from\ndifferent f2fs shutdown pat",
       "vulnerability_id": "CVE-2024-53218",
       "name": "CVE-2024-53218",
       "package_name": "linux-libc-dev",
@@ -1486,7 +1486,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: net/sched: Always pass notifications when child class becomes empty",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nnet/sched: Always pass notifications when child class becomes empty\n\nCertain classful qdiscs may invoke their classes' dequeue handler on an\nenqueue operation. This may unexpectedly empty the child qdisc and thus\nmake an in-flight class passive via qlen_notify(). Most qdiscs do not\nexpect such behaviour at this point in time and may re-activate the\nclass eventually anyways which will lead to a use-after-free.\n\nThe referenced fix commit attempted to fix this behavior for the HFSC\ncase by moving the backlog accounting around, though this turned out to\nbe incomplete since the parent's parent may run into the issue too.\nThe following reproducer demonstrates this use-after-free:\n\n    tc qdisc add dev lo root handle 1: drr\n    tc filter add dev lo parent 1: basic classid 1:1\n    tc class add dev lo parent 1: classid 1:1 drr\n    tc qdisc add dev lo parent 1:1 handle 2: hfsc def 1\n    tc class add dev lo parent 2: classid 2:1 hfsc rt m1 8 d 1 m2 0\n ",
       "vulnerability_id": "CVE-2025-38350",
       "name": "CVE-2025-38350",
       "package_name": "linux-libc-dev",
@@ -1515,7 +1515,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: smb: client: fix potential UAF in cifs_stats_proc_show()",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nsmb: client: fix potential UAF in cifs_stats_proc_show()\n\nSkip sessions that are being teared down (status == SES_EXITING) to\navoid UAF.",
       "vulnerability_id": "CVE-2024-35867",
       "name": "CVE-2024-35867",
       "package_name": "linux-libc-dev",
@@ -1544,7 +1544,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: uprobe: avoid out-of-bounds memory access of fetching args",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nuprobe: avoid out-of-bounds memory access of fetching args\n\nUprobe needs to fetch args into a percpu buffer, and then copy to ring\nbuffer to avoid non-atomic context problem.\n\nSometimes user-space strings, arrays can be very large, but the size of\npercpu buffer is only page size. And store_trace_args() won't check\nwhether these data exceeds a single page or not, caused out-of-bounds\nmemory access.\n\nIt could be reproduced by following steps:\n1. build kernel with CONFIG_KASAN enabled\n2. save follow program as test.c\n\n```\n\\#include <stdio.h>\n\\#include <stdlib.h>\n\\#include <string.h>\n\n// If string length large than MAX_STRING_SIZE, the fetch_store_strlen()\n// will return 0, cause __get_data_size() return shorter size, and\n// store_trace_args() will not trigger out-of-bounds access.\n// So make string length less than 4096.\n\\#define STRLEN 4093\n\nvoid generate_string(char *str, int n)\n{\n    int i;\n    for (i = 0; i < n; ++i)\n    {\n        char c = ",
       "vulnerability_id": "CVE-2024-50067",
       "name": "CVE-2024-50067",
       "package_name": "linux-libc-dev",
@@ -1573,7 +1573,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: macsec: fix UAF bug for real_dev",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nmacsec: fix UAF bug for real_dev\n\nCreate a new macsec device but not get reference to real_dev. That can\nnot ensure that real_dev is freed after macsec. That will trigger the\nUAF bug for real_dev as following:\n\n==================================================================\nBUG: KASAN: use-after-free in macsec_get_iflink+0x5f/0x70 drivers/net/macsec.c:3662\nCall Trace:\n ...\n macsec_get_iflink+0x5f/0x70 drivers/net/macsec.c:3662\n dev_get_iflink+0x73/0xe0 net/core/dev.c:637\n default_operstate net/core/link_watch.c:42 [inline]\n rfc2863_policy+0x233/0x2d0 net/core/link_watch.c:54\n linkwatch_do_dev+0x2a/0x150 net/core/link_watch.c:161\n\nAllocated by task 22209:\n ...\n alloc_netdev_mqs+0x98/0x1100 net/core/dev.c:10549\n rtnl_create_link+0x9d7/0xc00 net/core/rtnetlink.c:3235\n veth_newlink+0x20e/0xa90 drivers/net/veth.c:1748\n\nFreed by task 8:\n ...\n kfree+0xd6/0x4d0 mm/slub.c:4552\n kvfree+0x42/0x50 mm/util.c:615\n device_release+0x9f/0x240 drivers/base",
       "vulnerability_id": "CVE-2022-49390",
       "name": "CVE-2022-49390",
       "package_name": "linux-libc-dev",
@@ -1602,7 +1602,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: ibmvnic: Don't reference skb after sending to VIOS",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\nibmvnic: Don't reference skb after sending to VIOS\n\nPreviously, after successfully flushing the xmit buffer to VIOS,\nthe tx_bytes stat was incremented by the length of the skb.\n\nIt is invalid to access the skb memory after sending the buffer to\nthe VIOS because, at any point after sending, the VIOS can trigger\nan interrupt to free this memory. A race between reading skb->len\nand freeing the skb is possible (especially during LPM) and will\nresult in use-after-free:\n ==================================================================\n BUG: KASAN: slab-use-after-free in ibmvnic_xmit+0x75c/0x1808 [ibmvnic]\n Read of size 4 at addr c00000024eb48a70 by task hxecom/14495\n <...>\n Call Trace:\n [c000000118f66cf0] [c0000000018cba6c] dump_stack_lvl+0x84/0xe8 (unreliable)\n [c000000118f66d20] [c0000000006f0080] print_report+0x1a8/0x7f0\n [c000000118f66df0] [c0000000006f08f0] kasan_report+0x128/0x1f8\n [c000000118f66f00] [c0000000006f2868] __asan_load4+0xac/0x",
       "vulnerability_id": "CVE-2025-21855",
       "name": "CVE-2025-21855",
       "package_name": "linux-libc-dev",
@@ -1631,7 +1631,7 @@
       "reason_to_ignore": "N/A"
     },
     {
-      "description": "In the Linux kernel, the following vulnerability has been resolved: padata: fix UAF in padata_reorder",
+      "description": "In the Linux kernel, the following vulnerability has been resolved:\n\npadata: fix UAF in padata_reorder\n\nA bug was found when run ltp test:\n\nBUG: KASAN: slab-use-after-free in padata_find_next+0x29/0x1a0\nRead of size 4 at addr ffff88bbfe003524 by task kworker/u113:2/3039206\n\nCPU: 0 PID: 3039206 Comm: kworker/u113:2 Kdump: loaded Not tainted 6.6.0+\nWorkqueue: pdecrypt_parallel padata_parallel_worker\nCall Trace:\n<TASK>\ndump_stack_lvl+0x32/0x50\nprint_address_description.constprop.0+0x6b/0x3d0\nprint_report+0xdd/0x2c0\nkasan_report+0xa5/0xd0\npadata_find_next+0x29/0x1a0\npadata_reorder+0x131/0x220\npadata_parallel_worker+0x3d/0xc0\nprocess_one_work+0x2ec/0x5a0\n\nIf 'mdelay(10)' is added before calling 'padata_find_next' in the\n'padata_reorder' function, this issue could be reproduced easily with\nltp test (pcrypt_aead01).\n\nThis can be explained as bellow:\n\npcrypt_aead_encrypt\n...\npadata_do_parallel\nrefcount_inc(&pd->refcnt); // add refcnt\n...\npadata_do_serial\npadata_reorder // pd\nwhile (1) {\npadata_find_next(pd, true); //",
       "vulnerability_id": "CVE-2025-21727",
       "name": "CVE-2025-21727",
       "package_name": "linux-libc-dev",
