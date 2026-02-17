@@ -98,7 +98,6 @@ ______________________________________________________________________
 ## Getting Help
 
 - [GitHub Issues](https://github.com/aws/deep-learning-containers/issues) - Report bugs or request features
-- Test 
 
 ## License
 
