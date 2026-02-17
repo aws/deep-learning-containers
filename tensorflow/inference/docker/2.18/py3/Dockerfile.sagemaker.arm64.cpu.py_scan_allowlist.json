@@ -1,3 +1,0 @@
-{
-    "85151": "A DoS vulnerability in protobuf <=6.33.4 due to missing recursion depth accounting in ParseDict(). Installed version 5.29.5 is pinned by TensorFlow and cannot be upgraded independently."
-}
