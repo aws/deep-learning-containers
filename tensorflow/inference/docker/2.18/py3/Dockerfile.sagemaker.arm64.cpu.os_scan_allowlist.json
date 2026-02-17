@@ -1263,7 +1263,7 @@
         "name": "linux-libc-dev",
         "package_manager": "OS",
         "version": "5.4.0",
-        "release": "216.236"
+        "release": "220.240"
       },
       "remediation": {
         "recommendation": {
