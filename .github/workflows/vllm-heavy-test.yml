@@ -91,4 +91,8 @@ jobs:
       - name: Cleanup
         if: always()
         run: |
+          echo "=== Container logs ==="
+          docker logs ${CONTAINER_ID} || true
+          echo "=== Pod logs ==="
+          kubectl logs $(kubectl get pods --no-headers -o custom-columns=":metadata.name" | head -1) || true
           docker stop ${CONTAINER_ID} || true
