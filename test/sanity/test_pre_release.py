@@ -70,9 +70,7 @@ def test_python_version(python_version):
     )
     installed = result.stdout.strip()
     LOGGER.info("Installed Python: %s", installed)
-    assert str(python_version) in installed, (
-        f"Expected Python {python_version}, got: {installed}"
-    )
+    assert str(python_version) in installed, f"Expected Python {python_version}, got: {installed}"
 
 
 def test_ubuntu_version(ubuntu_version):
@@ -136,9 +134,7 @@ def test_pip_check(image_uri):
         if not any(re.search(p, line) for p in allowed_patterns):
             failures.append(line)
 
-    assert not failures, (
-        f"pip check found broken dependencies:\n{pformat(failures)}"
-    )
+    assert not failures, f"pip check found broken dependencies:\n{pformat(failures)}"
 
 
 def test_oss_compliance():
@@ -148,6 +144,4 @@ def test_oss_compliance():
         capture_output=True,
         text=True,
     )
-    assert result.returncode == 0, (
-        f"OSS compliance check failed:\n{result.stderr}"
-    )
+    assert result.returncode == 0, f"OSS compliance check failed:\n{result.stderr}"

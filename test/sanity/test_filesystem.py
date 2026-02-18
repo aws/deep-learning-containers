@@ -50,12 +50,7 @@ def test_stray_files():
 def test_tmp_dir_is_clean():
     """/tmp should not contain unexpected files."""
     for f in os.listdir("/tmp/"):
-        if (
-            f.startswith(".")
-            or "system" in f.lower()
-            or "dkms" in f.lower()
-            or "hsperfdata" in f
-        ):
+        if f.startswith(".") or "system" in f.lower() or "dkms" in f.lower() or "hsperfdata" in f:
             continue
         pytest.fail(f"/tmp contains unexpected file: {f}")
 
@@ -106,17 +101,9 @@ def test_no_files_modified_before_boot():
         if not os.path.exists(folder):
             continue
         if recursive:
-            files = [
-                os.path.join(dp, f)
-                for dp, _, filenames in os.walk(folder)
-                for f in filenames
-            ]
+            files = [os.path.join(dp, f) for dp, _, filenames in os.walk(folder) for f in filenames]
         else:
-            files = [
-                f
-                for f in os.listdir(folder)
-                if os.path.isfile(os.path.join(folder, f))
-            ]
+            files = [f for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
         if mask:
             files = [f for f in files if mask in f]
         for filepath in files:
@@ -135,9 +122,5 @@ def test_repo_anaconda_not_present():
         text=True,
         check=True,
     )
-    offending = [
-        line for line in result.stdout.splitlines() if "repo.anaconda.com" in line
-    ]
-    assert not offending, (
-        f"Packages installed from repo.anaconda.com found:\n{pformat(offending)}"
-    )
+    offending = [line for line in result.stdout.splitlines() if "repo.anaconda.com" in line]
+    assert not offending, f"Packages installed from repo.anaconda.com found:\n{pformat(offending)}"
