@@ -269,5 +269,65 @@
             "title": "CVE-2025-32434 - torch",
             "reason_to_ignore": "this container is specifically pytorch 2.5.x so we can’t upgrade to 2.6"
         }
+    ],
+    "tar": [
+        {
+            "description": "node-tar,a Tar for Node.js, contains a vulnerability in versions prior to 7.5.7 where the security check for hardlink entries uses different path resolution semantics than the actual hardlink creation logic. This mismatch allows an attacker to craft a malicious TAR archive that bypasses path traversal protections and creates hardlinks to arbitrary files outside the extraction directory. Version 7.5.7 contains a fix for the issue.",
+            "vulnerability_id": "CVE-2026-24842",
+            "name": "CVE-2026-24842",
+            "package_name": "tar",
+            "package_details": {
+                "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "tar",
+                "package_manager": "NODE",
+                "version": "6.1.11",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.2,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 8.2,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-24842",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2026-24842 - tar",
+            "reason_to_ignore": "Transitive dependency in jupyterlab staging yarn.lock - not directly exploitable in training container context"
+        },
+        {
+            "description": "node-tar,a Tar for Node.js, has a race condition vulnerability in versions up to and including 7.5.3. This is due to an incomplete handling of Unicode path collisions in the `path-reservations` system. On case-insensitive or normalization-insensitive filesystems (such as macOS APFS, In which it has been tested), the library fails to lock colliding paths (e.g., `ß` and `ss`), allowing them to be processed in parallel. This bypasses the library's internal concurrency safeguards and permits Symlink Poisoning attacks via race conditions. The library uses a `PathReservations` system to ensure that metadata checks and file operations for the same path are serialized. This prevents race conditions where one entry might clobber another concurrently. This is a Race Condition which enables Arbitrary File Overwrite. This vulnerability affects users and systems using node-tar on macOS (APFS/HFS+). Because of using `NFD` Unicode normalization (in which `ß` and `ss` are different), conflicting paths do not have their order",
+            "vulnerability_id": "CVE-2026-23950",
+            "name": "CVE-2026-23950",
+            "package_name": "tar",
+            "package_details": {
+                "file_path": "/usr/local/lib/python3.12/site-packages/jupyterlab/staging/yarn.lock",
+                "name": "tar",
+                "package_manager": "NODE",
+                "version": "6.1.11",
+                "release": null
+            },
+            "remediation": {
+                "recommendation": {
+                    "text": "None Provided"
+                }
+            },
+            "cvss_v3_score": 8.8,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 8.8,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-23950",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2026-23950 - tar",
+            "reason_to_ignore": "Transitive dependency in jupyterlab staging yarn.lock - not directly exploitable in training container context"
+        }
     ]
 }

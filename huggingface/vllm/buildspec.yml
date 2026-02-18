@@ -42,9 +42,7 @@ images:
     tag_python_version: &TAG_PYTHON_VERSION py312
     os_version: &OS_VERSION ubuntu22.04
     transformers_version: &TRANSFORMERS_VERSION 4.57.3
-    vllm_version: &VLLM_VERSION 0.14.0
-    tag: !join [ "vllm", "-", *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
-    latest_release_tag: !join [ "vllm", "-", *VERSION, "-", *DEVICE_TYPE, "-", *TAG_PYTHON_VERSION, "-", *CUDA_VERSION, "-", *OS_VERSION, "-sagemaker" ]
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *CUDA_VERSION, '-', *OS_VERSION ]
     docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
     target: sagemaker
     build: true

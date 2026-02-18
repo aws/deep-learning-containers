@@ -193,14 +193,18 @@ RUN wget https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 
 RUN ${PIP} --no-cache-dir install --upgrade \
    pip \
-   setuptools \
+   "setuptools>=81" \
    wheel
+
+# Install UV for faster package installation
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Some TF tools expect a "python" binary
 RUN ln -s $(which ${PYTHON}) /usr/local/bin/python \
    && ln -s $(which ${PIP}) /usr/bin/pip
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
    pybind11 \
    cmake \
    scipy \
@@ -269,7 +273,7 @@ FROM common AS ec2
 
 ARG TF_URL
 
-RUN ${PIP} install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
    ${TF_URL} \
    "tensorflow-io==0.37.*" \
    tensorflow-datasets
@@ -323,7 +327,7 @@ ENV SAGEMAKER_TRAINING_MODULE sagemaker_tensorflow_container.training:main
 # and this is fine since sagemaker is more important than the models and
 # the models still work on pyyaml 6 in this context.
 # Need to install wheel before we can fix the pyyaml issue below
-RUN pip install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     wheel \
     "cython<3" \
     "pyyaml<6" \
@@ -331,45 +335,45 @@ RUN pip install --no-cache-dir -U \
 
 
 # Pin numpy to 1.26.4
-RUN ${PIP} install --no-cache-dir -U "numpy==1.26.4"
+RUN uv pip install --system --no-cache-dir "numpy==1.26.4"
 
 # https://github.com/tensorflow/models/issues/9267
 # tf-models does not respect existing installations of TF and always installs open source TF
-RUN ${PIP} install \
-    --default-timeout=300 \
-    --retries 5 \
-    --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     "tf-models-official==${TF_VERSION}.1" \
     "tensorflow-text==${TF_VERSION}.0" \
  && ${PIP} uninstall -y tensorflow tensorflow-gpu \
- && ${PIP} install --no-cache-dir -U \
+ && uv pip install --system --no-cache-dir \
     ${TF_URL} \
     "tensorflow-io==0.37.*" \
-    tensorflow-datasets
+    tensorflow-datasets \
+ && rm -rf /root/.cache/uv /root/.cargo/registry
 
-# Install rust and cargo
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-RUN $PYTHON -m pip install --no-cache-dir -U \
+RUN uv pip install --system --no-cache-dir \
     numba \
     bokeh \
     imageio \
     "opencv-python==4.11.0.86" \
     plotly \
     seaborn \
-    shap
+    "shap<0.50" \
+ && rm -rf /root/.cache/uv
 
-RUN $PYTHON -m pip install --no-cache-dir -U \
-    sagemaker \
-    sagemaker-experiments==0.* \
+RUN uv pip install --system --no-cache-dir \
+    "sagemaker>=2.256.0,<3" \
+    sagemaker-experiments==0.1.45 \
     sagemaker-tensorflow-training \
     sagemaker-training \
     y-py \
     sagemaker-studio-analytics-extension \
-    "sparkmagic<1" \
+    sparkmagic==0.22.0 \
     sagemaker-studio-sparkmagic-lib \
-    smclarify
+    smclarify \
+ && rm -rf /root/.cache/uv
+
+# Re-pin numpy after all installs to ensure TF compatibility
+# Also re-sync awscli with botocore after sagemaker packages may have changed botocore version
+RUN uv pip install --system --no-cache-dir "numpy==1.26.4" "awscli<2"
 
 # install boost
 # tensorflow is compiled with --cxxopt="-D_GLIBCXX_USE_CXX11_ABI=1"
