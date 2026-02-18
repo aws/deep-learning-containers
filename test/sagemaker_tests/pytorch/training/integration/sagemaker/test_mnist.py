@@ -14,7 +14,6 @@ from __future__ import absolute_import
 
 import pytest
 from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
 
 from .... import invoke_pytorch_helper_function
 from . import _test_mnist_distributed

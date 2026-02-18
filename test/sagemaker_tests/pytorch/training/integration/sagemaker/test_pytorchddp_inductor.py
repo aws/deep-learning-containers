@@ -16,10 +16,13 @@ import os
 
 import pytest
 
+from sagemaker.train.configs import SourceCode, Compute
+from sagemaker.train.distributed import Torchrun
+
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from ...integration.sagemaker.timeout import timeout
 from ....training import get_efa_test_instance_type
-from . import invoke_pytorch_estimator
+from . import invoke_pytorch_training
 from .test_torch_distributed import validate_or_skip_distributed_training
 
 
@@ -45,19 +48,25 @@ def test_pytorchddp_throughput_gpu(
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_distributed_training(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
-        estimator_parameter = {
-            "entry_point": "pytorchddp_throughput_mnist.py",
-            "role": "SageMakerRole",
-            "instance_count": 2,
-            "instance_type": efa_instance_type,
-            "source_dir": mnist_path,
-            "framework_version": framework_version,
-            "distribution": distribution,
-            "hyperparameters": {"inductor": 1},
-        }
+        
+        source_code = SourceCode(
+            entry_script="pytorchddp_throughput_mnist.py",
+            source_dir=mnist_path,
+        )
+        
+        compute = Compute(
+            instance_type=efa_instance_type,
+            instance_count=2,
+        )
+        
+        hyperparameters = {"inductor": 1}
 
-        job_name_prefix = "test-pytorchddp-throughput-gpu"
-        invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
+        invoke_pytorch_training(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute=compute,
+            hyperparameters=hyperparameters,
+            distributed_runner=Torchrun(),
+            job_name="test-pytorchddp-throughput-gpu",
         )

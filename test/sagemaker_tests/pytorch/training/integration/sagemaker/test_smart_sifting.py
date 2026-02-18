@@ -16,8 +16,9 @@ import pytest
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from sagemaker.pytorch import PyTorch
 from sagemaker import utils
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import SourceCode, Compute
 
 from .timeout import timeout
 from ...integration import smart_sifting_path, DEFAULT_TIMEOUT
@@ -79,18 +80,22 @@ def _test_smart_sifting(
     instance_type=None,
     instance_count=1,
 ):
-    est_params = {
-        "entry_point": "train_plt_smart_sifting.py",
-        "source_dir": smart_sifting_path,
-        "role": "SageMakerRole",
-        "sagemaker_session": sagemaker_session,
-        "image_uri": ecr_image,
-        "framework_version": framework_version,
-        "hyperparameters": {"epochs": 1},
-    }
-    est_params["instance_type"] = instance_type
-    est_params["instance_count"] = instance_count
+    """Test smart sifting using v3 ModelTrainer."""
+    source_code = SourceCode(
+        entry_script="train_plt_smart_sifting.py",
+        source_dir=smart_sifting_path,
+    )
+    compute = Compute(instance_type=instance_type, instance_count=instance_count)
+    
+    model_trainer = ModelTrainer(
+        training_image=ecr_image,
+        source_code=source_code,
+        compute=compute,
+        hyperparameters={"epochs": 1},
+        role="SageMakerRole",
+        sagemaker_session=sagemaker_session,
+    )
+    
     job_name = "test-smart-sifting-plt"
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(**est_params)
-        pytorch.fit(job_name=utils.unique_name_from_base(job_name))
+        model_trainer.train(job_name=utils.unique_name_from_base(job_name), wait=True)
