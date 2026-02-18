@@ -1,0 +1,123 @@
+name: Reusable Sanity Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Image URI to test'
+        required: true
+        type: string
+      runner-fleet:
+        description: 'CodeBuild runner fleet'
+        required: false
+        type: string
+        default: 'default-runner'
+
+jobs:
+  sanity-tests:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ inputs.runner-fleet }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Pull image
+        run: docker pull ${{ inputs.image-uri }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      # ==========================================
+      # ========= In-container tests =============
+      # ==========================================
+
+      - name: Install test dependencies in container
+        run: |
+          docker exec ${CONTAINER_ID} pip install pytest packaging
+
+      - name: Run filesystem sanity tests
+        run: |
+          docker exec ${CONTAINER_ID} python -m pytest -vs -rA \
+            --image-uri ${{ inputs.image-uri }} \
+            test/sanity/test_filesystem.py
+
+      - name: Run pre-release sanity tests
+        run: |
+          docker exec ${CONTAINER_ID} python -m pytest -vs -rA \
+            --image-uri ${{ inputs.image-uri }} \
+            test/sanity/test_pre_release.py
+
+      # ==========================================
+      # =========== Host-side checks =============
+      # ==========================================
+
+      - name: Check binary URI visibility
+        run: |
+          LABELS=$(docker inspect --format='{{json .Config.Labels}}' ${{ inputs.image-uri }})
+          echo "$LABELS" | python3 -c "
+          import json, sys
+          labels = json.load(sys.stdin)
+          failed = []
+          for name, value in labels.items():
+              if 'uri' in name.lower() and not value.startswith('https://'):
+                  failed.append(f'{name}: {value}')
+          if failed:
+              print('Non-public URIs found in labels:')
+              print('\n'.join(failed))
+              sys.exit(1)
+          print('All URI labels are public')
+          "
+
+      - name: Check DLC container labels
+        run: |
+          LABELS=$(docker inspect --format='{{json .Config.Labels}}' ${{ inputs.image-uri }})
+          echo "$LABELS" | python3 -c "
+          import json, sys
+          labels = json.load(sys.stdin)
+          if not labels:
+              print('WARNING: No labels found on image')
+              sys.exit(0)
+          for name, value in labels.items():
+              if len(name) > 128:
+                  print(f'Label name exceeds 128 chars: {name}')
+                  sys.exit(1)
+              if len(value) > 256:
+                  print(f'Label value exceeds 256 chars for {name}: {value[:50]}...')
+                  sys.exit(1)
+          print(f'All {len(labels)} labels pass validation')
+          "
+
+      - name: Check license file exists
+        run: |
+          docker exec ${CONTAINER_ID} test -f /license.txt \
+            && echo "License file exists" \
+            || echo "WARNING: /license.txt not found"
+
+      - name: Run OSS compliance and copy artifacts
+        run: |
+          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
+          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS 2>/dev/null || true
+
+      - name: Upload OSS compliance artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: oss-compliance-${{ github.run_id }}
+          path: THIRD_PARTY_SOURCE_CODE_URLS
+          if-no-files-found: ignore
+
+      # ==========================================
+      # ============== Cleanup ===================
+      # ==========================================
+
+      - name: Stop container
+        if: always()
+        run: docker rm -f ${CONTAINER_ID} 2>/dev/null || true
