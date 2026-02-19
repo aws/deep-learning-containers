@@ -34,25 +34,35 @@ def ubuntu_version(image_uri):
     match = re.search(r"ubuntu(\d+\.\d+)", image_uri or "")
     if not match:
         raise ValueError(f"No ubuntu version found in image URI: {image_uri}")
-    return Version(match.group(1))
+    raw = match.group(1)
+    version = Version(raw)
+    version.raw = raw
+    return version
 
 
 @pytest.fixture(scope="session")
 def framework_name(image_uri):
-    """Parse framework name from image URI and map to Python module name."""
+    """Parse framework name from image URI (e.g., pytorch, vllm, sglang, base)."""
     if not image_uri:
-        pytest.skip("No image URI provided")
-    for framework, module in FRAMEWORK_MODULE_MAP.items():
-        if framework in image_uri:
-            return module
-    pytest.skip(f"No known framework found in image URI: {image_uri}")
+        raise ValueError("No image URI provided")
+    for name in FRAMEWORK_MODULE_MAP:
+        if name in image_uri:
+            return name
+    raise ValueError(f"No known framework found in image URI: {image_uri}")
 
 
 @pytest.fixture(scope="session")
-def framework_version(image_uri):
+def framework_module(framework_name):
+    """Map framework to Python module name (e.g., pytorch -> torch)."""
+    module = FRAMEWORK_MODULE_MAP[framework_name]
+    if module is None:
+        pytest.skip(f"Framework '{framework_name}' has no Python module")
+    return module
+
+
+@pytest.fixture(scope="session")
+def framework_version(framework_module, image_uri):
     """Parse framework version from image URI tag (first version-like segment)."""
-    if not image_uri:
-        pytest.skip("No image URI provided")
     tag = image_uri.split(":")[-1]
     match = re.match(r"(\d+\.\d+\.\d+)", tag)
     if not match:

@@ -43,23 +43,6 @@ def _load_allowlist(name, framework=None, image_tag=None):
     return entries
 
 
-def _get_framework_from_uri(image_uri):
-    """Extract framework name from image URI for allowlist lookup."""
-    if not image_uri:
-        return None
-    for name in ["vllm", "sglang", "pytorch", "tensorflow"]:
-        if name in image_uri:
-            return name
-    return None
-
-
-def _get_image_tag(image_uri):
-    """Extract image tag from URI."""
-    if not image_uri or ":" not in image_uri:
-        return None
-    return image_uri.split(":")[-1]
-
-
 def test_python_version(python_version):
     """Verify installed Python version matches image tag."""
     result = subprocess.run(
@@ -78,23 +61,23 @@ def test_ubuntu_version(ubuntu_version):
     with open("/etc/os-release") as f:
         os_release = f.read()
     assert "Ubuntu" in os_release, "OS is not Ubuntu"
-    assert str(ubuntu_version) in os_release, (
-        f"Expected Ubuntu {ubuntu_version} not found in /etc/os-release"
+    assert ubuntu_version.raw in os_release, (
+        f"Expected Ubuntu {ubuntu_version.raw} not found in /etc/os-release"
     )
 
 
-def test_framework_version(framework_name, framework_version):
+def test_framework_version(framework_module, framework_version):
     """Verify installed framework version matches image tag."""
     result = subprocess.run(
-        ["python3", "-c", f"import {framework_name}; print({framework_name}.__version__)"],
+        ["python3", "-c", f"import {framework_module}; print({framework_module}.__version__)"],
         capture_output=True,
         text=True,
         check=True,
     )
     installed = Version(result.stdout.strip().split("+")[0])
-    LOGGER.info("Installed %s version: %s", framework_name, installed)
+    LOGGER.info("Installed %s version: %s", framework_module, installed)
     assert str(installed).startswith(str(framework_version)), (
-        f"Expected {framework_name} {framework_version}, got: {installed}"
+        f"Expected {framework_module} {framework_version}, got: {installed}"
     )
 
 
@@ -114,11 +97,10 @@ def test_cuda_version(cuda_version):
     )
 
 
-def test_pip_check(image_uri):
+def test_pip_check(framework_name, image_uri):
     """Verify no broken pip dependencies, with allowlist support."""
-    framework = _get_framework_from_uri(image_uri)
-    image_tag = _get_image_tag(image_uri)
-    allowlist = _load_allowlist("pip_check", framework=framework, image_tag=image_tag)
+    image_tag = image_uri.split(":")[-1] if image_uri and ":" in image_uri else None
+    allowlist = _load_allowlist("pip_check", framework=framework_name, image_tag=image_tag)
     allowed_patterns = [entry["pattern"] for entry in allowlist]
 
     result = subprocess.run(

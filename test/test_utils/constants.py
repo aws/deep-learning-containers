@@ -8,4 +8,5 @@ FRAMEWORK_MODULE_MAP = {
     "tensorflow": "tensorflow",
     "vllm": "vllm",
     "sglang": "sglang",
+    "base": None,
 }
