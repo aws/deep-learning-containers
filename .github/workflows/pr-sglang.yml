@@ -148,6 +148,16 @@ jobs:
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
+  sglang-ec2-sanity-test:
+    needs: [set-ec2-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-ec2-test-environment.result == 'success'
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
+      runner-fleet: x86-g6xl-runner
+
   sglang-ec2-local-benchmark-test:
     needs: [build-sglang-ec2-image, set-ec2-test-environment]
     if: success()
@@ -327,6 +337,16 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+  sglang-sagemaker-sanity-test:
+    needs: [set-sagemaker-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-sagemaker-test-environment.result == 'success'
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
+      runner-fleet: x86-g6xl-runner
 
   sglang-sagemaker-local-benchmark-test:
     needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]
