@@ -19,7 +19,7 @@ on:
         required: true
         type: string
       framework:
-        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow)'
+        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
         required: true
         type: string
       framework-version:
@@ -41,7 +41,104 @@ on:
         default: ''
 
 jobs:
-  sanity-tests:
+  filesystem-checks:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Check for stray .py artifacts
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_stray_artifacts.sh
+
+      - name: Check /tmp and /var/tmp are clean
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_tmp_clean.sh
+
+      - name: Check cache dir is clean
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_cache_clean.sh
+
+      - name: Check no viminfo or bash history
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_no_history.sh
+
+      - name: Check no conda packages from repo.anaconda.com
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_anaconda.sh
+
+  version-checks:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Check Python version
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_python_version.sh "${{ inputs.python-version }}"
+
+      - name: Check OS version
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_os_version.sh "${{ inputs.os-version }}"
+
+      - name: Check framework version
+        if: inputs.framework != 'base'
+        run: |
+          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_framework_version.sh \
+              "${{ inputs.framework }}" "${{ inputs.framework-version }}"
+
+  package-compatibility-checks:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Run pip check
+        run: |
+          docker run --rm -v $(pwd):/workdir --workdir /workdir --entrypoint python3 \
+            ${{ inputs.image-uri }} test/sanity/scripts/pip_check.py \
+              --image-uri "${{ inputs.image-uri }}" \
+              --allowlist-dir test/data/allowlists
+
+  oss-compliance:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -60,207 +157,12 @@ jobs:
       - name: Start container
         run: |
           CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
-            -v $(pwd):/workdir --workdir /workdir \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      # ==========================================
-      # ===== In-container: Filesystem checks ====
-      # ==========================================
-
-      - name: Check for stray .py artifacts
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            FAILED=0
-            for DIR in /tmp /var/tmp "$HOME" /; do
-              for F in $(ls -A "$DIR" 2>/dev/null); do
-                if echo "$F" | grep -qE "\.py$"; then
-                  echo "FAIL: Stray .py artifact $F found in $DIR"
-                  FAILED=1
-                fi
-              done
-            done
-            exit $FAILED
-          '
-
-      - name: Check /var/tmp is empty
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            CONTENTS=$(ls -A /var/tmp 2>/dev/null)
-            if [ -n "$CONTENTS" ]; then
-              echo "FAIL: /var/tmp is not empty: $CONTENTS"
-              exit 1
-            fi
-          '
-
-      - name: Check /tmp is clean
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            FAILED=0
-            for F in $(ls -A /tmp/ 2>/dev/null); do
-              case "$F" in
-                .*|*system*|*System*|*dkms*|*hsperfdata*) continue ;;
-              esac
-              echo "FAIL: Unexpected file in /tmp: $F"
-              FAILED=1
-            done
-            exit $FAILED
-          '
-
-      - name: Check cache dir is clean
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            CACHE_DIR="$HOME/.cache"
-            [ ! -d "$CACHE_DIR" ] && exit 0
-            FAILED=0
-            for F in $(ls -A "$CACHE_DIR" 2>/dev/null); do
-              case "$F" in
-                pip*) continue ;;
-              esac
-              echo "FAIL: Unexpected file in cache dir: $F"
-              FAILED=1
-            done
-            exit $FAILED
-          '
-
-      - name: Check no viminfo or bash history
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            FAILED=0
-            [ -f "$HOME/.viminfo" ] && echo "FAIL: .viminfo exists" && FAILED=1
-            if [ -f "$HOME/.bash_history" ] && [ -s "$HOME/.bash_history" ]; then
-              echo "FAIL: .bash_history contains history"
-              FAILED=1
-            fi
-            exit $FAILED
-          '
-
-      - name: Check no conda packages from repo.anaconda.com
-        run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            if ! command -v conda &>/dev/null; then
-              echo "SKIP: conda not installed"
-              exit 0
-            fi
-            OFFENDING=$(conda list --explicit 2>/dev/null | grep "repo.anaconda.com" || true)
-            if [ -n "$OFFENDING" ]; then
-              echo "FAIL: Packages from repo.anaconda.com found:"
-              echo "$OFFENDING"
-              exit 1
-            fi
-          '
-
-      # ==========================================
-      # ===== In-container: Version checks =======
-      # ==========================================
-
-      - name: Check Python version
-        run: |
-          PY_RAW="${{ inputs.python-version }}"
-          PY_MAJOR="${PY_RAW:2:1}"
-          PY_MINOR="${PY_RAW:3}"
-          EXPECTED="${PY_MAJOR}.${PY_MINOR}"
-          INSTALLED=$(docker exec ${CONTAINER_ID} python3 --version)
-          echo "Installed: $INSTALLED, Expected: Python $EXPECTED"
-          if ! echo "$INSTALLED" | grep -q "$EXPECTED"; then
-            echo "FAIL: Expected Python $EXPECTED, got: $INSTALLED"
-            exit 1
-          fi
-
-      - name: Check OS version
-        run: |
-          EXPECTED="${{ inputs.os-version }}"
-          OS_RELEASE=$(docker exec ${CONTAINER_ID} cat /etc/os-release)
-          # Extract OS name and version from input (e.g., ubuntu24.04 -> ubuntu, 24.04)
-          OS_NAME=$(echo "$EXPECTED" | grep -oP '^[a-zA-Z]+')
-          OS_VER=$(echo "$EXPECTED" | grep -oP '[0-9]+\.[0-9]+')
-          if ! echo "$OS_RELEASE" | grep -qi "$OS_NAME"; then
-            echo "FAIL: Expected OS $OS_NAME not found in /etc/os-release"
-            echo "$OS_RELEASE"
-            exit 1
-          fi
-          if ! echo "$OS_RELEASE" | grep -q "$OS_VER"; then
-            echo "FAIL: Expected version $OS_VER not found in /etc/os-release"
-            echo "$OS_RELEASE"
-            exit 1
-          fi
-
-      - name: Check framework version
-        if: inputs.framework != 'base'
-        run: |
-          FRAMEWORK="${{ inputs.framework }}"
-          EXPECTED="${{ inputs.framework-version }}"
-          case "$FRAMEWORK" in
-            pytorch) MODULE="torch" ;;
-            *) MODULE="$FRAMEWORK" ;;
-          esac
-          INSTALLED=$(docker exec ${CONTAINER_ID} python3 -c "import ${MODULE}; print(${MODULE}.__version__)")
-          INSTALLED="${INSTALLED%%+*}"
-          echo "Installed ${MODULE} version: $INSTALLED, Expected: $EXPECTED"
-          if ! echo "$INSTALLED" | grep -q "^${EXPECTED}"; then
-            echo "FAIL: Expected ${MODULE} ${EXPECTED}, got: $INSTALLED"
-            exit 1
-          fi
-
-      # ==========================================
-      # ===== In-container: Package checks =======
-      # ==========================================
-
-      - name: Run pip check
-        run: |
-          docker exec ${CONTAINER_ID} python3 /workdir/scripts/sanity/pip_check.py \
-            --image-uri "${{ inputs.image-uri }}" \
-            --allowlist-dir /workdir/test/data/allowlists
 
       - name: Run OSS compliance check
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
-
-      # ==========================================
-      # =========== Host-side checks =============
-      # ==========================================
-
-      - name: Check binary URI visibility
-        run: |
-          LABELS=$(docker inspect --format='{{json .Config.Labels}}' ${{ inputs.image-uri }})
-          echo "$LABELS" | python3 -c "
-          import json, sys
-          labels = json.load(sys.stdin)
-          failed = []
-          for name, value in labels.items():
-              if 'uri' in name.lower() and not value.startswith('https://'):
-                  failed.append(f'{name}: {value}')
-          if failed:
-              print('FAIL: Non-public URIs found in labels:')
-              print('\n'.join(failed))
-              sys.exit(1)
-          print('All URI labels are public')
-          "
-
-      - name: Check DLC container labels
-        run: |
-          LABELS=$(docker inspect --format='{{json .Config.Labels}}' ${{ inputs.image-uri }})
-          echo "$LABELS" | python3 -c "
-          import json, sys
-          labels = json.load(sys.stdin)
-          if not labels:
-              print('WARNING: No labels found on image')
-              sys.exit(0)
-          for name, value in labels.items():
-              if len(name) > 128:
-                  print(f'FAIL: Label name exceeds 128 chars: {name}')
-                  sys.exit(1)
-              if len(value) > 256:
-                  print(f'FAIL: Label value exceeds 256 chars for {name}: {value[:50]}...')
-                  sys.exit(1)
-          print(f'All {len(labels)} labels pass validation')
-          "
-
-      - name: Check license file exists
-        run: |
-          docker exec ${CONTAINER_ID} test -f /license.txt \
-            && echo "License file exists" \
-            || echo "WARNING: /license.txt not found"
 
       - name: Copy OSS compliance artifacts
         run: |
@@ -273,6 +175,31 @@ jobs:
           name: oss-compliance-${{ github.run_id }}
           path: THIRD_PARTY_SOURCE_CODE_URLS
           if-no-files-found: ignore
+
+  label-checks:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Check container labels
+        run: |
+          python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+
+      - name: Check license file exists
+        run: |
+          docker run --rm --entrypoint bash ${{ inputs.image-uri }} -c \
+            'test -f /license.txt && echo "License file exists" || (echo "WARNING: /license.txt not found" && exit 1)'
 
   cuda-version-check:
     if: inputs.cuda-version != ''
@@ -293,17 +220,6 @@ jobs:
 
       - name: Check CUDA version
         run: |
-          CU_RAW="${{ inputs.cuda-version }}"
-          CU_MAJOR="${CU_RAW:2:${#CU_RAW}-3}"
-          CU_MINOR="${CU_RAW: -1}"
-          EXPECTED="${CU_MAJOR}.${CU_MINOR}"
-          NVCC_OUTPUT=$(docker run --rm --gpus=all --entrypoint nvcc \
-            ${{ inputs.image-uri }} --version 2>&1 || true)
-          EXPECTED_FLAT=$(echo "$EXPECTED" | tr -d '.')
-          NVCC_FLAT=$(echo "$NVCC_OUTPUT" | tr -d '.')
-          echo "Expected CUDA: $EXPECTED"
-          if ! echo "$NVCC_FLAT" | grep -q "$EXPECTED_FLAT"; then
-            echo "FAIL: Expected CUDA $EXPECTED not found in nvcc output:"
-            echo "$NVCC_OUTPUT"
-            exit 1
-          fi
+          docker run --rm --gpus=all \
+            -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
+            ${{ inputs.image-uri }} /sanity/check_cuda.sh "${{ inputs.cuda-version }}"
