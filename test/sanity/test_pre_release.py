@@ -61,8 +61,8 @@ def test_ubuntu_version(ubuntu_version):
     with open("/etc/os-release") as f:
         os_release = f.read()
     assert "Ubuntu" in os_release, "OS is not Ubuntu"
-    assert ubuntu_version.raw in os_release, (
-        f"Expected Ubuntu {ubuntu_version.raw} not found in /etc/os-release"
+    assert str(ubuntu_version) in os_release, (
+        f"Expected Ubuntu {ubuntu_version} not found in /etc/os-release"
     )
 
 

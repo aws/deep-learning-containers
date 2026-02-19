@@ -34,10 +34,9 @@ def ubuntu_version(image_uri):
     match = re.search(r"ubuntu(\d+\.\d+)", image_uri or "")
     if not match:
         raise ValueError(f"No ubuntu version found in image URI: {image_uri}")
-    raw = match.group(1)
-    version = Version(raw)
-    version.raw = raw
-    return version
+    # Returns str, not Version(). PEP 440 normalizes 24.04 -> 24.4, losing the
+    # leading zero which is significant in Ubuntu CalVer
+    return match.group(1)
 
 
 @pytest.fixture(scope="session")
