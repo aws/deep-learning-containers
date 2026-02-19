@@ -129,6 +129,11 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework: ${{ steps.set-env.outputs.FRAMEWORK }}
+      framework-version: ${{ steps.set-env.outputs.FRAMEWORK_VERSION }}
+      python-version: ${{ steps.set-env.outputs.PYTHON_VERSION }}
+      cuda-version: ${{ steps.set-env.outputs.CUDA_VERSION }}
+      os-version: ${{ steps.set-env.outputs.OS_VERSION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -147,6 +152,11 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          echo "FRAMEWORK=${FRAMEWORK}" >> ${GITHUB_OUTPUT}
+          echo "FRAMEWORK_VERSION=${SGLANG_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "PYTHON_VERSION=${PYTHON_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "CUDA_VERSION=${CUDA_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "OS_VERSION=${OS_VERSION}" >> ${GITHUB_OUTPUT}
 
   sglang-ec2-sanity-test:
     needs: [set-ec2-test-environment]
@@ -161,7 +171,11 @@ jobs:
       image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
       aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
       aws-region: ${{ vars.AWS_REGION }}
-      runner-fleet: x86-g6xl-runner
+      framework: ${{ needs.set-ec2-test-environment.outputs.framework }}
+      framework-version: ${{ needs.set-ec2-test-environment.outputs.framework-version }}
+      python-version: ${{ needs.set-ec2-test-environment.outputs.python-version }}
+      cuda-version: ${{ needs.set-ec2-test-environment.outputs.cuda-version }}
+      os-version: ${{ needs.set-ec2-test-environment.outputs.os-version }}
 
   sglang-ec2-local-benchmark-test:
     needs: [build-sglang-ec2-image, set-ec2-test-environment]
@@ -324,6 +338,11 @@ jobs:
     outputs:
       aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
       image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework: ${{ steps.set-env.outputs.FRAMEWORK }}
+      framework-version: ${{ steps.set-env.outputs.FRAMEWORK_VERSION }}
+      python-version: ${{ steps.set-env.outputs.PYTHON_VERSION }}
+      cuda-version: ${{ steps.set-env.outputs.CUDA_VERSION }}
+      os-version: ${{ steps.set-env.outputs.OS_VERSION }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -342,6 +361,11 @@ jobs:
           echo "Image URI to test: ${IMAGE_URI}"
           echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+          echo "FRAMEWORK=${FRAMEWORK}" >> ${GITHUB_OUTPUT}
+          echo "FRAMEWORK_VERSION=${SGLANG_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "PYTHON_VERSION=${PYTHON_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "CUDA_VERSION=${CUDA_VERSION}" >> ${GITHUB_OUTPUT}
+          echo "OS_VERSION=${OS_VERSION}" >> ${GITHUB_OUTPUT}
 
   sglang-sagemaker-sanity-test:
     needs: [set-sagemaker-test-environment]
@@ -356,7 +380,11 @@ jobs:
       image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
       aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
       aws-region: ${{ vars.AWS_REGION }}
-      runner-fleet: x86-g6xl-runner
+      framework: ${{ needs.set-sagemaker-test-environment.outputs.framework }}
+      framework-version: ${{ needs.set-sagemaker-test-environment.outputs.framework-version }}
+      python-version: ${{ needs.set-sagemaker-test-environment.outputs.python-version }}
+      cuda-version: ${{ needs.set-sagemaker-test-environment.outputs.cuda-version }}
+      os-version: ${{ needs.set-sagemaker-test-environment.outputs.os-version }}
 
   sglang-sagemaker-local-benchmark-test:
     needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]

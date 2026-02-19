@@ -18,17 +18,33 @@ on:
         description: 'AWS region for ECR authentication'
         required: true
         type: string
-      runner-fleet:
-        description: 'CodeBuild runner fleet'
+      framework:
+        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow)'
+        required: true
+        type: string
+      framework-version:
+        description: 'Framework version (e.g., 0.15.1, 0.5.8)'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version in pyXYZ format (e.g., py312)'
+        required: true
+        type: string
+      os-version:
+        description: 'OS version (e.g., ubuntu22.04, ubuntu24.04)'
+        required: true
+        type: string
+      cuda-version:
+        description: 'CUDA version in cuXYZ format (e.g., cu129). Empty for CPU images.'
         required: false
         type: string
-        default: 'default-runner'
+        default: ''
 
 jobs:
   sanity-tests:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:${{ inputs.runner-fleet }}
+        fleet:default-runner
         buildspec-override:true
     steps:
       - name: Checkout DLC source
@@ -49,27 +65,148 @@ jobs:
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       # ==========================================
-      # ========= In-container tests =============
+      # ===== In-container: Filesystem checks ====
       # ==========================================
 
-      - name: Install test dependencies in container
+      - name: Check for stray .py artifacts
         run: |
-          docker exec ${CONTAINER_ID} pip install pytest packaging
-          docker exec ${CONTAINER_ID} pip install -r test/requirements.txt
+          docker exec ${CONTAINER_ID} bash -c '
+            FAILED=0
+            for DIR in /tmp /var/tmp "$HOME" /; do
+              for F in $(ls -A "$DIR" 2>/dev/null); do
+                if echo "$F" | grep -qE "\.py$"; then
+                  echo "FAIL: Stray .py artifact $F found in $DIR"
+                  FAILED=1
+                fi
+              done
+            done
+            exit $FAILED
+          '
 
-      - name: Run filesystem sanity tests
+      - name: Check /var/tmp is empty
         run: |
-          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
-            python -m pytest -vs -rA \
-            --image-uri ${{ inputs.image-uri }} \
-            test/sanity/test_filesystem.py
+          docker exec ${CONTAINER_ID} bash -c '
+            CONTENTS=$(ls -A /var/tmp 2>/dev/null)
+            if [ -n "$CONTENTS" ]; then
+              echo "FAIL: /var/tmp is not empty: $CONTENTS"
+              exit 1
+            fi
+          '
 
-      - name: Run pre-release sanity tests
+      - name: Check /tmp is clean
         run: |
-          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
-            python -m pytest -vs -rA \
-            --image-uri ${{ inputs.image-uri }} \
-            test/sanity/test_pre_release.py
+          docker exec ${CONTAINER_ID} bash -c '
+            FAILED=0
+            for F in $(ls -A /tmp/ 2>/dev/null); do
+              case "$F" in
+                .*|*system*|*System*|*dkms*|*hsperfdata*) continue ;;
+              esac
+              echo "FAIL: Unexpected file in /tmp: $F"
+              FAILED=1
+            done
+            exit $FAILED
+          '
+
+      - name: Check cache dir is clean
+        run: |
+          docker exec ${CONTAINER_ID} bash -c '
+            CACHE_DIR="$HOME/.cache"
+            [ ! -d "$CACHE_DIR" ] && exit 0
+            FAILED=0
+            for F in $(ls -A "$CACHE_DIR" 2>/dev/null); do
+              case "$F" in
+                pip*) continue ;;
+              esac
+              echo "FAIL: Unexpected file in cache dir: $F"
+              FAILED=1
+            done
+            exit $FAILED
+          '
+
+      - name: Check no viminfo or bash history
+        run: |
+          docker exec ${CONTAINER_ID} bash -c '
+            FAILED=0
+            [ -f "$HOME/.viminfo" ] && echo "FAIL: .viminfo exists" && FAILED=1
+            if [ -f "$HOME/.bash_history" ] && [ -s "$HOME/.bash_history" ]; then
+              echo "FAIL: .bash_history contains history"
+              FAILED=1
+            fi
+            exit $FAILED
+          '
+
+      - name: Check no conda packages from repo.anaconda.com
+        run: |
+          docker exec ${CONTAINER_ID} bash -c '
+            if ! command -v conda &>/dev/null; then
+              echo "SKIP: conda not installed"
+              exit 0
+            fi
+            OFFENDING=$(conda list --explicit 2>/dev/null | grep "repo.anaconda.com" || true)
+            if [ -n "$OFFENDING" ]; then
+              echo "FAIL: Packages from repo.anaconda.com found:"
+              echo "$OFFENDING"
+              exit 1
+            fi
+          '
+
+      # ==========================================
+      # ===== In-container: Version checks =======
+      # ==========================================
+
+      - name: Check Python version
+        run: |
+          PY_RAW="${{ inputs.python-version }}"
+          PY_MAJOR="${PY_RAW:2:1}"
+          PY_MINOR="${PY_RAW:3}"
+          EXPECTED="${PY_MAJOR}.${PY_MINOR}"
+          INSTALLED=$(docker exec ${CONTAINER_ID} python3 --version)
+          echo "Installed: $INSTALLED, Expected: Python $EXPECTED"
+          if ! echo "$INSTALLED" | grep -q "$EXPECTED"; then
+            echo "FAIL: Expected Python $EXPECTED, got: $INSTALLED"
+            exit 1
+          fi
+
+      - name: Check OS version
+        run: |
+          EXPECTED="${{ inputs.os-version }}"
+          OS_RELEASE=$(docker exec ${CONTAINER_ID} cat /etc/os-release)
+          if ! echo "$OS_RELEASE" | grep -qi "${EXPECTED}"; then
+            echo "FAIL: Expected $EXPECTED not found in /etc/os-release"
+            echo "$OS_RELEASE"
+            exit 1
+          fi
+
+      - name: Check framework version
+        if: inputs.framework != 'base'
+        run: |
+          FRAMEWORK="${{ inputs.framework }}"
+          EXPECTED="${{ inputs.framework-version }}"
+          case "$FRAMEWORK" in
+            pytorch) MODULE="torch" ;;
+            *) MODULE="$FRAMEWORK" ;;
+          esac
+          INSTALLED=$(docker exec ${CONTAINER_ID} python3 -c "import ${MODULE}; print(${MODULE}.__version__)")
+          INSTALLED="${INSTALLED%%+*}"
+          echo "Installed ${MODULE} version: $INSTALLED, Expected: $EXPECTED"
+          if ! echo "$INSTALLED" | grep -q "^${EXPECTED}"; then
+            echo "FAIL: Expected ${MODULE} ${EXPECTED}, got: $INSTALLED"
+            exit 1
+          fi
+
+      # ==========================================
+      # ===== In-container: Package checks =======
+      # ==========================================
+
+      - name: Run pip check
+        run: |
+          docker exec ${CONTAINER_ID} python3 /workdir/scripts/sanity/pip_check.py \
+            --image-uri "${{ inputs.image-uri }}" \
+            --allowlist-dir /workdir/test/data/allowlists
+
+      - name: Run OSS compliance check
+        run: |
+          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
 
       # ==========================================
       # =========== Host-side checks =============
@@ -86,7 +223,7 @@ jobs:
               if 'uri' in name.lower() and not value.startswith('https://'):
                   failed.append(f'{name}: {value}')
           if failed:
-              print('Non-public URIs found in labels:')
+              print('FAIL: Non-public URIs found in labels:')
               print('\n'.join(failed))
               sys.exit(1)
           print('All URI labels are public')
@@ -103,10 +240,10 @@ jobs:
               sys.exit(0)
           for name, value in labels.items():
               if len(name) > 128:
-                  print(f'Label name exceeds 128 chars: {name}')
+                  print(f'FAIL: Label name exceeds 128 chars: {name}')
                   sys.exit(1)
               if len(value) > 256:
-                  print(f'Label value exceeds 256 chars for {name}: {value[:50]}...')
+                  print(f'FAIL: Label value exceeds 256 chars for {name}: {value[:50]}...')
                   sys.exit(1)
           print(f'All {len(labels)} labels pass validation')
           "
@@ -117,9 +254,8 @@ jobs:
             && echo "License file exists" \
             || echo "WARNING: /license.txt not found"
 
-      - name: Run OSS compliance and copy artifacts
+      - name: Copy OSS compliance artifacts
         run: |
-          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
           docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS 2>/dev/null || true
 
       - name: Upload OSS compliance artifacts
@@ -129,3 +265,37 @@ jobs:
           name: oss-compliance-${{ github.run_id }}
           path: THIRD_PARTY_SOURCE_CODE_URLS
           if-no-files-found: ignore
+
+  cuda-version-check:
+    if: inputs.cuda-version != ''
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Check CUDA version
+        run: |
+          CU_RAW="${{ inputs.cuda-version }}"
+          CU_MAJOR="${CU_RAW:2:${#CU_RAW}-3}"
+          CU_MINOR="${CU_RAW: -1}"
+          EXPECTED="${CU_MAJOR}.${CU_MINOR}"
+          NVCC_OUTPUT=$(docker run --rm --gpus=all --entrypoint nvcc \
+            ${{ inputs.image-uri }} --version 2>&1 || true)
+          EXPECTED_FLAT=$(echo "$EXPECTED" | tr -d '.')
+          NVCC_FLAT=$(echo "$NVCC_OUTPUT" | tr -d '.')
+          echo "Expected CUDA: $EXPECTED"
+          if ! echo "$NVCC_FLAT" | grep -q "$EXPECTED_FLAT"; then
+            echo "FAIL: Expected CUDA $EXPECTED not found in nvcc output:"
+            echo "$NVCC_OUTPUT"
+            exit 1
+          fi
