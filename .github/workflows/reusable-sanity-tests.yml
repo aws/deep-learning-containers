@@ -171,8 +171,16 @@ jobs:
         run: |
           EXPECTED="${{ inputs.os-version }}"
           OS_RELEASE=$(docker exec ${CONTAINER_ID} cat /etc/os-release)
-          if ! echo "$OS_RELEASE" | grep -qi "${EXPECTED}"; then
-            echo "FAIL: Expected $EXPECTED not found in /etc/os-release"
+          # Extract OS name and version from input (e.g., ubuntu24.04 -> ubuntu, 24.04)
+          OS_NAME=$(echo "$EXPECTED" | grep -oP '^[a-zA-Z]+')
+          OS_VER=$(echo "$EXPECTED" | grep -oP '[0-9]+\.[0-9]+')
+          if ! echo "$OS_RELEASE" | grep -qi "$OS_NAME"; then
+            echo "FAIL: Expected OS $OS_NAME not found in /etc/os-release"
+            echo "$OS_RELEASE"
+            exit 1
+          fi
+          if ! echo "$OS_RELEASE" | grep -q "$OS_VER"; then
+            echo "FAIL: Expected version $OS_VER not found in /etc/os-release"
             echo "$OS_RELEASE"
             exit 1
           fi
