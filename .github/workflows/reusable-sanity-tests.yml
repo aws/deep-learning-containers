@@ -55,6 +55,7 @@ jobs:
       - name: Install test dependencies in container
         run: |
           docker exec ${CONTAINER_ID} pip install pytest packaging
+          docker exec ${CONTAINER_ID} pip install -r test/requirements.txt
 
       - name: Run filesystem sanity tests
         run: |
