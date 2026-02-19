@@ -153,6 +153,9 @@ jobs:
     if: |
       always() && !failure() && !cancelled() &&
       needs.set-ec2-test-environment.result == 'success'
+    concurrency:
+      group: ${{ github.workflow }}-sglang-ec2-sanity-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
@@ -345,6 +348,9 @@ jobs:
     if: |
       always() && !failure() && !cancelled() &&
       needs.set-sagemaker-test-environment.result == 'success'
+    concurrency:
+      group: ${{ github.workflow }}-sglang-sagemaker-sanity-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
