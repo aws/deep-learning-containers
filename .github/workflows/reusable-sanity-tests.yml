@@ -58,13 +58,15 @@ jobs:
 
       - name: Run filesystem sanity tests
         run: |
-          docker exec ${CONTAINER_ID} python -m pytest -vs -rA \
+          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
+            python -m pytest -vs -rA \
             --image-uri ${{ inputs.image-uri }} \
             test/sanity/test_filesystem.py
 
       - name: Run pre-release sanity tests
         run: |
-          docker exec ${CONTAINER_ID} python -m pytest -vs -rA \
+          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
+            python -m pytest -vs -rA \
             --image-uri ${{ inputs.image-uri }} \
             test/sanity/test_pre_release.py
 
