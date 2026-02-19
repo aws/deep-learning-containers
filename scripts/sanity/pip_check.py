@@ -25,7 +25,15 @@ def load_allowlist(allowlist_dir, framework=None, image_tag=None):
     if framework:
         paths.append(os.path.join(allowlist_dir, framework, "pip_check.json"))
     if framework and image_tag:
-        paths.append(os.path.join(allowlist_dir, framework, f"{image_tag}.json"))
+        # Match any allowlist file whose name (minus .json) is a prefix of the image tag
+        framework_dir = os.path.join(allowlist_dir, framework)
+        if os.path.isdir(framework_dir):
+            for fname in os.listdir(framework_dir):
+                if fname == "pip_check.json" or not fname.endswith(".json"):
+                    continue
+                prefix = fname[:-5]  # strip .json
+                if image_tag.startswith(prefix):
+                    paths.append(os.path.join(framework_dir, fname))
     for path in paths:
         if os.path.exists(path):
             with open(path) as f:
