@@ -10,6 +10,14 @@ on:
         description: 'Image URI to test'
         required: true
         type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR authentication'
+        required: true
+        type: string
       runner-fleet:
         description: 'CodeBuild runner fleet'
         required: false
@@ -21,12 +29,17 @@ jobs:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
+        buildspec-override:true
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Pull image
-        run: docker pull ${{ inputs.image-uri }}
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
 
       - name: Start container
         run: |
@@ -113,11 +126,3 @@ jobs:
           name: oss-compliance-${{ github.run_id }}
           path: THIRD_PARTY_SOURCE_CODE_URLS
           if-no-files-found: ignore
-
-      # ==========================================
-      # ============== Cleanup ===================
-      # ==========================================
-
-      - name: Stop container
-        if: always()
-        run: docker rm -f ${CONTAINER_ID} 2>/dev/null || true

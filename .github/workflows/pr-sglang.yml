@@ -156,6 +156,8 @@ jobs:
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
+      aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+      aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: x86-g6xl-runner
 
   sglang-ec2-local-benchmark-test:
@@ -346,6 +348,8 @@ jobs:
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
+      aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+      aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: x86-g6xl-runner
 
   sglang-sagemaker-local-benchmark-test:
