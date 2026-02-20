@@ -41,7 +41,7 @@ on:
         default: ''
 
 jobs:
-  filesystem-checks:
+  general-tests:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -57,79 +57,11 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
-      - name: Check for stray .py artifacts
+      - name: Setup for host test dependencies
         run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_stray_artifacts.sh
-
-      - name: Check /tmp and /var/tmp are clean
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_tmp_clean.sh
-
-      - name: Check cache dir is clean
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_cache_clean.sh
-
-      - name: Check no viminfo or bash history
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_no_history.sh
-
-      - name: Check no conda packages from repo.anaconda.com
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_anaconda.sh
-
-  version-checks:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Check Python version
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_python_version.sh "${{ inputs.python-version }}"
-
-      - name: Check OS version
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_os_version.sh "${{ inputs.os-version }}"
-
-      - name: Check framework version
-        if: inputs.framework != 'base'
-        run: |
-          docker run --rm -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_framework_version.sh \
-              "${{ inputs.framework }}" "${{ inputs.framework-version }}"
-
-  package-compatibility-checks:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
 
       - name: Start container
         run: |
@@ -138,7 +70,85 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Install test dependencies
+      # ==========================================
+      # ===== Filesystem checks (clean image) ====
+      # ==========================================
+
+      - name: Check for stray .py artifacts
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_stray_artifacts.sh
+
+      - name: Check /tmp and /var/tmp are clean
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_tmp_clean.sh
+
+      - name: Check cache dir is clean
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_cache_clean.sh
+
+      - name: Check no viminfo or bash history
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_no_history.sh
+
+      - name: Check no conda packages from repo.anaconda.com
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_anaconda.sh
+
+      # ==========================================
+      # ===== Version checks =====================
+      # ==========================================
+
+      - name: Check Python version
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_python_version.sh "${{ inputs.python-version }}"
+
+      - name: Check OS version
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_os_version.sh "${{ inputs.os-version }}"
+
+      - name: Check framework version
+        if: inputs.framework != 'base'
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_framework_version.sh \
+            "${{ inputs.framework }}" "${{ inputs.framework-version }}"
+
+      # ==========================================
+      # ===== Label checks =======================
+      # ==========================================
+
+      - name: Check container labels
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+
+      # TODO: [MANUAL] Need to add test for checking license content and add license to sglang
+      # - name: Check license file exists
+      #   run: |
+      #     docker exec ${CONTAINER_ID} bash -c \
+      #       'test -f /license.txt && echo "License file exists" || (echo "WARNING: /license.txt not found" && exit 1)'
+
+      # ==========================================
+      # ===== OSS compliance =====================
+      # ==========================================
+
+      - name: Run OSS compliance check
+        run: |
+          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
+
+      - name: Copy OSS compliance artifacts
+        run: |
+          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
+
+      - name: Upload third-party source code to S3
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
+
+      # ==========================================
+      # ===== Package checks =====================
+      # ==========================================
+
+      - name: Setup for pip check test
         run: |
           docker exec ${CONTAINER_ID} pip install -q boto3 botocore
 
@@ -149,83 +159,8 @@ jobs:
               --framework "${{ inputs.framework }}" \
               --framework-version "${{ inputs.framework-version }}" \
               --allowlist-dir test/data/pipcheck_allowlist
-          docker logs ${CONTAINER_ID}
 
-  oss-compliance:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
-            ${{ inputs.image-uri }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Run OSS compliance check
-        run: |
-          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
-
-      - name: Copy OSS compliance artifacts
-        run: |
-          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-
-      - name: Upload third-party source code to S3
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
-
-  label-checks:
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-
-      - name: Check container labels
-        run: |
-          source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
-
-      # TODO: Add license file for sglang
-      # - name: Check license file exists
-      #   run: |
-      #     docker run --rm --entrypoint bash ${{ inputs.image-uri }} -c \
-      #       'test -f /license.txt && echo "License file exists" || (echo "WARNING: /license.txt not found" && exit 1)'
-
-  cuda-version-check:
+  gpu-tests:
     if: inputs.cuda-version != ''
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}

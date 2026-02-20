@@ -136,7 +136,7 @@ jobs:
       os-version: ${{ steps.set-env.outputs.OS_VERSION }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set test environment
         id: set-env
