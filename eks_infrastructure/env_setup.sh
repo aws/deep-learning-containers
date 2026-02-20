@@ -11,15 +11,15 @@ AWS_IAM_AUTHENTICATOR="https://github.com/kubernetes-sigs/aws-iam-authenticator/
 LATEST_KUBECTL_CLIENT_VERSION=1.25
 
 function install_kubectl_client() {
-    curl --silent --location ${KUBECTL_CLIENT} -o /usr/local/bin/kubectl
-    chmod +x /usr/local/bin/kubectl
+    sudo curl --silent --location ${KUBECTL_CLIENT} -o /usr/local/bin/kubectl
+    sudo chmod +x /usr/local/bin/kubectl
 }
 # aws caller identity
 aws sts get-caller-identity
 
 # install aws-iam-authenticator
-curl --silent --location ${AWS_IAM_AUTHENTICATOR} -o /usr/local/bin/aws-iam-authenticator
-chmod +x /usr/local/bin/aws-iam-authenticator
+sudo curl --silent --location ${AWS_IAM_AUTHENTICATOR} -o /usr/local/bin/aws-iam-authenticator
+sudo chmod +x /usr/local/bin/aws-iam-authenticator
 
 #aws-iam-authenticator version
 aws-iam-authenticator version
@@ -42,8 +42,8 @@ kubectl version --short --client
 
 # install eksctl
 if ! [ -x "$(command -v eksctl)" ]; then
-    curl --silent --location ${EKSCTL_CLIENT} | tar xz -C /tmp
-    mv /tmp/eksctl /usr/local/bin
+    sudo curl --silent --location ${EKSCTL_CLIENT} | tar xz -C /tmp
+    sudo mv /tmp/eksctl /usr/local/bin
 fi
 
 # eksctl version
