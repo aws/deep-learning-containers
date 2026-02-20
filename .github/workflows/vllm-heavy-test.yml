@@ -82,11 +82,11 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM regression tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_regression_test.sh
 
       - name: Cleanup
         if: always()
@@ -126,11 +126,11 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM example tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/vllm/vllm_ec2_examples_test.sh
+          docker exec -w /workdir ${CONTAINER_ID} bash scripts/vllm/vllm_ec2_examples_test.sh
 
       - name: Cleanup
         if: always()
