@@ -1,0 +1,137 @@
+name: PR - vLLM EFA Test
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-vllm-efa-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  VLLM_VERSION: "0.15.1"
+
+jobs:
+  build-image:
+    runs-on: gpu-standard-runners
+    outputs:
+      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Resolve image URI for build
+        id: image-uri-build
+        run: |
+          IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-py312-cu129-ubuntu22.04-ec2-efa-pr-${{ github.event.pull_request.number }}
+          echo "Image URI to build: ${IMAGE_URI}"
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
+
+      - name: Build and push image
+        run: |
+          docker build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --tag ${IMAGE_URI} \
+            --target vllm-ec2 \
+            -f docker/vllm/Dockerfile .
+          docker push ${IMAGE_URI}
+          docker rmi ${IMAGE_URI}
+
+  regression-test:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
+    runs-on: gpu-p4d-runners
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.image-uri }}
+
+      - name: Checkout vLLM tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v${{ env.VLLM_VERSION }}
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v .:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-image.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Setup for vLLM tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
+
+      - name: Run vLLM regression tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker stop ${CONTAINER_ID} || true
+
+  example-test:
+    needs: [build-image]
+    if: needs.build-image.result == 'success'
+    runs-on: gpu-p4d-runners
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-image.outputs.image-uri }}
+
+      - name: Checkout vLLM tests
+        uses: actions/checkout@v5
+        with:
+          repository: vllm-project/vllm
+          ref: v${{ env.VLLM_VERSION }}
+          path: vllm_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${HOME}/.cache/vllm:/root/.cache/vllm \
+            -v .:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-image.outputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Setup for vLLM tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_0_15_1_test_setup.sh
+
+      - name: Run vLLM example tests
+        run: |
+          docker exec ${CONTAINER_ID} scripts/vllm/vllm_ec2_examples_test.sh
+
+      - name: Cleanup
+        if: always()
+        run: docker stop ${CONTAINER_ID} || true
