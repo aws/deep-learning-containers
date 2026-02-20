@@ -149,6 +149,7 @@ jobs:
               --framework "${{ inputs.framework }}" \
               --framework-version "${{ inputs.framework-version }}" \
               --allowlist-dir test/data/pipcheck_allowlist
+          docker logs ${CONTAINER_ID}
 
   oss-compliance:
     runs-on:
@@ -189,7 +190,7 @@ jobs:
       - name: Upload third-party source code to S3
         run: |
           source .venv/bin/activate
-          PYTHONPATH=test python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   label-checks:
     runs-on:
@@ -216,7 +217,7 @@ jobs:
       - name: Check container labels
         run: |
           source .venv/bin/activate
-          PYTHONPATH=test python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
 
       # TODO: Add license file for sglang
       # - name: Check license file exists
