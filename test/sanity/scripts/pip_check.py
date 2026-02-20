@@ -25,20 +25,15 @@ import test  # noqa: F401 — triggers colored logging setup
 LOGGER = logging.getLogger(__name__)
 
 
-def load_allowlist(allowlist_dir, framework=None, image_tag=None):
+def load_allowlist(allowlist_dir, framework=None, framework_version=None):
     entries = []
     paths = [os.path.join(allowlist_dir, "pip_check.json")]
     if framework:
         paths.append(os.path.join(allowlist_dir, framework, "pip_check.json"))
-    if framework and image_tag:
-        framework_dir = os.path.join(allowlist_dir, framework)
-        if os.path.isdir(framework_dir):
-            for fname in os.listdir(framework_dir):
-                if fname == "pip_check.json" or not fname.endswith(".json"):
-                    continue
-                prefix = fname[:-5]
-                if image_tag.startswith(prefix):
-                    paths.append(os.path.join(framework_dir, fname))
+        if framework_version:
+            paths.append(
+                os.path.join(allowlist_dir, framework, f"{framework}-{framework_version}.json")
+            )
     for path in paths:
         if os.path.exists(path):
             with open(path) as f:
@@ -46,16 +41,10 @@ def load_allowlist(allowlist_dir, framework=None, image_tag=None):
     return [e["pattern"] for e in entries]
 
 
-def get_framework(image_uri):
-    for name in ["vllm", "sglang", "pytorch", "tensorflow"]:
-        if name in (image_uri or ""):
-            return name
-    return None
-
-
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image-uri", required=True)
+    parser.add_argument("--framework", required=True)
+    parser.add_argument("--framework-version", default="")
     parser.add_argument(
         "--allowlist-dir",
         default="test/data/pipcheck_allowlist",
@@ -63,9 +52,7 @@ def main():
     )
     args = parser.parse_args()
 
-    framework = get_framework(args.image_uri)
-    tag = args.image_uri.split(":")[-1] if ":" in args.image_uri else None
-    patterns = load_allowlist(args.allowlist_dir, framework, tag)
+    patterns = load_allowlist(args.allowlist_dir, args.framework, args.framework_version)
 
     result = subprocess.run(["pip", "check"], capture_output=True, text=True)
     if result.returncode == 0:

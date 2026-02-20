@@ -146,7 +146,8 @@ jobs:
         run: |
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
             python3 test/sanity/scripts/pip_check.py \
-              --image-uri "${{ inputs.image-uri }}" \
+              --framework "${{ inputs.framework }}" \
+              --framework-version "${{ inputs.framework-version }}" \
               --allowlist-dir test/data/pipcheck_allowlist
 
   oss-compliance:
