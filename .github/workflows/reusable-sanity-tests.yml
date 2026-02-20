@@ -170,8 +170,15 @@ jobs:
         run: |
           docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
 
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
       - name: Upload third-party source code to S3
         run: |
+          source .venv/bin/activate
           PYTHONPATH=test python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   label-checks:
@@ -190,8 +197,15 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
       - name: Check container labels
         run: |
+          source .venv/bin/activate
           PYTHONPATH=test python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
 
       # TODO: Add license file for sglang
