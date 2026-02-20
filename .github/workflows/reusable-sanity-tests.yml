@@ -131,12 +131,21 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Install test dependencies
+        run: |
+          docker exec ${CONTAINER_ID} pip install -q boto3 botocore
+
       - name: Run pip check
         run: |
-          docker run --rm -v $(pwd):/workdir --workdir /workdir \
-            -e PYTHONPATH=/workdir/test \
-            --entrypoint python3 \
-            ${{ inputs.image-uri }} test/sanity/scripts/pip_check.py \
+          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
+            python3 test/sanity/scripts/pip_check.py \
               --image-uri "${{ inputs.image-uri }}" \
               --allowlist-dir test/data/allowlists
 
