@@ -168,13 +168,14 @@ jobs:
         run: |
           docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS 2>/dev/null || true
 
-      - name: Upload OSS compliance artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: oss-compliance-${{ github.run_id }}
-          path: THIRD_PARTY_SOURCE_CODE_URLS
-          if-no-files-found: ignore
+      # TODO: Upload to s3 instead of github
+      # - name: Upload OSS compliance artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: oss-compliance-${{ github.run_id }}
+      #     path: THIRD_PARTY_SOURCE_CODE_URLS
+      #     if-no-files-found: ignore
 
   label-checks:
     runs-on:
