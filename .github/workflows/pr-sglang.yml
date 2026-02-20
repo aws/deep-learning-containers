@@ -96,7 +96,7 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-sglang-ec2-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-ec2-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -164,7 +164,7 @@ jobs:
       always() && !failure() && !cancelled() &&
       needs.set-ec2-test-environment.result == 'success'
     concurrency:
-      group: ${{ github.workflow }}-sglang-ec2-sanity-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-ec2-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -185,7 +185,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-ec2-local-benchmark-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-ec2-local-benchmark-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -305,7 +305,7 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-sglang-sagemaker-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-sagemaker-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -373,7 +373,7 @@ jobs:
       always() && !failure() && !cancelled() &&
       needs.set-sagemaker-test-environment.result == 'success'
     concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-sanity-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sagemaker-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -394,7 +394,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-local-benchmark-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sagemaker-local-benchmark-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -452,7 +452,7 @@ jobs:
         fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-frontend-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sagemaker-upstream-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -513,7 +513,7 @@ jobs:
         fleet:default-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sagemaker-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
     steps:
       - name: Checkout DLC source
