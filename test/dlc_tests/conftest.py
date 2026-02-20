@@ -25,18 +25,18 @@ from test.test_utils import (
     is_tf_version,
     is_above_framework_version,
     is_below_framework_version,
+    is_below_cuda_version,
     is_equal_to_framework_version,
     is_ec2_image,
     is_sagemaker_image,
     is_nightly_context,
     DEFAULT_REGION,
-    P3DN_REGION,
     PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1,
     KEYS_TO_DESTROY_FILE,
     are_efa_tests_disabled,
     get_repository_and_tag_from_image_uri,
     get_ecr_repo_name,
-    UBUNTU_HOME_DIR,
+    AL2023_HOME_DIR,
     NightlyFeatureLabel,
     is_mainline_context,
     is_pr_context,
@@ -48,11 +48,18 @@ LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
+ENABLE_IPV6_TESTING = os.getenv("ENABLE_IPV6_TESTING", "false").lower() == "true"
+
 # Immutable constant for framework specific image fixtures
 FRAMEWORK_FIXTURES = (
     # ECR repo name fixtures
     # PyTorch
     "pytorch_training",
+    "pytorch_training___2__9",
+    "pytorch_training___2__8",
+    "pytorch_training___2__7",
+    "pytorch_training___2__6",
+    "pytorch_training___2__5",
     "pytorch_training___2__4",
     "pytorch_training___2__3",
     "pytorch_training___2__2",
@@ -60,12 +67,15 @@ FRAMEWORK_FIXTURES = (
     "pytorch_training___2__0",
     "pytorch_training___1__13",
     "pytorch_training_habana",
+    "pytorch_training_arm64",
+    "pytorch_training_arm64___2__7",
     "pytorch_inference",
     "pytorch_inference_eia",
     "pytorch_inference_neuron",
     "pytorch_inference_neuronx",
     "pytorch_training_neuronx",
     "pytorch_inference_graviton",
+    "pytorch_inference_arm64",
     # TensorFlow
     "tensorflow_training",
     "tensorflow_inference",
@@ -75,6 +85,7 @@ FRAMEWORK_FIXTURES = (
     "tensorflow_training_neuron",
     "tensorflow_training_habana",
     "tensorflow_inference_graviton",
+    "tensorflow_inference_arm64",
     # MxNET
     "mxnet_training",
     "mxnet_inference",
@@ -98,6 +109,8 @@ FRAMEWORK_FIXTURES = (
     "pytorch_trcomp_training",
     # Autogluon
     "autogluon_training",
+    # SGLang
+    "sglang",
     # Processor fixtures
     "gpu",
     "cpu",
@@ -106,6 +119,7 @@ FRAMEWORK_FIXTURES = (
     "hpu",
     # Architecture
     "graviton",
+    "arm64",
     # Job Type fixtures
     "training",
     "inference",
@@ -136,6 +150,13 @@ NIGHTLY_FIXTURES = {
         NightlyFeatureLabel.TORCHDATA_INSTALLED.value,
     },
     "feature_s3_plugin_present": {NightlyFeatureLabel.AWS_S3_PLUGIN_INSTALLED.value},
+}
+
+# Skip telemetry tests for specific versions
+TELEMETRY_SKIP_VERSIONS = {
+    "entrypoint": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "bashrc": {"pytorch": ["2.4.0", "2.5.1", "2.6.0"], "tensorflow": ["2.18.0"]},
+    "framework": {"pytorch": [""], "tensorflow": ["2.19.0"]},
 }
 
 
@@ -279,9 +300,6 @@ def availability_zone_options(ec2_client, ec2_instance_type, region):
     if ec2_instance_type in ["p4d.24xlarge"]:
         if region == "us-west-2":
             allowed_availability_zones = ["us-west-2b", "us-west-2c"]
-    if ec2_instance_type in ["p3dn.24xlarge"]:
-        if region == "us-east-1":
-            allowed_availability_zones = ["us-east-1a", "us-east-1b"]
     if not allowed_availability_zones:
         allowed_availability_zones = ec2_utils.get_availability_zone_ids(ec2_client)
     return allowed_availability_zones
@@ -336,7 +354,7 @@ def ec2_instance_type(request):
 
 @pytest.fixture(scope="function")
 def instance_type(request):
-    return request.param if hasattr(request, "param") else "ml.p3.2xlarge"
+    return request.param if hasattr(request, "param") else "ml.g5.8xlarge"
 
 
 @pytest.fixture(scope="function")
@@ -345,12 +363,8 @@ def ec2_instance_role_name(request):
 
 
 @pytest.fixture(scope="function")
-def ec2_instance_ami(request, region, ec2_instance_type):
-    return (
-        request.param
-        if hasattr(request, "param")
-        else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
-    )
+def ec2_instance_ami(request, region):
+    return request.param if hasattr(request, "param") else test_utils.get_dlami_id(region)
 
 
 @pytest.fixture(scope="function")
@@ -374,6 +388,7 @@ def efa_ec2_instances(
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
+    print(f"Using AMI for EFA EC2 {ec2_instance_ami}")
 
     def delete_ssh_keypair():
         if test_utils.is_pr_context():
@@ -383,12 +398,13 @@ def efa_ec2_instances(
                 destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
+    volume_name = "/dev/sda1" if ec2_instance_ami in test_utils.UL_AMI_LIST else "/dev/xvda"
 
     instance_name_prefix = f"CI-CD {ec2_key_name}"
     ec2_run_instances_definition = {
         "BlockDeviceMappings": [
             {
-                "DeviceName": "/dev/sda1",
+                "DeviceName": volume_name,
                 "Ebs": {
                     "DeleteOnTermination": True,
                     "VolumeSize": 150,
@@ -457,7 +473,9 @@ def efa_ec2_instances(
 
             network_interface_id = ec2_utils.get_network_interface_id(instance_id, region)
 
-            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(network_interface_id, region)
+            elastic_ip_allocation_id = ec2_utils.attach_elastic_ip(
+                network_interface_id, region, ENABLE_IPV6_TESTING
+            )
             elastic_ip_allocation_ids.append(elastic_ip_allocation_id)
 
         def elastic_ips_finalizer():
@@ -501,18 +519,36 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
         connect_timeout=18000,
     )
 
+    if ENABLE_IPV6_TESTING:
+        master_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(master_instance_id, region)
+
+        if master_ipv6_address:
+            master_connection.ipv6_address = master_ipv6_address
+            LOGGER.info(f"Master node IPv6 address (eth0): {master_connection.ipv6_address}")
+        else:
+            raise RuntimeError("IPv6 testing enabled but no IPv6 address found for master node")
+
     worker_instance_connections = []
     for instance in worker_instances:
         worker_instance_id = instance["worker_instance_id"]
         worker_instance_pem_file = instance["worker_instance_pem_file"]
         worker_public_ip = ec2_utils.get_public_ip(worker_instance_id, region)
-        LOGGER.info(f"Instance worker_ip_address: {worker_public_ip}")
         worker_connection = Connection(
             user=user_name,
             host=worker_public_ip,
             connect_kwargs={"key_filename": [worker_instance_pem_file]},
             connect_timeout=18000,
         )
+
+        if ENABLE_IPV6_TESTING:
+            worker_ipv6_address = ec2_utils.get_ipv6_address_for_eth0(worker_instance_id, region)
+
+            if worker_ipv6_address:
+                worker_connection.ipv6_address = worker_ipv6_address
+                LOGGER.info(f"Worker node IPv6 address (eth0): {worker_connection.ipv6_address}")
+            else:
+                raise RuntimeError("IPv6 testing enabled but no IPv6 address found for worker node")
+
         worker_instance_connections.append(worker_connection)
 
     random.seed(f"{datetime.datetime.now().strftime('%Y%m%d%H%M%S%f')}")
@@ -528,16 +564,18 @@ def efa_ec2_connections(request, efa_ec2_instances, ec2_key_name, ec2_instance_t
 
     master_connection.run("rm -rf $HOME/container_tests")
     master_connection.run(
-        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+        f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
     )
+    print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for master")
     master_connection.run(
         f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
     )
     for worker_connection in worker_instance_connections:
         worker_connection.run("rm -rf $HOME/container_tests")
         worker_connection.run(
-            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests"
+            f"aws s3 cp --recursive {test_utils.TEST_TRANSFER_S3_BUCKET}/{artifact_folder} $HOME/container_tests --region {test_utils.TEST_TRANSFER_S3_BUCKET_REGION}"
         )
+        print(f"Successfully copying {test_utils.TEST_TRANSFER_S3_BUCKET} for worker")
         worker_connection.run(
             f"mkdir -p $HOME/container_tests/logs && chmod -R +x $HOME/container_tests/*"
         )
@@ -559,41 +597,18 @@ def ec2_instance(
     ei_accelerator_type,
 ):
     _validate_p4de_usage(request, ec2_instance_type)
-    if ec2_instance_type == "p3dn.24xlarge":
-        # Keep track of initial region to get information about previous AMI
-        initial_region = region
-        region = P3DN_REGION
-        ec2_client = boto3.client(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
-        ec2_resource = boto3.resource(
-            "ec2", region_name=region, config=Config(retries={"max_attempts": 10})
-        )
-        if ec2_instance_ami != PT_GPU_PY3_BENCHMARK_IMAGENET_AMI_US_EAST_1:
-            # Assign as AML2 if initial AMI is AML2, else use default
-            ec2_instance_ami = (
-                test_utils.get_instance_type_base_dlami(
-                    ec2_instance_type, region, linux_dist="AML2"
-                )
-                if ec2_instance_ami
-                == test_utils.get_instance_type_base_dlami(
-                    ec2_instance_type, initial_region, linux_dist="AML2"
-                )
-                else test_utils.get_instance_type_base_dlami(ec2_instance_type, region)
-            )
 
     ec2_key_name = f"{ec2_key_name}-{str(uuid.uuid4())}"
     print(f"Creating instance: CI-CD {ec2_key_name}")
     key_filename = test_utils.generate_ssh_keypair(ec2_client, ec2_key_name)
 
     def delete_ssh_keypair():
-        if test_utils.is_pr_context():
-            test_utils.destroy_ssh_keypair(ec2_client, key_filename)
-        else:
-            with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
-                destroy_keys.write(f"{key_filename}\n")
+        # test_utils.destroy_ssh_keypair(ec2_client, key_filename)
+        with open(KEYS_TO_DESTROY_FILE, "a") as destroy_keys:
+            destroy_keys.write(f"{key_filename}\n")
 
     request.addfinalizer(delete_ssh_keypair)
+    print(f"EC2 instance AMI-ID: {ec2_instance_ami}")
 
     params = {
         "KeyName": ec2_key_name,
@@ -618,7 +633,7 @@ def ec2_instance(
         or "hpu" in request.fixturenames
     ):
         user_data = """#!/bin/bash
-        sudo apt-get update && sudo apt-get install -y awscli"""
+        sudo dnf update -y && sudo dnf install -y awscli"""
         params["UserData"] = user_data
         params["BlockDeviceMappings"] = [
             {
@@ -643,9 +658,13 @@ def ec2_instance(
         )
         or (
             "tensorflow_inference" in request.fixturenames
-            and "graviton_compatible_only" in request.fixturenames
+            and (
+                "graviton_compatible_only" in request.fixturenames
+                or "arm64_compatible_only" in request.fixturenames
+            )
         )
         or ("graviton" in request.fixturenames)
+        or ("arm64" in request.fixturenames)
     ):
         params["BlockDeviceMappings"] = [
             {
@@ -764,12 +783,12 @@ def ec2_connection(request, ec2_instance, ec2_key_name, ec2_instance_type, regio
     :return: Fabric connection object
     """
     instance_id, instance_pem_file = ec2_instance
-    region = P3DN_REGION if ec2_instance_type == "p3dn.24xlarge" else region
     ip_address = ec2_utils.get_public_ip(instance_id, region=region)
     LOGGER.info(f"Instance ip_address: {ip_address}")
     user = ec2_utils.get_instance_user(instance_id, region=region)
 
     LOGGER.info(f"Connecting to {user}@{ip_address}")
+
     conn = Connection(
         user=user,
         host=ip_address,
@@ -817,7 +836,7 @@ def upload_habana_test_artifact(request, ec2_connection):
     :return: None
     """
     habana_test_repo = "gaudi-test-suite.tar.gz"
-    ec2_connection.put(habana_test_repo, f"{UBUNTU_HOME_DIR}")
+    ec2_connection.put(habana_test_repo, f"{AL2023_HOME_DIR}")
     ec2_connection.run(f"tar -xvf {habana_test_repo}")
 
 
@@ -897,46 +916,17 @@ def skip_torchdata_test(request):
     if not image_uri:
         return
 
-    skip_dict = {">2.1.1": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
+    skip_dict = {
+        ">2.1.1": ["cpu", "cu118", "cu121"],
+        ">=2.4,<2.6": ["cpu", "cu124"],
+    }
     if _validate_pytorch_framework_version(request, image_uri, "skip_torchdata_test", skip_dict):
         pytest.skip(
             f"Torchdata has paused development as of July 2023 and the latest compatible PyTorch version is 2.1.1."
             f"For more information, see https://github.com/pytorch/data/issues/1196."
             f"Skipping test"
+            f"Start from PyTorch 2.6, Torchdata is added back to the container."
         )
-
-
-@pytest.fixture(autouse=True)
-def skip_smdebug_v1_test(request):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_smdebug_v1_test", skip_dict):
-        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_dgl_test(request):
-    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
-    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
-    when the binaries are added in.
-    """
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
-        return
-
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
-    if _validate_pytorch_framework_version(request, image_uri, "skip_dgl_test", skip_dict):
-        pytest.skip(f"DGL binaries are removed, skipping test")
 
 
 @pytest.fixture(autouse=True)
@@ -985,24 +975,52 @@ def skip_p5_tests(request, ec2_instance_type):
 
 
 @pytest.fixture(autouse=True)
-def skip_serialized_release_pt_test(request):
-    if "training" in request.fixturenames:
-        image_uri = request.getfixturevalue("training")
-    elif "pytorch_training" in request.fixturenames:
-        image_uri = request.getfixturevalue("pytorch_training")
-    else:
+def skip_telemetry_tests(request):
+    """Skip specific telemetry tests based on test name and image version"""
+    test_name = request.node.name.lower()
+
+    if "telemetry_entrypoint" in test_name:
+        _check_telemetry_skip(request, "entrypoint")
+    elif "telemetry_bashrc" in test_name:
+        _check_telemetry_skip(request, "bashrc")
+    elif "telemetry_framework" in test_name:
+        _check_telemetry_skip(request, "framework")
+
+
+def _get_telemetry_image_info(request):
+    """Helper function to get image URI and framework info from fixtures."""
+    telemetry_framework_fixtures = [
+        "pytorch_training",
+        "tensorflow_training",
+        "tensorflow_inference",
+        "pytorch_inference",
+        "pytorch_inference_arm64",
+        "pytorch_training_arm64",
+        "tensorflow_inference_arm64",
+    ]
+
+    for fixture_name in telemetry_framework_fixtures:
+        if fixture_name in request.fixturenames:
+            img_uri = request.getfixturevalue(fixture_name)
+            image_framework, image_framework_version = get_framework_and_version_from_tag(img_uri)
+            return image_framework, image_framework_version
+    return None, None
+
+
+def _check_telemetry_skip(request, test_type):
+    """Common logic for skipping telemetry tests."""
+    if test_type not in TELEMETRY_SKIP_VERSIONS:
+        return
+    image_framework, image_framework_version = _get_telemetry_image_info(request)
+    if not image_framework:
+        return
+    if image_framework not in TELEMETRY_SKIP_VERSIONS[test_type]:
         return
 
-    skip_dict = {
-        "==1.13.*": ["cpu", "cu117"],
-        ">=2.1,<2.4": ["cpu", "cu121"],
-        ">=2.4,<2.5": ["cpu", "cu124"],
-    }
-    if _validate_pytorch_framework_version(
-        request, image_uri, "skip_serialized_release_pt_test", skip_dict
-    ):
+    if image_framework_version in TELEMETRY_SKIP_VERSIONS[test_type][image_framework]:
         pytest.skip(
-            f"Skip test for {image_uri} given that the image is being tested in serial execution."
+            f"Telemetry {test_type} test is not supported for "
+            f"{image_framework} version {image_framework_version}"
         )
 
 
@@ -1126,6 +1144,11 @@ def graviton_compatible_only():
 
 
 @pytest.fixture(scope="session")
+def arm64_compatible_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def sagemaker():
     pass
 
@@ -1196,7 +1219,32 @@ def below_tf216_only():
 
 
 @pytest.fixture(scope="session")
+def below_tf218_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def below_tf219_only():
+    pass
+
+
+@pytest.fixture(scope="session")
+def below_cuda129_only():
+    pass
+
+
+@pytest.fixture(scope="session")
 def skip_tf216():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_tf218():
+    pass
+
+
+@pytest.fixture(scope="session")
+def skip_tf219():
     pass
 
 
@@ -1300,6 +1348,23 @@ def version_skip():
     return _version_skip
 
 
+def cuda_version_within_limit(metafunc_obj, image):
+    """
+    Test all pytest fixtures for CUDA version limits, and return True if all requirements are satisfied
+
+    :param metafunc_obj: pytest metafunc object from which fixture names used by test function will be obtained
+    :param image: Image URI for which the validation must be performed
+    :return: True if all validation succeeds, else False
+    """
+    cuda129_requirement_failed = (
+        "below_cuda129_only" in metafunc_obj.fixturenames
+        and not is_below_cuda_version("12.9", image)
+    )
+    if cuda129_requirement_failed:
+        return False
+    return True
+
+
 def framework_version_within_limit(metafunc_obj, image):
     """
     Test all pytest fixtures for TensorFlow version limits, and return True if all requirements are satisfied
@@ -1337,9 +1402,25 @@ def framework_version_within_limit(metafunc_obj, image):
             "below_tf216_only" in metafunc_obj.fixturenames
             and not is_below_framework_version("2.16", image, image_framework_name)
         )
+        tf218_requrement_failed = (
+            "below_tf218_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.18", image, image_framework_name)
+        )
+        tf219_requrement_failed = (
+            "below_tf219_only" in metafunc_obj.fixturenames
+            and not is_below_framework_version("2.19", image, image_framework_name)
+        )
         not_tf216_requirement_failed = (
             "skip_tf216" in metafunc_obj.fixturenames
             and is_equal_to_framework_version("2.16.*", image, image_framework_name)
+        )
+        not_tf218_requirement_failed = (
+            "skip_tf218" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.18.*", image, image_framework_name)
+        )
+        not_tf219_requirement_failed = (
+            "skip_tf219" in metafunc_obj.fixturenames
+            and is_equal_to_framework_version("2.19.*", image, image_framework_name)
         )
         if (
             tf2_requirement_failed
@@ -1349,7 +1430,11 @@ def framework_version_within_limit(metafunc_obj, image):
             or tf23_requirement_failed
             or tf213_requirement_failed
             or tf216_requirement_failed
+            or tf218_requrement_failed
+            or tf219_requrement_failed
             or not_tf216_requirement_failed
+            or not_tf218_requirement_failed
+            or not_tf219_requirement_failed
         ):
             return False
     if image_framework_name == "mxnet":
@@ -1462,12 +1547,6 @@ def pytest_configure(config):
         "markers", "skip_torchdata_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line(
-        "markers", "skip_smdebug_v1_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
-        "markers", "skip_dgl_test(): mark test to skip due to dlc being incompatible"
-    )
-    config.addinivalue_line(
         "markers", "skip_inductor_test(): mark test to skip due to dlc being incompatible"
     )
     config.addinivalue_line("markers", "skip_trcomp_containers(): mark test to skip on trcomp dlcs")
@@ -1574,6 +1653,8 @@ def generate_unique_values_for_fixtures(
                                 instance_type_env = (
                                     f"EC2_{processor.upper()}_GRAVITON_INSTANCE_TYPE"
                                 )
+                            elif "arm64" in image:
+                                instance_type_env = f"EC2_{processor.upper()}_ARM64_INSTANCE_TYPE"
                             else:
                                 instance_type_env = f"EC2_{processor.upper()}_INSTANCE_TYPE"
                             instance_type = os.getenv(instance_type_env)
@@ -1616,7 +1697,7 @@ def lookup_condition(lookup, image):
         "training",
         "inference",
     )
-    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton")
+    device_types = ("cpu", "gpu", "eia", "neuronx", "neuron", "hpu", "graviton", "arm64")
 
     if not repo_name.endswith(lookup):
         if (lookup in job_types or lookup in device_types) and lookup in image:
@@ -1641,6 +1722,13 @@ def lookup_condition(lookup, image):
 
 def pytest_generate_tests(metafunc):
     images = metafunc.config.getoption("--images")
+
+    # Check for public registry canary first
+    if os.getenv("IS_PUBLIC_REGISTRY_CANARY", "false").lower() == "true":
+        # Only handle framework agnostic tests for public registry
+        if "image" in metafunc.fixturenames:
+            metafunc.parametrize("image", images)
+        return
 
     # Parametrize framework specific tests
     for fixture in FRAMEWORK_FIXTURES:
@@ -1683,6 +1771,8 @@ def pytest_generate_tests(metafunc):
                         continue
                     if not framework_version_within_limit(metafunc, image):
                         continue
+                    if not cuda_version_within_limit(metafunc, image):
+                        continue
                     if "non_huggingface_only" in metafunc.fixturenames and "huggingface" in image:
                         continue
                     if (
@@ -1692,7 +1782,9 @@ def pytest_generate_tests(metafunc):
                         continue
                     if "non_autogluon_only" in metafunc.fixturenames and "autogluon" in image:
                         continue
-                    if "x86_compatible_only" in metafunc.fixturenames and "graviton" in image:
+                    if "x86_compatible_only" in metafunc.fixturenames and (
+                        "graviton" in image or "arm64" in image
+                    ):
                         continue
                     if "training_compiler_only" in metafunc.fixturenames and not (
                         "trcomp" in image
@@ -1717,10 +1809,13 @@ def pytest_generate_tests(metafunc):
                             and "graviton" in image
                         ):
                             images_to_parametrize.append(image)
+                        elif "arm64_compatible_only" in metafunc.fixturenames and "arm64" in image:
+                            images_to_parametrize.append(image)
                         elif (
                             "cpu_only" not in metafunc.fixturenames
                             and "gpu_only" not in metafunc.fixturenames
                             and "graviton_compatible_only" not in metafunc.fixturenames
+                            and "arm64_compatible_only" not in metafunc.fixturenames
                         ):
                             images_to_parametrize.append(image)
 

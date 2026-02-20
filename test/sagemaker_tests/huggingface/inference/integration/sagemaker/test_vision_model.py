@@ -58,7 +58,7 @@ def test_vision_model_gpu(framework_version, ecr_image, instance_type, sagemaker
         pytest.skip("Skipping vision tests for PT1.9")
     if "tensorflow" in ecr_image and Version(framework_version) in SpecifierSet("==2.5.*"):
         pytest.skip("Skipping vision tests for TF2.5")
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g5.8xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,

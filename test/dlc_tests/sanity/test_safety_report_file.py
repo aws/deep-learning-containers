@@ -69,6 +69,17 @@ def test_safety_file_exists_and_is_valid(image):
 
     :param image: str, image uri
     """
+    if "base" in image:
+        pytest.skip(
+            "Base images do not require safety file as there isn't much python libs in it. Skipping test."
+        )
+
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require safety file as they are managed by upstream devs. Skipping test."
+        )
+
     repo_name, image_tag = image.split("/")[-1].split(":")
     # Make sure this container name doesn't conflict with the safety check test container name
     container_name = f"{repo_name}-{image_tag}-safety-file"

@@ -8,7 +8,7 @@ from test.test_utils import (
     ECS_AML2_CPU_USWEST2,
     ECS_AML2_GPU_USWEST2,
     ECS_AML2_NEURON_USWEST2,
-    ECS_AML2_GRAVITON_CPU_USWEST2,
+    ECS_AML2_ARM64_CPU_USWEST2,
 )
 
 
@@ -22,7 +22,7 @@ def test_ecs_mxnet_inference_cpu(mxnet_inference, ecs_container_instance, region
 
 @pytest.mark.model("squeezenet")
 @pytest.mark.parametrize("ecs_instance_type", ["c6g.16xlarge"], indirect=True)
-@pytest.mark.parametrize("ecs_ami", [ECS_AML2_GRAVITON_CPU_USWEST2], indirect=True)
+@pytest.mark.parametrize("ecs_ami", [ECS_AML2_ARM64_CPU_USWEST2], indirect=True)
 def test_ecs_mxnet_inference_graviton_cpu(
     mxnet_inference_graviton, ecs_container_instance, region, cpu_only
 ):
@@ -80,7 +80,7 @@ def test_ecs_mxnet_inference_neuron(mxnet_inference_neuron, ecs_container_instan
 
 @pytest.mark.model("squeezenet")
 @pytest.mark.team("frameworks")
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_inference_gpu(mxnet_inference, ecs_container_instance, region, gpu_only):
     worker_instance_id, ecs_cluster_arn = ecs_container_instance

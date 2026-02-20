@@ -32,6 +32,45 @@ from .integration import (
     get_processor_from_image_uri,
 )
 
+NO_P4_REGIONS = [
+    "af-south-1",
+    "ap-east-1",
+    "ap-northeast-3",
+    "ap-southeast-1",
+    "ap-southeast-2",
+    "ap-south-1",
+    "ca-central-1",
+    "eu-central-1",
+    "eu-north-1",
+    "eu-west-2",
+    "eu-west-3",
+    "eu-south-1",
+    "me-south-1",
+    "sa-east-1",
+    "us-west-1",
+    "cn-northwest-1",
+    "il-central-1",
+]
+
+NO_G5_REGIONS = [
+    "us-west-1",
+    "ca-west-1",
+    "mx-cental-1",
+    "af-south-1",
+    "ap-east-1",
+    "ap-south-2",
+    "ap-southeast-1",
+    "ap-southeast-5",
+    "ap-southeast-4",
+    "ap-northeast-3",
+    "ap-southeast-7",
+    "eu-south-1",
+    "eu-south-2",
+    "eu-central-2",
+    "eu-west-3",
+    "me-south-1",
+]
+
 logger = logging.getLogger(__name__)
 logging.getLogger("boto").setLevel(logging.INFO)
 logging.getLogger("boto3").setLevel(logging.INFO)
@@ -43,45 +82,6 @@ logging.getLogger("connectionpool.py").setLevel(logging.INFO)
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 
-NO_P2_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-2",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "us-west-1",
-    "sa-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
 
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
@@ -91,7 +91,7 @@ def pytest_addoption(parser):
     parser.addoption("--docker-base-name", default="autogluon")
     parser.addoption("--region", default="us-west-2")
     parser.addoption("--framework-version", default="")
-    parser.addoption("--py-version", choices=["38", "39", "310", "311"], default="311")
+    parser.addoption("--py-version", choices=["39", "310", "311"], default="311")
     parser.addoption("--processor", choices=["gpu", "cpu"], default="cpu")
 
     # If not specified, will default to {framework-version}-{processor}-py{py-version}
@@ -288,8 +288,8 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (region in NO_P2_REGIONS and instance_type.startswith("ml.p2")) or (
-        region in NO_P3_REGIONS and instance_type.startswith("ml.p3")
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 

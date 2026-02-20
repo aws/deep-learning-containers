@@ -14,6 +14,7 @@ from test.test_utils import (
 )
 from test.test_utils.ec2 import (
     execute_ec2_training_test,
+    execute_ec2_telemetry_test,
     get_ec2_instance_type,
     get_efa_ec2_instance_type,
 )
@@ -29,9 +30,7 @@ PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testT
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
 PT_DGL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "dgl_tests", "testPyTorchDGL")
-PT_TELEMETRY_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
-)
+PT_TELEMETRY_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testTelemetry")
 PT_COMMON_GLOO_MPI_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchGlooMpi")
 PT_COMMON_NCCL_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchNccl")
 PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMP")
@@ -50,13 +49,15 @@ PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor
 
 PT_EC2_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(default="g4dn.12xlarge")
 
-PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
-    default="g4dn.12xlarge", filter_function=ec2_utils.filter_non_g3_instance_type
-)
+PT_EC2_GPU_INDUCTOR_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(default="g4dn.12xlarge")
 
 PT_EC2_HEAVY_GPU_INSTANCE_TYPE_AND_REGION = get_efa_ec2_instance_type(
     default="p4d.24xlarge",
     filter_function=ec2_utils.filter_efa_instance_type,
+)
+
+PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.16xlarge", processor="gpu", arch_type="arm64"
 )
 
 
@@ -147,16 +148,102 @@ def pytorch_training_dgl(pytorch_training, ec2_connection):
     )
 
 
-def pytorch_telemetry_cpu(pytorch_training, ec2_connection):
+def pytorch_telemetry_entrypoint_cpu(pytorch_training, ec2_connection):
     """
     Test Telemetry
     """
-    execute_ec2_training_test(
+    execute_ec2_telemetry_test(
         ec2_connection,
         pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
         PT_TELEMETRY_CMD,
-        timeout=900,
-        container_name="pytorch_telemetry",
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+def pytorch_telemetry_bashrc_cpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+def pytorch_telemetry_framework_cpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "framework",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+    )
+
+
+def pytorch_telemetry_entrypoint_gpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "entrypoint",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+def pytorch_telemetry_bashrc_gpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=True,
+    )
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "bashrc",
+        "pytorch_tr_telemetry",
+        PT_TELEMETRY_CMD,
+        opt_in=False,
+    )
+
+
+def pytorch_telemetry_framework_gpu(pytorch_training, ec2_connection):
+    execute_ec2_telemetry_test(
+        ec2_connection,
+        pytorch_training,
+        "framework",
+        "pytorch_tr_telemetry",
+        test_cmd=PT_TELEMETRY_CMD,
     )
 
 
@@ -273,9 +360,17 @@ def pytorch_cudnn_match_gpu(pytorch_training, ec2_connection, region):
         f"docker run --runtime=nvidia --gpus all --name {container_name} -itd {pytorch_training}",
         hide=True,
     )
-    major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
-    minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
-    patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
+
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_training)
+    # 2.7.1 uses dlc base image as base with cudnn in different location and format
+    if Version(image_framework_version) in SpecifierSet(">=2.7.1"):
+        major_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/local/cuda/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
+    else:
+        major_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MAJOR"'
+        minor_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_MINOR"'
+        patch_cmd = 'cat /usr/include/cudnn_version.h | grep "#define CUDNN_PATCHLEVEL"'
     major = ec2_connection.run(
         f"docker exec --user root {container_name} bash -c '{major_cmd}'", hide=True
     ).stdout.split()[-1]

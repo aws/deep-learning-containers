@@ -102,6 +102,8 @@ RUN apt-get update \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 
+ RUN apt-get update && apt-get install -y cmake
+
 # Install NCCL
 RUN cd /tmp \
  && git clone https://github.com/NVIDIA/nccl.git -b v${NCCL_VERSION}-1 \
@@ -217,13 +219,15 @@ RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.0/
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
+    kenlm==0.1 \
 	transformers[sentencepiece,audio,vision]==${TRANSFORMERS_VERSION} \
     diffusers==${DIFFUSERS_VERSION} \
     peft==${PEFT_VERSION} \
     "accelerate>=0.25.0" \
 	"protobuf>=3.19.5,<=3.20.2" \
 	"numpy>=1.22.2,<1.24" \
-	"sagemaker-huggingface-inference-toolkit==2.3"
+	"sagemaker-huggingface-inference-toolkit==2.3" \
+    "huggingface_hub==0.23.2"
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

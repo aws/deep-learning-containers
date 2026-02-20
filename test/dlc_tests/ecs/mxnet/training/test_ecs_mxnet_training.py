@@ -40,7 +40,7 @@ def test_ecs_mxnet_training_mnist_cpu(
 @pytest.mark.model("mnist")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_MNIST_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_mnist_gpu(
     gpu_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name
@@ -48,7 +48,7 @@ def test_ecs_mxnet_training_mnist_gpu(
     """
     GPU mnist test for MXNet Training
 
-    Instance Type - p3.8xlarge
+    Instance Type - g5.12xlarge
 
     Given above parameters, registers a task with family named after this test, runs the task, and waits for
     the task to be stopped before doing teardown operations of instance and cluster.
@@ -96,7 +96,7 @@ def test_ecs_mxnet_training_dgl_cpu(
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [MX_DGL_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.8xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 @pytest.mark.team("dgl")
 def test_ecs_mxnet_training_dgl_gpu(
@@ -105,7 +105,7 @@ def test_ecs_mxnet_training_dgl_gpu(
     """
     GPU DGL test for MXNet Training
 
-    Instance Type - p3.8xlarge
+    Instance Type - g5.12xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.
@@ -157,7 +157,7 @@ def test_ecs_mxnet_training_gluonnlp_cpu(
 @pytest.mark.model("TextCNN")
 @pytest.mark.team("frameworks")
 @pytest.mark.parametrize("training_script", [MX_GLUON_NLP_TRAINING_SCRIPT], indirect=True)
-@pytest.mark.parametrize("ecs_instance_type", ["p3.16xlarge"], indirect=True)
+@pytest.mark.parametrize("ecs_instance_type", ["g5.12xlarge"], indirect=True)
 @pytest.mark.parametrize("ecs_ami", [ECS_AML2_GPU_USWEST2], indirect=True)
 def test_ecs_mxnet_training_gluonnlp_gpu(
     gpu_only, py3_only, ecs_container_instance, mxnet_training, training_cmd, ecs_cluster_name
@@ -165,7 +165,7 @@ def test_ecs_mxnet_training_gluonnlp_gpu(
     """
     GPU Gluon NLP test for MXNet Training
 
-    Instance Type - p3.16xlarge
+    Instance Type - g5.12xlarge
 
     DGL is only supported in py3, hence we have used the "py3_only" fixture to ensure py2 images don't run
     on this function.

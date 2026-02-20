@@ -147,7 +147,7 @@ def test_ecs_pytorch_training_mnist_gpu(
     )
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)
@@ -179,7 +179,7 @@ def test_ecs_pytorch_training_dgl_cpu(
     )
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.parametrize("training_script", [PT_DGL_TRAINING_SCRIPT], indirect=True)

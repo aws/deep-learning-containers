@@ -12,17 +12,21 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
+import logging
+import os
+import subprocess
 from datetime import datetime
 
-from docker import APIClient
-from docker import DockerClient
+from docker import APIClient, DockerClient
 
 import constants
-import logging
-import json
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
+
+
+build_context = os.getenv("BUILD_CONTEXT")
 
 
 class DockerImage:
@@ -51,7 +55,6 @@ class DockerImage:
         self.build_args = {}
         self.labels = {}
         self.stage = stage
-
         self.dockerfile = dockerfile
         self.context = context
         self.to_push = to_push
@@ -63,7 +66,10 @@ class DockerImage:
         self.ecr_url = f"{self.repository}:{self.tag}"
 
         if not isinstance(to_build, bool):
-            to_build = True if to_build == "true" else False
+            if isinstance(to_build, int):
+                to_build = True if to_build == 1 else False
+            else:
+                to_build = True if to_build.lower() == "true" else False
 
         self.to_build = to_build
         self.build_status = None
@@ -93,6 +99,13 @@ class DockerImage:
         """
         return self._corresponding_common_stage_image
 
+    @property
+    def test_configs(self):
+        """
+        Retrieve the test configurations for a given image.
+        """
+        return self.info.get("test_configs", None)
+
     @corresponding_common_stage_image.setter
     def corresponding_common_stage_image(self, docker_image_object):
         """
@@ -118,7 +131,7 @@ class DockerImage:
         for command in commands:
             command_responses.append(f"\n{command}")
             command_responses.append(
-                bytes.decode(docker_client.containers.run(self.ecr_url, command))
+                bytes.decode(docker_client.containers.run(self.ecr_url, command, entrypoint=""))
             )
         docker_client.containers.prune()
         return command_responses
@@ -163,10 +176,14 @@ class DockerImage:
         # Conduct some preprocessing before building the image
         self.update_pre_build_configuration()
 
-        # Start building the image
-        with open(self.context.context_path, "rb") as context_file:
-            self.docker_build(fileobj=context_file, custom_context=True)
-            self.context.remove()
+        # Start building the image with Buildx
+        build_start_time = datetime.now()
+        self.docker_build(context_path=self.context.context_path, custom_context=True)
+        build_end_time = datetime.now()
+        duration_seconds = (build_end_time - build_start_time).total_seconds()
+        LOGGER.info(f"Build duration: {duration_seconds:.2f} seconds")
+
+        self.context.remove()
 
         if self.build_status != constants.SUCCESS:
             LOGGER.info(f"Exiting with image build status {self.build_status} without image check.")
@@ -183,55 +200,95 @@ class DockerImage:
         # This return is necessary. Otherwise FORMATTER fails while displaying the status.
         return self.build_status
 
-    def docker_build(self, fileobj=None, custom_context=False):
+    def docker_build(self, context_path, custom_context=False):
         """
-        Uses low level Docker API Client to actually start the process of building the image.
+        Uses Docker Buildx CLI for building with real-time streaming and advanced caching.
 
-        :param fileobj: FileObject, a readable file-like object pointing to the context tarfile.
-        :param custom_context: bool
-        :return: int, Build Status
+
+        Automatically finds and uses the latest available image as a cache source from ECR
+        to speed up builds through layer reuse.
+
+        :param context_path: str, Path to build context
+        :param custom_context: bool, Whether to use custom context from stdin (default: False)
+        :return: int, Build status
         """
-        response = [f"Starting the Build Process for {self.repository}:{self.tag}"]
 
-        for line in self.client.build(
-            fileobj=fileobj,
-            path=self.dockerfile,
-            custom_context=custom_context,
-            rm=True,
-            decode=True,
-            tag=self.ecr_url,
-            buildargs=self.build_args,
-            labels=self.labels,
-            target=self.target,
-        ):
-            if line.get("error") is not None:
-                response.append(line["error"])
-                self.log.append(response)
-                self.build_status = constants.FAIL
-                self.summary["status"] = constants.STATUS_MESSAGE[self.build_status]
-                self.summary["end_time"] = datetime.now()
+        response = [f"Starting Buildx Process for {self.repository}:{self.tag}"]
+        LOGGER.info(f"Starting Buildx Process for {self.repository}:{self.tag}")
 
-                LOGGER.info(f"Docker Build Logs: \n {self.get_tail_logs_in_pretty_format(100)}")
-                LOGGER.error("ERROR during Docker BUILD")
-                LOGGER.error(
-                    f"Error message received for {self.dockerfile} while docker build: {line}"
-                )
+        cmd = [
+            "docker",
+            "buildx",
+            "build",
+            "-t",
+            self.ecr_url,
+            "--progress=plain",  # Real-time log streaming
+        ]
 
-                return self.build_status
+        for k, v in self.build_args.items():
+            cmd.extend(["--build-arg", f"{k}={v}"])
 
-            if line.get("stream") is not None:
-                response.append(line["stream"])
-            elif line.get("status") is not None:
-                response.append(line["status"])
+        for k, v in self.labels.items():
+            cmd.extend(["--label", f"{k}={v}"])
+
+        if self.target:
+            cmd.extend(["--target", self.target])
+
+        # Always use inline cache-to for maximum caching
+        cmd.extend(["--cache-to", "type=inline"])
+
+        # Use shortest tag from additional_tags as a suitable cache source
+        latest_tag = min(self.additional_tags, key=len)
+
+        if latest_tag and build_context == "PR":
+            latest_image_uri = f"{self.repository}:{latest_tag}"
+            LOGGER.info(f"Using cache from registry: {latest_image_uri}")
+            cmd.extend(["--cache-from", f"type=registry,ref={latest_image_uri}"])
+        else:
+            LOGGER.info("No suitable cache source found. Proceeding without registry cache")
+
+        if custom_context:
+            cmd.append("-")
+        else:
+            cmd.append(context_path)
+
+        context_tarball = open(context_path, "rb") if custom_context else None
+
+        try:
+            process = subprocess.Popen(
+                cmd,
+                stdin=context_tarball,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1,
+            )
+
+            # Stream output in real-time
+            for line in iter(process.stdout.readline, ""):
+                line = line.rstrip()
+                if line:
+                    response.append(line)
+                    LOGGER.info(line)
+
+            process.wait()
+
+            if process.returncode == 0:
+                self.build_status = constants.SUCCESS
+                LOGGER.info(f"Completed Buildx for {self.repository}:{self.tag}")
             else:
-                response.append(str(line))
+                self.build_status = constants.FAIL
+                LOGGER.error(f"Buildx failed for {self.repository}:{self.tag}")
+
+        except Exception as e:
+            response.append(f"Buildx error: {str(e)}")
+            self.build_status = constants.FAIL
+            LOGGER.error(f"Buildx exception: {str(e)}")
+        finally:
+            if context_tarball:
+                context_tarball.close()
 
         self.log.append(response)
-
-        LOGGER.info(f"DOCKER BUILD LOGS: \n{self.get_tail_logs_in_pretty_format()}")
-        LOGGER.info(f"Completed Build for {self.repository}:{self.tag}")
-
-        self.build_status = constants.SUCCESS
         return self.build_status
 
     def image_size_check(self):

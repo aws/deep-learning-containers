@@ -19,7 +19,7 @@ import pytest
 from packaging.specifiers import SpecifierSet
 from sagemaker.tensorflow import TensorFlow
 from sagemaker.tuner import HyperparameterTuner, IntegerParameter
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from packaging.version import Version
 
 from ..... import invoke_sm_helper_function
@@ -194,7 +194,7 @@ def test_hc_distributed_mnist_ps(ecr_image, sagemaker_regions, instance_type, fr
 
     validate_or_skip_test(ecr_image=ecr_image)
     print("ecr image used for training", ecr_image)
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     training_group = InstanceGroup("train_group", instance_type, 2)
     invoke_sm_helper_function(
         ecr_image,
@@ -233,7 +233,13 @@ def _test_hc_distributed_mnist_ps_function(
 @pytest.mark.integration("parameter server")
 @pytest.mark.team("frameworks")
 def test_distributed_mnist_custom_ps(
-    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    skip_tf216_only,
+    skip_tf218_only,
+    skip_tf219_only,
 ):
     print("ecr image used for training", ecr_image)
     invoke_sm_helper_function(
@@ -271,7 +277,15 @@ def _test_distributed_mnist_custom_ps(
 @pytest.mark.model("mnist")
 @pytest.mark.integration("s3 plugin")
 @pytest.mark.team("frameworks")
-def test_s3_plugin(ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only):
+def test_s3_plugin(
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    skip_tf216_only,
+    skip_tf218_only,
+    skip_tf219_only,
+):
     invoke_sm_helper_function(
         ecr_image, sagemaker_regions, _test_s3_plugin_function, instance_type, framework_version
     )
@@ -322,7 +336,13 @@ def _test_s3_plugin_function(ecr_image, sagemaker_session, instance_type, framew
 @pytest.mark.team("frameworks")
 @pytest.mark.skip_gpu
 def test_hc_s3_plugin(
-    ecr_image, sagemaker_regions, instance_type, framework_version, skip_tf216_only
+    ecr_image,
+    sagemaker_regions,
+    instance_type,
+    framework_version,
+    skip_tf216_only,
+    skip_tf218_only,
+    skip_tf219_only,
 ):
     from sagemaker.instance_group import InstanceGroup
 
@@ -485,7 +505,7 @@ def test_smdataparallel_smmodelparallel_mnist(
 def _test_smdataparallel_smmodelparallel_mnist_function(
     ecr_image, sagemaker_session, instance_type, tmpdir, framework_version
 ):
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.p4d.24xlarge"
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
     image_cuda_version = get_cuda_version_from_tag(ecr_image)
     if Version(image_framework_version) < Version("2.3.1") or image_cuda_version != "cu110":

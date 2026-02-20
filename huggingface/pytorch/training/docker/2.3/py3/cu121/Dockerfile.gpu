@@ -5,7 +5,7 @@
 FROM 763104351884.dkr.ecr.us-west-2.amazonaws.com/pytorch-training:2.3.0-gpu-py311-cu121-ubuntu20.04-sagemaker
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="2"
 
 # version args
 ARG TRANSFORMERS_VERSION
@@ -17,14 +17,16 @@ ARG ACCELERATE_VERSION=1.1.0
 ARG TRL_VERSION=0.11.4
 ARG PEFT_VERSION=0.13.2
 ARG FLASH_ATTN_VERSION=2.6.3
+ARG NINJA_VERSION=1.11.1
 ARG PYTHON=python3
 
 # TODO: Remove when the base image is updated
-RUN pip install --upgrade "pip==24.1.2" \
+RUN pip install --upgrade pip \
  && pip uninstall -y transformer-engine flash-attn pyarrow cryptography \
  && pip install --no-cache-dir -U pyarrow cryptography pyopenssl Pillow \
  && pip --no-cache-dir install --upgrade wheel setuptools \
- && pip install --no-cache-dir -U "werkzeug==3.0.6" 
+ && pip install --no-cache-dir --upgrade werkzeug==3.0.6 \
+ && pip install cmake">=3.24.3,<3.25"
 
 # install Hugging Face libraries and its dependencies
 RUN pip install --no-cache-dir \
@@ -36,8 +38,9 @@ RUN pip install --no-cache-dir \
 	Jinja2 \
 	tensorboard \
 	bitsandbytes \
-	evaluate==${EVALUATE_VERSION} \
+	evaluate==${EVALUATE_VERSION} --no-deps \
 	accelerate==${ACCELERATE_VERSION} \
+	ninja==${NINJA_VERSION} \
 	trl==${TRL_VERSION} \
 	peft==${PEFT_VERSION} \
 	flash-attn==${FLASH_ATTN_VERSION}
@@ -47,10 +50,14 @@ ENV HF_HUB_ENABLE_HF_TRANSFER="1"
 
 RUN apt-get update \
  # TODO: Remove upgrade statements once packages are updated in base image
- && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 \
- && apt install -y git git-lfs \
+ && apt-get -y upgrade --only-upgrade systemd openssl cryptsetup libkrb5-3 linux-libc-dev git-lfs \
+ && apt install -y git \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+
+RUN apt-get remove -y --purge emacs emacs-common && \
+apt-get autoremove -y
 
 RUN HOME_DIR=/root \
  && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \

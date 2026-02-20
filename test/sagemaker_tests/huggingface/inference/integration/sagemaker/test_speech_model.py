@@ -65,7 +65,7 @@ def test_speech_model_gpu(framework_version, ecr_image, instance_type, sagemaker
         pytest.skip(
             f"Zero-code deployments are currently not supported for TensorFlow Images - {ecr_image}"
         )
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g5.8xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,

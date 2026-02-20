@@ -38,7 +38,7 @@ from ..... import invoke_sm_endpoint_helper_function
 # instances in the regions corresponding to their availability.
 # In future, we would like to configure the logic to run multiple `pytest` commands that can allow
 # us to test multiple instances in multiple regions for each image.
-@pytest.mark.model("tiny-gpt2")
+@pytest.mark.model("tiny-llama3")
 @pytest.mark.processor("neuronx")
 @pytest.mark.parametrize(
     "test_region,test_instance_type",
@@ -145,6 +145,7 @@ def _test_pt_neuronx(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
+            inference_ami_version="al2-ami-sagemaker-inference-neuron-2",
         )
 
         data = {"inputs": "I really wish "}

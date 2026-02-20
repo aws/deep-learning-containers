@@ -67,7 +67,7 @@ def test_torch_compile_gpu_hosting(
         pytest.skip(f"Skipping test for non-pytorch image - {ecr_image}")
     if Version(framework_version) < Version("2.0"):
         pytest.skip("Skipping torch compile tests for PT 1.X")
-    instance_type = instance_type or "ml.p3.2xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     invoke_sm_endpoint_helper_function(
         ecr_image=ecr_image,
         sagemaker_regions=sagemaker_regions,

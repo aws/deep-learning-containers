@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 yes | pip3 install pytest --user || exit 1
 python3 -c "import pytest; pytest.__version__" || exit 1
 yes | pip3 uninstall pytest || exit 1

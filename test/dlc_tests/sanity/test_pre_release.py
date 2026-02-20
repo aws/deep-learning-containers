@@ -1,61 +1,72 @@
+import filecmp
+import json
 import os
 import re
 import subprocess
-import botocore
-import boto3
-import json
 import time
-
-from packaging.version import Version
-from packaging.specifiers import SpecifierSet
-
-import pytest
-import requests
-
-from urllib3.util.retry import Retry
-from invoke.context import Context
-from botocore.exceptions import ClientError
-
-from src.buildspec import Buildspec
-import src.utils as src_utils
 from test.test_utils import (
-    LOGGER,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     CONTAINER_TESTS_PREFIX,
+    LOGGER,
+    DockerImagePullException,
     ec2,
+    execute_env_variables_test,
+    get_account_id_from_image_uri,
+    get_all_the_tags_of_an_image_from_ecr,
+    get_buildspec_path,
     get_container_name,
+    get_cuda_version_from_tag,
     get_framework_and_version_from_tag,
-    get_neuron_sdk_version_from_tag,
+    get_image_spec_from_buildspec,
+    get_installed_python_packages_using_image_uri,
+    get_installed_python_packages_with_version,
+    get_labels_from_ecr_image,
     get_neuron_release_manifest,
+    get_neuron_sdk_version_from_tag,
+    get_python_version_from_image_uri,
+    get_pytorch_version_from_autogluon_image,
+    get_region_from_image_uri,
+    get_repository_and_tag_from_image_uri,
+    get_repository_local_path,
     is_canary_context,
     is_dlc_cicd_context,
+    is_nightly_context,
+    login_to_ecr_registry,
     run_cmd_on_container,
     start_container,
     stop_and_remove_container,
-    get_repository_local_path,
-    get_repository_and_tag_from_image_uri,
-    get_python_version_from_image_uri,
-    get_cuda_version_from_tag,
-    get_labels_from_ecr_image,
-    get_buildspec_path,
-    get_all_the_tags_of_an_image_from_ecr,
-    is_nightly_context,
-    execute_env_variables_test,
-    UL20_CPU_ARM64_US_WEST_2,
-    UBUNTU_18_HPU_DLAMI_US_WEST_2,
-    NEURON_UBUNTU_18_BASE_DLAMI_US_WEST_2,
-    get_installed_python_packages_with_version,
-    login_to_ecr_registry,
-    get_account_id_from_image_uri,
-    get_region_from_image_uri,
-    DockerImagePullException,
-    get_installed_python_packages_with_version,
-    get_installed_python_packages_using_image_uri,
-    get_image_spec_from_buildspec,
 )
+
+import boto3
+import botocore
+import pytest
+import requests
+from botocore.exceptions import ClientError
+from invoke.context import Context
+from packaging.specifiers import SpecifierSet
+from packaging.version import Version
+from urllib3.util.retry import Retry
+
+import src.utils as src_utils
+from src.buildspec import Buildspec
+
+
+def tail_n_lines(fname, n):
+    try:
+        # Use tail command to get last n lines
+        result = subprocess.run(["tail", f"-n{n}", fname], capture_output=True, text=True)
+        if result.returncode == 0:
+            return result.stdout
+        else:
+            LOGGER.error(f"Error reading file: {result.stderr}")
+            return
+    except FileNotFoundError:
+        LOGGER.error(f"Error: File '{fname}' not found.")
+        return
 
 
 def derive_regex_for_skipping_tensorflow_inference_tests(
-    is_eia_enabled=False, is_graviton_enabled=False
+    is_eia_enabled=False, is_arm64_enabled=False
 ):
     """
     Creates a regex pattern that would be used by the tests to check if the repo names match the pattern or not and thereafter skip the
@@ -63,7 +74,7 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
     to derive additional pattern that needs to be appended to base regex.
 
     :param is_eia_enabled: boolean, appends `-eia` to the base regex if set to True
-    :param is_graviton_enabled: boolean, appends `-graviton` to the base regex if set to True
+    :param is_arm64_enabled: boolean, appends `-graviton|-arm64` to the base regex if set to True
     :return: str, derived regex
     """
     base_regex_string = "(pr-|beta-|autopatch-|nightly-)?tensorflow-inference"
@@ -75,11 +86,11 @@ def derive_regex_for_skipping_tensorflow_inference_tests(
             if regex_prefix_string_derived_via_method_arguments
             else "-eia"
         )
-    if is_graviton_enabled:
+    if is_arm64_enabled:
         regex_prefix_string_derived_via_method_arguments = (
-            f"{regex_prefix_string_derived_via_method_arguments}|-graviton"
+            f"{regex_prefix_string_derived_via_method_arguments}|-graviton|-arm64"
             if regex_prefix_string_derived_via_method_arguments
-            else "-graviton"
+            else "-graviton|-arm64"
         )
 
     if regex_prefix_string_derived_via_method_arguments:
@@ -98,6 +109,12 @@ def test_stray_files(image):
 
     :param image: ECR image URI
     """
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
+        )
+
     ctx = Context()
     container_name = get_container_name("test_tmp_dirs", image)
     start_container(container_name, image, ctx)
@@ -146,18 +163,20 @@ def test_python_version(image):
     :param image: ECR image URI
     """
     ctx = Context()
-
+    command = ""
     py_version = ""
     for tag_split in image.split("-"):
         if tag_split.startswith("py"):
             if len(tag_split) > 3:
                 py_version = f"Python {tag_split[2]}.{tag_split[3]}"
+                command = f"python3 --version"
             else:
                 py_version = f"Python {tag_split[2]}"
+                command = f"python --version"
 
     container_name = get_container_name("py-version", image)
     start_container(container_name, image, ctx)
-    output = run_cmd_on_container(container_name, ctx, "python --version")
+    output = run_cmd_on_container(container_name, ctx, command)
 
     # Due to py2 deprecation, Python2 version gets streamed to stderr. Python installed via Conda also appears to
     # stream to stderr (in some cases).
@@ -306,6 +325,12 @@ def test_sm_toolkit_and_ts_version_pytorch_graviton(pytorch_inference_graviton, 
 
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
+def test_sm_toolkit_and_ts_version_pytorch_arm64(pytorch_inference_arm64, region):
+    _test_sm_toolkit_and_ts_version(pytorch_inference_arm64, region)
+
+
+@pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
+@pytest.mark.model("N/A")
 def test_sm_toolkit_and_ts_version_pytorch_neuron(pytorch_inference_neuron, region):
     _test_sm_toolkit_and_ts_version(pytorch_inference_neuron, region)
 
@@ -318,8 +343,10 @@ def test_framework_version_cpu(image):
     Check that the framework version in the image tag is the same as the one on a running container.
     This function tests CPU, EIA images.
 
-    :param image: ECR image URI
+    :param image: ECR image URI e.g "669063966089.dkr.ecr.us-west-2.amazonaws.com/pr-base:cu128-py312-ubuntu24.04-x86_64-pr-4822"
     """
+    if "base" in image:
+        pytest.skip("Base images do not contain a framework version in the tag. Skipping test.")
     if "gpu" in image:
         pytest.skip(
             "GPU images will have their framework version tested in test_framework_and_cuda_version_gpu"
@@ -331,7 +358,7 @@ def test_framework_version_cpu(image):
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
     if re.fullmatch(
         derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
+            is_eia_enabled=True, is_arm64_enabled=True
         ),
         image_repo_name,
     ):
@@ -367,6 +394,10 @@ def test_framework_version_cpu(image):
                 # '0.3.2': '0.3.1',
             }
             version_to_check = versions_map.get(tag_framework_version, tag_framework_version)
+            # Exception for AutoGluon v1.2 as __version__ is displayed as 1.2 instead of 1.2.0
+            # will be removed once we remove support for v1.2
+            if output == "1.2":
+                output = "1.2.0"
             assert output.startswith(version_to_check)
         # Habana v1.2 binary does not follow the X.Y.Z+cpu naming convention
         elif "habana" not in image_repo_name:
@@ -449,8 +480,6 @@ def test_framework_and_neuron_sdk_version(neuron):
         if "training" in image or "neuronx" in image:
             package_names = {"torch-neuronx": "torch_neuronx"}
             # transformers is only available for the inference image
-            if "training" not in image:
-                package_names["transformers-neuronx"] = "transformers_neuronx"
         else:
             package_names = {"torch-neuron": "torch_neuron"}
     elif tested_framework == "tensorflow":
@@ -481,17 +510,8 @@ def test_framework_and_neuron_sdk_version(neuron):
             executable="python",
         )
 
-        installed_framework_version = output.stdout.strip()
+        installed_framework_version = output.stdout.strip().split("+")[0]
         version_list = release_manifest[package_name]
-        # temporary hack because transformers_neuronx reports its version as 0.6.x
-        if package_name == "transformers-neuronx":
-            if installed_framework_version == "0.12.x":
-                # skip the check due to transformers_neuronx version bug
-                # eg. transformers_neuronx.__version__=='0.10.x' for v0.11.351...
-                continue
-            version_list = [
-                ".".join(entry.split(".")[:2]) + ".x" for entry in release_manifest[package_name]
-            ]
         assert installed_framework_version in version_list, (
             f"framework {framework} version {installed_framework_version} "
             f"not found in released versions for that package: {version_list}"
@@ -502,7 +522,7 @@ def test_framework_and_neuron_sdk_version(neuron):
 
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
@@ -510,8 +530,16 @@ def test_framework_and_cuda_version_gpu(gpu, ec2_connection, x86_compatible_only
 @pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_compatible_only):
+    _test_framework_and_cuda_version(gpu, ec2_connection)
+
+
+@pytest.mark.usefixtures("sagemaker", "huggingface", "functionality_sanity")
+@pytest.mark.model("N/A")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
+def test_framework_and_cuda_version_arm64_gpu(gpu, ec2_connection, arm64_compatible_only):
     _test_framework_and_cuda_version(gpu, ec2_connection)
 
 
@@ -520,7 +548,7 @@ def test_framework_and_cuda_version_graviton_gpu(gpu, ec2_connection, graviton_c
 def test_dataclasses_check(image):
     """
     Ensure there is no dataclasses pip package is installed for python 3.7 and above version.
-    Python version retrieved from the ecr image uri is expected in the format `py<major_verion><minor_version>`
+    Python version retrieved from the ecr image uri is expected in the format `py<major_version><minor_version>`
     :param image: ECR image URI
     """
     ctx = Context()
@@ -555,6 +583,11 @@ def test_pip_check(image):
 
     :param image: ECR image URI
     """
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require pip check as they are managed by upstream devs. Skipping test."
+        )
 
     allowed_exceptions = []
 
@@ -616,13 +649,25 @@ def test_pip_check(image):
             "2.13.0",
             "2.14.2",
             "2.16.0",
+            "2.18.0",
+            "2.19.1",
         ]:
             exception_strings += [f"tf-models-official {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.9.0", "2.10.0", "2.11.0", "2.12.0", "2.13.0", "2.14.0", "2.16.1"]:
+        for ex_ver in [
+            "2.9.0",
+            "2.10.0",
+            "2.11.0",
+            "2.12.0",
+            "2.13.0",
+            "2.14.0",
+            "2.16.1",
+            "2.18.1",
+            "2.19.0",
+        ]:
             exception_strings += [f"tensorflow-text {ex_ver}".replace(".", r"\.")]
 
-        for ex_ver in ["2.16.0"]:
+        for ex_ver in ["2.16.0", "2.18.0", "2.19.0"]:
             exception_strings += [f"tf-keras {ex_ver}".replace(".", r"\.")]
 
         allowed_exceptions.append(
@@ -687,6 +732,11 @@ def test_cuda_paths(gpu):
     :param gpu: gpu image uris
     """
     image = gpu
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(
+            f"{', '.join(general_types)} DLC doesn't have the same directory structure and buildspec as other images"
+        )
     if "example" in image:
         pytest.skip("Skipping Example Dockerfiles which are not explicitly tied to a cuda version")
 
@@ -743,7 +793,7 @@ def test_cuda_paths(gpu):
         assert image_tag_in_buildspec, f"Image tag {image_tag} not found in {buildspec_path}"
     except AssertionError as e:
         if not is_dlc_cicd_context():
-            LOGGER.warn(
+            LOGGER.warning(
                 f"{e} - not failing, as this is a(n) {os.getenv('BUILD_CONTEXT', 'empty')} build context."
             )
         else:
@@ -814,7 +864,7 @@ def _test_sm_toolkit_and_ts_version(image, region):
     has_expected_label = image_labels.get(expected_label)
     assert (
         has_expected_label
-    ), f"The label {expected_label} which enforces compatability between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
+    ), f"The label {expected_label} which enforces compatibility between sagemaker inference toolkit and torchserve seems to be invalid/missing for the image {image}"
 
 
 def _test_framework_and_cuda_version(gpu, ec2_connection):
@@ -825,6 +875,11 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     :param ec2_connection: fixture to establish connection with an ec2 instance
     """
     image = gpu
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(
+            f"{', '.join(general_types)} images do not follow the assumptions made by inference/training. Skipping test."
+        )
     tested_framework, tag_framework_version = get_framework_and_version_from_tag(image)
 
     image_repo_name, _ = get_repository_and_tag_from_image_uri(image)
@@ -840,7 +895,7 @@ def _test_framework_and_cuda_version(gpu, ec2_connection):
     # For tf inference containers, check TF model server version
     if re.fullmatch(
         derive_regex_for_skipping_tensorflow_inference_tests(
-            is_eia_enabled=True, is_graviton_enabled=True
+            is_eia_enabled=True, is_arm64_enabled=True
         ),
         image_repo_name,
     ):
@@ -1006,6 +1061,71 @@ def test_oss_compliance(image):
                     raise
 
 
+@pytest.mark.usefixtures("sagemaker", "security_sanity")
+@pytest.mark.integration("license")
+@pytest.mark.model("N/A")
+@pytest.mark.skipif(
+    not is_dlc_cicd_context(), reason="We need to test license file only on PRs and pipelines"
+)
+def test_license_file(image):
+    """
+    Check that license file within the container is readable and valid
+    """
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(f"{', '.join(general_types)} DLC doesn't embed license.txt. Skipping test.")
+
+    framework, version = get_framework_and_version_from_tag(image)
+
+    if framework == "autogluon":
+        short_version = get_pytorch_version_from_autogluon_image(image)
+        # Default to pytorch framework for autogluon since autogluon is built on top of pytorch
+        # and uses the same license file structure in S3
+        framework = "pytorch"
+    else:
+        short_version = re.search(r"(\d+\.\d+)", version).group(0)
+
+    # Huggingface is built on top of DLCs, pointing framework license path to DLC license path
+    if "huggingface" in framework:
+        if "pytorch" in framework:
+            framework = "pytorch"
+        elif "tensorflow" in framework:
+            framework = "tensorflow"
+        else:
+            raise Exception(f"Invalid huggingface framework detected: {framework}")
+
+    LICENSE_FILE_BUCKET = "aws-dlc-licenses"
+    local_repo_path = get_repository_local_path()
+    container_filename = "CONTAINER_LICENSE_FILE"
+    s3_filename = "S3_LICENSE_FILE"
+    container_file_local_path = os.path.join(local_repo_path, container_filename)
+    s3_file_local_path = os.path.join(local_repo_path, s3_filename)
+
+    # get license file in container
+    container_name = get_container_name("license_readable", image)
+    context = Context()
+    start_container(container_name, image, context)
+    try:
+        context.run(f"docker cp {container_name}:/license.txt {container_file_local_path}")
+    finally:
+        context.run(f"docker rm -f {container_name}", hide=True)
+
+    # get license file in s3
+    s3_client = boto3.client("s3")
+    s3_object_key = f"{framework}-{short_version}/license.txt"
+    s3_client.download_file(LICENSE_FILE_BUCKET, s3_object_key, s3_file_local_path)
+
+    tail_line_num = 5
+    tail_container_file = tail_n_lines(container_file_local_path, tail_line_num)
+    tail_s3_file = tail_n_lines(s3_file_local_path, tail_line_num)
+
+    assert filecmp.cmp(container_file_local_path, s3_file_local_path, shallow=False), (
+        f"{container_filename} content is different from {s3_filename}.\n\n"
+        f"{container_filename} tail -n {tail_line_num} content: {tail_container_file}\n\n"
+        f"{s3_filename} tail -n {tail_line_num} content: {tail_s3_file}"
+    )
+
+
 @pytest.mark.usefixtures("sagemaker_only", "functionality_sanity")
 @pytest.mark.model("N/A")
 def test_pytorch_training_sm_env_variables(pytorch_training):
@@ -1076,6 +1196,10 @@ def test_core_package_version(image):
     In this test, we ensure that if a core_packages.json file exists for an image, the packages installed in the image
     satisfy the version constraints specified in the core_packages.json file.
     """
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(f"{', '.join(general_types)} images do not have core packages. Skipping test.")
+
     core_packages_path = src_utils.get_core_packages_path(image)
     if not os.path.exists(core_packages_path):
         pytest.skip(f"Core packages file {core_packages_path} does not exist for {image}")
@@ -1096,9 +1220,9 @@ def test_core_package_version(image):
         package_name = package_name.lower()
         installed_version = None
         if package_name not in installed_package_version_dict:
-            violation_data[
-                package_name
-            ] = f"Package: {package_name} not installed in {installed_package_version_dict}"
+            violation_data[package_name] = (
+                f"Package: {package_name} not installed in {installed_package_version_dict}"
+            )
         else:
             installed_version = Version(installed_package_version_dict[package_name])
         if installed_version and installed_version not in SpecifierSet(
@@ -1124,6 +1248,12 @@ def test_package_version_regression_in_image(image):
     keys in the buildspec - as these keys are used to extract the released image uri. Additionally, if the image is not already
     released, this test would be skipped.
     """
+    general_types = ["base", "vllm", "sglang"]
+    if any(t in image for t in general_types):
+        pytest.skip(
+            f"{', '.join(general_types)} images don't have python packages that needs to be checked. Skipping test."
+        )
+
     dlc_path = os.getcwd().split("/test/")[0]
     corresponding_image_spec = get_image_spec_from_buildspec(
         image_uri=image, dlc_folder_path=dlc_path
@@ -1167,15 +1297,15 @@ def test_package_version_regression_in_image(image):
     violating_packages = {}
     for package_name, version_in_released_image in released_image_package_version_dict.items():
         if package_name not in current_image_package_version_dict:
-            violating_packages[
-                package_name
-            ] = "Not present in the image that is being currently built."
+            violating_packages[package_name] = (
+                "Not present in the image that is being currently built."
+            )
             continue
         version_in_current_image = current_image_package_version_dict[package_name]
         if Version(version_in_released_image) > Version(version_in_current_image):
-            violating_packages[
-                package_name
-            ] = f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            violating_packages[package_name] = (
+                f"Version in already released image: {version_in_released_image} is greater that version in current image: {version_in_current_image}"
+            )
 
     assert (
         not violating_packages

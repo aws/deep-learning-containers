@@ -1,0 +1,3 @@
+{
+  "78828": "Affected versions of the PyTorch package are vulnerable to Denial of Service (DoS) due to improper handling in the MKLDNN pooling implementation. The torch.mkldnn_max_pool2d function fails to properly validate input parameters, allowing crafted inputs to trigger resource exhaustion or crashes in the underlying MKLDNN library. An attacker with local access can exploit this vulnerability by passing specially crafted tensor dimensions or parameters to the max pooling function, causing the application to become unresponsive or crash."
+}

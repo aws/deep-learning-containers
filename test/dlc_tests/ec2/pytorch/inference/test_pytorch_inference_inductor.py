@@ -8,7 +8,7 @@ from test import test_utils
 from test.test_utils import (
     get_framework_and_version_from_tag,
     get_inference_server_type,
-    UL20_CPU_ARM64_US_WEST_2,
+    AL2023_BASE_DLAMI_ARM64_US_WEST_2,
     login_to_ecr_registry,
     get_account_id_from_image_uri,
 )
@@ -21,8 +21,12 @@ PT_EC2_CPU_GRAVITON_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
 PT_EC2_GPU_GRAVITON_INSTANCE_TYPE = get_ec2_instance_type(
     default="g5g.4xlarge", processor="gpu", arch_type="graviton"
 )
+PT_EC2_CPU_ARM64_INSTANCE_TYPES = ["c6g.4xlarge", "c7g.4xlarge"]
+PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.4xlarge", processor="gpu", arch_type="arm64"
+)
 
-PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["p3.2xlarge", "g4dn.4xlarge", "g5.4xlarge"]
+PT_EC2_SINGLE_GPU_INSTANCE_TYPES = ["g4dn.4xlarge", "g5.4xlarge"]
 
 
 @pytest.mark.model("densenet")
@@ -57,7 +61,7 @@ def test_ec2_pytorch_inference_cpu_compilation(pytorch_inference, ec2_connection
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_GRAVITON_INSTANCE_TYPES, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.team("training-compiler")
 @pytest.mark.skipif(
     is_mainline_context() and os.getenv("EC2_CPU_GRAVITON_INSTANCE_TYPE") != "c6g.4xlarge",
@@ -71,12 +75,31 @@ def test_ec2_pytorch_inference_graviton_compilation_cpu(
         pytest.skip("skip the test as torch.compile only supported after 2.0")
     if "graviton" not in pytorch_inference_graviton:
         pytest.skip("skip EC2 tests for inductor")
-    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference_graviton, "cpu", ec2_connection, region)
+
+
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_ARM64_INSTANCE_TYPES, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.team("training-compiler")
+@pytest.mark.skipif(
+    is_mainline_context() and os.getenv("EC2_CPU_ARM64_INSTANCE_TYPE") != "c6g.4xlarge",
+    reason="Enforce test deduplication by running only alongside c6g.4xlarge tests.",
+)
+def test_ec2_pytorch_inference_arm64_compilation_cpu(
+    pytorch_inference_arm64, ec2_connection, region, cpu_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    if "arm64" not in pytorch_inference_arm64:
+        pytest.skip("skip EC2 tests for inductor")
+    ec2_pytorch_inference(pytorch_inference_arm64, "cpu", ec2_connection, region)
 
 
 @pytest.mark.model("densenet")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_GRAVITON_INSTANCE_TYPE, indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
 @pytest.mark.team("training-compiler")
 def test_ec2_pytorch_inference_graviton_compilation_gpu(
     pytorch_inference_graviton, ec2_connection, region, gpu_only
@@ -84,7 +107,20 @@ def test_ec2_pytorch_inference_graviton_compilation_gpu(
     _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_graviton)
     if Version(image_framework_version) in SpecifierSet("<2.0"):
         pytest.skip("skip the test as torch.compile only supported after 2.0")
-    ec2_pytorch_inference(pytorch_inference_graviton, "graviton", ec2_connection, region)
+    ec2_pytorch_inference(pytorch_inference_graviton, "gpu", ec2_connection, region)
+
+
+@pytest.mark.model("densenet")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.team("training-compiler")
+def test_ec2_pytorch_inference_arm64_compilation_gpu(
+    pytorch_inference_arm64, ec2_connection, region, gpu_only
+):
+    _, image_framework_version = get_framework_and_version_from_tag(pytorch_inference_arm64)
+    if Version(image_framework_version) in SpecifierSet("<2.0"):
+        pytest.skip("skip the test as torch.compile only supported after 2.0")
+    ec2_pytorch_inference(pytorch_inference_arm64, "gpu", ec2_connection, region)
 
 
 def ec2_pytorch_inference(image_uri, processor, ec2_connection, region):

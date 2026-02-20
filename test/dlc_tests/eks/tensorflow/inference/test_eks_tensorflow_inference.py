@@ -135,6 +135,11 @@ def test_eks_tensorflow_half_plus_two_inference_graviton(tensorflow_inference_gr
     __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference_graviton)
 
 
+@pytest.mark.model("half_plus_two")
+def test_eks_tensorflow_half_plus_two_inference_arm64(tensorflow_inference_arm64):
+    __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference_arm64)
+
+
 def __test_eks_tensorflow_half_plus_two_inference(tensorflow_inference):
     num_replicas = "1"
 
@@ -197,6 +202,11 @@ def test_eks_tensorflow_albert(tensorflow_inference):
 @pytest.mark.model("albert")
 def test_eks_tensorflow_albert_graviton(tensorflow_inference_graviton):
     __test_eks_tensorflow_albert(tensorflow_inference_graviton)
+
+
+@pytest.mark.model("albert")
+def test_eks_tensorflow_albert_arm64(tensorflow_inference_arm64):
+    __test_eks_tensorflow_albert(tensorflow_inference_arm64)
 
 
 def __test_eks_tensorflow_albert(tensorflow_inference):

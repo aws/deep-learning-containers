@@ -1,4 +1,33 @@
 {
+    "torch": [{
+        "description": "A deserialization vulnerability exists in the Pytorch RPC framework (torch.distributed.rpc) in pytorch/pytorch versions <=2.3.1. The vulnerability arises from the lack of security verification during the deserialization process of PythonUDF objects in pytorch/torch/distributed/rpc/internal.py. This flaw allows an attacker to execute arbitrary code remotely by sending a malicious serialized PythonUDF object, leading to remote code execution (RCE) on the master node.",
+        "vulnerability_id": "CVE-2024-7804",
+        "name": "CVE-2024-7804",
+        "package_name": "torch",
+        "package_details": {
+            "file_path": "/opt/conda/lib/python3.11/site-packages/torch-2.3.0+cu121.dist-info/METADATA",
+            "name": "torch",
+            "package_manager": "PYTHON",
+            "version": "2.3.0+cu121",
+            "release": null
+        },
+        "remediation": {
+            "recommendation": {
+                "text": "None Provided"
+            }
+        },
+        "cvss_v3_score": 9.8,
+        "cvss_v30_score": 9.8,
+        "cvss_v31_score": 0.0,
+        "cvss_v2_score": 0.0,
+        "cvss_v3_severity": "CRITICAL",
+        "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-7804",
+        "source": "NVD",
+        "severity": "CRITICAL",
+        "status": "ACTIVE",
+        "title": "CVE-2024-7804 - torch",
+        "reason_to_ignore": "N/A"
+    }],
     "linux": [
         {
             "description": " In the Linux kernel, the following vulnerability has been resolved: USB: core: Fix deadlock in usb_deauthorize_interface() Among the attribute file callback routines in drivers/usb/core/sysfs.c, the interface_authorized_store() function is the only one which acquires a device lock on an ancestor device: It calls usb_deauthorize_interface(), which locks the interface's parent USB device. The will lead to deadlock if another process already owns that lock and tries to remove the interface, whether through a configuration change or because the device has been disconnected. As part of the removal procedure, device_del() waits for all ongoing sysfs attribute callbacks to complete. But usb_deauthorize_interface() can't complete until the device lock has been released, and the lock won't be released until the removal has finished. The mechanism provided by sysfs to prevent this kind of deadlock is to use the sysfs_break_active_protection() function, which tells sysfs not to wait for the attribute callback. Reported",

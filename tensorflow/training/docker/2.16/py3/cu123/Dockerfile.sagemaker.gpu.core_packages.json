@@ -74,5 +74,8 @@
   },
   "urllib3": {
     "version_specifier": ">=2.2.2"
+  },
+  "httpx": {
+    "version_specifier": ">=0.28.0"
   }
 }

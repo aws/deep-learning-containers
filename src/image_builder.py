@@ -15,27 +15,24 @@ language governing permissions and limitations under the License.
 
 import concurrent.futures
 import datetime
+import itertools
 import os
 import re
 import tempfile
-
 from copy import deepcopy
 
 import constants
-import utils
-import itertools
 import patch_helper
-
-from codebuild_environment import get_codebuild_project_name, get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
-from context import Context
-from metrics import Metrics
-from image import DockerImage
-from common_stage_image import CommonStageImage
+import utils
 from buildspec import Buildspec
+from codebuild_environment import get_cloned_folder_path, get_codebuild_project_name
+from common_stage_image import CommonStageImage
+from config import is_autopatch_build_enabled, is_build_enabled
+from context import Context
+from image import DockerImage
+from metrics import Metrics
 from output import OutputFormatter
 from utils import get_dummy_boto_client
-
 
 FORMATTER = OutputFormatter(constants.PADDING)
 build_context = os.getenv("BUILD_CONTEXT")
@@ -66,6 +63,13 @@ def _find_image_object(images_list, image_name):
     return ret_image_object
 
 
+def _login_to_prod_ecr_registry():
+    FORMATTER.print("Logging into public ECR")
+    os.system(
+        "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
+    )
+
+
 # TODO: Abstract away to ImageBuilder class
 def image_builder(buildspec, image_types=[], device_types=[]):
     """
@@ -79,6 +83,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
     """
     BUILDSPEC = Buildspec()
     BUILDSPEC.load(buildspec)
+    print(f"BUILDSPEC: {BUILDSPEC}")
     PRE_PUSH_STAGE_IMAGES = []
     COMMON_STAGE_IMAGES = []
 
@@ -89,10 +94,7 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         or "trcomp" in str(BUILDSPEC["framework"])
         or is_autopatch_build_enabled(buildspec_path=buildspec)
     ):
-        os.system("echo login into public ECR")
-        os.system(
-            "aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 763104351884.dkr.ecr.us-west-2.amazonaws.com"
-        )
+        _login_to_prod_ecr_registry()
 
     for image_name, image_config in BUILDSPEC["images"].items():
         # filter by image type if type is specified
@@ -108,8 +110,10 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         extra_build_args = {}
         labels = {}
 
+        tag_override = image_config.get("skip_build", "False").lower() == "true"
+
         prod_repo_uri = ""
-        if is_autopatch_build_enabled(buildspec_path=buildspec):
+        if is_autopatch_build_enabled(buildspec_path=buildspec) or tag_override:
             prod_repo_uri = utils.derive_prod_image_uri_using_image_config_from_buildspec(
                 image_config=image_config,
                 framework=BUILDSPEC["framework"],
@@ -125,11 +129,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
 
         if image_config.get("context") is not None:
             ARTIFACTS.update(image_config["context"])
-        image_tag = (
-            tag_image_with_pr_number(image_config["tag"])
-            if build_context == "PR"
-            else image_config["tag"]
-        )
+
+        if build_context == "PR":
+            image_tag = tag_image_with_pr_number(image_config["tag"])
+        else:
+            image_tag = image_config["tag"]
 
         if is_autopatch_build_enabled(buildspec_path=buildspec):
             image_tag = append_tag(image_tag, "autopatch")
@@ -208,23 +212,15 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         if inference_toolkit_version:
             extra_build_args["SM_TOOLKIT_VERSION"] = inference_toolkit_version
 
-        tag_override = image_config.get("build_tag_override")
         dockerfile = image_config["docker_file"]
         target = image_config.get("target")
-        tag_override_regex = r"^(beta|pr):\S+$"
         if tag_override and build_context == "PR":
             if is_autopatch_build_enabled(buildspec_path=buildspec):
                 FORMATTER.print("AUTOPATCH ENABLED IN BUILDSPEC, CANNOT OVERRIDE WITH TAG, SORRY!")
-            elif not re.match(tag_override_regex, tag_override):
-                FORMATTER.print(
-                    f"TAG OVERRIDE MUST BE OF FORMAT {tag_override_regex}, but got {tag_override}. Proceeding with regular build."
-                )
             else:
-                repo_override, t_override = tag_override.split(":")
+                _login_to_prod_ecr_registry()
                 with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file_handle:
-                    source_uri = (
-                        f"{image_repo_uri.replace('pr-', f'{repo_override}-')}:{t_override}"
-                    )
+                    source_uri = f"{prod_repo_uri}"
                     temp_file_handle.write(
                         f"FROM {source_uri}\nLABEL dlc.dev.source_img={source_uri}"
                     )
@@ -240,6 +236,33 @@ def image_builder(buildspec, image_types=[], device_types=[]):
                 }
             }
         )
+        # Determine job_type (inference, training, or base) based on the image repository URI.
+        # This is used to set the job_type label on the container image.
+        label_job_type = get_job_type(image_repo_uri)
+
+        bash_template_file = os.path.join(
+            os.sep, get_cloned_folder_path(), "miscellaneous_scripts", "bash_telemetry.sh"
+        )
+        template_fw_version = (
+            str(image_config["framework_version"])
+            if image_config.get("framework_version")
+            else str(BUILDSPEC["version"])
+        )
+        template_fw = str(BUILDSPEC["framework"])
+        bash_post_template_file = utils.generate_dlc_cmd(
+            template_path=bash_template_file,
+            output_path=os.path.join(image_config["root"], "telemetry.sh"),
+            framework=template_fw,
+            framework_version=template_fw_version,
+            container_type=label_job_type,
+        )
+
+        ARTIFACTS.update(
+            {
+                "bash": {"source": bash_post_template_file, "target": "bash_telemetry.sh"},
+            }
+        )
+
         context = Context(ARTIFACTS, f"build/{image_name}.tar.gz", image_config["root"])
 
         if "labels" in image_config:
@@ -264,17 +287,6 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         label_os_version = str(image_config.get("os_version")).replace(".", "-")
         label_contributor = str(BUILDSPEC.get("contributor"))
         label_transformers_version = str(transformers_version).replace(".", "-")
-
-        # job_type will be either inference or training, based on the repo URI
-        if "training" in image_repo_uri:
-            label_job_type = "training"
-        elif "inference" in image_repo_uri:
-            label_job_type = "inference"
-        else:
-            raise RuntimeError(
-                f"Cannot find inference or training job type in {image_repo_uri}. "
-                f"This is required to set job_type label."
-            )
 
         if cx_type == "sagemaker":
             # Adding standard labels to all images
@@ -319,6 +331,8 @@ def image_builder(buildspec, image_types=[], device_types=[]):
             "image_size_baseline": int(image_config["image_size_baseline"]),
             "base_image_uri": base_image_uri,
             "enable_test_promotion": image_config.get("enable_test_promotion", True),
+            "test_configs": image_config.get("test_configs", None),
+            "tests": image_config.get("tests", []),
             "labels": labels,
             "extra_build_args": extra_build_args,
             "cx_type": cx_type,
@@ -343,10 +357,11 @@ def image_builder(buildspec, image_types=[], device_types=[]):
         # If for a pre_push stage image we create a common stage image, then we do not push the pre_push stage image
         # to the repository. Instead, we just push its common stage image to the repository. Therefore,
         # inside function get_common_stage_image_object we make pre_push_stage_image_object non pushable.
-        common_stage_image_object = generate_common_stage_image_object(
-            pre_push_stage_image_object, image_tag
-        )
-        COMMON_STAGE_IMAGES.append(common_stage_image_object)
+        if image_config.get("enable_common_stage_build", True):
+            common_stage_image_object = generate_common_stage_image_object(
+                pre_push_stage_image_object, image_tag
+            )
+            COMMON_STAGE_IMAGES.append(common_stage_image_object)
 
         PRE_PUSH_STAGE_IMAGES.append(pre_push_stage_image_object)
         FORMATTER.separator()
@@ -632,7 +647,7 @@ def tag_image_with_initiator(image_tag):
     """
     # Shorten huggingface name to avoid breaching 128 char tag limit
     initiator = os.getenv("CODEBUILD_INITIATOR", "").split("/")[-1].replace("huggingface", "hf")
-    return f"{image_tag}-{initiator}-{os.getenv('CODEBUILD_RESOLVED_SOURCE_VERSION', '')[:7]}"
+    return f"{image_tag}-{initiator}-{os.getenv('CODEPIPELINE_EXECUTION_ID', '')[:7]}"
 
 
 def append_tag(image_tag, append_str):
@@ -662,3 +677,22 @@ def modify_repository_name_for_context(image_repo_uri, build_context):
             constants.PR_REPO_PREFIX, constants.NIGHTLY_REPO_PREFIX
         )
     return "/".join(repo_uri_values)
+
+
+def get_job_type(image_repo_uri):
+    job_type_mapping = {
+        "training": "training",
+        "inference": "inference",
+        "base": "general",
+        "vllm": "general",
+        "sglang": "general",
+    }
+
+    for key, job_type in job_type_mapping.items():
+        if key in image_repo_uri:
+            return job_type
+
+    raise RuntimeError(
+        f"Cannot determine job type from {image_repo_uri}. "
+        f"Expected one of: {', '.join(job_type_mapping.keys())}"
+    )

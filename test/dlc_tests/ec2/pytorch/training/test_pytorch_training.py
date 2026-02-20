@@ -36,9 +36,6 @@ PT_AMP_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchA
 PT_AMP_INDUCTOR_CMD = os.path.join(
     CONTAINER_TESTS_PREFIX, "pytorch_tests", "testPyTorchAMPwithInductor"
 )
-PT_TELEMETRY_CMD = os.path.join(
-    CONTAINER_TESTS_PREFIX, "pytorch_tests", "test_pt_dlc_telemetry_test"
-)
 PT_HABANA_TEST_SUITE_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "testHabanaPTSuite")
 PT_TORCHAUDIO_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchaudio")
 PT_TORCHDATA_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdata")
@@ -50,23 +47,24 @@ PT_NEURON_ALLREDUCE_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0
 PT_NEURON_MLP_CMD = f"torchrun --nproc_per_node=2 --nnodes=1 --node_rank=0 --master_addr=localhost --master_port=2022 {PT_NEURON_MNIST_SCRIPT}"
 PT_TORCHDATA_DEV_CMD = os.path.join(CONTAINER_TESTS_PREFIX, "pytorch_tests", "testTorchdataDev")
 
-PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g4dn.12xlarge", processor="gpu", filter_function=ec2_utils.filter_non_g3_instance_type
+PT_INDUCTOR_TEST_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.12xlarge", processor="gpu")
+PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g4dn.8xlarge", processor="gpu")
+PT_EC2_GPU_ARM64_INSTANCE_TYPE = get_ec2_instance_type(
+    default="g5g.8xlarge", processor="gpu", arch_type="arm64"
 )
-PT_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g3.8xlarge", processor="gpu")
 PT_EC2_MULTI_GPU_NO_G_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.8xlarge",
+    default="g5.12xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_multi_gpu_and_no_g_type,
 )
 PT_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.9xlarge", processor="cpu")
 PT_EC2_SINGLE_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="p3.2xlarge",
+    default="g5.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_single_gpu,
 )
 PT_EC2_MULTI_GPU_INSTANCE_TYPE = get_ec2_instance_type(
-    default="g3.8xlarge",
+    default="g4dn.8xlarge",
     processor="gpu",
     filter_function=ec2_utils.filter_only_multi_gpu,
 )
@@ -116,7 +114,25 @@ def test_pytorch_train_mnist_cpu_deep_canary(pytorch_training, ec2_connection, c
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.usefixtures("sagemaker")
+@pytest.mark.skipif(
+    not test_utils.is_deep_canary_context() or not os.getenv("REGION") == "us-west-2",
+    reason="This test only needs to run in deep-canary context in us-west-2",
+)
+@pytest.mark.deep_canary("Reason: This test is a simple pytorch training mnist test")
+@pytest.mark.model("mnist")
+@pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_ARM64_INSTANCE_TYPE, indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.team("conda")
+def test_pytorch_train_mnist_arm64_gpu_deep_canary(
+    pytorch_training_arm64, ec2_connection, gpu_only, ec2_instance_type
+):
+    execute_ec2_training_test(ec2_connection, pytorch_training_arm64, PT_MNIST_CMD)
+
+
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -126,7 +142,7 @@ def test_pytorch_allreduce_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_TRN1_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -136,7 +152,7 @@ def test_pytorch_train_mlp_neuronx(pytorch_training_neuronx, ec2_connection):
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_MLP_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -146,7 +162,7 @@ def test_pytorch_allreduce_neuronx_inf2(pytorch_training_neuronx, ec2_connection
     execute_ec2_training_test(ec2_connection, pytorch_training_neuronx, PT_NEURON_ALLREDUCE_CMD)
 
 
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_PT_NEURON_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL22_BASE_NEURON_US_WEST_2], indirect=True)
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_NEURON_INF2_INSTANCE_TYPE, indirect=True)
 @pytest.mark.integration("pytorch_neuronx_sanity_test")
 @pytest.mark.neuronx_test
@@ -190,7 +206,7 @@ def test_pytorch_healthcheck_nccl(pytorch_training, ec2_connection, gpu_only, ec
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_NCCL_LOCAL_TEST_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
@@ -204,7 +220,7 @@ def test_pytorch_standalone_gpu(pytorch_training, ec2_connection, gpu_only, ec2_
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pytorch_sanity_test")
 @pytest.mark.model("N/A")
@@ -214,7 +230,7 @@ def test_pytorch_standalone_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_STANDALONE_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -227,7 +243,7 @@ def test_pytorch_train_mnist_gpu(pytorch_training, ec2_connection, gpu_only, ec2
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("mnist")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -236,7 +252,7 @@ def test_pytorch_train_mnist_cpu(pytorch_training, ec2_connection, cpu_only):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_MNIST_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_GPU_INSTANCE_TYPE, indirect=True)
@@ -256,7 +272,7 @@ def test_pytorch_linear_regression_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("linear_regression")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
@@ -265,8 +281,7 @@ def test_pytorch_linear_regression_cpu(pytorch_training, ec2_connection, cpu_onl
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_REGRESSION_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("Image is being tested in serial execution and DGL binaries are not installed")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
@@ -291,8 +306,7 @@ def test_pytorch_train_dgl_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("Image is being tested in serial execution and DGL binaries are not installed")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
@@ -303,7 +317,7 @@ def test_pytorch_train_dgl_cpu(pytorch_training, ec2_connection, cpu_only, py3_o
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_DGL_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
@@ -325,7 +339,7 @@ def test_pytorch_gloo_gpu(pytorch_training, ec2_connection, gpu_only, py3_only, 
     )
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_inductor_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
@@ -351,7 +365,7 @@ def test_pytorch_gloo_inductor_gpu(
     )
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("gloo")
 @pytest.mark.model("resnet18")
@@ -369,7 +383,7 @@ def test_pytorch_gloo_cpu(pytorch_training, ec2_connection, cpu_only, py3_only, 
     )
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
 @pytest.mark.model("resnet18")
@@ -389,7 +403,7 @@ def test_pytorch_nccl(pytorch_training, ec2_connection, gpu_only, py3_only, ec2_
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_inductor_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
@@ -411,7 +425,7 @@ def test_pytorch_nccl_inductor(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd, large_shm=True)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_trcomp_containers
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nccl")
@@ -442,7 +456,7 @@ def test_pytorch_nccl_version(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
@@ -472,7 +486,7 @@ def test_pytorch_mpi_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_inductor_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
@@ -504,7 +518,7 @@ def test_pytorch_mpi_inductor_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("mpi")
 @pytest.mark.model("resnet18")
@@ -530,7 +544,7 @@ def test_pytorch_mpi_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, test_cmd)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("nvidia_apex")
 @pytest.mark.model("N/A")
@@ -544,7 +558,7 @@ def test_nvapex(pytorch_training, ec2_connection, gpu_only, ec2_instance_type):
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_APEX_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("amp")
 @pytest.mark.model("resnet50")
@@ -561,7 +575,7 @@ def test_pytorch_amp(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_CMD, timeout=1500)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_inductor_test
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("amp")
@@ -580,7 +594,7 @@ def test_pytorch_amp_inductor(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_AMP_INDUCTOR_CMD, timeout=1500)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_gpu")
@@ -597,7 +611,7 @@ def test_pytorch_training_torchaudio_gpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("feature_torchaudio_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("pt_torchaudio_cpu")
@@ -614,7 +628,7 @@ def test_pytorch_training_torchaudio_cpu(
     execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHAUDIO_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -639,7 +653,7 @@ def test_pytorch_training_torchdata_gpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.skip_torchdata_test
 @pytest.mark.usefixtures("feature_torchdata_present")
 @pytest.mark.usefixtures("sagemaker")
@@ -662,17 +676,6 @@ def test_pytorch_training_torchdata_cpu(
         execute_ec2_training_test(ec2_connection, pytorch_training, PT_TORCHDATA_CMD)
 
 
-@pytest.mark.skip_serialized_release_pt_test
-@pytest.mark.usefixtures("feature_aws_framework_present")
-@pytest.mark.usefixtures("sagemaker")
-@pytest.mark.integration("telemetry")
-@pytest.mark.model("N/A")
-@pytest.mark.parametrize("ec2_instance_type", PT_EC2_CPU_INSTANCE_TYPE, indirect=True)
-@pytest.mark.team("conda")
-def test_pytorch_telemetry_cpu(pytorch_training, ec2_connection, cpu_only, pt15_and_above_only):
-    execute_ec2_training_test(ec2_connection, pytorch_training, PT_TELEMETRY_CMD, timeout=900)
-
-
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.model("N/A")
 @pytest.mark.parametrize("ec2_instance_type", PT_EC2_HPU_INSTANCE_TYPE, indirect=True)
@@ -689,7 +692,7 @@ def test_pytorch_standalone_hpu(
     )
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("feature_aws_framework_present")
 @pytest.mark.usefixtures("sagemaker")
 @pytest.mark.integration("cudnn")

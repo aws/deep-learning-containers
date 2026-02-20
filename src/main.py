@@ -40,11 +40,15 @@ def main():
     # this build.
     utils.write_to_json_file(constants.TEST_TYPE_IMAGES_PATH, {})
 
-    # Skip tensorflow-1 PR jobs, as there are no longer patch releases being added for TF1
-    # Purposefully not including this in developer config to make this difficult to enable
-    # TODO: Remove when we remove these jobs completely
-    build_name = get_codebuild_project_name()
-    if build_context == "PR" and build_name == "dlc-pr-tensorflow-1":
+    # Only bypass TOML checks if buildspec comes from PR description
+    if os.getenv("FRAMEWORK_BUILDSPEC_FILE") and os.getenv("FROM_PR_DESCRIPTION") == "true":
+        utils.build_setup(
+            args.framework,
+            device_types=device_types,
+            image_types=image_types,
+            py_versions=py_versions,
+        )
+        image_builder(args.buildspec, image_types, device_types)
         return
 
     # A general build will work if build job and build mode are in non-EI, non-NEURON
@@ -77,6 +81,13 @@ def main():
     # been disabled.
     graviton_builder_enabled = (
         config.is_graviton_builder_enabled_for_this_pr_build(args.framework)
+        and not config.is_deep_canary_mode_enabled()
+    )
+
+    # An ARM64 dedicated builder will work if in ARM64 mode and its framework has not
+    # been disabled.
+    arm64_builder_enabled = (
+        config.is_arm64_builder_enabled_for_this_pr_build(args.framework)
         and not config.is_deep_canary_mode_enabled()
     )
 
@@ -114,6 +125,7 @@ def main():
         or neuron_builder_enabled
         or neuronx_builder_enabled
         or graviton_builder_enabled
+        or arm64_builder_enabled
         or habana_builder_enabled
         or hf_trcomp_builder_enabled
         or trcomp_builder_enabled

@@ -45,7 +45,6 @@ from test.test_utils.security import (
     conduct_failure_routine,
     process_failure_routine_summary_and_store_data_in_s3,
     run_scan,
-    fetch_other_vulnerability_lists,
     get_target_image_uri_using_current_uri_and_target_repo,
     wait_for_enhanced_scans_to_complete,
     extract_non_patchable_vulnerabilities,
@@ -199,20 +198,31 @@ def remove_allowlisted_image_vulnerabilities(
     :param vuln_allowlist: ECREnhancedScanVulnerabilityList of allowlisted image vulnerabilities
     :return: ECREnhancedScanVulnerabilityList of detected image vulnerabilities without allowlisted ones
     """
+    LOGGER.info(f"ECR Image Vuln List: '{ecr_image_vuln_list.vulnerability_list}'")
+    LOGGER.info(f"Vulnerability Allowlist: '{vuln_allowlist.vulnerability_list}'")
     if not is_huggingface_image():
+        LOGGER.info(
+            "Non-Hugging Face image detected — using subtract operator to remove allowlisted vulnerabilities."
+        )
         return ecr_image_vuln_list - vuln_allowlist
 
-    # Relax constraints for HF images
+    LOGGER.info("Hugging Face image detected — using relaxed allowlist removal by (package, CVE).")
     new_image_vuln_list = copy.deepcopy(ecr_image_vuln_list)
+
     for pkg_name, allowed_pkg_vuln_list in vuln_allowlist.vulnerability_list.items():
         if pkg_name not in new_image_vuln_list.vulnerability_list:
+            LOGGER.info(f"Skipping package '{pkg_name}' — not present in image vulnerability list.")
             continue
-        pkg_cves_in_allowlist = set(list([vuln.name for vuln in allowed_pkg_vuln_list]))
+
+        pkg_cves_in_allowlist = set([vuln.name for vuln in allowed_pkg_vuln_list])
+        LOGGER.info(f"Removing allowlisted CVEs for package '{pkg_name}': {pkg_cves_in_allowlist}")
+
         new_image_vuln_list.remove_vulnerabilities_for_package(
             package_name=pkg_name,
             vulnerability_id_list=pkg_cves_in_allowlist,
         )
 
+    LOGGER.info("Completed allowlist removal. Returning filtered vulnerability list.")
     return new_image_vuln_list
 
 
@@ -385,7 +395,15 @@ def helper_function_for_leftover_vulnerabilities_from_enhanced_scanning(
             f"[NonPatchableVulns] [image_uri:{ecr_enhanced_repo_uri}] {json.dumps(non_patchable_vulnerabilities.vulnerability_list, cls= test_utils.EnhancedJSONEncoder)}"
         )
 
-    if is_mainline_context() and is_test_phase() and not is_generic_image():
+    def skip_upload(image):
+        return "base" in image or "vllm" in image
+
+    if (
+        is_mainline_context()
+        and is_test_phase()
+        and not is_generic_image()
+        and not skip_upload(image)
+    ):
         upload_data = (
             allowlist_for_daily_scans.vulnerability_list if allowlist_for_daily_scans else []
         )
@@ -417,6 +435,12 @@ def test_ecr_enhanced_scan(image, ecr_client, sts_client, region):
     :param sts_client: boto3 Client for STS
     :param region: str Name of region where test is executed
     """
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require test_ecr_enhanced_scan check as they are managed by upstream devs. Skipping test."
+        )
+
     LOGGER.info(f"Running test_ecr_enhanced_scan for image {image}")
     image = conduct_preprocessing_of_images_before_running_ecr_scans(
         image, ecr_client, sts_client, region

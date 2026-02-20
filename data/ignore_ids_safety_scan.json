@@ -1387,10 +1387,23 @@
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "70790": "Tqdm version 4.66.3 addresses CVE-2024-34062",
                 "67895": "CVE-2024-3651 impacts the idna.encode() function",
-		            "71601": "Transformers version upgrade needs to be handled in a separate image",
-		            "71670": "Pytorch version upgrade needs to be handled in a separate image",
-		            "71671": "Pytorch version upgrade needs to be handled in a separate image",
-		            "71672": "Pytorch version upgrade needs to be handled in a separate image"
+                "71601": "Transformers version upgrade needs to be handled in a separate image",
+                "71670": "Pytorch version upgrade needs to be handled in a separate image",
+                "71671": "Pytorch version upgrade needs to be handled in a separate image",
+                "71672": "Pytorch version upgrade needs to be handled in a separate image",
+                "76771": "Pytorch version upgrade needs to be handled in a separate image",
+                "76769": "Pytorch version upgrade needs to be handled in a separate image",
+                "77990": "Transformers version upgrade needs to be handled in a separate image",
+                "78153": "Transformers version upgrade needs to be handled in a separate image",
+                "77986": "Transformers version upgrade needs to be handled in a separate image",
+                "77714": "Transformers version upgrade needs to be handled in a separate image",
+                "77149": "Transformers version upgrade needs to be handled in a separate image",
+                "77985": "Transformers version upgrade needs to be handled in a separate image",
+                "77988": "Transformers version upgrade needs to be handled in a separate image",
+                "78688": "Transformers version upgrade needs to be handled in a separate image",
+                "78828": "Pytorch version upgrade needs to be handled in a separate image",
+                "79595": "Transformers version upgrade needs to be handled in a separate image",
+                "79596": "Transformers version upgrade needs to be handled in a separate image"
             }
         },
         "inference": {
@@ -1424,7 +1437,17 @@
                 "71601": "Transformers version upgrade needs to be handled in a separate image",
                 "71670": "Pytorch version upgrade needs to be handled in a separate image",
                 "71671": "Pytorch version upgrade needs to be handled in a separate image",
-                "71672": "Pytorch version upgrade needs to be handled in a separate image"
+                "71672": "Pytorch version upgrade needs to be handled in a separate image",
+                "77740": "Affected versions of this package are vulnerable to a potential Denial of Service (DoS) attack due to unbounded recursion when parsing untrusted Protocol Buffers data. The pure-Python implementation fails to enforce recursion depth limits when processing recursive groups, recursive messages, or a series of SGROUP tags, leading to stack overflow conditions that can crash the application by exceeding Python's recursion limit.",
+                "78828": "Affected versions of the PyTorch package are vulnerable to Denial of Service (DoS) due to improper handling in the MKLDNN pooling implementation. The torch.mkldnn_max_pool2d function fails to properly validate input parameters, allowing crafted inputs to trigger resource exhaustion or crashes in the underlying MKLDNN library. An attacker with local access can exploit this vulnerability by passing specially crafted tensor dimensions or parameters to the max pooling function, causing the application to become unresponsive or crash.",
+                "78153": "A Regular Expression Denial of Service (ReDoS) vulnerability was discovered in the Hugging Face Transformers library, specifically within the DonutProcessor class's token2json() method. This vulnerability affects versions 4.51.3 and earlier, and is fixed in version 4.52.1. The issue arises from the regex pattern <s_(.*?)> which can be exploited to cause excessive CPU consumption through crafted input strings due to catastrophic backtracking. This vulnerability can lead to service disruption, resource exhaustion, and potential API service vulnerabilities, impacting document processing tasks using the Donut model.",
+                "77986": "Hugging Face Transformers versions up to 4.49.0 are affected by an improper input validation vulnerability in the image_utils.py file. The vulnerability arises from insecure URL validation using the startswith() method, which can be bypassed through URL username injection. This allows attackers to craft URLs that appear to be from YouTube but resolve to malicious domains, potentially leading to phishing attacks, malware distribution, or data exfiltration. The issue is fixed in version 4.52.1.",
+                "78688": "Affected versions of the Hugging Face Transformers package are vulnerable to Regular Expression Denial of Service (ReDoS) due to an inefficient regex pattern in weight name conversion. The convert_tf_weight_name_to_pt_weight_name() function uses the regular expression pattern /[^/]___([^/])/, which is susceptible to catastrophic backtracking when processing specially crafted TensorFlow weight names. An attacker can exploit this vulnerability by providing malicious weight names during model conversion between TensorFlow and PyTorch formats, causing excessive CPU consumption and potentially rendering the service unresponsive.",
+                "77744": "urllib3 is a user-friendly HTTP client library for Python. Prior to 2.5.0, it is possible to disable redirects for all requests by instantiating a PoolManager and specifying retries in a way that disable redirects. By default, requests and botocore users are not affected. An application attempting to mitigate SSRF or open redirect vulnerabilities by disabling redirects at the PoolManager level will remain vulnerable. This issue has been patched in version 2.5.0.",
+                "79077": "Affected versions of the h2 package are vulnerable to HTTP Request Smuggling due to improper validation of illegal characters in HTTP headers. The package allows CRLF characters to be injected into header names and values without proper sanitisation, which can cause request boundary manipulation when HTTP/2 requests are downgraded to HTTP/1.1 by downstream servers.",
+                "79595": "Affected versions of the transformers package are vulnerable to Regular Expression Denial of Service (ReDoS) due to inefficient regular expressions in the EnglishNormalizer.normalize_numbers() method",
+                "79596": "Affected versions of the transformers package are vulnerable to Regular Expression Denial of Service (ReDoS) due to inefficient regular expressions in the MarianTokenizer.remove_language_code() method",
+                "79855": "Affected versions of the transformers package are vulnerable to Regular Expression Denial of Service (ReDoS) due to unbounded evaluation of user-supplied regular expressions in the AdamWeightDecay._do_use_weight_decay method. The TensorFlow optimizer’s _do_use_weight_decay iterates over include_in_weight_decay and exclude_from_weight_decay lists and calls re.search on each pattern against parameter names, enabling catastrophic backtracking on crafted inputs. An attacker who can control these lists can provide pathological patterns that saturate the CPU and cause processes using transformers to hang, resulting in a Denial of Service."
             }
         },
         "inference-neuron": {
@@ -1450,7 +1473,10 @@
                 "67599": "** DISPUTED ** An issue was discovered in pip (all versions) because it installs the version with the highest version number, even if the user had intended to obtain a private package from a private index. This only affects use of the --extra-index-url option, and exploitation requires that the package does not already exist in the public index (and thus the attacker can put the package there with an arbitrary version number). NOTE: it has been reported that this is intended functionality and the user is responsible for using --extra-index-url securely.",
                 "70612": "The maintainer and multiple third parties believe that this vulnerability isn't valid because users shouldn't use untrusted templates without sandboxing.",
                 "71671": "Pytorch version upgrade needs to be handled in a separate image",
-                "71672": "Pytorch version upgrade needs to be handled in a separate image"
+                "71672": "Pytorch version upgrade needs to be handled in a separate image",
+                "74882": "Ignoring due to Safety picking this up. This is already covered in our own scan config",
+                "76226": "Upgrading pytorch would change the image beyond its intended specifications",
+                "76262": "Upgrading transformers would change the image beyond its intended specifications."
             }
         },
         "training-neuronx": {
@@ -1488,7 +1514,9 @@
                 "71579": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "71584": "Temporarily ignoring to patch CRITICAL vulnerabilties",
                 "71587": "Temporarily ignoring to patch CRITICAL vulnerabilties",
-                "71692": "Temporarily ignoring to patch CRITICAL vulnerabilties"
+                "71692": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "76170": "Temporarily ignoring to patch CRITICAL vulnerabilties",
+                "76180": "Temporarily ignoring to patch CRITICAL vulnerabilties"
             }
         }
     },

@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 import json
 import logging
 import os
@@ -50,8 +51,21 @@ def run_test_job(commit, codebuild_project, images_str=""):
         config.are_heavy_instance_ec2_tests_enabled() and "ec2" in codebuild_project
     )
 
+    # For EC2 tests, enable IPv6 testing when config is enabled
+    is_ipv6_test_enabled = config.is_ipv6_test_enabled() and "ec2" in codebuild_project
+
+    # Enable new test structure path when config is enabled
+    is_new_test_structure_enabled = config.is_new_test_structure_enabled()
+
     if config.is_deep_canary_mode_enabled():
         env_overrides.append({"name": "DEEP_CANARY_MODE", "value": "true", "type": "PLAINTEXT"})
+
+    # Get specified tests from PR description if any
+    specified_tests = os.getenv("SPECIFIED_TESTS")
+    if specified_tests:
+        env_overrides.append(
+            {"name": "SPECIFIED_TESTS", "value": specified_tests, "type": "PLAINTEXT"}
+        )
 
     pr_num = os.getenv("PR_NUMBER")
     LOGGER.debug(f"pr_num {pr_num}")
@@ -71,13 +85,6 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "value": str(config.is_nightly_pr_test_mode_enabled()),
                 "type": "PLAINTEXT",
             },
-            # USE_SCHEDULER is passed as an env variable here because it is more convenient to set this in
-            # dlc_developer_config, compared to having another config file under dlc/tests/.
-            {
-                "name": "USE_SCHEDULER",
-                "value": str(config.is_scheduler_enabled()),
-                "type": "PLAINTEXT",
-            },
             # SM_EFA_TEST_INSTANCE_TYPE is passed to SM test job to pick a matching instance type as defined by user
             {
                 "name": "SM_EFA_TEST_INSTANCE_TYPE",
@@ -85,8 +92,23 @@ def run_test_job(commit, codebuild_project, images_str=""):
                 "type": "PLAINTEXT",
             },
             {
+                "name": "IPV6_VPC_NAME",
+                "value": config.get_ipv6_vpc_name(),
+                "type": "PLAINTEXT",
+            },
+            {
                 "name": "HEAVY_INSTANCE_EC2_TESTS_ENABLED",
                 "value": str(are_heavy_instance_ec2_tests_enabled),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "ENABLE_IPV6_TESTING",
+                "value": str(is_ipv6_test_enabled),
+                "type": "PLAINTEXT",
+            },
+            {
+                "name": "USE_NEW_TEST_STRUCTURE",
+                "value": str(is_new_test_structure_enabled),
                 "type": "PLAINTEXT",
             },
             {
@@ -186,8 +208,8 @@ def is_test_job_implemented_for_framework(images_str, test_type):
 
 def run_deep_canary_pr_testbuilds():
     """
-    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton
-    DLC images.
+    Deep Canaries can only be run on PyTorch or TensorFlow, Training or Inference, x86 or Graviton/
+    ARM64 DLC images.
     This helper function determines whether this PR build job has been enabled, and this job has
     corresponding Deep Canaries that can be executed.
     If both these conditions are true, then it configures and launches a "dlc-pr-deep-canary-test"
@@ -201,8 +223,9 @@ def run_deep_canary_pr_testbuilds():
     build_framework = os.getenv("FRAMEWORK")
     general_builder_enabled = config.is_general_builder_enabled_for_this_pr_build(build_framework)
     graviton_builder_enabled = config.is_graviton_builder_enabled_for_this_pr_build(build_framework)
+    arm64_builder_enabled = config.is_arm64_builder_enabled_for_this_pr_build(build_framework)
     if config.is_deep_canary_mode_enabled() and (
-        general_builder_enabled or graviton_builder_enabled
+        general_builder_enabled or graviton_builder_enabled or arm64_builder_enabled
     ):
         commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
         # Write TEST_TRIGGER to TEST_ENV_PATH because image_builder wasn't run.
@@ -215,6 +238,8 @@ def run_deep_canary_pr_testbuilds():
         pr_test_job = f"dlc-pr-{test_type}-test"
         if graviton_builder_enabled:
             pr_test_job += "-graviton"
+        elif arm64_builder_enabled:
+            pr_test_job += "-arm64"
         run_test_job(commit, pr_test_job)
 
 
@@ -231,35 +256,54 @@ def main():
         # Deep Canaries, as detailed in the docstring for run_deep_canary_pr_testbuilds().
         return
 
-    # load the images for all test_types to pass on to code build jobs
+    # Load the test types to images mapping
     with open(constants.TEST_TYPE_IMAGES_PATH) as json_file:
         test_images = json.load(json_file)
 
     # Run necessary PR test jobs
     commit = os.getenv("CODEBUILD_RESOLVED_SOURCE_VERSION")
 
+    specified_tests_env = os.getenv("SPECIFIED_TESTS")
+    if specified_tests_env:
+        specified_tests = specified_tests_env.split()
+        LOGGER.info(f"Running only specified tests from PR description: {specified_tests}")
+    else:
+        specified_tests = None
+
     for test_type, images in test_images.items():
-        # only run the code build test jobs when the images are present
+        # Skip any test_type not explicitly requested
+        if specified_tests and test_type not in specified_tests:
+            LOGGER.info(f"Skipping {test_type} test because it wasn’t in SPECIFIED_TESTS")
+            continue
+
         LOGGER.debug(f"test_type : {test_type}")
         LOGGER.debug(f"images: {images}")
+        # Only run the CodeBuild test jobs when images are present
         if images:
             pr_test_job = f"dlc-pr-{test_type}-test"
             images_str = " ".join(images)
-            # Maintaining separate codebuild project for graviton sanity test
-            if "graviton" in images_str and "sanity" in test_type:
-                pr_test_job += "-graviton"
+
+            # Maintaining separate codebuild projects for graviton/arm64 sanity and security tests
+            if test_type == constants.SANITY_TESTS or test_type == constants.SECURITY_TESTS:
+                if "graviton" in images_str:
+                    pr_test_job += "-graviton"
+                elif "arm64" in images_str:
+                    pr_test_job += "-arm64"
+
             if is_test_job_enabled(test_type) and is_test_job_implemented_for_framework(
                 images_str, test_type
             ):
                 run_test_job(commit, pr_test_job, images_str)
 
-            if test_type == "autopr" and config.is_autopatch_build_enabled(
-                buildspec_path=config.get_buildspec_override()
-                or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
-            ):
-                run_test_job(commit, f"dlc-pr-{test_type}", images_str)
+            # autopr is disabled
+            # if test_type == "autopr" and config.is_autopatch_build_enabled(
+            #     buildspec_path=config.get_buildspec_override()
+            #     or os.getenv("FRAMEWORK_BUILDSPEC_FILE"),
+            # ):
+            #     run_test_job(commit, f"dlc-pr-{test_type}", images_str)
 
             # Trigger sagemaker local test jobs when there are changes in sagemaker_tests
+            # Skip SageMaker local tests for vLLM images as they use different test structure
             if test_type == "sagemaker" and config.is_sm_local_test_enabled():
                 test_job = f"dlc-pr-{test_type}-local-test"
                 run_test_job(commit, test_job, images_str)

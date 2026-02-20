@@ -32,7 +32,7 @@ DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
@@ -52,7 +52,7 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
     invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
 
 
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.integration("dgl")
@@ -73,7 +73,7 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
     if Version(image_framework_version) == Version("1.6") and image_cuda_version == "cu110":
         pytest.skip("DGL does not support CUDA 11 for PyTorch 1.6")
 
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     function_args = {
         "instance_type": instance_type,
     }

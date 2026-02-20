@@ -12,6 +12,7 @@ distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 ANY KIND, either express or implied. See the License for the specific
 language governing permissions and limitations under the License.
 """
+
 import os
 import re
 import json
@@ -24,7 +25,7 @@ from botocore.exceptions import ClientError
 from invoke.context import Context
 
 from codebuild_environment import get_cloned_folder_path
-from config import is_build_enabled, is_autopatch_build_enabled
+from config import is_build_enabled, is_autopatch_build_enabled, is_new_test_structure_enabled
 from safety_report_generator import SafetyReportGenerator
 
 LOGGER = logging.getLogger(__name__)
@@ -148,19 +149,60 @@ def fetch_dlc_images_for_test_jobs(images, use_latest_additional_tag=False):
     build_enabled = is_build_enabled()
 
     for docker_image in images:
+        # Skip if test promotion is not enabled for this image
         if not docker_image.is_test_promotion_enabled:
             continue
-        use_preexisting_images = (
-            not build_enabled
-        ) and docker_image.build_status == constants.NOT_BUILT
-        if docker_image.build_status == constants.SUCCESS or use_preexisting_images:
+
+        # Determine if we should test this image based on build status
+        should_test_image = docker_image.build_status == constants.SUCCESS or (
+            not build_enabled and docker_image.build_status == constants.NOT_BUILT
+        )
+
+        if should_test_image:
+            # Get ECR URL to test - use latest tag if specified and available
             ecr_url_to_test = docker_image.ecr_url
-            if use_latest_additional_tag and len(docker_image.additional_tags) > 0:
+            if use_latest_additional_tag and docker_image.additional_tags:
                 ecr_url_to_test = f"{docker_image.repository}:{docker_image.additional_tags[-1]}"
 
-            # Set up tests on all platforms
-            for test_platform in DLC_IMAGES:
-                DLC_IMAGES[test_platform].append(ecr_url_to_test)
+            # If test configs exist and are valid dict
+            if docker_image.test_configs is not None and isinstance(
+                docker_image.test_configs, dict
+            ):
+                LOGGER.info(f"Test Configs: {docker_image.test_configs}")
+
+                # Check if new test structure is enabled
+                if is_new_test_structure_enabled() and docker_image.tests:
+                    PLATFORM_MAPPING = {
+                        "ec2": "ec2",
+                        "eks": "eks",
+                        "sagemaker": "sagemaker",
+                        "ecs": "ecs",
+                    }
+                    for test in docker_image.tests:
+                        platform = test["platform"]
+                        base_platform = platform.split("-")[0]
+                        if base_platform in PLATFORM_MAPPING:
+                            category = PLATFORM_MAPPING[base_platform]
+                            DLC_IMAGES[category].append(ecr_url_to_test)
+                    continue
+                elif "test_platforms" in docker_image.test_configs:
+                    test_platforms = docker_image.test_configs["test_platforms"]
+
+                    assert isinstance(
+                        test_platforms, list
+                    ), f"Test platforms should be a list, but got {type(test_platforms)}"
+
+                    if test_platforms:
+                        for test_platform in test_platforms:
+                            assert test_platform in DLC_IMAGES, (
+                                f"Test platform {test_platform} is not supported, "
+                                f"supported test platforms are {DLC_IMAGES.keys()}"
+                            )
+                            DLC_IMAGES[test_platform].append(ecr_url_to_test)
+            else:
+                # No specific test configs - add image to all test platforms
+                for test_platform in DLC_IMAGES:
+                    DLC_IMAGES[test_platform].append(ecr_url_to_test)
 
     for test_type in DLC_IMAGES:
         test_images = DLC_IMAGES[test_type]
@@ -281,18 +323,18 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
         job_type = (
             "inference-eia"
             if "eia" in image_uri
-            else "inference-neuron"
-            if "neuron" in image_uri
-            else "inference"
+            else (
+                "inference-neuronx"
+                if "neuronx" in image_uri
+                else "inference-neuron" if "neuron" in image_uri else "inference"
+            )
         )
 
     if job_type == "training":
         job_type = (
             "training-neuronx"
             if "neuronx" in image_uri
-            else "training-neuron"
-            if "neuron" in image_uri
-            else "training"
+            else "training-neuron" if "neuron" in image_uri else "training"
         )
 
     if "habana" in image_uri:
@@ -300,6 +342,9 @@ def get_safety_ignore_dict(image_uri, framework, python_version, job_type):
 
     if "graviton" in image_uri:
         framework = f"graviton_{framework}"
+
+    if "arm64" in image_uri:
+        framework = f"arm64_{framework}"
 
     ignore_data_file = os.path.join(
         os.sep, get_cloned_folder_path(), "data", "ignore_ids_safety_scan.json"
@@ -378,7 +423,7 @@ def generate_safety_report_for_image(image_uri, image_info, storage_file_path=No
     ctx = Context()
     docker_run_cmd = f"docker run -id --entrypoint='/bin/bash' {image_uri} "
     container_id = ctx.run(f"{docker_run_cmd}", hide=True, warn=True).stdout.strip()
-    install_safety_cmd = "pip install 'safety>=2.2.0,<3'"
+    install_safety_cmd = "pip install 'setuptools<82' 'safety>=2.2.0,<3'"
     docker_exec_cmd = f"docker exec -i {container_id}"
     ctx.run(f"{docker_exec_cmd} {install_safety_cmd}", hide=True, warn=True)
     ignore_dict = get_safety_ignore_dict(
@@ -430,16 +475,20 @@ def upload_data_to_pr_creation_s3_bucket(upload_data: str, s3_filepath: str, tag
     :param tag_set: List[Dict], as described above
     :return: str, s3 file path
     """
-    s3_resource = boto3.resource("s3")
-    s3object = s3_resource.Object(constants.PR_CREATION_DATA_HELPER_BUCKET, s3_filepath)
-    s3_client = s3_resource.meta.client
-    s3object.put(Body=(bytes(upload_data.encode("UTF-8"))))
-    if tag_set:
-        s3_client.put_object_tagging(
-            Bucket=constants.PR_CREATION_DATA_HELPER_BUCKET,
-            Key=s3_filepath,
-            Tagging={"TagSet": tag_set},
-        )
+    s3 = boto3.resource("s3")
+    bucket = constants.PR_CREATION_DATA_HELPER_BUCKET
+    obj = s3.Object(bucket, s3_filepath)
+    client = s3.meta.client
+    try:
+        obj.put(Body=upload_data.encode("utf-8"))
+        if tag_set:
+            client.put_object_tagging(
+                Bucket=bucket,
+                Key=s3_filepath,
+                Tagging={"TagSet": tag_set},
+            )
+    except ClientError as e:
+        LOGGER.info(f"Could not write to s3://{bucket}/{s3_filepath}: {e}")
 
 
 def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, file_name: str):
@@ -453,10 +502,10 @@ def get_unique_s3_path_for_uploading_data_to_pr_creation_bucket(image_uri: str, 
 
 def get_core_packages_path(image_uri, python_version=None):
     """
-    Retrieves the safety_scan_allowlist_path for each image_uri.
+    Retrieves the ecr_scan_allowlist_path for each image_uri.
 
     :param image_uri: str, consists of f"{image_repo}:{image_tag}"
-    :return: string, safety scan allowlist path for the image
+    :return: string, ecr_scan_allowlist_path for the image
     """
     from test.test_utils import get_ecr_scan_allowlist_path
 
@@ -639,3 +688,24 @@ def verify_if_child_image_is_built_on_top_of_base_image(base_image_uri, child_im
         if base_layer_sha != child_layer_sha:
             return False
     return True
+
+
+def generate_dlc_cmd(template_path, output_path, framework, framework_version, container_type):
+    with open(template_path, "r") as tf:
+        content = tf.read()
+
+    replacements = {
+        "FRAMEWORK": framework,
+        "FRAMEWORK_VERSION": framework_version,
+        "CONTAINER_TYPE": container_type,
+    }
+
+    for anchor, value in replacements.items():
+        content = content.replace(f"${{{anchor}}}", value)  # replace ${VARIABLE} with value
+        content = content.replace(f"{{{anchor}}}", value)  # replace {VARIABLE} with value
+
+    with open(output_path, "w") as out_f:
+        out_f.write(content)
+
+    # Return base path and set as artifact
+    return os.path.basename(output_path)

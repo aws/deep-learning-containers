@@ -11,6 +11,9 @@
     "version_specifier": "==1.2.6",
     "skip": "True"
   },
+  "torch": {
+    "version_specifier": "==2.4.0+cpu"
+  },
   "torchaudio": {
     "version_specifier": "==2.4.0+cpu",
     "skip": "True"
@@ -40,7 +43,7 @@
     "version_specifier": ">=70.0.0"
   },
   "urllib3": {
-    "version_specifier": "<2"
+    "version_specifier": "==2.5.0"
   },
   "awscli": {
     "version_specifier": "<2"

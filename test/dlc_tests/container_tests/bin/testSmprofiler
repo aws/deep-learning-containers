@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 echo "Running the sanity check for the profiler enabled smdebug binary."
 if [ $# -lt 1 ]; then
     echo $0

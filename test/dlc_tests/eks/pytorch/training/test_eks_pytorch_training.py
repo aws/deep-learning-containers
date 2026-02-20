@@ -18,10 +18,6 @@ from packaging.specifiers import SpecifierSet
 LOGGER = eks_utils.LOGGER
 
 
-@pytest.mark.skipif(
-    not is_pr_context(),
-    reason="Skip this test. It is already tested under PR context and we do not have enough resouces to test it again on mainline pipeline",
-)
 @pytest.mark.model("mnist")
 @pytest.mark.team("conda")
 def test_eks_pytorch_single_node_training(pytorch_training):
@@ -42,7 +38,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
     mnist_dataset_download_config = """
       FILE=new_main.py &&
       echo "from __future__ import print_function" > $FILE &&
-      echo "from six.moves import urllib" >> $FILE &&
+      echo "import urllib.request" >> $FILE &&
       echo "from packaging.version import Version" >> $FILE &&
       echo "opener = urllib.request.build_opener()" >> $FILE &&
       echo "opener.addheaders = [('User-agent', 'Mozilla/5.0')]" >> $FILE &&
@@ -98,10 +94,7 @@ def test_eks_pytorch_single_node_training(pytorch_training):
         run("kubectl delete pods {}".format(pod_name))
 
 
-@pytest.mark.skipif(
-    not is_pr_context(), reason="Skip this test. It is already tested under PR context"
-)
-@pytest.mark.skip_dgl_test
+@pytest.mark.skip("DGL binaries are not installed in DLCs by default")
 @pytest.mark.integration("dgl")
 @pytest.mark.model("gcn")
 @pytest.mark.team("dgl")

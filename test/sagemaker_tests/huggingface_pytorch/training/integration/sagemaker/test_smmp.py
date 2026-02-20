@@ -124,7 +124,7 @@ def test_smmp_gpu_multinode(
 
 
 def _test_smmp_gpu_function(ecr_image, sagemaker_session, py_version, instances_quantity):
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g5.48xlarge"
     instance_count = instances_quantity
     volume_size = 400
 

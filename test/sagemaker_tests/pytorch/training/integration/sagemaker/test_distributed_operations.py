@@ -21,7 +21,7 @@ from sagemaker import utils
 from sagemaker.instance_group import InstanceGroup
 from sagemaker.pytorch import PyTorch
 from sagemaker import Session
-from six.moves.urllib.parse import urlparse
+from urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -39,7 +39,7 @@ from ...integration.sagemaker.timeout import timeout
 from .... import invoke_pytorch_helper_function
 from . import invoke_pytorch_estimator
 
-MULTI_GPU_INSTANCE = "ml.p3.8xlarge"
+MULTI_GPU_INSTANCE = "ml.g5.12xlarge"
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "resources")
 
 
@@ -107,7 +107,7 @@ def test_dist_operations_gpu(
     """
     Test is run as multinode
     """
-    instance_type = instance_type or "ml.p3.xlarge"
+    instance_type = instance_type or "ml.g5.4xlarge"
     function_args = {
         "framework_version": framework_version,
         "instance_type": instance_type,
@@ -148,8 +148,10 @@ def test_dist_operations_multi_gpu(
 @pytest.mark.team("conda")
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version("1.9") <= Version(image_framework_version) < Version("1.13"):
+    if Version(image_framework_version) in SpecifierSet(">=1.9,<1.13"):
         pytest.skip("Fast ai is not supported on PyTorch v1.9.x, v1.10.x, v1.11.x, v1.12.x")
+    if Version(image_framework_version) in SpecifierSet("~=2.6.0"):
+        pytest.skip("Fast ai doesn't release for PyTorch v2.6.x")
 
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -170,7 +172,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
     _assert_s3_file_exists(sagemaker_session.boto_region_name, model_s3_url)
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -274,7 +276,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode(
         )
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -380,7 +382,7 @@ def test_smmodelparallel_gpt2_multigpu_singlenode_flashattn(
         )
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -397,7 +399,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         estimator_parameter = {
@@ -439,7 +441,7 @@ def test_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -456,7 +458,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
     """
     Tests pt mnist command via script mode
     """
-    instance_type = "ml.p3.16xlarge"
+    instance_type = "ml.g5.12xlarge"
     validate_or_skip_smmodelparallel(ecr_image)
     instance_count = 2
     training_group = InstanceGroup("train_group", instance_type, instance_count)
@@ -500,7 +502,7 @@ def test_hc_smmodelparallel_mnist_multigpu_multinode(
         )
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -560,7 +562,7 @@ def test_smmodelparallel_mnist_multigpu_multinode_efa(
         )
 
 
-@pytest.mark.skip_smdmodelparallel_test
+@pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 @pytest.mark.skip_trcomp_containers
@@ -662,6 +664,7 @@ def test_smmodelparallel_gpt2_sdp_multinode_efa(
         )
 
 
+@pytest.mark.skip(reason="Sagemaker efa test is a duplicate of ec2 efa test on p4d instances")
 @pytest.mark.integration("smmodelparallel")
 @pytest.mark.model("mnist")
 @pytest.mark.processor("gpu")

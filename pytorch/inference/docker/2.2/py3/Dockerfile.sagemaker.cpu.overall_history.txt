@@ -17,6 +17,39 @@ apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff
 #### Patch contents for patch-6: sha256:7da0dc6d87623f0295f95a737f30c5b710574cad074e3d4d767a082d2af95487 ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
-#### Current Patch contents ####
+#### Patch contents for patch-7: sha256:feb5e3c8cd61c415d3691a68c51392b3baf9a588f2eba6d23e8d859db8136077 ####
 pip install urllib3==1.26.19
 apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-8: sha256:1f6f4550d7bd9983dc0cfb23bf0b37120ceb79fe78c924f8a2aa5cd249ae151e ####
+pip install certifi==2024.7.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-9: sha256:f1f7663d3e52c4eaa3f70dc161ddca7e1e18a6b0b9c77dc848b6ca737348ebc9 ####
+pip install certifi==2024.7.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-10: sha256:7c68d7e188ea7645d2138e2518a33892e33d36eee371de03e06dae94cada080f ####
+pip install certifi==2024.7.4 setuptools==71.0.4 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgtk-3-0 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-11: sha256:7dcc88ef1b8f753248097ee5528835c4fa60f5e91c3960995d0afed0764a38cd ####
+pip install certifi==2024.7.4 setuptools==71.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git libcups2 libgtk-3-0 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-12: sha256:5b3945527c91088f21c3c9399bf3819cf6178076a58fa279fde7abc672dee1ba ####
+pip install certifi==2024.7.4 setuptools==71.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git imagemagick-6-common libcups2 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libtiff5 linux-libc-dev wget
+#### Patch contents for patch-13: sha256:308bb880862e8082a99cc7aeddba9794ab392dd34969b05ebf42b16c9dd775ac ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade git-man git imagemagick-6-common libcups2 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-14: sha256:f3c8462fdf264812193d3cccee0786f766d0d485d482c204d9b06f6b57eed7a3 ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgtk-3-0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-15: sha256:4af6d17486c5dc3c96027ab84d72077e1311756fb2f7929789ce3bdd8d7337e9 ####
+pip install certifi==2024.7.4 setuptools==72.1.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-16: sha256:e7da4ba360f2819388850392fc66ba4294c914e2a57ab0a2e8c9d1990e0889b0 ####
+pip install certifi==2024.7.4 setuptools==72.2.0 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Patch contents for patch-17: sha256:fe1637102db35deb2aef39ac1a4a9e4aed54ee461f599f1b9652918621544cfa ####
+pip install certifi==2024.7.4 setuptools==73.0.1 urllib3==1.26.19
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget
+#### Current Patch contents ####
+pip install certifi==2024.8.30 setuptools==74.0.0 urllib3==1.26.20
+apt-get update && apt-get install -y --only-upgrade curl git-man git imagemagick-6-common libcups2 libcurl3-gnutls libcurl4-openssl-dev libcurl4 libgssapi-krb5-2 libgtk-3-0 libk5crypto3 libkrb5-3 libkrb5support0 libmagickcore-6.q16-6 libmagickwand-6.q16-6 libpython3.8-minimal libpython3.8-stdlib libpython3.8 libssl1.1 libtiff5 linux-libc-dev openjdk-17-jdk-headless openjdk-17-jdk openjdk-17-jre-headless openjdk-17-jre wget

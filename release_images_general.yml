@@ -1,0 +1,192 @@
+---
+release_images:
+  1:
+    framework: "base"
+    version: "12.8.1"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+  2:
+    framework: "base"
+    version: "12.8.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+  3:
+    framework: "base"
+    version: "12.9.1"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+  4:
+    framework: "base"
+    version: "13.0.0"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu130"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+  5:
+    framework: "base"
+    version: "13.0.2"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py313" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu130"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+  6:
+    framework: "vllm"
+    version: "0.11.2"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  7:
+    framework: "vllm"
+    version: "0.11.2"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  8:
+    framework: "vllm"
+    version: "0.10.2"
+    arch_type: "arm64"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  9:
+    framework: "vllm"
+    version: "0.10.2"
+    arch_type: "x86"
+    customer_type: "rayserve-ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu128"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+      private_registry: False
+  10:
+    framework: "sglang"
+    version: "0.5.8"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu24.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  11:
+    framework: "vllm"
+    version: "0.15.1"
+    arch_type: "x86"
+    customer_type: "ec2"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  12:
+    framework: "vllm"
+    version: "0.15.1"
+    arch_type: "x86"
+    customer_type: "sagemaker"
+    general:
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: False
+      force_release: False
+      public_registry: True
+      enable_soci: True
+  13:
+    framework: "huggingface_vllm"
+    version: "0.14.0"
+    arch_type: "x86"
+    hf_transformers: "4.57.3"
+    vllm_version: "0.14.0"
+    general:  # vLLM is categorized as general type
+      device_types: [ "gpu" ]
+      python_versions: [ "py312" ]
+      os_version: "ubuntu22.04"
+      cuda_version: "cu129"
+      example: False
+      disable_sm_tag: True
+      force_release: False

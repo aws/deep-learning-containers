@@ -67,7 +67,7 @@ def run_sm_perf_test(image_uri, num_nodes, region):
         f"{processor}-{get_cuda_version_from_tag(image_uri)}" if processor == "gpu" else processor
     )
 
-    ec2_instance_type = "p3.16xlarge" if processor == "gpu" else "c5.18xlarge"
+    ec2_instance_type = "g5.12xlarge" if processor == "gpu" else "c5.18xlarge"
 
     py_version = "py2" if "py2" in image_uri else "py37" if "py37" in image_uri else "py3"
 
@@ -135,9 +135,11 @@ def run_sm_perf_test(image_uri, num_nodes, region):
             else TENSORFLOW_SM_TRAINING_CPU_4NODE_THRESHOLD
         )
         if processor == "cpu"
-        else TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD
-        if num_nodes == 1
-        else TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD
+        else (
+            TENSORFLOW_SM_TRAINING_GPU_1NODE_THRESHOLD
+            if num_nodes == 1
+            else TENSORFLOW_SM_TRAINING_GPU_4NODE_THRESHOLD
+        )
     )
     threshold = get_threshold_for_image(framework_version, threshold_table)
     LOGGER.info(

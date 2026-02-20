@@ -32,7 +32,7 @@ VALID_TEST_TYPES = [
 ]
 
 
-VALID_DEV_MODES = ["graviton_mode", "neuronx_mode", "deep_canary_mode"]
+VALID_DEV_MODES = ["graviton_mode", "arm64_mode", "neuronx_mode", "deep_canary_mode"]
 
 DEFAULT_TOML_URL = "https://raw.githubusercontent.com/aws/deep-learning-containers/master/dlc_developer_config.toml"
 
@@ -103,7 +103,7 @@ def get_args():
     parser.add_argument(
         "-o",
         action="store_true",
-        help="Comments out autopatch_build and uncomments build_tag_override in buildspec",
+        help="Comments out autopatch_build and uncomments skip_build in buildspec",
     )
     return parser.parse_args()
 
@@ -156,7 +156,7 @@ class TomlOverrider:
     def set_dev_mode(self, dev_mode):
         """
         Set the dev mode based on the user input.
-        Valid choices are 'graviton_mode', 'neuronx_mode', and 'deep_canary_mode'.
+        Valid choices are 'graviton_mode', 'arm64_mode', 'neuronx_mode', and 'deep_canary_mode'.
         """
         # Reset all dev modes to False
         for mode in VALID_DEV_MODES:
@@ -298,11 +298,12 @@ def extract_path_components(path, pattern):
 def find_latest_version_path(framework, job_type, optional_tag, major_version, extra_tag):
     """
     Find the path to the latest existing version of the buildspec file based on the provided components.
-    Special condition checks if file is a graviton file
+    Special condition checks if file is a graviton/arm64 file.
     """
     path_prefix = os.path.join(get_cloned_folder_path(), framework, job_type)
     graviton_pattern = r"buildspec-graviton-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
-    non_graviton_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
+    arm64_pattern = r"buildspec-arm64-(\d+)-(\d+)(?:-{})?\.yml".format(extra_tag or r"\w*")
+    general_pattern = r"buildspec(?:-{})?-(\d+)-(\d+)(?:-{})?\.yml".format(
         optional_tag or r"\w*", extra_tag or r"\w*"
     )
     latest_version = (int(major_version), 0)
@@ -310,7 +311,8 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
 
     for file_name in os.listdir(path_prefix):
         graviton_match = re.match(graviton_pattern, file_name)
-        non_graviton_match = re.match(non_graviton_pattern, file_name)
+        arm64_match = re.match(arm64_pattern, file_name)
+        general_match = re.match(general_pattern, file_name)
 
         if graviton_match:
             major_version_str, minor_version_str = graviton_match.groups()[:2]
@@ -318,8 +320,14 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
             if version > latest_version:
                 latest_version = version
                 latest_path = os.path.join(path_prefix, file_name)
-        elif non_graviton_match:
-            major_version_str, minor_version_str = non_graviton_match.groups()[:2]
+        elif arm64_match:
+            major_version_str, minor_version_str = arm64_match.groups()[:2]
+            version = (int(major_version_str), int(minor_version_str))
+            if version > latest_version:
+                latest_version = version
+                latest_path = os.path.join(path_prefix, file_name)
+        elif general_match:
+            major_version_str, minor_version_str = general_match.groups()[:2]
             minor_version_str = int(minor_version_str)
             if extra_tag:
                 version = (int(major_version_str), minor_version_str, extra_tag)
@@ -334,7 +342,7 @@ def find_latest_version_path(framework, job_type, optional_tag, major_version, e
 
 def generate_new_file_content(previous_version_path, major_version, minor_version):
     """
-    Generate the content for the new buildspec file with the updated version, short_version, and build_tag_override values.
+    Generate the content for the new buildspec file with the updated version, short_version, and skip_build values.
     """
     new_version = f"{major_version}.{minor_version}.0"
     with open(previous_version_path, "r") as prev_file:
@@ -346,14 +354,8 @@ def generate_new_file_content(previous_version_path, major_version, minor_versio
                 content[i] = f'short_version: &SHORT_VERSION "{major_version}.{minor_version}"\n'
             elif line.strip().startswith("autopatch_build"):
                 content[i] = f"# {line}"
-            elif line.strip().startswith("# build_tag_override:"):
-                build_tag_parts = line.strip().split('"')
-                build_tag_handle, old_version_and_rest = build_tag_parts[1].split(":", 1)
-                build_tag_rest = (
-                    old_version_and_rest.split("-", 1)[1] if "-" in old_version_and_rest else ""
-                )
-                new_build_tag_override = f'"{build_tag_handle}:{new_version}-{build_tag_rest}"'
-                content[i] = f"    # build_tag_override: {new_build_tag_override}\n"
+            elif line.strip().startswith("# skip_build:"):
+                content[i] = f'    # skip_build: "False"\n'
 
     return content
 
@@ -379,10 +381,19 @@ def create_new_file_with_updated_version(currency_path, updated_content, previou
         os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-graviton.yml"
     )
 
+    # Update the arm64 pointer file
+    arm64_pointer_file_path = os.path.join(
+        os.path.dirname(os.path.dirname(new_file_path)), "inference", "buildspec-arm64.yml"
+    )
+
     if "graviton" in new_file_path and os.path.exists(graviton_pointer_file_path):
         update_pointer_file(graviton_pointer_file_path, currency_path)
     elif "graviton" in new_file_path:
         LOGGER.warning(f"Graviton pointer file not found at {graviton_pointer_file_path}")
+    elif "arm64" in new_file_path and os.path.exists(arm64_pointer_file_path):
+        update_pointer_file(arm64_pointer_file_path, currency_path)
+    elif "arm64" in new_file_path:
+        LOGGER.warning(f"ARM64 pointer file not found at {arm64_pointer_file_path}")
     else:
         pointer_file_path = os.path.join(os.path.dirname(new_file_path), "buildspec.yml")
         if os.path.exists(pointer_file_path):
@@ -507,7 +518,7 @@ def create_docker_file(docker_file_path):
 
 def override_existing_buildspec(buildspec_path):
     """
-    Override the autopatch_build and build_tag_override tags in an existing buildspec file.
+    Override the autopatch_build and skip_build tags in an existing buildspec file.
     """
     full_path = validate_buildspec_path(buildspec_path)
     if not full_path:
@@ -516,14 +527,14 @@ def override_existing_buildspec(buildspec_path):
     with open(full_path, "r") as file:
         content = file.readlines()
 
-    build_tag_override_found = any("# build_tag_override:" in line for line in content)
+    skip_build_found = any("# skip_build:" in line for line in content)
 
-    if build_tag_override_found:
+    if skip_build_found:
         updated_content = []
 
         for line in content:
-            if line.strip().startswith("# build_tag_override:"):
-                updated_line = uncomment_build_tag_override_line(line)
+            if line.strip().startswith("# skip_build:"):
+                updated_line = line.strip("# ").replace("False", "True")
             elif line.strip().startswith("autopatch_build"):
                 updated_line = f"# {line}"
             else:
@@ -536,18 +547,8 @@ def override_existing_buildspec(buildspec_path):
         LOGGER.info(f"Updated {buildspec_path}")
     else:
         LOGGER.warning(
-            f"WARNING: No build_tag_override tag found in {buildspec_path}, file will not be overridden"
+            f"WARNING: No skip_build tag found in {buildspec_path}, file will not be overridden"
         )
-
-
-def uncomment_build_tag_override_line(line):
-    """
-    Handle the build_tag_override line based on the override_tags value.
-    """
-    build_tag_parts = line.strip().split(":")
-    build_tag_handle = build_tag_parts[0].strip("# ").strip()
-    rest_of_line = ":".join(build_tag_parts[1:])
-    return f"    {build_tag_handle}: {rest_of_line.strip()}\n"
 
 
 def restore_buildspec(buildspec_path):
@@ -582,9 +583,9 @@ def handle_restore_option(toml_path, buildspec_paths, to_commit, to_push):
     if buildspec_paths:
         for buildspec_path in buildspec_paths:
             orig_buildspec = restore_buildspec(buildspec_path)
-            changes[
-                os.path.join(get_cloned_folder_path(), buildspec_path)
-            ] = f"Restored {buildspec_path} to {orig_buildspec}"
+            changes[os.path.join(get_cloned_folder_path(), buildspec_path)] = (
+                f"Restored {buildspec_path} to {orig_buildspec}"
+            )
 
     if not buildspec_paths or toml_path not in changes:
         restore_default_toml(toml_path)

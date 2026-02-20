@@ -121,7 +121,7 @@ def test_pytorch_2_2_cpu(pytorch_training___2__2, ec2_connection, cpu_only):
         (common_cases.pytorch_gloo, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_mpi, (pytorch_training, ec2_connection)),
         (common_cases.pytorch_training_torchaudio, (pytorch_training, ec2_connection)),
-        (common_cases.pytorch_telemetry_cpu, (pytorch_training, ec2_connection)),
+        (common_cases.pytorch_telemetry, (pytorch_training, ec2_connection)),
     ]
 
     if "sagemaker" in pytorch_training:

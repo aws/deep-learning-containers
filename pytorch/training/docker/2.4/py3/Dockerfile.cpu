@@ -163,19 +163,23 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     ipykernel \
     pillow \
     h5py \
-    mpi4py \
     fsspec \
     "idna>=3.7" \
     "tqdm>=4.66.3" \
-    "requests>=2.32.0" \
-    "setuptools>=70.0.0" \
-    "urllib3<2" \
+    "requests>=2.32.4" \
+    "setuptools>=78.1.1" \
+    "urllib3==2.5.0" \
     "awscli<2" \
+    "pip>=25.0" \
  && /opt/conda/bin/mamba clean -afy \
  && rm -rf /etc/apt/sources.list.d/*
 
 # Install common pip packages (in case of conda package is not available)
-RUN pip install --no-cache-dir opencv-python
+RUN pip install --no-cache-dir \
+    # pin numpy version
+    "numpy<2" \
+    opencv-python \
+    mpi4py
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.4/license.txt
 
@@ -218,9 +222,9 @@ RUN pip install --no-cache-dir -U \
     ${TORCHAUDIO_URL} \
     ${TORCHTEXT_URL} \
     torchtnt \
-    s3torchconnector \
-    fastai \
-    accelerate \
+    "s3torchconnector==1.2.6" \
+    "fastai==2.7.18" \
+    "accelerate==1.0.1" \
     # pin numpy requirement for fastai dependency
     # requires explicit declaration of spacy, thic, blis
     spacy \
@@ -285,12 +289,6 @@ RUN pip install --no-cache-dir -U \
     s3torchconnector \
     fastai \
     accelerate \
-    # pin numpy requirement for fastai dependency
-    # requires explicit declaration of spacy, thic, blis
-    spacy \
-    thinc \
-    blis \
-    "numpy<2" \
  && pip uninstall -y dataclasses
 
 # Install SM packages
@@ -311,9 +309,18 @@ RUN /opt/conda/bin/mamba install -y -c conda-forge \
     scikit-learn \
     seaborn \
     shap \
-    # pinned for sagemaker==2.232.2
+    # pinned for sagemaker==2.235.1
     "cloudpickle==2.2.1" \
  && /opt/conda/bin/mamba clean -afy
+
+RUN pip install --no-cache-dir -U \
+    # pin numpy requirement for sagemaker dependency
+    # requires explicit declaration of spacy, thic, blis
+    # pip install due to pip check conflict with conda package
+    spacy \
+    thinc \
+    blis \
+    "numpy<2"
 
 # Copy workaround script for incorrect hostname
 COPY changehostname.c /

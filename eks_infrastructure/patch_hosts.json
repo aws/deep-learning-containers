@@ -5,6 +5,7 @@
     ],
     "eks_clusters": [
         "dlc-pytorch",
-        "dlc-tensorflow"
+        "dlc-tensorflow",
+        "dlc-vllm"
     ]
 }

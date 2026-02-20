@@ -300,9 +300,9 @@ class ScanVulnerabilityList:
         for key, list_of_complex_types in copy_dict.items():
             uniquified_list = test_utils.uniquify_list_of_complex_datatypes(list_of_complex_types)
             uniquified_list.sort(
-                key=lambda dict_element: dict_element["name"]
-                if isinstance(dict_element, dict)
-                else dict_element.name
+                key=lambda dict_element: (
+                    dict_element["name"] if isinstance(dict_element, dict) else dict_element.name
+                )
             )
         return dict(sorted(copy_dict.items()))
 
@@ -614,6 +614,14 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
             for vulnerable_package in ecr_format_vulnerability["packageVulnerabilityDetails"][
                 "vulnerablePackages"
             ]:
+                if "fixedInVersion" in vulnerable_package:
+                    fixed_version = vulnerable_package["fixedInVersion"].lower()
+                    if "esm" in fixed_version and "ubuntu" in fixed_version:
+                        LOGGER.info(
+                            f"Skipping ESM version {fixed_version} for package {vulnerable_package['name']}"
+                        )
+                        continue
+
                 allowlist_format_vulnerability_object = AllowListFormatVulnerabilityForEnhancedScan(
                     **ecr_format_vulnerability
                 )
@@ -662,13 +670,19 @@ class ECREnhancedScanVulnerabilityList(ScanVulnerabilityList):
     def remove_vulnerabilities_for_package(
         self, package_name: str, vulnerability_id_list: Set[str]
     ):
-        """Removes any vulnerabilities for the package_name whose id is in the cve_id_list."""
+        """Removes any vulnerabilities for the package_name whose id is in the vulnerability_id_list.
+        Removes the package key entirely if the resulting list is empty.
+        """
         if package_name in self.vulnerability_list:
-            self.vulnerability_list[package_name] = [
+            filtered_vulns = [
                 vulnerability
                 for vulnerability in self.vulnerability_list[package_name]
                 if vulnerability.vulnerability_id not in vulnerability_id_list
             ]
+            if filtered_vulns:
+                self.vulnerability_list[package_name] = filtered_vulns
+            else:
+                del self.vulnerability_list[package_name]
 
 
 def get_ecr_vulnerability_package_version(vulnerability):
@@ -746,7 +760,7 @@ def run_upgrade_on_image_and_push(image, new_image_uri):
     apt_ran_successfully_flag = False
     # When a command or application is updating the system or installing a new software, it locks the dpkg file (Debian package manager).
     # Since we have multiple processes running for the tests, there are cases when one of the process locks the dpkg file
-    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running apt-get update
+    # In this scenario, we get error: ‘E: Could not get lock /var/lib/dpkg/lock’ while running dnf update
     # That is why we need multiple tries to ensure that it succeeds in one of the tries.
     # More info: https://itsfoss.com/could-not-get-lock-error/
     while True:
@@ -866,7 +880,7 @@ def get_vulnerabilites_fixable_by_upgrade(
     image_allowlist, ecr_image_vulnerability_list, upgraded_image_vulnerability_list
 ):
     """
-    Finds out the vulnerabilities that are fixable by apt-get update and apt-get upgrade.
+    Finds out the vulnerabilities that are fixable by dnf update and dnf upgrade.
 
     :param image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
     :param ecr_image_vulnerability_list: ScanVulnerabilityList, Vulnerabities recently detected WITHOUT running apt-upgrade on the originally released image.
@@ -970,9 +984,9 @@ def conduct_failure_routine(
         )
     return_dict = copy.deepcopy(message_body)
     return_dict["s3_filename_for_allowlist"] = s3_filename_for_allowlist
-    return_dict[
-        "s3_filename_for_current_image_ecr_scan_list"
-    ] = s3_filename_for_current_image_ecr_scan_list
+    return_dict["s3_filename_for_current_image_ecr_scan_list"] = (
+        s3_filename_for_current_image_ecr_scan_list
+    )
     return return_dict
 
 
@@ -1055,47 +1069,6 @@ def wait_for_enhanced_scans_to_complete(ecr_client, image):
         )
 
 
-def fetch_other_vulnerability_lists(image, ecr_client, minimum_sev_threshold):
-    """
-    For a given image it fetches all the other vulnerability lists except the vulnerability list formed by the
-    ecr scan of the current image. In other words, for a given image it fetches upgraded_image_vulnerability_list and
-    image_scan_allowlist.
-
-    :param image: str Image URI for image to be tested
-    :param ecr_client: boto3 Client for ECR
-    :param minimum_sev_threshold: string, determines the minimum severity threshold for ScanVulnerabilityList objects. Can take values HIGH or MEDIUM.
-    :return upgraded_image_vulnerability_list: ScanVulnerabilityList, Vulnerabilites exisiting in the image WITH apt-upgrade run on it.
-    :return image_allowlist: ScanVulnerabilityList, Vulnerabities that are present in the respective allowlist in the DLC git repo.
-    """
-    new_image_uri_for_upgraded_image = get_target_image_uri_using_current_uri_and_target_repo(
-        image,
-        target_repository_name=test_utils.UPGRADE_ECR_REPO_NAME,
-        target_repository_region=os.getenv("REGION", test_utils.DEFAULT_REGION),
-        append_tag="upgraded",
-    )
-    run_upgrade_on_image_and_push(image, new_image_uri_for_upgraded_image)
-    run_scan(ecr_client, new_image_uri_for_upgraded_image)
-    scan_results_with_upgrade = ecr_utils.get_ecr_image_scan_results(
-        ecr_client, new_image_uri_for_upgraded_image, minimum_vulnerability=minimum_sev_threshold
-    )
-    scan_results_with_upgrade = ecr_utils.populate_ecr_scan_with_web_scraper_results(
-        new_image_uri_for_upgraded_image, scan_results_with_upgrade
-    )
-    upgraded_image_vulnerability_list = ECRBasicScanVulnerabilityList(
-        minimum_severity=CVESeverity[minimum_sev_threshold]
-    )
-    upgraded_image_vulnerability_list.construct_allowlist_from_ecr_scan_result(
-        scan_results_with_upgrade
-    )
-    image_scan_allowlist = ECRBasicScanVulnerabilityList(
-        minimum_severity=CVESeverity[minimum_sev_threshold]
-    )
-    image_scan_allowlist_path = test_utils.get_ecr_scan_allowlist_path(image)
-    if os.path.exists(image_scan_allowlist_path):
-        image_scan_allowlist.construct_allowlist_from_file(image_scan_allowlist_path)
-    return upgraded_image_vulnerability_list, image_scan_allowlist
-
-
 def generate_future_allowlist(
     ecr_image_vulnerability_list: ECREnhancedScanVulnerabilityList,
     image_scan_allowlist: ECREnhancedScanVulnerabilityList,
@@ -1138,7 +1111,7 @@ def segregate_impacted_package_names_based_on_manager(
         for cve in package_cve_list:
             if cve.package_details.package_manager == "OS":
                 segregated_package_names["os_packages"].add(package_name)
-            elif cve.package_details.package_manager == "PYTHONPKG":
+            elif cve.package_details.package_manager in ["PYTHONPKG", "PYTHON"]:
                 segregated_package_names["py_packages"].add(package_name)
     return segregated_package_names
 
@@ -1244,9 +1217,10 @@ def check_if_python_vulnerability_is_non_patchable_and_get_ignore_message(
     :return: [bool, str], returns 2 values, the first says True if the vulnerability/package is non-patchable and the second one stores the ignore message
              in case the vulnerability is non-patchable. This ignore message is used to insert into the allowlist.
     """
-    assert (
-        vulnerability.package_details.package_manager == "PYTHONPKG"
-    ), f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg managed."
+    assert vulnerability.package_details.package_manager in [
+        "PYTHONPKG",
+        "PYTHON",
+    ], f"Vulnerability: {json.dumps(vulnerability, cls=EnhancedJSONEncoder)} is not PythonPkg or Python managed."
 
     package_name = vulnerability.package_name.lower()
     if package_name not in installed_python_package_version_dict:
@@ -1358,7 +1332,7 @@ def extract_non_patchable_vulnerabilities(
         vulnerabilities,
     ) in non_patchable_vulnerabilities_with_reason.vulnerability_list.items():
         package_manager = vulnerabilities[0].package_details.package_manager
-        if package_manager not in ["OS", "PYTHONPKG"]:
+        if package_manager not in ["OS", "PYTHONPKG", "PYTHON"]:
             patchable_packages.append(package_name)
             continue
         if package_manager == "OS":
@@ -1372,7 +1346,7 @@ def extract_non_patchable_vulnerabilities(
                 continue
             for package_vulnerability in vulnerabilities:
                 package_vulnerability.reason_to_ignore = ignore_msg
-        elif package_manager == "PYTHONPKG":
+        elif package_manager in ["PYTHONPKG", "PYTHON"]:
             # Similary, for python packages, we filter the vulnerabilities that are allowlistable i.e. non-patchable and let the non-patchable
             # ones remain in the non_patchable_vulnerabilities_with_reason Object.
             allowlistable_python_vulns = get_non_patchable_python_vulnerabilities(
@@ -1381,9 +1355,9 @@ def extract_non_patchable_vulnerabilities(
                 docker_exec_command=docker_exec_cmd,
             )
             if allowlistable_python_vulns:
-                non_patchable_vulnerabilities_with_reason.vulnerability_list[
-                    package_name
-                ] = allowlistable_python_vulns
+                non_patchable_vulnerabilities_with_reason.vulnerability_list[package_name] = (
+                    allowlistable_python_vulns
+                )
             else:
                 patchable_packages.append(package_name)
 

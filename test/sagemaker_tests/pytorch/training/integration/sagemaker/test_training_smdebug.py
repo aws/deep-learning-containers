@@ -22,7 +22,7 @@ from ...integration.sagemaker.timeout import timeout
 from . import invoke_pytorch_estimator
 
 
-@pytest.mark.skip_smdebug_v1_test
+@pytest.mark.skip("SM Debugger/Profiler v1 deprecated")
 @pytest.mark.skip_py2_containers
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")
@@ -57,7 +57,7 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
         )
 
 
-@pytest.mark.skip_smdebug_v1_test
+@pytest.mark.skip("SM Debugger/Profiler v1 deprecated")
 @pytest.mark.skip_py2_containers
 @pytest.mark.usefixtures("feature_smdebug_present")
 @pytest.mark.integration("smdebug")

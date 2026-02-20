@@ -7,6 +7,7 @@ from test.test_utils import ec2 as ec2_utils
 from test.test_utils import LOGGER
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
+from test.test_utils import TELEMETRY_REGION_MAPPING
 
 
 @pytest.mark.flaky(reruns=2)
@@ -14,13 +15,12 @@ from packaging.specifiers import SpecifierSet
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, x86_compatible_only
 ):
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -34,7 +34,6 @@ def test_telemetry_instance_tag_failure_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, cpu_only, x86_compatible_only
 ):
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -43,16 +42,34 @@ def test_telemetry_instance_tag_failure_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_failure_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
+    _run_tag_failure_IMDSv1_disabled(gpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -60,17 +77,35 @@ def test_telemetry_instance_tag_failure_graviton_gpu(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
 ):
-    ec2_connection.run(f"sudo apt-get update -y")
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_failure_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    ec2_connection.run(f"sudo dnf update -y")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
+    _run_tag_failure_IMDSv1_disabled(cpu, ec2_client, ec2_instance, ec2_connection)
 
 
 @pytest.mark.flaky(reruns=2)
@@ -83,9 +118,6 @@ def test_telemetry_instance_tag_failure_graviton_cpu(
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance, ec2_connection):
     _run_tag_failure_IMDSv1_disabled(neuron, ec2_client, ec2_instance, ec2_connection)
-    _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
-        neuron, ec2_client, ec2_instance, ec2_connection
-    )
 
 
 @pytest.mark.flaky(reruns=2)
@@ -94,7 +126,7 @@ def test_telemetry_instance_tag_failure_neuron(neuron, ec2_client, ec2_instance,
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_gpu(
     gpu,
@@ -138,7 +170,9 @@ def test_telemetry_instance_tag_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -150,13 +184,49 @@ def test_telemetry_instance_tag_success_graviton_gpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_success_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    _run_tag_success_IMDSv1(gpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_instance_tag_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
+):
+    _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
+    _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_instance_tag_success_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
     _run_tag_success_IMDSv1(cpu, ec2_client, ec2_instance, ec2_connection)
     _run_tag_success_IMDSv2_hop_limit_2(cpu, ec2_client, ec2_instance, ec2_connection)
@@ -183,7 +253,7 @@ def test_telemetry_instance_tag_success_neuron(
 @pytest.mark.model("N/A")
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["p3.2xlarge"], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["g5.8xlarge"], indirect=True)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_gpu(
     gpu,
@@ -224,7 +294,9 @@ def test_telemetry_s3_query_bucket_success_cpu(
 @pytest.mark.processor("gpu")
 @pytest.mark.integration("telemetry")
 @pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_gpu(
     gpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
@@ -235,13 +307,47 @@ def test_telemetry_s3_query_bucket_success_graviton_gpu(
 @pytest.mark.flaky(reruns=2)
 @pytest.mark.usefixtures("sagemaker", "telemetry")
 @pytest.mark.model("N/A")
+@pytest.mark.processor("gpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["g5g.2xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_s3_query_bucket_success_arm64_gpu(
+    gpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
+):
+    _run_s3_query_bucket_success(gpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
 @pytest.mark.processor("cpu")
 @pytest.mark.integration("telemetry")
-@pytest.mark.parametrize("ec2_instance_type", ["c6g.4xlarge"], indirect=True)
-@pytest.mark.parametrize("ec2_instance_ami", [test_utils.UL20_CPU_ARM64_US_WEST_2], indirect=True)
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
 @pytest.mark.timeout(1200)
 def test_telemetry_s3_query_bucket_success_graviton_cpu(
     cpu, ec2_client, ec2_instance, ec2_connection, graviton_compatible_only
+):
+    _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
+
+
+@pytest.mark.flaky(reruns=2)
+@pytest.mark.usefixtures("sagemaker", "telemetry")
+@pytest.mark.model("N/A")
+@pytest.mark.processor("cpu")
+@pytest.mark.integration("telemetry")
+@pytest.mark.parametrize("ec2_instance_type", ["c6g.8xlarge"], indirect=True)
+@pytest.mark.parametrize(
+    "ec2_instance_ami", [test_utils.AL2023_BASE_DLAMI_ARM64_US_WEST_2], indirect=True
+)
+@pytest.mark.timeout(1200)
+def test_telemetry_s3_query_bucket_success_arm64_cpu(
+    cpu, ec2_client, ec2_instance, ec2_connection, arm64_compatible_only
 ):
     _run_s3_query_bucket_success(cpu, ec2_client, ec2_instance, ec2_connection)
 
@@ -278,7 +384,7 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     ec2_connection.run(f"docker pull {image_uri}", hide="out")
 
     actual_output = invoke_telemetry_call(
-        image_uri, container_name, framework, job_type, ec2_connection, test_mode=1
+        image_uri, container_name, framework, job_type, ec2_connection, test_mode="1"
     )
 
     py_version = (
@@ -290,9 +396,14 @@ def _run_s3_query_bucket_success(image_uri, ec2_client, ec2_instance, ec2_connec
     )
 
     expected_s3_url = (
-        "https://aws-deep-learning-containers-{0}.s3.{0}.amazonaws.com"
-        "/dlc-containers-{1}.txt?x-instance-id={1}&x-framework={2}&x-framework_version={3}&x-py_version={4}".format(
-            image_region, ec2_instance_id, framework, framework_version, py_version
+        "https://aws-deep-learning-containers-{0}.s3.{1}.amazonaws.com"
+        "/dlc-containers-{2}.txt?x-instance-id={2}&x-framework={3}&x-framework_version={4}&x-py_version={5}".format(
+            TELEMETRY_REGION_MAPPING[image_region],
+            image_region,
+            ec2_instance_id,
+            framework,
+            framework_version,
+            py_version,
         )
     )
 
@@ -338,9 +449,7 @@ def _run_tag_failure_IMDSv1_disabled(image_uri, ec2_client, ec2_instance, ec2_co
         ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
 
     # Disable access to EC2 instance metadata
-    ec2_utils.kill_background_processes_and_run_apt_get_update(ec2_connection)
-    ec2_connection.run(f"sudo apt-get install -y apt-transport-https")
-    ec2_connection.run(f"sudo apt-get install -y net-tools")
+    ec2_connection.run(f"sudo dnf install -y net-tools")
     ec2_connection.run(f"sudo route add -host 169.254.169.254 reject")
 
     invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
@@ -396,59 +505,6 @@ def _run_tag_success_IMDSv1(image_uri, ec2_client, ec2_instance, ec2_connection)
         expected_tag_key in ec2_instance_tags
     ), f"{expected_tag_key} was not applied as an instance tag"
 
-    # Change instance state back to IMDSv2 enabled with hop limit to 2
-    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
-
-
-def _run_tag_failure_IMDSv2_disabled_as_hop_limit_1(
-    image_uri, ec2_client, ec2_instance, ec2_connection
-):
-    """
-    Try to add a tag on EC2 instance, it should not get added as IMDSv2 is disabled due to hop limit 1
-    """
-    LOGGER.info(f"starting _run_tag_failure_IMDSv2_disabled_as_hop_limit_1 with {image_uri}")
-    expected_tag_key = "aws-dlc-autogenerated-tag-do-not-delete"
-
-    ec2_instance_id, _ = ec2_instance
-    account_id = test_utils.get_account_id_from_image_uri(image_uri)
-    image_region = test_utils.get_region_from_image_uri(image_uri)
-    repo_name, image_tag = test_utils.get_repository_and_tag_from_image_uri(image_uri)
-    framework, _ = test_utils.get_framework_and_version_from_tag(image_uri)
-    job_type = test_utils.get_job_type_from_image(image_uri)
-
-    container_name = f"{repo_name}-telemetry_tag_instance_failure-ec2-IMDSv2"
-
-    LOGGER.info(f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1 pulling: {image_uri}")
-    test_utils.login_to_ecr_registry(ec2_connection, account_id, image_region)
-    ec2_connection.run(f"docker pull {image_uri}", hide="out")
-
-    LOGGER.info(
-        f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags"
-    )
-    preexisting_ec2_instance_tags = ec2_utils.get_ec2_instance_tags(
-        ec2_instance_id, ec2_client=ec2_client
-    )
-    LOGGER.info(
-        f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, preexisting_ec2_instance_tags: {preexisting_ec2_instance_tags}"
-    )
-
-    # If IMDSv2 is enforced on EC2 instance with hop limit 1 then IMDSv2 api calls doesn't work
-    # If IMDSv2 is enforced on EC2 instance with hop limit > 1 then IMDSv2 api calls work
-    ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=1)
-
-    if expected_tag_key in preexisting_ec2_instance_tags:
-        ec2_client.delete_tags(Resources=[ec2_instance_id], Tags=[{"Key": expected_tag_key}])
-    invoke_telemetry_call(image_uri, container_name, framework, job_type, ec2_connection)
-
-    LOGGER.info(
-        f"_run_tag_failure_IMDSv2_disabled_as_hop_limit_1, {image_uri} starting get_ec2_instance_tags"
-    )
-    ec2_instance_tags = ec2_utils.get_ec2_instance_tags(ec2_instance_id, ec2_client=ec2_client)
-    LOGGER.info(f"ec2_instance_tags: {ec2_instance_tags}")
-    assert expected_tag_key not in ec2_instance_tags, (
-        f"{expected_tag_key} was applied as an instance tag."
-        "EC2 create_tags went through even though it should not have"
-    )
     # Change instance state back to IMDSv2 enabled with hop limit to 2
     ec2_utils.enforce_IMDSv2(ec2_instance_id, hop_limit=2)
 
@@ -528,10 +584,10 @@ def invoke_telemetry_call(
             framework.replace("huggingface_", "").replace("_trcomp", "").replace("stabilityai_", "")
         )
         framework_to_import = "torch" if framework_to_import == "pytorch" else framework_to_import
-        ec2_connection.run(
-            f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
-        )
         if test_mode:
+            ec2_connection.run(
+                f"docker run {docker_runtime} -e TEST_MODE={test_mode} --name {container_name} -id {image_uri} bash"
+            )
             ec2_connection.run(
                 f"docker exec -i -e TEST_MODE={test_mode} {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30);'"
             )
@@ -539,6 +595,9 @@ def invoke_telemetry_call(
                 f"docker exec -i {container_name} /bin/bash -c 'cat /tmp/test_request.txt'"
             ).stdout.strip("\n")
         else:
+            ec2_connection.run(
+                f"docker run {docker_runtime} --name {container_name} -id {image_uri} bash"
+            )
             output = ec2_connection.run(
                 f"docker exec -i {container_name} python -c 'import {framework_to_import}; import time; time.sleep(30)'"
             )

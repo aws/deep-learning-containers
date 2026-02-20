@@ -1,24 +1,27 @@
+awscli==1.38.9
+boto3==1.37.9
 docker
 fabric
-#unpin when fabric releases v3.1 Related Issue https://github.com/fabric/fabric/issues/2263
-invoke<2.1.0
+invoke
 junit-xml==1.9
 packaging
+Pillow
 # Pin pytest to preserve pytest cache behavior
 pytest<8.1
-pytest-rerunfailures
+pytest-rerunfailures<=15.1
 pytest-timeout
 pytest-json-report
 pytest-xdist
 sagemaker>=2,<3
+sagemaker-experiments
 xmltodict
-boto3>=1.33
 retrying
 gitpython
 pytz
 toml
-lxml==5.3.0
-scrapy
+lxml==5.3.1
 crochet
 tenacity
 requests
+botocore==1.37.9
+s3transfer<0.12.0,>=0.11.0

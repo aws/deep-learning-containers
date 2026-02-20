@@ -30,65 +30,6 @@ logging.getLogger("botocore").setLevel(logging.INFO)
 RESOURCE_PATH = os.path.join(os.path.dirname(__file__), "..", "resources")
 DEFAULT_TIMEOUT = 120
 
-# these regions have some p2 and p3 instances, but not enough for automated testing
-NO_P2_REGIONS = [
-    "ap-northeast-3",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P4_REGIONS = [
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-west-2",
-    "us-west-1",
-    "eu-west-3",
-    "eu-north-1",
-    "sa-east-1",
-    "ap-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
 
 def _botocore_resolver():
     """
@@ -114,19 +55,27 @@ def get_framework_from_image_uri(image_uri):
     return (
         "huggingface_tensorflow_trcomp"
         if "huggingface-tensorflow-trcomp" in image_uri
-        else "huggingface_tensorflow"
-        if "huggingface-tensorflow" in image_uri
-        else "huggingface_pytorch_trcomp"
-        if "huggingface-pytorch-trcomp" in image_uri
-        else "huggingface_pytorch"
-        if "huggingface-pytorch" in image_uri
-        else "mxnet"
-        if "mxnet" in image_uri
-        else "pytorch"
-        if "pytorch" in image_uri
-        else "tensorflow"
-        if "tensorflow" in image_uri
-        else None
+        else (
+            "huggingface_tensorflow"
+            if "huggingface-tensorflow" in image_uri
+            else (
+                "huggingface_pytorch_trcomp"
+                if "huggingface-pytorch-trcomp" in image_uri
+                else (
+                    "huggingface_pytorch"
+                    if "huggingface-pytorch" in image_uri
+                    else (
+                        "mxnet"
+                        if "mxnet" in image_uri
+                        else (
+                            "pytorch"
+                            if "pytorch" in image_uri
+                            else "tensorflow" if "tensorflow" in image_uri else None
+                        )
+                    )
+                )
+            )
+        )
     )
 
 

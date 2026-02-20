@@ -31,6 +31,12 @@ def test_dlc_major_version_label(image, region):
 @pytest.mark.integration("dlc_labels")
 @pytest.mark.model("N/A")
 def test_dlc_standard_labels(image, region):
+    upstream_types = ["vllm", "sglang"]
+    if any(t in image for t in upstream_types):
+        pytest.skip(
+            f"{', '.join(upstream_types)} images do not require test_dlc_standard_labels check as they are managed by upstream devs. Skipping test."
+        )
+
     customer_type_label_prefix = "ec2" if test_utils.is_ec2_image(image) else "sagemaker"
 
     framework, fw_version = test_utils.get_framework_and_version_from_tag(image)
@@ -47,8 +53,11 @@ def test_dlc_standard_labels(image, region):
     )
     os_version = test_utils.get_os_version_from_image_uri(image).replace(".", "-")
 
-    # TODO: Add x86 env variable to check explicitly for x86, instead of assuming that everything not graviton is x86
-    arch_type = "graviton" if test_utils.is_graviton_architecture() else "x86"
+    arch_type = (
+        "graviton"
+        if test_utils.is_graviton_architecture()
+        else "arm64" if test_utils.is_arm64_architecture() else "x86"
+    )
 
     contributor = test_utils.get_contributor_from_image_uri(image)
 

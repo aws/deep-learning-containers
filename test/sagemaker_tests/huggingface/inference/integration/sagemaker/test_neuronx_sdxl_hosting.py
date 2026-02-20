@@ -146,6 +146,7 @@ def _test_pt_neuronx(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
+            inference_ami_version="al2-ami-sagemaker-inference-neuron-2",
         )
 
         data = {"inputs": "Astronaut in a jungle, cold color palette, muted colors, detailed, 8k"}

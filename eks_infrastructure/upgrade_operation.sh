@@ -66,20 +66,18 @@ function upgrade_nodegroups() {
 
 #Function to upgrade core k8s components
 function update_eksctl_utils() {
-  eksctl utils update-kube-proxy \
-    --cluster ${1} \
-    --region ${2} \
-    --approve
+  LIST_ADDONS=$(eksctl get addon --cluster ${CLUSTER}  -o json | jq -r '.[].Name')
 
-  eksctl utils update-aws-node \
-    --cluster ${1} \
-    --region ${2} \
-    --approve
-
-  eksctl utils update-coredns \
-    --cluster ${1} \
-    --region ${2} \
-    --approve
+  if [ -n "${LIST_ADDONS}" ]; then
+    for ADDONS in ${LIST_ADDONS}; do
+      eksctl update addon \
+        --name ${ADDONS} \
+        --cluster ${1} \
+        --region ${2}
+    done
+  else
+    echo "No addons present in the EKS cluster ${CLUSTER}"
+  fi
 }
 
 if [ $# -lt 3 ]; then
@@ -95,11 +93,8 @@ fi
 TARGET=${1}
 CLUSTER=${2}
 EKS_VERSION=${3}
-if [ "${TARGET}" = "CLUSTER" ]; then
-  CLUSTER_AUTOSCALAR_IMAGE_VERSION=${4}
-elif [ "${TARGET}" = "NODEGROUP" ]; then
-  ERROR_LOG=${4}
-fi
+ERROR_LOG=${4}
+CLUSTER_AUTOSCALAR_IMAGE_VERSION=${5}
 
 if [ -n "${EKS_CLUSTER_MANAGER_ROLE}" ]; then
   update_kubeconfig ${CLUSTER} ${EKS_CLUSTER_MANAGER_ROLE} ${AWS_REGION}
@@ -110,7 +105,7 @@ if [ "${TARGET}" = "CLUSTER" ]; then
   scale_cluster_autoscalar 0
   upgrade_autoscalar_image ${CLUSTER_AUTOSCALAR_IMAGE_VERSION}
   upgrade_eks_control_plane ${CLUSTER} ${EKS_VERSION}
-  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION}
+  upgrade_nodegroups ${CLUSTER} ${EKS_VERSION} ${AWS_REGION} ${ERROR_LOG}
   update_eksctl_utils ${CLUSTER} ${AWS_REGION}
   #scale back to 1
   scale_cluster_autoscalar 1

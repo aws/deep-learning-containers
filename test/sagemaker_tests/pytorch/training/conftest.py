@@ -35,6 +35,7 @@ from .integration import (
     get_cuda_version_from_tag,
 )
 from .utils.image_utils import build_base_image, are_fixture_labels_enabled
+from .. import NO_P4_REGIONS, NO_G5_REGIONS, P5_AVAIL_REGIONS
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
@@ -56,72 +57,6 @@ NEURON_TRN1_REGIONS = [
 
 NEURON_TRN1_INSTANCES = ["ml.trn1.2xlarge", "ml.trn1.32xlarge"]
 
-NO_P2_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-2",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "us-west-1",
-    "sa-east-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-NO_P3_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "us-east-2",
-    "il-central-1",
-]
-
-NO_P4_REGIONS = [
-    "ap-east-1",
-    "ap-northeast-3",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ap-south-1",
-    "ca-central-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-west-2",
-    "eu-west-3",
-    "sa-east-1",
-    "us-west-1",
-    "me-south-1",
-    "cn-northwest-1",
-    "eu-south-1",
-    "af-south-1",
-    "il-central-1",
-]
-
-P5_AVAIL_REGIONS = [
-    "us-east-1",
-    "us-west-2",
-]
-
 
 def pytest_addoption(parser):
     parser.addoption("--build-image", "-D", action="store_true")
@@ -133,7 +68,7 @@ def pytest_addoption(parser):
     parser.addoption("--framework-version", default="")
     parser.addoption(
         "--py-version",
-        choices=["2", "3", "37", "38", "39", "310", "311"],
+        choices=["2", "3", "37", "38", "39", "310", "311", "312"],
         default=str(sys.version_info.major),
     )
     parser.addoption("--processor", choices=["gpu", "cpu", "neuron", "neuronx"], default="cpu")
@@ -417,10 +352,8 @@ def skip_test_in_region(request, region):
 
 @pytest.fixture(autouse=True)
 def skip_gpu_instance_restricted_regions(region, instance_type):
-    if (
-        (region in NO_P2_REGIONS and instance_type.startswith("ml.p2"))
-        or (region in NO_P3_REGIONS and instance_type.startswith("ml.p3"))
-        or (region in NO_P4_REGIONS and instance_type.startswith("ml.p4"))
+    if (region in NO_P4_REGIONS and instance_type.startswith("ml.p4")) or (
+        region in NO_G5_REGIONS and instance_type.startswith("ml.g5")
     ):
         pytest.skip("Skipping GPU test in region {}".format(region))
 
@@ -471,37 +404,6 @@ def skip_inductor_test(request):
 
 
 @pytest.fixture(autouse=True)
-def skip_smdebug_v1_test(
-    request,
-    processor,
-    ecr_image,
-):
-    """Skip SM Debugger and Profiler tests due to v1 deprecation for PyTorch 2.0.1 and above frameworks."""
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_smdebug_v1_test", skip_dict
-    ):
-        pytest.skip(f"SM Profiler v1 is on path for deprecation, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_dgl_test(
-    request,
-    processor,
-    ecr_image,
-):
-    """Start from PyTorch 2.0.1 framework, DGL binaries are not installed in DLCs by default and will be added in per customer ask.
-    The test condition should be modified appropriately and `skip_dgl_test` pytest mark should be removed from dgl tests
-    when the binaries are added in.
-    """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_dgl_test", skip_dict
-    ):
-        pytest.skip(f"DGL binary is removed, skipping test")
-
-
-@pytest.fixture(autouse=True)
 def skip_pytorchddp_test(
     request,
     processor,
@@ -511,43 +413,14 @@ def skip_pytorchddp_test(
     For each currency release, Once SMDDP binary is added, we skip pytorchddp tests due to `pytorchddp` and `smdistributed` launcher consolidation.
     See https://github.com/aws/sagemaker-python-sdk/pull/4698.
     """
-    skip_dict = {">=2.1,<2.4": ["cu121"]}
+    skip_dict = {
+        ">=2.1,<2.4": ["cu121"],
+        ">=2.4,<2.6": ["cu124"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_pytorchddp_test", skip_dict
     ):
         pytest.skip(f"SM Data Parallel binaries exist in this image, skipping test")
-
-
-@pytest.fixture(autouse=True)
-def skip_smdmodelparallel_test(
-    request,
-    processor,
-    ecr_image,
-):
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.1,<2.4": ["cpu", "cu121"], ">=2.4": ["cpu", "cu124"]}
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_smdmodelparallel_test", skip_dict
-    ):
-        pytest.skip(
-            f"SM Model Parallel team is maintaining their own Docker Container, skipping test"
-        )
-
-
-@pytest.fixture(autouse=True)
-def skip_smddataparallel_test(
-    request,
-    processor,
-    ecr_image,
-):
-    """Start from PyTorch 2.0.1 framework, SMDDP binary releases are decoupled from DLC releases.
-    For each currency release, we can skip SMDDP tests if the binary does not exist.
-    However, when the SMDDP binaries are added, be sure to fix the test logic such that the tests are not skipped.
-    """
-    skip_dict = {"==2.0.*": ["cu121"], ">=2.4": ["cu124"]}
-    if _validate_pytorch_framework_version(
-        request, processor, ecr_image, "skip_smddataparallel_test", skip_dict
-    ):
-        pytest.skip(f"SM Data Parallel binaries do not exist in this image, skipping test")
 
 
 @pytest.fixture(autouse=True)
@@ -559,7 +432,11 @@ def skip_smppy_test(
     """For each currency release, we can skip smppy tests if the Profiler binary does not exist.
     However, when the Profiler binaries are added, be sure to fix the test logic such that the tests are not skipped.
     """
-    skip_dict = {}
+    skip_dict = {
+        ">=2.7.1,<2.8": ["cpu", "cu128"],
+        ">=2.8,<2.9": ["cpu", "cu129"],
+        ">=2.9,<3.0": ["cpu", "cu130"],
+    }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smppy_test", skip_dict
     ):

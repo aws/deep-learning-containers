@@ -44,6 +44,10 @@ def is_graviton_mode_enabled():
     return parse_dlc_developer_configs("dev", "graviton_mode")
 
 
+def is_arm64_mode_enabled():
+    return parse_dlc_developer_configs("dev", "arm64_mode")
+
+
 def is_build_enabled():
     return parse_dlc_developer_configs("build", "do_build")
 
@@ -69,6 +73,14 @@ def is_ec2_benchmark_test_enabled():
 
 def are_heavy_instance_ec2_tests_enabled():
     return parse_dlc_developer_configs("test", "ec2_tests_on_heavy_instances")
+
+
+def is_ipv6_test_enabled():
+    return parse_dlc_developer_configs("test", "enable_ipv6")
+
+
+def is_new_test_structure_enabled():
+    return parse_dlc_developer_configs("test", "use_new_test_structure")
 
 
 def is_ecs_test_enabled():
@@ -111,10 +123,6 @@ def is_nightly_pr_test_mode_enabled():
     return parse_dlc_developer_configs("test", "nightly_pr_test_mode")
 
 
-def is_scheduler_enabled():
-    return parse_dlc_developer_configs("test", "use_scheduler")
-
-
 def is_safety_check_test_enabled():
     return parse_dlc_developer_configs("test", "safety_check_test")
 
@@ -154,6 +162,13 @@ def get_notification_severity():
     return AllowedNotificationSeverity.MEDIUM.value
 
 
+def get_ipv6_vpc_name():
+    """
+    Get the config value for ipv6_vpc_name
+    """
+    return parse_dlc_developer_configs("test", "ipv6_vpc_name")
+
+
 def get_sagemaker_remote_efa_instance_type():
     """
     Get the config value for sagemaker_remote_efa_instance_type
@@ -170,6 +185,7 @@ def is_pr_build_job_flavor_dedicated():
     build_job_is_neuron_dedicated = os.getenv("NEURON_DEDICATED", "false").lower() == "true"
     build_job_is_neuronx_dedicated = os.getenv("NEURONX_DEDICATED", "false").lower() == "true"
     build_job_is_graviton_dedicated = os.getenv("GRAVITON_DEDICATED", "false").lower() == "true"
+    build_job_is_arm64_dedicated = os.getenv("ARM64_DEDICATED", "false").lower() == "true"
     build_job_is_habana_dedicated = os.getenv("HABANA_DEDICATED", "false").lower() == "true"
     build_job_is_hf_trcomp_dedicated = (
         os.getenv("HUGGINFACE_TRCOMP_DEDICATED", "false").lower() == "true"
@@ -181,6 +197,7 @@ def is_pr_build_job_flavor_dedicated():
         or build_job_is_neuron_dedicated
         or build_job_is_neuronx_dedicated
         or build_job_is_graviton_dedicated
+        or build_job_is_arm64_dedicated
         or build_job_is_habana_dedicated
         or build_job_is_hf_trcomp_dedicated
         or build_job_is_trcomp_dedicated
@@ -196,6 +213,7 @@ def does_dev_config_enable_any_build_modes():
     dev_config_enables_neuron_build_mode = parse_dlc_developer_configs("dev", "neuron_mode")
     dev_config_enables_neuronx_build_mode = parse_dlc_developer_configs("dev", "neuronx_mode")
     dev_config_enables_graviton_build_mode = parse_dlc_developer_configs("dev", "graviton_mode")
+    dev_config_enables_arm64_build_mode = parse_dlc_developer_configs("dev", "arm64_mode")
     dev_config_enables_habana_build_mode = parse_dlc_developer_configs("dev", "habana_mode")
     dev_config_enables_hf_trcomp_build_mode = parse_dlc_developer_configs("dev", "hf_trcomp_mode")
     dev_config_enables_trcomp_build_mode = parse_dlc_developer_configs("dev", "trcomp_mode")
@@ -205,6 +223,7 @@ def does_dev_config_enable_any_build_modes():
         or dev_config_enables_neuron_build_mode
         or dev_config_enables_neuronx_build_mode
         or dev_config_enables_graviton_build_mode
+        or dev_config_enables_arm64_build_mode
         or dev_config_enables_habana_build_mode
         or dev_config_enables_hf_trcomp_build_mode
         or dev_config_enables_trcomp_build_mode
@@ -302,6 +321,22 @@ def is_graviton_builder_enabled_for_this_pr_build(framework):
     return (
         build_job_is_graviton_dedicated
         and dev_config_enables_graviton_build_mode
+        and is_framework_enabled_for_this_pr_build(framework)
+        and is_training_or_inference_enabled_for_this_pr_build()
+    )
+
+
+def is_arm64_builder_enabled_for_this_pr_build(framework):
+    """
+    Return True if this PR job should build ARM64 DLCs for the given framework name.
+    :param framework: str Framework name
+    :return: bool True/False
+    """
+    build_job_is_arm64_dedicated = os.getenv("ARM64_DEDICATED", "false").lower() == "true"
+    dev_config_enables_arm64_build_mode = is_arm64_mode_enabled()
+    return (
+        build_job_is_arm64_dedicated
+        and dev_config_enables_arm64_build_mode
         and is_framework_enabled_for_this_pr_build(framework)
         and is_training_or_inference_enabled_for_this_pr_build()
     )

@@ -1,0 +1,614 @@
+{
+  "go/stdlib": [
+    {
+      "description": "Not all valid JavaScript whitespace characters are considered to be whitespace. Templates containing whitespace characters outside of the character set \"\\t\\n\\f\\r\\u0020\\u2028\\u2029\" in JavaScript contexts that also contain actions may not be properly sanitized during execution.",
+      "vulnerability_id": "CVE-2023-24540",
+      "name": "CVE-2023-24540",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24540",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24540 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/bin/gofmt",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/addr2line",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/asm",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/buildid",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/cgo",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/compile",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/covdata",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/cover",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/doc",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/fix",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/link",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/nm",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/objdump",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/pack",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/pprof",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/test2json",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/trace",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "The various Is methods (IsPrivate, IsLoopback, etc) did not work as expected for IPv4-mapped IPv6 addresses, returning false for addresses which would return true in their traditional IPv4 forms.",
+      "vulnerability_id": "CVE-2024-24790",
+      "name": "CVE-2024-24790",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/usr/local/go/pkg/tool/linux_amd64/vet",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.22.2",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2024-24790",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2024-24790 - go/stdlib, go/stdlib and 18 more",
+      "reason_to_ignore": "N/A"
+    },
+    {
+      "description": "Templates do not properly consider backticks (`) as Javascript string delimiters, and do not escape them as expected. Backticks are used, since ES6, for JS template literals. If a template contains a Go template action within a Javascript template literal, the contents of the action can be used to terminate the literal, injecting arbitrary Javascript code into the Go template. As ES6 template literals are rather complex, and themselves can do string interpolation, the decision was made to simply disallow Go template actions from being used inside of them (e.g. \"var a = {{.}}\"), since there is no obviously safe way to allow this behavior. This takes the same approach as github.com/google/safehtml. With fix, Template.Parse returns an Error when it encounters templates like this, with an ErrorCode of value 12. This ErrorCode is currently unexported, but will be exported in the release of Go 1.21. Users who rely on the previous behavior can re-enable it using the GODEBUG flag jstmpllitinterp=1, with the caveat th",
+      "vulnerability_id": "CVE-2023-24538",
+      "name": "CVE-2023-24538",
+      "package_name": "go/stdlib",
+      "package_details": {
+        "file_path": "/opt/nvidia/nsight-systems/2023.4.4/host-linux-x64/Scripts/WebRTCContainer/setup/neko/server/bin/neko",
+        "name": "go/stdlib",
+        "package_manager": "GENERIC",
+        "version": "1.18.10",
+        "release": null
+      },
+      "remediation": {
+        "recommendation": {
+          "text": "None Provided"
+        }
+      },
+      "cvss_v3_score": 9.8,
+      "cvss_v30_score": 0,
+      "cvss_v31_score": 9.8,
+      "cvss_v2_score": 0,
+      "cvss_v3_severity": "CRITICAL",
+      "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2023-24538",
+      "source": "NVD",
+      "severity": "CRITICAL",
+      "status": "ACTIVE",
+      "title": "CVE-2023-24538 - go/stdlib",
+      "reason_to_ignore": "N/A"
+    }
+  ],
+  "golang.org/x/crypto": []
+}

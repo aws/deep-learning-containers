@@ -23,7 +23,7 @@ import os
 @pytest.fixture
 def num_gpus(instance_type):
     if instance_type in [
-        "ml.p3.2xlarge",
+        "ml.g5.8xlarge",
         "ml.g4dn.xlarge",
         "ml.g4dn.2xlarge",
         "ml.g4dn.4xlarge",
@@ -37,8 +37,11 @@ def num_gpus(instance_type):
     ]:
         return 1
     elif instance_type in [
-        "ml.p3.16xlarge",
-        "ml.p3dn.24xlarge",
+        "ml.g5.12xlarge",
+        "ml.g5.24xlarge",
+    ]:
+        return 4
+    elif instance_type in [
         "ml.g5.48xlarge",
     ]:
         return 8
@@ -113,9 +116,9 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize(
             "instance_type, instance_count",
             [
-                pytest.param("ml.p3.2xlarge", 1, marks=[pytest.mark.p3, pytest.mark.single_gpu]),
-                # pytest.param('ml.p3.16xlarge', 1, marks=[pytest.mark.p3, pytest.mark.single_node_multi_gpu]),
-                # pytest.param('ml.p3dn.24xlarge', 2, marks=[pytest.mark.p3, pytest.mark.multi_node_multi_gpu]),
+                pytest.param("ml.g5.8xlarge", 1, marks=[pytest.mark.p3, pytest.mark.single_gpu]),
+                # pytest.param('ml.g5.48xlarge', 1, marks=[pytest.mark.p3, pytest.mark.single_node_multi_gpu]),
+                # pytest.param('ml.p4d.24xlarge', 2, marks=[pytest.mark.p3, pytest.mark.multi_node_multi_gpu]),
             ],
         )
 

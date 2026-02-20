@@ -1,0 +1,29 @@
+{
+  "torch": {
+    "version_specifier": "==2.7.0+cu128"
+  },
+  "torchvision": {
+    "version_specifier": "==0.22.0+cu128",
+    "skip": "True"
+  },
+  "torchaudio": {
+    "version_specifier": "==2.7.0+cu128",
+    "skip": "True"
+  },
+  "torchtext": {
+    "version_specifier": "==0.18.0+cu128",
+    "skip": "True"
+  },
+  "torchdata": {
+    "version_specifier": "==0.11.0+cu128",
+    "skip": "True"
+  },
+  "flash-attn": {
+    "version_specifier": "==2.7.3",
+    "skip": "True"
+  },
+  "transformer-engine": {
+    "version_specifier": "==2.0.0+e5cc6c2",
+    "skip": "True"
+  }
+}

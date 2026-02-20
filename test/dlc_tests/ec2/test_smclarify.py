@@ -10,13 +10,13 @@ from test.dlc_tests.ec2 import smclarify_cases
 
 SMCLARIFY_SCRIPT = os.path.join(CONTAINER_TESTS_PREFIX, "test_smclarify_bias_metrics.py")
 
-SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="p3.2xlarge", processor="gpu")
+SMCLARIFY_EC2_GPU_INSTANCE_TYPE = get_ec2_instance_type(default="g5.8xlarge", processor="gpu")
 SMCLARIFY_EC2_CPU_INSTANCE_TYPE = get_ec2_instance_type(default="c5.2xlarge", processor="cpu")
 
 
 # Adding separate tests to run on cpu instance for cpu image and gpu instance for gpu image.
 # But the test behavior doesn't change for cpu or gpu image type.
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_cpu")
 @pytest.mark.model("N/A")
@@ -35,7 +35,7 @@ def test_smclarify_metrics_cpu(
     smclarify_cases.smclarify_metrics_cpu(training, ec2_connection)
 
 
-@pytest.mark.skip_serialized_release_pt_test
+@pytest.mark.skip("Image is being tested in serial execution")
 @pytest.mark.usefixtures("sagemaker_only")
 @pytest.mark.integration("smclarify_gpu")
 @pytest.mark.model("N/A")

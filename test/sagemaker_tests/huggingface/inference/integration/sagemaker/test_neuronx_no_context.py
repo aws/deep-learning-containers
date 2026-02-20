@@ -127,6 +127,7 @@ def _test_sentence_transformers(
             initial_instance_count=1,
             instance_type=instance_type,
             endpoint_name=endpoint_name,
+            inference_ami_version="al2-ami-sagemaker-inference-neuron-2",
         )
 
         predictor.serializer = IdentitySerializer(content_type="application/json")
