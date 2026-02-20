@@ -51,7 +51,7 @@ jobs:
   regression-test:
     needs: [build-image]
     if: needs.build-image.result == 'success'
-    runs-on: gpu-p4d-runners
+    runs-on: gpu-efa-runners
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -95,7 +95,7 @@ jobs:
   example-test:
     needs: [build-image]
     if: needs.build-image.result == 'success'
-    runs-on: gpu-p4d-runners
+    runs-on: gpu-efa-runners
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
