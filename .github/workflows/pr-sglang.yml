@@ -88,7 +88,7 @@ jobs:
   # ======================================================
   # =============== SGLang EC2 jobs ======================
   # ======================================================
-  build-sglang-ec2-image:
+  build-ec2-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
@@ -118,7 +118,7 @@ jobs:
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-ec2-test-environment:
-    needs: [check-changes, build-sglang-ec2-image]
+    needs: [check-changes, build-ec2-image]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -141,9 +141,9 @@ jobs:
       - name: Set test environment
         id: set-env
         run: |
-          if [[ "${{ needs.build-sglang-ec2-image.result }}" == "success" ]]; then
+          if [[ "${{ needs.build-ec2-image.result }}" == "success" ]]; then
             AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ needs.build-sglang-ec2-image.outputs.ci-image }}
+            IMAGE_URI=${{ needs.build-ec2-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_EC2_IMAGE }}
@@ -158,7 +158,7 @@ jobs:
           echo "CUDA_VERSION=${CUDA_VERSION}" >> ${GITHUB_OUTPUT}
           echo "OS_VERSION=${OS_VERSION}" >> ${GITHUB_OUTPUT}
 
-  sglang-ec2-sanity-test:
+  ec2-sanity-test:
     needs: [set-ec2-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -177,8 +177,8 @@ jobs:
       cuda-version: ${{ needs.set-ec2-test-environment.outputs.cuda-version }}
       os-version: ${{ needs.set-ec2-test-environment.outputs.os-version }}
 
-  sglang-ec2-local-benchmark-test:
-    needs: [build-sglang-ec2-image, set-ec2-test-environment]
+  ec2-local-benchmark-test:
+    needs: [build-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -235,15 +235,15 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-  sglang-ec2-upstream-test:
-    needs: [build-sglang-ec2-image, set-ec2-test-environment]
+  ec2-upstream-test:
+    needs: [build-ec2-image, set-ec2-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-ec2-upstream-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-ec2-upstream-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -297,7 +297,7 @@ jobs:
   # ======================================================
   # =============== SGLang SageMaker jobs ================
   # ======================================================
-  build-sglang-sagemaker-image:
+  build-sagemaker-image:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
@@ -327,7 +327,7 @@ jobs:
           dockerfile-path: docker/${{ env.FRAMEWORK }}/Dockerfile
 
   set-sagemaker-test-environment:
-    needs: [check-changes, build-sglang-sagemaker-image]
+    needs: [check-changes, build-sagemaker-image]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -350,9 +350,9 @@ jobs:
       - name: Set test environment
         id: set-env
         run: |
-          if [[ "${{ needs.build-sglang-sagemaker-image.result }}" == "success" ]]; then
+          if [[ "${{ needs.build-sagemaker-image.result }}" == "success" ]]; then
             AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
-            IMAGE_URI=${{ needs.build-sglang-sagemaker-image.outputs.ci-image }}
+            IMAGE_URI=${{ needs.build-sagemaker-image.outputs.ci-image }}
           else
             AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
             IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ env.PROD_SAGEMAKER_IMAGE }}
@@ -367,7 +367,7 @@ jobs:
           echo "CUDA_VERSION=${CUDA_VERSION}" >> ${GITHUB_OUTPUT}
           echo "OS_VERSION=${OS_VERSION}" >> ${GITHUB_OUTPUT}
 
-  sglang-sagemaker-sanity-test:
+  sagemaker-sanity-test:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&
@@ -386,8 +386,8 @@ jobs:
       cuda-version: ${{ needs.set-sagemaker-test-environment.outputs.cuda-version }}
       os-version: ${{ needs.set-sagemaker-test-environment.outputs.os-version }}
 
-  sglang-sagemaker-local-benchmark-test:
-    needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]
+  sagemaker-local-benchmark-test:
+    needs: [build-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -444,8 +444,8 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-  sglang-sagemaker-upstream-test:
-    needs: [build-sglang-sagemaker-image, set-sagemaker-test-environment]
+  sagemaker-upstream-test:
+    needs: [build-sagemaker-image, set-sagemaker-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -503,7 +503,7 @@ jobs:
             python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
-  sglang-sagemaker-endpoint-test:
+  sagemaker-endpoint-test:
     needs: [set-sagemaker-test-environment]
     if: |
       always() && !failure() && !cancelled() &&

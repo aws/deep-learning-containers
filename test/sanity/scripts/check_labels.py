@@ -11,13 +11,9 @@ import logging
 import subprocess
 import sys
 
-from test_utils.logger import ColoredFormatter
+import test  # noqa: F401 — triggers colored logging setup
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-_handler = logging.StreamHandler(sys.stdout)
-_handler.setFormatter(ColoredFormatter())
-LOGGER.addHandler(_handler)
 
 
 def main():

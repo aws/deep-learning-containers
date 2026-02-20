@@ -17,13 +17,10 @@ import time
 
 import botocore
 from test_utils.aws import AWSSessionManager
-from test_utils.logger import ColoredFormatter
+
+import test  # noqa: F401 — triggers colored logging setup
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-_handler = logging.StreamHandler(sys.stdout)
-_handler.setFormatter(ColoredFormatter())
-LOGGER.addHandler(_handler)
 
 BUCKET = "aws-dlinfra-licenses"
 BUCKET_PATH = "third_party_source_code"

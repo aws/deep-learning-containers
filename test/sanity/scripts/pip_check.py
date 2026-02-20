@@ -8,6 +8,7 @@ Allowlist resolution (all optional, merged in order):
   2. <allowlist-dir>/<framework>/pip_check.json (framework)
   3. <allowlist-dir>/<framework>/<tag>.json     (image-specific)
 
+Default allowlist-dir: test/data/pipcheck_allowlist
 Each file: [{"pattern": "regex", "reason": "why"}]
 """
 
@@ -19,13 +20,9 @@ import re
 import subprocess
 import sys
 
-from test_utils.logger import ColoredFormatter
+import test  # noqa: F401 — triggers colored logging setup
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
-_handler = logging.StreamHandler(sys.stdout)
-_handler.setFormatter(ColoredFormatter())
-LOGGER.addHandler(_handler)
 
 
 def load_allowlist(allowlist_dir, framework=None, image_tag=None):
@@ -59,7 +56,11 @@ def get_framework(image_uri):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--image-uri", required=True)
-    parser.add_argument("--allowlist-dir", required=True)
+    parser.add_argument(
+        "--allowlist-dir",
+        default="test/data/pipcheck_allowlist",
+        help="Path to pipcheck_allowlist directory",
+    )
     args = parser.parse_args()
 
     framework = get_framework(args.image_uri)
