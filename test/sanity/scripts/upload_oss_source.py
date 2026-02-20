@@ -29,18 +29,22 @@ BUCKET_PATH = "third_party_source_code"
 MAX_RETRIES = 3
 
 
-def upload_if_missing(s3_client, local_path, s3_key):
-    """Upload file to S3 if it doesn't already exist."""
+def already_on_s3(s3_client, s3_key):
+    """Check if object already exists on S3."""
     try:
         s3_client.head_object(Bucket=BUCKET, Key=s3_key)
-        LOGGER.info(f"Already exists on S3: {s3_key}")
+        return True
     except botocore.exceptions.ClientError as e:
         if e.response["Error"]["Code"] == "404":
-            LOGGER.info(f"Uploading to s3://{BUCKET}/{s3_key}")
-            s3_client.upload_file(local_path, BUCKET, s3_key)
-            s3_client.put_object_acl(Bucket=BUCKET, Key=s3_key, ACL="public-read")
-        else:
-            raise
+            return False
+        raise
+
+
+def upload_to_s3(s3_client, local_path, s3_key):
+    """Upload file to S3 and set public-read ACL."""
+    LOGGER.info(f"Uploading to s3://{BUCKET}/{s3_key}")
+    s3_client.upload_file(local_path, BUCKET, s3_key)
+    s3_client.put_object_acl(Bucket=BUCKET, Key=s3_key, ACL="public-read")
 
 
 def clone_and_tar(name, version, url, work_dir):
@@ -99,10 +103,13 @@ def main():
                 s3_key = f"{BUCKET_PATH}/{name}_v{version}_source_code.tar.gz"
 
                 LOGGER.info(f"Processing: {name} v{version}")
+                if already_on_s3(s3_client, s3_key):
+                    LOGGER.info(f"Already exists on S3: {s3_key}, skipping")
+                    continue
                 tarball = clone_and_tar(name, version, url, work_dir)
                 if tarball:
                     try:
-                        upload_if_missing(s3_client, tarball, s3_key)
+                        upload_to_s3(s3_client, tarball, s3_key)
                     except Exception as e:
                         LOGGER.error(f"Failed to upload {name}: {e}")
                         failed.append(name)
