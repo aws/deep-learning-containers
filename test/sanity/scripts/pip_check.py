@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pip check with 3-level allowlist support.
 
-Usage: python3 pip_check.py [--image-uri IMAGE_URI] [--allowlist-dir DIR]
+Usage: python3 pip_check.py --image-uri IMAGE_URI --allowlist-dir DIR
 
 Allowlist resolution (all optional, merged in order):
   1. <allowlist-dir>/pip_check.json           (global)
@@ -13,10 +13,19 @@ Each file: [{"pattern": "regex", "reason": "why"}]
 
 import argparse
 import json
+import logging
 import os
 import re
 import subprocess
 import sys
+
+from test_utils.logger import ColoredFormatter
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(ColoredFormatter())
+LOGGER.addHandler(_handler)
 
 
 def load_allowlist(allowlist_dir, framework=None, image_tag=None):
@@ -25,13 +34,12 @@ def load_allowlist(allowlist_dir, framework=None, image_tag=None):
     if framework:
         paths.append(os.path.join(allowlist_dir, framework, "pip_check.json"))
     if framework and image_tag:
-        # Match any allowlist file whose name (minus .json) is a prefix of the image tag
         framework_dir = os.path.join(allowlist_dir, framework)
         if os.path.isdir(framework_dir):
             for fname in os.listdir(framework_dir):
                 if fname == "pip_check.json" or not fname.endswith(".json"):
                     continue
-                prefix = fname[:-5]  # strip .json
+                prefix = fname[:-5]
                 if image_tag.startswith(prefix):
                     paths.append(os.path.join(framework_dir, fname))
     for path in paths:
@@ -50,8 +58,8 @@ def get_framework(image_uri):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image-uri", default="")
-    parser.add_argument("--allowlist-dir", default="test/data/allowlists")
+    parser.add_argument("--image-uri", required=True)
+    parser.add_argument("--allowlist-dir", required=True)
     args = parser.parse_args()
 
     framework = get_framework(args.image_uri)
@@ -60,7 +68,7 @@ def main():
 
     result = subprocess.run(["pip", "check"], capture_output=True, text=True)
     if result.returncode == 0:
-        print("pip check passed")
+        LOGGER.info("pip check passed")
         return 0
 
     failures = []
@@ -69,12 +77,12 @@ def main():
             failures.append(line)
 
     if failures:
-        print("pip check found broken dependencies:")
+        LOGGER.error("pip check found broken dependencies:")
         for f in failures:
-            print(f"  {f}")
+            LOGGER.error(f"  {f}")
         return 1
 
-    print("pip check passed (all issues in allowlist)")
+    LOGGER.info("pip check passed (all issues in allowlist)")
     return 0
 
 

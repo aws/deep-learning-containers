@@ -133,7 +133,9 @@ jobs:
 
       - name: Run pip check
         run: |
-          docker run --rm -v $(pwd):/workdir --workdir /workdir --entrypoint python3 \
+          docker run --rm -v $(pwd):/workdir --workdir /workdir \
+            -e PYTHONPATH=/workdir/test \
+            --entrypoint python3 \
             ${{ inputs.image-uri }} test/sanity/scripts/pip_check.py \
               --image-uri "${{ inputs.image-uri }}" \
               --allowlist-dir test/data/allowlists
@@ -166,16 +168,11 @@ jobs:
 
       - name: Copy OSS compliance artifacts
         run: |
-          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS 2>/dev/null || true
+          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
 
-      # TODO: Upload to s3 instead of github
-      # - name: Upload OSS compliance artifacts
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: oss-compliance-${{ github.run_id }}
-      #     path: THIRD_PARTY_SOURCE_CODE_URLS
-      #     if-no-files-found: ignore
+      - name: Upload third-party source code to S3
+        run: |
+          PYTHONPATH=test python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
 
   label-checks:
     runs-on:
@@ -195,7 +192,7 @@ jobs:
 
       - name: Check container labels
         run: |
-          python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+          PYTHONPATH=test python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
 
       # TODO: Add license file for sglang
       # - name: Check license file exists

@@ -1,19 +1,32 @@
 #!/usr/bin/env python3
-"""Check that all URI labels in a Docker image use https:// (public).
+"""Check that all URI labels in a Docker image use https:// (public)
+and label names/values are within size limits.
 
 Usage: python3 check_labels.py <image-uri>
 """
 
+import argparse
 import json
+import logging
 import subprocess
 import sys
 
+from test_utils.logger import ColoredFormatter
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+_handler = logging.StreamHandler(sys.stdout)
+_handler.setFormatter(ColoredFormatter())
+LOGGER.addHandler(_handler)
+
 
 def main():
-    image_uri = sys.argv[1]
+    parser = argparse.ArgumentParser(description="Validate Docker image labels")
+    parser.add_argument("image_uri", help="Docker image URI to inspect")
+    args = parser.parse_args()
 
     result = subprocess.run(
-        ["docker", "inspect", "--format={{json .Config.Labels}}", image_uri],
+        ["docker", "inspect", "--format={{json .Config.Labels}}", args.image_uri],
         capture_output=True,
         text=True,
         check=True,
@@ -21,24 +34,25 @@ def main():
     labels = json.loads(result.stdout.strip())
 
     if not labels:
-        print("WARNING: No labels found on image")
+        LOGGER.warning("No labels found on image")
         return 0
 
     failed = []
     for name, value in labels.items():
         if "uri" in name.lower() and not value.startswith("https://"):
-            failed.append(f"  {name}: {value}")
+            failed.append(f"{name}: {value}")
         if len(name) > 128:
-            failed.append(f"  Label name exceeds 128 chars: {name}")
+            failed.append(f"Label name exceeds 128 chars: {name}")
         if len(value) > 256:
-            failed.append(f"  Label value exceeds 256 chars for {name}: {value[:50]}...")
+            failed.append(f"Label value exceeds 256 chars for {name}: {value[:50]}...")
 
     if failed:
-        print("FAIL: Label validation errors:")
-        print("\n".join(failed))
+        LOGGER.error("Label validation errors:")
+        for f in failed:
+            LOGGER.error(f"  {f}")
         return 1
 
-    print(f"All {len(labels)} labels pass validation")
+    LOGGER.info(f"All {len(labels)} labels pass validation")
     return 0
 
 
