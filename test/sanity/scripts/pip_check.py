@@ -22,7 +22,9 @@ import sys
 
 import test  # noqa: F401 — triggers colored logging setup
 
-LOGGER = logging.getLogger(__name__)
+# To enable debugging, change logging.INFO to logging.DEBUG
+LOGGER = logging.getLogger("test").getChild("pip_check")
+LOGGER.setLevel(logging.INFO)
 
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
