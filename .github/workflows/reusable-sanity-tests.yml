@@ -159,7 +159,6 @@ jobs:
               --framework "${{ inputs.framework }}" \
               --framework-version "${{ inputs.framework-version }}" \
               --allowlist-dir test/data/pipcheck_allowlist
-          docker logs ${CONTAINER_ID}
 
   gpu-tests:
     if: inputs.cuda-version != ''

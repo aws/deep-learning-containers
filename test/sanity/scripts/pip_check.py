@@ -32,10 +32,26 @@ import re
 import subprocess
 import sys
 
-import test_utils  # noqa: F401 — triggers colored logging setup
+import test  # noqa: F401
 
 LOGGER = logging.getLogger("test").getChild("pip_check")
 LOGGER.setLevel(logging.INFO)
+
+# Debug logging setup
+print(f"[DEBUG] test module location: {test.__file__}", flush=True)
+test_dir = os.path.dirname(test.__file__)
+print(f"[DEBUG] ls {test_dir}:", flush=True)
+for entry in sorted(os.listdir(test_dir)):
+    print(f"  {entry}", flush=True)
+print(f"[DEBUG] LOGGER name: {LOGGER.name}", flush=True)
+print(f"[DEBUG] LOGGER level: {LOGGER.level}", flush=True)
+print(f"[DEBUG] LOGGER handlers: {LOGGER.handlers}", flush=True)
+print(f"[DEBUG] LOGGER parent: {LOGGER.parent}", flush=True)
+print(
+    f"[DEBUG] LOGGER parent handlers: {LOGGER.parent.handlers if LOGGER.parent else 'None'}",
+    flush=True,
+)
+print(f"[DEBUG] LOGGER effective level: {LOGGER.getEffectiveLevel()}", flush=True)
 
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
@@ -68,6 +84,7 @@ def main():
     patterns = load_allowlist(args.allowlist_dir, args.framework, args.framework_version)
 
     result = subprocess.run(["pip", "check"], capture_output=True, text=True)
+    print(f"[DEBUG] pip check returncode: {result.returncode}", flush=True)
     if result.returncode == 0:
         LOGGER.info("pip check passed")
         return 0
