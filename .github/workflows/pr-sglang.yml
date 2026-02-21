@@ -83,6 +83,7 @@ jobs:
               - "scripts/telemetry/**"
               - ".github/workflows/pr-sglang*"
             test-change:
+              - "test/sanity/**"
               - "test/sglang/**"
 
   # ======================================================
