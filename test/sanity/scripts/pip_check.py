@@ -57,6 +57,16 @@ def main():
     patterns = load_allowlist(args.allowlist_dir, args.framework, args.framework_version)
 
     result = subprocess.run(["pip", "check"], capture_output=True, text=True)
+    print(f"[DEBUG] pip check returncode: {result.returncode}", flush=True)
+    print(f"[DEBUG] LOGGER name: {LOGGER.name}", flush=True)
+    print(f"[DEBUG] LOGGER level: {LOGGER.level}", flush=True)
+    print(f"[DEBUG] LOGGER handlers: {LOGGER.handlers}", flush=True)
+    print(f"[DEBUG] LOGGER parent: {LOGGER.parent}", flush=True)
+    print(
+        f"[DEBUG] LOGGER parent handlers: {LOGGER.parent.handlers if LOGGER.parent else 'None'}",
+        flush=True,
+    )
+    print(f"[DEBUG] LOGGER effective level: {LOGGER.getEffectiveLevel()}", flush=True)
     if result.returncode == 0:
         LOGGER.info("pip check passed")
         return 0
