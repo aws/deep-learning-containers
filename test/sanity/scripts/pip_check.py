@@ -22,7 +22,7 @@ import sys
 
 from test_utils.logger import ColoredFormatter
 
-import test  # noqa: F401
+import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger(__name__)

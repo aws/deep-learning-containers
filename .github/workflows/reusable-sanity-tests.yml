@@ -152,6 +152,17 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} pip install -q boto3 botocore
 
+      - name: Debug - check test module resolution
+        run: |
+          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} python3 -c "
+          import test
+          import logging
+          print('test module location:', test.__file__)
+          print('test logger:', logging.getLogger('test'))
+          print('test logger handlers:', logging.getLogger('test').handlers)
+          print('test logger level:', logging.getLogger('test').level)
+          "
+
       - name: Run pip check
         run: |
           docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
