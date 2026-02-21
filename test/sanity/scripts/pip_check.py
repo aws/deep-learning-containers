@@ -58,6 +58,7 @@ def main():
 
     result = subprocess.run(["pip", "check"], capture_output=True, text=True)
     print(f"[DEBUG] pip check returncode: {result.returncode}", flush=True)
+    print(f"[DEBUG] test module location: {test.__file__}", flush=True)
     print(f"[DEBUG] LOGGER name: {LOGGER.name}", flush=True)
     print(f"[DEBUG] LOGGER level: {LOGGER.level}", flush=True)
     print(f"[DEBUG] LOGGER handlers: {LOGGER.handlers}", flush=True)
