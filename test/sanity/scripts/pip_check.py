@@ -20,16 +20,11 @@ import re
 import subprocess
 import sys
 
-from test_utils.logger import ColoredFormatter
-
 import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("test").getChild("pip_check")
 LOGGER.setLevel(logging.INFO)
-_handler = logging.StreamHandler(sys.stdout)
-_handler.setFormatter(ColoredFormatter())
-LOGGER.addHandler(_handler)
 
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
