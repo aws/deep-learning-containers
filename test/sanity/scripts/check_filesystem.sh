@@ -50,7 +50,7 @@ if [ -f /proc/uptime ]; then
 
   for F in "$HOME"/*history*; do
     [ -f "$F" ] || continue
-    MTIME=$(stat -c %Y "$F" 2>/dev/null || stat -f %m "$F" 2>/dev/null)
+    MTIME=$(stat -c %Y "$F")
     if [ "$MTIME" -lt "$BOOT_TIME" ]; then
       echo "FAIL: $F was modified before container boot"
       FAILED=1
