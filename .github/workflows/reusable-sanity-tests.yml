@@ -154,7 +154,7 @@ jobs:
 
       - name: Run pip check
         run: |
-          docker exec -e PYTHONPATH=/workdir/test ${CONTAINER_ID} \
+          docker exec -e PYTHONPATH=/workdir/test -e PYTHONUNBUFFERED=1 ${CONTAINER_ID} \
             python3 test/sanity/scripts/pip_check.py \
               --framework "${{ inputs.framework }}" \
               --framework-version "${{ inputs.framework-version }}" \
