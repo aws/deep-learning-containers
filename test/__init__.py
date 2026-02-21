@@ -16,11 +16,12 @@ import sys
 
 from test_utils.logger import ColoredFormatter
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+# Configure root logger so all loggers inherit colored formatting
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
 
 console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setFormatter(ColoredFormatter())
 console_handler.setLevel(logging.DEBUG)
 
-logger.addHandler(console_handler)
+root_logger.addHandler(console_handler)

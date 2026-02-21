@@ -14,7 +14,7 @@ import sys
 import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
-LOGGER = logging.getLogger("test").getChild("check_labels")
+LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
 
