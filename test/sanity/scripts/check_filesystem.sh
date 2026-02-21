@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Merged filesystem checks: stray artifacts, tmp dirs, boot-time history
+# Container filesystem sanity checks
 FAILED=0
 
 # --- Stray .py artifacts in key directories ---
@@ -42,6 +42,31 @@ for F in /tmp/.* /tmp/*; do
   echo "FAIL: Unexpected file in /tmp: $NAME"
   FAILED=1
 done
+
+# --- Cache dir should only contain pip files ---
+CACHE_DIR="$HOME/.cache"
+if [ -d "$CACHE_DIR" ]; then
+  for F in "$CACHE_DIR"/.* "$CACHE_DIR"/*; do
+    [ -e "$F" ] || continue
+    NAME="${F##*/}"
+    case "$NAME" in
+      .|..) continue ;;
+      pip*) continue ;;
+    esac
+    echo "FAIL: Unexpected file in cache dir: $NAME"
+    FAILED=1
+  done
+fi
+
+# --- No .viminfo or non-empty .bash_history ---
+if [ -f "$HOME/.viminfo" ]; then
+  echo "FAIL: .viminfo exists"
+  FAILED=1
+fi
+if [ -f "$HOME/.bash_history" ] && [ -s "$HOME/.bash_history" ]; then
+  echo "FAIL: .bash_history contains history"
+  FAILED=1
+fi
 
 # --- History files must not predate container boot ---
 if [ -f /proc/uptime ]; then

@@ -74,17 +74,9 @@ jobs:
       # ===== Filesystem checks (clean image) ====
       # ==========================================
 
-      - name: Check filesystem (stray artifacts, tmp dirs, boot-time history)
+      - name: Check filesystem
         run: |
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_filesystem.sh
-
-      - name: Check cache dir is clean
-        run: |
-          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_cache_clean.sh
-
-      - name: Check no viminfo or bash history
-        run: |
-          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_no_history.sh
 
       - name: Check no conda packages from repo.anaconda.com
         run: |
