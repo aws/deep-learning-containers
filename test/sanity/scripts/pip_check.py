@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Pip check with 3-level allowlist support.
 
-Usage: python3 pip_check.py --image-uri IMAGE_URI --allowlist-dir DIR
+Usage: python3 pip_check.py --framework FRAMEWORK [--framework-version VERSION] [--allowlist-dir DIR]
 
-Allowlist resolution (all optional, merged in order):
-  1. <allowlist-dir>/pip_check.json           (global)
-  2. <allowlist-dir>/<framework>/pip_check.json (framework)
-  3. <allowlist-dir>/<framework>/<tag>.json     (image-specific)
+Allowlist resolution (merged in order):
+  1. <allowlist-dir>/pip_check.json                          (global)
+  2. <allowlist-dir>/<framework>/pip_check.json              (framework)
+  3. <allowlist-dir>/<framework>/<framework>-<version>.json  (version-specific)
 
 Default allowlist-dir: test/data/pipcheck_allowlist
 Each file: [{"pattern": "regex", "reason": "why"}]
@@ -22,7 +22,7 @@ import sys
 
 import test_utils  # noqa: F401 — triggers colored logging setup
 
-LOGGER = logging.getLogger("test_utils").getChild("pip_check")
+LOGGER = logging.getLogger("test").getChild("pip_check")
 LOGGER.setLevel(logging.INFO)
 
 
