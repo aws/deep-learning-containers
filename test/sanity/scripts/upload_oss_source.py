@@ -21,7 +21,7 @@ from test_utils.aws import AWSSessionManager
 import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("test").getChild("upload_oss_source")
 LOGGER.setLevel(logging.INFO)
 
 BUCKET = "aws-dlinfra-licenses"
