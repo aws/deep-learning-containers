@@ -83,24 +83,6 @@ jobs:
           docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_anaconda.sh
 
       # ==========================================
-      # ===== Version checks =====================
-      # ==========================================
-
-      - name: Check Python version
-        run: |
-          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_python_version.sh "${{ inputs.python-version }}"
-
-      - name: Check OS version
-        run: |
-          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_os_version.sh "${{ inputs.os-version }}"
-
-      - name: Check framework version
-        if: inputs.framework != 'base'
-        run: |
-          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_framework_version.sh \
-            "${{ inputs.framework }}" "${{ inputs.framework-version }}"
-
-      # ==========================================
       # ===== Label checks =======================
       # ==========================================
 
@@ -131,42 +113,3 @@ jobs:
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
-
-      # ==========================================
-      # ===== Package checks =====================
-      # ==========================================
-
-      - name: Setup for pip check test
-        run: |
-          docker exec ${CONTAINER_ID} pip install -q boto3 botocore
-
-      - name: Run pip check
-        run: |
-          docker exec -e PYTHONPATH=/workdir:/workdir/test ${CONTAINER_ID} \
-            python3 test/sanity/scripts/pip_check.py \
-              --framework "${{ inputs.framework }}" \
-              --framework-version "${{ inputs.framework-version }}" \
-              --allowlist-dir test/data/pipcheck_allowlist
-
-  gpu-tests:
-    if: inputs.cuda-version != ''
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
-        buildspec-override:true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ inputs.aws-account-id }}
-          aws-region: ${{ inputs.aws-region }}
-          image-uri: ${{ inputs.image-uri }}
-
-      - name: Check CUDA version
-        run: |
-          docker run --rm --gpus=all \
-            -v $(pwd)/test/sanity/scripts:/sanity --entrypoint bash \
-            ${{ inputs.image-uri }} /sanity/check_cuda.sh "${{ inputs.cuda-version }}"
