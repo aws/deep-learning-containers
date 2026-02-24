@@ -93,7 +93,7 @@ function create_node_group() {
     --tags "k8s.io/cluster-autoscaler/node-template/label/static=true" \
     --asg-access \
     --ssh-access \
-    --ssh-public-key "${3}"
+    --ssh-public-key "${3}" 
 
 
   if [[ ${1} == *"vllm"* ]]; then
@@ -151,7 +151,7 @@ function create_node_group() {
     --asg-access \
     --managed=true \
     --ssh-access \
-    --ssh-public-key "${3}"
+    --ssh-public-key "${3}" 
 }
 
 #Function to upgrade core k8s components

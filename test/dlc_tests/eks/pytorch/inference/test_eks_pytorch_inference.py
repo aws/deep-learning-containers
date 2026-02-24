@@ -10,6 +10,7 @@ from invoke import run
 
 import test.test_utils.eks as eks_utils
 import test.test_utils as test_utils
+import time
 
 
 def __run_pytorch_neuron_inference(image, model_name, model_url, processor):
@@ -175,6 +176,8 @@ def __test_eks_pytorch_densenet_inference(pytorch_inference, disable_token_auth=
             eks_utils.eks_forward_port_between_host_and_container(
                 selector_name, port_to_forward, "8080"
             )
+            # Give port-forward time to establish connection
+            time.sleep(5)
 
         assert test_utils.request_pytorch_inference_densenet(
             port=port_to_forward, server_type=server_type
