@@ -198,6 +198,8 @@ RUN pip install --no-cache-dir -U \
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
+    # sagemaker_pytorch_serving_container/torchserve needs pkg_resources
+    "setuptools<82.0.0" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
