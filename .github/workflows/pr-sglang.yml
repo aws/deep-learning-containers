@@ -18,7 +18,7 @@ env:
   FRAMEWORK: "sglang"
   SGLANG_VERSION: "0.5.9"
   PYTHON_VERSION: "py312"
-  CUDA_VERSION: "cu130"
+  CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu24.04"
 
   # SGLang EC2
