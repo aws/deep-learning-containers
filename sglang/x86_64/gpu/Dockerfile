@@ -56,6 +56,19 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
+# patch CVEs
+RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
+
+# Remove all Rust build-time artifacts to patch CVEs
+RUN rm -rf \
+    /root/.cargo/ \
+    /root/.rustup/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/build/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/deps/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/examples/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/incremental/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/*.d
+
 # Run OSS compliance script
 # ==========================
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \

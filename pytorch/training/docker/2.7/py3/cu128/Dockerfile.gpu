@@ -71,7 +71,7 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     --index-url https://download.pytorch.org/whl/cu128 \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
-    triton 
+    triton
 
 # Install GDRCopy which is a dependency of SM Distributed DataParallel binary
 # The test binaries requires cuda driver library which could be found in conda
@@ -126,7 +126,7 @@ RUN pip install --no-cache-dir \
     psutil \
     ipython \
     ipykernel \
-    "pillow>=11.3.0" \
+    "pillow>=12.1.1" \
     h5py \
     "fsspec>=2025.7.0" \
     "markupsafe>=3.0.2" \
@@ -152,7 +152,7 @@ RUN pip install --no-cache-dir \
     #thinc 8.3.6 is not compatible with numpy 1.26.4 (sagemaker doesn't support latest numpy)
     "thinc==8.3.4" \
     blis \
-    typer \ 
+    typer \
     langcodes \
     language_data \
     "jinja2>=3.1.6"\
@@ -204,8 +204,8 @@ RUN chmod +x /usr/local/bin/start_with_right_hostname.sh
 # Install SM packages
 RUN pip install --no-cache-dir -U \
     # address package regression caused by smclarify depedency s3fs"
-    "awscli<=1.42.61" \
-    "boto3<=1.40.61" \
+    awscli \
+    boto3 \
     smclarify \
     "sagemaker>=2.9.0,<3" \
     "sagemaker-experiments<1" \

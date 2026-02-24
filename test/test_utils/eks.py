@@ -42,9 +42,9 @@ LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 LOGGER.addHandler(logging.StreamHandler(sys.stderr))
 
 
-EKS_VERSION = "1.32.0"
-EKSCTL_VERSION = "0.203.0"
-KUBETAIL_VERSION = "1.6.20"
+EKS_VERSION = "1.35.0"
+EKSCTL_VERSION = "0.223.0"
+KUBETAIL_VERSION = "1.6.22"
 
 
 def get_aws_secret_yml_path():
@@ -180,14 +180,16 @@ def eks_setup():
 
     platform = run("uname -s").stdout.strip()
 
+    # curl --silent --location "https://amazon-eks.s3-us-west-2.amazonaws.com/?prefix=1.35" | grep -o '<Key>[^<]*</Key>' |
+    # sed 's/<Key>//g' | sed 's/<\/Key>//g' | head -20
     kubectl_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2024-12-20/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
+        f"{EKS_VERSION}/2026-01-12/bin/{platform.lower()}/amd64/kubectl -o /usr/local/bin/kubectl"
     )
 
     aws_iam_authenticator_download_command = (
         f"curl --silent --location https://amazon-eks.s3-us-west-2.amazonaws.com/"
-        f"{EKS_VERSION}/2024-12-20/bin/{platform.lower()}/amd64/aws-iam-authenticator "
+        f"{EKS_VERSION}/2026-01-12/bin/{platform.lower()}/amd64/aws-iam-authenticator "
         f"-o /usr/local/bin/aws-iam-authenticator"
     )
 
