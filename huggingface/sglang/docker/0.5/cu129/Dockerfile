@@ -1,4 +1,4 @@
-ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/sglang:0.5.8-gpu-py312-cu129-ubuntu24.04-sagemaker-v1.0
+ARG FINAL_BASE_IMAGE=763104351884.dkr.ecr.us-west-2.amazonaws.com/sglang:0.5.8-gpu-py312-cu129-ubuntu24.04-sagemaker
 FROM ${FINAL_BASE_IMAGE} AS sglang-base
 
 LABEL maintainer="Amazon AI"
