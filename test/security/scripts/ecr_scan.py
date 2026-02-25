@@ -18,9 +18,8 @@ import json
 import logging
 import os
 import sys
-import time
 
-from test_utils import ImageURI, parse_image_uri
+from test_utils import ImageURI, parse_image_uri, wait_for_status
 from test_utils.aws import AWSSessionManager
 
 import test  # noqa: F401 — triggers colored logging setup
@@ -30,43 +29,35 @@ LOGGER = logging.getLogger("test").getChild("ecr_scan")
 LOGGER.setLevel(logging.INFO)
 
 SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
-POLL_INTERVAL = 30
-POLL_TIMEOUT = 600  # 10 minutes
+SCAN_WAIT_PERIOD = 20
+SCAN_WAIT_LENGTH = 30
+SCAN_COMPLETE = "COMPLETE"
 
 
-def wait_for_scan(ecr_client, image: ImageURI):
-    """Poll until enhanced scan completes. Returns list of findings."""
+def get_scan_status(ecr_client, repository: str, image_tag: str) -> str:
+    resp = ecr_client.describe_image_scan_findings(
+        repositoryName=repository,
+        imageId={"imageTag": image_tag},
+    )
+    return resp["imageScanStatus"]["status"]
+
+
+def get_scan_findings(ecr_client, image: ImageURI) -> list:
+    """Retrieve all paginated enhanced scan findings."""
     image_id = {"imageTag": image.image_tag}
-    start = time.time()
-
-    while time.time() - start < POLL_TIMEOUT:
+    resp = ecr_client.describe_image_scan_findings(
+        repositoryName=image.repository,
+        imageId=image_id,
+    )
+    findings = resp.get("imageScanFindings", {}).get("enhancedFindings", [])
+    while resp.get("nextToken"):
         resp = ecr_client.describe_image_scan_findings(
             repositoryName=image.repository,
             imageId=image_id,
+            nextToken=resp["nextToken"],
         )
-        status = resp["imageScanStatus"]["status"]
-
-        if status == "COMPLETE":
-            findings = resp.get("imageScanFindings", {}).get("enhancedFindings", [])
-            while resp.get("nextToken"):
-                resp = ecr_client.describe_image_scan_findings(
-                    repositoryName=image.repository,
-                    imageId=image_id,
-                    nextToken=resp["nextToken"],
-                )
-                findings.extend(resp.get("imageScanFindings", {}).get("enhancedFindings", []))
-            return findings
-
-        if status == "FAILED":
-            desc = resp["imageScanStatus"].get("description", "unknown")
-            LOGGER.error(f"Scan failed: {desc}")
-            sys.exit(1)
-
-        LOGGER.info(f"Scan status: {status}, waiting {POLL_INTERVAL}s...")
-        time.sleep(POLL_INTERVAL)
-
-    LOGGER.error(f"Scan timed out after {POLL_TIMEOUT}s")
-    sys.exit(1)
+        findings.extend(resp.get("imageScanFindings", {}).get("enhancedFindings", []))
+    return findings
 
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
@@ -133,7 +124,17 @@ def main():
     )
     sha = img_resp["imageDetails"][0]["imageDigest"]
     LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
-    findings = wait_for_scan(ecr_client, image)
+    assert wait_for_status(
+        SCAN_COMPLETE,
+        SCAN_WAIT_PERIOD,
+        SCAN_WAIT_LENGTH,
+        get_scan_status,
+        ecr_client,
+        image.repository,
+        image.image_tag,
+    )
+
+    findings = get_scan_findings(ecr_client, image)
     LOGGER.info(f"Scan complete: {len(findings)} total findings")
     LOGGER.debug(f"All findings: {json.dumps(findings, indent=2, default=str)}")
 
