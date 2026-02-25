@@ -178,6 +178,22 @@ jobs:
       cuda-version: ${{ needs.set-ec2-test-environment.outputs.cuda-version }}
       os-version: ${{ needs.set-ec2-test-environment.outputs.os-version }}
 
+  ec2-security-test:
+    needs: [set-ec2-test-environment]
+    if: |
+      always() && !failure() && !cancelled() &&
+      needs.set-ec2-test-environment.result == 'success'
+    concurrency:
+      group: ${{ github.workflow }}-ec2-security-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
+      aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.set-ec2-test-environment.outputs.framework }}
+      framework-version: ${{ needs.set-ec2-test-environment.outputs.framework-version }}
+
   # ec2-local-benchmark-test:
   #   needs: [build-ec2-image, set-ec2-test-environment]
   #   if: success()
@@ -387,6 +403,22 @@ jobs:
   #     python-version: ${{ needs.set-sagemaker-test-environment.outputs.python-version }}
   #     cuda-version: ${{ needs.set-sagemaker-test-environment.outputs.cuda-version }}
   #     os-version: ${{ needs.set-sagemaker-test-environment.outputs.os-version }}
+  #
+  # sagemaker-security-test:
+  #   needs: [set-sagemaker-test-environment]
+  #   if: |
+  #     always() && !failure() && !cancelled() &&
+  #     needs.set-sagemaker-test-environment.result == 'success'
+  #   concurrency:
+  #     group: ${{ github.workflow }}-sagemaker-security-test-${{ github.event.pull_request.number }}
+  #     cancel-in-progress: true
+  #   uses: ./.github/workflows/reusable-security-tests.yml
+  #   with:
+  #     image-uri: ${{ needs.set-sagemaker-test-environment.outputs.image-uri }}
+  #     aws-account-id: ${{ needs.set-sagemaker-test-environment.outputs.aws-account-id }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     framework: ${{ needs.set-sagemaker-test-environment.outputs.framework }}
+  #     framework-version: ${{ needs.set-sagemaker-test-environment.outputs.framework-version }}
   #
   # sagemaker-local-benchmark-test:
   #   needs: [build-sagemaker-image, set-sagemaker-test-environment]
