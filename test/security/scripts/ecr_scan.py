@@ -127,7 +127,12 @@ def main():
     image = parse_image_uri(args.image_uri)
     ecr_client = AWSSessionManager(region=image.region).ecr
 
-    LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag}")
+    img_resp = ecr_client.describe_images(
+        repositoryName=image.repository,
+        imageIds=[{"imageTag": image.image_tag}],
+    )
+    sha = img_resp["imageDetails"][0]["imageDigest"]
+    LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
     findings = wait_for_scan(ecr_client, image)
     LOGGER.info(f"Scan complete: {len(findings)} total findings")
     LOGGER.debug(f"All findings: {json.dumps(findings, indent=2, default=str)}")
