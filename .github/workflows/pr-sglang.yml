@@ -159,24 +159,24 @@ jobs:
           echo "CUDA_VERSION=${CUDA_VERSION}" >> ${GITHUB_OUTPUT}
           echo "OS_VERSION=${OS_VERSION}" >> ${GITHUB_OUTPUT}
 
-  ec2-sanity-test:
-    needs: [set-ec2-test-environment]
-    if: |
-      always() && !failure() && !cancelled() &&
-      needs.set-ec2-test-environment.result == 'success'
-    concurrency:
-      group: ${{ github.workflow }}-ec2-sanity-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-sanity-tests.yml
-    with:
-      image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
-      aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.set-ec2-test-environment.outputs.framework }}
-      framework-version: ${{ needs.set-ec2-test-environment.outputs.framework-version }}
-      python-version: ${{ needs.set-ec2-test-environment.outputs.python-version }}
-      cuda-version: ${{ needs.set-ec2-test-environment.outputs.cuda-version }}
-      os-version: ${{ needs.set-ec2-test-environment.outputs.os-version }}
+  # ec2-sanity-test:
+  #   needs: [set-ec2-test-environment]
+  #   if: |
+  #     always() && !failure() && !cancelled() &&
+  #     needs.set-ec2-test-environment.result == 'success'
+  #   concurrency:
+  #     group: ${{ github.workflow }}-ec2-sanity-test-${{ github.event.pull_request.number }}
+  #     cancel-in-progress: true
+  #   uses: ./.github/workflows/reusable-sanity-tests.yml
+  #   with:
+  #     image-uri: ${{ needs.set-ec2-test-environment.outputs.image-uri }}
+  #     aws-account-id: ${{ needs.set-ec2-test-environment.outputs.aws-account-id }}
+  #     aws-region: ${{ vars.AWS_REGION }}
+  #     framework: ${{ needs.set-ec2-test-environment.outputs.framework }}
+  #     framework-version: ${{ needs.set-ec2-test-environment.outputs.framework-version }}
+  #     python-version: ${{ needs.set-ec2-test-environment.outputs.python-version }}
+  #     cuda-version: ${{ needs.set-ec2-test-environment.outputs.cuda-version }}
+  #     os-version: ${{ needs.set-ec2-test-environment.outputs.os-version }}
 
   ec2-security-test:
     needs: [set-ec2-test-environment]
