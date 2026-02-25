@@ -44,7 +44,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
           image-uri: ${{ inputs.image-uri }}
 
-      - name: Setup host dependencies
+      - name: Setup for test dependencies on host machine
         run: |
           uv venv --python 3.12
           source .venv/bin/activate

@@ -79,9 +79,15 @@ def load_allowlist(allowlist_dir, framework=None, framework_version=None):
     return allowed
 
 
+def is_esm_fix(fixed_version: str) -> bool:
+    """Ubuntu Pro/ESM fixes require a paid subscription — skip these."""
+    v = fixed_version.lower()
+    return "esm" in v and "ubuntu" in v
+
+
 def filter_findings(findings, allowlist):
-    """Return CRITICAL/HIGH findings not covered by allowlist."""
-    failures = []
+    """Return CRITICAL/HIGH findings not covered by allowlist, grouped by CVE."""
+    grouped = {}
     for vuln in findings:
         severity = vuln.get("severity", "")
         if severity not in SEVERITY_THRESHOLD:
@@ -89,19 +95,34 @@ def filter_findings(findings, allowlist):
         vuln_id = vuln.get("packageVulnerabilityDetails", {}).get("vulnerabilityId", "")
         if vuln_id in allowlist:
             continue
+
+        packages = []
         for pkg in vuln.get("packageVulnerabilityDetails", {}).get("vulnerablePackages", [{}]):
-            failures.append(
+            fixed_in = pkg.get("fixedInVersion", "N/A")
+            if is_esm_fix(fixed_in):
+                continue
+            packages.append(
                 {
-                    "vulnerability_id": vuln_id,
-                    "severity": severity,
-                    "package": pkg.get("name", ""),
-                    "installed_version": pkg.get("version", ""),
-                    "fixed_in": pkg.get("fixedInVersion", "N/A"),
-                    "source_url": vuln.get("packageVulnerabilityDetails", {}).get("sourceUrl", ""),
-                    "description": vuln.get("description", ""),
+                    "name": pkg.get("name", ""),
+                    "version": pkg.get("version", ""),
+                    "fixed_in": fixed_in,
+                    "manager": pkg.get("packageManager", ""),
                 }
             )
-    return failures
+
+        if not packages:
+            continue
+
+        if vuln_id not in grouped:
+            grouped[vuln_id] = {
+                "vulnerability_id": vuln_id,
+                "severity": severity,
+                "source_url": vuln.get("packageVulnerabilityDetails", {}).get("sourceUrl", ""),
+                "description": vuln.get("description", ""),
+                "packages": [],
+            }
+        grouped[vuln_id]["packages"].extend(packages)
+    return list(grouped.values())
 
 
 def main():
@@ -135,20 +156,33 @@ def main():
     )
 
     findings = get_scan_findings(ecr_client, image)
-    LOGGER.info(f"Scan complete: {len(findings)} total findings")
+    LOGGER.info(f"Scan complete: {len(findings)} findings across all severities")
     LOGGER.debug(f"All findings: {json.dumps(findings, indent=2, default=str)}")
 
     allowlist = load_allowlist(args.allowlist_dir, args.framework, args.framework_version)
     failures = filter_findings(findings, allowlist)
 
     if failures:
-        LOGGER.error(f"{len(failures)} non-allowlisted CRITICAL/HIGH vulnerabilities:")
-        for v in failures:
+        LOGGER.error(f"{len(failures)} non-allowlisted CRITICAL/HIGH CVEs:")
+        for vuln in failures:
+            pkg_summary = ", ".join(
+                f"{pkg['name']} ({pkg['version']} → {pkg['fixed_in']})" for pkg in vuln["packages"]
+            )
+            pin_suggestions = ", ".join(
+                f"{pkg['name']}>={pkg['fixed_in']}"
+                for pkg in vuln["packages"]
+                if pkg["fixed_in"] != "N/A"
+            )
+            allowlist_entry = json.dumps(
+                {"vulnerability_id": vuln["vulnerability_id"], "reason": "TODO"}, indent=2
+            )
             LOGGER.error(
-                f"{v['severity']} {v['vulnerability_id']}\n"
-                f"\tPackage: {v['package']} ({v['installed_version']} → {v['fixed_in']})\n"
-                f"\tURL: {v['source_url']}\n"
-                f"\tDescription: {v['description'][:200]}"
+                f"{vuln['severity']} {vuln['vulnerability_id']}\n"
+                f"\tPackages: {pkg_summary}\n"
+                f"\tURL: {vuln['source_url']}\n"
+                f"\tDescription: {vuln['description'][:200]}\n"
+                f"\tPin fix: {pin_suggestions}\n"
+                f"\tAllowlist entry: {allowlist_entry}"
             )
         return 1
 
