@@ -113,3 +113,15 @@ jobs:
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
+
+      # ==========================================
+      # ===== Security scanning =================
+      # ==========================================
+
+      - name: ECR enhanced vulnerability scan
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd):/$(pwd)/test:$PYTHONPATH python3 test/security/scripts/ecr_scan.py \
+            --image-uri "${{ inputs.image-uri }}" \
+            --framework "${{ inputs.framework }}" \
+            --framework-version "${{ inputs.framework-version }}"
