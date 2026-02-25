@@ -19,6 +19,7 @@ import logging
 import os
 import sys
 import time
+from pprint import pformat
 
 from test_utils import ImageURI, parse_image_uri, wait_for_status
 from test_utils.aws import AWSSessionManager
@@ -184,8 +185,8 @@ def main():
                 for pkg in vuln["packages"]
                 if pkg["fixed_in"] != "N/A"
             )
-            allowlist_entry = json.dumps(
-                {"vulnerability_id": vuln["vulnerability_id"], "reason": "TODO"}, indent=2
+            allowlist_entry = pformat(
+                {"vulnerability_id": vuln["vulnerability_id"], "reason": "TODO"}
             )
             LOGGER.error(
                 f"{vuln['severity']} {vuln['vulnerability_id']}\n"
