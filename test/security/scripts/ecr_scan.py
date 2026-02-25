@@ -97,16 +97,20 @@ def filter_findings(findings, allowlist):
             continue
 
         packages = []
+        seen_pkgs = set()
         for pkg in vuln.get("packageVulnerabilityDetails", {}).get("vulnerablePackages", [{}]):
             fixed_in = pkg.get("fixedInVersion", "N/A")
             if is_esm_fix(fixed_in):
                 continue
+            pkg_key = (pkg.get("name", ""), pkg.get("version", ""), fixed_in)
+            if pkg_key in seen_pkgs:
+                continue
+            seen_pkgs.add(pkg_key)
             packages.append(
                 {
                     "name": pkg.get("name", ""),
                     "version": pkg.get("version", ""),
                     "fixed_in": fixed_in,
-                    "manager": pkg.get("packageManager", ""),
                 }
             )
 
@@ -119,6 +123,9 @@ def filter_findings(findings, allowlist):
                 "severity": severity,
                 "source_url": vuln.get("packageVulnerabilityDetails", {}).get("sourceUrl", ""),
                 "description": vuln.get("description", ""),
+                "manager": vuln.get("packageVulnerabilityDetails", {})
+                .get("vulnerablePackages", [{}])[0]
+                .get("packageManager", ""),
                 "packages": [],
             }
         grouped[vuln_id]["packages"].extend(packages)
@@ -178,6 +185,7 @@ def main():
             )
             LOGGER.error(
                 f"{vuln['severity']} {vuln['vulnerability_id']}\n"
+                f"\tPackage Manager: {vuln['manager']}\n"
                 f"\tPackages: {pkg_summary}\n"
                 f"\tURL: {vuln['source_url']}\n"
                 f"\tDescription: {vuln['description'][:200]}\n"
