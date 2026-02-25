@@ -144,10 +144,10 @@ def main():
         LOGGER.error(f"{len(failures)} non-allowlisted CRITICAL/HIGH vulnerabilities:")
         for v in failures:
             LOGGER.error(
-                f"  {v['severity']} {v['vulnerability_id']}\n"
-                f"    Package: {v['package']} ({v['installed_version']} → {v['fixed_in']})\n"
-                f"    URL: {v['source_url']}\n"
-                f"    Description: {v['description'][:200]}"
+                f"{v['severity']} {v['vulnerability_id']}\n"
+                f"\tPackage: {v['package']} ({v['installed_version']} → {v['fixed_in']})\n"
+                f"\tURL: {v['source_url']}\n"
+                f"\tDescription: {v['description'][:200]}"
             )
         return 1
 
