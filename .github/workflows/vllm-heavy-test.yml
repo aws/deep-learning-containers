@@ -29,7 +29,7 @@ jobs:
 
       - name: Resolve image URI for build
         id: image-uri-build
-        run: | #TODO: modify to github pr number 
+        run: | #TODO: modify to github pr number
           IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-py312-cu129-ubuntu22.04-ec2-efa-${{ github.run_id }}
           echo "Image URI to build: ${IMAGE_URI}"
           echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
