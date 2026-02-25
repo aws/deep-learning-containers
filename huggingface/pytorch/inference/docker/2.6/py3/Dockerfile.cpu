@@ -147,7 +147,8 @@ RUN pip install --no-cache-dir --extra-index-url https://download.pytorch.org/wh
     "urllib3>=2.6" \
     "brotli>1.1" \
     "prompt-toolkit<3.0.39" \
-    "setuptools>=70.0.0"
+    # Fix jaraco.context vulnerability 
+    "setuptools>=81.0.0"
 
 # Ensure PyTorch did not get installed from Conda or pip, prior to now
 # is CPU image, removing nvgpu
@@ -247,6 +248,8 @@ RUN HOME_DIR=/root \
  && rm -rf ${HOME_DIR}/oss_compliance*
 
 RUN curl -o /license.txt  https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.6/license.txt
+
+
 
 ## Cleanup ##
 RUN pip cache purge \
