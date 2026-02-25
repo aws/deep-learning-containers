@@ -114,10 +114,7 @@ class ImageConfig:
     @property
     def display_repository(self) -> str:
         """Get human-readable display name for the repository."""
-        display_names = GLOBAL_CONFIG.get("display_names", {})
-        if self._repository not in display_names:
-            raise KeyError(f"Display name not found for: {self._repository}")
-        return display_names[self._repository]
+        return GLOBAL_CONFIG["display_names"][self._repository]
 
     @property
     def display_tag(self) -> str:
@@ -130,10 +127,7 @@ class ImageConfig:
     @property
     def display_framework_group(self) -> str:
         """Get human-readable display name for the framework group."""
-        display_names = GLOBAL_CONFIG.get("display_names", {})
-        if self.framework_group not in display_names:
-            raise KeyError(f"Display name not found for: {self.framework_group}")
-        return display_names[self.framework_group]
+        return GLOBAL_CONFIG["display_names"][self.framework_group]
 
     @property
     def display_framework_version(self) -> str:
@@ -149,14 +143,14 @@ class ImageConfig:
     @property
     def display_platform(self) -> str:
         """Platform display value with mapping applied."""
-        platforms = GLOBAL_CONFIG.get("platforms", {})
-        return platforms.get(self.get("platform", ""), self.get("platform", "-"))
+        platform = self.get("platform", GLOBAL_CONFIG["default_empty_field"])
+        return GLOBAL_CONFIG["platforms"].get(platform, platform)
 
     @property
     def display_accelerator(self) -> str:
         """Accelerator display value with mapping applied."""
-        accelerators = GLOBAL_CONFIG.get("accelerators", {})
-        return accelerators.get(self.get("accelerator", ""), self.get("accelerator", "-").upper())
+        accelerator = self.get("accelerator", GLOBAL_CONFIG["default_empty_field"])
+        return GLOBAL_CONFIG["accelerators"].get(accelerator, accelerator.upper())
 
     def get_display(self, field: str) -> str:
         """Get display value for a field, using display_<field> property if available."""
@@ -164,7 +158,7 @@ class ImageConfig:
         if hasattr(self, display_attr):
             return getattr(self, display_attr)
         value = self.get(field)
-        return str(value) if value is not None else "-"
+        return str(value) if value is not None else GLOBAL_CONFIG["default_empty_field"]
 
 
 def dates_agree(images: list[ImageConfig]) -> bool:
@@ -222,7 +216,7 @@ def load_images_by_framework_group(
     Returns:
         Dict mapping framework_group to list of ImageConfig objects.
     """
-    table_order = GLOBAL_CONFIG.get("table_order", [])
+    table_order = GLOBAL_CONFIG["table_order"]
     images_by_group: dict[str, list[ImageConfig]] = {}
 
     for repository in table_order:

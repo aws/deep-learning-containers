@@ -1,0 +1,12 @@
+framework: vLLM
+version: "0.11"
+accelerator: neuronx
+python: py310
+sdk: "2.26.1"
+optimum: "0.4.5"
+os: ubuntu22.04
+platform: sagemaker
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "0.11.0-optimum0.4.5-neuronx-py310-sdk2.26.1-ubuntu22.04"

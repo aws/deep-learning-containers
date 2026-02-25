@@ -123,7 +123,7 @@ class TestImageConfigDisplayProperties:
 
     def test_display_repository_missing(self):
         img = ImageConfig("unknown-repo", version="1.0")
-        with pytest.raises(KeyError, match="Display name not found"):
+        with pytest.raises(KeyError, match="unknown-repo"):
             _ = img.display_repository
 
     def test_display_framework_group(self):

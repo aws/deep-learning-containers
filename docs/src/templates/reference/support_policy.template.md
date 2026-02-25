@@ -18,3 +18,7 @@
 ## Unsupported Frameworks
 
 {{ unsupported_table }}
+
+## End of Patch Availability
+
+After a framework version reaches its End of Patch (EOP) date, the container images will remain available on {{ ecr }} and, where applicable, the {{ ecr_public }}. However, these images will no longer receive security patches or bug fixes. We recommend upgrading to a supported framework version to continue receiving updates.

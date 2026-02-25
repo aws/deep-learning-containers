@@ -10,28 +10,33 @@ amazon: "Amazon"
 dlc: "Deep Learning Containers"
 
 # Composed terminology
-dlc_long: "${aws} ${dlc}"
 dlc_short: "DLC"
-sagemaker: "${amazon} SageMaker AI"
-ec2: "${amazon} EC2"
+dlc_long: "${aws} ${dlc}"
+sm_short: "SageMaker"
+sagemaker: "${amazon} ${sm_short} AI"
 ec2_short: "EC2"
-ecs: "${amazon} ECS"
+ec2: "${amazon} ${ec2_short}"
 ecs_short: "ECS"
-eks: "${amazon} EKS"
+ecs: "${amazon} ${ecs_short}"
 eks_short: "EKS"
-ecr: "${amazon} ECR"
+eks: "${amazon} ${eks_short}"
 ecr_short: "ECR"
-sns: "${amazon} SNS"
-sqs: "${amazon} SQS"
-lambda: "${aws} Lambda"
+ecr: "${amazon} ${ecr_short}"
+ecr_public: "${amazon} ${ecr_short} Public Gallery"
+sns_short: "SNS"
+sns: "${amazon} ${sns_short}"
+sqs_short: "SQS"
+sqs: "${amazon} ${sqs_short}"
+lambda_short: "Lambda"
+lambda: "${aws} ${lambda_short}"
 
 # Default value for empty/missing fields in tables
 default_empty_field: "-"
 
 # Platform display mappings (config value -> table display)
 platforms:
-  ec2: "EC2, ECS, EKS"
-  sagemaker: "SageMaker"
+  ec2: "${ec2_short}, ${ecs_short}, ${eks_short}"
+  sagemaker: "${sm_short}"
 
 # Accelerator display mappings (config value -> table display)
 accelerators:
@@ -72,6 +77,7 @@ display_names:
   tensorflow-inference-neuronx: "TensorFlow Inference NeuronX"
   huggingface-pytorch-training: "HuggingFace PyTorch Training"
   huggingface-pytorch-inference: "HuggingFace PyTorch Inference"
+  huggingface-vllm-inference-neuronx: "HuggingFace vLLM Inference NeuronX"
   huggingface-pytorch-training-neuronx: "HuggingFace PyTorch Training NeuronX"
   huggingface-pytorch-inference-neuronx: "HuggingFace PyTorch Inference NeuronX"
   huggingface-tensorflow-training: "HuggingFace TensorFlow Training"
@@ -163,6 +169,7 @@ table_order:
   - tensorflow-inference-neuronx
   - huggingface-pytorch-training
   - huggingface-pytorch-inference
+  - huggingface-vllm-inference-neuronx
   - huggingface-pytorch-training-neuronx
   - huggingface-pytorch-inference-neuronx
   - huggingface-pytorch-trcomp-training

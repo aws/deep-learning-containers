@@ -1,0 +1,115 @@
+name: Reusable Sanity Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Image URI to test'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR authentication'
+        required: true
+        type: string
+      framework:
+        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
+        required: true
+        type: string
+      framework-version:
+        description: 'Framework version (e.g., 0.15.1, 0.5.8)'
+        required: true
+        type: string
+      python-version:
+        description: 'Python version in pyXYZ format (e.g., py312)'
+        required: true
+        type: string
+      os-version:
+        description: 'OS version (e.g., ubuntu22.04, ubuntu24.04)'
+        required: true
+        type: string
+      cuda-version:
+        description: 'CUDA version in cuXYZ format (e.g., cu129). Empty for CPU images.'
+        required: false
+        type: string
+        default: ''
+
+jobs:
+  general-tests:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Setup for host test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --entrypoint /bin/bash \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      # ==========================================
+      # ===== Filesystem checks (clean image) ====
+      # ==========================================
+
+      - name: Check filesystem
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_filesystem.sh
+
+      - name: Check no conda packages from repo.anaconda.com
+        run: |
+          docker exec ${CONTAINER_ID} bash /workdir/test/sanity/scripts/check_anaconda.sh
+
+      # ==========================================
+      # ===== Label checks =======================
+      # ==========================================
+
+      - name: Check container labels
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+
+      # TODO: [MANUAL] Need to add test for checking license content and add license to sglang
+      # - name: Check license file exists
+      #   run: |
+      #     docker exec ${CONTAINER_ID} bash -c \
+      #       'test -f /license.txt && echo "License file exists" || (echo "WARNING: /license.txt not found" && exit 1)'
+
+      # ==========================================
+      # ===== OSS compliance =====================
+      # ==========================================
+
+      - name: Run OSS compliance check
+        run: |
+          docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
+
+      - name: Copy OSS compliance artifacts
+        run: |
+          docker cp ${CONTAINER_ID}:/root/THIRD_PARTY_SOURCE_CODE_URLS ./THIRD_PARTY_SOURCE_CODE_URLS
+
+      - name: Upload third-party source code to S3
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
