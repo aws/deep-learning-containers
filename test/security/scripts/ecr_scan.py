@@ -26,7 +26,7 @@ import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger("test").getChild("ecr_scan")
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
 SCAN_WAIT_PERIOD = 20
