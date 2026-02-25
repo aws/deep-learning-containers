@@ -75,7 +75,7 @@ def _test_sglang_model(
     model = Model(
         name=endpoint_name,
         image_uri=image_uri,
-        role="sagemaker-dlcs",
+        role="SageMakerRole",
         env=env,
         sagemaker_session=sagemaker_session,
         predictor_cls=Predictor,
