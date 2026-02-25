@@ -281,7 +281,7 @@ jobs:
             # our CI suffers the same issue
             export IS_BLACKWELL=1
 
-            bash scripts/ci/ci_install_dependency.sh
+            bash scripts/ci/cuda/ci_install_dependency.sh
           '
 
       - name: Run SGLang tests
@@ -490,7 +490,7 @@ jobs:
             # our CI suffers the same issue
             export IS_BLACKWELL=1
 
-            bash scripts/ci/ci_install_dependency.sh
+            bash scripts/ci/cuda/ci_install_dependency.sh
           '
 
       - name: Run SGLang tests
