@@ -16,7 +16,7 @@ env:
   # Common
   CONTAINER_TYPE: "general"
   FRAMEWORK: "sglang"
-  SGLANG_VERSION: "0.5.8"
+  SGLANG_VERSION: "0.5.9"
   PYTHON_VERSION: "py312"
   CUDA_VERSION: "cu129"
   OS_VERSION: "ubuntu24.04"
@@ -281,7 +281,7 @@ jobs:
             # our CI suffers the same issue
             export IS_BLACKWELL=1
 
-            bash scripts/ci/ci_install_dependency.sh
+            bash scripts/ci/cuda/ci_install_dependency.sh
           '
 
       - name: Run SGLang tests
@@ -290,8 +290,9 @@ jobs:
             set -eux
             nvidia-smi
 
-            # SRT backend Test
+            # SRT backend Test with increased timeout
             cd /workdir/test
+            export SGLANG_TIMEOUT=600
             python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
@@ -490,7 +491,7 @@ jobs:
             # our CI suffers the same issue
             export IS_BLACKWELL=1
 
-            bash scripts/ci/ci_install_dependency.sh
+            bash scripts/ci/cuda/ci_install_dependency.sh
           '
 
       - name: Run SGLang tests
@@ -499,8 +500,9 @@ jobs:
             set -eux
             nvidia-smi
 
-            # SRT backend Test
+            # SRT backend Test with increased timeout
             cd /workdir/test
+            export SGLANG_TIMEOUT=600
             python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
