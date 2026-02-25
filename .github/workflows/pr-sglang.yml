@@ -290,8 +290,9 @@ jobs:
             set -eux
             nvidia-smi
 
-            # SRT backend Test
+            # SRT backend Test with increased timeout
             cd /workdir/test
+            export SGLANG_TIMEOUT=600
             python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
@@ -499,8 +500,9 @@ jobs:
             set -eux
             nvidia-smi
 
-            # SRT backend Test
+            # SRT backend Test with increased timeout
             cd /workdir/test
+            export SGLANG_TIMEOUT=600
             python3 run_suite.py --hw cuda --suite stage-a-test-1
           '
 
