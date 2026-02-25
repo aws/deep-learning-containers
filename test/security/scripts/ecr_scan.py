@@ -102,9 +102,12 @@ def filter_findings(findings, allowlist):
             failures.append(
                 {
                     "vulnerability_id": vuln_id,
-                    "package": pkg.get("name", ""),
                     "severity": severity,
-                    "title": vuln.get("title", ""),
+                    "package": pkg.get("name", ""),
+                    "installed_version": pkg.get("version", ""),
+                    "fixed_in": pkg.get("fixedInVersion", "N/A"),
+                    "source_url": vuln.get("packageVulnerabilityDetails", {}).get("sourceUrl", ""),
+                    "description": vuln.get("description", ""),
                 }
             )
     return failures
@@ -136,7 +139,10 @@ def main():
         LOGGER.error(f"{len(failures)} non-allowlisted CRITICAL/HIGH vulnerabilities:")
         for v in failures:
             LOGGER.error(
-                f"  {v['severity']} {v['vulnerability_id']} in {v['package']}: {v['title']}"
+                f"  {v['severity']} {v['vulnerability_id']}\n"
+                f"    Package: {v['package']} ({v['installed_version']} → {v['fixed_in']})\n"
+                f"    URL: {v['source_url']}\n"
+                f"    Description: {v['description'][:200]}"
             )
         return 1
 
