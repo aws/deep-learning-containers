@@ -35,6 +35,7 @@ SCAN_WAIT_PERIOD = 20
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
 SCAN_INITIAL_WAIT = 1200  # seconds to wait before polling, lets Inspector fully process the image
+SCAN_POST_COMPLETE_WAIT = 60  # additional wait after scan completes before reading findings
 
 
 def get_scan_status(ecr_client, repository: str, image_tag: str) -> str:
@@ -51,12 +52,14 @@ def get_scan_findings(ecr_client, image: ImageURI) -> list:
     resp = ecr_client.describe_image_scan_findings(
         repositoryName=image.repository,
         imageId=image_id,
+        maxResults=100,
     )
     findings = resp.get("imageScanFindings", {}).get("enhancedFindings", [])
     while resp.get("nextToken"):
         resp = ecr_client.describe_image_scan_findings(
             repositoryName=image.repository,
             imageId=image_id,
+            maxResults=100,
             nextToken=resp["nextToken"],
         )
         findings.extend(resp.get("imageScanFindings", {}).get("enhancedFindings", []))
@@ -92,6 +95,8 @@ def filter_findings(findings, allowlist):
     """Return CRITICAL/HIGH findings not covered by allowlist, grouped by CVE."""
     grouped = {}
     for vuln in findings:
+        if vuln.get("status") != "ACTIVE":
+            continue
         severity = vuln.get("severity", "")
         if severity not in SEVERITY_THRESHOLD:
             continue
@@ -103,6 +108,8 @@ def filter_findings(findings, allowlist):
         seen_pkgs = set()
         for pkg in vuln.get("packageVulnerabilityDetails", {}).get("vulnerablePackages", [{}]):
             fixed_in = pkg.get("fixedInVersion", "N/A")
+            if fixed_in == "N/A":
+                continue
             if is_esm_fix(fixed_in):
                 continue
             pkg_key = (pkg.get("name", ""), pkg.get("version", ""), fixed_in)
@@ -148,15 +155,16 @@ def main():
 
     image = parse_image_uri(args.image_uri)
     ecr_client = AWSSessionManager(region=image.region).ecr
-
     img_resp = ecr_client.describe_images(
         repositoryName=image.repository,
         imageIds=[{"imageTag": image.image_tag}],
     )
     sha = img_resp["imageDetails"][0]["imageDigest"]
-    LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
+
     LOGGER.info(f"Initial wait {SCAN_INITIAL_WAIT}s for Inspector to process image...")
     time.sleep(SCAN_INITIAL_WAIT)
+
+    LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
     assert wait_for_status(
         SCAN_COMPLETE,
         SCAN_WAIT_PERIOD,
@@ -166,6 +174,9 @@ def main():
         image.repository,
         image.image_tag,
     )
+
+    LOGGER.info(f"Waiting {SCAN_POST_COMPLETE_WAIT}s for findings to stabilize...")
+    time.sleep(SCAN_POST_COMPLETE_WAIT)
 
     findings = get_scan_findings(ecr_client, image)
     LOGGER.info(f"Scan complete: {len(findings)} findings across all severities")
