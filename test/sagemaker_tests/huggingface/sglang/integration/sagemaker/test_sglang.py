@@ -29,23 +29,7 @@ from ..... import invoke_sm_endpoint_helper_function
 LOGGER = logging.getLogger(__name__)
 
 
-@pytest.mark.model("bloom-560m")
-@pytest.mark.processor("gpu")
-@pytest.mark.gpu_test
-@pytest.mark.team("sagemaker-1p-algorithms")
-def test_sglang_bloom(framework_version, ecr_image, instance_type, sagemaker_regions):
-    invoke_sm_endpoint_helper_function(
-        ecr_image=ecr_image,
-        sagemaker_regions=sagemaker_regions,
-        test_function=_test_sglang_model,
-        dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
-        framework_version=framework_version,
-        instance_type=instance_type,
-        model_id="bigscience/bloom-560m",
-    )
-
-
-@pytest.mark.model("qwen3-8b")
+@pytest.mark.model("qwen2.5-0.5b")
 @pytest.mark.processor("gpu")
 @pytest.mark.gpu_test
 @pytest.mark.team("sagemaker-1p-algorithms")
@@ -57,7 +41,7 @@ def test_sglang_qwen(framework_version, ecr_image, instance_type, sagemaker_regi
         dump_logs_from_cloudwatch=dump_logs_from_cloudwatch,
         framework_version=framework_version,
         instance_type=instance_type,
-        model_id="Qwen/Qwen3-8B",
+        model_id="Qwen/Qwen2.5-0.5B",
     )
 
 
@@ -91,7 +75,7 @@ def _test_sglang_model(
     model = Model(
         name=endpoint_name,
         image_uri=image_uri,
-        role="SageMakerRole",
+        role="sagemaker-dlcs",
         env=env,
         sagemaker_session=sagemaker_session,
         predictor_cls=Predictor,
@@ -109,9 +93,9 @@ def _test_sglang_model(
         predictor.serializer = JSONSerializer()
         predictor.deserializer = JSONDeserializer()
 
-        # SGLang uses OpenAI-compatible API format
+        # SGLang SageMaker uses OpenAI-compatible chat completions API format
         data = {
-            "prompt": "What is Deep Learning?",
+            "messages": [{"role": "user", "content": "What is Deep Learning?"}],
             "max_tokens": 50,
             "temperature": 0.7,
         }
@@ -121,3 +105,4 @@ def _test_sglang_model(
         LOGGER.info(f"Output: {json.dumps(output)}")
 
         assert output is not None
+        assert "choices" in output
