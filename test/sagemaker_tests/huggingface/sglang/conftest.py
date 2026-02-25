@@ -140,9 +140,7 @@ def pytest_collection_modifyitems(session, config, items):
         from test.test_utils.test_reporting import TestReportGenerator
 
         report_generator = TestReportGenerator(items, is_sagemaker=True)
-        report_generator.generate_coverage_doc(
-            framework="huggingface_sglang", job_type="inference"
-        )
+        report_generator.generate_coverage_doc(framework="huggingface_sglang", job_type="inference")
 
 
 @pytest.fixture(scope="session", name="docker_base_name")
