@@ -75,18 +75,22 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ${{ github.workspace }}:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.build-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
+      - name: Copy workspace into container
+        run: |
+          docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp vllm_source ${CONTAINER_ID}:/vllm_source
+
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM regression tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_regression_test.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_regression_test.sh
 
       - name: Cleanup
         if: always()
@@ -119,18 +123,22 @@ jobs:
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
-            -v ${{ github.workspace }}:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.build-image.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
+      - name: Copy workspace into container
+        run: |
+          docker cp scripts ${CONTAINER_ID}:/scripts
+          docker cp vllm_source ${CONTAINER_ID}:/vllm_source
+
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_15_1_test_setup.sh
 
       - name: Run vLLM example tests
         run: |
-          docker exec ${CONTAINER_ID} bash /workdir/scripts/vllm/vllm_ec2_examples_test.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_ec2_examples_test.sh
 
       - name: Cleanup
         if: always()
