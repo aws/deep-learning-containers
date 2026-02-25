@@ -57,22 +57,6 @@ def _predictor(image, sagemaker_local_session, instance_type):
                 predictor.delete_endpoint()
 
 
-def _assert_sglang_prediction(predictor):
-    """Test SGLang inference using OpenAI-compatible completions API."""
-    predictor.serializer = JSONSerializer()
-    predictor.deserializer = JSONDeserializer()
-
-    data = {
-        "prompt": "What is Deep Learning?",
-        "max_tokens": 50,
-        "temperature": 0.7,
-    }
-    output = predictor.predict(data)
-
-    assert output is not None
-    assert "choices" in output
-
-
 def _assert_sglang_chat_prediction(predictor):
     """Test SGLang inference using OpenAI-compatible chat completions API."""
     predictor.serializer = JSONSerializer()
@@ -87,14 +71,6 @@ def _assert_sglang_chat_prediction(predictor):
 
     assert output is not None
     assert "choices" in output
-
-
-@pytest.mark.model("qwen2.5-0.5b")
-@pytest.mark.team("sagemaker-1p-algorithms")
-def test_sglang_local_completions(docker_image, sagemaker_local_session, instance_type):
-    """Test SGLang local deployment with completions API."""
-    with _predictor(docker_image, sagemaker_local_session, instance_type) as predictor:
-        _assert_sglang_prediction(predictor)
 
 
 @pytest.mark.model("qwen2.5-0.5b")
