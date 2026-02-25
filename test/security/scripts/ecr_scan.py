@@ -18,6 +18,7 @@ import json
 import logging
 import os
 import sys
+import time
 
 from test_utils import ImageURI, parse_image_uri, wait_for_status
 from test_utils.aws import AWSSessionManager
@@ -26,12 +27,13 @@ import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger("test").getChild("ecr_scan")
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
 SCAN_WAIT_PERIOD = 20
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
+SCAN_INITIAL_WAIT = 1200  # seconds to wait before polling, lets Inspector fully process the image
 
 
 def get_scan_status(ecr_client, repository: str, image_tag: str) -> str:
@@ -152,6 +154,8 @@ def main():
     )
     sha = img_resp["imageDetails"][0]["imageDigest"]
     LOGGER.info(f"Waiting for ECR enhanced scan: {image.repository}:{image.image_tag} ({sha})")
+    LOGGER.info(f"Initial wait {SCAN_INITIAL_WAIT}s for Inspector to process image...")
+    time.sleep(SCAN_INITIAL_WAIT)
     assert wait_for_status(
         SCAN_COMPLETE,
         SCAN_WAIT_PERIOD,
