@@ -1,13 +1,20 @@
 name: vLLM_RAYSERVE_AUTO_RELEASE
 
 on:
-  # schedule run must be on the default branch
-  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
-  schedule:
-    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
-    # Note: GitHub Actions uses UTC time. PST is UTC-8, PDT is UTC-7
-    # Using 17:00 UTC = 10:00 AM PDT (most of the year) / 9:00 AM PST (winter)
-    - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
+  # # schedule run must be on the default branch
+  # # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+  # schedule:
+  #   # Runs at 10:00 AM PST/PDT on Monday and Wednesday
+  #   # Note: GitHub Actions uses UTC time. PST is UTC-8, PDT is UTC-7
+  #   # Using 17:00 UTC = 10:00 AM PDT (most of the year) / 9:00 AM PST (winter)
+  #   - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
+
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**vllm**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -18,23 +25,23 @@ env:
   FORCE_COLOR: "1"
 
   # Config file paths
-  RAYSERVE_CONFIG: ".github/config/vllm-rayserve.yml"
+  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
 
 
 jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
-      rayserve-config: ${{ steps.load.outputs.rayserve-config }}
+      config: ${{ steps.load.outputs.config }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Load configurations
+      - name: Load configuration
         id: load
         uses: ./.github/actions/load-config
         with:
-          config-files: ${{ env.RAYSERVE_CONFIG }}
+          config-file: ${{ env.CONFIG_FILE }}
 
   # ===================================================
   # =============== vLLM RayServe jobs ================
@@ -56,7 +63,7 @@ jobs:
       - name: Parse RayServe config
         id: config
         run: |
-          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo '${{ needs.load-config.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
@@ -108,7 +115,7 @@ jobs:
       - name: Parse RayServe config
         id: config
         run: |
-          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo '${{ needs.load-config.outputs.config }}' > config.json
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
@@ -284,7 +291,7 @@ jobs:
       - name: Check if release is enabled
         id: check-release
         run: |
-          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo '${{ needs.load-config.outputs.config }}' > config.json
           RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
           echo "Release enabled: ${RELEASE_ENABLED}"
           echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
@@ -294,7 +301,7 @@ jobs:
         if: steps.check-release.outputs.should-release == 'true'
         uses: ./.github/actions/generate-release-spec
         with:
-          config-json: ${{ needs.load-config.outputs.rayserve-config }}
+          config-json: ${{ needs.load-config.outputs.config }}
 
   release-rayserve-image:
     needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
@@ -303,7 +310,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      environment: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.environment }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
 
