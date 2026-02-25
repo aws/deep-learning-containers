@@ -97,6 +97,10 @@ RUN git clone https://github.com/flashinfer-ai/flashinfer.git --recursive && \
     python3 -m flashinfer --download-cubin || echo "WARNING: Failed to download flashinfer cubins."
 
     
+# Pin transformers to 4.x before installing wheels to ensure vLLM v0.10.2 compatibility
+# vLLM v0.10.2 requires transformers>=4.55.2 but is not compatible with 5.x API changes
+RUN uv pip install "transformers>=4.55.2,<5.0.0"
+
 RUN uv pip install wheels/* && \
     rm -r wheels
 
