@@ -1,20 +1,13 @@
 name: vLLM_RAYSERVE_AUTO_RELEASE
 
 on:
-  # # schedule run must be on the default branch
-  # # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
-  # schedule:
-  #   # Runs at 10:00 AM PST/PDT on Monday and Wednesday
-  #   # Note: GitHub Actions uses UTC time. PST is UTC-8, PDT is UTC-7
-  #   # Using 17:00 UTC = 10:00 AM PDT (most of the year) / 9:00 AM PST (winter)
-  #   - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
-
-  pull_request:
-    branches: [main]
-    types: [opened, reopened, synchronize]
-    paths:
-      - "**vllm**"
-      - "!docs/**"
+  # schedule run must be on the default branch
+  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+  schedule:
+    # Runs at 10:00 AM PST/PDT on Monday and Wednesday
+    # Note: GitHub Actions uses UTC time. PST is UTC-8, PDT is UTC-7
+    # Using 17:00 UTC = 10:00 AM PDT (most of the year) / 9:00 AM PST (winter)
+    - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
 
 permissions:
   contents: read
@@ -25,62 +18,55 @@ env:
   FORCE_COLOR: "1"
 
   # Config file paths
-  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
+  RAYSERVE_CONFIG: ".github/config/vllm-0.10.2-rayserve.yml"
 
 
 jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
   load-config:
+    needs: [gatekeeper]
+    if: success()
     runs-on: ubuntu-latest
     outputs:
-      config: ${{ steps.load.outputs.config }}
+      rayserve-config: ${{ steps.load-configs.outputs.rayserve-config }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Load configuration
-        id: load
-        uses: ./.github/actions/load-config
-        with:
-          config-file: ${{ env.CONFIG_FILE }}
-
-  parse-config:
-    needs: [load-config]
-    if: success()
-    runs-on: ubuntu-latest
-    outputs:
-      framework: ${{ steps.parse.outputs.framework }}
-      framework-version: ${{ steps.parse.outputs.framework-version }}
-      python-version: ${{ steps.parse.outputs.python-version }}
-      cuda-version: ${{ steps.parse.outputs.cuda-version }}
-      os-version: ${{ steps.parse.outputs.os-version }}
-      container-type: ${{ steps.parse.outputs.container-type }}
-      device-type: ${{ steps.parse.outputs.device-type }}
-      arch-type: ${{ steps.parse.outputs.arch-type }}
-      contributor: ${{ steps.parse.outputs.contributor }}
-      customer-type: ${{ steps.parse.outputs.customer-type }}
-      prod-image: ${{ steps.parse.outputs.prod-image }}
-    steps:
-      - name: Parse configuration
-        id: parse
+      - name: Load configuration files
+        id: load-configs
         run: |
-          echo '${{ needs.load-config.outputs.config }}' > config.json
-          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
-          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
-          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
-          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
-          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
-          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
-          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
-          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
-          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
-          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
-          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+          # Install yq for YAML parsing
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+          # Load and output configs as JSON for easy parsing in other jobs
+          # Using multiline output format to handle special characters
+          {
+            echo "rayserve-config<<EOF"
+            yq eval -o=json '.' ${{ env.RAYSERVE_CONFIG }}
+            echo "EOF"
+          } >> $GITHUB_OUTPUT
 
   # ===================================================
   # =============== vLLM RayServe jobs ================
   # ===================================================
   build-vllm-rayserve-image:
-    needs: [parse-config]
+    needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -93,29 +79,72 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Parse RayServe config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+
       - name: Build image
         id: build
         uses: ./.github/actions/build-image
         with:
-          framework: ${{ needs.parse-config.outputs.framework }}
+          framework: ${{ steps.config.outputs.framework }}
           target: vllm-rayserve-ec2
-          base-image: vllm/vllm-openai:v${{ needs.parse-config.outputs.framework-version }}
-          framework-version: ${{ needs.parse-config.outputs.framework-version }}
-          container-type: ${{ needs.parse-config.outputs.container-type }}
+          base-image: vllm/vllm-openai:v${{ steps.config.outputs.framework-version }}
+          framework-version: ${{ steps.config.outputs.framework-version }}
+          container-type: ${{ steps.config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.parse-config.outputs.framework }}-${{ needs.parse-config.outputs.framework-version }}-${{ needs.parse-config.outputs.device-type }}-${{ needs.parse-config.outputs.python-version }}-${{ needs.parse-config.outputs.cuda-version }}-${{ needs.parse-config.outputs.os-version }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.parse-config.outputs.framework }}/Dockerfile
-          arch-type: ${{ needs.parse-config.outputs.arch-type }}
-          device-type: ${{ needs.parse-config.outputs.device-type }}
-          cuda-version: ${{ needs.parse-config.outputs.cuda-version }}
-          python-version: ${{ needs.parse-config.outputs.python-version }}
-          os-version: ${{ needs.parse-config.outputs.os-version }}
-          contributor: ${{ needs.parse-config.outputs.contributor }}
-          customer-type: ${{ needs.parse-config.outputs.customer-type }}
+          tag-pr: ${{ steps.config.outputs.framework }}-${{ steps.config.outputs.framework-version }}-${{ steps.config.outputs.device-type }}-${{ steps.config.outputs.python-version }}-${{ steps.config.outputs.cuda-version }}-${{ steps.config.outputs.os-version }}-rayserve-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ steps.config.outputs.framework }}/Dockerfile
+
+  set-rayserve-test-environment:
+    needs: [build-vllm-rayserve-image, load-config]
+    if: |
+      always() && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-set-rayserve-test-environment-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      aws-account-id: ${{ steps.set-env.outputs.AWS_ACCOUNT_ID }}
+      image-uri: ${{ steps.set-env.outputs.IMAGE_URI }}
+      framework-version: ${{ steps.config.outputs.framework-version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Parse RayServe config
+        id: config
+        run: |
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+      - name: Set test environment
+        id: set-env
+        run: |
+          if [[ "${{ needs.build-vllm-rayserve-image.result }}" == "success" ]]; then
+            AWS_ACCOUNT_ID=${{ vars.CI_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
+          else
+            AWS_ACCOUNT_ID=${{ vars.PROD_AWS_ACCOUNT_ID }}
+            IMAGE_URI=${{ vars.PROD_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/${{ steps.config.outputs.prod-image }}
+          fi
+
+          echo "Image URI to test: ${IMAGE_URI}"
+          echo "AWS_ACCOUNT_ID=${AWS_ACCOUNT_ID}" >> ${GITHUB_OUTPUT}
+          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
 
   vllm-rayserve-regression-test:
-    needs: [build-vllm-rayserve-image, parse-config]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -131,15 +160,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-rayserve-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -149,7 +178,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -161,7 +190,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
   vllm-rayserve-cuda-test:
-    needs: [build-vllm-rayserve-image, parse-config]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -177,15 +206,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-rayserve-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -195,7 +224,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -207,7 +236,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
   vllm-rayserve-example-test:
-    needs: [build-vllm-rayserve-image, parse-config]
+    needs: [build-vllm-rayserve-image, set-rayserve-test-environment]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -223,15 +252,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-rayserve-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.set-rayserve-test-environment.outputs.aws-account-id }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.set-rayserve-test-environment.outputs.image-uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.set-rayserve-test-environment.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -241,7 +270,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-rayserve-image.result == 'success' && needs.build-vllm-rayserve-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.set-rayserve-test-environment.outputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -253,7 +282,7 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_rayserve_examples_test.sh
 
   generate-rayserve-release-spec:
-    needs: [load-config, parse-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
+    needs: [load-config, build-vllm-rayserve-image, vllm-rayserve-regression-test, vllm-rayserve-cuda-test, vllm-rayserve-example-test]
     if: |
       always() && !failure() && !cancelled() &&
       needs.build-vllm-rayserve-image.result == 'success' &&
@@ -271,7 +300,7 @@ jobs:
       - name: Check if release is enabled
         id: check-release
         run: |
-          echo '${{ needs.load-config.outputs.config }}' > config.json
+          echo '${{ needs.load-config.outputs.rayserve-config }}' > config.json
           RELEASE_ENABLED=$(jq -r '.release.release // false' config.json)
           echo "Release enabled: ${RELEASE_ENABLED}"
           echo "should-release=${RELEASE_ENABLED}" >> $GITHUB_OUTPUT
@@ -281,7 +310,7 @@ jobs:
         if: steps.check-release.outputs.should-release == 'true'
         uses: ./.github/actions/generate-release-spec
         with:
-          config-json: ${{ needs.load-config.outputs.config }}
+          config-json: ${{ needs.load-config.outputs.rayserve-config }}
 
   release-rayserve-image:
     needs: [load-config, build-vllm-rayserve-image, generate-rayserve-release-spec]
@@ -290,7 +319,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-vllm-rayserve-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config.outputs.rayserve-config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
 
