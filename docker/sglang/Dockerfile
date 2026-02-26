@@ -75,6 +75,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
 
 # Remove all Rust build-time artifacts to patch CVEs
+ARG CACHE_REFRESH=0
 RUN cp /root/.cargo/env /tmp/cargo-env \
   && rm -rf \
     /root/.cargo/ \
