@@ -34,7 +34,7 @@ SEVERITY_THRESHOLD = {"CRITICAL", "HIGH"}
 SCAN_WAIT_PERIOD = 20
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
-SCAN_INITIAL_WAIT = 1200  # seconds to wait before polling, lets Inspector fully process the image
+SCAN_INITIAL_WAIT = 1  # seconds to wait before polling, lets Inspector fully process the image
 SCAN_POST_COMPLETE_WAIT = 60  # additional wait after scan completes before reading findings
 
 
