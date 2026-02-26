@@ -166,8 +166,7 @@ RUN pip install --no-cache-dir \
     idna \
     tqdm \
     requests \
-    # sagemaker_pytorch_serving_container/torchserve needs pkg_resources
-    "setuptools>=80.10.1,<82.0.0" \
+    "setuptools>=80.10.1" \
     urllib3 \
     awscli \
     types-python-dateutil \
@@ -186,8 +185,6 @@ RUN pip install --no-cache-dir -U \
 # Install TorchServe pypi dependencies directly from their requirements.txt file
 RUN pip install --no-cache-dir -U -r https://raw.githubusercontent.com/pytorch/serve/v${TORCHSERVE_VERSION}/requirements/common.txt \
  && pip install --no-cache-dir -U \
-    # torch serve requrirments will upgrade setuptools
-    "setuptools<82.0.0" \
     torchserve==${TORCHSERVE_VERSION} \
     torch-model-archiver==${TORCHSERVE_VERSION}
 
@@ -259,6 +256,8 @@ ENV SAGEMAKER_SERVING_MODULE sagemaker_pytorch_serving_container.serving:main
 
 # Install extra packages
 RUN pip install --no-cache-dir \
+    # sagemaker_pytorch_serving_container/torchserve needs pkg_resources
+    "setuptools<82.0.0" \
     scikit-learn \
     pandas \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
