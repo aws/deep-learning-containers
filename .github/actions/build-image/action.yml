@@ -99,91 +99,24 @@ runs:
 
     - name: Build image
       shell: bash
-      run: |
-        # Process label values
-        LABEL_FRAMEWORK=$(echo "${{ inputs.framework }}" | tr '_' '-')
-        LABEL_FRAMEWORK_VERSION=$(echo "${{ inputs.framework-version }}" | tr '.' '-')
-        LABEL_ARCH="${{ inputs.arch-type }}"
-        LABEL_PYTHON_VERSION=$(echo "${{ inputs.python-version }}" | tr '.' '-')
-        LABEL_OS_VERSION=$(echo "${{ inputs.os-version }}" | tr '.' '-')
-        LABEL_CONTRIBUTOR="${{ inputs.contributor }}"
-
-        # Build transformers label if version provided
-        LABEL_TRANSFORMERS=""
-        if [[ -n "${{ inputs.transformers-version }}" ]]; then
-          LABEL_TRANSFORMERS=$(echo "${{ inputs.transformers-version }}" | tr '.' '-')
-        fi
-
-        # Build inference toolkit label if both versions provided
-        LABEL_INFERENCE_TOOLKIT=""
-        if [[ -n "${{ inputs.inference-toolkit-version }}" && -n "${{ inputs.torchserve-version }}" ]]; then
-          TOOLKIT_VER=$(echo "${{ inputs.inference-toolkit-version }}" | tr '.' '-')
-          TORCHSERVE_VER=$(echo "${{ inputs.torchserve-version }}" | tr '.' '-')
-          LABEL_INFERENCE_TOOLKIT="${TOOLKIT_VER}.torchserve.${TORCHSERVE_VER}"
-        fi
-
-        # Construct device type label
-        LABEL_DEVICE_TYPE="${{ inputs.device-type }}"
-        if [[ "${{ inputs.device-type }}" == "gpu" && -n "${{ inputs.cuda-version }}" ]]; then
-          LABEL_DEVICE_TYPE="${{ inputs.device-type }}.${{ inputs.cuda-version }}"
-        fi
-
-        # Build base command
-        BUILD_CMD="docker buildx build --progress plain \
-          --build-arg CACHE_REFRESH=\"\$(date +\"%Y-%m-%d\")\" \
-          --build-arg BASE_IMAGE=\"${{ inputs.base-image }}\" \
-          --build-arg CONTAINER_TYPE=\"${{ inputs.container-type }}\" \
-          --build-arg FRAMEWORK=\"${{ inputs.framework }}\" \
-          --build-arg FRAMEWORK_VERSION=\"${{ inputs.framework-version }}\""
-
-        # Add SageMaker labels if customer-type is 'sagemaker'
-        if [[ "${{ inputs.customer-type }}" == "sagemaker" ]]; then
-          BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.arch.${LABEL_ARCH}=true\" \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.device.${LABEL_DEVICE_TYPE}=true\" \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.framework.${LABEL_FRAMEWORK}.${LABEL_FRAMEWORK_VERSION}=true\" \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.job.${{ inputs.container-type }}=true\""
-
-          # Add OS version label if provided
-          if [[ -n "${{ inputs.os-version }}" ]]; then
-            BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.os.${LABEL_OS_VERSION}=true\""
-          fi
-
-          # Add Python version label if provided
-          if [[ -n "${{ inputs.python-version }}" ]]; then
-            BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.python.${LABEL_PYTHON_VERSION}=true\""
-          fi
-
-          # Add contributor label if provided
-          if [[ -n "${LABEL_CONTRIBUTOR}" ]]; then
-            BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.contributor.${LABEL_CONTRIBUTOR}=true\""
-          fi
-
-          # Add transformers library label if provided
-          if [[ -n "${LABEL_TRANSFORMERS}" ]]; then
-            BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.lib.transformers.${LABEL_TRANSFORMERS}=true\""
-          fi
-
-          # Add inference toolkit label if provided
-          if [[ -n "${LABEL_INFERENCE_TOOLKIT}" ]]; then
-            BUILD_CMD="${BUILD_CMD} \
-          --label \"com.amazonaws.ml.engines.sagemaker.dlc.inference-toolkit.${LABEL_INFERENCE_TOOLKIT}=true\""
-          fi
-        fi
-
-        # Complete the build command
-        BUILD_CMD="${BUILD_CMD} \
-          --cache-to=type=inline \
-          --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-          --tag ${CI_IMAGE_URI} \
-          --push \
-          --target ${{ inputs.target }} \
-          -f ${{ inputs.dockerfile-path }} ."
-
-        # Execute build
-        eval ${BUILD_CMD}
-        docker rmi ${CI_IMAGE_URI}
+      run: .github/scripts/build_image.sh
+      env:
+        FRAMEWORK: ${{ inputs.framework }}
+        TARGET: ${{ inputs.target }}
+        BASE_IMAGE: ${{ inputs.base-image }}
+        FRAMEWORK_VERSION: ${{ inputs.framework-version }}
+        CONTAINER_TYPE: ${{ inputs.container-type }}
+        AWS_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        AWS_REGION: ${{ inputs.aws-region }}
+        TAG_PR: ${{ inputs.tag-pr }}
+        DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
+        ARCH_TYPE: ${{ inputs.arch-type }}
+        DEVICE_TYPE: ${{ inputs.device-type }}
+        CUDA_VERSION: ${{ inputs.cuda-version }}
+        PYTHON_VERSION: ${{ inputs.python-version }}
+        OS_VERSION: ${{ inputs.os-version }}
+        CONTRIBUTOR: ${{ inputs.contributor }}
+        CUSTOMER_TYPE: ${{ inputs.customer-type }}
+        INFERENCE_TOOLKIT_VERSION: ${{ inputs.inference-toolkit-version }}
+        TORCHSERVE_VERSION: ${{ inputs.torchserve-version }}
+        TRANSFORMERS_VERSION: ${{ inputs.transformers-version }}
