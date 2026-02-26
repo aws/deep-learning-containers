@@ -71,17 +71,17 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
-# patch CVEs
-RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
-
-# Remove all Rust build-time artifacts to patch CVEs
-RUN cp /root/.cargo/env /tmp/cargo-env \
-  && rm -rf \
-    /root/.cargo/ \
-    /root/.rustup/ \
-    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target \
-  && mkdir -p /root/.cargo \
-  && mv /tmp/cargo-env /root/.cargo/env
+# # patch CVEs
+# RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
+#
+# # Remove all Rust build-time artifacts to patch CVEs
+# RUN cp /root/.cargo/env /tmp/cargo-env \
+#   && rm -rf \
+#     /root/.cargo/ \
+#     /root/.rustup/ \
+#     /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target \
+#   && mkdir -p /root/.cargo \
+#   && mv /tmp/cargo-env /root/.cargo/env
 
 # Run OSS compliance script
 # ==========================
