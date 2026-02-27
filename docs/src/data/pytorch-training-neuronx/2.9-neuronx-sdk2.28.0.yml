@@ -1,0 +1,11 @@
+framework: PyTorch
+version: "2.9"
+accelerator: neuronx
+python: py312
+sdk: "2.28.0"
+os: ubuntu24.04
+platform: sagemaker
+
+# Image tags (first tag is used in available_images.md)
+tags:
+  - "2.9.0-neuronx-py312-sdk2.28.0-ubuntu24.04"
