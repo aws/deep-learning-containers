@@ -327,6 +327,8 @@ ENV TS_DISABLE_SYSTEM_METRICS=true
 
 # Install extra packages
 RUN pip install --no-cache-dir \
+    # sagemaker_pytorch_serving_container/torchserve needs pkg_resources
+    "setuptools<82.0.0" \
     scikit-learn \
     pandas \
     sagemaker-pytorch-inference==${SM_TOOLKIT_VERSION} \
