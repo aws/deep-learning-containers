@@ -36,6 +36,7 @@ class AWSSessionManager:
         self.sts = self.session.client("sts")
         self.s3 = self.session.client("s3")
         self.sagemaker = self.session.client("sagemaker")
+        self.ecr = self.session.client("ecr")
 
         # Resource API
         self.iam_resource = self.session.resource("iam")

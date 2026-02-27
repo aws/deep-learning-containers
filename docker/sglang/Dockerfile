@@ -78,12 +78,9 @@ RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
 RUN rm -rf \
   /root/.cargo/ \
   /root/.rustup/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/build/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/deps/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/examples/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/incremental/ \
-  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/release/*.d
-
+  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/ \
+  /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
+  && sed -i '/\.cargo\/env/d' /root/.bashrc /root/.profile 2>/dev/null || true
 
 # Run OSS compliance script
 # ==========================

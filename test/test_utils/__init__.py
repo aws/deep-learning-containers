@@ -22,7 +22,7 @@ import random
 import string
 import time
 from collections.abc import Callable
-from typing import Any
+from typing import Any, NamedTuple
 
 from botocore.exceptions import ClientError
 
@@ -30,6 +30,30 @@ from .aws import AWSSessionManager
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
+
+
+class ImageURI(NamedTuple):
+    full_uri: str
+    account_id: str
+    region: str
+    repository: str
+    image_tag: str
+
+
+def parse_image_uri(image_uri: str) -> ImageURI:
+    # Expected format: <account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
+    registry, repository_tag = image_uri.split("/", 1)
+    repository, image_tag = repository_tag.rsplit(":", 1)
+    registry_parts = registry.split(".")
+    account_id = registry_parts[0]
+    region = registry_parts[3]
+    return ImageURI(
+        full_uri=image_uri,
+        account_id=account_id,
+        region=region,
+        repository=repository,
+        image_tag=image_tag,
+    )
 
 
 def random_suffix_name(resource_name: str, max_length: int, delimiter: str = "-") -> str:
