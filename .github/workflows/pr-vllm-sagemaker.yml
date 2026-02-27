@@ -112,8 +112,9 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - "test/security/**"
-              - ".github/workflows/pr-vllm*"
+              - ".github/workflows/pr-vllm-sagemaker.yml"
             test-change:
+              - "test/sanity/**"
               - "test/vllm/**"
 
   build-image:
