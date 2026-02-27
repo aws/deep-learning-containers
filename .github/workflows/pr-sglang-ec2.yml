@@ -5,8 +5,12 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "**sglang**"
-      - "!docs/**"
+      - "docker/sglang/**"
+      - "scripts/sglang/**"
+      - "test/sglang/**"
+      - "test/sanity/**"
+      - ".github/workflows/pr-sglang-ec2.yml"
+      - ".github/config/sglang-ec2.yml"
 
 permissions:
   contents: read
