@@ -79,7 +79,7 @@ jobs:
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
   check-changes:
-    needs: [load-config]
+    needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
     concurrency:
