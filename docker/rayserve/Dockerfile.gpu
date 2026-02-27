@@ -1,0 +1,100 @@
+# Multi-stage build for PyTorch Ray Serve SageMaker inference container
+# GPU variant - NVIDIA CUDA 13.0 base on Amazon Linux 2023
+
+#############
+# Builder stage
+#############
+FROM nvidia/cuda:13.0.0-base-amzn2023 AS builder
+
+# Install build dependencies
+RUN dnf install -y --setopt=install_weak_deps=False \
+    gcc \
+    gcc-c++ \
+    git \
+    tar \
+    gzip \
+    make \
+    nasm \
+    yasm \
+    && dnf clean all && rm -rf /var/cache/dnf
+
+# Build FFmpeg from source
+RUN git clone --depth 1 --branch n7.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg && \
+    cd /tmp/ffmpeg && \
+    ./configure --prefix=/opt/ffmpeg --enable-shared --disable-static --disable-doc && \
+    make -j$(nproc) && \
+    make install && \
+    rm -rf /tmp/ffmpeg
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh && \
+    mv /root/.local/bin/uv /usr/local/bin/uv
+
+# Create virtual environment
+ARG PYTHON_VERSION=3.13
+RUN uv python install ${PYTHON_VERSION} && \
+    uv venv /opt/venv --python ${PYTHON_VERSION}
+
+# Copy requirements and generate lock file
+COPY requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip compile /tmp/requirements.txt \
+    --python ${PYTHON_VERSION} \
+    -o /tmp/requirements.lock
+
+# Install dependencies from lock file
+RUN --mount=type=cache,target=/root/.cache/uv \
+    . /opt/venv/bin/activate && \
+    uv pip install -r /tmp/requirements.lock
+
+#############
+# Runtime stage - SageMaker image
+#############
+FROM nvidia/cuda:13.0.0-base-amzn2023
+
+# Copy Python installation and venv from builder
+COPY --from=builder /root/.local/share/uv/python /root/.local/share/uv/python
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
+COPY --from=builder /opt/ffmpeg /opt/ffmpeg
+
+# Set PATH to use venv and FFmpeg
+ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
+    LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}"
+
+# Install boto3 for S3 access
+RUN . /opt/venv/bin/activate && \
+    /usr/local/bin/uv pip install boto3
+
+# SageMaker environment variables
+ENV SM_MODEL_DIR=/opt/ml/model \
+    SM_INPUT=/opt/ml/input \
+    SM_INPUT_TRAINING_CONFIG_FILE=/opt/ml/input/config/hyperparameters.json \
+    SM_INPUT_DATA_CONFIG_FILE=/opt/ml/input/config/inputdataconfig.json \
+    SM_CHECKPOINT_CONFIG_FILE=/opt/ml/input/config/checkpointconfig.json
+
+# Create SageMaker directories
+RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
+
+# Create app directory
+WORKDIR /app
+
+# Copy SageMaker adapter and entrypoint
+COPY sagemaker_serve.py /app/
+COPY sagemaker_entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+# Expose SageMaker serving port only
+EXPOSE 8080
+
+# Health check for SageMaker
+HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8080/ping || exit 1
+
+# SageMaker capabilities labels
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
+
+# Entrypoint handles Ray cluster startup and deployment
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+CMD ["serve"]
