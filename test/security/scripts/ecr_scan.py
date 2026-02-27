@@ -6,9 +6,9 @@ Usage:
         [--framework-version <ver>] [--allowlist-dir <dir>]
 
 Allowlist resolution (merged in order):
-  1. <allowlist-dir>/ecr_scan.json                            (global)
-  2. <allowlist-dir>/<framework>/ecr_scan.json                (framework)
-  3. <allowlist-dir>/<framework>/<framework>-<version>.json    (version-specific)
+  1. <allowlist-dir>/global_allowlist.json                            (global)
+  2. <allowlist-dir>/<framework>/framework_allowlist.json              (framework)
+  3. <allowlist-dir>/<framework>/<framework>-<version>.json            (version-specific)
 
 Each file: [{"vulnerability_id": "CVE-...", "reason": "..."}]
 """
@@ -35,6 +35,8 @@ SCAN_WAIT_PERIOD = 20
 SCAN_WAIT_LENGTH = 30
 SCAN_COMPLETE = "COMPLETE"
 SCAN_POST_COMPLETE_WAIT = 120  # additional wait after scan completes before reading findings
+GLOBAL_ALLOWLIST_FILE = "global_allowlist.json"
+FRAMEWORK_ALLOWLIST_FILE = "framework_allowlist.json"
 
 
 def get_scan_status(ecr_client, repository: str, image_tag: str) -> str:
@@ -67,9 +69,9 @@ def get_scan_findings(ecr_client, image: ImageURI) -> list:
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
     """Load and merge 3-level allowlist. Returns set of allowlisted vulnerability IDs."""
-    paths = [os.path.join(allowlist_dir, "ecr_scan.json")]
+    paths = [os.path.join(allowlist_dir, GLOBAL_ALLOWLIST_FILE)]
     if framework:
-        paths.append(os.path.join(allowlist_dir, framework, "ecr_scan.json"))
+        paths.append(os.path.join(allowlist_dir, framework, FRAMEWORK_ALLOWLIST_FILE))
         if framework_version:
             paths.append(
                 os.path.join(allowlist_dir, framework, f"{framework}-{framework_version}.json")
