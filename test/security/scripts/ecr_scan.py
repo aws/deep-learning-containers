@@ -107,7 +107,7 @@ def filter_findings(findings, allowlist):
         seen_pkgs = set()
         for pkg in vuln.get("packageVulnerabilityDetails", {}).get("vulnerablePackages", [{}]):
             fixed_in = pkg.get("fixedInVersion", "N/A")
-            if fixed_in == "N/A":
+            if fixed_in in ("N/A", "NotAvailable"):
                 continue
             if is_esm_fix(fixed_in):
                 continue

@@ -80,6 +80,7 @@ RUN cp /root/.cargo/env /tmp/cargo-env \
     /root/.cargo/ \
     /root/.rustup/ \
     /sgl-workspace/sglang/sgl-model-gateway/bindings/python/target/ \
+    /sgl-workspace/sglang/sgl-model-gateway/bindings/python/Cargo.lock \
   && mkdir -p /root/.cargo \
   && mv /tmp/cargo-env /root/.cargo/env
 
