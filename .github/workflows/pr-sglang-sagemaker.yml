@@ -113,7 +113,7 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - "test/security/**"
-              - ".github/workflows/pr-sglang*"
+              - ".github/workflows/pr-sglang-sagemaker.yml"
             test-change:
               - "test/sanity/**"
               - "test/sglang/**"
