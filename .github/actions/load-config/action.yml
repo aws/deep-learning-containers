@@ -1,0 +1,38 @@
+name: 'Load Configuration File'
+description: 'Load and parse a YAML configuration file into JSON format'
+
+inputs:
+  config-file:
+    description: 'Path to the config file to load'
+    required: true
+
+outputs:
+  config:
+    description: 'Configuration as JSON'
+    value: ${{ steps.load-config.outputs.config }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install yq
+      shell: bash
+      run: |
+        if ! command -v yq &> /dev/null; then
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+        fi
+
+    - name: Load configuration file
+      id: load-config
+      shell: bash
+      run: |
+        CONFIG_FILE="${{ inputs.config-file }}"
+
+        echo "Loading config: $CONFIG_FILE"
+
+        # Convert YAML to JSON and output
+        {
+          echo "config<<EOF"
+          yq eval -o=json '.' "$CONFIG_FILE"
+          echo "EOF"
+        } >> $GITHUB_OUTPUT

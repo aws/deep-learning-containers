@@ -29,6 +29,46 @@ inputs:
   dockerfile-path:
     description: 'Path to the Dockerfile'
     required: true
+  arch-type:
+    description: 'Architecture type (e.g., x86, arm64)'
+    required: false
+    default: 'x86'
+  device-type:
+    description: 'Device type (e.g., gpu, cpu)'
+    required: false
+    default: 'gpu'
+  cuda-version:
+    description: 'CUDA version (e.g., cu129)'
+    required: false
+    default: ''
+  python-version:
+    description: 'Python version (e.g., py312)'
+    required: false
+    default: ''
+  os-version:
+    description: 'OS version (e.g., ubuntu24.04)'
+    required: false
+    default: ''
+  contributor:
+    description: 'Contributor name'
+    required: false
+    default: 'None'
+  customer-type:
+    description: 'Customer type (e.g., sagemaker, ec2, rayserve_ec2)'
+    required: false
+    default: ''
+  inference-toolkit-version:
+    description: 'Inference toolkit version (e.g., 2.0.25)'
+    required: false
+    default: ''
+  torchserve-version:
+    description: 'TorchServe version (e.g., 0.12.0)'
+    required: false
+    default: ''
+  transformers-version:
+    description: 'Transformers library version (e.g., 4.28.1)'
+    required: false
+    default: ''
 
 outputs:
   image-uri:
@@ -59,17 +99,24 @@ runs:
 
     - name: Build image
       shell: bash
-      run: |
-        docker buildx build --progress plain \
-          --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-          --build-arg BASE_IMAGE="${{ inputs.base-image }}" \
-          --build-arg CONTAINER_TYPE="${{ inputs.container-type }}" \
-          --build-arg FRAMEWORK="${{ inputs.framework }}" \
-          --build-arg FRAMEWORK_VERSION="${{ inputs.framework-version }}" \
-          --cache-to=type=inline \
-          --cache-from=type=registry,ref=${CI_IMAGE_URI} \
-          --tag ${CI_IMAGE_URI} \
-          --push \
-          --target ${{ inputs.target }} \
-          -f ${{ inputs.dockerfile-path }} .
-        docker rmi ${CI_IMAGE_URI}
+      run: .github/scripts/build_image.sh
+      env:
+        FRAMEWORK: ${{ inputs.framework }}
+        TARGET: ${{ inputs.target }}
+        BASE_IMAGE: ${{ inputs.base-image }}
+        FRAMEWORK_VERSION: ${{ inputs.framework-version }}
+        CONTAINER_TYPE: ${{ inputs.container-type }}
+        AWS_ACCOUNT_ID: ${{ inputs.aws-account-id }}
+        AWS_REGION: ${{ inputs.aws-region }}
+        TAG_PR: ${{ inputs.tag-pr }}
+        DOCKERFILE_PATH: ${{ inputs.dockerfile-path }}
+        ARCH_TYPE: ${{ inputs.arch-type }}
+        DEVICE_TYPE: ${{ inputs.device-type }}
+        CUDA_VERSION: ${{ inputs.cuda-version }}
+        PYTHON_VERSION: ${{ inputs.python-version }}
+        OS_VERSION: ${{ inputs.os-version }}
+        CONTRIBUTOR: ${{ inputs.contributor }}
+        CUSTOMER_TYPE: ${{ inputs.customer-type }}
+        INFERENCE_TOOLKIT_VERSION: ${{ inputs.inference-toolkit-version }}
+        TORCHSERVE_VERSION: ${{ inputs.torchserve-version }}
+        TRANSFORMERS_VERSION: ${{ inputs.transformers-version }}

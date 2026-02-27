@@ -16,7 +16,7 @@ common:
   os_version: "ubuntu22.04"
   customer_type: "rayserve_ec2"
   arch_type: "x86"
-  prod_image: "vllm:0.10-gpu-py312-rayserve"
+  prod_image: "vllm:0.10-gpu-py312-rayserve-ec2"
   device_type: "gpu"
 
 # Release configuration
