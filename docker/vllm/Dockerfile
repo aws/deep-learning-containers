@@ -49,7 +49,11 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # patch CVEs
-RUN uv pip install "pillow>=12.1.1" "python_multipart>=0.0.22" "aiohttp>=3.13.3" "ray>=2.54.0"
+RUN uv pip install --system \
+  "pillow>=12.1.1" \
+  "python_multipart>=0.0.22" \
+  "aiohttp>=3.13.3" \
+  "ray>=2.54.0"
 
 RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \

@@ -72,7 +72,9 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # patch CVEs
-RUN uv pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
+RUN uv pip install --system \
+  "pillow>=12.1.1" \
+  "python_multipart>=0.0.22"
 
 # Remove all Rust build-time artifacts to patch CVEs
 RUN rm -rf \
