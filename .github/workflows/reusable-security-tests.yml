@@ -1,0 +1,59 @@
+name: Reusable Security Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Image URI to scan'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR authentication'
+        required: true
+        type: string
+      framework:
+        description: 'Framework name (e.g., vllm, sglang, pytorch, tensorflow, base)'
+        required: true
+        type: string
+      framework-version:
+        description: 'Framework version (e.g., 0.15.1, 0.5.8)'
+        required: true
+        type: string
+
+jobs:
+  ecr-vulnerability-scan:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Setup for test dependencies on host machine
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: ECR enhanced vulnerability scan
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd):$(pwd)/test:$PYTHONPATH python3 test/security/scripts/ecr_scan.py \
+            --image-uri "${{ inputs.image-uri }}" \
+            --framework "${{ inputs.framework }}" \
+            --framework-version "${{ inputs.framework-version }}"
