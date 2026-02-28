@@ -1,0 +1,147 @@
+FROM ubuntu:22.04 AS base
+ARG PYTHON_VERSION=3.12
+ARG VLLM_VERSION=0.15.1
+ARG PIP_EXTRA_INDEX_URL="https://download.pytorch.org/whl/cpu"
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DLC_CONTAINER_TYPE=base \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    VLLM_TARGET_DEVICE=cpu
+
+WORKDIR /workspace
+
+# Install system dependencies and uv
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+    sudo \
+    ccache \
+    git \
+    curl \
+    wget \
+    ca-certificates \
+    gcc-12 \
+    g++-12 \
+    libtcmalloc-minimal4 \
+    libnuma-dev \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1 \
+    jq \
+    lsof && \
+    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 10 \
+        --slave /usr/bin/g++ g++ /usr/bin/g++-12 && \
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Set compiler environment
+ENV CC=/usr/bin/gcc-12 CXX=/usr/bin/g++-12
+ENV CCACHE_DIR=/root/.cache/ccache
+ENV CMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+# Setup uv and virtual environment
+ENV PATH="/root/.local/bin:$PATH"
+ENV VIRTUAL_ENV="/opt/venv"
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
+RUN uv venv --python ${PYTHON_VERSION} --seed ${VIRTUAL_ENV}
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Force CPU wheels for PyTorch
+ENV PIP_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}
+ENV UV_EXTRA_INDEX_URL=${PIP_EXTRA_INDEX_URL}
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE="copy"
+ENV UV_HTTP_TIMEOUT=500
+
+# Memory allocator + Intel OpenMP for x86_64 performance
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libtcmalloc_minimal.so.4:/opt/venv/lib/libiomp5.so"
+
+RUN echo 'ulimit -c 0' >> ~/.bashrc
+
+# ====================== vllm-build =========================================
+FROM base AS vllm-build
+
+ARG VLLM_VERSION
+ARG max_jobs=32
+ENV MAX_JOBS=${max_jobs}
+
+WORKDIR /vllm-workspace
+
+# Clone vLLM and install build + runtime dependencies
+RUN git clone --depth 1 --branch v${VLLM_VERSION} https://github.com/vllm-project/vllm.git .
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --upgrade pip && \
+    uv pip install -r requirements/cpu-build.txt && \
+    uv pip install -r requirements/cpu.txt
+
+# Build vLLM wheel with CPU backend
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=cache,target=/root/.cache/ccache \
+    --mount=type=cache,target=/vllm-workspace/.deps,sharing=locked \
+    VLLM_TARGET_DEVICE=cpu python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+
+# ====================== vllm-cpu (final base) =========================================
+FROM base AS vllm-cpu
+
+ARG VLLM_VERSION
+WORKDIR /
+
+# Install vLLM wheel and runtime dependencies
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,from=vllm-build,src=/vllm-workspace/dist,target=/tmp/dist \
+    --mount=type=bind,from=vllm-build,src=/vllm-workspace/requirements,target=/tmp/requirements \
+    uv pip install --upgrade pip && \
+    uv pip install -r /tmp/requirements/cpu.txt && \
+    uv pip install /tmp/dist/*.whl
+
+COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py && \
+    chmod +x /usr/local/bin/bash_telemetry.sh && \
+    echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc && \
+    HOME_DIR=/root && \
+    curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip && \
+    python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" && \
+    cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance && \
+    chmod +x /usr/local/bin/testOSSCompliance && \
+    chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh && \
+    ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} python3 && \
+    rm -rf ${HOME_DIR}/oss_compliance* && \
+    rm -rf /tmp/tmp* && \
+    rm -rf /root/.cache || true
+
+# Verify vLLM installation
+RUN python3 -c "import vllm; print(f'vLLM version: {vllm.__version__}')"
+
+# ====================== ec2 =========================================
+FROM vllm-cpu AS vllm-cpu-ec2
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean
+
+COPY dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+FROM vllm-cpu AS vllm-cpu-sagemaker
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get clean
+
+COPY sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
