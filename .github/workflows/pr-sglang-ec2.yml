@@ -5,12 +5,8 @@ on:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
-      - "docker/sglang/**"
-      - "scripts/sglang/**"
-      - "test/sglang/**"
-      - "test/sanity/**"
-      - ".github/workflows/pr-sglang-ec2.yml"
-      - ".github/config/sglang-ec2.yml"
+      - "**sglang**"
+      - "!docs/**"
 
 permissions:
   contents: read
@@ -120,6 +116,7 @@ jobs:
             test-change:
               - "test/sanity/**"
               - "test/sglang/**"
+
 
   build-image:
     needs: [check-changes, load-config]

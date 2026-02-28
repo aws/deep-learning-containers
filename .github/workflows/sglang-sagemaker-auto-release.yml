@@ -12,10 +12,8 @@ on:
   # PR triggers for testing
   pull_request:
     paths:
-      - 'docker/sglang/**'
-      - '.github/workflows/sglang-sagemaker-auto-release.yml'
-      - '.github/config/sglang-sagemaker.yml'
-      - 'scripts/sglang/**'
+      - "**sglang**"
+      - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
@@ -27,6 +25,7 @@ permissions:
 env:
   # CI environment configuration
   FORCE_COLOR: "1"
+  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
   # Config file paths
   CONFIG_FILE: ".github/config/sglang-sagemaker.yml"
@@ -103,12 +102,12 @@ jobs:
         with:
           framework: ${{ needs.parse-config.outputs.framework }}
           target: sglang-sagemaker
-          base-image: lmsysorg/sglang:v${{ needs.parse-config.outputs.framework-version }}-cu129
+          base-image: lmsysorg/sglang:v${{ needs.parse-config.outputs.framework-version }}-${{ needs.parse-config.outputs.cuda-version }}-amd64
           framework-version: ${{ needs.parse-config.outputs.framework-version }}
           container-type: ${{ needs.parse-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.parse-config.outputs.framework }}-${{ needs.parse-config.outputs.framework-version }}-${{ needs.parse-config.outputs.device-type }}-${{ needs.parse-config.outputs.python-version }}-${{ needs.parse-config.outputs.cuda-version }}-${{ needs.parse-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
+          tag-pr: ${{ needs.parse-config.outputs.framework }}-${{ needs.parse-config.outputs.framework-version }}-gpu-${{ needs.parse-config.outputs.python-version }}-${{ needs.parse-config.outputs.cuda-version }}-${{ needs.parse-config.outputs.os-version }}-sagemaker-pr-${{ github.event.pull_request.number }}
           dockerfile-path: docker/${{ needs.parse-config.outputs.framework }}/Dockerfile
           arch-type: ${{ needs.parse-config.outputs.arch-type }}
           device-type: ${{ needs.parse-config.outputs.device-type }}
@@ -118,7 +117,38 @@ jobs:
           contributor: ${{ needs.parse-config.outputs.contributor }}
           customer-type: ${{ needs.parse-config.outputs.customer-type }}
 
-  sglang-sagemaker-regression-test:
+  sanity-test:
+    needs: [build-sglang-sagemaker-image, parse-config]
+    if: success()
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-sglang-sagemaker-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.parse-config.outputs.framework }}
+      framework-version: ${{ needs.parse-config.outputs.framework-version }}
+      python-version: ${{ needs.parse-config.outputs.python-version }}
+      cuda-version: ${{ needs.parse-config.outputs.cuda-version }}
+      os-version: ${{ needs.parse-config.outputs.os-version }}
+
+  security-test:
+    needs: [build-sglang-sagemaker-image, parse-config]
+    if: success()
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-sglang-sagemaker-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.parse-config.outputs.framework }}
+      framework-version: ${{ needs.parse-config.outputs.framework-version }}
+
+  local-benchmark-test:
     needs: [build-sglang-sagemaker-image, parse-config]
     if: success()
     runs-on:
@@ -126,7 +156,65 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-regression-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-local-benchmark-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ needs.build-sglang-sagemaker-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+
+      - name: Setup for SGLang datasets
+        run: |
+          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
+          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+              echo "Downloading ShareGPT dataset..."
+              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+          else
+              echo "ShareGPT dataset already exists. Skipping download."
+          fi
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset \
+            -p 30000:30000 \
+            -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
+            -e SM_SGLANG_REASONING_PARSER=qwen3 \
+            -e SM_SGLANG_HOST=127.0.0.1 \
+            -e SM_SGLANG_PORT=30000 \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          echo "Waiting for serving endpoint startup ..."
+          sleep 120s
+          docker logs ${CONTAINER_ID}
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
+          --backend sglang \
+          --host 127.0.0.1 --port 30000 \
+          --num-prompts 1000 \
+          --model Qwen/Qwen3-0.6B \
+          --dataset-name sharegpt \
+          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
+
+  upstream-test:
+    needs: [build-sglang-sagemaker-image, parse-config]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-upstream-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -150,120 +238,71 @@ jobs:
         run: |
           CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ${HOME}/.cache/sglang:/root/.cache/sglang \
-            -v .:/workdir --workdir /workdir \
+            -v ./sglang_source:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
             ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
 
       - name: Setup for SGLang tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_test_setup.sh
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # our CI suffers the same issue
+            export IS_BLACKWELL=1
+
+            bash scripts/ci/cuda/ci_install_dependency.sh
+          '
 
       - name: Run SGLang tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_regression_test.sh
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
 
-  sglang-sagemaker-cuda-test:
+            # SRT backend Test with increased timeout
+            cd /workdir/test
+            export SGLANG_TIMEOUT=600
+            python3 run_suite.py --hw cuda --suite stage-a-test-1
+          '
+
+  endpoint-test:
     needs: [build-sglang-sagemaker-image, parse-config]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
+        fleet:default-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-cuda-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
+      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.build-sglang-sagemaker-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
-
-      - name: Checkout SGLang tests
-        uses: actions/checkout@v5
-        with:
-          repository: sgl-project/sglang
-          ref: v${{ needs.parse-config.outputs.framework-version }}
-          path: sglang_source
-
-      - name: Start container
+      - name: Install test dependencies
         run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ${HOME}/.cache/sglang:/root/.cache/sglang \
-            -v .:/workdir --workdir /workdir \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/sglang/sagemaker/requirements.txt
 
-      - name: Setup for SGLang tests
+      - name: Run sagemaker tests
         run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_test_setup.sh
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_cuda_test.sh
-
-  sglang-sagemaker-example-test:
-    needs: [build-sglang-sagemaker-image, parse-config]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-sglang-sagemaker-example-test-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.build-sglang-sagemaker-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
-
-      - name: Checkout SGLang tests
-        uses: actions/checkout@v5
-        with:
-          repository: sgl-project/sglang
-          ref: v${{ needs.parse-config.outputs.framework-version }}
-          path: sglang_source
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ${HOME}/.cache/sglang:/root/.cache/sglang \
-            -v .:/workdir --workdir /workdir \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
-          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
-
-      - name: Setup for SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_test_setup.sh
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} scripts/sglang/sglang_examples_test.sh
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ needs.build-sglang-sagemaker-image.result == 'success' && needs.build-sglang-sagemaker-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }} sglang/sagemaker
 
   generate-sagemaker-release-spec:
-    needs: [load-config, parse-config, build-sglang-sagemaker-image, sglang-sagemaker-regression-test, sglang-sagemaker-cuda-test, sglang-sagemaker-example-test]
+    needs: [load-config, parse-config, build-sglang-sagemaker-image, sanity-test, security-test, local-benchmark-test, upstream-test, endpoint-test]
     if: |
       always() && !failure() && !cancelled() &&
       needs.build-sglang-sagemaker-image.result == 'success' &&
-      needs.sglang-sagemaker-regression-test.result == 'success' &&
-      needs.sglang-sagemaker-cuda-test.result == 'success' &&
-      needs.sglang-sagemaker-example-test.result == 'success'
+      needs.sanity-test.result == 'success' &&
+      needs.security-test.result == 'success' &&
+      needs.local-benchmark-test.result == 'success' &&
+      needs.upstream-test.result == 'success' &&
+      needs.endpoint-test.result == 'success'
     runs-on: ubuntu-latest
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}

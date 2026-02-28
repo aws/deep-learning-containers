@@ -12,10 +12,8 @@ on:
   # PR triggers for testing
   pull_request:
     paths:
-      - 'docker/vllm/**'
-      - '.github/workflows/vllm-rayserver-auto-release.yml'
-      - '.github/config/vllm-rayserve.yml'
-      - 'scripts/vllm/**'
+      - "**vllm**"
+      - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
