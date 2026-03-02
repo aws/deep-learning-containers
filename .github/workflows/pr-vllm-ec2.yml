@@ -111,7 +111,6 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - "test/security/**"
               - ".github/config/vllm-ec2.yml"
             test-change:
               - "test/sanity/**"
