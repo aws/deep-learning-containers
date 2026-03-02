@@ -40,22 +40,6 @@ jobs:
     if: success()
     runs-on: ubuntu-latest
     outputs:
-      config: ${{ steps.load.outputs.config }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: Load configuration
-        id: load
-        uses: ./.github/actions/load-config
-        with:
-          config-file: ${{ env.CONFIG_FILE }}
-
-  parse-config:
-    needs: [load-config]
-    if: success()
-    runs-on: ubuntu-latest
-    outputs:
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       python-version: ${{ steps.parse.outputs.python-version }}
@@ -68,10 +52,19 @@ jobs:
       customer-type: ${{ steps.parse.outputs.customer-type }}
       prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: ${{ env.CONFIG_FILE }}
+
       - name: Parse configuration
         id: parse
         run: |
-          echo '${{ needs.load-config.outputs.config }}' > config.json
+          echo '${{ steps.load.outputs.config }}' > config.json
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
@@ -85,7 +78,7 @@ jobs:
           echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
 
   check-changes:
-    needs: [load-config, parse-config]
+    needs: [gatekeeper]
     if: success()
     runs-on: ubuntu-latest
     concurrency:
@@ -118,19 +111,20 @@ jobs:
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/workflows/pr-vllm*"
+              - ".github/config/vllm-ec2.yml"
             test-change:
+              - "test/sanity/**"
               - "test/vllm/**"
 
-  build-vllm-ec2-image:
-    needs: [check-changes, parse-config]
+  build-image:
+    needs: [check-changes, load-config]
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-vllm-ec2-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -141,25 +135,60 @@ jobs:
         id: build
         uses: ./.github/actions/build-image
         with:
-          framework: ${{ needs.parse-config.outputs.framework }}
+          framework: ${{ needs.load-config.outputs.framework }}
           target: vllm-ec2
-          base-image: vllm/vllm-openai:v${{ needs.parse-config.outputs.framework-version }}
-          framework-version: ${{ needs.parse-config.outputs.framework-version }}
-          container-type: ${{ needs.parse-config.outputs.container-type }}
+          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
+          framework-version: ${{ needs.load-config.outputs.framework-version }}
+          container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.parse-config.outputs.framework }}-${{ needs.parse-config.outputs.framework-version }}-gpu-${{ needs.parse-config.outputs.python-version }}-${{ needs.parse-config.outputs.cuda-version }}-${{ needs.parse-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.parse-config.outputs.framework }}/Dockerfile
-          arch-type: ${{ needs.parse-config.outputs.arch-type }}
-          device-type: ${{ needs.parse-config.outputs.device-type }}
-          cuda-version: ${{ needs.parse-config.outputs.cuda-version }}
-          python-version: ${{ needs.parse-config.outputs.python-version }}
-          os-version: ${{ needs.parse-config.outputs.os-version }}
-          contributor: ${{ needs.parse-config.outputs.contributor }}
-          customer-type: ${{ needs.parse-config.outputs.customer-type }}
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          arch-type: ${{ needs.load-config.outputs.arch-type }}
+          device-type: ${{ needs.load-config.outputs.device-type }}
+          cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+          python-version: ${{ needs.load-config.outputs.python-version }}
+          os-version: ${{ needs.load-config.outputs.os-version }}
+          contributor: ${{ needs.load-config.outputs.contributor }}
+          customer-type: ${{ needs.load-config.outputs.customer-type }}
 
-  vllm-ec2-regression-test:
-    needs: [check-changes, build-vllm-ec2-image, parse-config]
+  sanity-test:
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      python-version: ${{ needs.load-config.outputs.python-version }}
+      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+      os-version: ${{ needs.load-config.outputs.os-version }}
+
+  security-test:
+    needs: [check-changes, build-image, load-config]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    concurrency:
+      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+
+  regression-test:
+    needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -168,7 +197,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-vllm-ec2-regression-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-regression-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -177,15 +206,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-ec2-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.load-config.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -195,7 +224,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -206,8 +235,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
-  vllm-ec2-cuda-test:
-    needs: [check-changes, build-vllm-ec2-image, parse-config]
+  cuda-test:
+    needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -216,7 +245,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-vllm-ec2-cuda-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-cuda-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -225,15 +254,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-ec2-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.load-config.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -243,7 +272,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
@@ -254,8 +283,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
-  vllm-ec2-example-test:
-    needs: [check-changes, build-vllm-ec2-image, parse-config]
+  example-test:
+    needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
@@ -264,7 +293,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-vllm-ec2-example-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-example-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -273,15 +302,15 @@ jobs:
       - name: Container pull
         uses: ./.github/actions/ecr-authenticate
         with:
-          aws-account-id: ${{ needs.build-vllm-ec2-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }}
+          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ needs.parse-config.outputs.framework-version }}
+          ref: v${{ needs.load-config.outputs.framework-version }}
           path: vllm_source
 
       - name: Start container
@@ -291,7 +320,7 @@ jobs:
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -v .:/workdir --workdir /workdir \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-vllm-ec2-image.result == 'success' && needs.build-vllm-ec2-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.parse-config.outputs.prod-image) }})
+            ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Setup for vLLM tests
