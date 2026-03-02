@@ -205,7 +205,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' )
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true

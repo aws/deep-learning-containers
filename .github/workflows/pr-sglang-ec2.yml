@@ -204,9 +204,10 @@ jobs:
 
   security-test:
     needs: [check-changes, build-image, load-config]
+    # do not run security test for auto release
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' )
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true

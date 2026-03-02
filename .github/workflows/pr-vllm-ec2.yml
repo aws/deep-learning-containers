@@ -151,7 +151,7 @@ jobs:
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-vllm-ec2-image-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -183,7 +183,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped' )
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true

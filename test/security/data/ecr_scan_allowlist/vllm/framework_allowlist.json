@@ -1,1 +1,22 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2026-27482",
+        "reason": "Base image ray version 2.53.0"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69227",
+        "reason": "Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69228",
+        "reason": "Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "CVE-2025-69223",
+        "reason": "Container has aiohttp 3.13.3, reported is under /usr/local/lib/python3.12/dist-packages/ray/_private/runtime_env/agent/thirdparty_files/aiohttp-3.13.2.dist-info/METADATA"
+    },
+    {
+        "vulnerability_id": "GHSA-72hv-8253-57qq",
+        "reason": "Nested in ray, unpatchable /usr/local/lib/python3.12/dist-packages/ray/jars/ray_dist.jar/META-INF/maven/com.fasterxml.jackson.core/jackson-core/pom.properties"
+    }
+]
