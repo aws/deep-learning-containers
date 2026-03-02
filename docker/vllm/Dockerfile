@@ -31,6 +31,23 @@ COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
 ARG FRAMEWORK
 ARG FRAMEWORK_VERSION
 ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+  # create symlink for python
+  && ln -s /usr/bin/python3 /usr/bin/python \
+  # clean up
+  && rm -rf ${HOME_DIR}/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /tmp/uv* \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /root/.cache | true
 
 COPY ./scripts/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
@@ -47,32 +64,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove cuobjdump and nvdisasm
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-# patch CVEs
-RUN uv pip install --system \
-  "pillow>=12.1.1" \
-  "ray>=2.54.0" \
-  "aiohttp>=3.13.3"
-
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
-  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
-    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
-    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
-    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
-  && chmod +x /usr/local/bin/bash_telemetry.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
-  && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  # create symlink for python
-  && ln -s /usr/bin/python3 /usr/bin/python \
-  # clean up
-  && rm -rf ${HOME_DIR}/oss_compliance* \
-  && rm -rf /tmp/* \
-  && rm -rf /tmp/tmp* \
-  && rm -rf /tmp/uv* \
-  && rm -rf /var/lib/apt/lists/* \
-  && rm -rf /root/.cache | true
-
 
 # TODO: remove this code when issue is fixed:
 # issue introduced by https://github.com/vllm-project/vllm/pull/30784
@@ -96,9 +87,8 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 # ====================== ray serve =========================================
 FROM base AS vllm-rayserve-ec2
 
-RUN uv pip install --system "ray[serve]>=2.54.0" \
-  && uv cache clean \
-  && rm -rf /tmp/*
+RUN uv pip install --system ray[serve]==2.49.0 \
+  && uv cache clean
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \

@@ -112,7 +112,7 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - "test/security/**"
-              - ".github/workflows/pr-vllm-ec2.yml"
+              - ".github/config/vllm-ec2.yml"
             test-change:
               - "test/sanity/**"
               - "test/vllm/**"

@@ -112,7 +112,7 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - "test/security/**"
-              - ".github/workflows/pr-vllm-rayserve.yml"
+              - ".github/config/vllm-rayserve.yml"
             test-change:
               - "test/sanity/**"
               - "test/vllm/**"
