@@ -29,6 +29,8 @@ env:
 
 jobs:
   regression-test:
+    permissions:
+      contents: read
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
