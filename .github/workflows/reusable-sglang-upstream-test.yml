@@ -1,5 +1,8 @@
 name: Reusable - SGLang Upstream Test
 
+permissions:
+  contents: read
+
 on:
   workflow_call:
     inputs:
