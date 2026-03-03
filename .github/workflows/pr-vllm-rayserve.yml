@@ -170,12 +170,15 @@ jobs:
       python-version: ${{ needs.load-config.outputs.python-version }}
       cuda-version: ${{ needs.load-config.outputs.cuda-version }}
       os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
 
   security-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -188,10 +191,8 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
   regression-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -236,10 +237,8 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_regression_test.sh
 
   cuda-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -284,10 +283,8 @@ jobs:
           docker exec ${CONTAINER_ID} scripts/vllm/vllm_cuda_test.sh
 
   example-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner

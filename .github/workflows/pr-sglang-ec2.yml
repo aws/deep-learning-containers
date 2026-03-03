@@ -178,10 +178,8 @@ jobs:
       container-type: ${{ needs.load-config.outputs.container-type }}
 
   security-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     concurrency:
       group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -194,10 +192,8 @@ jobs:
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
   local-benchmark-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -254,10 +250,8 @@ jobs:
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
   upstream-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+    needs: [build-image, load-config]
+    if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
