@@ -9,29 +9,6 @@ on:
       - "**sglang**"
       - "!docs/**"
 
-  # Allow calling as a reusable workflow
-  workflow_call:
-    inputs:
-      config-file:
-        description: 'Path to config file'
-        required: false
-        type: string
-        default: ".github/config/sglang-sagemaker.yml"
-      skip-gatekeeper:
-        description: 'Skip gatekeeper check (for auto-release)'
-        required: false
-        type: boolean
-        default: false
-      skip-change-detection:
-        description: 'Skip change detection (for auto-release)'
-        required: false
-        type: boolean
-        default: false
-    outputs:
-      ci-image:
-        description: 'Built CI image URI'
-        value: ${{ jobs.build-image.outputs.ci-image }}
-
 permissions:
   contents: read
   pull-requests: read
@@ -39,18 +16,15 @@ permissions:
 env:
   # CI environment configuration
   FORCE_COLOR: "1"
-  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
-  # Config file path - use input if provided (workflow_call), otherwise use default
-  CONFIG_FILE: ${{ inputs.config-file || '.github/config/sglang-sagemaker.yml' }}
+  # Config file path
+  CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
 
 jobs:
   gatekeeper:
-    # Skip gatekeeper when called from auto-release workflow
-    if: ${{ !inputs.skip-gatekeeper }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
@@ -64,8 +38,7 @@ jobs:
 
   load-config:
     needs: [gatekeeper]
-    # Run if gatekeeper succeeded OR was skipped
-    if: always() && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped')
+    if: success()
     runs-on: ubuntu-latest
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
@@ -107,11 +80,10 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    # Skip change detection when called from auto-release workflow
-    if: ${{ !inputs.skip-change-detection && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped') }}
+    if: success()
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
@@ -147,19 +119,19 @@ jobs:
 
   build-image:
     needs: [check-changes, load-config]
-    # Build if changes detected OR change detection was skipped (auto-release)
-    if: always() && !failure() && !cancelled() && (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.result == 'skipped')
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Build image
         id: build
@@ -186,9 +158,9 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -210,7 +182,7 @@ jobs:
     needs: [build-image, load-config]
     if: success()
     concurrency:
-      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
@@ -224,7 +196,7 @@ jobs:
     needs: [build-image, load-config]
     if: success()
     concurrency:
-      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
     with:
@@ -235,7 +207,7 @@ jobs:
       benchmark-start-command: >-
         docker run -d -it --rm --gpus=all
         -v ${HOME}/.cache/huggingface:/root/.cache/huggingface
-        -v /test_artifacts/sglang/dataset:/dataset
+        -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset
         -p 30000:30000
         -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B
         -e SM_SGLANG_REASONING_PARSER=qwen3
@@ -249,9 +221,9 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
     concurrency:
-      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
     with:

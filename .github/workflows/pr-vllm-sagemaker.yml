@@ -156,7 +156,8 @@ jobs:
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Build image
         id: build
