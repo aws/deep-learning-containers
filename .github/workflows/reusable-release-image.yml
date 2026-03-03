@@ -34,15 +34,23 @@ on:
         value: ${{ jobs.step1-publish-images.outputs.run-identifier }}
 
 jobs:
-  validate-release:
+  validate-and-resolve-environment:
     runs-on: ubuntu-latest
     outputs:
       resolved-environment: ${{ steps.validate.outputs.environment }}
     steps:
-      - name: Validate environment
+      - name: Validate release context and resolve environment
         id: validate
         run: |
           ENVIRONMENT="${{ inputs.environment }}"
+
+          echo "=========================================="
+          echo "Release Context Validation"
+          echo "=========================================="
+          echo "Event: ${{ github.event_name }}"
+          echo "Ref: ${{ github.ref }}"
+          echo "Input Environment: ${ENVIRONMENT}"
+          echo ""
 
           # Validate environment value
           if [[ "${ENVIRONMENT}" != "gamma" && "${ENVIRONMENT}" != "production" ]]; then
@@ -51,21 +59,22 @@ jobs:
             exit 1
           fi
 
-          echo "✅ Release context validation passed"
-          echo "Ref: ${{ github.ref }}"
-          echo "Environment: ${ENVIRONMENT}"
-
-          # For PRs, override to gamma regardless of input
+          # For PRs, override to gamma regardless of input (safety measure)
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             ENVIRONMENT="gamma"
             echo "ℹ️ Pull request detected: overriding to gamma environment"
           fi
 
+          echo ""
+          echo "✅ Release context validation passed"
+          echo "Resolved Environment: ${ENVIRONMENT}"
+          echo "=========================================="
+
           echo "environment=${ENVIRONMENT}" >> ${GITHUB_OUTPUT}
 
   step1-publish-images:
-    needs: [validate-release]
-    environment: ${{ needs.validate-release.outputs.resolved-environment }}
+    needs: [validate-and-resolve-environment]
+    environment: ${{ needs.validate-and-resolve-environment.outputs.resolved-environment }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
@@ -196,8 +205,8 @@ jobs:
           retention-days: 7
 
   step2-generate-info:
-    needs: [validate-release, step1-publish-images]
-    environment: ${{ needs.validate-release.outputs.resolved-environment }}
+    needs: [validate-and-resolve-environment, step1-publish-images]
+    environment: ${{ needs.validate-and-resolve-environment.outputs.resolved-environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
@@ -250,8 +259,8 @@ jobs:
           echo "✅ Step 2 completed: Release information generated and uploaded to S3"
 
   step3-publish-notifications:
-    needs: [validate-release, step1-publish-images, step2-generate-info]
-    environment: ${{ needs.validate-release.outputs.resolved-environment }}
+    needs: [validate-and-resolve-environment, step1-publish-images, step2-generate-info]
+    environment: ${{ needs.validate-and-resolve-environment.outputs.resolved-environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
