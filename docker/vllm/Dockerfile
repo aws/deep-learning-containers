@@ -79,7 +79,8 @@ ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -96,7 +97,8 @@ ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -110,7 +112,8 @@ ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
