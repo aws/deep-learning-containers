@@ -21,8 +21,9 @@ import sys
 import time
 from pprint import pformat
 
-from test_utils import ImageURI, parse_image_uri, wait_for_status
+from test_utils import wait_for_status
 from test_utils.aws import AWSSessionManager
+from test_utils.docker_helper import ImageURI, parse_image_uri
 
 import test  # noqa: F401 — triggers colored logging setup
 

@@ -171,6 +171,11 @@ jobs:
       python-version: ${{ needs.load-config.outputs.python-version }}
       cuda-version: ${{ needs.load-config.outputs.cuda-version }}
       os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
 
   security-test:
     needs: [check-changes, build-image, load-config]
