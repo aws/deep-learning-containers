@@ -1,4 +1,4 @@
-name: vLLM_RAYSERVE_AUTO_RELEASE
+name: vLLM_EC2_AUTO_RELEASE
 
 on:
   # schedule run must be on the default branch
@@ -20,14 +20,14 @@ permissions:
   pull-requests: read
 
 env:
-  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
+  CONFIG_FILE: ".github/config/vllm-ec2.yml"
 
 jobs:
   # Call the PR workflow which handles build and test
   build-and-test:
-    uses: ./.github/workflows/pr-vllm-rayserve.yml
+    uses: ./.github/workflows/pr-vllm-ec2.yml
     with:
-      config-file: ".github/config/vllm-rayserve.yml"
+      config-file: ".github/config/vllm-ec2.yml"
       skip-gatekeeper: true
       skip-change-detection: true
     secrets: inherit
@@ -48,7 +48,7 @@ jobs:
           config-file: ${{ env.CONFIG_FILE }}
 
   # Generate release spec after tests pass
-  generate-rayserve-release-spec:
+  generate-ec2-release-spec:
     needs: [load-config, build-and-test]
     if: |
       always() && !failure() && !cancelled()
@@ -76,13 +76,13 @@ jobs:
           config-json: ${{ needs.load-config.outputs.config }}
 
   # Release the image
-  release-rayserve-image:
-    needs: [load-config, build-and-test, generate-rayserve-release-spec]
-    if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
+  release-ec2-image:
+    needs: [load-config, build-and-test, generate-ec2-release-spec]
+    if: needs.generate-ec2-release-spec.outputs.should-release == 'true'
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ needs.build-and-test.outputs.ci-image }}
-      release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      release-spec: ${{ needs.generate-ec2-release-spec.outputs.release-spec }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner

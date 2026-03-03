@@ -70,6 +70,9 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # until https://github.com/vllm-project/vllm/pull/32377 is merged
 RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
 
+# patch CVEs CVE-2026-25990
+RUN pip install "pillow>=12.1.1"
+
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
 
@@ -78,6 +81,9 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get update \
   && apt-get upgrade -y \
   && apt-get clean
+
+# clean up all tmp files
+RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -96,6 +102,9 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean
 
+# clean up all tmp files
+RUN rm -rf /tmp/*
+
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -109,6 +118,9 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get update \
   && apt-get upgrade -y \
   && apt-get clean
+
+# clean up all tmp files
+RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
