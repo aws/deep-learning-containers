@@ -83,6 +83,6 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-and-test.outputs.ci-image }}
       release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: ${{ fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner

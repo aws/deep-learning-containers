@@ -1,0 +1,43 @@
+name: Reusable - SGLang SageMaker Endpoint Test
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Container image URI to test'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR'
+        required: true
+        type: string
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  endpoint-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Install test dependencies
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+          uv pip install -r test/sglang/sagemaker/requirements.txt
+
+      - name: Run sagemaker tests
+        run: |
+          source .venv/bin/activate
+          cd test/
+          python3 -m pytest -vs -rA --image-uri ${{ inputs.image-uri }} sglang/sagemaker
