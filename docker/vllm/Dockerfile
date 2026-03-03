@@ -93,7 +93,7 @@ FROM base AS vllm-rayserve-ec2
 
 RUN uv pip install --system ray[serve]==2.49.0 \
   && uv cache clean \
-  && RUN rm -rf /tmp/*
+  && rm -rf /tmp/*
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
