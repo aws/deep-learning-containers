@@ -1,0 +1,134 @@
+name: Reusable SGLang Upstream Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: 'Image URI to test'
+        required: true
+        type: string
+      aws-account-id:
+        description: 'AWS account ID for ECR authentication'
+        required: true
+        type: string
+      aws-region:
+        description: 'AWS region for ECR authentication'
+        required: true
+        type: string
+      framework-version:
+        description: 'SGLang framework version (e.g., 0.5.9)'
+        required: true
+        type: string
+      benchmark-start-command:
+        description: 'Docker run command to start the benchmark container (must output CONTAINER_ID)'
+        required: true
+        type: string
+
+env:
+  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
+
+jobs:
+  local-benchmark-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Setup for SGLang datasets
+        run: |
+          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
+          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
+              echo "Downloading ShareGPT dataset..."
+              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
+          else
+              echo "ShareGPT dataset already exists. Skipping download."
+          fi
+
+      - name: Start container
+        env:
+          IMAGE: ${{ inputs.image-uri }}
+          HF_TOKEN: ${{ secrets.HUGGING_FACE_HUB_TOKEN }}
+        run: |
+          CONTAINER_ID=$(${{ inputs.benchmark-start-command }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+          echo "Waiting for serving endpoint startup ..."
+          sleep 120s
+          docker logs ${CONTAINER_ID}
+
+      - name: Run SGLang benchmark
+        run: |
+          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
+          --backend sglang \
+          --host 127.0.0.1 --port 30000 \
+          --num-prompts 1000 \
+          --model Qwen/Qwen3-0.6B \
+          --dataset-name sharegpt \
+          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
+
+  upstream-test:
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6exl-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Checkout SGLang tests
+        uses: actions/checkout@v5
+        with:
+          repository: sgl-project/sglang
+          ref: v${{ inputs.framework-version }}
+          path: sglang_source
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
+            -v ./sglang_source:/workdir --workdir /workdir \
+            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
+
+      - name: Setup for SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
+            # our CI suffers the same issue
+            export IS_BLACKWELL=1
+
+            bash scripts/ci/cuda/ci_install_dependency.sh
+          '
+
+      - name: Run SGLang tests
+        run: |
+          docker exec ${CONTAINER_ID} sh -c '
+            set -eux
+            nvidia-smi
+
+            # SRT backend Test with increased timeout
+            cd /workdir/test
+            export SGLANG_TIMEOUT=600
+            python3 run_suite.py --hw cuda --suite stage-a-test-1
+          '
