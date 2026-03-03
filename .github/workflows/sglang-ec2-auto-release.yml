@@ -6,11 +6,11 @@ on:
     # Runs at 10:00 AM PST/PDT on Monday and Wednesday
     - cron: '00 17 * * 2,4' # Tuesday and Thursday at 10:00 AM PDT / 9:00 AM PST
 
-  # # PR triggers for testing
-  # pull_request:
-  #   paths:
-  #     - "**sglang**"
-  #     - "!docs/**"
+  # PR triggers for testing
+  pull_request:
+    paths:
+      - "**sglang**"
+      - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
