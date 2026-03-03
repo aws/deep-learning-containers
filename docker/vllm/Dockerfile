@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.16.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.16.0-cu130
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -70,7 +70,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # until https://github.com/vllm-project/vllm/pull/32377 is merged
 # issue was fixed and merged in https://github.com/vllm-project/vllm/pull/33992
 # but will not be released until v0.17.0
-# RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
+RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
 
 # patch CVEs CVE-2026-25990
 RUN pip install "pillow>=12.1.1"
@@ -84,9 +84,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean \
   && rm -rf /tmp/*
-
-# clean up all tmp files
-RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -106,9 +103,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get clean \
   && rm -rf /tmp/*
 
-# clean up all tmp files
-RUN rm -rf /tmp/*
-
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -123,9 +117,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean \
   && rm -rf /tmp/*
-
-# clean up all tmp files
-RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
