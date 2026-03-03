@@ -1,4 +1,4 @@
-name: vLLM_EC2_AUTO_RELEASE
+name: Auto Release - vLLM EC2
 
 on:
   # schedule run must be on the default branch

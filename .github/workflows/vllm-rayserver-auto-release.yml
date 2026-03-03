@@ -1,4 +1,4 @@
-name: vLLM_RAYSERVE_AUTO_RELEASE
+name: Auto Release - vLLM RayServe
 
 on:
   # schedule run must be on the default branch

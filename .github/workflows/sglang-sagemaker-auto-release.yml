@@ -1,4 +1,4 @@
-name: SGLANG_SAGEMAKER_AUTO_RELEASE
+name: Auto Release - SGLang SageMaker
 
 on:
   # schedule run must be on the default branch

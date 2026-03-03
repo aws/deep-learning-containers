@@ -1,4 +1,4 @@
-name: vLLM_SAGEMAKER_AUTO_RELEASE
+name: Auto Release - vLLM SageMaker
 
 on:
   # schedule run must be on the default branch

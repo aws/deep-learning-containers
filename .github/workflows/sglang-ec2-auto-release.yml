@@ -1,4 +1,4 @@
-name: SGLANG_EC2_AUTO_RELEASE
+name: Auto Release - SGLang EC2
 
 on:
   # schedule run must be on the default branch
