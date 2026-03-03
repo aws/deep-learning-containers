@@ -27,4 +27,4 @@ release:
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: production  # gamma or production
+  environment: gamma  # gamma or production
