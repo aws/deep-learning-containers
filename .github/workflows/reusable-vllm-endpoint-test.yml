@@ -13,6 +13,8 @@ env:
 
 jobs:
   endpoint-test:
+    permissions:
+      contents: read
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
