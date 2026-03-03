@@ -153,9 +153,10 @@ jobs:
             --source-image-uri "${{ inputs.source-image-uri }}" \
             --metadata-file "${METADATA_FILE}"
 
-          # Read IMAGES_PUBLISHED from the metadata file
-          # The Python script sets this in the metadata, but env vars don't propagate from subprocess
+          # Check if metadata file was created
+          # If not created, it means the release was skipped (blocked day or outside business hours)
           if [ -f "${METADATA_FILE}" ]; then
+            # Read IMAGES_PUBLISHED from the metadata file
             IMAGES_PUBLISHED=$(python3 -c "import json; print(json.load(open('${METADATA_FILE}'))['release_successful'])")
             echo "images-published=${IMAGES_PUBLISHED}" >> ${GITHUB_OUTPUT}
 
@@ -167,8 +168,13 @@ jobs:
             echo "Release metadata:"
             cat ${METADATA_FILE}
           else
-            echo "❌ Error: Metadata file not found"
-            exit 1
+            # Metadata file not created - release was skipped (blocked day or outside business hours)
+            echo "⚠️ Release skipped: No metadata file generated"
+            echo "This typically happens on blocked days or outside business hours"
+            echo "images-published=0" >> ${GITHUB_OUTPUT}
+
+            # Create a minimal metadata file for artifact upload consistency
+            echo '{"release_successful": "0", "skip_reason": "blocked_day_or_outside_business_hours"}' > "${METADATA_FILE}"
           fi
 
       - name: Upload metadata artifact

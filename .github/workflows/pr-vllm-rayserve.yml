@@ -1,12 +1,36 @@
 name: PR - vLLM RayServe
 
 on:
+  # Direct execution on pull requests
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
       - "!docs/**"
+
+  # Allow calling as a reusable workflow
+  workflow_call:
+    inputs:
+      config-file:
+        description: 'Path to config file'
+        required: false
+        type: string
+        default: ".github/config/vllm-rayserve.yml"
+      skip-gatekeeper:
+        description: 'Skip gatekeeper check (for auto-release)'
+        required: false
+        type: boolean
+        default: false
+      skip-change-detection:
+        description: 'Skip change detection (for auto-release)'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      ci-image:
+        description: 'Built CI image URI'
+        value: ${{ jobs.build-image.outputs.ci-image }}
 
 permissions:
   contents: read
@@ -16,14 +40,16 @@ env:
   # CI environment configuration
   FORCE_COLOR: "1"
 
-  # Config file path
-  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
+  # Config file path - use input if provided (workflow_call), otherwise use default
+  CONFIG_FILE: ${{ inputs.config-file || '.github/config/vllm-rayserve.yml' }}
 
 jobs:
   gatekeeper:
+    # Skip gatekeeper when called from auto-release workflow
+    if: ${{ !inputs.skip-gatekeeper }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
@@ -37,7 +63,8 @@ jobs:
 
   load-config:
     needs: [gatekeeper]
-    if: success()
+    # Run if gatekeeper succeeded OR was skipped
+    if: always() && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
@@ -79,10 +106,10 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    if: success()
+    if:  ${{ !inputs.skip-change-detection && (needs.gatekeeper.result == 'success') }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
@@ -116,15 +143,16 @@ jobs:
               - "test/sanity/**"
               - "test/vllm/**"
 
+
   build-image:
     needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+    if: always() && !failure() && !cancelled() && (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.result == 'skipped')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -156,9 +184,9 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped' )
     concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -198,7 +226,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-regression-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-regression-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -244,7 +272,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-cuda-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-cuda-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -290,7 +318,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-example-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-example-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source

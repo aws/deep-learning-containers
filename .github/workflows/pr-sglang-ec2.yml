@@ -1,12 +1,36 @@
 name: PR - SGLang EC2
 
 on:
+  # Direct execution on pull requests
   pull_request:
     branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"
       - "!docs/**"
+
+  # Allow calling as a reusable workflow
+  workflow_call:
+    inputs:
+      config-file:
+        description: 'Path to config file'
+        required: false
+        type: string
+        default: ".github/config/sglang-ec2.yml"
+      skip-gatekeeper:
+        description: 'Skip gatekeeper check (for auto-release)'
+        required: false
+        type: boolean
+        default: false
+      skip-change-detection:
+        description: 'Skip change detection (for auto-release)'
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      ci-image:
+        description: 'Built CI image URI'
+        value: ${{ jobs.build-image.outputs.ci-image }}
 
 permissions:
   contents: read
@@ -17,14 +41,16 @@ env:
   FORCE_COLOR: "1"
   TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
-  # Config file path
-  CONFIG_FILE: ".github/config/sglang-ec2.yml"
+  # Config file path - use input if provided (workflow_call), otherwise use default
+  CONFIG_FILE: ${{ inputs.config-file || '.github/config/sglang-ec2.yml' }}
 
 jobs:
   gatekeeper:
+    # Skip gatekeeper when called from auto-release workflow
+    if: ${{ !inputs.skip-gatekeeper }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
@@ -38,7 +64,8 @@ jobs:
 
   load-config:
     needs: [gatekeeper]
-    if: success()
+    # Run if gatekeeper succeeded OR was skipped
+    if: always() && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped')
     runs-on: ubuntu-latest
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
@@ -80,10 +107,11 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    if: success()
+    # Skip change detection when called from auto-release workflow
+    if: ${{ !inputs.skip-change-detection && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped') }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
@@ -117,15 +145,17 @@ jobs:
               - "test/sanity/**"
               - "test/sglang/**"
 
+
   build-image:
     needs: [check-changes, load-config]
-    if: needs.check-changes.outputs.build-change == 'true'
+    # Build if changes detected OR change detection was skipped (auto-release)
+    if: always() && !failure() && !cancelled() && (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.result == 'skipped')
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
@@ -157,9 +187,9 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
     concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -181,7 +211,7 @@ jobs:
     needs: [build-image, load-config]
     if: success()
     concurrency:
-      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
@@ -199,7 +229,7 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-local-benchmark-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-local-benchmark-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
@@ -257,7 +287,7 @@ jobs:
         fleet:x86-g6exl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-upstream-test-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-upstream-test-${{ github.event.pull_request.number || github.run_id }}
       cancel-in-progress: true
     steps:
       - name: Checkout DLC source
