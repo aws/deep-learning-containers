@@ -44,6 +44,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && ln -s /usr/bin/python3 /usr/bin/python \
   # clean up
   && rm -rf ${HOME_DIR}/oss_compliance* \
+  && rm -rf /tmp/* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
   && rm -rf /var/lib/apt/lists/* \
@@ -82,9 +83,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get upgrade -y \
   && apt-get clean
 
-# clean up all tmp files
-RUN rm -rf /tmp/*
-
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
@@ -94,16 +92,14 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 FROM base AS vllm-rayserve-ec2
 
 RUN uv pip install --system ray[serve]==2.49.0 \
-  && uv cache clean
+  && uv cache clean \
+  && rm -rf /tmp/*
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
   && apt-get clean
-
-# clean up all tmp files
-RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -118,9 +114,6 @@ RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark ho
   && apt-get update \
   && apt-get upgrade -y \
   && apt-get clean
-
-# clean up all tmp files
-RUN rm -rf /tmp/*
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
