@@ -2,3 +2,4 @@ boto3
 botocore
 fabric
 pytest
+requests
