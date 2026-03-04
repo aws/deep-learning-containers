@@ -87,7 +87,7 @@ jobs:
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      test-change: ${{ steps.changes.outputs.test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -113,10 +113,8 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - ".github/config/sglang-ec2.yml"
-            test-change:
+            sanity-test-change:
               - "test/sanity/**"
-              - "test/sglang/**"
-
 
   build-image:
     needs: [check-changes, load-config]
@@ -159,7 +157,7 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
       group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
