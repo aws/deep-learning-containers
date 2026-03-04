@@ -80,6 +80,7 @@ jobs:
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
+          uv pip install -r test/telemetry/requirements.txt
 
       - name: Run instance telemetry tests
         run: |
