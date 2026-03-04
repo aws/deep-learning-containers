@@ -66,12 +66,17 @@ def build_expected_labels(args):
 def check_standard_labels(labels, args):
     """Validate standard SageMaker labels are present."""
     expected = build_expected_labels(args)
-    missing = []
+    observed = [key for key in labels if key.startswith(SAGEMAKER_LABEL_PREFIX)]
+
+    LOGGER.info(f"Expected labels ({len(expected)}):")
     for label in expected:
-        if label in labels:
-            LOGGER.info(f"Found: {label}")
-        else:
-            missing.append(label)
+        LOGGER.info(f"  {label}")
+
+    LOGGER.info(f"Observed labels on container ({len(observed)}):")
+    for label in observed:
+        LOGGER.info(f"  {label}")
+
+    missing = [label for label in expected if label not in labels]
     if missing:
         return [f"Missing standard SageMaker label: {label}" for label in missing]
     LOGGER.info(f"All {len(expected)} standard SageMaker labels present")

@@ -29,6 +29,9 @@ env:
 jobs:
   load-config:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     outputs:
       config: ${{ steps.load.outputs.config }}
       framework: ${{ steps.parse.outputs.framework }}
@@ -74,6 +77,9 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
@@ -103,6 +109,9 @@ jobs:
 
   sanity-test:
     needs: [build-image, load-config]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -118,6 +127,9 @@ jobs:
 
   upstream-tests:
     needs: [build-image, load-config]
+    concurrency:
+      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -139,6 +151,9 @@ jobs:
 
   endpoint-test:
     needs: [build-image]
+    concurrency:
+      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
     uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
     with:
       image-uri: ${{ needs.build-image.outputs.ci-image }}
@@ -146,6 +161,9 @@ jobs:
   generate-release-spec:
     needs: [load-config, build-image, sanity-test, upstream-tests, endpoint-test]
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
@@ -171,6 +189,9 @@ jobs:
   release-image:
     needs: [load-config, build-image, generate-release-spec]
     if: needs.generate-release-spec.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-image-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
     uses: ./.github/workflows/reusable-release-image.yml
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
