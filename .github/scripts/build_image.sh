@@ -117,6 +117,7 @@ BUILD_CMD="${BUILD_CMD} \
 
 # Execute build
 echo "Executing build command..."
+echo "${BUILD_CMD}"
 eval ${BUILD_CMD}
 
 # Clean up local image
