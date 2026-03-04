@@ -24,6 +24,7 @@ Usage:
 import argparse
 import logging
 import sys
+from pprint import pformat
 
 from test_utils.docker_helper import get_docker_labels
 
@@ -31,7 +32,7 @@ import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger("test").getChild("check_labels")
-LOGGER.setLevel(logging.INFO)
+LOGGER.setLevel(logging.DEBUG)
 
 SAGEMAKER_LABEL_PREFIX = "com.amazonaws.ml.engines.sagemaker.dlc"
 MAX_SAGEMAKER_LABELS = 10
@@ -68,13 +69,8 @@ def check_standard_labels(labels, args):
     expected = build_expected_labels(args)
     observed = [key for key in labels if key.startswith(SAGEMAKER_LABEL_PREFIX)]
 
-    LOGGER.info(f"Expected labels ({len(expected)}):")
-    for label in expected:
-        LOGGER.info(f"  {label}")
-
-    LOGGER.info(f"Observed labels on container ({len(observed)}):")
-    for label in observed:
-        LOGGER.info(f"  {label}")
+    LOGGER.debug(f"Expected labels ({len(expected)}):\n{pformat(expected)}")
+    LOGGER.debug(f"Observed labels on container ({len(observed)}):\n{pformat(observed)}")
 
     missing = [label for label in expected if label not in labels]
     if missing:
