@@ -108,12 +108,12 @@ jobs:
         with:
           filters: |
             build-change:
-              - "scripts/telemetry/**"
-            test-change:
               - "docker/vllm/**"
               - "scripts/vllm/**"
               - "scripts/common/**"
+              - "scripts/telemetry/**"
               - ".github/config/vllm-rayserve.yml"
+            test-change:
               - "test/sanity/**"
               - "test/vllm/**"
 
