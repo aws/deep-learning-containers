@@ -164,8 +164,7 @@ jobs:
         with:
           framework: ${{ needs.load-config.outputs.framework }}
           target: vllm-ec2
-          # base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
-          base-image: vllm/vllm-openai:v0.16.0-cu130 ### temp
+          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
