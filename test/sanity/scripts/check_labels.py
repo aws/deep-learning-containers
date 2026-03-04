@@ -45,17 +45,19 @@ def build_expected_labels(args):
     device = args.device_type
     if device == "gpu" and args.cuda_version:
         device = f"{device}.{args.cuda_version}"
-    python_ver = args.python_version.replace(".", "-")
-    os_ver = args.os_version.replace(".", "-")
 
     expected = [
         f"{SAGEMAKER_LABEL_PREFIX}.framework.{fw}.{fw_ver}",
         f"{SAGEMAKER_LABEL_PREFIX}.device.{device}",
-        f"{SAGEMAKER_LABEL_PREFIX}.python.{python_ver}",
         f"{SAGEMAKER_LABEL_PREFIX}.job.{args.container_type}",
         f"{SAGEMAKER_LABEL_PREFIX}.arch.{args.arch_type}",
-        f"{SAGEMAKER_LABEL_PREFIX}.os.{os_ver}",
     ]
+    if args.os_version:
+        os_ver = args.os_version.replace(".", "-")
+        expected.append(f"{SAGEMAKER_LABEL_PREFIX}.os.{os_ver}")
+    if args.python_version:
+        python_ver = args.python_version.replace(".", "-")
+        expected.append(f"{SAGEMAKER_LABEL_PREFIX}.python.{python_ver}")
     if args.contributor:
         expected.append(f"{SAGEMAKER_LABEL_PREFIX}.contributor.{args.contributor}")
     if args.transformers_version:
@@ -95,15 +97,28 @@ def main():
     parser.add_argument("image_uri", help="Docker image URI to inspect")
     parser.add_argument("--framework", required=True)
     parser.add_argument("--framework-version", required=True)
-    parser.add_argument("--device-type", default="gpu")
-    parser.add_argument("--cuda-version", default="")
-    parser.add_argument("--arch-type", default="x86")
-    parser.add_argument("--python-version", required=True)
-    parser.add_argument("--os-version", required=True)
     parser.add_argument("--container-type", required=True)
-    parser.add_argument("--contributor", default="")
+    parser.add_argument("--device-type", default="gpu")
+    parser.add_argument("--arch-type", default="x86")
+    parser.add_argument("--contributor", default="None")
+    parser.add_argument("--cuda-version", default="")
+    parser.add_argument("--python-version", default="")
+    parser.add_argument("--os-version", default="")
     parser.add_argument("--transformers-version", default="")
     args = parser.parse_args()
+
+    # Treat empty strings as unset
+    for attr in vars(args):
+        if getattr(args, attr) == "":
+            setattr(args, attr, None)
+
+    required_args = ["framework", "framework_version", "container_type"]
+    missing = [arg for arg in required_args if not getattr(args, arg)]
+    if missing:
+        LOGGER.error(
+            f"Required arguments cannot be empty: {', '.join('--' + a.replace('_', '-') for a in missing)}"
+        )
+        return 1
 
     labels = get_docker_labels(args.image_uri)
     if not labels:
