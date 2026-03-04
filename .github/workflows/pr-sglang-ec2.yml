@@ -108,12 +108,12 @@ jobs:
         with:
           filters: |
             build-change:
+              - "scripts/telemetry/**"
+            test-change:
               - "docker/sglang/**"
               - "scripts/sglang/**"
               - "scripts/common/**"
-              - "scripts/telemetry/**"
               - ".github/config/sglang-ec2.yml"
-            test-change:
               - "test/sanity/**"
               - "test/sglang/**"
 
