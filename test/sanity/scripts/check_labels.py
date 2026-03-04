@@ -32,7 +32,7 @@ import test  # noqa: F401 — triggers colored logging setup
 
 # To enable debugging, change logging.INFO to logging.DEBUG
 LOGGER = logging.getLogger("test").getChild("check_labels")
-LOGGER.setLevel(logging.DEBUG)
+LOGGER.setLevel(logging.INFO)
 
 SAGEMAKER_LABEL_PREFIX = "com.amazonaws.ml.engines.sagemaker.dlc"
 MAX_SAGEMAKER_LABELS = 10
@@ -69,8 +69,8 @@ def check_standard_labels(labels, args):
     expected = build_expected_labels(args)
     observed = [key for key in labels if key.startswith(SAGEMAKER_LABEL_PREFIX)]
 
-    LOGGER.debug(f"Expected labels ({len(expected)}):\n{pformat(expected)}")
-    LOGGER.debug(f"Observed labels on container ({len(observed)}):\n{pformat(observed)}")
+    LOGGER.info(f"Expected labels ({len(expected)}):\n{pformat(expected)}")
+    LOGGER.info(f"Observed labels on container ({len(observed)}):\n{pformat(observed)}")
 
     missing = [label for label in expected if label not in labels]
     if missing:

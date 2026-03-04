@@ -7,10 +7,10 @@ on:
     - cron: '00 17 * * 1,3' # Monday and Wednesday at 10:00 AM PDT / 9:00 AM PST
 
   # PR triggers for testing
-  # pull_request:
-  #   paths:
-  #     - "**vllm**"
-  #     - "!docs/**"
+  pull_request:
+    paths:
+      - "**vllm**"
+      - "!docs/**"
 
   # Manual trigger
   workflow_dispatch:
@@ -20,23 +20,31 @@ permissions:
   pull-requests: read
 
 env:
+  # CI environment configuration
+  FORCE_COLOR: "1"
+
+  # Config file path
   CONFIG_FILE: ".github/config/vllm-rayserve.yml"
 
 jobs:
-  # Call the PR workflow which handles build and test
-  build-and-test:
-    uses: ./.github/workflows/pr-vllm-rayserve.yml
-    with:
-      config-file: ".github/config/vllm-rayserve.yml"
-      skip-gatekeeper: true
-      skip-change-detection: true
-    secrets: inherit
-
-  # Load config for release logic
   load-config:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-load-config-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     outputs:
       config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      prod-image: ${{ steps.parse.outputs.prod-image }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -47,12 +55,100 @@ jobs:
         with:
           config-file: ${{ env.CONFIG_FILE }}
 
-  # Generate release spec after tests pass
-  generate-rayserve-release-spec:
-    needs: [load-config, build-and-test]
-    if: |
-      always() && !failure() && !cancelled()
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+  build-image:
+    needs: [load-config]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config.outputs.framework }}
+          target: vllm-rayserve-ec2
+          base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
+          framework-version: ${{ needs.load-config.outputs.framework-version }}
+          container-type: ${{ needs.load-config.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-rayserve-ec2-${{ github.run_id }}
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          arch-type: ${{ needs.load-config.outputs.arch-type }}
+          device-type: ${{ needs.load-config.outputs.device-type }}
+          cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+          python-version: ${{ needs.load-config.outputs.python-version }}
+          os-version: ${{ needs.load-config.outputs.os-version }}
+          contributor: ${{ needs.load-config.outputs.contributor }}
+          customer-type: ${{ needs.load-config.outputs.customer-type }}
+
+  sanity-test:
+    needs: [build-image, load-config]
+    concurrency:
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      python-version: ${{ needs.load-config.outputs.python-version }}
+      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
+      os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
+
+  upstream-tests:
+    needs: [build-image, load-config]
+    concurrency:
+      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      setup-script: scripts/vllm/vllm_0_10_2_test_setup.sh
+      example-test-script: scripts/vllm/vllm_rayserve_examples_test.sh
+    secrets: inherit
+
+  generate-release-spec:
+    needs: [load-config, build-image, sanity-test, upstream-tests]
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     outputs:
       release-spec: ${{ steps.generate.outputs.release-spec }}
       should-release: ${{ steps.check-release.outputs.should-release }}
@@ -75,14 +171,16 @@ jobs:
         with:
           config-json: ${{ needs.load-config.outputs.config }}
 
-  # Release the image
-  release-rayserve-image:
-    needs: [load-config, build-and-test, generate-rayserve-release-spec]
-    if: needs.generate-rayserve-release-spec.outputs.should-release == 'true'
+  release-image:
+    needs: [load-config, build-image, generate-release-spec]
+    if: needs.generate-release-spec.outputs.should-release == 'true'
+    concurrency:
+      group: ${{ github.workflow }}-release-image-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-release-image.yml
     with:
-      source-image-uri: ${{ needs.build-and-test.outputs.ci-image }}
-      release-spec: ${{ needs.generate-rayserve-release-spec.outputs.release-spec }}
+      source-image-uri: ${{ needs.build-image.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
