@@ -78,7 +78,7 @@ jobs:
           --dataset-name sharegpt \
           --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
 
-  upstream-test:
+  srt-backend-test:
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6exl-runner
