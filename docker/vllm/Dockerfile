@@ -72,6 +72,10 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # but will not be released until v0.17.0
 # RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
 
+# Fix for this issue: https://github.com/vllm-project/vllm/issues/35593
+# Remove in v0.17.0
+ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
+
 # patch CVEs CVE-2026-25990
 RUN pip install "pillow>=12.1.1"
 
