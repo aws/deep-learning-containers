@@ -86,7 +86,8 @@ jobs:
         run: |
           source .venv/bin/activate
           # PYTHONPATH=$(pwd)/test:$(pwd)/scripts/telemetry:$PYTHONPATH pytest test/telemetry/test_telemetry.py -v \
-          pytest -vs -rA test/telemetry \
+          cd test/
+          PYTHONPATH=$(pwd)/../scripts/telemetry:$PYTHONPATH pytest -vs -rA telemetry \
             --image-uri "${{ inputs.image-uri }}" \
             --framework "${{ inputs.framework }}" \
             --framework-version "${{ inputs.framework-version }}" \
