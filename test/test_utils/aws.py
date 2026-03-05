@@ -100,7 +100,13 @@ class AWSSessionManager:
         return latest["ImageId"]
 
     def launch_instance(
-        self, ami_id, instance_type, key_name, instance_name="", iam_role=EC2_INSTANCE_ROLE_NAME
+        self,
+        ami_id,
+        instance_type,
+        key_name,
+        instance_name="",
+        iam_role=EC2_INSTANCE_ROLE_NAME,
+        security_group_ids=None,
     ):
         """Launch a single EC2 instance with IMDSv2 enforced and 150GB EBS volume."""
         params = {
@@ -126,6 +132,8 @@ class AWSSessionManager:
         }
         if iam_role:
             params["IamInstanceProfile"] = {"Name": iam_role}
+        if security_group_ids:
+            params["SecurityGroupIds"] = security_group_ids
 
         response = self.ec2.run_instances(**params)
         instance_id = response["Instances"][0]["InstanceId"]
@@ -158,6 +166,42 @@ class AWSSessionManager:
             Filters=[{"Name": "resource-id", "Values": [instance_id]}]
         )
         return {tag["Key"]: tag["Value"] for tag in response["Tags"]}
+
+    # ===========================================
+    # ===== Security Groups =====================
+    # ===========================================
+
+    def create_ssh_security_group(self, group_name=None):
+        """Create a security group allowing SSH from anywhere. Returns group ID."""
+        if not group_name:
+            group_name = random_suffix_name("dlc-ssh", 36)
+        vpc_id = self.ec2.describe_vpcs(Filters=[{"Name": "is-default", "Values": ["true"]}])[
+            "Vpcs"
+        ][0]["VpcId"]
+        response = self.ec2.create_security_group(
+            GroupName=group_name,
+            Description="Ephemeral SSH access for DLC tests",
+            VpcId=vpc_id,
+        )
+        sg_id = response["GroupId"]
+        self.ec2.authorize_security_group_ingress(
+            GroupId=sg_id,
+            IpPermissions=[
+                {
+                    "IpProtocol": "tcp",
+                    "FromPort": 22,
+                    "ToPort": 22,
+                    "IpRanges": [{"CidrIp": "0.0.0.0/0"}],
+                },
+            ],
+        )
+        LOGGER.info(f"Created security group {sg_id} ({group_name})")
+        return sg_id
+
+    def delete_security_group(self, sg_id):
+        """Delete a security group."""
+        self.ec2.delete_security_group(GroupId=sg_id)
+        LOGGER.info(f"Deleted security group {sg_id}")
 
     # ===========================================
     # ===== SSH Key Pair Management =============

@@ -41,19 +41,26 @@ def ec2_instance(request, aws_session):
 
     key_name, key_path = None, None
     instance_id = None
+    sg_id = None
     try:
         key_name, key_path = aws_session.create_key_pair()
+        sg_id = aws_session.create_ssh_security_group()
         instance_id = aws_session.launch_instance(
             ami_id=ami_id,
             instance_type=TELEMETRY_INSTANCE_TYPE,
             key_name=key_name,
             instance_name="telemetry-test",
+            security_group_ids=[sg_id],
         )
         aws_session.wait_for_instance_ready(instance_id)
         yield instance_id, key_path
     finally:
         if instance_id:
             aws_session.terminate_instance(instance_id)
+            # Wait for instance to terminate before deleting SG
+            aws_session.ec2.get_waiter("instance_terminated").wait(InstanceIds=[instance_id])
+        if sg_id:
+            aws_session.delete_security_group(sg_id)
         if key_name:
             aws_session.delete_key_pair(key_name, key_path)
 
