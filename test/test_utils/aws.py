@@ -230,7 +230,7 @@ class AWSSessionManager:
     # ===== SSH Connection ======================
     # ===========================================
 
-    def get_ssh_connection(self, instance_id, key_path, user="ubuntu"):
+    def get_ssh_connection(self, instance_id, key_path, user="ec2-user"):
         """Create a Fabric SSH connection to an EC2 instance."""
         ip = self.get_public_ip(instance_id)
         return LoggedConnection(
