@@ -24,6 +24,13 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
+# Install DLC dependencies
+# ===============
+RUN uv pip install --system \
+  requests \
+  botocore \
+  && uv cache clean
+
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
 COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
@@ -49,11 +56,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /tmp/uv* \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
-
-# Install DLC dependencies
-RUN uv pip install --system \
-  requests \
-  botocore
 
 COPY ./scripts/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \

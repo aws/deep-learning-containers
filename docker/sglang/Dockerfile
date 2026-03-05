@@ -29,6 +29,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
+# Install DLC dependencies
+# ===============
+RUN pip install \
+  requests \
+  botocore
+
 # Copy artifacts
 # ===============
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -47,11 +53,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/start_cuda_compat.sh \
   && rm /tmp/bash_telemetry.sh.template
-
-# Install DLC dependencies
-RUN pip install \
-  requests \
-  botocore
 
 # Install EFA and remove vulnerable nvjpeg
 # =========================================
