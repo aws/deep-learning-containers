@@ -211,7 +211,7 @@ class AWSSessionManager:
         """Create an EC2 key pair and save the PEM file. Returns (key_name, key_path)."""
         if not key_name:
             key_name = random_suffix_name("dlc-test", 36)
-        response = self.ec2.create_key_pair(KeyName=key_name)
+        response = self.ec2.create_key_pair(KeyName=key_name, KeyFormat="pem", KeyType="ed25519")
         key_path = os.path.join(tempfile.gettempdir(), f"{key_name}.pem")
         with open(key_path, "w") as f:
             f.write(response["KeyMaterial"])
