@@ -27,8 +27,12 @@ WORKDIR /
 # Install DLC dependencies
 # ===============
 RUN uv pip install --system \
-  requests \
   botocore \
+  && uv cache clean
+
+# patch CVEs CVE-2026-25990
+RUN uv pip install --system \
+  "pillow>=12.1.1" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -77,9 +81,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # issue introduced by https://github.com/vllm-project/vllm/pull/30784
 # until https://github.com/vllm-project/vllm/pull/32377 is merged
 RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
-
-# patch CVEs CVE-2026-25990
-RUN uv pip install --system "pillow>=12.1.1"
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
