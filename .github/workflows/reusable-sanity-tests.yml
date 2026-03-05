@@ -39,6 +39,36 @@ on:
         required: false
         type: string
         default: ''
+      customer-type:
+        description: 'Customer type (e.g., sagemaker, ec2)'
+        required: false
+        type: string
+        default: ''
+      arch-type:
+        description: 'Architecture type (e.g., x86, arm64, graviton)'
+        required: false
+        type: string
+        default: 'x86'
+      device-type:
+        description: 'Device type (e.g., gpu, cpu)'
+        required: false
+        type: string
+        default: 'gpu'
+      contributor:
+        description: 'Contributor name'
+        required: false
+        type: string
+        default: ''
+      container-type:
+        description: 'Container/job type (e.g., general, training, inference)'
+        required: false
+        type: string
+        default: ''
+      transformers-version:
+        description: 'Transformers library version'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   general-tests:
@@ -89,9 +119,10 @@ jobs:
       - name: Check container labels
         run: |
           source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py ${{ inputs.image-uri }}
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/inspect_docker.py \
+            ${{ inputs.image-uri }}
 
-      # TODO: [MANUAL] Need to add test for checking license content and add license to sglang
+      # TODO: [MANUAL] Need to add test for checking license content and add license to sglang and vllm
       # - name: Check license file exists
       #   run: |
       #     docker exec ${CONTAINER_ID} bash -c \
@@ -113,3 +144,42 @@ jobs:
         run: |
           source .venv/bin/activate
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/upload_oss_source.py THIRD_PARTY_SOURCE_CODE_URLS
+
+  sagemaker-only:
+    if: inputs.customer-type == 'sagemaker'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+          image-uri: ${{ inputs.image-uri }}
+
+      - name: Setup for test dependencies on host machine
+        run: |
+          uv venv --python 3.12
+          source .venv/bin/activate
+          uv pip install -r test/requirements.txt
+
+      - name: Check standard SageMaker labels
+        run: |
+          source .venv/bin/activate
+          PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/check_labels.py \
+            ${{ inputs.image-uri }} \
+            --framework "${{ inputs.framework }}" \
+            --framework-version "${{ inputs.framework-version }}" \
+            --device-type "${{ inputs.device-type }}" \
+            --cuda-version "${{ inputs.cuda-version }}" \
+            --arch-type "${{ inputs.arch-type }}" \
+            --python-version "${{ inputs.python-version }}" \
+            --os-version "${{ inputs.os-version }}" \
+            --container-type "${{ inputs.container-type }}" \
+            --contributor "${{ inputs.contributor }}" \
+            --transformers-version "${{ inputs.transformers-version }}"

@@ -9,29 +9,6 @@ on:
       - "**sglang**"
       - "!docs/**"
 
-  # Allow calling as a reusable workflow
-  workflow_call:
-    inputs:
-      config-file:
-        description: 'Path to config file'
-        required: false
-        type: string
-        default: ".github/config/sglang-sagemaker.yml"
-      skip-gatekeeper:
-        description: 'Skip gatekeeper check (for auto-release)'
-        required: false
-        type: boolean
-        default: false
-      skip-change-detection:
-        description: 'Skip change detection (for auto-release)'
-        required: false
-        type: boolean
-        default: false
-    outputs:
-      ci-image:
-        description: 'Built CI image URI'
-        value: ${{ jobs.build-image.outputs.ci-image }}
-
 permissions:
   contents: read
   pull-requests: read
@@ -39,18 +16,15 @@ permissions:
 env:
   # CI environment configuration
   FORCE_COLOR: "1"
-  TEST_ARTIFACTS_DIRECTORY: "/test_artifacts/sglang"
 
-  # Config file path - use input if provided (workflow_call), otherwise use default
-  CONFIG_FILE: ${{ inputs.config-file || '.github/config/sglang-sagemaker.yml' }}
+  # Config file path
+  CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
 
 jobs:
   gatekeeper:
-    # Skip gatekeeper when called from auto-release workflow
-    if: ${{ !inputs.skip-gatekeeper }}
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
       - name: Checkout base branch (safe)
@@ -64,8 +38,7 @@ jobs:
 
   load-config:
     needs: [gatekeeper]
-    # Run if gatekeeper succeeded OR was skipped
-    if: always() && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped')
+    if: success()
     runs-on: ubuntu-latest
     outputs:
       framework: ${{ steps.parse.outputs.framework }}
@@ -107,15 +80,15 @@ jobs:
 
   check-changes:
     needs: [gatekeeper]
-    # Skip change detection when called from auto-release workflow
-    if: ${{ !inputs.skip-change-detection && (needs.gatekeeper.result == 'success' || needs.gatekeeper.result == 'skipped') }}
+    if: success()
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      test-change: ${{ steps.changes.outputs.test-change }}
+      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
+      sagemaker-test-change: ${{ steps.changes.outputs.sagemaker-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -141,25 +114,26 @@ jobs:
               - "scripts/common/**"
               - "scripts/telemetry/**"
               - ".github/config/sglang-sagemaker.yml"
-            test-change:
+            sanity-test-change:
               - "test/sanity/**"
-              - "test/sglang/**"
+            sagemaker-test-change:
+              - "test/sglang/sagemaker/**"
 
   build-image:
     needs: [check-changes, load-config]
-    # Build if changes detected OR change detection was skipped (auto-release)
-    if: always() && !failure() && !cancelled() && (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.result == 'skipped')
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
       ci-image: ${{ steps.build.outputs.image-uri }}
     steps:
-      - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v5
 
       - name: Build image
         id: build
@@ -186,9 +160,9 @@ jobs:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
     concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
@@ -200,14 +174,17 @@ jobs:
       python-version: ${{ needs.load-config.outputs.python-version }}
       cuda-version: ${{ needs.load-config.outputs.cuda-version }}
       os-version: ${{ needs.load-config.outputs.os-version }}
+      customer-type: ${{ needs.load-config.outputs.customer-type }}
+      arch-type: ${{ needs.load-config.outputs.arch-type }}
+      device-type: ${{ needs.load-config.outputs.device-type }}
+      contributor: ${{ needs.load-config.outputs.contributor }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
 
   security-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' )
+    needs: [build-image, load-config]
+    if: success()
     concurrency:
-      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-security-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
@@ -217,153 +194,39 @@ jobs:
       framework: ${{ needs.load-config.outputs.framework }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
 
-  local-benchmark-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6xl-runner
-        buildspec-override:true
+  upstream-tests:
+    needs: [build-image, load-config]
+    if: success()
     concurrency:
-      group: ${{ github.workflow }}-local-benchmark-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number }}
       cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
-
-      - name: Setup for SGLang datasets
-        run: |
-          mkdir -p ${TEST_ARTIFACTS_DIRECTORY}/dataset
-          if [ ! -f ${TEST_ARTIFACTS_DIRECTORY}/dataset/ShareGPT_V3_unfiltered_cleaned_split.json ]; then
-              echo "Downloading ShareGPT dataset..."
-              wget -P ${TEST_ARTIFACTS_DIRECTORY}/dataset https://huggingface.co/datasets/anon8231489123/ShareGPT_Vicuna_unfiltered/resolve/main/ShareGPT_V3_unfiltered_cleaned_split.json
-          else
-              echo "ShareGPT dataset already exists. Skipping download."
-          fi
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset \
-            -p 30000:30000 \
-            -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B \
-            -e SM_SGLANG_REASONING_PARSER=qwen3 \
-            -e SM_SGLANG_HOST=127.0.0.1 \
-            -e SM_SGLANG_PORT=30000 \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-          echo "Waiting for serving endpoint startup ..."
-          sleep 120s
-          docker logs ${CONTAINER_ID}
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} python3 -m sglang.bench_serving \
-          --backend sglang \
-          --host 127.0.0.1 --port 30000 \
-          --num-prompts 1000 \
-          --model Qwen/Qwen3-0.6B \
-          --dataset-name sharegpt \
-          --dataset-path /dataset/ShareGPT_V3_unfiltered_cleaned_split.json
-
-  upstream-test:
-    needs: [check-changes, build-image, load-config]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-g6exl-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-upstream-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Container pull
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
-
-      - name: Checkout SGLang tests
-        uses: actions/checkout@v5
-        with:
-          repository: sgl-project/sglang
-          ref: v${{ needs.load-config.outputs.framework-version }}
-          path: sglang_source
-
-      - name: Start container
-        run: |
-          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
-            -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
-            -v ./sglang_source:/workdir --workdir /workdir \
-            -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }})
-          echo "CONTAINER_ID=${CONTAINER_ID}" >> ${GITHUB_ENV}
-
-      - name: Setup for SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            # https://github.com/sgl-project/sglang/blob/v0.5.7/scripts/ci/ci_install_dependency.sh#L78C8-L80
-            # our CI suffers the same issue
-            export IS_BLACKWELL=1
-
-            bash scripts/ci/cuda/ci_install_dependency.sh
-          '
-
-      - name: Run SGLang tests
-        run: |
-          docker exec ${CONTAINER_ID} sh -c '
-            set -eux
-            nvidia-smi
-
-            # SRT backend Test with increased timeout
-            cd /workdir/test
-            export SGLANG_TIMEOUT=600
-            python3 run_suite.py --hw cuda --suite stage-a-test-1
-          '
+    uses: ./.github/workflows/reusable-sglang-upstream-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}
+      aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      benchmark-start-command: >-
+        docker run -d -it --rm --gpus=all
+        -v ${HOME}/.cache/huggingface:/root/.cache/huggingface
+        -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset
+        -p 30000:30000
+        -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B
+        -e SM_SGLANG_REASONING_PARSER=qwen3
+        -e SM_SGLANG_HOST=127.0.0.1
+        -e SM_SGLANG_PORT=30000
+        -e HF_TOKEN=${HF_TOKEN}
+        ${IMAGE}
+    secrets: inherit
 
   endpoint-test:
     needs: [check-changes, build-image, load-config]
     if: |
       always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-change == 'true' || needs.check-changes.result == 'skipped')
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:default-runner
-        buildspec-override:true
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sagemaker-test-change == 'true')
     concurrency:
-      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number || github.run_id }}
+      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number }}
       cancel-in-progress: false
-    steps:
-      - name: Checkout DLC source
-        uses: actions/checkout@v5
-
-      - name: Install test dependencies
-        run: |
-          uv venv --python 3.12
-          source .venv/bin/activate
-          uv pip install -r test/requirements.txt
-          uv pip install -r test/sglang/sagemaker/requirements.txt
-
-      - name: Run sagemaker tests
-        run: |
-          source .venv/bin/activate
-          cd test/
-          python3 -m pytest -vs -rA --image-uri ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }} sglang/sagemaker
+    uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.result == 'success' && needs.build-image.outputs.ci-image || format('{0}.dkr.ecr.{1}.amazonaws.com/{2}', vars.PROD_AWS_ACCOUNT_ID, vars.AWS_REGION, needs.load-config.outputs.prod-image) }}

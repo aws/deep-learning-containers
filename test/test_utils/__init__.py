@@ -16,44 +16,15 @@ and their output types for readability and reusability.
 When necessary, use docstrings to explain the functions' mechanisms.
 """
 
-import json
 import logging
 import random
 import string
 import time
 from collections.abc import Callable
-from typing import Any, NamedTuple
-
-from botocore.exceptions import ClientError
-
-from .aws import AWSSessionManager
+from typing import Any
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
-
-
-class ImageURI(NamedTuple):
-    full_uri: str
-    account_id: str
-    region: str
-    repository: str
-    image_tag: str
-
-
-def parse_image_uri(image_uri: str) -> ImageURI:
-    # Expected format: <account_id>.dkr.ecr.<region>.amazonaws.com/<repository>:<tag>
-    registry, repository_tag = image_uri.split("/", 1)
-    repository, image_tag = repository_tag.rsplit(":", 1)
-    registry_parts = registry.split(".")
-    account_id = registry_parts[0]
-    region = registry_parts[3]
-    return ImageURI(
-        full_uri=image_uri,
-        account_id=account_id,
-        region=region,
-        repository=repository,
-        image_tag=image_tag,
-    )
 
 
 def random_suffix_name(resource_name: str, max_length: int, delimiter: str = "-") -> str:
@@ -87,20 +58,3 @@ def wait_for_status(
 
     LOGGER.error(f"Wait for status: {expected_status} timed out. Actual status: {actual_status}")
     return False
-
-
-def get_hf_token(aws_session: AWSSessionManager) -> str:
-    LOGGER.info("Retrieving HuggingFace token from AWS Secrets Manager...")
-    token_path = "test/hf_token"
-
-    try:
-        get_secret_value_response = aws_session.secretsmanager.get_secret_value(SecretId=token_path)
-        LOGGER.info("Successfully retrieved HuggingFace token")
-    except ClientError as e:
-        LOGGER.error(f"Failed to retrieve HuggingFace token: {e}")
-        raise e
-
-    # Do not print secrets token in logs
-    response = json.loads(get_secret_value_response["SecretString"])
-    token = response.get("HF_TOKEN")
-    return token
