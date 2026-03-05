@@ -55,7 +55,7 @@ def container_test_mode(conn, image_uri, pull_image):
         conn.run("sleep 10")
         yield container_name
     finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 @pytest.fixture(scope="function")
@@ -67,7 +67,7 @@ def container_default(conn, image_uri, pull_image):
         conn.run("sleep 10")
         yield container_name
     finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 @pytest.fixture(scope="function")
@@ -81,7 +81,7 @@ def container_opt_out(conn, image_uri, pull_image):
         conn.run("sleep 10")
         yield container_name
     finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 @pytest.fixture(scope="function")
@@ -93,7 +93,7 @@ def container_entrypoint(conn, image_uri, pull_image):
         conn.run("sleep 10")
         yield container_name
     finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 @pytest.fixture(scope="function")
@@ -108,7 +108,7 @@ def container_bashrc(conn, image_uri, pull_image):
         conn.run("sleep 10")
         yield container_name
     finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 def test_s3_query_bucket_url(
@@ -161,7 +161,7 @@ def test_imds_unreachable(conn, aws_session, image_uri, ec2_instance, pull_image
         assert TELEMETRY_TAG_KEY not in tags, "Tag should not exist when IMDS is blocked"
     finally:
         conn.run("sudo iptables -D OUTPUT -d 169.254.169.254 -j REJECT", warn=True)
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True, hide=True)
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 def test_opt_out(conn, container_opt_out):

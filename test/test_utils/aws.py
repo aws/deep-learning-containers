@@ -30,6 +30,8 @@ class LoggedConnection(Connection):
     """Fabric Connection that logs commands before execution."""
 
     def run(self, cmd, **kwargs):
+        kwargs.setdefault("hide", True)
+        kwargs.setdefault("in_stream", False)
         LOGGER.info(f"Running on {self.host}: {cmd}")
         return super().run(cmd, **kwargs)
 
