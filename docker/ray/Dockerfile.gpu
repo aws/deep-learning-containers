@@ -69,7 +69,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip compile /tmp/requirements.t
 
 # Install dependencies from lock file
 RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
-  && uv pip install -r /tmp/requirements.lock
+  && uv pip install -r /tmp/requirements.lock \
+  && uv pip install pip
 
 #############
 # Stage 3: Runtime - SageMaker image (CUDA runtime)
