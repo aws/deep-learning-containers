@@ -60,23 +60,24 @@ def container_test_mode(conn, image_uri, pull_image):
         conn.run("sleep 10")
 
         # Debug: check telemetry environment inside container
+        conn.run(f"{DOCKER_EXEC} {container_name} which python", warn=True, hide=False)
         conn.run(
-            f"{DOCKER_EXEC} {container_name} bash -c 'echo TEST_MODE=$TEST_MODE'",
+            f"{DOCKER_EXEC} {container_name} python -c 'import sys; print(sys.executable); print(sys.path)'",
             warn=True,
             hide=False,
         )
         conn.run(
-            f"{DOCKER_EXEC} {container_name} ls -la /usr/local/bin/bash_telemetry.sh /usr/local/bin/deep_learning_container.py",
+            f"{DOCKER_EXEC} {container_name} python -c 'import botocore; print(botocore.__file__)'",
+            warn=True,
+            hide=False,
+        )
+        conn.run(
+            f"{DOCKER_EXEC} {container_name} python -c 'import requests; print(requests.__file__)'",
             warn=True,
             hide=False,
         )
         conn.run(
             f"{DOCKER_EXEC} {container_name} cat /usr/local/bin/bash_telemetry.sh",
-            warn=True,
-            hide=False,
-        )
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} bash -c 'grep telemetry /etc/bash.bashrc'",
             warn=True,
             hide=False,
         )
