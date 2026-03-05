@@ -31,7 +31,6 @@ class LoggedConnection(Connection):
 
     def run(self, cmd, **kwargs):
         kwargs.setdefault("hide", True)
-        kwargs.setdefault("in_stream", False)
         LOGGER.info(f"Running on {self.host}: {cmd}")
         return super().run(cmd, **kwargs)
 

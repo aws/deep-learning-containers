@@ -85,7 +85,8 @@ jobs:
       - name: Run instance telemetry tests
         run: |
           source .venv/bin/activate
-          PYTHONPATH=$(pwd)/test:$(pwd)/scripts/telemetry:$PYTHONPATH pytest test/telemetry/test_telemetry.py -v \
+          # PYTHONPATH=$(pwd)/test:$(pwd)/scripts/telemetry:$PYTHONPATH pytest test/telemetry/test_telemetry.py -v \
+          pytest -vs -rA test/telemetry \
             --image-uri "${{ inputs.image-uri }}" \
             --framework "${{ inputs.framework }}" \
             --framework-version "${{ inputs.framework-version }}" \
