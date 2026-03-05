@@ -122,7 +122,7 @@ class AWSSessionManager:
                 "HttpPutResponseHopLimit": 2,
             },
             "BlockDeviceMappings": [
-                {"DeviceName": "/dev/sda1", "Ebs": {"VolumeSize": 150}},
+                {"DeviceName": "/dev/xvda", "Ebs": {"VolumeSize": 150}},
             ],
             "TagSpecifications": [
                 {
