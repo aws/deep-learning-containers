@@ -30,7 +30,7 @@ RUN uv pip install --system \
   botocore \
   && uv cache clean
 
-# patch CVEs CVE-2026-25990
+# patch CVEs
 RUN uv pip install --system \
   "pillow>=12.1.1" \
   && uv cache clean
