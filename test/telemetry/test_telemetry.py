@@ -48,22 +48,15 @@ DOCKER_RM = "docker rm -f"
 
 @pytest.fixture(scope="function")
 def container_test_mode(conn, image_uri, pull_image):
-    """Container with TEST_MODE=1 and default entrypoint."""
+    """Container with TEST_MODE=1, entrypoint overridden to /bin/bash.
+
+    Bashrc automatically sources bash_telemetry.sh on interactive shell startup.
+    """
     container_name = "telemetry-test-mode"
     try:
-        conn.run(f"{DOCKER_RUN} -e TEST_MODE=1 --name {container_name} {image_uri}")
-        conn.run("sleep 10")
-        yield container_name
-    finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
-
-
-@pytest.fixture(scope="function")
-def container_default(conn, image_uri, pull_image):
-    """Container with default entrypoint, no test mode."""
-    container_name = "telemetry-default"
-    try:
-        conn.run(f"{DOCKER_RUN} --name {container_name} {image_uri}")
+        conn.run(
+            f"{DOCKER_RUN} -e TEST_MODE=1 --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
+        )
         conn.run("sleep 10")
         yield container_name
     finally:
@@ -76,35 +69,8 @@ def container_opt_out(conn, image_uri, pull_image):
     container_name = "telemetry-opt-out"
     try:
         conn.run(
-            f"{DOCKER_RUN} -e TEST_MODE=1 -e OPT_OUT_TRACKING=true --name {container_name} {image_uri}"
+            f"{DOCKER_RUN} -e TEST_MODE=1 -e OPT_OUT_TRACKING=true --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
         )
-        conn.run("sleep 10")
-        yield container_name
-    finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
-
-
-@pytest.fixture(scope="function")
-def container_entrypoint(conn, image_uri, pull_image):
-    """Container with default entrypoint + bash --norc (suppresses bashrc)."""
-    container_name = "telemetry-entrypoint"
-    try:
-        conn.run(f"{DOCKER_RUN} -e TEST_MODE=1 --name {container_name} {image_uri} bash --norc")
-        conn.run("sleep 10")
-        yield container_name
-    finally:
-        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
-
-
-@pytest.fixture(scope="function")
-def container_bashrc(conn, image_uri, pull_image):
-    """Container with entrypoint overridden (suppresses entrypoint telemetry)."""
-    container_name = "telemetry-bashrc"
-    try:
-        conn.run(
-            f"{DOCKER_RUN} -e TEST_MODE=1 --entrypoint /bin/bash --name {container_name} {image_uri}"
-        )
-        conn.run(f"{DOCKER_EXEC} {container_name} bash -i -c 'sleep 1'")
         conn.run("sleep 10")
         yield container_name
     finally:
@@ -134,12 +100,22 @@ def test_s3_query_bucket_url(
     assert f"/dlc-containers-{instance_id}.txt" in parsed.path
 
 
-def test_instance_tagging(aws_session, container_default, ec2_instance):
+def test_instance_tagging(conn, aws_session, image_uri, ec2_instance, pull_image):
     """Verify telemetry creates the expected EC2 instance tag under IMDSv2."""
     LOGGER.info("Verifying EC2 instance tagging under IMDSv2")
     instance_id, _ = ec2_instance
-    tags = aws_session.get_instance_tags(instance_id)
-    assert TELEMETRY_TAG_KEY in tags, f"Tag '{TELEMETRY_TAG_KEY}' not found. Tags: {tags}"
+    # Delete any stale tag so we know this container created it
+    aws_session.ec2.delete_tags(Resources=[instance_id], Tags=[{"Key": TELEMETRY_TAG_KEY}])
+    container_name = "telemetry-tagging"
+    try:
+        conn.run(
+            f"{DOCKER_RUN} --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
+        )
+        conn.run("sleep 10")
+        tags = aws_session.get_instance_tags(instance_id)
+        assert TELEMETRY_TAG_KEY in tags, f"Tag '{TELEMETRY_TAG_KEY}' not found. Tags: {tags}"
+    finally:
+        conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
 def test_imds_unreachable(conn, aws_session, image_uri, ec2_instance, pull_image):
@@ -151,11 +127,15 @@ def test_imds_unreachable(conn, aws_session, image_uri, ec2_instance, pull_image
     container_name = "telemetry-imds-fail"
     try:
         conn.run("sudo iptables -A OUTPUT -d 169.254.169.254 -j REJECT")
-        conn.run(f"{DOCKER_RUN} --name {container_name} {image_uri}")
+        conn.run(
+            f"{DOCKER_RUN} --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
+        )
         conn.run("sleep 15")
 
-        result = conn.run(f"docker inspect -f '{{{{.State.Running}}}}' {container_name}")
-        assert result.stdout.strip() == "true", "Container crashed when IMDS unreachable"
+        result = conn.run(
+            f"{DOCKER_EXEC} {container_name} test -f /tmp/test_request.txt", warn=True
+        )
+        assert result.return_code != 0, "Telemetry should not write file when IMDS is blocked"
 
         tags = aws_session.get_instance_tags(instance_id)
         assert TELEMETRY_TAG_KEY not in tags, "Tag should not exist when IMDS is blocked"
@@ -172,25 +152,9 @@ def test_opt_out(conn, container_opt_out):
 
 
 def test_opt_in(conn, container_test_mode):
-    """Verify telemetry fires when OPT_OUT_TRACKING is not set."""
-    LOGGER.info("Verifying telemetry fires by default")
+    """Verify telemetry fires automatically via bashrc when OPT_OUT_TRACKING is not set."""
+    LOGGER.info("Verifying telemetry fires by default via bashrc")
     result = conn.run(
         f"{DOCKER_EXEC} {container_test_mode} test -f /tmp/test_request.txt", warn=True
     )
     assert result.return_code == 0, "Telemetry did not fire when OPT_OUT_TRACKING is unset"
-
-
-def test_entrypoint_trigger(conn, container_entrypoint):
-    """Verify entrypoint triggers telemetry (bashrc suppressed via --norc)."""
-    LOGGER.info("Verifying entrypoint triggers telemetry (bashrc suppressed)")
-    result = conn.run(
-        f"{DOCKER_EXEC} {container_entrypoint} test -f /tmp/test_request.txt", warn=True
-    )
-    assert result.return_code == 0, "Entrypoint did not trigger telemetry"
-
-
-def test_bashrc_trigger(conn, container_bashrc):
-    """Verify bashrc triggers telemetry (entrypoint suppressed via --entrypoint)."""
-    LOGGER.info("Verifying bashrc triggers telemetry (entrypoint suppressed)")
-    result = conn.run(f"{DOCKER_EXEC} {container_bashrc} test -f /tmp/test_request.txt", warn=True)
-    assert result.return_code == 0, "Bashrc did not trigger telemetry"
