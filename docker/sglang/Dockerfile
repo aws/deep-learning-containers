@@ -46,8 +46,12 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/start_cuda_compat.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && pip install botocore
+  && rm /tmp/bash_telemetry.sh.template
+
+# Install DLC dependencies
+RUN pip install \
+  requests \
+  botocore
 
 # Install EFA and remove vulnerable nvjpeg
 # =========================================

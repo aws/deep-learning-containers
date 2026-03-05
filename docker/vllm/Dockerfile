@@ -50,6 +50,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /root/.cache | true
 
+# Install DLC dependencies
+RUN uv pip install --system \
+  requests \
+  botocore
+
 COPY ./scripts/common/install_efa.sh install_efa.sh
 RUN bash install_efa.sh ${EFA_VERSION} \
   && rm install_efa.sh \
@@ -72,7 +77,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
 
 # patch CVEs CVE-2026-25990
-RUN pip install "pillow>=12.1.1"
+RUN uv pip install --system "pillow>=12.1.1"
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
