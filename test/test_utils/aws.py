@@ -68,7 +68,7 @@ class AWSSessionManager:
 
     def get_latest_ami(
         self,
-        parameter="/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64",
+        parameter="/aws/service/deeplearning/ami/x86_64/base-with-single-cuda-amazon-linux-2023/latest/ami-id",
         before_date=None,
     ):
         """Resolve latest AMI ID via SSM parameter.
