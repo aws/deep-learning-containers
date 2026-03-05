@@ -32,7 +32,6 @@ WORKDIR /
 # Install DLC dependencies
 # ===============
 RUN pip install \
-  requests \
   botocore
 
 # Copy artifacts
