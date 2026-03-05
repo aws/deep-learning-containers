@@ -16,6 +16,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     make \
     nasm \
     yasm \
+    zlib-devel \
     && dnf clean all && rm -rf /var/cache/dnf
 
 # Build FFmpeg from source
@@ -36,7 +37,7 @@ RUN uv python install ${PYTHON_VERSION} && \
     uv venv /opt/venv --python ${PYTHON_VERSION}
 
 # Copy requirements and generate lock file
-COPY requirements.txt /tmp/requirements.txt
+COPY ./scripts/ray/requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip compile /tmp/requirements.txt \
     --python ${PYTHON_VERSION} \
@@ -50,7 +51,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 #############
 # Runtime stage - SageMaker image
 #############
-FROM amazonlinux:2023
+FROM amazonlinux:2023 AS ray-sagemaker-cpu
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON="python"
+ARG FRAMEWORK="pytorch"
+ARG FRAMEWORK_VERSION="2.10.0"
+ARG CONTAINER_TYPE="inference"
 
 # Copy Python installation and venv from builder
 COPY --from=builder /root/.local/share/uv/python /root/.local/share/uv/python
@@ -61,10 +70,6 @@ COPY --from=builder /opt/ffmpeg /opt/ffmpeg
 # Set PATH to use venv and FFmpeg
 ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
     LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}"
-
-# Install boto3 for S3 access
-RUN . /opt/venv/bin/activate && \
-    /usr/local/bin/uv pip install boto3
 
 # SageMaker environment variables
 ENV SM_MODEL_DIR=/opt/ml/model \
@@ -80,16 +85,30 @@ RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
 WORKDIR /app
 
 # Copy SageMaker adapter and entrypoint
-COPY sagemaker_serve.py /app/
-COPY sagemaker_entrypoint.sh /usr/local/bin/
+COPY ./scripts/ray/sagemaker_serve.py /app/
+COPY ./scripts/ray/sagemaker_entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+# Telemetry and OSS compliance
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+    && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+       -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+       -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+       /tmp/bash_telemetry.sh.template > /usr/local/bin/bash_telemetry.sh \
+    && chmod +x /usr/local/bin/bash_telemetry.sh \
+    && rm /tmp/bash_telemetry.sh.template \
+    && echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
+    && bash setup_oss_compliance.sh ${PYTHON} \
+    && rm setup_oss_compliance.sh \
+    && rm -rf /root/oss_compliance* \
+    && rm -rf /tmp/tmp* \
+    && rm -rf /root/.cache | true
 
 # Expose SageMaker serving port only
 EXPOSE 8080
-
-# Health check for SageMaker
-HEALTHCHECK --interval=30s --timeout=3s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:8080/ping || exit 1
 
 # SageMaker capabilities labels
 LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true

@@ -1,0 +1,29 @@
+# Ray Serve SageMaker CPU Image Configuration
+# This file contains all configuration for building, testing, and releasing the Ray Serve SageMaker CPU image
+
+# Image identification
+image:
+  name: "ray-sagemaker-cpu"
+  description: "Ray Serve for SageMaker (CPU)"
+
+# Build configuration
+common:
+  framework: "ray"
+  framework_version: "2.10.0"
+  job_type: "inference"
+  python_version: "py313"
+  os_version: "amzn2023"
+  customer_type: "sagemaker"
+  arch_type: "x86"
+  prod_image: "ray:2.10-cpu-py313"
+  device_type: "cpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: gamma
