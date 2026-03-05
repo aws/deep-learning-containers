@@ -44,7 +44,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && ln -s /usr/bin/python3 /usr/bin/python \
   # clean up
   && rm -rf ${HOME_DIR}/oss_compliance* \
-  && rm -rf /tmp/* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
   && rm -rf /var/lib/apt/lists/* \
