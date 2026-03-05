@@ -58,37 +58,6 @@ def container_test_mode(conn, image_uri, pull_image):
             f"{DOCKER_RUN} -e TEST_MODE=1 --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
         )
         conn.run("sleep 10")
-
-        # Debug: check telemetry environment inside container
-        conn.run(f"{DOCKER_EXEC} {container_name} which python", warn=True, hide=False)
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} python -c 'import sys; print(sys.executable); print(sys.path)'",
-            warn=True,
-            hide=False,
-        )
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} python -c 'import botocore; print(botocore.__file__)'",
-            warn=True,
-            hide=False,
-        )
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} python -c 'import requests; print(requests.__file__)'",
-            warn=True,
-            hide=False,
-        )
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} cat /usr/local/bin/bash_telemetry.sh",
-            warn=True,
-            hide=False,
-        )
-        conn.run(f"{DOCKER_EXEC} {container_name} ls -la /tmp/", warn=True, hide=False)
-        conn.run(
-            f"{DOCKER_EXEC} {container_name} bash -c 'python /usr/local/bin/deep_learning_container.py --framework sglang --framework-version 0.5 --container-type general 2>&1 || true'",
-            warn=True,
-            hide=False,
-        )
-        conn.run(f"{DOCKER_EXEC} {container_name} ls -la /tmp/", warn=True, hide=False)
-
         yield container_name
     finally:
         conn.run(f"{DOCKER_RM} {container_name}", warn=True)
@@ -157,7 +126,8 @@ def test_imds_unreachable(conn, aws_session, image_uri, ec2_instance, pull_image
 
     container_name = "telemetry-imds-fail"
     try:
-        conn.run("sudo iptables -A OUTPUT -d 169.254.169.254 -j REJECT")
+        # Block IMDS before starting container. Use DOCKER-USER chain to affect container traffic.
+        conn.run("sudo iptables -I DOCKER-USER -d 169.254.169.254 -j REJECT")
         conn.run(
             f"{DOCKER_RUN} --entrypoint /bin/bash --name {container_name} {image_uri} -ic 'sleep 30'"
         )
@@ -171,7 +141,7 @@ def test_imds_unreachable(conn, aws_session, image_uri, ec2_instance, pull_image
         tags = aws_session.get_instance_tags(instance_id)
         assert TELEMETRY_TAG_KEY not in tags, "Tag should not exist when IMDS is blocked"
     finally:
-        conn.run("sudo iptables -D OUTPUT -d 169.254.169.254 -j REJECT", warn=True)
+        conn.run("sudo iptables -D DOCKER-USER -d 169.254.169.254 -j REJECT", warn=True)
         conn.run(f"{DOCKER_RM} {container_name}", warn=True)
 
 
