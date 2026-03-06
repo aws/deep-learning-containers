@@ -25,7 +25,7 @@ ______________________________________________________________________
 | Asia Pacific (Seoul) | ap-northeast-2 | ✅ | ❌ | `763104351884.dkr.ecr.ap-northeast-2.amazonaws.com/<repository-name>:<image-tag>` |
 | Asia Pacific (Singapore) | ap-southeast-1 | ✅ | ✅ | `763104351884.dkr.ecr.ap-southeast-1.amazonaws.com/<repository-name>:<image-tag>` |
 | Asia Pacific (Sydney) | ap-southeast-2 | ✅ | ✅ | `763104351884.dkr.ecr.ap-southeast-2.amazonaws.com/<repository-name>:<image-tag>` |
-| Asia Pacific (Taipei) | ap-east-2 | ✅ | ✅ | `763104351884.dkr.ecr.ap-east-2.amazonaws.com/<repository-name>:<image-tag>` |
+| Asia Pacific (Taipei) | ap-east-2 | ✅ | ✅ | `975050140332.dkr.ecr.ap-east-2.amazonaws.com/<repository-name>:<image-tag>` |
 | Asia Pacific (Thailand) | ap-southeast-7 | ✅ | ❌ | `590183813437.dkr.ecr.ap-southeast-7.amazonaws.com/<repository-name>:<image-tag>` |
 | Asia Pacific (Tokyo) | ap-northeast-1 | ✅ | ✅ | `763104351884.dkr.ecr.ap-northeast-1.amazonaws.com/<repository-name>:<image-tag>` |
 | Canada (Central) | ca-central-1 | ✅ | ❌ | `763104351884.dkr.ecr.ca-central-1.amazonaws.com/<repository-name>:<image-tag>` |
