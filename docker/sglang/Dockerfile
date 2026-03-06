@@ -29,6 +29,17 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 WORKDIR /
 
+# Install DLC dependencies
+# ===============
+RUN pip install \
+  botocore
+
+# patch CVEs
+RUN pip install \
+  "pillow>=12.1.1" \
+  "python_multipart>=0.0.22" \
+  "xgrammar>=0.1.32"
+
 # Copy artifacts
 # ===============
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -46,9 +57,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
     /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && chmod +x /usr/local/bin/start_cuda_compat.sh \
-  && rm /tmp/bash_telemetry.sh.template \
-  && uv pip install --system --break-system-packages botocore \
-  && uv cache clean
+  && rm /tmp/bash_telemetry.sh.template
 
 # Install EFA and remove vulnerable nvjpeg
 # =========================================
@@ -70,9 +79,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove cuobjdump and nvdisasm
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-# patch CVEs
-RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
 
 # Remove all Rust build-time artifacts to patch CVEs
 RUN rm -rf \

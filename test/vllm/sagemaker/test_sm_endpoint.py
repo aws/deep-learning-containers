@@ -60,24 +60,24 @@ def model_package(aws_session, image_uri, model_id):
     LOGGER.debug(f"Using image: {image_uri}")
     LOGGER.debug(f"Model ID: {model_id}")
 
-    LOGGER.info(f"Creating SageMaker model: {model_name}...")
-    hf_token = get_hf_token(aws_session)
-    model = Model(
-        name=model_name,
-        image_uri=image_uri,
-        role=SAGEMAKER_ROLE,
-        predictor_cls=Predictor,
-        env={
-            "SM_VLLM_MODEL": model_id,
-            "HF_TOKEN": hf_token,
-        },
-    )
-    LOGGER.info("Model created successfully")
-
-    yield model
-
-    LOGGER.info(f"Deleting model: {model_name}")
-    sagemaker_client.delete_model(ModelName=model_name)
+    try:
+        LOGGER.info(f"Creating SageMaker model: {model_name}...")
+        hf_token = get_hf_token(aws_session)
+        model = Model(
+            name=model_name,
+            image_uri=image_uri,
+            role=SAGEMAKER_ROLE,
+            predictor_cls=Predictor,
+            env={
+                "SM_VLLM_MODEL": model_id,
+                "HF_TOKEN": hf_token,
+            },
+        )
+        LOGGER.info("Model created successfully")
+        yield model
+    finally:
+        LOGGER.info(f"Deleting model: {model_name}")
+        sagemaker_client.delete_model(ModelName=model_name)
 
 
 @pytest.fixture(scope="function")
@@ -89,34 +89,35 @@ def model_endpoint(aws_session, model_package, instance_type):
 
     LOGGER.debug(f"Using instance type: {instance_type}")
 
-    LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
-    predictor = model.deploy(
-        instance_type=instance_type,
-        initial_instance_count=1,
-        endpoint_name=endpoint_name,
-        inference_ami_version=INFERENCE_AMI_VERSION,
-        serializer=JSONSerializer(),
-        wait=True,
-    )
-    LOGGER.info("Endpoint deployment completed successfully")
+    try:
+        LOGGER.info("Starting endpoint deployment (this may take 10-15 minutes)...")
+        predictor = model.deploy(
+            instance_type=instance_type,
+            initial_instance_count=1,
+            endpoint_name=endpoint_name,
+            inference_ami_version=INFERENCE_AMI_VERSION,
+            serializer=JSONSerializer(),
+            wait=True,
+        )
+        LOGGER.info("Endpoint deployment completed successfully")
 
-    LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
-    assert wait_for_status(
-        ENDPOINT_INSERVICE,
-        ENDPOINT_WAIT_PERIOD,
-        ENDPOINT_WAIT_LENGTH,
-        get_endpoint_status,
-        sagemaker_client,
-        endpoint_name,
-    )
+        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status ...")
+        assert wait_for_status(
+            ENDPOINT_INSERVICE,
+            ENDPOINT_WAIT_PERIOD,
+            ENDPOINT_WAIT_LENGTH,
+            get_endpoint_status,
+            sagemaker_client,
+            endpoint_name,
+        )
 
-    yield predictor
+        yield predictor
+    finally:
+        LOGGER.info(f"Deleting endpoint: {endpoint_name}")
+        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
 
-    LOGGER.info(f"Deleting endpoint: {endpoint_name}")
-    sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
-
-    LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
-    sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+        LOGGER.info(f"Deleting endpoint configuration: {endpoint_name}")
+        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
 
 
 @pytest.mark.parametrize("instance_type", ["ml.g5.12xlarge"], indirect=True)
