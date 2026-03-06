@@ -122,6 +122,9 @@ jobs:
           PYTHONPATH=$(pwd)/test:$PYTHONPATH python3 test/sanity/scripts/inspect_docker.py \
             ${{ inputs.image-uri }}
 
+      # ==========================================
+      # ===== License checks =====================
+      # ==========================================
       # TODO: [MANUAL] Need to add test for checking license content and add license to sglang and vllm
       # - name: Check license file exists
       #   run: |

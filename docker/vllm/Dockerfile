@@ -13,7 +13,7 @@ LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
-  DLC_CONTAINER_TYPE=base \
+  DLC_CONTAINER_TYPE=general \
   # Python won't try to write .pyc or .pyo files on the import of source modules
   # Force stdin, stdout and stderr to be totally unbuffered. Good for logging
   PYTHONDONTWRITEBYTECODE=1 \
@@ -23,6 +23,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
+
+# Install DLC dependencies
+# ===============
+RUN uv pip install --system \
+  botocore \
+  && uv cache clean
+
+# patch CVEs
+RUN uv pip install --system \
+  "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
+  && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
@@ -75,9 +87,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # Fix for this issue: https://github.com/vllm-project/vllm/issues/35593
 # Remove in v0.17.0
 ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
-
-# patch CVEs CVE-2026-25990
-RUN pip install "pillow>=12.1.1"
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2

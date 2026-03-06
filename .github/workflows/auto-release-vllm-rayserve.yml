@@ -128,6 +128,20 @@ jobs:
       contributor: ${{ needs.load-config.outputs.contributor }}
       container-type: ${{ needs.load-config.outputs.container-type }}
 
+  telemetry-test:
+    needs: [build-image, load-config]
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ needs.build-image.outputs.ci-image }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: ${{ needs.load-config.outputs.framework }}
+      framework-version: ${{ needs.load-config.outputs.framework-version }}
+      container-type: ${{ needs.load-config.outputs.container-type }}
+
   upstream-tests:
     needs: [build-image, load-config]
     concurrency:
