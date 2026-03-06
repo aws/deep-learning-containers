@@ -1,4 +1,4 @@
-# Multi-stage build for PyTorch Ray Serve SageMaker inference container
+# Multi-stage build for PyTorch Ray SageMaker inference container
 # CPU variant - Amazon Linux 2023 base
 
 #############

@@ -1,4 +1,4 @@
-name: PR - Ray Serve SageMaker CPU
+name: PR - Ray SageMaker CPU
 
 on:
   pull_request:
@@ -156,8 +156,7 @@ jobs:
 
   ray-sagemaker-cpu-local-test:
     needs: [check-changes, build-ray-sagemaker-cpu-image, parse-config]
-    # TODO: Enable after test infrastructure is ready
-    if: false
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -191,8 +190,7 @@ jobs:
 
   ray-sagemaker-cpu-endpoint-test:
     needs: [check-changes, build-ray-sagemaker-cpu-image, parse-config]
-    # TODO: Enable after S3 bucket and test files are ready
-    if: false
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner

@@ -1,10 +1,10 @@
-# Ray Serve SageMaker GPU Image Configuration
-# This file contains all configuration for building, testing, and releasing the Ray Serve SageMaker GPU image
+# Ray SageMaker GPU Image Configuration
+# This file contains all configuration for building, testing, and releasing the Ray SageMaker GPU image
 
 # Image identification
 image:
   name: "ray-sagemaker-gpu"
-  description: "Ray Serve for SageMaker (GPU)"
+  description: "Ray for SageMaker (GPU)"
 
 # Build configuration
 common:

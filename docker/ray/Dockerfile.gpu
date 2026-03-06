@@ -1,4 +1,4 @@
-# Multi-stage build for PyTorch Ray Serve SageMaker inference container
+# Multi-stage build for PyTorch Ray SageMaker inference container
 # GPU variant - NVIDIA CUDA 13.0 base on Amazon Linux 2023
 
 #############

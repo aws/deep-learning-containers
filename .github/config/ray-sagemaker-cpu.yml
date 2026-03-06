@@ -1,10 +1,10 @@
-# Ray Serve SageMaker CPU Image Configuration
-# This file contains all configuration for building, testing, and releasing the Ray Serve SageMaker CPU image
+# Ray SageMaker CPU Image Configuration
+# This file contains all configuration for building, testing, and releasing the Ray SageMaker CPU image
 
 # Image identification
 image:
   name: "ray-sagemaker-cpu"
-  description: "Ray Serve for SageMaker (CPU)"
+  description: "Ray for SageMaker (CPU)"
 
 # Build configuration
 common:

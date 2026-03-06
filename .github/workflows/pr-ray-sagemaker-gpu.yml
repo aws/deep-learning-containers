@@ -1,4 +1,4 @@
-name: PR - Ray Serve SageMaker GPU
+name: PR - Ray SageMaker GPU
 
 on:
   pull_request:
@@ -159,8 +159,7 @@ jobs:
 
   ray-sagemaker-gpu-local-test:
     needs: [check-changes, build-ray-sagemaker-gpu-image, parse-config]
-    # TODO: Enable after test infrastructure is ready
-    if: false
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
@@ -197,8 +196,7 @@ jobs:
 
   ray-sagemaker-gpu-endpoint-test:
     needs: [check-changes, build-ray-sagemaker-gpu-image, parse-config]
-    # TODO: Enable after S3 bucket and test files are ready
-    if: false
+    if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
