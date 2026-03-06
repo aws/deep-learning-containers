@@ -153,7 +153,7 @@ jobs:
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_0_15_1_test_setup.sh
+      setup-script: scripts/vllm/vllm_0_16_0_test_setup.sh
       example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
     secrets: inherit
 

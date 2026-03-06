@@ -83,7 +83,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_16_0_test_setup.sh
 
       - name: Run vLLM regression tests
         run: |
@@ -131,7 +131,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_15_1_test_setup.sh
+          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_16_0_test_setup.sh
 
       - name: Run vLLM example tests
         run: |

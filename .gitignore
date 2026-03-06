@@ -6,6 +6,7 @@ __pycache__
 .ruff_cache
 .pytest_cache
 .vscode
+.kiro
 
 # Generated docs
 docs/index.md
