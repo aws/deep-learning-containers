@@ -34,6 +34,12 @@ WORKDIR /
 RUN pip install \
   botocore
 
+# patch CVEs
+RUN pip install \
+  "pillow>=12.1.1" \
+  "python_multipart>=0.0.22" \
+  "xgrammar>=0.1.32"
+
 # Copy artifacts
 # ===============
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -73,9 +79,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove cuobjdump and nvdisasm
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-# patch CVEs
-RUN pip install "pillow>=12.1.1" "python_multipart>=0.0.22"
 
 # Remove all Rust build-time artifacts to patch CVEs
 RUN rm -rf \

@@ -33,6 +33,7 @@ RUN uv pip install --system \
 # patch CVEs
 RUN uv pip install --system \
   "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
