@@ -1,0 +1,312 @@
+# Copyright 2018-2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"). You
+# may not use this file except in compliance with the License. A copy of
+# the License is located at
+#
+#     http://aws.amazon.com/apache2.0/
+#
+# or in the "license" file accompanying this file. This file is
+# distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
+# ANY KIND, either express or implied. See the License for the specific
+# language governing permissions and limitations under the License.
+"""Shared constants, helpers, fixtures, and test implementations for Ray SageMaker endpoint tests.
+
+CPU and GPU test modules import from here, setting only DEVICE and INSTANCE_TYPE.
+"""
+
+import json
+import logging
+from pprint import pformat
+
+import pytest
+from ray.sagemaker.utils import (
+    download_all_test_images,
+    make_all_digit_pngs,
+    make_all_sine_wavs,
+    validate_audio_response,
+    validate_densenet_response,
+    validate_iris_response,
+    validate_mnist_response,
+    validate_sentiment_response,
+)
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+from test_utils import clean_string, random_suffix_name, wait_for_status
+from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+ENDPOINT_WAIT_PERIOD = 60  # seconds between status checks
+ENDPOINT_WAIT_LENGTH = 30  # max number of retries
+ENDPOINT_INSERVICE = "InService"
+
+S3_BUCKET = "dlc-cicd-models"
+S3_PREFIX = "rayserve-models"
+
+MIN_MNIST_ACCURACY = 80  # percent
+
+# Iris samples: (features, expected_species, description)
+IRIS_SAMPLES = [
+    ([5.1, 3.5, 1.4, 0.2], "setosa", "Setosa sample 1"),
+    ([4.9, 3.0, 1.4, 0.2], "setosa", "Setosa sample 2"),
+    ([6.4, 3.2, 4.5, 1.5], "versicolor", "Versicolor sample 1"),
+    ([5.7, 2.8, 4.1, 1.3], "versicolor", "Versicolor sample 2"),
+    ([6.3, 3.3, 6.0, 2.5], "virginica", "Virginica sample 1"),
+    ([7.2, 3.6, 6.1, 2.5], "virginica", "Virginica sample 2"),
+]
+
+# Sentiment samples: (text, expected_label)
+SENTIMENT_SAMPLES = [
+    ("This product is absolutely amazing!", "POSITIVE"),
+    ("I love this so much, best purchase ever!", "POSITIVE"),
+    ("This is terrible and broken", "NEGATIVE"),
+    ("Worst experience of my life", "NEGATIVE"),
+    ("This is awful, a complete waste of money", "NEGATIVE"),
+    ("Absolutely perfect, highly recommend!", "POSITIVE"),
+]
+
+
+def _parse_response(response):
+    """Parse SageMaker predictor response to dict/list."""
+    return json.loads(response) if isinstance(response, (str, bytes)) else response
+
+
+def get_endpoint_status(sagemaker_client, endpoint_name):
+    response = sagemaker_client.describe_endpoint(EndpointName=endpoint_name)
+    LOGGER.debug(f"Describe endpoint response: {pformat(response)}")
+    return response["EndpointStatus"]
+
+
+def build_models(device):
+    """Build the MODELS dict parameterized by device ("cpu" or "gpu").
+
+    Differences driven by device:
+      - S3 sub-path: <model>/<device>/model.tar.gz
+      - RAYSERVE_NUM_GPUS: "0" for cpu, "1" for gpu (mnist-direct-app only)
+    """
+    num_gpus = "0" if device == "cpu" else "1"
+    return {
+        "cv-densenet": {
+            "s3_key": f"cv-densenet/{device}/model.tar.gz",
+            "env": {},
+        },
+        "mnist-direct-app": {
+            "s3_key": f"mnist-direct-app/{device}/model.tar.gz",
+            "env": {"SM_RAYSERVE_APP": "deployment:app", "RAYSERVE_NUM_GPUS": num_gpus},
+        },
+        "tabular": {
+            "s3_key": f"tabular/{device}/model.tar.gz",
+            "env": {},
+        },
+        "nlp": {
+            "s3_key": f"nlp/{device}/model.tar.gz",
+            "env": {},
+        },
+        "audio-ffmpeg": {
+            "s3_key": f"audio-ffmpeg/{device}/model.tar.gz",
+            "env": {},
+        },
+    }
+
+
+# ---------------------------------------------------------------------------
+# Fixtures — called by the thin CPU/GPU test modules
+# ---------------------------------------------------------------------------
+
+
+def make_model_name_fixture():
+    """Create the model_name fixture."""
+
+    @pytest.fixture(scope="function")
+    def model_name(request):
+        return request.param
+
+    return model_name
+
+
+def make_model_package_fixture(device, instance_type):
+    """Create the model_package fixture parameterized by device."""
+    models = build_models(device)
+    prefix = f"ray-{device}-"
+
+    @pytest.fixture(scope="function")
+    def model_package(aws_session, image_uri, model_name):
+        sagemaker_client = aws_session.sagemaker
+        model_config = models[model_name]
+        s3_uri = f"s3://{S3_BUCKET}/{S3_PREFIX}/{model_config['s3_key']}"
+        cleaned = clean_string(model_name, "_./")
+        sm_model_name = random_suffix_name(f"{prefix}{cleaned}", 50)
+
+        LOGGER.info(f"Creating model: {sm_model_name}")
+        LOGGER.info(f"  Image: {image_uri}")
+        LOGGER.info(f"  Model data: {s3_uri}")
+
+        model = Model(
+            name=sm_model_name,
+            image_uri=image_uri,
+            role=SAGEMAKER_ROLE,
+            predictor_cls=Predictor,
+            model_data=s3_uri,
+            env=model_config["env"] or None,
+        )
+
+        yield model
+
+        LOGGER.info(f"Deleting model: {sm_model_name}")
+        sagemaker_client.delete_model(ModelName=sm_model_name)
+
+    return model_package
+
+
+def make_model_endpoint_fixture(device, instance_type):
+    """Create the model_endpoint fixture parameterized by device and instance type."""
+    prefix = f"ray-{device}-"
+
+    @pytest.fixture(scope="function")
+    def model_endpoint(aws_session, model_package, model_name):
+        sagemaker_client = aws_session.sagemaker
+        cleaned = clean_string(model_name, "_./")
+        endpoint_name = random_suffix_name(f"{prefix}{cleaned}", 50)
+
+        LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
+        deploy_kwargs = dict(
+            instance_type=instance_type,
+            initial_instance_count=1,
+            endpoint_name=endpoint_name,
+            serializer=JSONSerializer(),
+            wait=True,
+        )
+        if device == "gpu":
+            deploy_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
+            LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
+        predictor = model_package.deploy(**deploy_kwargs)
+
+        LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
+        assert wait_for_status(
+            ENDPOINT_INSERVICE,
+            ENDPOINT_WAIT_PERIOD,
+            ENDPOINT_WAIT_LENGTH,
+            get_endpoint_status,
+            sagemaker_client,
+            endpoint_name,
+        )
+
+        yield predictor
+
+        LOGGER.info(f"Deleting endpoint: {endpoint_name}")
+        sagemaker_client.delete_endpoint(EndpointName=endpoint_name)
+        LOGGER.info(f"Deleting endpoint config: {endpoint_name}")
+        sagemaker_client.delete_endpoint_config(EndpointConfigName=endpoint_name)
+
+    return model_endpoint
+
+
+# ---------------------------------------------------------------------------
+# Test implementations — called by the thin CPU/GPU test modules
+# ---------------------------------------------------------------------------
+
+
+def run_test_cv_densenet(model_endpoint):
+    """DenseNet image classification — both kitten and flower images, validate top-5 structure."""
+    images = download_all_test_images()
+
+    for img_name, img_data in images.items():
+        response = model_endpoint.predict(img_data, initial_args={"ContentType": "image/jpeg"})
+        result = _parse_response(response)
+        LOGGER.info(f"cv-densenet {img_name} response: {result}")
+
+        err = validate_densenet_response(result)
+        assert not err, f"cv-densenet {img_name}: {err}"
+
+        top = result["predictions"][0]
+        LOGGER.info(
+            f"  {img_name} -> {top['class_name']} "
+            f"(class_id={top['class_id']}, prob={top['probability']:.4f})"
+        )
+
+
+def run_test_mnist_direct_app(model_endpoint):
+    """MNIST via SM_RAYSERVE_APP — classify all 10 digits, enforce accuracy threshold."""
+    digit_pngs = make_all_digit_pngs()
+    correct = 0
+    total = len(digit_pngs)
+
+    for digit_id, png_data in sorted(digit_pngs.items()):
+        response = model_endpoint.predict(png_data, initial_args={"ContentType": "image/png"})
+        result = _parse_response(response)
+        LOGGER.info(f"mnist-direct-app digit_{digit_id} response: {result}")
+
+        err = validate_mnist_response(result)
+        assert not err, f"mnist-direct-app digit_{digit_id}: {err}"
+
+        pred = result["prediction"]
+        conf = result["confidence"]
+        if pred == digit_id:
+            correct += 1
+            LOGGER.info(f"  digit_{digit_id} -> predicted={pred} confidence={conf:.4f}")
+        else:
+            LOGGER.warning(
+                f"  digit_{digit_id} -> predicted={pred} expected={digit_id} confidence={conf:.4f}"
+            )
+
+    accuracy = int(correct * 100 / total)
+    LOGGER.info(f"mnist-direct-app accuracy: {correct}/{total} ({accuracy}%)")
+    assert accuracy >= MIN_MNIST_ACCURACY, (
+        f"MNIST accuracy {accuracy}% below threshold {MIN_MNIST_ACCURACY}%"
+    )
+
+
+def run_test_tabular(model_endpoint):
+    """Iris classification — 6 samples (2 per species), validate predicted species."""
+    for features, expected, desc in IRIS_SAMPLES:
+        payload = {"features": features}
+        response = model_endpoint.predict(payload)
+        result = _parse_response(response)
+        LOGGER.info(f"tabular {desc} response: {result}")
+
+        err = validate_iris_response(result)
+        assert not err, f"tabular {desc}: {err}"
+
+        pred = result["prediction"]
+        conf = result["confidence"]
+        assert pred == expected, f"tabular {desc}: predicted '{pred}', expected '{expected}'"
+        LOGGER.info(f"  {desc} -> {pred} ({conf:.4f})")
+
+
+def run_test_nlp(model_endpoint):
+    """DistilBERT sentiment — 6 samples (3 pos, 3 neg), validate predicted label."""
+    for text, expected_label in SENTIMENT_SAMPLES:
+        payload = {"text": text}
+        response = model_endpoint.predict(payload)
+        result = _parse_response(response)
+        LOGGER.info(f"nlp response for '{text}': {result}")
+
+        err = validate_sentiment_response(result)
+        assert not err, f"nlp '{text}': {err}"
+
+        label = result["predictions"][0]["label"]
+        score = result["predictions"][0]["score"]
+        assert label == expected_label, (
+            f"nlp '{text}': predicted '{label}', expected '{expected_label}'"
+        )
+        LOGGER.info(f"  '{text}' -> {label} ({score:.4f})")
+
+
+def run_test_audio_ffmpeg(model_endpoint):
+    """Wav2Vec2 transcription — 3 sine waves (440/880/220 Hz), validate structure + ffmpeg backend."""
+    wavs = make_all_sine_wavs()
+
+    for name, wav_data in wavs:
+        response = model_endpoint.predict(wav_data, initial_args={"ContentType": "audio/wav"})
+        result = _parse_response(response)
+        LOGGER.info(f"audio-ffmpeg {name} response: {result}")
+
+        err = validate_audio_response(result, check_ffmpeg_backend=True)
+        assert not err, f"audio-ffmpeg {name}: {err}"
+
+        LOGGER.info(
+            f'  {name} -> "{result["transcription"]}" (backend: {result.get("audio_backend", "?")})'
+        )
