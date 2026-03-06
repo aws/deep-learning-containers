@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.15.1
+ARG BASE_IMAGE=vllm/vllm-openai:v0.16.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -55,7 +55,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && ln -s /usr/bin/python3 /usr/bin/python \
   # clean up
   && rm -rf ${HOME_DIR}/oss_compliance* \
-  && rm -rf /tmp/* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
   && rm -rf /var/lib/apt/lists/* \
@@ -80,7 +79,13 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 # TODO: remove this code when issue is fixed:
 # issue introduced by https://github.com/vllm-project/vllm/pull/30784
 # until https://github.com/vllm-project/vllm/pull/32377 is merged
-RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
+# issue was fixed and merged in https://github.com/vllm-project/vllm/pull/33992
+# but will not be released until v0.17.0
+# RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
+
+# Fix for this issue: https://github.com/vllm-project/vllm/issues/35593
+# Remove in v0.17.0
+ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
@@ -89,7 +94,8 @@ ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -100,14 +106,14 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 FROM base AS vllm-rayserve-ec2
 
 RUN uv pip install --system ray[serve]==2.49.0 \
-  && uv cache clean \
-  && rm -rf /tmp/*
+  && uv cache clean
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
@@ -121,7 +127,8 @@ ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
   && apt-get update \
   && apt-get upgrade -y \
-  && apt-get clean
+  && apt-get clean \
+  && rm -rf /tmp/*
 
 COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
 RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
