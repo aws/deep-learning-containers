@@ -19,8 +19,7 @@ All shared logic lives in common.py; this file only sets device config.
 """
 
 import pytest
-
-from .common import (
+from ray.sagemaker.common import (
     make_model_endpoint_fixture,
     make_model_name_fixture,
     make_model_package_fixture,

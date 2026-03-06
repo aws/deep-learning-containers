@@ -20,14 +20,7 @@ import logging
 from pprint import pformat
 
 import pytest
-from test_utils import clean_string, random_suffix_name, wait_for_status
-from test_utils.constants import SAGEMAKER_ROLE
-
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
-
-from .utils import (
+from ray.sagemaker.utils import (
     download_all_test_images,
     make_all_digit_pngs,
     make_all_sine_wavs,
@@ -37,6 +30,11 @@ from .utils import (
     validate_mnist_response,
     validate_sentiment_response,
 )
+from sagemaker.model import Model
+from sagemaker.predictor import Predictor
+from sagemaker.serializers import JSONSerializer
+from test_utils import clean_string, random_suffix_name, wait_for_status
+from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -174,13 +172,17 @@ def make_model_endpoint_fixture(device, instance_type):
         endpoint_name = random_suffix_name(f"{prefix}{cleaned}", 50)
 
         LOGGER.info(f"Deploying endpoint: {endpoint_name} on {instance_type}")
-        predictor = model_package.deploy(
+        deploy_kwargs = dict(
             instance_type=instance_type,
             initial_instance_count=1,
             endpoint_name=endpoint_name,
             serializer=JSONSerializer(),
             wait=True,
         )
+        if device == "gpu":
+            deploy_kwargs["inference_ami_version"] = INFERENCE_AMI_VERSION
+            LOGGER.info(f"  Using inference AMI: {INFERENCE_AMI_VERSION}")
+        predictor = model_package.deploy(**deploy_kwargs)
 
         LOGGER.info(f"Waiting for endpoint {ENDPOINT_INSERVICE} status...")
         assert wait_for_status(
