@@ -32,7 +32,7 @@ from ray.sagemaker.utils import (
 )
 from sagemaker.model import Model
 from sagemaker.predictor import Predictor
-from sagemaker.serializers import JSONSerializer
+from sagemaker.serializers import IdentitySerializer, JSONSerializer
 from test_utils import clean_string, random_suffix_name, wait_for_status
 from test_utils.constants import INFERENCE_AMI_VERSION, SAGEMAKER_ROLE
 
@@ -212,9 +212,10 @@ def make_model_endpoint_fixture(device, instance_type):
 def run_test_cv_densenet(model_endpoint):
     """DenseNet image classification — both kitten and flower images, validate top-5 structure."""
     images = download_all_test_images()
+    model_endpoint.serializer = IdentitySerializer(content_type="image/jpeg")
 
     for img_name, img_data in images.items():
-        response = model_endpoint.predict(img_data, initial_args={"ContentType": "image/jpeg"})
+        response = model_endpoint.predict(img_data)
         result = _parse_response(response)
         LOGGER.info(f"cv-densenet {img_name} response: {result}")
 
@@ -233,9 +234,10 @@ def run_test_mnist_direct_app(model_endpoint):
     digit_pngs = make_all_digit_pngs()
     correct = 0
     total = len(digit_pngs)
+    model_endpoint.serializer = IdentitySerializer(content_type="image/png")
 
     for digit_id, png_data in sorted(digit_pngs.items()):
-        response = model_endpoint.predict(png_data, initial_args={"ContentType": "image/png"})
+        response = model_endpoint.predict(png_data)
         result = _parse_response(response)
         LOGGER.info(f"mnist-direct-app digit_{digit_id} response: {result}")
 
@@ -298,9 +300,10 @@ def run_test_nlp(model_endpoint):
 def run_test_audio_ffmpeg(model_endpoint):
     """Wav2Vec2 transcription — 3 sine waves (440/880/220 Hz), validate structure + ffmpeg backend."""
     wavs = make_all_sine_wavs()
+    model_endpoint.serializer = IdentitySerializer(content_type="audio/wav")
 
     for name, wav_data in wavs:
-        response = model_endpoint.predict(wav_data, initial_args={"ContentType": "audio/wav"})
+        response = model_endpoint.predict(wav_data)
         result = _parse_response(response)
         LOGGER.info(f"audio-ffmpeg {name} response: {result}")
 
