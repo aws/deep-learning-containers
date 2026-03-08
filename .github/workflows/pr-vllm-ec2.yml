@@ -223,6 +223,6 @@ jobs:
       aws-account-id: ${{ needs.build-image.result == 'success' && vars.CI_AWS_ACCOUNT_ID || vars.PROD_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_0_16_0_test_setup.sh
+      setup-script: scripts/vllm/vllm_0_17_0_test_setup.sh
       example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
     secrets: inherit
