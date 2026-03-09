@@ -1,10 +1,10 @@
 # Multi-stage build for PyTorch Ray SageMaker inference container
-# GPU variant - NVIDIA CUDA 13.0 base on Amazon Linux 2023
+# GPU variant - NVIDIA CUDA 12.9 base on Amazon Linux 2023
 
 #############
 # Stage 1: FFmpeg builder - needs CUDA devel image for nvcc + CUDA headers
 #############
-FROM nvidia/cuda:13.0.0-devel-amzn2023 AS ffmpeg-builder
+FROM nvidia/cuda:12.9.0-devel-amzn2023 AS ffmpeg-builder
 
 RUN dnf install -y --setopt=install_weak_deps=False \
   gcc \
@@ -20,24 +20,22 @@ RUN dnf install -y --setopt=install_weak_deps=False \
 
 # Install NVIDIA codec headers for hardware-accelerated video encode/decode (NVENC/NVDEC)
 # Ref: https://docs.nvidia.com/video-technologies/video-codec-sdk/13.0/ffmpeg-with-nvidia-gpu/index.html
-RUN git clone --depth 1 --branch n13.0.19.0 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
+RUN git clone --depth 1 --branch n12.2.72.0 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers \
   && make install \
   && rm -rf /tmp/nv-codec-headers
 
-# Build FFmpeg with NVIDIA GPU acceleration (no NPP -- FFmpeg configure does not support NPP 13.0+
-# because CUDA 13.0 removed the non-_Ctx APIs it depends on)
-# https://github.com/FFmpeg/FFmpeg/blob/master/configure#L7317 (Search "libnpp support is deprecated")
+# Build FFmpeg with NVIDIA GPU acceleration
 # --nvccflags targets compute_75 (Turing/T4) as minimum -- forward-compatible with all newer GPUs
 ENV PATH="/usr/local/cuda/bin:${PATH}"
-RUN git clone --depth 1 --branch n7.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" \
     ./configure --prefix=/opt/ffmpeg \
     --enable-shared --disable-static --disable-doc \
-    --enable-nonfree --enable-cuda-nvcc \
+    --enable-nonfree --enable-cuda-nvcc --enable-libnpp \
     --extra-cflags=-I/usr/local/cuda/include \
-    --extra-ldflags="-L/usr/local/cuda/lib64 -L/usr/local/cuda-13.0/targets/x86_64-linux/lib" \
+    --extra-ldflags="-L/usr/local/cuda/lib64 -L/usr/local/cuda-12.9/targets/x86_64-linux/lib" \
     --nvccflags="-gencode arch=compute_75,code=sm_75 -O2" \
   && make -j$(nproc) \
   && make install \
@@ -75,7 +73,7 @@ RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
 #############
 # Stage 3: Runtime - SageMaker image (CUDA runtime)
 #############
-FROM nvidia/cuda:13.0.0-runtime-amzn2023 AS ray-sagemaker-gpu
+FROM nvidia/cuda:12.9.0-runtime-amzn2023 AS ray-sagemaker-gpu
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

@@ -12,7 +12,7 @@ common:
   framework_version: "2.10.0"
   job_type: "inference"
   python_version: "py313"
-  cuda_version: "cu130"
+  cuda_version: "cu129"
   os_version: "amzn2023"
   customer_type: "sagemaker"
   arch_type: "x86"

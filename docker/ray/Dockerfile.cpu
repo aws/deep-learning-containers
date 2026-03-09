@@ -20,7 +20,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Build FFmpeg from source
-RUN git clone --depth 1 --branch n7.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && ./configure --prefix=/opt/ffmpeg --enable-shared --disable-static --disable-doc \
   && make -j$(nproc) \
