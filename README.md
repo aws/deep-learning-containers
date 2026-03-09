@@ -13,6 +13,9 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
+- **[2026/03/09]** Released v0.5.9 [SGLang DLCs](https://gallery.ecr.aws/deep-learning-containers/sglang)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/sglang:0.5.9-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.9-gpu-py312`
 - **[2026/02/06]** Released v0.15.1 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
   - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312-ec2`
   - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312`
