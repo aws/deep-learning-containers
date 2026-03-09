@@ -1,0 +1,157 @@
+name: PR - Ray EC2 GPU
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "**ray**"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  CONFIG_FILE: ".github/config/ray-ec2-gpu.yml"
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  load-config:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: ${{ env.CONFIG_FILE }}
+
+
+  parse-config:
+    needs: [load-config]
+    if: success()
+    runs-on: ubuntu-latest
+    outputs:
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+      prod-image: ${{ steps.parse.outputs.prod-image }}
+    steps:
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ needs.load-config.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+          echo "prod-image=$(jq -r '.common.prod_image' config.json)" >> $GITHUB_OUTPUT
+
+
+  check-changes:
+    needs: [load-config, parse-config]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/ray/**"
+              - "scripts/ray/**"
+              - "scripts/common/**"
+              - "scripts/telemetry/**"
+              - ".github/workflows/pr-ray*"
+
+  build-ray-ec2-gpu-image:
+    needs: [check-changes, parse-config]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-ray-ec2-gpu-image-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.parse-config.outputs.framework }}
+          target: ray-ec2-gpu
+          # Ray Dockerfile.gpu is multi-stage; base images are hardcoded in the Dockerfile.
+          # This value is passed as --build-arg BASE_IMAGE but not consumed by the Dockerfile.
+          base-image: "unused-ray-gpu-multistage"
+          framework-version: ${{ needs.parse-config.outputs.framework-version }}
+          container-type: ${{ needs.parse-config.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.parse-config.outputs.framework }}-${{ needs.parse-config.outputs.framework-version }}-gpu-${{ needs.parse-config.outputs.python-version }}-${{ needs.parse-config.outputs.cuda-version }}-${{ needs.parse-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
+          dockerfile-path: docker/ray/Dockerfile.gpu
+          arch-type: ${{ needs.parse-config.outputs.arch-type }}
+          device-type: ${{ needs.parse-config.outputs.device-type }}
+          cuda-version: ${{ needs.parse-config.outputs.cuda-version }}
+          python-version: ${{ needs.parse-config.outputs.python-version }}
+          os-version: ${{ needs.parse-config.outputs.os-version }}
+          contributor: ${{ needs.parse-config.outputs.contributor }}
+          customer-type: ${{ needs.parse-config.outputs.customer-type }}

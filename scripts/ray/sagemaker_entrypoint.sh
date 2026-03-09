@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Check if telemetry file exists before executing
+# Execute telemetry script if it exists, suppress errors
+bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
+
 # Detect and initialize GPUs
 if command -v nvidia-smi >/dev/null 2>&1; then
     NUM_GPUS=$(nvidia-smi --list-gpus | wc -l)

@@ -1,0 +1,30 @@
+# Ray EC2 GPU Image Configuration
+# This file contains all configuration for building, testing, and releasing the Ray EC2 GPU image
+
+# Image identification
+image:
+  name: "ray-ec2-gpu"
+  description: "Ray for EC2 instances (GPU)"
+
+# Build configuration
+common:
+  framework: "ray"
+  framework_version: "2.10.0"
+  job_type: "inference"
+  python_version: "py313"
+  cuda_version: "cu129"
+  os_version: "amzn2023"
+  customer_type: "ec2"
+  arch_type: "x86"
+  prod_image: "ray:2.10-gpu-py313-ec2"
+  device_type: "gpu"
+  contributor: "None"
+
+# Release configuration
+release:
+  release: false
+  force_release: false
+  public_registry: true
+  private_registry: true
+  enable_soci: true
+  environment: gamma
