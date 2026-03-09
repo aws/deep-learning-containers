@@ -1,4 +1,4 @@
-FROM docker.io/vllm/vllm-openai:v0.15.1 as base
+FROM docker.io/vllm/vllm-openai:v0.17.0 as base
 ARG PYTHON="python3"
 LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.47.0"
@@ -16,6 +16,18 @@ ENV DEBIAN_FRONTEND=noninteractive \
     PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
+
+# Install DLC dependencies
+# ===============
+RUN uv pip install --system \
+  botocore \
+  && uv cache clean
+
+# patch CVEs
+RUN uv pip install --system \
+  "pillow>=12.1.1" \
+  "xgrammar>=0.1.32" \
+  && uv cache clean
 
 COPY deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY bash_telemetry.sh /usr/local/bin/bash_telemetry.sh
@@ -57,11 +69,6 @@ RUN mkdir -p /tmp/nvjpeg \
     && rm -rf /usr/local/cuda/bin/cuobjdump* \ 
     && rm -rf /usr/local/cuda/bin/nvdisasm*  \
     && apt-get install -y git
-
-# TODO: remove this code when issue is fixed:
-# issue introduced by https://github.com/vllm-project/vllm/pull/30784
-# until https://github.com/vllm-project/vllm/pull/32377 is merged
-RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2 
