@@ -10,7 +10,7 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-"""Shared test helpers for Ray SageMaker endpoint tests."""
+"""Shared test helpers, constants, and test data for Ray serve tests (EC2 and SageMaker)."""
 
 import io
 import math
@@ -25,6 +25,32 @@ TEST_IMAGES = {
     "kitten": "https://s3.amazonaws.com/model-server/inputs/kitten.jpg",
     "flower": "https://s3.amazonaws.com/model-server/inputs/flower.jpg",
 }
+
+# S3 location for model tarballs
+S3_BUCKET = "dlc-cicd-models"
+S3_PREFIX = "rayserve-models"
+
+MIN_MNIST_ACCURACY = 80  # percent
+
+# Iris samples: (features, expected_species, description)
+IRIS_SAMPLES = [
+    ([5.1, 3.5, 1.4, 0.2], "setosa", "Setosa sample 1"),
+    ([4.9, 3.0, 1.4, 0.2], "setosa", "Setosa sample 2"),
+    ([6.4, 3.2, 4.5, 1.5], "versicolor", "Versicolor sample 1"),
+    ([5.7, 2.8, 4.1, 1.3], "versicolor", "Versicolor sample 2"),
+    ([6.3, 3.3, 6.0, 2.5], "virginica", "Virginica sample 1"),
+    ([7.2, 3.6, 6.1, 2.5], "virginica", "Virginica sample 2"),
+]
+
+# Sentiment samples: (text, expected_label)
+SENTIMENT_SAMPLES = [
+    ("This product is absolutely amazing!", "POSITIVE"),
+    ("I love this so much, best purchase ever!", "POSITIVE"),
+    ("This is terrible and broken", "NEGATIVE"),
+    ("Worst experience of my life", "NEGATIVE"),
+    ("This is awful, a complete waste of money", "NEGATIVE"),
+    ("Absolutely perfect, highly recommend!", "POSITIVE"),
+]
 
 
 def download_test_image(url, path):

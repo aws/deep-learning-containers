@@ -20,7 +20,12 @@ import logging
 from pprint import pformat
 
 import pytest
-from ray.sagemaker.utils import (
+from ray.utils import (
+    IRIS_SAMPLES,
+    MIN_MNIST_ACCURACY,
+    S3_BUCKET,
+    S3_PREFIX,
+    SENTIMENT_SAMPLES,
     download_all_test_images,
     make_all_digit_pngs,
     make_all_sine_wavs,
@@ -42,31 +47,6 @@ LOGGER.setLevel(logging.INFO)
 ENDPOINT_WAIT_PERIOD = 60  # seconds between status checks
 ENDPOINT_WAIT_LENGTH = 30  # max number of retries
 ENDPOINT_INSERVICE = "InService"
-
-S3_BUCKET = "dlc-cicd-models"
-S3_PREFIX = "rayserve-models"
-
-MIN_MNIST_ACCURACY = 80  # percent
-
-# Iris samples: (features, expected_species, description)
-IRIS_SAMPLES = [
-    ([5.1, 3.5, 1.4, 0.2], "setosa", "Setosa sample 1"),
-    ([4.9, 3.0, 1.4, 0.2], "setosa", "Setosa sample 2"),
-    ([6.4, 3.2, 4.5, 1.5], "versicolor", "Versicolor sample 1"),
-    ([5.7, 2.8, 4.1, 1.3], "versicolor", "Versicolor sample 2"),
-    ([6.3, 3.3, 6.0, 2.5], "virginica", "Virginica sample 1"),
-    ([7.2, 3.6, 6.1, 2.5], "virginica", "Virginica sample 2"),
-]
-
-# Sentiment samples: (text, expected_label)
-SENTIMENT_SAMPLES = [
-    ("This product is absolutely amazing!", "POSITIVE"),
-    ("I love this so much, best purchase ever!", "POSITIVE"),
-    ("This is terrible and broken", "NEGATIVE"),
-    ("Worst experience of my life", "NEGATIVE"),
-    ("This is awful, a complete waste of money", "NEGATIVE"),
-    ("Absolutely perfect, highly recommend!", "POSITIVE"),
-]
 
 
 def _parse_response(response):
