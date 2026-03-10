@@ -1,4 +1,4 @@
-framework: vLLM
+framework: huggingface_vllm
 version: "0.14"
 accelerator: gpu
 python: py312
