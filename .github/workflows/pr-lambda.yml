@@ -133,17 +133,74 @@ jobs:
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
   # ============================================================
-  # Validation tests (run inside each built image)
+  # Security tests — must pass before telemetry or functional tests
   # ============================================================
-  validate-base:
+  security-test:
     needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py313 }
+          - { tag: gpu-base-py312 }
+          - { tag: gpu-cupy-py313 }
+          - { tag: gpu-cupy-py312 }
+          - { tag: gpu-pytorch-py313 }
+          - { tag: gpu-pytorch-py312 }
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+
+  # ============================================================
+  # Telemetry tests — must pass before functional tests
+  # ============================================================
+  telemetry-test:
+    needs: [check-changes, security-test]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py313 }
+          - { tag: gpu-base-py312 }
+          - { tag: gpu-cupy-py313 }
+          - { tag: gpu-cupy-py312 }
+          - { tag: gpu-pytorch-py313 }
+          - { tag: gpu-pytorch-py312 }
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      container-type: general
+
+  # ============================================================
+  # Validation tests (base, cupy, pytorch) — all in one job
+  # ============================================================
+  validate-images:
+    needs: [telemetry-test]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-gpu-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-validate-base-${{ matrix.python }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-validate-${{ matrix.python }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     strategy:
       fail-fast: false
@@ -165,59 +222,11 @@ jobs:
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_base.py
 
-  validate-cupy:
-    needs: [build-images]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-gpu-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-validate-cupy-${{ matrix.python }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["py313", "py312"]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-
       - name: Validate cupy-${{ matrix.python }}
         run: |
           IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-${{ matrix.python }}-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_cupy.py
-
-  validate-pytorch:
-    needs: [build-images]
-    if: success()
-    runs-on:
-      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-gpu-runner
-        buildspec-override:true
-    concurrency:
-      group: ${{ github.workflow }}-validate-pytorch-${{ matrix.python }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["py313", "py312"]
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Validate pytorch-${{ matrix.python }}
         run: |
@@ -226,10 +235,10 @@ jobs:
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_pytorch.py
 
   # ============================================================
-  # Shared tests (sanity, security, telemetry) — all 6 images
+  # Sanity tests — all 6 images
   # ============================================================
   sanity-test:
-    needs: [check-changes, build-images]
+    needs: [check-changes, telemetry-test]
     if: |
       always() && !failure() && !cancelled() &&
       (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
@@ -260,55 +269,4 @@ jobs:
       arch-type: x86
       device-type: gpu
       contributor: None
-      container-type: general
-
-  security-test:
-    needs: [build-images]
-    if: success()
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
-    concurrency:
-      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-security-tests.yml
-    with:
-      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: lambda
-      framework-version: ""
-
-  telemetry-test:
-    needs: [check-changes, build-images]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/reusable-telemetry-tests.yml
-    with:
-      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: lambda
-      framework-version: ""
       container-type: general
