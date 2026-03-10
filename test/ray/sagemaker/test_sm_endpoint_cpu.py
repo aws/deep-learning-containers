@@ -51,7 +51,7 @@ def test_mnist_direct_app(model_endpoint, model_name):
 
 @pytest.mark.parametrize("model_name", ["tabular"], indirect=True)
 def test_tabular(model_endpoint, model_name):
-    run_test_tabular(model_endpoint)
+    run_test_tabular(model_endpoint, check_packages=True)
 
 
 @pytest.mark.parametrize("model_name", ["nlp"], indirect=True)

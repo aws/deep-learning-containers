@@ -149,6 +149,7 @@ def start_container(image_uri, model_dir, model_name, device, docker_run_flags=N
         "docker",
         "run",
         "-d",
+        "--shm-size=2g",
         "-p",
         f"{SERVE_PORT}:{SERVE_PORT}",
         "-v",
@@ -326,18 +327,12 @@ def run_test_mnist_direct_app(container):
     )
 
 
-def run_test_tabular(container):
+def run_test_tabular(container, check_packages=False):
     """Iris classification — 6 samples, validate predicted species.
 
-    Also verifies that the container installed runtime requirements.txt
-    (the tabular model tarball includes code/requirements.txt).
+    If check_packages=True, asserts that installed_packages appears in the
+    response (verifies entrypoint installed code/requirements.txt).
     """
-    # Verify runtime requirements.txt was installed by checking container logs
-    logs = get_container_logs(container["container_id"])
-    assert "Installing packages from /opt/ml/model/code/requirements.txt" in logs, (
-        "Container did not install runtime requirements.txt from model tarball"
-    )
-
     for features, expected, desc in IRIS_SAMPLES:
         payload = {"features": features}
         result = post_json(payload)
@@ -350,6 +345,13 @@ def run_test_tabular(container):
         conf = result["confidence"]
         assert pred == expected, f"tabular {desc}: predicted '{pred}', expected '{expected}'"
         LOGGER.info(f"  {desc} -> {pred} ({conf:.4f})")
+
+    if check_packages:
+        # Re-invoke to check installed_packages in response
+        result = post_json({"features": IRIS_SAMPLES[0][0]})
+        pkgs = result.get("installed_packages", {})
+        assert pkgs, "Expected installed_packages in response (requirements.txt not installed?)"
+        LOGGER.info(f"  requirements.txt packages: {pkgs}")
 
 
 def run_test_nlp(container):

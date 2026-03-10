@@ -241,8 +241,12 @@ def run_test_mnist_direct_app(model_endpoint):
     )
 
 
-def run_test_tabular(model_endpoint):
-    """Iris classification — 6 samples (2 per species), validate predicted species."""
+def run_test_tabular(model_endpoint, check_packages=False):
+    """Iris classification — 6 samples (2 per species), validate predicted species.
+
+    If check_packages=True, asserts that installed_packages appears in the
+    response (verifies entrypoint installed code/requirements.txt).
+    """
     for features, expected, desc in IRIS_SAMPLES:
         payload = {"features": features}
         response = model_endpoint.predict(payload)
@@ -256,6 +260,13 @@ def run_test_tabular(model_endpoint):
         conf = result["confidence"]
         assert pred == expected, f"tabular {desc}: predicted '{pred}', expected '{expected}'"
         LOGGER.info(f"  {desc} -> {pred} ({conf:.4f})")
+
+    if check_packages:
+        response = model_endpoint.predict({"features": IRIS_SAMPLES[0][0]})
+        result = _parse_response(response)
+        pkgs = result.get("installed_packages", {})
+        assert pkgs, "Expected installed_packages in response (requirements.txt not installed?)"
+        LOGGER.info(f"  requirements.txt packages: {pkgs}")
 
 
 def run_test_nlp(model_endpoint):
