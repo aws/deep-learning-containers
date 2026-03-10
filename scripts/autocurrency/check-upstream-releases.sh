@@ -408,14 +408,12 @@ ${python_changes}"
     # -----------------------------------------------------------------
     slack_enabled=$(yq eval '.notifications.slack.enabled // false' "${TRACKER_FILE}")
     if [[ "${slack_enabled}" == "true" ]]; then
-      changed_files_csv=$(echo "${updated_files}" | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       send_slack_notification \
         "${SLACK_WEBHOOK_URL:-}" \
         "${framework}" \
         "${latest_version}" \
         "${pr_url}" \
-        "${html_url}" \
-        "${changed_files_csv}" || true
+        "${html_url}" || true
     fi
 
     echo "FRAMEWORK_RESULT:success"
