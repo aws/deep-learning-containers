@@ -59,8 +59,27 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && cd /tmp && rm -rf ffmpeg-6.1
 
 # ============================================================
+# Base builder (Python 3.13 — requests, pip-licenses for OSS compliance)
+# ============================================================
+FROM builder-base as builder-base-py313
+COPY --from=lambda-python-313 /var/lang /var/lang
+ENV PATH="/var/lang/bin:$PATH"
+COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
+
+# ============================================================
+# Base builder (Python 3.12 — requests, pip-licenses for OSS compliance)
+# ============================================================
+FROM builder-base as builder-base-py312
+COPY --from=lambda-python-312 /var/lang /var/lang
+ENV PATH="/var/lang/bin:$PATH"
+COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv pip install --python /var/lang/bin/python3.12 -r /tmp/requirements.txt
+
+# ============================================================
 # CuPy builder (Python 3.13 — CuPy, NumPy, SciPy, etc.)
-# Installs into /var/lang site-packages alongside Lambda RIC.
 # ============================================================
 FROM builder-base as builder-cupy-py313
 COPY --from=lambda-python-313 /var/lang /var/lang
@@ -123,7 +142,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py313
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-COPY --from=lambda-python-313 /var/lang /var/lang
+COPY --from=builder-base-py313 /var/lang /var/lang
 COPY --from=lambda-python-313 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
@@ -142,8 +161,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -163,7 +181,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py312
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-COPY --from=lambda-python-312 /var/lang /var/lang
+COPY --from=builder-base-py312 /var/lang /var/lang
 COPY --from=lambda-python-312 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
 COPY ./scripts/lambda/lambda_entrypoint.sh /lambda_entrypoint.sh
@@ -182,8 +200,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -223,8 +240,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -263,8 +279,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -308,8 +323,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -353,8 +367,7 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN pip install --no-cache-dir requests pip-licenses \
-  && chmod +x /usr/local/bin/deep_learning_container.py \
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \

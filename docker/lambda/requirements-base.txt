@@ -1,0 +1,2 @@
+pip-licenses==5.5.1
+requests==2.32.5
