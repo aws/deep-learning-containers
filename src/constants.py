@@ -28,6 +28,7 @@ FRAMEWORKS = {
     "vllm",
     "sglang",
     "huggingface_vllm",
+    "huggingface_sglang",
 }
 DEVICE_TYPES = {"cpu", "gpu", "hpu", "eia", "inf", "neuron", "neuronx"}
 IMAGE_TYPES = {"training", "inference"}

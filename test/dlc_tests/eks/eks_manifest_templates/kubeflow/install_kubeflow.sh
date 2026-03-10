@@ -7,7 +7,7 @@ set -ex
 
 # Function to install kustomize
 install_kustomize(){
-    KUSTOMIZE_VERSION="v5.5.0"
+    KUSTOMIZE_VERSION="v5.7.1"
     KUSTOMIZE_URL="https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2F${KUSTOMIZE_VERSION}/kustomize_${KUSTOMIZE_VERSION}_linux_amd64.tar.gz"
 
     if ! command -v kustomize &> /dev/null
@@ -26,10 +26,10 @@ install_kustomize(){
 install_kubeflow(){
 
     echo "> Installing kubeflow namespace"
-    kustomize build manifests/common/kubeflow-namespace/base | kubectl apply -f -
+    kustomize build manifests/common/kubeflow-namespace/base | kubectl apply --server-side -f -
 
     echo "> Installing training operators"
-    kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply -f -
+    kustomize build manifests/apps/training-operator/upstream/overlays/kubeflow | kubectl apply --server-side --force-conflicts -f -
 }
 
 # Function to remove kubeflow training operators in EKS cluster using kustomize
@@ -42,7 +42,7 @@ uninstall_kubeflow(){
 
 # Function to create directory and download kubeflow components
 setup_kubeflow(){
-    KUBEFLOW_VERSION="v1.9.1"
+    KUBEFLOW_VERSION="v1.10.0"
     local EKS_CLUSTER_NAME=$1
     DIRECTORY="${HOME}/${EKS_CLUSTER_NAME}"
 

@@ -1,0 +1,54 @@
+account_id: &ACCOUNT_ID <set-$ACCOUNT_ID-in-environment>
+prod_account_id: &PROD_ACCOUNT_ID 763104351884
+region: &REGION <set-$REGION-in-environment>
+base_framework: &BASE_FRAMEWORK sglang
+framework: &FRAMEWORK !join [ "huggingface_", *BASE_FRAMEWORK]
+version: &VERSION "0.5.8"
+short_version: &SHORT_VERSION "0.5"
+arch_type: &ARCH_TYPE x86_64
+autopatch_build: "False"
+
+repository_info:
+  build_repository: &BUILD_REPOSITORY
+    image_type: &IMAGE_TYPE inference
+    root: huggingface/sglang
+    repository_name: &REPOSITORY_NAME !join [ "pr", "-", "huggingface", "-", *BASE_FRAMEWORK ]
+    repository: &REPOSITORY !join [ *ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *REPOSITORY_NAME ]
+    release_repository_name: &RELEASE_REPOSITORY_NAME !join [ "huggingface", "-", *BASE_FRAMEWORK ]
+    release_repository: &RELEASE_REPOSITORY !join [ *PROD_ACCOUNT_ID, .dkr.ecr., *REGION, .amazonaws.com/, *RELEASE_REPOSITORY_NAME ]
+
+context:
+  build_context: &BUILD_CONTEXT
+    deep_learning_container:
+      source: ../../src/deep_learning_container.py
+      target: deep_learning_container.py
+    start_cuda_compat:
+      source: build_artifacts/start_cuda_compat.sh
+      target: start_cuda_compat.sh
+    sagemaker_entrypoint:
+      source: build_artifacts/sagemaker_entrypoint.sh
+      target: sagemaker_entrypoint.sh
+
+
+images:
+  BuildHuggingFaceSglangGpuPy312Cu129DockerImage:
+    <<: *BUILD_REPOSITORY
+    context:
+      <<: *BUILD_CONTEXT
+    image_size_baseline: 40000
+    device_type: &DEVICE_TYPE gpu
+    cuda_version: &CUDA_VERSION cu129
+    python_version: &DOCKER_PYTHON_VERSION py3
+    tag_python_version: &TAG_PYTHON_VERSION py312
+    os_version: &OS_VERSION ubuntu24.04
+    transformers_version: &TRANSFORMERS_VERSION 4.57.3
+    tag: !join [ *VERSION, '-', 'transformers', *TRANSFORMERS_VERSION, '-', *DEVICE_TYPE, '-', *TAG_PYTHON_VERSION, '-', *CUDA_VERSION, '-', *OS_VERSION ]
+    docker_file: !join [ docker/, *SHORT_VERSION, /, *CUDA_VERSION, /Dockerfile ]
+    target: sagemaker
+    build: true
+    enable_common_stage_build: false
+    test_configs:
+      test_platforms:
+        - sanity
+        - security
+        - sagemaker
