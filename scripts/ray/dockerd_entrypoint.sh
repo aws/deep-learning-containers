@@ -49,4 +49,4 @@ else
 fi
 
 echo "Starting Ray Serve: ${SERVE_TARGET}"
-exec serve run --host "${RAY_SERVE_HTTP_HOST}" --port "${SERVE_PORT}" "${SERVE_TARGET}"
+exec serve run "${SERVE_TARGET}"
