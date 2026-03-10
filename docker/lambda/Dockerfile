@@ -142,7 +142,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -181,7 +182,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -221,7 +223,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -260,7 +263,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -304,7 +308,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
@@ -348,7 +353,8 @@ COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.templ
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 ARG FRAMEWORK="lambda"
 ARG CONTAINER_TYPE="general"
-RUN chmod +x /usr/local/bin/deep_learning_container.py \
+RUN pip install --no-cache-dir requests pip-licenses \
+  && chmod +x /usr/local/bin/deep_learning_container.py \
   && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
     -e "/{{FRAMEWORK_VERSION}}/d" \
     -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
