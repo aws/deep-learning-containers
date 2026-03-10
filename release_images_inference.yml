@@ -249,3 +249,4 @@ release_images:
       example: False
       disable_sm_tag: True
       force_release: False
+      public_registry: True
