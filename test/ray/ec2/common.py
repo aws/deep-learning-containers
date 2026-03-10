@@ -47,8 +47,7 @@ from ray.utils import (
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-SERVE_PORT = 8000
-HEALTH_ENDPOINT = f"http://localhost:{SERVE_PORT}/-/healthz"
+DEFAULT_SERVE_PORT = 8000
 HEALTH_TIMEOUT = 180  # seconds to wait for Ray Serve to become healthy
 HEALTH_INTERVAL = 5  # seconds between health checks
 
@@ -78,7 +77,8 @@ def build_models(device):
         "mnist-direct-app": {
             "s3_key": f"mnist-direct-app/{device}/model.tar.gz",
             "docker_args": ["deployment:app"],  # CLI arg: module:app import
-            "env": {"RAYSERVE_NUM_GPUS": num_gpus},
+            "env": {"RAYSERVE_NUM_GPUS": num_gpus}
+            | ({"RAY_SERVE_HTTP_PORT": "8080"} if device == "cpu" else {}),
             "description": "MNIST via direct app import (CLI arg deployment:app)",
         },
         "tabular": {
@@ -144,6 +144,7 @@ def start_container(image_uri, model_dir, model_name, device, docker_run_flags=N
     models = build_models(device)
     docker_args = models[model_name]["docker_args"]
     env = models[model_name].get("env", {})
+    serve_port = int(env.get("RAY_SERVE_HTTP_PORT", DEFAULT_SERVE_PORT))
 
     cmd = [
         "docker",
@@ -151,7 +152,7 @@ def start_container(image_uri, model_dir, model_name, device, docker_run_flags=N
         "-d",
         "--shm-size=2g",
         "-p",
-        f"{SERVE_PORT}:{SERVE_PORT}",
+        f"{serve_port}:{serve_port}",
         "-v",
         f"{model_dir}:/opt/ml/model",
     ]
@@ -166,15 +167,16 @@ def start_container(image_uri, model_dir, model_name, device, docker_run_flags=N
     result = subprocess.run(cmd, capture_output=True, text=True, check=True)
     container_id = result.stdout.strip()
     LOGGER.info(f"Container started: {container_id[:12]}")
-    return container_id
+    return container_id, serve_port
 
 
-def wait_for_health(timeout=HEALTH_TIMEOUT, interval=HEALTH_INTERVAL):
+def wait_for_health(port=DEFAULT_SERVE_PORT, timeout=HEALTH_TIMEOUT, interval=HEALTH_INTERVAL):
     """Poll the Ray Serve health endpoint until it returns 200 or timeout."""
+    endpoint = f"http://localhost:{port}/-/healthz"
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
-            resp = requests.get(HEALTH_ENDPOINT, timeout=5)
+            resp = requests.get(endpoint, timeout=5)
             if resp.status_code == 200:
                 LOGGER.info("Ray Serve is healthy")
                 return True
@@ -224,7 +226,7 @@ def make_container_fixture(device, docker_run_flags=None):
     @pytest.fixture(scope="function")
     def container(aws_session, image_uri, model_name):
         model_dir = download_and_extract_model(aws_session, model_name, device)
-        container_id = start_container(
+        container_id, serve_port = start_container(
             image_uri,
             model_dir,
             model_name,
@@ -232,14 +234,14 @@ def make_container_fixture(device, docker_run_flags=None):
             docker_run_flags,
         )
         try:
-            wait_for_health()
+            wait_for_health(port=serve_port)
         except TimeoutError:
             logs = get_container_logs(container_id)
             LOGGER.error(f"Container logs:\n{logs}")
             stop_container(container_id)
             pytest.fail(f"Ray Serve health check timed out for {model_name}")
 
-        yield {"container_id": container_id, "model_dir": model_dir}
+        yield {"container_id": container_id, "model_dir": model_dir, "port": serve_port}
 
         stop_container(container_id)
 
@@ -251,10 +253,10 @@ def make_container_fixture(device, docker_run_flags=None):
 # ---------------------------------------------------------------------------
 
 
-def post_json(payload):
+def post_json(payload, port=DEFAULT_SERVE_PORT):
     """Send a JSON payload to the Ray Serve endpoint and return parsed response."""
     resp = requests.post(
-        f"http://localhost:{SERVE_PORT}/",
+        f"http://localhost:{port}/",
         json=payload,
         timeout=60,
     )
@@ -262,10 +264,10 @@ def post_json(payload):
     return resp.json()
 
 
-def post_bytes(data, content_type):
+def post_bytes(data, content_type, port=DEFAULT_SERVE_PORT):
     """Send raw bytes to the Ray Serve endpoint and return parsed response."""
     resp = requests.post(
-        f"http://localhost:{SERVE_PORT}/",
+        f"http://localhost:{port}/",
         data=data,
         headers={"Content-Type": content_type},
         timeout=60,
@@ -299,12 +301,13 @@ def run_test_cv_densenet(container):
 
 def run_test_mnist_direct_app(container):
     """MNIST via deployment:app — classify all 10 digits, enforce accuracy threshold."""
+    port = container["port"]
     digit_pngs = make_all_digit_pngs()
     correct = 0
     total = len(digit_pngs)
 
     for digit_id, png_data in sorted(digit_pngs.items()):
-        result = post_bytes(png_data, "image/png")
+        result = post_bytes(png_data, "image/png", port=port)
         LOGGER.info(f"mnist-direct-app digit_{digit_id} response: {result}")
 
         err = validate_mnist_response(result)

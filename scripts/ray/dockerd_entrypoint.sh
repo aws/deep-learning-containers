@@ -21,8 +21,17 @@ if [ -f "/opt/ml/model/code/requirements.txt" ]; then
     pip install -r /opt/ml/model/code/requirements.txt
 fi
 
-# Start Ray cluster
+# Default to 0.0.0.0 so Serve is reachable outside the container.
+# Can be overridden by: docker run -e RAY_SERVE_HTTP_HOST=... -e RAY_SERVE_HTTP_PORT=...
+export RAY_SERVE_HTTP_HOST="${RAY_SERVE_HTTP_HOST:-0.0.0.0}"
+SERVE_PORT="${RAY_SERVE_HTTP_PORT:-8000}"
+
+# Start Ray cluster (env var must be set before this so Serve binds correctly)
 ray start --head --port=6379 --include-dashboard=False --num-gpus=${NUM_GPUS}
+sleep 5
+
+# Explicitly start Serve on the correct host/port before deploying any app
+serve start --http-host="${RAY_SERVE_HTTP_HOST}" --http-port="${SERVE_PORT}"
 sleep 5
 
 # Resolve serve target (config.yaml path or module:app import string)
@@ -40,4 +49,4 @@ else
 fi
 
 echo "Starting Ray Serve: ${SERVE_TARGET}"
-exec serve run "${SERVE_TARGET}"
+exec serve run --host "${RAY_SERVE_HTTP_HOST}" --port "${SERVE_PORT}" "${SERVE_TARGET}"
