@@ -23,7 +23,7 @@ on:
         required: true
         type: string
       setup-script:
-        description: 'Path to test setup script (e.g., scripts/vllm/vllm_0_16_0_test_setup.sh)'
+        description: 'Path to test setup script (e.g., scripts/vllm/vllm_0_17_0_test_setup.sh)'
         required: true
         type: string
       example-test-script:

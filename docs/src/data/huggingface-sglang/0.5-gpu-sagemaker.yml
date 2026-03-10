@@ -1,0 +1,10 @@
+framework: huggingface_sglang
+version: "0.5"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu24.04
+platform: sagemaker
+
+tags:
+  - "0.5-gpu-py312-cu129-ubuntu24.04-v1"

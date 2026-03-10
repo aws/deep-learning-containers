@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.16.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.17.0
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -76,17 +76,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # remove cuobjdump and nvdisasm
   && rm -rf /usr/local/cuda/bin/cuobjdump* \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
-
-# TODO: remove this code when issue is fixed:
-# issue introduced by https://github.com/vllm-project/vllm/pull/30784
-# until https://github.com/vllm-project/vllm/pull/32377 is merged
-# issue was fixed and merged in https://github.com/vllm-project/vllm/pull/33992
-# but will not be released until v0.17.0
-# RUN rm /etc/ld.so.conf.d/00-cuda-compat.conf || true
-
-# Fix for this issue: https://github.com/vllm-project/vllm/issues/35593
-# Remove in v0.17.0
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2

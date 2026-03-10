@@ -1,0 +1,10 @@
+framework: huggingface_vllm
+version: "0.14"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: sagemaker
+
+tags:
+  - "0.14-gpu-py312-cu129-ubuntu22.04-v1"
