@@ -2,9 +2,6 @@ import json
 import sagemaker
 import time
 import boto3
-from sagemaker.model import Model
-from sagemaker.predictor import Predictor
-from sagemaker import serializers
 
 # Fixed parameters
 AWS_REGION = "us-west-2"

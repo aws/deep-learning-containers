@@ -18,7 +18,7 @@ import boto3
 import pytest
 import sagemaker
 from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
+from sagemaker.core.instance_group import InstanceGroup
 from sagemaker.train import ModelTrainer
 from sagemaker.train.configs import SourceCode, InputData, Compute
 from sagemaker.train.distributed import Torchrun
