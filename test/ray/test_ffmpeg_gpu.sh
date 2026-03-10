@@ -21,7 +21,7 @@ echo
 echo "[1/7] Checking GPU build configuration..."
 BUILD_CONF=$(ffmpeg -buildconf 2>&1)
 
-for flag in enable-cuda-nvcc; do
+for flag in enable-cuda-nvcc enable-nonfree; do
     if echo "${BUILD_CONF}" | grep -q "${flag}"; then
         pass "--${flag}"
     else
