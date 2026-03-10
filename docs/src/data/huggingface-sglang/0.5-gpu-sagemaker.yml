@@ -1,4 +1,4 @@
-framework: SGLang
+framework: huggingface_sglang
 version: "0.5"
 accelerator: gpu
 python: py312
