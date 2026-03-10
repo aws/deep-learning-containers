@@ -6,4 +6,4 @@ engine: "LMI 20.0.0"
 platform: sagemaker
 
 tags:
-  - "0.36.0-lmi20.0.0-cu128-v1.0"
+  - "0.36.0-lmi20.0.0-cu128"
