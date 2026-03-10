@@ -65,8 +65,7 @@ FROM builder-base as builder-base-py313
 COPY --from=lambda-python-313 /var/lang /var/lang
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
 
 # ============================================================
 # Base builder (Python 3.12 — requests, pip-licenses for OSS compliance)
@@ -75,8 +74,7 @@ FROM builder-base as builder-base-py312
 COPY --from=lambda-python-312 /var/lang /var/lang
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.12 -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.12 -r /tmp/requirements.txt
 
 # ============================================================
 # CuPy builder (Python 3.13 — CuPy, NumPy, SciPy, etc.)
