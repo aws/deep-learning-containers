@@ -33,7 +33,7 @@ RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tm
   && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" \
     ./configure --prefix=/opt/ffmpeg \
     --enable-shared --disable-static --disable-doc \
-    --enable-nonfree --enable-cuda-nvcc --enable-libnpp \
+    --enable-cuda-nvcc \
     --extra-cflags=-I/usr/local/cuda/include \
     --extra-ldflags="-L/usr/local/cuda/lib64 -L/usr/local/cuda-12.9/targets/x86_64-linux/lib" \
     --nvccflags="-gencode arch=compute_75,code=sm_75 -O2" \
