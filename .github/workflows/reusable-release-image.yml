@@ -59,6 +59,8 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ inputs.runner-fleet }}
         buildspec-override:true
+    # default is 6 hours for both github hosted and self hosted
+    timeout-minutes: 720
     outputs:
       run-identifier: ${{ steps.setup.outputs.run-identifier }}
       metadata-file-name: ${{ steps.setup.outputs.metadata-file-name }}
