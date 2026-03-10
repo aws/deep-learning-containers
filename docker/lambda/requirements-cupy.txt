@@ -1,0 +1,7 @@
+boto3==1.40.4
+cupy-cuda12x==14.0.1
+cvxpy==1.8.1
+numba==0.64.0
+numpy==2.4.2
+pandas==3.0.1
+scipy==1.17.1
