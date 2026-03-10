@@ -2,6 +2,21 @@ name: Manual - vLLM EFA Test
 
 on:
   workflow_dispatch:
+    inputs:
+      image_uri:
+        description: "Full ECR image URI to test"
+        required: true
+        type: string
+      test_setup_script:
+        description: "Path to the test setup script inside the container (e.g. /scripts/vllm/vllm_0_17_0_test_setup.sh)"
+        required: true
+        type: string
+        default: "/scripts/vllm/vllm_0_17_0_test_setup.sh"
+      image_version:
+        description: "vLLM version tag used for checking out matching vLLM test source"
+        required: true
+        type: string
+        default: "0.15.1"
 
 permissions:
   contents: read
@@ -10,61 +25,25 @@ concurrency:
   group: vllm-efa-${{ github.run_id }}
   cancel-in-progress: true
 
-env:
-  VLLM_VERSION: "0.15.1"
-
 jobs:
-  build-image:
-    runs-on: gpu-standard-runners
-    outputs:
-      image-uri: ${{ steps.image-uri-build.outputs.IMAGE_URI }}
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: ECR login
-        uses: ./.github/actions/ecr-authenticate
-        with:
-          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Resolve image URI for build
-        id: image-uri-build
-        run: | #TODO: modify to github pr number
-          IMAGE_URI=${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:vllm-${{ env.VLLM_VERSION }}-gpu-py312-cu129-ubuntu22.04-ec2-efa-${{ github.run_id }}
-          echo "Image URI to build: ${IMAGE_URI}"
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_ENV}
-          echo "IMAGE_URI=${IMAGE_URI}" >> ${GITHUB_OUTPUT}
-
-      - name: Build and push image
-        run: |
-          docker build --progress plain \
-            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
-            --tag ${IMAGE_URI} \
-            --target vllm-ec2 \
-            -f docker/vllm/Dockerfile .
-          docker push ${IMAGE_URI}
-          docker rmi ${IMAGE_URI}
-
   regression-test:
-    needs: [build-image]
-    if: needs.build-image.result == 'success'
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container pull
+      - name: ECR login and pull image
         uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-image.outputs.image-uri }}
+          image-uri: ${{ inputs.image_uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ inputs.image_version }}
           path: vllm_source
 
       - name: Start container
@@ -73,7 +52,7 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-image.outputs.image-uri }})
+            ${{ inputs.image_uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy workspace into container
@@ -83,7 +62,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_16_0_test_setup.sh
+          docker exec ${CONTAINER_ID} bash ${{ inputs.test_setup_script }}
 
       - name: Run vLLM regression tests
         run: |
@@ -94,25 +73,23 @@ jobs:
         run: docker stop ${CONTAINER_ID} || true
 
   example-test:
-    needs: [build-image]
-    if: needs.build-image.result == 'success'
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
 
-      - name: Container pull
+      - name: ECR login and pull image
         uses: ./.github/actions/ecr-authenticate
         with:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          image-uri: ${{ needs.build-image.outputs.image-uri }}
+          image-uri: ${{ inputs.image_uri }}
 
       - name: Checkout vLLM tests
         uses: actions/checkout@v5
         with:
           repository: vllm-project/vllm
-          ref: v${{ env.VLLM_VERSION }}
+          ref: v${{ inputs.image_version }}
           path: vllm_source
 
       - name: Start container
@@ -121,7 +98,7 @@ jobs:
             -v ${HOME}/.cache/huggingface:/root/.cache/huggingface \
             -v ${HOME}/.cache/vllm:/root/.cache/vllm \
             -e HF_TOKEN=${{ secrets.HUGGING_FACE_HUB_TOKEN }} \
-            ${{ needs.build-image.outputs.image-uri }})
+            ${{ inputs.image_uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
       - name: Copy workspace into container
@@ -131,7 +108,7 @@ jobs:
 
       - name: Setup for vLLM tests
         run: |
-          docker exec ${CONTAINER_ID} bash /scripts/vllm/vllm_0_16_0_test_setup.sh
+          docker exec ${CONTAINER_ID} bash ${{ inputs.test_setup_script }}
 
       - name: Run vLLM example tests
         run: |
