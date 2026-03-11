@@ -98,5 +98,9 @@
     {
         "vulnerability_id": "CVE-2026-21441",
         "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31812",
+        "reason": "Coming in as a dependency from the latest uv 0.10.9"
     }
 ]
