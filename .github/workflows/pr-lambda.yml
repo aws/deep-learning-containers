@@ -133,10 +133,47 @@ jobs:
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
   # ============================================================
+  # Sanity tests — run first after build
+  # ============================================================
+  sanity-test:
+    needs: [check-changes, build-images]
+    if: |
+      always() && !failure() && !cancelled() &&
+      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py313 }
+          - { tag: gpu-base-py312 }
+          - { tag: gpu-cupy-py313 }
+          - { tag: gpu-cupy-py312 }
+          - { tag: gpu-pytorch-py313 }
+          - { tag: gpu-pytorch-py312 }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      python-version: py313
+      cuda-version: cu128
+      os-version: amzn2023
+      customer-type: lambda
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: general
+
+  # ============================================================
   # Security tests — must pass before telemetry or functional tests
   # ============================================================
   security-test:
-    needs: [build-images]
+    needs: [sanity-test]
     if: success()
     strategy:
       fail-fast: false
@@ -234,39 +271,4 @@ jobs:
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_pytorch.py
 
-  # ============================================================
-  # Sanity tests — all 6 images
-  # ============================================================
-  sanity-test:
-    needs: [check-changes, telemetry-test]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
-    concurrency:
-      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-sanity-tests.yml
-    with:
-      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: lambda
-      framework-version: ""
-      python-version: py313
-      cuda-version: cu128
-      os-version: amzn2023
-      customer-type: lambda
-      arch-type: x86
-      device-type: gpu
-      contributor: None
-      container-type: general
+
