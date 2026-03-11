@@ -446,8 +446,8 @@ for fw in "${!FRAMEWORK_STATUS[@]}"; do
   echo "  ${fw}: ${FRAMEWORK_STATUS[${fw}]}"
 done
 
-# Fail the workflow if all frameworks failed
-if [[ ${FAILED} -eq ${TOTAL} && ${TOTAL} -gt 0 ]]; then
-  echo "::error::All frameworks failed processing"
+# Fail the workflow if at least one framework failed
+if [[ ${FAILED} -gt 0 ]]; then
+  echo "::error::${FAILED}/${TOTAL} framework(s) failed processing"
   exit 1
 fi
