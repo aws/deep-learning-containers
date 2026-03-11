@@ -8,10 +8,6 @@
         "reason": "libxml2 use-after-free in xmlSchemaIDCFillNodeTables; fix requires libxml2 >= 2.12.10 not yet available in AL2023 repo."
     },
     {
-        "vulnerability_id": "CVE-2024-6345",
-        "reason": "setuptools package_index RCE via malicious URL; Lambda images do not use setuptools to install packages at runtime."
-    },
-    {
         "vulnerability_id": "CVE-2025-13151",
         "reason": "libtasn1 stack buffer overflow; fix not yet available in AL2023 repo. Lambda images do not parse untrusted ASN.1 input."
     },
@@ -41,23 +37,19 @@
     },
     {
         "vulnerability_id": "CVE-2025-4138",
-        "reason": "Python tarfile symlink extraction filter bypass; Lambda images do not extract untrusted tar archives at runtime."
+        "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime."
     },
     {
         "vulnerability_id": "CVE-2025-4330",
-        "reason": "Python tarfile symlink extraction filter bypass; Lambda images do not extract untrusted tar archives at runtime."
+        "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime."
     },
     {
         "vulnerability_id": "CVE-2025-4435",
-        "reason": "Python tarfile errorlevel=0 filter bypass; Lambda images do not extract untrusted tar archives at runtime."
+        "reason": "Python tarfile errorlevel=0 filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime."
     },
     {
         "vulnerability_id": "CVE-2025-4517",
-        "reason": "Python tarfile arbitrary write with filter=data; Lambda images do not extract untrusted tar archives at runtime."
-    },
-    {
-        "vulnerability_id": "CVE-2025-47273",
-        "reason": "setuptools path traversal in package installation; Lambda images do not install packages at runtime."
+        "reason": "Python tarfile arbitrary write with filter=data (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime."
     },
     {
         "vulnerability_id": "CVE-2025-47912",
@@ -113,11 +105,11 @@
     },
     {
         "vulnerability_id": "CVE-2025-8194",
-        "reason": "Python tarfile extraction API defect; Lambda images do not extract untrusted tar archives at runtime."
+        "reason": "Python tarfile extraction API defect (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime."
     },
     {
         "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 streaming API memory issue; fix not yet available. Lambda images use urllib3 only for internal telemetry requests."
+        "reason": "urllib3 decompression bomb on redirect responses; pinned to urllib3==2.6.3 in requirements files but ECR scan may still report against bundled copies in transitive deps."
     },
     {
         "vulnerability_id": "CVE-2026-22796",
