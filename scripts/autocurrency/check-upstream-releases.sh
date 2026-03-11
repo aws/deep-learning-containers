@@ -412,8 +412,7 @@ ${python_changes}"
         "${SLACK_WEBHOOK_URL:-}" \
         "${framework}" \
         "${latest_version}" \
-        "${pr_url}" \
-        "${html_url}" || true
+        "${pr_url}" || true
     fi
 
     echo "FRAMEWORK_RESULT:success"

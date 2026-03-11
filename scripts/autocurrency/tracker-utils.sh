@@ -149,8 +149,7 @@ render_prod_image() {
 }
 
 ###############################################################################
-# send_slack_notification(webhook_url, framework_key, new_version, pr_url,
-#                         release_url)
+# send_slack_notification(webhook_url, framework_key, new_version, pr_url)
 #   Sends key-value data to a Slack Workflow webhook after a PR is created.
 #   The Slack Workflow on the receiving end handles message formatting and
 #   channel routing — this function only provides raw data.
@@ -163,19 +162,16 @@ render_prod_image() {
 #     framework_key  — Framework identifier (e.g., "vllm")
 #     new_version    — New upstream version string (e.g., "0.17.0")
 #     pr_url         — URL of the created pull request
-#     release_url    — URL of the upstream release page
 #
 #   Usage:
 #     send_slack_notification "${SLACK_WEBHOOK_URL}" "vllm" "0.17.0" \
-#       "https://github.com/aws/deep-learning-containers/pull/123" \
-#       "https://github.com/vllm-project/vllm/releases/tag/v0.17.0"
+#       "https://github.com/aws/deep-learning-containers/pull/123"
 ###############################################################################
 send_slack_notification() {
   local webhook_url="${1:-}"
-  local framework_key="${2:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL RELEASE_URL}"
-  local new_version="${3:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL RELEASE_URL}"
-  local pr_url="${4:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL RELEASE_URL}"
-  local release_url="${5:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL RELEASE_URL}"
+  local framework_key="${2:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local new_version="${3:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local pr_url="${4:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
 
   # If webhook URL is missing or empty, skip silently
   if [[ -z "${webhook_url}" ]]; then
@@ -189,12 +185,10 @@ send_slack_notification() {
     --arg framework_name "${framework_key}" \
     --arg framework_version "${new_version}" \
     --arg pr_url "${pr_url}" \
-    --arg release_notes_url "${release_url}" \
     '{
       framework_name: $framework_name,
       framework_version: $framework_version,
-      pr_url: $pr_url,
-      release_notes_url: $release_notes_url
+      pr_url: $pr_url
     }')
 
   # POST to Slack Workflow webhook
