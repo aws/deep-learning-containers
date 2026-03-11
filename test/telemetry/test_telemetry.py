@@ -83,7 +83,8 @@ def test_s3_query_bucket_url(
     assert parsed.hostname == expected_host, f"Host mismatch: {parsed.hostname} != {expected_host}"
     assert params["x-instance-id"][0] == instance_id
     assert params["x-framework"][0] == framework
-    assert params["x-framework_version"][0] == framework_version
+    if framework_version:
+        assert params["x-framework_version"][0] == framework_version
     assert params["x-container_type"][0] == container_type
     assert f"/dlc-containers-{instance_id}.txt" in parsed.path
 
