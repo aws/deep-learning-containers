@@ -148,7 +148,7 @@ for framework in ${FRAMEWORKS}; do
     set -euo pipefail
 
     # -----------------------------------------------------------------
-    # Read framework config from tracker.yml
+    # Read framework config from autocurrency-tracker.yml
     # -----------------------------------------------------------------
     github_repo=$(yq eval ".frameworks.${framework}.github_repo" "${TRACKER_FILE}")
     tag_prefix=$(yq eval ".frameworks.${framework}.tag_prefix // \"v\"" "${TRACKER_FILE}")
