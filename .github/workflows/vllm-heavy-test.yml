@@ -8,10 +8,10 @@ on:
         required: true
         type: string
       test_setup_script:
-        description: "Path to the test setup script inside the container (e.g. /scripts/vllm/vllm_0_17_0_test_setup.sh)"
+        description: "Path to the test setup script inside the container (e.g. /scripts/vllm/vllm_test_setup.sh)"
         required: true
         type: string
-        default: "/scripts/vllm/vllm_0_17_0_test_setup.sh"
+        default: "/scripts/vllm/vllm_test_setup.sh"
       image_version:
         description: "vLLM version tag used for checking out matching vLLM test source"
         required: true
