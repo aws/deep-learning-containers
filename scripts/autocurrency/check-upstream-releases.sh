@@ -163,8 +163,14 @@ for framework in ${FRAMEWORKS}; do
     # -----------------------------------------------------------------
     echo "Checking ${github_repo} for latest release..."
 
+    # Build auth header args (skip if token is empty to allow unauthenticated public API access)
+    local -a auth_args=()
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+      auth_args=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+    fi
+
     api_response=$(curl -s -w "\n%{http_code}" \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+      "${auth_args[@]}" \
       -H "Accept: application/vnd.github+json" \
       "https://api.github.com/repos/${github_repo}/releases/latest")
 
@@ -179,7 +185,7 @@ for framework in ${FRAMEWORKS}; do
 
     if [[ "${http_code}" == "403" ]]; then
       rate_remaining=$(curl -sI \
-        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+        "${auth_args[@]}" \
         "https://api.github.com/rate_limit" 2>/dev/null \
         | grep -i "x-ratelimit-remaining" || echo "unknown")
       echo "::error::${framework}: GitHub API rate limit hit (HTTP 403). Rate-limit info: ${rate_remaining}"
