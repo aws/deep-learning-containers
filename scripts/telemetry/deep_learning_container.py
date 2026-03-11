@@ -228,12 +228,15 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--framework",
-        choices=["tensorflow", "mxnet", "pytorch", "base", "vllm", "sglang"],
+        choices=["tensorflow", "mxnet", "pytorch", "base", "vllm", "sglang", "lambda"],
         help="framework of container image.",
         required=True,
     )
     parser.add_argument(
-        "--framework-version", help="framework version of container image.", required=True
+        "--framework-version",
+        help="framework version of container image.",
+        required=False,
+        default="",
     )
     parser.add_argument(
         "--container-type",
@@ -252,10 +255,11 @@ def parse_args():
         pt_fw_version_match = re.fullmatch(pt_fw_version_pattern, args.framework_version)
         if pt_fw_version_match:
             args.framework_version = pt_fw_version_match.group(1)
-    assert re.fullmatch(fw_version_pattern, args.framework_version), (
-        f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
-        f"Please specify framework version as X.Y.Z or X.Y."
-    )
+    if args.framework_version:
+        assert re.fullmatch(fw_version_pattern, args.framework_version), (
+            f"args.framework_version = {args.framework_version} does not match {fw_version_pattern}\n"
+            f"Please specify framework version as X.Y.Z or X.Y."
+        )
     # TFS 2.12.1 still uses TF 2.12.0 and breaks the telemetry check as it is checking TF version
     # instead of TFS version. WE are forcing the version we want.
     if (
