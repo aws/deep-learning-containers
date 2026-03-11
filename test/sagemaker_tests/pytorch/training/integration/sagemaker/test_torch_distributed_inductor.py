@@ -47,17 +47,17 @@ def test_torch_distributed_throughput_gpu(
 ):
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_distributed_training(ecr_image)
-        
+
         source_code = SourceCode(
             entry_script="torch_distributed_throughput_mnist.py",
             source_dir=mnist_path,
         )
-        
+
         compute = Compute(
             instance_type=efa_instance_type,
             instance_count=2,
         )
-        
+
         hyperparameters = {"inductor": 1}
 
         invoke_pytorch_training(

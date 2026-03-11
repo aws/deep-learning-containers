@@ -33,16 +33,23 @@ def fixture_dist_gpu_backend(request):
     return request.param
 
 
-def _create_model_trainer(docker_image, entry_point, sagemaker_session, hyperparameters, 
-                          instance_count=1, instance_type="local", output_path=None):
+def _create_model_trainer(
+    docker_image,
+    entry_point,
+    sagemaker_session,
+    hyperparameters,
+    instance_count=1,
+    instance_type="local",
+    output_path=None,
+):
     """Create a ModelTrainer for local mode testing."""
     source_code = SourceCode(entry_script=entry_point)
-    
+
     compute = Compute(
         instance_type=instance_type,
         instance_count=instance_count,
     )
-    
+
     return ModelTrainer(
         training_image=docker_image,
         source_code=source_code,

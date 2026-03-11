@@ -73,10 +73,10 @@ def create_input_data(channel_name, data_source):
 def get_distributed_runner(dist_type):
     """
     Get v3 distributed runner.
-    
+
     In SDK v3, SMDataParallel is no longer available as a separate class.
     Use Torchrun for all distributed training scenarios.
-    
+
     :param dist_type: One of 'torchrun', 'smddp', or None
     :return: Torchrun or None
     """
@@ -110,7 +110,7 @@ def invoke_pytorch_training(
 ):
     """
     Invoke PyTorch training job using SageMaker SDK v3 ModelTrainer.
-    
+
     :param ecr_image: ECR image URI
     :param sagemaker_regions: List of SageMaker regions to try
     :param source_code: v3 SourceCode config
@@ -126,16 +126,16 @@ def invoke_pytorch_training(
     """
     ecr_image_region = get_ecr_image_region(ecr_image)
     error = None
-    
+
     for test_region in sagemaker_regions:
         sagemaker_session = get_sagemaker_session(test_region)
         tested_ecr_image = (
             get_ecr_image(ecr_image, test_region) if test_region != ecr_image_region else ecr_image
         )
-        
+
         env = environment.copy() if environment else {}
         env["AWS_REGION"] = test_region
-        
+
         try:
             model_trainer = ModelTrainer(
                 training_image=tested_ecr_image,
@@ -183,7 +183,7 @@ def invoke_pytorch_training(
     instance_type = compute.instance_type
     if instance_type in LOW_AVAILABILITY_INSTANCE_TYPES:
         pytest.skip(f"Failed to launch job due to low capacity on {instance_type}")
-    
+
     if "CapacityError" in str(error):
         raise SMInstanceCapacityError from error
     elif "ResourceLimitExceeded" in str(error):
@@ -202,7 +202,7 @@ def _test_mnist_distributed(
     use_inductor=False,
 ):
     """Test MNIST distributed training using v3 ModelTrainer."""
-    
+
     # In SDK v3, use Torchrun for all distributed training
     # The backend (nccl/gloo) is specified via hyperparameters
     distributed_runner = Torchrun()
@@ -212,7 +212,7 @@ def _test_mnist_distributed(
         entry_script=mnist_script.split("/")[-1] if "/" in mnist_script else mnist_script,
         source_dir=training_dir,
     )
-    
+
     # Determine instance settings
     if instance_groups:
         inst_type = instance_groups[0].instance_type
@@ -222,15 +222,15 @@ def _test_mnist_distributed(
         inst_type = instance_type
         inst_count = 2
         job_name = "test-pt-mnist-distributed"
-    
+
     compute = create_compute(instance_type=inst_type, instance_count=inst_count)
-    
+
     hyperparameters = {
         "backend": dist_backend,
         "epochs": 1,
         "inductor": int(use_inductor),
     }
-    
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         model_trainer = ModelTrainer(
             training_image=ecr_image,
@@ -241,14 +241,14 @@ def _test_mnist_distributed(
             sagemaker_session=sagemaker_session,
             distributed_runner=distributed_runner,
         )
-        
+
         # Upload training data
         training_input = sagemaker_session.upload_data(
             path=training_dir, key_prefix="pytorch/mnist"
         )
-        
+
         input_data = create_input_data(channel_name="training", data_source=training_input)
-        
+
         model_trainer.train(
             input_data_config=[input_data],
             job_name=utils.unique_name_from_base(job_name),

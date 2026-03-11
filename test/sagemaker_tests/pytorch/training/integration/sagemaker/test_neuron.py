@@ -148,7 +148,7 @@ def _test_neuron_allreduce(
             source_dir=neuron_allreduce_path,
         )
         compute = Compute(instance_type=instance_type, instance_count=instance_count)
-        
+
         model_trainer = ModelTrainer(
             training_image=ecr_image,
             source_code=source_code,
@@ -186,7 +186,7 @@ def _test_neuron_mlp(
             source_dir=neuron_mlp_path,
         )
         compute = Compute(instance_type=instance_type, instance_count=instance_count)
-        
+
         model_trainer = ModelTrainer(
             training_image=ecr_image,
             source_code=source_code,
@@ -219,7 +219,7 @@ def _test_neuron_allreduce_distributed(
             source_dir=neuron_allreduce_path,
         )
         compute = Compute(instance_type=instance_type, instance_count=instance_count)
-        
+
         model_trainer = ModelTrainer(
             training_image=ecr_image,
             source_code=source_code,
@@ -253,7 +253,7 @@ def _test_neuron_mlp_distributed(
             source_dir=neuron_mlp_path,
         )
         compute = Compute(instance_type=instance_type, instance_count=instance_count)
-        
+
         model_trainer = ModelTrainer(
             training_image=ecr_image,
             source_code=source_code,

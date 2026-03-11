@@ -159,7 +159,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
             entry_script="train_distributed.py",
             source_dir=fastai_path,
         )
-        
+
         compute = Compute(
             instance_type=MULTI_GPU_INSTANCE,
             instance_count=1,
@@ -186,6 +186,7 @@ def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regi
 # These tests are skipped because SM Model Parallel team maintains their own container.
 # The original v2 API code is preserved below as comments.
 # =============================================================================
+
 
 @pytest.mark.skip("SM Model Parallel team is maintaining their own Docker Container")
 @pytest.mark.skip_cpu
@@ -741,8 +742,10 @@ def _test_dist_operations(
     # Skip China regions - ModelTrainer doesn't support disable_profiler
     region = sagemaker_session.boto_region_name
     if region in CHINA_REGIONS:
-        pytest.skip(f"Skipping test in {region} - SageMaker Profiler not available and ModelTrainer doesn't support disable_profiler")
-    
+        pytest.skip(
+            f"Skipping test in {region} - SageMaker Profiler not available and ModelTrainer doesn't support disable_profiler"
+        )
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         # In SDK v3, use Torchrun for all distributed training
         # The backend (nccl/gloo) is specified via hyperparameters
@@ -752,14 +755,14 @@ def _test_dist_operations(
             entry_script=os.path.basename(dist_operations_path),
             source_dir=os.path.dirname(dist_operations_path),
         )
-        
+
         compute = create_compute(
             instance_type=instance_type,
             instance_count=instance_count,
         )
-        
+
         hyperparameters = {"backend": dist_backend}
-        
+
         model_trainer = ModelTrainer(
             training_image=ecr_image,
             source_code=source_code,
@@ -775,9 +778,9 @@ def _test_dist_operations(
         fake_input = sagemaker_session.upload_data(
             path=dist_operations_path, key_prefix="pytorch/distributed_operations"
         )
-        
+
         input_data = create_input_data(channel_name="required_argument", data_source=fake_input)
-        
+
         model_trainer.train(
             input_data_config=[input_data],
             job_name=utils.unique_name_from_base("test-pt-dist-operations"),

@@ -86,7 +86,7 @@ def _test_smart_sifting(
         source_dir=smart_sifting_path,
     )
     compute = Compute(instance_type=instance_type, instance_count=instance_count)
-    
+
     model_trainer = ModelTrainer(
         training_image=ecr_image,
         source_code=source_code,
@@ -95,7 +95,7 @@ def _test_smart_sifting(
         role="SageMakerRole",
         sagemaker_session=sagemaker_session,
     )
-    
+
     job_name = "test-smart-sifting-plt"
     with timeout(minutes=DEFAULT_TIMEOUT):
         model_trainer.train(job_name=utils.unique_name_from_base(job_name), wait=True)

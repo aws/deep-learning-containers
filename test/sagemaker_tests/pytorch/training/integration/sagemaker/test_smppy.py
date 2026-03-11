@@ -52,12 +52,12 @@ def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
         source_code = SourceCode(
             entry_script=smppy_mnist_script,
         )
-        
+
         compute = Compute(
             instance_type=INSTANCE_TYPE,
             instance_count=1,
         )
-        
+
         hyperparameters = {"epochs": 1}
 
         model_trainer, _ = invoke_pytorch_training(
@@ -85,16 +85,16 @@ def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regi
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_distributed_training(ecr_image)
-        
+
         source_code = SourceCode(
             entry_script=smppy_mnist_script,
         )
-        
+
         compute = Compute(
             instance_type=INSTANCE_TYPE,
             instance_count=2,
         )
-        
+
         hyperparameters = {"epochs": 1}
 
         model_trainer, _ = invoke_pytorch_training(

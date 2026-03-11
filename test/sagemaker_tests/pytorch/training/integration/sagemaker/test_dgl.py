@@ -93,7 +93,7 @@ def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
     """Test DGL training for versions < 0.9.x using v3 ModelTrainer."""
     source_code = SourceCode(entry_script=DGL_LT_09x_SCRIPT_PATH)
     compute = Compute(instance_type=instance_type, instance_count=1)
-    
+
     model_trainer = ModelTrainer(
         training_image=ecr_image,
         source_code=source_code,
@@ -101,7 +101,7 @@ def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
         role="SageMakerRole",
         sagemaker_session=sagemaker_session,
     )
-    
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
         model_trainer.train(job_name=job_name, wait=True)
@@ -111,7 +111,7 @@ def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
     """Test DGL training using v3 ModelTrainer."""
     source_code = SourceCode(entry_script=DGL_SCRIPT_PATH)
     compute = Compute(instance_type=instance_type, instance_count=1)
-    
+
     model_trainer = ModelTrainer(
         training_image=ecr_image,
         source_code=source_code,
@@ -119,7 +119,7 @@ def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
         role="SageMakerRole",
         sagemaker_session=sagemaker_session,
     )
-    
+
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
         model_trainer.train(job_name=job_name, wait=True)

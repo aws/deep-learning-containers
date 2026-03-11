@@ -40,7 +40,7 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
         source_code = SourceCode(
             entry_script=smdebug_mnist_script,
         )
-        
+
         compute = Compute(
             instance_type=instance_type,
             instance_count=1,
@@ -76,7 +76,7 @@ def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, in
         source_code = SourceCode(
             entry_script=smdebug_mnist_script,
         )
-        
+
         compute = Compute(
             instance_type=instance_type,
             instance_count=1,

@@ -32,16 +32,22 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
         pytest.skip(f"This test only works for PT versions in {compatible_versions}")
 
 
-def _create_model_trainer(docker_image, entry_point, sagemaker_session, 
-                          instance_type="local_gpu", hyperparameters=None, output_path=None):
+def _create_model_trainer(
+    docker_image,
+    entry_point,
+    sagemaker_session,
+    instance_type="local_gpu",
+    hyperparameters=None,
+    output_path=None,
+):
     """Create a ModelTrainer for local mode testing."""
     source_code = SourceCode(entry_script=entry_point)
-    
+
     compute = Compute(
         instance_type=instance_type,
         instance_count=1,
     )
-    
+
     return ModelTrainer(
         training_image=docker_image,
         source_code=source_code,
@@ -62,7 +68,7 @@ def _create_model_trainer(docker_image, entry_point, sagemaker_session,
 @pytest.mark.skip_cpu
 def test_smppy_mnist_local(docker_image, sagemaker_local_session, tmpdir):
     _skip_if_image_is_not_compatible_with_smppy(docker_image)
-    
+
     model_trainer = _create_model_trainer(
         docker_image=docker_image,
         entry_point=smppy_mnist_script,
