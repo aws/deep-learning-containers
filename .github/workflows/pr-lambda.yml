@@ -88,14 +88,11 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { name: base-py313, tag: gpu-base-py313 }
-          - { name: base-py312, tag: gpu-base-py312 }
-          - { name: cupy-py313, tag: gpu-cupy-py313 }
-          - { name: cupy-py312, tag: gpu-cupy-py312 }
-          - { name: pytorch-py313, tag: gpu-pytorch-py313 }
-          - { name: pytorch-py312, tag: gpu-pytorch-py312 }
+          - { name: base-py3, tag: gpu-base-py3 }
+          - { name: cupy-py3, tag: gpu-cupy-py3 }
+          - { name: pytorch-py3, tag: gpu-pytorch-py3 }
     outputs:
-      base-py313: ${{ steps.build.outputs.image-uri }}
+      base-py3: ${{ steps.build.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -136,12 +133,9 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -152,7 +146,7 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       framework: lambda
       framework-version: ""
-      python-version: py313
+      python-version: py3
       cuda-version: cu128
       os-version: amzn2023
       customer-type: lambda
@@ -171,12 +165,9 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
     concurrency:
       group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -198,12 +189,9 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: gpu-base-py313 }
-          - { tag: gpu-base-py312 }
-          - { tag: gpu-cupy-py313 }
-          - { tag: gpu-cupy-py312 }
-          - { tag: gpu-pytorch-py313 }
-          - { tag: gpu-pytorch-py312 }
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
     concurrency:
       group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: false
@@ -227,12 +215,8 @@ jobs:
         fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
-      group: ${{ github.workflow }}-validate-${{ matrix.python }}-${{ github.event.pull_request.number }}
+      group: ${{ github.workflow }}-validate-${{ github.event.pull_request.number }}
       cancel-in-progress: true
-    strategy:
-      fail-fast: false
-      matrix:
-        python: ["py313", "py312"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -243,21 +227,21 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Validate base-${{ matrix.python }}
+      - name: Validate base-py3
         run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-${{ matrix.python }}-pr-${{ github.event.pull_request.number }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_base.py
 
-      - name: Validate cupy-${{ matrix.python }}
+      - name: Validate cupy-py3
         run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-${{ matrix.python }}-pr-${{ github.event.pull_request.number }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_cupy.py
 
-      - name: Validate pytorch-${{ matrix.python }}
+      - name: Validate pytorch-py3
         run: |
-          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-${{ matrix.python }}-pr-${{ github.event.pull_request.number }}"
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-pr-${{ github.event.pull_request.number }}"
           docker pull ${IMAGE}
           docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_pytorch.py
 
