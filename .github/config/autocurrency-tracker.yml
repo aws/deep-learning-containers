@@ -26,11 +26,6 @@ frameworks:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
     docker_hub_image: "vllm/vllm-openai"
-    test_setup_script:
-      pattern: "scripts/vllm/vllm_{version_underscored}_test_setup.sh"
-      workflow_files:
-        - ".github/workflows/auto-release-vllm-sagemaker.yml"
-        - ".github/workflows/auto-release-vllm-ec2.yml"
 
   sglang:
     github_repo: "sgl-project/sglang"
