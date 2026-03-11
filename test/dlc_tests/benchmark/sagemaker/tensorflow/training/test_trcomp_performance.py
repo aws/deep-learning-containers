@@ -4,8 +4,15 @@ from packaging.specifiers import SpecifierSet
 from packaging.version import Version
 
 import boto3, sagemaker
-from sagemaker.tensorflow import TensorFlow
-from sagemaker.training_compiler.config import TrainingCompilerConfig
+
+try:
+    from sagemaker.tensorflow import TensorFlow
+except ImportError:
+    TensorFlow = None
+try:
+    from sagemaker.training_compiler.config import TrainingCompilerConfig
+except ImportError:
+    TrainingCompilerConfig = None
 
 from src.benchmark_metrics import (
     TRCOMP_THRESHOLD,
