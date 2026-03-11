@@ -20,8 +20,6 @@ frameworks:
         prod_image_template: "vllm:{major}.{minor}-gpu-py312"
     exclude_configs:
       - ".github/config/vllm-rayserve.yml"
-    reviewers:
-      - "aws/dl-containers"
     dockerfiles:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
@@ -35,8 +33,6 @@ frameworks:
         prod_image_template: "sglang:{major}.{minor}-gpu-py312-ec2"
       - path: ".github/config/sglang-sagemaker.yml"
         prod_image_template: "sglang:{major}.{minor}-gpu-py312"
-    reviewers:
-      - "aws/dl-containers"
     dockerfiles:
       - path: "docker/sglang/Dockerfile"
         base_image_template: "lmsysorg/sglang:v{version}-cu129-amd64"
