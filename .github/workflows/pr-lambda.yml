@@ -10,6 +10,7 @@ on:
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "test/lambda/**"
+      - "test/security/data/ecr_scan_allowlist/lambda/**"
       - ".github/workflows/pr-lambda.yml"
       - "!docs/**"
 
