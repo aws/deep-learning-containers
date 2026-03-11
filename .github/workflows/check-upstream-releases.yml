@@ -36,7 +36,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ github.token }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      DRY_RUN: ${{ github.event_name == 'pull_request' || inputs.dry-run || false }}
+      DRY_RUN: ${{ github.event_name == 'pull_request' || inputs.dry-run || false }} #### temporary for testing
       FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
     steps:
       - name: Checkout repository
