@@ -169,8 +169,17 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
-  && echo 'source /usr/local/bin/bash_telemetry.sh' \
-    FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py312 >>/etc/bashrc
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && bash /tmp/setup_oss_compliance.sh python3 \
+  && rm /tmp/setup_oss_compliance.sh
+WORKDIR /var/task
+ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
+CMD ["handler.handler"]
+
+# ============================================================
+# Runtime: Base Python 3.12 (CUDA + Python + RIC + RIE)
+# ============================================================
+FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py312
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
