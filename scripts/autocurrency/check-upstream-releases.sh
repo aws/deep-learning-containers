@@ -3,7 +3,7 @@
 # Called by the GitHub Actions workflow check-upstream-releases.yml.
 #
 # Environment variables (set by the workflow):
-#   GITHUB_TOKEN       — GitHub token for API calls and PR creation
+#   GITHUB_TOKEN       — GitHub token for PR creation and git push
 #   SLACK_WEBHOOK_URL  — Slack Workflow webhook URL (optional)
 #   DRY_RUN            — "true" to skip branch/PR creation
 #   FRAMEWORK_FILTER   — Specific framework to check (optional)
@@ -164,7 +164,6 @@ for framework in ${FRAMEWORKS}; do
     echo "Checking ${github_repo} for latest release..."
 
     api_response=$(curl -s -w "\n%{http_code}" \
-      -H "Authorization: Bearer ${GITHUB_TOKEN}" \
       -H "Accept: application/vnd.github+json" \
       "https://api.github.com/repos/${github_repo}/releases/latest")
 
@@ -179,7 +178,6 @@ for framework in ${FRAMEWORKS}; do
 
     if [[ "${http_code}" == "403" ]]; then
       rate_remaining=$(curl -sI \
-        -H "Authorization: Bearer ${GITHUB_TOKEN}" \
         "https://api.github.com/rate_limit" 2>/dev/null \
         | grep -i "x-ratelimit-remaining" || echo "unknown")
       echo "::error::${framework}: GitHub API rate limit hit (HTTP 403). Rate-limit info: ${rate_remaining}"
@@ -408,14 +406,11 @@ ${python_changes}"
     # -----------------------------------------------------------------
     slack_enabled=$(yq eval '.notifications.slack.enabled // false' "${TRACKER_FILE}")
     if [[ "${slack_enabled}" == "true" ]]; then
-      changed_files_csv=$(echo "${updated_files}" | sed '/^$/d' | tr '\n' ',' | sed 's/,$//')
       send_slack_notification \
         "${SLACK_WEBHOOK_URL:-}" \
         "${framework}" \
         "${latest_version}" \
-        "${pr_url}" \
-        "${html_url}" \
-        "${changed_files_csv}" || true
+        "${pr_url}" || true
     fi
 
     echo "FRAMEWORK_RESULT:success"
