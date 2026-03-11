@@ -140,6 +140,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py313
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py313 /var/lang /var/lang
 COPY --from=lambda-python-313 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
@@ -179,6 +180,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py312
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py312 /var/lang /var/lang
 COPY --from=lambda-python-312 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
@@ -219,6 +221,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py313
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py313 /var/lang /var/lang
 COPY --from=lambda-python-313 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
@@ -258,6 +261,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py312
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py312 /var/lang /var/lang
 COPY --from=lambda-python-312 /var/runtime /var/runtime
 COPY --from=rie-downloader /usr/local/bin/aws-lambda-rie /usr/local/bin/aws-lambda-rie
@@ -297,8 +301,9 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py313
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-RUN dnf install -y --setopt=install_weak_deps=False \
-  libxcb libX11 libXext libXfixes alsa-lib \
+RUN dnf upgrade -y --security \
+  && dnf install -y --setopt=install_weak_deps=False \
+    libxcb libX11 libXext libXfixes alsa-lib \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-pytorch-py313 /var/lang /var/lang
 COPY --from=lambda-python-313 /var/runtime /var/runtime
@@ -341,8 +346,9 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py312
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-RUN dnf install -y --setopt=install_weak_deps=False \
-  libxcb libX11 libXext libXfixes alsa-lib \
+RUN dnf upgrade -y --security \
+  && dnf install -y --setopt=install_weak_deps=False \
+    libxcb libX11 libXext libXfixes alsa-lib \
   && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-pytorch-py312 /var/lang /var/lang
 COPY --from=lambda-python-312 /var/runtime /var/runtime
