@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+··#!/usr/bin/env bash
 # check-upstream-releases.sh — Main logic for the upstream release tracker.
 # Called by the GitHub Actions workflow check-upstream-releases.yml.
 #
@@ -31,7 +31,6 @@ FRAMEWORK_FILTER="${FRAMEWORK_FILTER:-}"
 #     $6 — html_url (release page URL)
 #     $7 — release_body (release notes text)
 #     $8 — changed_files_list (newline-separated file paths)
-#     $9 — cuda_python_section (text for CUDA/Python changes)
 ###############################################################################
 build_pr_body() {
   local framework="$1"
@@ -42,7 +41,6 @@ build_pr_body() {
   local html_url="$6"
   local release_body="$7"
   local changed_files_raw="$8"
-  local cuda_python_section="$9"
 
   # Build changed files list as markdown bullets
   local changed_files_md=""
@@ -68,11 +66,6 @@ build_pr_body() {
     release_notes_summary="No release notes provided. See [release page](${html_url})."
   fi
 
-  # Default CUDA/Python section if empty
-  if [[ -z "${cuda_python_section}" ]]; then
-    cuda_python_section="N/A - no docker_hub_image configured for this framework."
-  fi
-
   cat <<PRBODY
 ## Auto-Update: ${framework} ${new_version}
 
@@ -85,12 +78,8 @@ ${changed_files_md}
 ### Release Notes
 ${release_notes_summary}
 
-### CUDA/Python Version Changes
-${cuda_python_section}
-
 ### What to Review
 - Verify the upstream base image exists on Docker Hub
-- Check if CUDA/Python version changes require additional config updates
 - Verify renamed test setup script content is still valid for the new version
 - Check if test scripts need updates for the new version
 - Confirm no breaking changes in the upstream release notes
@@ -286,51 +275,6 @@ for framework in ${FRAMEWORKS}; do
         updated_files="${updated_files}"$'\n'"${dockerfile_updates}"
         echo "${framework}: Updated Dockerfiles:"
         echo "${dockerfile_updates}"
-      fi
-    fi
-
-    # -----------------------------------------------------------------
-    # Detect CUDA/Python changes if docker_hub_image configured
-    # -----------------------------------------------------------------
-    cuda_python_section=""
-    docker_hub_image=$(yq eval ".frameworks.${framework}.docker_hub_image // \"\"" "${TRACKER_FILE}")
-    if [[ -n "${docker_hub_image}" && "${docker_hub_image}" != "null" ]]; then
-      echo "${framework}: Checking Docker Hub for CUDA/Python version changes..."
-      detection_output=$(detect_cuda_python_changes "${docker_hub_image}" "${latest_version}" "${config_entries_json}") || true
-
-      if echo "${detection_output}" | grep -q "^⚠️"; then
-        cuda_python_section=$(echo "${detection_output}" | grep "^⚠️")
-        echo "${framework}: ${cuda_python_section}"
-      else
-        cuda_changes=""
-        python_changes=""
-        if echo "${detection_output}" | grep -q "^CUDA_CHANGED:"; then
-          cuda_line=$(echo "${detection_output}" | grep "^CUDA_CHANGED:")
-          old_cuda=$(echo "${cuda_line}" | cut -d: -f2)
-          new_cuda=$(echo "${cuda_line}" | cut -d: -f3)
-          cuda_changes="CUDA version updated: ${old_cuda} -> ${new_cuda}"
-          echo "${framework}: ${cuda_changes}"
-        fi
-        if echo "${detection_output}" | grep -q "^PYTHON_CHANGED:"; then
-          python_line=$(echo "${detection_output}" | grep "^PYTHON_CHANGED:")
-          old_python=$(echo "${python_line}" | cut -d: -f2)
-          new_python=$(echo "${python_line}" | cut -d: -f3)
-          python_changes="Python version updated: ${old_python} -> ${new_python}"
-          echo "${framework}: ${python_changes}"
-        fi
-        if [[ -n "${cuda_changes}" || -n "${python_changes}" ]]; then
-          cuda_python_section="${cuda_changes}"
-          if [[ -n "${python_changes}" ]]; then
-            if [[ -n "${cuda_python_section}" ]]; then
-              cuda_python_section="${cuda_python_section}
-${python_changes}"
-            else
-              cuda_python_section="${python_changes}"
-            fi
-          fi
-        else
-          cuda_python_section="No CUDA/Python version changes detected."
-        fi
       fi
     fi
 
