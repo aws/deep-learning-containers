@@ -234,7 +234,7 @@ jobs:
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-gpu-runner
+        fleet:x86-g6xl-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-validate-${{ matrix.python }}-${{ github.event.pull_request.number }}
