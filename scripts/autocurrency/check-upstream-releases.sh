@@ -428,7 +428,7 @@ ${python_changes}"
   fi
 
   # Return to main branch for next framework iteration
-  git checkout main 2>/dev/null || true
+  git checkout day-zero-currency 2>/dev/null || true ##### temporary testing branch. change to "main" after merge
 done
 
 # -------------------------------------------------------------------
