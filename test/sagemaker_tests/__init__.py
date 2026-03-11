@@ -19,6 +19,11 @@ import boto3
 import botocore.exceptions
 import sagemaker
 
+try:
+    from sagemaker.exceptions import UnexpectedStatusException
+except (ImportError, ModuleNotFoundError):
+    from sagemaker.core.exceptions import UnexpectedStatusException
+
 from botocore.config import Config
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -188,7 +193,7 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
@@ -269,7 +274,7 @@ def invoke_sm_endpoint_helper_function(
                 **test_function_args,
             )
             return return_value
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue

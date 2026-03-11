@@ -19,7 +19,11 @@ from __future__ import absolute_import
 
 import botocore.exceptions
 import pytest
-import sagemaker.exceptions
+
+try:
+    from sagemaker.exceptions import UnexpectedStatusException
+except (ImportError, ModuleNotFoundError):
+    from sagemaker.core.exceptions import UnexpectedStatusException
 
 from sagemaker.train import ModelTrainer
 from sagemaker.train.configs import SourceCode, InputData, Compute
@@ -168,7 +172,7 @@ def invoke_pytorch_training(
             )
             return model_trainer, sagemaker_session
 
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue

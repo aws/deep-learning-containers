@@ -16,7 +16,11 @@ import time
 
 import botocore.exceptions
 import sagemaker
-import sagemaker.exceptions
+
+try:
+    from sagemaker.exceptions import UnexpectedStatusException
+except (ImportError, ModuleNotFoundError):
+    from sagemaker.core.exceptions import UnexpectedStatusException
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -114,7 +118,7 @@ def invoke_pytorch_helper_function(
         try:
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
