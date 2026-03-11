@@ -1,52 +1,7 @@
 [
     {
-        "vulnerability_id": "CVE-2022-46908",
-        "reason": "SQLite --safe CLI flag bypass; no fix available in AL2023 repo. Lambda images do not expose SQLite CLI to untrusted input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56171",
-        "reason": "libxml2 use-after-free in xmlSchemaIDCFillNodeTables; fix requires libxml2 >= 2.12.10 not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
         "vulnerability_id": "CVE-2024-6345",
         "reason": "setuptools package_index RCE; pinned to setuptools==78.1.1 in requirements but ECR scan detects older copy bundled in uv or the Lambda base image's pip, which cannot be patched via requirements.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-13151",
-        "reason": "libtasn1 stack buffer overflow; fix not yet available in AL2023 repo. Lambda images do not parse untrusted ASN.1 input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-13601",
-        "reason": "glib heap buffer overflow in g_escape_uri; fix not yet available in AL2023 repo. Lambda images do not expose glib URI parsing to untrusted input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-1390",
-        "reason": "libcap pam_cap.so group name parsing flaw; Lambda images do not use PAM authentication.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-14087",
-        "reason": "glib buffer underflow in GVariant parsing; fix not yet available in AL2023 repo. Lambda images do not parse untrusted GVariant input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-15467",
-        "reason": "OpenSSL stack buffer overflow via crafted QUIC packet; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-15468",
-        "reason": "OpenSSL SSL_CIPHER_find crash on unknown cipher in QUIC; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-24928",
-        "reason": "libxml2 stack buffer overflow in xmlSnprintfElements; fix requires libxml2 >= 2.12.10 not yet available in AL2023 repo.",
         "review_by": "2026-03-24"
     },
     {
@@ -77,11 +32,6 @@
     {
         "vulnerability_id": "CVE-2025-47912",
         "reason": "Go net/url insufficient validation of bracketed IPv6 hostnames; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4802",
-        "reason": "glibc untrusted LD_LIBRARY_PATH in setuid binaries; Lambda images do not run setuid binaries.",
         "review_by": "2026-03-24"
     },
     {
