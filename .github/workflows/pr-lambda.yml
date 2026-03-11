@@ -46,8 +46,6 @@ jobs:
       cancel-in-progress: true
     outputs:
       build-change: ${{ steps.changes.outputs.build-change }}
-      sanity-test-change: ${{ steps.changes.outputs.sanity-test-change }}
-      telemetry-test-change: ${{ steps.changes.outputs.telemetry-test-change }}
     steps:
       - name: Checkout DLC source
         uses: actions/checkout@v5
@@ -72,10 +70,6 @@ jobs:
               - "scripts/lambda/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-            sanity-test-change:
-              - "test/sanity/**"
-            telemetry-test-change:
-              - "test/telemetry/**"
 
   # ============================================================
   # Build all 6 image targets
@@ -136,10 +130,8 @@ jobs:
   # Sanity tests — run first after build
   # ============================================================
   sanity-test:
-    needs: [check-changes, build-images]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.sanity-test-change == 'true')
+    needs: [build-images]
+    if: success()
     strategy:
       fail-fast: false
       matrix:
@@ -170,10 +162,10 @@ jobs:
       container-type: general
 
   # ============================================================
-  # Security tests — must pass before telemetry or functional tests
+  # Security tests — run in parallel with sanity and telemetry
   # ============================================================
   security-test:
-    needs: [sanity-test]
+    needs: [build-images]
     if: success()
     strategy:
       fail-fast: false
@@ -197,13 +189,11 @@ jobs:
       framework-version: ""
 
   # ============================================================
-  # Telemetry tests — must pass before functional tests
+  # Telemetry tests — run in parallel with sanity and security
   # ============================================================
   telemetry-test:
-    needs: [check-changes, security-test]
-    if: |
-      always() && !failure() && !cancelled() &&
-      (needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.telemetry-test-change == 'true')
+    needs: [build-images]
+    if: success()
     strategy:
       fail-fast: false
       matrix:
@@ -230,7 +220,7 @@ jobs:
   # Validation tests (base, cupy, pytorch) — all in one job
   # ============================================================
   validate-images:
-    needs: [telemetry-test]
+    needs: [sanity-test, security-test, telemetry-test]
     if: success()
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
