@@ -2,7 +2,7 @@
 # releases and creates PRs to update version configurations.
 #
 # Runs on a cron schedule (every 60 minutes) or via manual dispatch.
-# Reads .github/config/tracker.yml for framework definitions.
+# Reads .github/config/autocurrency-tracker.yml for framework definitions.
 # Main logic lives in scripts/check-upstream-releases.sh.
 
 name: Check Upstream Releases
