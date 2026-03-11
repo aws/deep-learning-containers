@@ -382,22 +382,13 @@ ${python_changes}"
       "${updated_files}" \
       "${cuda_python_section}")
 
-    # Build reviewer args
-    reviewer_args=""
-    reviewers=$(yq eval ".frameworks.${framework}.reviewers // []" "${TRACKER_FILE}" | yq eval '.[]' - 2>/dev/null) || true
-    if [[ -n "${reviewers}" ]]; then
-      reviewer_list=$(echo "${reviewers}" | tr '\n' ',' | sed 's/,$//')
-      reviewer_args="--reviewer ${reviewer_list}"
-    fi
-
     # Create PR
     echo "${framework}: Creating pull request..."
     pr_url=$(gh pr create \
       --base main \
       --head "${branch_name}" \
       --title "[Auto-Update] ${framework} ${latest_version}" \
-      --body "${pr_body}" \
-      ${reviewer_args})
+      --body "${pr_body}")
 
     echo "${framework}: PR created: ${pr_url}"
 
