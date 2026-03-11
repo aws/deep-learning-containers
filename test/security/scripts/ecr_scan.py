@@ -69,7 +69,12 @@ def get_scan_findings(ecr_client, image: ImageURI) -> list:
 
 
 def load_allowlist(allowlist_dir, framework=None, framework_version=None):
-    """Load and merge 3-level allowlist. Returns set of allowlisted vulnerability IDs."""
+    """Load and merge 3-level allowlist. Returns set of allowlisted vulnerability IDs.
+
+    Fails if any entry has a 'review_by' date that has passed.
+    """
+    import datetime
+
     paths = [os.path.join(allowlist_dir, GLOBAL_ALLOWLIST_FILE)]
     if framework:
         paths.append(os.path.join(allowlist_dir, framework, FRAMEWORK_ALLOWLIST_FILE))
@@ -78,12 +83,29 @@ def load_allowlist(allowlist_dir, framework=None, framework_version=None):
                 os.path.join(allowlist_dir, framework, f"{framework}-{framework_version}.json")
             )
 
+    today = datetime.date.today()
+    expired = []
     allowed = set()
     for path in paths:
         if os.path.exists(path):
             with open(path) as f:
                 for entry in json.load(f):
                     allowed.add(entry["vulnerability_id"])
+                    review_by = entry.get("review_by")
+                    if review_by:
+                        due = datetime.date.fromisoformat(review_by)
+                        if due < today:
+                            expired.append(
+                                f"{entry['vulnerability_id']} (review_by {review_by}, {path})"
+                            )
+
+    if expired:
+        LOGGER.error(
+            f"{len(expired)} allowlist entries past their review_by date — "
+            "update or remove them:\n" + "\n".join(f"  {e}" for e in expired)
+        )
+        sys.exit(1)
+
     return allowed
 
 
