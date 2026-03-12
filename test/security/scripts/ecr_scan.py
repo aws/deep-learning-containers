@@ -127,6 +127,8 @@ def filter_findings(findings, allowlist):
         vuln_id = vuln.get("packageVulnerabilityDetails", {}).get("vulnerabilityId", "")
         if vuln_id in allowlist:
             continue
+        if vuln.get("fixAvailable") not in ("YES", "PARTIAL"):
+            continue
 
         packages = []
         seen_pkgs = set()
@@ -146,6 +148,7 @@ def filter_findings(findings, allowlist):
                     "version": pkg.get("version", ""),
                     "fixed_in": fixed_in,
                     "file_path": pkg.get("filePath", ""),
+                    "remediation": pkg.get("remediation", ""),
                 }
             )
 
@@ -156,6 +159,9 @@ def filter_findings(findings, allowlist):
             grouped[vuln_id] = {
                 "vulnerability_id": vuln_id,
                 "severity": severity,
+                "inspector_score": vuln.get("inspectorScore", ""),
+                "exploit_available": vuln.get("exploitAvailable", "NO"),
+                "epss_score": vuln.get("epss", {}).get("score", ""),
                 "source_url": vuln.get("packageVulnerabilityDetails", {}).get("sourceUrl", ""),
                 "description": vuln.get("description", ""),
                 "manager": vuln.get("packageVulnerabilityDetails", {})
@@ -221,14 +227,21 @@ def main():
             file_paths = ", ".join(
                 pkg["file_path"] for pkg in vuln["packages"] if pkg.get("file_path")
             )
+            remediations = ", ".join(
+                dict.fromkeys(
+                    pkg["remediation"] for pkg in vuln["packages"] if pkg.get("remediation")
+                )
+            )
             allowlist_entry = pformat(
                 {"vulnerability_id": vuln["vulnerability_id"], "reason": "TODO"}
             )
             LOGGER.error(
-                f"{vuln['severity']} {vuln['vulnerability_id']}\n"
+                f"{vuln['severity']} {vuln['vulnerability_id']}"
+                f" [score={vuln['inspector_score']}, epss={vuln['epss_score']}, exploit={vuln['exploit_available']}]\n"
                 f"\tPackage Manager: {vuln['manager']}\n"
                 f"\tPackages: {pkg_summary}\n"
                 f"\tFile paths: {file_paths}\n"
+                f"\tRemediation: {remediations}\n"
                 f"\tURL: {vuln['source_url']}\n"
                 f"\tDescription: {vuln['description'][:200]}\n"
                 f"\tPin fix: {pin_suggestions}\n"
