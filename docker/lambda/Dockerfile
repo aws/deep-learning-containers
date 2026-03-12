@@ -1,8 +1,9 @@
 # ============================================================
 # Lambda Python sources
-# These images include the Lambda Runtime Interface Client (RIC)
-# pre-installed in /var/lang, so no explicit awslambdaric install
-# is needed in downstream runtime stages.
+# We take only the Python binary, stdlib, and lib-dynload.
+# Site-packages are intentionally excluded — all dependencies
+# (including awslambdaric) are installed via uv so we own the
+# full dependency tree with no Lambda-bundled extras.
 # ============================================================
 FROM public.ecr.aws/lambda/python:3.13 as lambda-python
 
@@ -58,19 +59,25 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && cd /tmp && rm -rf ffmpeg-6.1
 
 # ============================================================
-# Base builder (Python 3.13 — requests, pip-licenses for OSS compliance)
+# Base builder (Python 3.13 — awslambdaric, requests, pip-licenses)
 # ============================================================
 FROM builder-base as builder-base-py3
-COPY --from=lambda-python /var/lang /var/lang
+COPY --from=lambda-python /var/lang/bin /var/lang/bin
+COPY --from=lambda-python /var/lang/include /var/lang/include
+COPY --from=lambda-python /var/lang/lib /var/lang/lib
+RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
 
 # ============================================================
-# CuPy builder (Python 3.13 — CuPy, NumPy, SciPy, etc.)
+# CuPy builder (Python 3.13 — awslambdaric, CuPy, NumPy, SciPy, etc.)
 # ============================================================
 FROM builder-base as builder-cupy-py3
-COPY --from=lambda-python /var/lang /var/lang
+COPY --from=lambda-python /var/lang/bin /var/lang/bin
+COPY --from=lambda-python /var/lang/include /var/lang/include
+COPY --from=lambda-python /var/lang/lib /var/lang/lib
+RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-cupy.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -81,10 +88,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   && find /var/lang -type f -name "*.pyo" -delete
 
 # ============================================================
-# PyTorch builder (Python 3.13 — PyTorch, SAM2, transformers)
+# PyTorch builder (Python 3.13 — awslambdaric, PyTorch, SAM2, transformers)
 # ============================================================
 FROM builder-base-devel as builder-pytorch-py3
-COPY --from=lambda-python /var/lang /var/lang
+COPY --from=lambda-python /var/lang/bin /var/lang/bin
+COPY --from=lambda-python /var/lang/include /var/lang/include
+COPY --from=lambda-python /var/lang/lib /var/lang/lib
+RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-pytorch.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
@@ -133,14 +143,15 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh
+  && rm /tmp/setup_oss_compliance.sh \
+  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
+    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
 
 # ============================================================
 # Runtime: CuPy Python 3.13 (base + CuPy, NumPy, SciPy)
-# /var/lang from builder includes both Lambda RIC and our deps.
 # ============================================================
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
@@ -177,7 +188,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh
+  && rm /tmp/setup_oss_compliance.sh \
+  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
+    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -225,7 +238,9 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && rm /tmp/setup_oss_compliance.sh
+  && rm /tmp/setup_oss_compliance.sh \
+  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
+    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]

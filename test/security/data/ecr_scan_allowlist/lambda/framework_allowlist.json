@@ -1,9 +1,5 @@
 [
-    {
-        "vulnerability_id": "CVE-2024-6345",
-        "reason": "setuptools package_index RCE; pinned to setuptools==78.1.1 in requirements but ECR scan detects older copy bundled in uv or the Lambda base image's pip, which cannot be patched via requirements.",
-        "review_by": "2026-03-24"
-    },
+
     {
         "vulnerability_id": "CVE-2025-4138",
         "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
@@ -24,11 +20,7 @@
         "reason": "Python tarfile arbitrary write with filter=data (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
         "review_by": "2026-03-24"
     },
-    {
-        "vulnerability_id": "CVE-2025-47273",
-        "reason": "setuptools path traversal; pinned to setuptools==78.1.1 in requirements but ECR scan detects older copy bundled in uv or the Lambda base image's pip, which cannot be patched via requirements.",
-        "review_by": "2026-03-24"
-    },
+
     {
         "vulnerability_id": "CVE-2025-47912",
         "reason": "Go net/url insufficient validation of bracketed IPv6 hostnames; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
@@ -44,11 +36,7 @@
         "reason": "Python tarfile extraction API defect (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
         "review_by": "2026-03-24"
     },
-    {
-        "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 decompression bomb on redirect responses; pinned to urllib3==2.6.3 in requirements files but ECR scan may still report against bundled copies in transitive deps.",
-        "review_by": "2026-03-24"
-    },
+
     {
         "vulnerability_id": "CVE-2026-23949",
         "reason": "CVE details not yet published; present in NVIDIA CUDA base image, no fix available in AL2023 repo.",
