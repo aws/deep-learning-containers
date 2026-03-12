@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tracker-utils.sh — Shared utility functions for the upstream release tracker.
+# utils.sh — Shared utility functions for the upstream release tracker.
 # Source this file; it defines functions only and has no top-level side effects.
 
 set -euo pipefail
