@@ -145,6 +145,7 @@ def filter_findings(findings, allowlist):
                     "name": pkg.get("name", ""),
                     "version": pkg.get("version", ""),
                     "fixed_in": fixed_in,
+                    "file_path": pkg.get("filePath", ""),
                 }
             )
 
@@ -217,6 +218,9 @@ def main():
                 for pkg in vuln["packages"]
                 if pkg["fixed_in"] != "N/A"
             )
+            file_paths = ", ".join(
+                pkg["file_path"] for pkg in vuln["packages"] if pkg.get("file_path")
+            )
             allowlist_entry = pformat(
                 {"vulnerability_id": vuln["vulnerability_id"], "reason": "TODO"}
             )
@@ -224,6 +228,7 @@ def main():
                 f"{vuln['severity']} {vuln['vulnerability_id']}\n"
                 f"\tPackage Manager: {vuln['manager']}\n"
                 f"\tPackages: {pkg_summary}\n"
+                f"\tFile paths: {file_paths}\n"
                 f"\tURL: {vuln['source_url']}\n"
                 f"\tDescription: {vuln['description'][:200]}\n"
                 f"\tPin fix: {pin_suggestions}\n"
