@@ -9,11 +9,12 @@ name: Check Upstream Releases
 
 on:
   # Testing this workflow in PR before merge
-  pull_request:
-    types: [opened, synchronize]
+  # pull_request:
+  #   types: [opened, synchronize]
 
-  schedule:
-    - cron: '0 * * * *'
+  # Uncomment when ready for full automation
+  # schedule:
+  #   - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       framework:
@@ -36,8 +37,7 @@ jobs:
     env:
       GITHUB_TOKEN: ${{ github.token }}
       SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      # DRY_RUN: ${{ inputs.dry-run || false }}
-      DRY_RUN: false #### temporary for testing
+      DRY_RUN: ${{ inputs.dry-run || false }}
       FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
     steps:
       - name: Checkout repository
