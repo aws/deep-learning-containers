@@ -68,7 +68,8 @@ COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.13 pip==25.3 \
+  && uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
 
 # ============================================================
 # CuPy builder (Python 3.13 — awslambdaric, CuPy, NumPy, SciPy, etc.)
@@ -81,7 +82,8 @@ RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-cupy.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
+  uv pip install --python /var/lang/bin/python3.13 pip==25.3 \
+  && uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
   && uv pip check --python /var/lang/bin/python3.13 \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && find /var/lang -type f -name "*.pyc" -delete \
@@ -98,7 +100,8 @@ RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-pytorch.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/uv \
-  uv pip install --index-strategy unsafe-best-match --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
+  uv pip install --python /var/lang/bin/python3.13 pip==25.3 \
+  && uv pip install --index-strategy unsafe-best-match --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
   && uv pip check --python /var/lang/bin/python3.13 \
   && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
   && (find /var/lang -type d -name tests -exec rm -rf {} + 2>/dev/null; true) \
