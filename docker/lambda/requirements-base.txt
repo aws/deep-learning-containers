@@ -1,5 +1,5 @@
 awslambdaric==3.1.1
-botocore==1.40.4
+boto3==1.40.4
 pip==25.3
 pip-licenses==5.5.1
 requests==2.32.5
