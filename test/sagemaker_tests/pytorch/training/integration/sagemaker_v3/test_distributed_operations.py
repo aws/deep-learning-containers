@@ -167,10 +167,6 @@ def test_dist_operations_multi_gpu(
 @pytest.mark.team("conda")
 def test_dist_operations_fastai_gpu(framework_version, ecr_image, sagemaker_regions):
     skip_if_not_v3_compatible(ecr_image)
-    # fastai is removed from 2.10+ images
-    _, image_framework_version = get_framework_and_version_from_tag(ecr_image)
-    if Version(image_framework_version) in SpecifierSet(">=2.10"):
-        pytest.skip("fastai removed from PyTorch 2.10+ images (requires torch<2.10)")
 
     source_code = SourceCode(
         source_dir=fastai_path,

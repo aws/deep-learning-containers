@@ -198,7 +198,6 @@ RUN pip install --no-cache-dir \
     tzdata
 
 # Install PyTorch
-# Note: fastai removed - requires torch<2.10, not compatible with PyTorch 2.10
 RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     torchvision==${TORCHVISION_VERSION} \
     torchaudio==${TORCHAUDIO_VERSION} \
@@ -206,10 +205,14 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     && pip install --no-cache-dir -U torchtnt==${TORCHTNT_VERSION} \
     torchdata==${TORCHDATA_VERSION} \
     s3torchconnector \
+    fastai \
     accelerate \
+    # pin numpy requirement for fastai dependency
+    # requires explicit declaration of spacy, thinc, blis
     spacy \
     thinc \
     blis \
+    numpy \
  && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.10/license.txt
