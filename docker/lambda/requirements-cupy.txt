@@ -9,5 +9,5 @@ pip==25.3
 pip-licenses==5.5.1
 requests==2.32.5
 scipy==1.17.1
-setuptools==78.1.1
+setuptools==82.0.1
 urllib3==2.6.3

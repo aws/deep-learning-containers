@@ -49,11 +49,6 @@
     },
 
     {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "CVE details not yet published; present in NVIDIA CUDA base image, no fix available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
         "vulnerability_id": "CVE-2026-24882",
         "reason": "GnuPG tpm2daemon stack buffer overflow in PKDECRYPT; fix requires GnuPG >= 2.5.17. Lambda images do not use TPM2.",
         "review_by": "2026-03-24"
