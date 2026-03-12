@@ -1,0 +1,37 @@
+# Framework Tracker Registry
+# Add new frameworks here to enable automatic upstream release tracking.
+# No workflow changes needed — just add an entry and the tracker picks it up.
+
+notifications:
+  slack:
+    enabled: true
+    # The webhook URL is stored as a GitHub Actions secret, not in this file
+    # Secret name: SLACK_WEBHOOK_URL
+    # The target channel is determined by the webhook URL (configured in Slack)
+
+frameworks:
+  vllm:
+    github_repo: "vllm-project/vllm"
+    tag_prefix: "v"
+    config_files:
+      - path: ".github/config/vllm-ec2.yml"
+        prod_image_template: "vllm:{major}.{minor}-gpu-py312-ec2"
+      - path: ".github/config/vllm-sagemaker.yml"
+        prod_image_template: "vllm:{major}.{minor}-gpu-py312"
+    exclude_configs:
+      - ".github/config/vllm-rayserve.yml"
+    dockerfiles:
+      - path: "docker/vllm/Dockerfile"
+        base_image_template: "vllm/vllm-openai:v{version}"
+
+  sglang:
+    github_repo: "sgl-project/sglang"
+    tag_prefix: "v"
+    config_files:
+      - path: ".github/config/sglang-ec2.yml"
+        prod_image_template: "sglang:{major}.{minor}-gpu-py312-ec2"
+      - path: ".github/config/sglang-sagemaker.yml"
+        prod_image_template: "sglang:{major}.{minor}-gpu-py312"
+    dockerfiles:
+      - path: "docker/sglang/Dockerfile"
+        base_image_template: "lmsysorg/sglang:v{version}-cu129-amd64"
