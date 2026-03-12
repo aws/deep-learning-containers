@@ -16,12 +16,11 @@ import pytest
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from sagemaker.pytorch import PyTorch
-from sagemaker import utils
+from sagemaker.modules.configs import SourceCode
 
 from .timeout import timeout
 from ...integration import smart_sifting_path, DEFAULT_TIMEOUT
-from .... import invoke_pytorch_helper_function
+from . import skip_if_not_v3_compatible, invoke_pytorch_model_trainer
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 
 
@@ -45,14 +44,26 @@ def can_run_smart_sifting(ecr_image):
 @pytest.mark.skip_gpu
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
     validate_or_skip_smart_sifting(ecr_image)
     instance_type = instance_type or "ml.c5.xlarge"
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-    }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_smart_sifting, function_args)
+    source_code = SourceCode(
+        source_dir=smart_sifting_path,
+        entry_script="train_plt_smart_sifting.py",
+    )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+    hyperparameters = {"epochs": 1}
+
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        invoke_pytorch_model_trainer(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters=hyperparameters,
+            job_name="test-pt-v3-smart-sifting",
+        )
 
 
 @pytest.mark.usefixtures("feature_smart_sifting_present")
@@ -62,35 +73,23 @@ def test_smart_sifting_cpu(framework_version, ecr_image, sagemaker_regions, inst
 @pytest.mark.skip_cpu
 @pytest.mark.skip_py2_containers
 def test_smart_sifting_gpu(framework_version, ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
     validate_or_skip_smart_sifting(ecr_image)
     instance_type = instance_type or "ml.g4dn.12xlarge"
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-    }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_smart_sifting, function_args)
+    source_code = SourceCode(
+        source_dir=smart_sifting_path,
+        entry_script="train_plt_smart_sifting.py",
+    )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+    hyperparameters = {"epochs": 1}
 
-
-def _test_smart_sifting(
-    ecr_image,
-    sagemaker_session,
-    framework_version,
-    instance_type=None,
-    instance_count=1,
-):
-    est_params = {
-        "entry_point": "train_plt_smart_sifting.py",
-        "source_dir": smart_sifting_path,
-        "role": "SageMakerRole",
-        "sagemaker_session": sagemaker_session,
-        "image_uri": ecr_image,
-        "framework_version": framework_version,
-        "hyperparameters": {"epochs": 1},
-    }
-    est_params["instance_type"] = instance_type
-    est_params["instance_count"] = instance_count
-    job_name = "test-smart-sifting-plt"
     with timeout(minutes=DEFAULT_TIMEOUT):
-        pytorch = PyTorch(**est_params)
-        pytorch.fit(job_name=utils.unique_name_from_base(job_name))
+        invoke_pytorch_model_trainer(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters=hyperparameters,
+            job_name="test-pt-v3-smart-sifting",
+        )

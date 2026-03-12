@@ -15,11 +15,13 @@ from __future__ import absolute_import
 import os
 
 import pytest
+from sagemaker.modules.configs import SourceCode
+from sagemaker.modules.distributed import Torchrun
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
-from ...integration.sagemaker.timeout import timeout
+from .timeout import timeout
 from ....training import get_efa_test_instance_type
-from . import invoke_pytorch_estimator
+from . import skip_if_not_v3_compatible, invoke_pytorch_model_trainer
 from .test_torch_distributed import validate_or_skip_distributed_training
 
 
@@ -43,20 +45,21 @@ from .test_torch_distributed import validate_or_skip_distributed_training
 def test_pytorchddp_throughput_gpu(
     framework_version, ecr_image, sagemaker_regions, efa_instance_type, tmpdir
 ):
-    with timeout(minutes=DEFAULT_TIMEOUT):
-        validate_or_skip_distributed_training(ecr_image)
-        distribution = {"pytorchddp": {"enabled": True}}
-        estimator_parameter = {
-            "entry_point": "pytorchddp_throughput_mnist.py",
-            "role": "SageMakerRole",
-            "instance_count": 2,
-            "instance_type": efa_instance_type,
-            "source_dir": mnist_path,
-            "framework_version": framework_version,
-            "distribution": distribution,
-        }
+    skip_if_not_v3_compatible(ecr_image)
+    validate_or_skip_distributed_training(ecr_image)
 
-        job_name_prefix = "test-pytorchddp-throughput-gpu"
-        invoke_pytorch_estimator(
-            ecr_image, sagemaker_regions, estimator_parameter, job_name=job_name_prefix
+    source_code = SourceCode(
+        source_dir=mnist_path,
+        entry_script="pytorchddp_throughput_mnist.py",
+    )
+    compute_params = {"instance_type": efa_instance_type, "instance_count": 2}
+
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        invoke_pytorch_model_trainer(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute_params=compute_params,
+            distributed_runner=Torchrun(),
+            job_name="test-pt-v3-pytorchddp-throughput-gpu",
         )

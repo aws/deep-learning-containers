@@ -211,6 +211,17 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
     else:
         integration_path = os.path.join("integration", sagemaker_test_type)
 
+    # Use SageMaker SDK v3 tests for PyTorch >= 2.10
+    if (
+        framework == "pytorch"
+        and job_type == "training"
+        and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE
+    ):
+        from packaging.version import Version
+
+        if Version(framework_version) >= Version("2.10"):
+            integration_path = os.path.join("integration", "sagemaker_v3")
+
     # Conditions for modifying tensorflow SageMaker pytest commands
     if framework == "tensorflow" and sagemaker_test_type == SAGEMAKER_REMOTE_TEST_TYPE:
         if job_type == "inference":
@@ -447,6 +458,14 @@ def execute_sagemaker_remote_tests(process_index, image, global_pytest_cache, py
         context.run(f"virtualenv {tag}")
         with context.prefix(f"source {tag}/bin/activate"):
             context.run("pip install -r requirements.txt", warn=True)
+            # For PyTorch >= 2.10, install SM SDK v3 requirements to override v2
+            framework, framework_version = get_framework_and_version_from_tag(image)
+            if framework == "pytorch":
+                from packaging.version import Version
+
+                if Version(framework_version) >= Version("2.10"):
+                    v3_req = os.path.join("integration", "sagemaker_v3", "requirements.txt")
+                    context.run(f"pip install -r {v3_req}", warn=True)
             pytest_cache_util.download_pytest_cache_from_s3_to_local(
                 path, **pytest_cache_params, custom_cache_directory=str(process_index)
             )

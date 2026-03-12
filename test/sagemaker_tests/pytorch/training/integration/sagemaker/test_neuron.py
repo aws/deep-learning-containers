@@ -16,10 +16,7 @@ import os
 import pytest
 import sagemaker
 from sagemaker import utils
-from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import SourceCode, Compute, InputData
-from sagemaker.train.distributed import Torchrun
-
+from sagemaker.pytorch import PyTorch
 from ...integration import neuron_allreduce_path, neuron_mlp_path, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
 from retrying import retry
@@ -141,33 +138,28 @@ def _test_neuron_allreduce(
     instance_count=1,
     num_neuron_cores=2,
 ):
-    """Test Neuron allreduce using v3 ModelTrainer."""
     with timeout(minutes=DEFAULT_TIMEOUT):
-        source_code = SourceCode(
-            entry_script="entrypoint.py",
+        pytorch = PyTorch(
+            entry_point="entrypoint.py",
             source_dir=neuron_allreduce_path,
-        )
-        compute = Compute(instance_type=instance_type, instance_count=instance_count)
-
-        model_trainer = ModelTrainer(
-            training_image=ecr_image,
-            source_code=source_code,
-            compute=compute,
-            hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
             role="SageMakerRole",
+            instance_count=instance_count,
+            instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
+            disable_profiler=True,
         )
 
-        sagemaker_session.default_bucket()
-        fake_input = sagemaker_session.upload_data(
+        pytorch.sagemaker_session.default_bucket()
+        fake_input = pytorch.sagemaker_session.upload_data(
             path=neuron_allreduce_path, key_prefix="pytorch/neuron_allreduce"
         )
 
-        input_data = InputData(channel_name="required_argument", data_source=fake_input)
-        model_trainer.train(
-            input_data_config=[input_data],
+        pytorch.fit(
+            {"required_argument": fake_input},
             job_name=utils.unique_name_from_base("test-pt-neuron-allreduce"),
-            wait=True,
         )
 
 
@@ -179,99 +171,84 @@ def _test_neuron_mlp(
     instance_count=1,
     num_neuron_cores=2,
 ):
-    """Test Neuron MLP using v3 ModelTrainer."""
     with timeout(minutes=DEFAULT_TIMEOUT):
-        source_code = SourceCode(
-            entry_script="entrypoint.py",
+        pytorch = PyTorch(
+            entry_point="entrypoint.py",
             source_dir=neuron_mlp_path,
-        )
-        compute = Compute(instance_type=instance_type, instance_count=instance_count)
-
-        model_trainer = ModelTrainer(
-            training_image=ecr_image,
-            source_code=source_code,
-            compute=compute,
-            hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
             role="SageMakerRole",
+            instance_count=instance_count,
+            instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            hyperparameters={"nproc-per-node": num_neuron_cores, "nnodes": instance_count},
+            disable_profiler=True,
         )
 
-        sagemaker_session.default_bucket()
-        fake_input = sagemaker_session.upload_data(
+        pytorch.sagemaker_session.default_bucket()
+        fake_input = pytorch.sagemaker_session.upload_data(
             path=neuron_mlp_path, key_prefix="pytorch/neuron_mlp"
         )
 
-        input_data = InputData(channel_name="required_argument", data_source=fake_input)
-        model_trainer.train(
-            input_data_config=[input_data],
+        pytorch.fit(
+            {"required_argument": fake_input},
             job_name=utils.unique_name_from_base("test-pt-neuron-mlp"),
-            wait=True,
         )
 
 
 def _test_neuron_allreduce_distributed(
     ecr_image, sagemaker_session, framework_version, instance_type, instance_count=1
 ):
-    """Test Neuron allreduce distributed using v3 ModelTrainer."""
     with timeout(minutes=DEFAULT_TIMEOUT):
-        source_code = SourceCode(
-            entry_script="all_reduce.py",
+        pytorch = PyTorch(
+            entry_point="all_reduce.py",
             source_dir=neuron_allreduce_path,
-        )
-        compute = Compute(instance_type=instance_type, instance_count=instance_count)
-
-        model_trainer = ModelTrainer(
-            training_image=ecr_image,
-            source_code=source_code,
-            compute=compute,
-            distributed_runner=Torchrun(),
-            environment={"FI_EFA_FORK_SAFE": "1"},
             role="SageMakerRole",
+            instance_count=instance_count,
+            instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            distribution={"torch_distributed": {"enabled": True}},
+            disable_profiler=True,
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
-        sagemaker_session.default_bucket()
-        fake_input = sagemaker_session.upload_data(
+        pytorch.sagemaker_session.default_bucket()
+        fake_input = pytorch.sagemaker_session.upload_data(
             path=neuron_allreduce_path, key_prefix="pytorch/neuron_allreduce"
         )
 
-        input_data = InputData(channel_name="required_argument", data_source=fake_input)
-        model_trainer.train(
-            input_data_config=[input_data],
+        pytorch.fit(
+            {"required_argument": fake_input},
             job_name=utils.unique_name_from_base("test-pt-neuron-allreduce-dist"),
-            wait=True,
         )
 
 
 def _test_neuron_mlp_distributed(
     ecr_image, sagemaker_session, framework_version, instance_type, instance_count=1
 ):
-    """Test Neuron MLP distributed using v3 ModelTrainer."""
     with timeout(minutes=DEFAULT_TIMEOUT):
-        source_code = SourceCode(
-            entry_script="train_torchrun.py",
+        pytorch = PyTorch(
+            entry_point="train_torchrun.py",
             source_dir=neuron_mlp_path,
-        )
-        compute = Compute(instance_type=instance_type, instance_count=instance_count)
-
-        model_trainer = ModelTrainer(
-            training_image=ecr_image,
-            source_code=source_code,
-            compute=compute,
-            distributed_runner=Torchrun(),
-            environment={"FI_EFA_FORK_SAFE": "1"},
             role="SageMakerRole",
+            instance_count=instance_count,
+            instance_type=instance_type,
             sagemaker_session=sagemaker_session,
+            image_uri=ecr_image,
+            framework_version=framework_version,
+            distribution={"torch_distributed": {"enabled": True}},
+            disable_profiler=True,
+            environment={"FI_EFA_FORK_SAFE": "1"},
         )
 
-        sagemaker_session.default_bucket()
-        fake_input = sagemaker_session.upload_data(
+        pytorch.sagemaker_session.default_bucket()
+        fake_input = pytorch.sagemaker_session.upload_data(
             path=neuron_mlp_path, key_prefix="pytorch/neuron_mlp"
         )
 
-        input_data = InputData(channel_name="required_argument", data_source=fake_input)
-        model_trainer.train(
-            input_data_config=[input_data],
+        pytorch.fit(
+            {"required_argument": fake_input},
             job_name=utils.unique_name_from_base("test-pt-neuron-mlp-dist"),
-            wait=True,
         )

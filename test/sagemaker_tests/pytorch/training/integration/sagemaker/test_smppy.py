@@ -12,21 +12,23 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
-import os
-import time
+import os, sys
+import subprocess
 
+# only the latest version of sagemaker supports profiler
+subprocess.check_call([sys.executable, "-m", "pip", "install", "sagemaker>=2.180.0"])
+
+import time
 import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-
-from sagemaker.train.configs import SourceCode, Compute
-from sagemaker.train.distributed import Torchrun
+from sagemaker import ProfilerConfig, Profiler
 
 from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir
 from ...integration.sagemaker.timeout import timeout
-from . import invoke_pytorch_training
+from . import invoke_pytorch_estimator
 from .test_torch_distributed import validate_or_skip_distributed_training
 
 INSTANCE_TYPE = "ml.g4dn.12xlarge"
@@ -49,28 +51,26 @@ def _skip_if_image_is_not_compatible_with_smppy(image_uri):
 def test_training_smppy(framework_version, ecr_image, sagemaker_regions):
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
-        source_code = SourceCode(
-            entry_script=smppy_mnist_script,
-        )
-
-        compute = Compute(
-            instance_type=INSTANCE_TYPE,
-            instance_count=1,
-        )
-
-        hyperparameters = {"epochs": 1}
-
-        model_trainer, _ = invoke_pytorch_training(
+        estimator_parameters = {
+            "entry_point": smppy_mnist_script,
+            "role": "SageMakerRole",
+            "instance_count": 1,
+            "instance_type": INSTANCE_TYPE,
+            "framework_version": framework_version,
+            "hyperparameters": {"epochs": 1},
+            "profiler_config": ProfilerConfig(profile_params=Profiler(cpu_profiling_duration=3600)),
+            "debug_hook_config": False,
+        }
+        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
+        job_name_prefix = "test-pt-smppy-training"
+        pytorch, _ = invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
-            source_code=source_code,
-            compute=compute,
-            hyperparameters=hyperparameters,
-            upload_s3_data_args={"path": training_dir, "key_prefix": "pytorch/mnist"},
-            job_name="test-pt-smppy-training",
+            estimator_parameters,
+            upload_s3_data_args=upload_s3_data_args,
+            job_name=job_name_prefix,
         )
-        # Note: Profiler config is handled differently in v3
-        # The profiler functionality may need separate configuration
+        _check_and_cleanup_s3_output(pytorch, 40)
 
 
 @pytest.mark.skip_smppy_test
@@ -85,27 +85,69 @@ def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regi
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     with timeout(minutes=DEFAULT_TIMEOUT):
         validate_or_skip_distributed_training(ecr_image)
-
-        source_code = SourceCode(
-            entry_script=smppy_mnist_script,
-        )
-
-        compute = Compute(
-            instance_type=INSTANCE_TYPE,
-            instance_count=2,
-        )
-
-        hyperparameters = {"epochs": 1}
-
-        model_trainer, _ = invoke_pytorch_training(
+        distribution = {"torch_distributed": {"enabled": True}}
+        estimator_parameters = {
+            "entry_point": smppy_mnist_script,
+            "role": "SageMakerRole",
+            "instance_count": 2,
+            "instance_type": INSTANCE_TYPE,
+            "framework_version": framework_version,
+            "distribution": distribution,
+            "hyperparameters": {"epochs": 1},
+            "profiler_config": ProfilerConfig(profile_params=Profiler(cpu_profiling_duration=3600)),
+            "debug_hook_config": False,
+        }
+        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
+        job_name_prefix = "test-pt-smppy-training-distributed"
+        pytorch, _ = invoke_pytorch_estimator(
             ecr_image,
             sagemaker_regions,
-            source_code=source_code,
-            compute=compute,
-            hyperparameters=hyperparameters,
-            distributed_runner=Torchrun(),
-            upload_s3_data_args={"path": training_dir, "key_prefix": "pytorch/mnist"},
-            job_name="test-pt-smppy-training-distributed",
+            estimator_parameters,
+            upload_s3_data_args=upload_s3_data_args,
+            job_name=job_name_prefix,
         )
-        # Note: Profiler config is handled differently in v3
-        # The profiler functionality may need separate configuration
+        _check_and_cleanup_s3_output(pytorch, 60)
+
+
+def _check_and_cleanup_s3_output(estimator, wait_interval, num_checks=5):
+    s3 = boto3.client("s3")
+    bucket = estimator.output_path.replace("s3://", "").rstrip("/")
+
+    # Give postprocessing rule some time to complete
+
+    prefix = _get_deep_profiler_rule_output_prefix(estimator)
+    postproc_contents = []
+    checks = 0
+    while not postproc_contents and checks < num_checks:
+        time.sleep(wait_interval)
+        postproc_contents = s3.list_objects_v2(Bucket=bucket, Prefix=prefix).get("Contents")
+        checks += 1
+    print(f"Checking contents of {prefix}...")
+
+    assert (
+        len(postproc_contents) > 0
+    ), f"The prefix {prefix} doesn't contain any sagemaker profiler files"
+    for file in postproc_contents:
+        assert file.get("Size") > 0, f"sagemaker profiler file has size 0"
+
+    all_contents = s3.list_objects_v2(
+        Bucket=bucket, Prefix=os.path.join(estimator.latest_training_job.name, "")
+    ).get("Contents")
+    for file in all_contents:
+        s3.delete_object(Bucket=bucket, Key=file["Key"])
+
+
+def _get_deep_profiler_rule_output_prefix(estimator):
+    config_name = None
+    for processing in estimator.profiler_rule_configs:
+        params = processing.get("RuleParameters", dict())
+        rule = config_name = params.get("rule_to_invoke", "")
+        if rule == "DetailedProfilerProcessing":
+            config_name = processing.get("RuleConfigurationName")
+            break
+    return os.path.join(
+        estimator.latest_training_job.name,
+        "rule-output",
+        config_name,
+        "",
+    )

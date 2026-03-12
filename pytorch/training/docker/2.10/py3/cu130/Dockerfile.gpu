@@ -130,7 +130,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     spacy \
     thinc \
     blis \
-    numpy \
  && pip uninstall -y dataclasses
 
 # Install flash attn and NVIDIA transformer engine.

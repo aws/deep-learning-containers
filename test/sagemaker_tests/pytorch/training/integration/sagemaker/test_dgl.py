@@ -16,8 +16,7 @@ import os
 
 import pytest
 from sagemaker import utils
-from sagemaker.train import ModelTrainer
-from sagemaker.train.configs import SourceCode, Compute
+from sagemaker.pytorch import PyTorch
 
 from ...integration import resources_path, DEFAULT_TIMEOUT
 from ...integration.sagemaker.timeout import timeout
@@ -90,36 +89,28 @@ def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
 
 
 def _test_dgl_LT_09x_training(ecr_image, sagemaker_session, instance_type):
-    """Test DGL training for versions < 0.9.x using v3 ModelTrainer."""
-    source_code = SourceCode(entry_script=DGL_LT_09x_SCRIPT_PATH)
-    compute = Compute(instance_type=instance_type, instance_count=1)
-
-    model_trainer = ModelTrainer(
-        training_image=ecr_image,
-        source_code=source_code,
-        compute=compute,
+    dgl = PyTorch(
+        entry_point=DGL_LT_09x_SCRIPT_PATH,
         role="SageMakerRole",
+        instance_count=1,
+        instance_type=instance_type,
         sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
     )
-
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
-        model_trainer.train(job_name=job_name, wait=True)
+        dgl.fit(job_name=job_name)
 
 
 def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
-    """Test DGL training using v3 ModelTrainer."""
-    source_code = SourceCode(entry_script=DGL_SCRIPT_PATH)
-    compute = Compute(instance_type=instance_type, instance_count=1)
-
-    model_trainer = ModelTrainer(
-        training_image=ecr_image,
-        source_code=source_code,
-        compute=compute,
+    dgl = PyTorch(
+        entry_point=DGL_SCRIPT_PATH,
         role="SageMakerRole",
+        instance_count=1,
+        instance_type=instance_type,
         sagemaker_session=sagemaker_session,
+        image_uri=ecr_image,
     )
-
     with timeout(minutes=DEFAULT_TIMEOUT):
         job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
-        model_trainer.train(job_name=job_name, wait=True)
+        dgl.fit(job_name=job_name)

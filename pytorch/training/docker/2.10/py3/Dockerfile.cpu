@@ -210,7 +210,6 @@ RUN pip install --no-cache-dir -U torch==${PYTORCH_VERSION} \
     spacy \
     thinc \
     blis \
-    numpy \
  && pip uninstall -y dataclasses
 
 RUN curl -o /license.txt https://aws-dlc-licenses.s3.amazonaws.com/pytorch-2.10/license.txt
@@ -243,6 +242,8 @@ RUN rm -rf /root/.cache | true
 
 FROM common AS ec2
 
+ARG PYTHON
+
 WORKDIR /
 
 COPY setup_oss_compliance.sh setup_oss_compliance.sh
@@ -271,6 +272,8 @@ CMD ["/bin/bash"]
 #################################################################
 
 FROM common AS sagemaker
+
+ARG PYTHON
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"

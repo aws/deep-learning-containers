@@ -12,14 +12,14 @@
 # permissions and limitations under the License.
 from __future__ import absolute_import
 
+import os
+
 import pytest
-from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
+from sagemaker.modules.configs import SourceCode
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
-from ...integration.sagemaker.timeout import timeout
-from . import invoke_pytorch_estimator
+from .timeout import timeout
+from . import skip_if_not_v3_compatible, invoke_pytorch_model_trainer
 
 
 @pytest.mark.skip("SM Debugger/Profiler v1 deprecated")
@@ -29,6 +29,8 @@ from . import invoke_pytorch_estimator
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
+
     hyperparameters = {
         "random_seed": True,
         "num_steps": 50,
@@ -37,23 +39,21 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
         "data_dir": training_dir,
     }
 
+    source_code = SourceCode(
+        source_dir=os.path.dirname(smdebug_mnist_script),
+        entry_script=os.path.basename(smdebug_mnist_script),
+    )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+
     with timeout(minutes=DEFAULT_TIMEOUT):
-        estimator_parameter = {
-            "entry_point": smdebug_mnist_script,
-            "role": "SageMakerRole",
-            "instance_count": 1,
-            "instance_type": instance_type,
-            "framework_version": framework_version,
-            "hyperparameters": hyperparameters,
-        }
-        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name_prefix = "test-pt-smdebug-training"
-        invoke_pytorch_estimator(
+        invoke_pytorch_model_trainer(
             ecr_image,
             sagemaker_regions,
-            estimator_parameter,
-            upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name_prefix,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters=hyperparameters,
+            upload_s3_data_args={"path": training_dir, "key_prefix": "pytorch/mnist"},
+            job_name="test-pt-v3-smdebug-training",
         )
 
 
@@ -64,6 +64,8 @@ def test_training_smdebug(framework_version, ecr_image, sagemaker_regions, insta
 @pytest.mark.model("mnist")
 @pytest.mark.team("smdebug")
 def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
+
     hyperparameters = {
         "random_seed": True,
         "num_steps": 50,
@@ -72,22 +74,19 @@ def test_hc_training_smdebug(framework_version, ecr_image, sagemaker_regions, in
         "data_dir": training_dir,
     }
 
+    source_code = SourceCode(
+        source_dir=os.path.dirname(smdebug_mnist_script),
+        entry_script=os.path.basename(smdebug_mnist_script),
+    )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+
     with timeout(minutes=DEFAULT_TIMEOUT):
-        instance_count = 1
-        training_group = InstanceGroup("train_group", instance_type, instance_count)
-        estimator_parameter = {
-            "entry_point": smdebug_mnist_script,
-            "role": "SageMakerRole",
-            "instance_groups": [training_group],
-            "framework_version": framework_version,
-            "hyperparameters": hyperparameters,
-        }
-        upload_s3_data_args = {"path": training_dir, "key_prefix": "pytorch/mnist"}
-        job_name_prefix = "test-pt-hc-smdebug-training"
-        invoke_pytorch_estimator(
+        invoke_pytorch_model_trainer(
             ecr_image,
             sagemaker_regions,
-            estimator_parameter,
-            upload_s3_data_args=upload_s3_data_args,
-            job_name=job_name_prefix,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters=hyperparameters,
+            upload_s3_data_args={"path": training_dir, "key_prefix": "pytorch/mnist"},
+            job_name="test-pt-v3-hc-smdebug-training",
         )

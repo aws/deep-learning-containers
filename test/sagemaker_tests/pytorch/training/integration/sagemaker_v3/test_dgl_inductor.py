@@ -15,20 +15,18 @@ from __future__ import absolute_import
 import os
 
 import pytest
-from sagemaker import utils
-from sagemaker.pytorch import PyTorch
+from sagemaker.modules.configs import SourceCode
 
 from ...integration import resources_path, DEFAULT_TIMEOUT
-from ...integration.sagemaker.timeout import timeout
+from .timeout import timeout
 
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
-from .... import invoke_pytorch_helper_function
+from . import skip_if_not_v3_compatible, invoke_pytorch_model_trainer
 
 
 DGL_DATA_PATH = os.path.join(resources_path, "dgl-gcn")
-DGL_LT_09x_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train_dgl_lt_09x.py")
 DGL_SCRIPT_PATH = os.path.join(DGL_DATA_PATH, "train.py")
 inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
@@ -42,11 +40,24 @@ inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge
 @pytest.mark.model("gcn")
 @pytest.mark.team("dgl")
 def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.c5.xlarge"
-    function_args = {
-        "instance_type": instance_type,
-    }
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
+
+    source_code = SourceCode(
+        source_dir=DGL_DATA_PATH,
+        entry_script="train.py",
+    )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+
+    with timeout(minutes=DEFAULT_TIMEOUT):
+        invoke_pytorch_model_trainer(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters={"inductor": 1},
+            job_name="test-pt-v3-dgl-inductor",
+        )
 
 
 @pytest.mark.skip("DGL binaries are not installed in DLCs by default")
@@ -59,24 +70,21 @@ def test_dgl_gcn_training_cpu(ecr_image, sagemaker_regions, instance_type):
 @pytest.mark.team("dgl")
 @pytest.mark.parametrize("instance_type", inductor_instance_types, indirect=True)
 def test_dgl_gcn_training_gpu(ecr_image, sagemaker_regions, instance_type):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.g5.8xlarge"
-    function_args = {
-        "instance_type": instance_type,
-    }
 
-    invoke_pytorch_helper_function(ecr_image, sagemaker_regions, _test_dgl_training, function_args)
-
-
-def _test_dgl_training(ecr_image, sagemaker_session, instance_type):
-    dgl = PyTorch(
-        entry_point=DGL_SCRIPT_PATH,
-        role="SageMakerRole",
-        instance_count=1,
-        instance_type=instance_type,
-        sagemaker_session=sagemaker_session,
-        image_uri=ecr_image,
-        hyperparameters={"inductor": 1},
+    source_code = SourceCode(
+        source_dir=DGL_DATA_PATH,
+        entry_script="train.py",
     )
+    compute_params = {"instance_type": instance_type, "instance_count": 1}
+
     with timeout(minutes=DEFAULT_TIMEOUT):
-        job_name = utils.unique_name_from_base("test-pytorch-dgl-image")
-        dgl.fit(job_name=job_name)
+        invoke_pytorch_model_trainer(
+            ecr_image,
+            sagemaker_regions,
+            source_code=source_code,
+            compute_params=compute_params,
+            hyperparameters={"inductor": 1},
+            job_name="test-pt-v3-dgl-inductor",
+        )

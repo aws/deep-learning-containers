@@ -13,12 +13,8 @@
 from __future__ import absolute_import
 
 import pytest
-from sagemaker import utils
-from sagemaker.instance_group import InstanceGroup
-from sagemaker.pytorch import PyTorch
 
-from . import _test_mnist_distributed
-from .... import invoke_pytorch_helper_function
+from . import skip_if_not_v3_compatible, _test_mnist_distributed_v3
 
 inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge"]
 
@@ -34,16 +30,15 @@ inductor_instance_types = ["ml.g5.12xlarge", "ml.g5.12xlarge", "ml.g4dn.12xlarge
 def test_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.c5.xlarge"
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-        "dist_backend": dist_cpu_backend,
-        "use_inductor": True,
-    }
-
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    _test_mnist_distributed_v3(
+        ecr_image,
+        sagemaker_regions,
+        framework_version=framework_version,
+        dist_backend=dist_cpu_backend,
+        instance_type=instance_type,
+        use_inductor=True,
     )
 
 
@@ -59,16 +54,15 @@ def test_mnist_distributed_cpu(
 def test_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.g5.8xlarge"
-    function_args = {
-        "framework_version": framework_version,
-        "instance_type": instance_type,
-        "dist_backend": dist_gpu_backend,
-        "use_inductor": True,
-    }
-
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    _test_mnist_distributed_v3(
+        ecr_image,
+        sagemaker_regions,
+        framework_version=framework_version,
+        dist_backend=dist_gpu_backend,
+        instance_type=instance_type,
+        use_inductor=True,
     )
 
 
@@ -83,17 +77,16 @@ def test_mnist_distributed_gpu(
 def test_hc_mnist_distributed_cpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_cpu_backend
 ):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.c5.xlarge"
-    training_group = InstanceGroup("train_group", instance_type, 2)
-    function_args = {
-        "framework_version": framework_version,
-        "instance_groups": [training_group],
-        "dist_backend": dist_cpu_backend,
-        "use_inductor": True,
-    }
-
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    _test_mnist_distributed_v3(
+        ecr_image,
+        sagemaker_regions,
+        framework_version=framework_version,
+        dist_backend=dist_cpu_backend,
+        instance_type=instance_type,
+        instance_count=2,
+        use_inductor=True,
     )
 
 
@@ -109,15 +102,14 @@ def test_hc_mnist_distributed_cpu(
 def test_hc_mnist_distributed_gpu(
     framework_version, ecr_image, sagemaker_regions, instance_type, dist_gpu_backend
 ):
+    skip_if_not_v3_compatible(ecr_image)
     instance_type = instance_type or "ml.g5.12xlarge"
-    training_group = InstanceGroup("train_group", instance_type, 2)
-    function_args = {
-        "framework_version": framework_version,
-        "instance_groups": [training_group],
-        "dist_backend": dist_gpu_backend,
-        "use_inductor": True,
-    }
-
-    invoke_pytorch_helper_function(
-        ecr_image, sagemaker_regions, _test_mnist_distributed, function_args
+    _test_mnist_distributed_v3(
+        ecr_image,
+        sagemaker_regions,
+        framework_version=framework_version,
+        dist_backend=dist_gpu_backend,
+        instance_type=instance_type,
+        instance_count=2,
+        use_inductor=True,
     )

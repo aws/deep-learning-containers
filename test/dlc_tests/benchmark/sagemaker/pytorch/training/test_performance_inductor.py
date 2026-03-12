@@ -18,19 +18,9 @@ import boto3, sagemaker
 import pytest
 import tarfile, subprocess
 
-try:
-    from sagemaker import utils
-except ImportError:
-    utils = None
-
-try:
-    from sagemaker.instance_group import InstanceGroup
-except ImportError:
-    InstanceGroup = None
-try:
-    from sagemaker.pytorch import PyTorch
-except ImportError:
-    PyTorch = None
+from sagemaker.instance_group import InstanceGroup
+from sagemaker.pytorch import PyTorch
+from sagemaker import utils
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
