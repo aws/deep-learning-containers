@@ -1,0 +1,55 @@
+# check-upstream-releases.yml — Automatically detects new upstream framework
+# releases and creates PRs to update version configurations.
+#
+# Runs on a cron schedule (every 60 minutes) or via manual dispatch.
+# Reads .github/config/autocurrency-tracker.yml for framework definitions.
+# Main logic lives in scripts/check-upstream-releases.sh.
+
+name: Check Upstream Releases
+
+on:
+  # Testing this workflow in PR before merge
+  # pull_request:
+  #   types: [opened, synchronize]
+
+  # Uncomment when ready for full automation
+  # schedule:
+  #   - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      framework:
+        description: "Specific framework to check (leave empty for all)"
+        required: false
+        type: string
+      dry-run:
+        description: "If true, detect but don't create PRs"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check-releases:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      DRY_RUN: ${{ inputs.dry-run || false }}
+      FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Check upstream releases
+        run: bash scripts/autocurrency/check-upstream-releases.sh
