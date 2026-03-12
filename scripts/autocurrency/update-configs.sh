@@ -5,7 +5,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${SCRIPT_DIR}/tracker-utils.sh"
+source "${SCRIPT_DIR}/utils.sh"
 
 ###############################################################################
 # update_config_files(framework_key, new_version, config_entries_json)
