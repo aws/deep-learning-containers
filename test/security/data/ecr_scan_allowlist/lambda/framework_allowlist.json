@@ -1,6 +1,17 @@
 [
 
     {
+        "vulnerability_id": "CVE-2024-6345",
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==78.1.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "review_by": "2026-09-12"
+    },
+    {
+        "vulnerability_id": "CVE-2025-47273",
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==78.1.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "review_by": "2026-09-12"
+    },
+
+    {
         "vulnerability_id": "CVE-2025-4138",
         "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
         "review_by": "2026-03-24"
