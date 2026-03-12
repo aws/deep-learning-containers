@@ -323,8 +323,7 @@ for framework in ${FRAMEWORKS}; do
       "${tag_name}" \
       "${html_url}" \
       "${release_body}" \
-      "${updated_files}" \
-      "${cuda_python_section}")
+      "${updated_files}")
 
     # Create PR
     echo "${framework}: Creating pull request..."
