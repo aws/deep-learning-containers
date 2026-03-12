@@ -1,1 +1,23 @@
-[]
+[
+    {
+        "vulnerability_id": "CVE-2024-6345",
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==82.0.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "review_by": "2026-09-12"
+    },
+    {
+        "vulnerability_id": "CVE-2025-47273",
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==82.0.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "review_by": "2026-09-12"
+    },
+
+    {
+        "vulnerability_id": "CVE-2026-25679",
+        "reason": "Go net/url CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
+    },
+    {
+        "vulnerability_id": "CVE-2026-27142",
+        "reason": "Go net/html CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
+    }
+]
