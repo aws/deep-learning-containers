@@ -1,16 +1,5 @@
 [
     {
-        "vulnerability_id": "CVE-2024-6345",
-        "reason": "setuptools 38.5.0 vendored inside pip/_vendor/pkg_resources. pip is retained in the runtime image for customer use. The vendored copy is never used for package downloads at Lambda runtime; only the installed setuptools==82.0.1 is used.",
-        "review_by": "2026-09-12"
-    },
-    {
-        "vulnerability_id": "CVE-2025-47273",
-        "reason": "setuptools 38.5.0 vendored inside pip/_vendor/pkg_resources. pip is retained in the runtime image for customer use. The vendored copy is never used for package downloads at Lambda runtime; only the installed setuptools==82.0.1 is used.",
-        "review_by": "2026-09-12"
-    },
-
-    {
         "vulnerability_id": "CVE-2026-25679",
         "reason": "Go net/url CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
         "review_by": "2026-06-12"
