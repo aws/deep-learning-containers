@@ -34,13 +34,13 @@
 
     {
         "vulnerability_id": "CVE-2025-47912",
-        "reason": "Go net/url insufficient validation of bracketed IPv6 hostnames; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go net/url CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     },
     {
         "vulnerability_id": "CVE-2025-58188",
-        "reason": "Go crypto/x509 panic on DSA public key certificates; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go crypto/x509 CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     },
     {
         "vulnerability_id": "CVE-2025-8194",
@@ -55,12 +55,12 @@
     },
     {
         "vulnerability_id": "CVE-2026-25679",
-        "reason": "Go net/url invalid host/authority parsing; present in NVIDIA CUDA base image Go tooling bundled with pytorch, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go net/url CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     },
     {
         "vulnerability_id": "CVE-2026-27142",
-        "reason": "Go net/html XSS via unescaped URL in meta content attribute; present in NVIDIA CUDA base image Go tooling bundled with pytorch, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go net/html CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     }
 ]
