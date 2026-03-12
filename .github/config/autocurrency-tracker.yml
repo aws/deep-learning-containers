@@ -18,8 +18,7 @@ frameworks:
         prod_image_template: "vllm:{major}.{minor}-gpu-py312-ec2"
       - path: ".github/config/vllm-sagemaker.yml"
         prod_image_template: "vllm:{major}.{minor}-gpu-py312"
-    exclude_configs:
-      - ".github/config/vllm-rayserve.yml"
+      # ".github/config/vllm-rayserve.yml" is excluded because we currently do not follow currency for rayserve
     dockerfiles:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
