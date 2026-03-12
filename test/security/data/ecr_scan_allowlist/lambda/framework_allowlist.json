@@ -1,12 +1,12 @@
 [
     {
         "vulnerability_id": "CVE-2024-6345",
-        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==82.0.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "reason": "setuptools 38.5.0 vendored inside pip/_vendor/pkg_resources. pip is retained in the runtime image for customer use. The vendored copy is never used for package downloads at Lambda runtime; only the installed setuptools==82.0.1 is used.",
         "review_by": "2026-09-12"
     },
     {
         "vulnerability_id": "CVE-2025-47273",
-        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA, but no such version exists in the image. setuptools==82.0.1 is installed; pip and ensurepip bundled wheels are removed from the runtime image.",
+        "reason": "setuptools 38.5.0 vendored inside pip/_vendor/pkg_resources. pip is retained in the runtime image for customer use. The vendored copy is never used for package downloads at Lambda runtime; only the installed setuptools==82.0.1 is used.",
         "review_by": "2026-09-12"
     },
 

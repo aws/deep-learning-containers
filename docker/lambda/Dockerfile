@@ -144,9 +144,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
-  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
-    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info \
-    /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -190,9 +188,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
-  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
-    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info \
-    /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
@@ -241,9 +237,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
   && rm /tmp/setup_oss_compliance.sh \
-  && rm -rf /var/lang/lib/python3.13/site-packages/pip \
-    /var/lang/lib/python3.13/site-packages/pip-25.3.dist-info \
-    /var/lang/lib/python3.13/ensurepip/_bundled
+  && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
 ENTRYPOINT ["/lambda_entrypoint.sh", "python", "-m", "awslambdaric"]
 CMD ["handler.handler"]
