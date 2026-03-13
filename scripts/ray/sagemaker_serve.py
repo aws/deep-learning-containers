@@ -49,8 +49,7 @@ def install_requirements():
 
     logger.info(f"Installing packages from {REQUIREMENTS_PATH}...")
 
-    # Use uv pip
-    pip_cmd = ["uv", "pip", "install", "--python", sys.executable, "-r", REQUIREMENTS_PATH]
+    pip_cmd = ["pip", "install", "-r", REQUIREMENTS_PATH]
 
     # Add CodeArtifact index if CA_REPOSITORY_ARN is set, if CA is configured but fails, hard fail
     ca_arn = os.getenv("CA_REPOSITORY_ARN")

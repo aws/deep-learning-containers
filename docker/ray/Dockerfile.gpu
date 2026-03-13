@@ -76,6 +76,8 @@ RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
 #############
 FROM nvidia/cuda:12.9.0-runtime-amzn2023 AS base
 
+RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
+
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
@@ -97,7 +99,8 @@ COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
 
 # Set PATH to use venv and FFmpeg
 ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
-  LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}" \
+  DLC_CONTAINER_TYPE=inference
 
 # Create model directories
 RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
