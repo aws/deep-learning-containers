@@ -124,7 +124,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -169,7 +168,6 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
