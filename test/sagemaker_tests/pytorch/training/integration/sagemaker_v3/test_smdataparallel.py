@@ -14,7 +14,7 @@ from __future__ import absolute_import
 
 import pytest
 import os
-from sagemaker.modules.configs import SourceCode, Compute
+from sagemaker.train.configs import SourceCode, Compute
 
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet

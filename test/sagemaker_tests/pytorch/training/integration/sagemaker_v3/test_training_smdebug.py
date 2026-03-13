@@ -15,7 +15,7 @@ from __future__ import absolute_import
 import os
 
 import pytest
-from sagemaker.modules.configs import SourceCode
+from sagemaker.train.configs import SourceCode
 
 from ...integration import training_dir, smdebug_mnist_script, DEFAULT_TIMEOUT
 from .timeout import timeout

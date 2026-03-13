@@ -15,8 +15,8 @@ from __future__ import absolute_import
 import os
 
 import pytest
-from sagemaker.modules.configs import SourceCode
-from sagemaker.modules.distributed import Torchrun
+from sagemaker.train.configs import SourceCode
+from sagemaker.train.distributed import Torchrun
 
 from ...integration import DEFAULT_TIMEOUT, mnist_path
 from .timeout import timeout

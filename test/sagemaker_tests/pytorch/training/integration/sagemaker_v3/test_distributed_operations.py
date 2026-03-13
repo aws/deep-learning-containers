@@ -16,8 +16,8 @@ import os
 
 import boto3
 import pytest
-from sagemaker.modules.train import ModelTrainer
-from sagemaker.modules.configs import SourceCode, Compute
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import SourceCode, Compute
 from urllib.parse import urlparse
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version

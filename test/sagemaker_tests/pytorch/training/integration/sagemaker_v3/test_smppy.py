@@ -19,7 +19,8 @@ import boto3
 import pytest
 from packaging.specifiers import SpecifierSet
 from packaging.version import Version
-from sagemaker.modules.configs import SourceCode
+from sagemaker.train.configs import SourceCode
+from sagemaker.train.distributed import Torchrun
 
 from test.test_utils import get_framework_and_version_from_tag
 from ...integration import DEFAULT_TIMEOUT, smppy_mnist_script, training_dir, mnist_path
@@ -82,8 +83,6 @@ def test_training_smppy_distributed(framework_version, ecr_image, sagemaker_regi
     skip_if_not_v3_compatible(ecr_image)
     _skip_if_image_is_not_compatible_with_smppy(ecr_image)
     validate_or_skip_distributed_training(ecr_image)
-
-    from sagemaker.modules.distributed import Torchrun
 
     source_code = SourceCode(
         source_dir=os.path.dirname(smppy_mnist_script),

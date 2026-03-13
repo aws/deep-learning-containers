@@ -16,7 +16,7 @@ import pytest
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
 
-from sagemaker.modules.configs import SourceCode
+from sagemaker.train.configs import SourceCode
 
 from .timeout import timeout
 from ...integration import smart_sifting_path, DEFAULT_TIMEOUT

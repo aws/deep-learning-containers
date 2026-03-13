@@ -14,9 +14,9 @@ from __future__ import absolute_import
 
 import os
 import pytest
-from sagemaker.modules.train import ModelTrainer
-from sagemaker.modules.configs import SourceCode, InputData, Compute
-from sagemaker.modules.distributed import Torchrun
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import SourceCode, InputData, Compute
+from sagemaker.train.distributed import Torchrun
 from ...integration import neuron_allreduce_path, neuron_mlp_path, DEFAULT_TIMEOUT
 from .timeout import timeout
 from . import skip_if_not_v3_compatible, invoke_pytorch_model_trainer

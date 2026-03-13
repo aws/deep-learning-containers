@@ -18,9 +18,9 @@ import boto3
 import botocore.exceptions
 import pytest
 
-from sagemaker.modules.train import ModelTrainer
-from sagemaker.modules.configs import SourceCode, InputData, Compute
-from sagemaker.modules.distributed import Torchrun
+from sagemaker.train import ModelTrainer
+from sagemaker.train.configs import SourceCode, InputData, Compute
+from sagemaker.train.distributed import Torchrun
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from packaging.version import Version

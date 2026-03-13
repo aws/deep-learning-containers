@@ -15,8 +15,8 @@ from __future__ import absolute_import
 import os
 
 import pytest
-from sagemaker.modules.configs import SourceCode, Compute
-from sagemaker.modules.distributed import Torchrun
+from sagemaker.train.configs import SourceCode, Compute
+from sagemaker.train.distributed import Torchrun
 from test.test_utils import get_framework_and_version_from_tag, get_cuda_version_from_tag
 from packaging.version import Version
 from packaging.specifiers import SpecifierSet
