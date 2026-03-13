@@ -27,23 +27,22 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   check-releases:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ github.token }}
-      SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      DRY_RUN: ${{ inputs.dry-run || false }}
-      FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
     steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Install yq
         run: |
@@ -52,4 +51,9 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Check upstream releases
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          DRY_RUN: ${{ inputs.dry-run || false }}
+          FRAMEWORK_FILTER: ${{ inputs.framework || '' }}
         run: bash scripts/autocurrency/check-upstream-releases.sh
