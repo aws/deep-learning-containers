@@ -41,7 +41,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.APP_ID }}
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
           private-key: ${{ steps.decode.outputs.private-key }}
 
       - name: Checkout repository
