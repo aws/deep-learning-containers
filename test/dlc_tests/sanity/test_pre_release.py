@@ -693,7 +693,7 @@ def test_pip_check(image):
         # images install pandas>=3. This is an upstream compatibility gap, not a DLC issue.
         if Version(framework_version) >= Version("2.10"):
             allowed_exceptions.append(
-                r"^mlflow \d+(\.\d+)* has requirement pandas<3,>=\d+(\.\d+)*, but you have pandas \d+(\.\d+)*\.$"
+                r"^mlflow \d+(\.\d+)* has requirement pandas<3.*but you have pandas \d+(\.\d+)*\.$"
             )
 
     if "pytorch" in image and "trcomp" in image:

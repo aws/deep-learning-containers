@@ -106,8 +106,8 @@ def test_utility_packages_using_import(training):
         if package == "sagemaker":
             version_cmd = (
                 "import sagemaker; "
-                "v = getattr(sagemaker, '__version__', None); "
-                "v = v or __import__('importlib.metadata', fromlist=['version']).version('sagemaker'); "
+                'v = getattr(sagemaker, "__version__", None); '
+                'v = v or __import__("importlib.metadata", fromlist=["version"]).version("sagemaker"); '
                 "print(v)"
             )
         else:
