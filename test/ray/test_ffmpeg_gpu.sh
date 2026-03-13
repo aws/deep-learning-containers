@@ -5,7 +5,7 @@
 # Usage (CI): docker exec ${CONTAINER_ID} bash /workdir/test/ray/test_ffmpeg_gpu.sh
 # Usage (manual): bash test/ray/test_ffmpeg_gpu.sh
 set -eo pipefail
-trap 'rm -f /tmp/gpu_enc_* /tmp/gpu_src* /tmp/gpu_dec_* /tmp/gpu_pipe_* /tmp/bench_*' EXIT
+trap 'rm -f /tmp/gpu_enc_* /tmp/gpu_src* /tmp/gpu_dec_* /tmp/gpu_pipe_* /tmp/bench_* /tmp/gpu_sdk_*' EXIT
 
 PASS=0; FAIL=0; WARN=0
 pass() { echo "  PASS: $1"; PASS=$((PASS + 1)); }
@@ -18,7 +18,7 @@ echo "=========================================="
 echo
 
 # 1. Build flags
-echo "[1/7] Checking GPU build configuration..."
+echo "[1/11] Checking GPU build configuration..."
 BUILD_CONF=$(ffmpeg -buildconf 2>&1)
 
 for flag in enable-cuda-nvcc enable-nonfree; do
@@ -31,7 +31,7 @@ done
 echo
 
 # 2. NVIDIA GPU visible
-echo "[2/7] Checking NVIDIA GPU is accessible..."
+echo "[2/11] Checking NVIDIA GPU is accessible..."
 GPU_INFO=$(nvidia-smi --query-gpu=name,driver_version,memory.total --format=csv,noheader 2>/dev/null || true)
 
 if [ -n "$GPU_INFO" ]; then
@@ -44,7 +44,7 @@ fi
 echo
 
 # 3. GPU video encoders registered
-echo "[3/7] Checking GPU video encoders (NVENC)..."
+echo "[3/11] Checking GPU video encoders (NVENC)..."
 ENCODERS=$(ffmpeg -encoders 2>/dev/null || true)
 
 GPU_ENCODERS=(
@@ -63,7 +63,7 @@ done
 echo
 
 # 4. GPU video decoders registered
-echo "[4/7] Checking GPU video decoders (CUVID/NVDEC)..."
+echo "[4/11] Checking GPU video decoders (CUVID/NVDEC)..."
 DECODERS=$(ffmpeg -decoders 2>/dev/null || true)
 HWACCELS=$(ffmpeg -hwaccels 2>/dev/null || true)
 
@@ -91,7 +91,7 @@ done
 echo
 
 # 5. GPU encode end-to-end
-echo "[5/7] Testing GPU video encoding (NVENC)..."
+echo "[5/11] Testing GPU video encoding (NVENC)..."
 
 for entry in "${GPU_ENCODERS[@]}"; do
     IFS=: read -r enc label <<< "$entry"
@@ -108,7 +108,7 @@ done
 echo
 
 # 6. GPU decode end-to-end
-echo "[6/7] Testing GPU video decoding (NVDEC)..."
+echo "[6/11] Testing GPU video decoding (NVDEC)..."
 
 # hwaccel cuda decode
 ffmpeg -y -f lavfi -i testsrc=duration=2:size=640x480:rate=30 \
@@ -142,8 +142,83 @@ else
 fi
 echo
 
-# 7. GPU vs CPU benchmark
-echo "[7/7] GPU vs CPU encoding benchmark (5s 1080p)..."
+# 7. NVIDIA Video Codec SDK §3.2 — GPU scaling with scale_cuda
+echo "[7/11] Testing GPU scaling with scale_cuda (§3.2)..."
+
+ffmpeg -y -vsync 0 -f lavfi -i testsrc=duration=2:size=1280x720:rate=25 \
+    -c:v h264_nvenc -pix_fmt yuv420p /tmp/gpu_sdk_src.mp4 2>/dev/null || true
+
+if ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda \
+    -i /tmp/gpu_sdk_src.mp4 -vf scale_cuda=640:360 \
+    -c:v h264_nvenc -b:v 2M /tmp/gpu_sdk_32.mp4 2>/dev/null; then
+    RES=$(ffprobe -v error -select_streams v:0 \
+        -show_entries stream=width,height -of csv=p=0 \
+        /tmp/gpu_sdk_32.mp4 2>/dev/null || true)
+    pass "§3.2 scale_cuda GPU scaling (1280x720 → ${RES})"
+else
+    fail "§3.2 scale_cuda GPU scaling"
+fi
+echo
+
+# 8. NVIDIA Video Codec SDK §4.3 — High-quality latency-tolerant preset
+echo "[8/11] Testing high-quality preset (§4.3)..."
+
+if ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda \
+    -i /tmp/gpu_sdk_src.mp4 -c:v h264_nvenc \
+    -preset p6 -tune hq -b:v 5M -bufsize 5M -maxrate 10M \
+    -qmin 0 -g 250 -bf 3 -b_ref_mode middle \
+    -temporal-aq 1 -rc-lookahead 20 \
+    -i_qfactor 0.75 -b_qfactor 1.1 \
+    /tmp/gpu_sdk_43.mp4 2>/dev/null; then
+    BYTES=$(stat -c%s /tmp/gpu_sdk_43.mp4 2>/dev/null || echo 0)
+    if [ "$BYTES" -gt 0 ]; then
+        pass "§4.3 high-quality preset (p6, tune hq, B-frames, temporal AQ, lookahead)"
+    else
+        fail "§4.3 high-quality preset produced empty output"
+    fi
+else
+    fail "§4.3 high-quality preset"
+fi
+echo
+
+# 9. NVIDIA Video Codec SDK §4.4 — Low-latency preset
+echo "[9/11] Testing low-latency preset (§4.4)..."
+
+if ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda \
+    -i /tmp/gpu_sdk_src.mp4 -c:v h264_nvenc \
+    -preset p2 -tune ll -b:v 5M -bufsize 167K -maxrate 10M -qmin 0 \
+    /tmp/gpu_sdk_44.mp4 2>/dev/null; then
+    BYTES=$(stat -c%s /tmp/gpu_sdk_44.mp4 2>/dev/null || echo 0)
+    if [ "$BYTES" -gt 0 ]; then
+        pass "§4.4 low-latency preset (p2, tune ll, CBR)"
+    else
+        fail "§4.4 low-latency preset produced empty output"
+    fi
+else
+    fail "§4.4 low-latency preset"
+fi
+echo
+
+# 10. NVIDIA Video Codec SDK §5.2 — Spatial AQ
+echo "[10/11] Testing spatial AQ (§5.2)..."
+
+if ffmpeg -y -vsync 0 -hwaccel cuda -hwaccel_output_format cuda \
+    -i /tmp/gpu_sdk_src.mp4 -c:v h264_nvenc \
+    -preset p4 -spatial-aq 1 -aq-strength 8 -b:v 5M \
+    /tmp/gpu_sdk_52.mp4 2>/dev/null; then
+    BYTES=$(stat -c%s /tmp/gpu_sdk_52.mp4 2>/dev/null || echo 0)
+    if [ "$BYTES" -gt 0 ]; then
+        pass "§5.2 spatial AQ (-spatial-aq 1 -aq-strength 8)"
+    else
+        fail "§5.2 spatial AQ produced empty output"
+    fi
+else
+    fail "§5.2 spatial AQ"
+fi
+echo
+
+# 11. GPU vs CPU benchmark
+echo "[11/11] GPU vs CPU encoding benchmark (5s 1080p)..."
 # Note: Compares mjpeg (CPU, intra-only) vs h264_nvenc (GPU, inter-frame).
 # Demonstrates GPU offload benefit, not an apples-to-apples codec comparison.
 
