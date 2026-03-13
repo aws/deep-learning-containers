@@ -558,6 +558,92 @@ def test_sam2_segmentation():
         print(f"  av video I/O: {frame_count} frames")
 
 
+def test_ffmpeg_gpu_aggregate_performance():
+    """Measure aggregate GPU transcode throughput per NVIDIA guide §6.1/§6.2.
+
+    Runs 4 parallel NVENC sessions simultaneously and reports aggregate FPS.
+    Applies §6.2 env vars (CUDA_DEVICE_MAX_CONNECTIONS=2) to reduce init overhead.
+    The guide recommends >15s input; we use 30s to get a stable measurement.
+    """
+    import concurrent.futures
+    import os
+    import subprocess
+    import tempfile
+    import time
+
+    # §6.2: reduce CUDA context init overhead across parallel sessions
+    env = os.environ.copy()
+    env["CUDA_DEVICE_MAX_CONNECTIONS"] = "2"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+
+        def p(name):
+            return os.path.join(tmpdir, name)
+
+        # Generate a 30s 1080p input (guide recommends >15s for stable measurement)
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc=duration=30:size=1920x1080:rate=25",
+                "-c:v",
+                "libx264",
+                "-preset",
+                "ultrafast",
+                p("input.mp4"),
+            ],
+            capture_output=True,
+            timeout=60,
+            check=True,
+        )
+
+        # §6.1: run 4 parallel transcode sessions, measure aggregate FPS
+        def transcode(i):
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-vsync",
+                    "0",
+                    "-hwaccel",
+                    "cuda",
+                    "-hwaccel_output_format",
+                    "cuda",
+                    "-i",
+                    p("input.mp4"),
+                    "-c:v",
+                    "h264_nvenc",
+                    "-b:v",
+                    "5M",
+                    p(f"out_{i}.mp4"),
+                ],
+                capture_output=True,
+                timeout=120,
+                check=True,
+                env=env,
+            )
+
+        n_sessions = 4
+        total_frames = 30 * 25 * n_sessions  # duration * fps * sessions
+
+        start = time.monotonic()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=n_sessions) as ex:
+            futures = [ex.submit(transcode, i) for i in range(n_sessions)]
+            for f in concurrent.futures.as_completed(futures):
+                f.result()  # re-raise any exception
+        elapsed = time.monotonic() - start
+
+        aggregate_fps = total_frames / elapsed
+        print(f"  §6.1 aggregate performance: {n_sessions} sessions × 30s @ 1080p")
+        print(f"  Total frames: {total_frames}, elapsed: {elapsed:.1f}s")
+        print(f"  Aggregate FPS: {aggregate_fps:.1f}")
+
+
 def test_environment():
     """Test environment variables."""
     import os
@@ -606,6 +692,7 @@ def main():
         ("OpenCV Operations", test_opencv_operations),
         ("FFmpeg Available", test_ffmpeg_available),
         ("FFmpeg GPU Transcode", test_ffmpeg_gpu_transcode),
+        ("FFmpeg GPU Aggregate Perf", test_ffmpeg_gpu_aggregate_performance),
         ("Audio Libraries", test_audio_libraries),
         ("Video I/O", test_video_io),
         ("Environment", test_environment),
