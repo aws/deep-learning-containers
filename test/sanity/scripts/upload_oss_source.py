@@ -71,9 +71,7 @@ def clone_and_tar(name, version, url, work_dir):
                     )
                 else:
                     subprocess.run(
-                        ["git", "clone", "--depth", "1", "--branch", version, url, local_dir],
-                        check=True,
-                        capture_output=True,
+                        ["git", "clone", url, local_dir], check=True, capture_output=True
                     )
             subprocess.run(
                 ["tar", "-czf", tarball, "-C", work_dir, dir_name], check=True, capture_output=True

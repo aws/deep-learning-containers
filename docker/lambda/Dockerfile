@@ -43,7 +43,8 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf \
   && git clone --branch n12.2.72.0 --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
-  && git clone --branch n8.0.1 --depth 1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+  && curl -fsSL https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz | tar xz -C /tmp \
+  && mv /tmp/FFmpeg-n8.0.1 /tmp/ffmpeg \
   && cd /tmp/ffmpeg \
   && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" ./configure \
     --prefix=/usr/local \
@@ -250,10 +251,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg.git\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg.git\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg.git\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg.git\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/archive/refs/tags/n8.0.1.tar.gz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
