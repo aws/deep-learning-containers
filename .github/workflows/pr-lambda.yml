@@ -79,7 +79,6 @@ jobs:
   build-images:
     needs: [check-changes]
     if: needs.check-changes.outputs.build-change == 'true'
-    environment: lambda-ci
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-build-runner
@@ -213,7 +212,6 @@ jobs:
   validate-images:
     needs: [sanity-test, security-test, telemetry-test]
     if: success()
-    environment: lambda-ci
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-g6xl-runner
