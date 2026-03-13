@@ -40,7 +40,7 @@ FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar xz gcc gcc-c++ make cmake pkgconfig nasm yasm git \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
+  && git clone https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
   && curl -L https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar xJ -C /tmp \
   && cd /tmp/ffmpeg-6.1 \
