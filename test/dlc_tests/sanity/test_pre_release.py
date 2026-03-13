@@ -689,6 +689,13 @@ def test_pip_check(image):
             rf"^({'|'.join(exception_strings)}) is not supported on this platform"
         )
 
+        # mlflow (transitive dep via smclarify/sagemaker) requires pandas<3, but PT 2.10+ SM SDK v3
+        # images install pandas>=3. This is an upstream compatibility gap, not a DLC issue.
+        if Version(framework_version) >= Version("2.10"):
+            allowed_exceptions.append(
+                r"^mlflow \d+(\.\d+)* has requirement pandas<3,>=\d+(\.\d+)*, but you have pandas \d+(\.\d+)*\.$"
+            )
+
     if "pytorch" in image and "trcomp" in image:
         allowed_exceptions.extend(
             [

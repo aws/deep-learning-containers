@@ -1,6 +1,7 @@
 import pytest
 
 from invoke.context import Context
+from packaging.version import Version
 from test import test_utils
 
 
@@ -17,6 +18,13 @@ def test_remote_function(training):
     if python_version < 37:
         pytest.skip(
             f"Skipping remote function compatibility test for {training}. Test only for training images with Python>3.6"
+        )
+
+    # SageMaker SDK v3 (used in PyTorch >= 2.10) removed sagemaker.remote_function module
+    framework, framework_version = test_utils.get_framework_and_version_from_tag(training)
+    if framework == "pytorch" and Version(framework_version) >= Version("2.10"):
+        pytest.skip(
+            "Skipping remote function test for SM SDK v3 images (sagemaker.remote_function removed in v3)"
         )
 
     container_name = test_utils.get_container_name("remote-function-test", training)
