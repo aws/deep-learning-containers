@@ -48,23 +48,33 @@ def upload_to_s3(s3_client, local_path, s3_key):
 
 
 def clone_and_tar(name, version, url, work_dir):
-    """Clone repo and create tarball. Returns tarball path or None."""
+    """Clone repo or download tarball and create tarball. Returns tarball path or None."""
     dir_name = f"{name}_v{version}_source_code"
     local_dir = os.path.join(work_dir, dir_name)
     tarball = f"{local_dir}.tar.gz"
+    url = url.strip()
+    is_tarball = url.endswith((".tar.gz", ".tar.xz", ".tar.bz2", ".tgz"))
 
     for attempt in range(MAX_RETRIES):
         try:
             if not os.path.isdir(local_dir):
-                subprocess.run(
-                    ["git", "clone", url.strip(), local_dir],
-                    check=True,
-                    capture_output=True,
-                )
+                if is_tarball:
+                    downloaded = os.path.join(work_dir, os.path.basename(url))
+                    subprocess.run(
+                        ["curl", "-fsSL", "-o", downloaded, url], check=True, capture_output=True
+                    )
+                    os.makedirs(local_dir)
+                    subprocess.run(
+                        ["tar", "-xf", downloaded, "-C", local_dir, "--strip-components=1"],
+                        check=True,
+                        capture_output=True,
+                    )
+                else:
+                    subprocess.run(
+                        ["git", "clone", url, local_dir], check=True, capture_output=True
+                    )
             subprocess.run(
-                ["tar", "-czf", tarball, "-C", work_dir, dir_name],
-                check=True,
-                capture_output=True,
+                ["tar", "-czf", tarball, "-C", work_dir, dir_name], check=True, capture_output=True
             )
             return tarball
         except Exception as e:

@@ -68,7 +68,12 @@ COPY --from=lambda-python /var/lang/lib /var/lang/lib
 RUN rm -rf /var/lang/lib/python3.13/site-packages
 ENV PATH="/var/lang/bin:$PATH"
 COPY ./docker/lambda/requirements-base.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+  uv pip install --python /var/lang/bin/python3.13 -r /tmp/requirements.txt \
+  && uv pip check --python /var/lang/bin/python3.13 \
+  && (find /var/lang -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null; true) \
+  && find /var/lang -type f -name "*.pyc" -delete \
+  && find /var/lang -type f -name "*.pyo" -delete
 
 # ============================================================
 # CuPy builder (Python 3.13 — awslambdaric, CuPy, NumPy, SciPy, etc.)
@@ -236,6 +241,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
+  && printf '\n** FFmpeg; version 6.1 -- https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg 6.1 https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version 6.1 -- https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe 6.1 https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
