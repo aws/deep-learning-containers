@@ -24,7 +24,13 @@ import boto3
 import pytest
 
 from botocore.exceptions import ClientError
-from sagemaker import LocalSession, Session
+
+try:
+    from sagemaker import LocalSession, Session
+except ImportError:
+    # SageMaker SDK v3 removed LocalSession and Session from top-level sagemaker namespace
+    LocalSession = None
+    Session = None
 
 try:
     from sagemaker.pytorch import PyTorch
@@ -272,6 +278,8 @@ def fixture_build_base_image(
 
 @pytest.fixture(scope="session", name="sagemaker_session")
 def fixture_sagemaker_session(region):
+    if Session is None:
+        pytest.skip("sagemaker.Session not available in SageMaker SDK v3")
     return Session(boto_session=boto3.Session(region_name=region))
 
 
@@ -285,6 +293,8 @@ def fixture_efa_instance_type(request):
 
 @pytest.fixture(scope="session", name="sagemaker_local_session")
 def fixture_sagemaker_local_session(region):
+    if LocalSession is None:
+        pytest.skip("sagemaker.LocalSession not available in SageMaker SDK v3")
     return LocalSession(boto_session=boto3.Session(region_name=region))
 
 

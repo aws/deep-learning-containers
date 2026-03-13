@@ -19,8 +19,13 @@ import sagemaker
 
 try:
     import sagemaker.exceptions
-except ImportError:
-    pass
+
+    _UnexpectedStatusException = sagemaker.exceptions.UnexpectedStatusException
+except (ImportError, AttributeError):
+    # SageMaker SDK v3 removed sagemaker.exceptions
+    class _UnexpectedStatusException(Exception):
+        pass
+
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -118,7 +123,7 @@ def invoke_pytorch_helper_function(
         try:
             helper_function(tested_ecr_image, sagemaker_session, **helper_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except _UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue

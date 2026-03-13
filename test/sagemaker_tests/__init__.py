@@ -19,6 +19,20 @@ import boto3
 import botocore.exceptions
 import sagemaker
 
+try:
+    _SageMakerSession = sagemaker.Session
+except AttributeError:
+    # SageMaker SDK v3 moved Session to sagemaker.core.helper.session_helper
+    from sagemaker.core.helper.session_helper import Session as _SageMakerSession
+
+try:
+    _UnexpectedStatusException = sagemaker.exceptions.UnexpectedStatusException
+except (AttributeError, ModuleNotFoundError):
+    # SageMaker SDK v3 removed sagemaker.exceptions; define a placeholder that never matches
+    class _UnexpectedStatusException(Exception):
+        pass
+
+
 from botocore.config import Config
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
@@ -88,7 +102,7 @@ class SMThrottlingError(Exception):
 
 
 def get_sagemaker_session(region, default_bucket=None):
-    return sagemaker.Session(
+    return _SageMakerSession(
         boto_session=boto3.Session(region_name=region), default_bucket=default_bucket
     )
 
@@ -188,7 +202,7 @@ def invoke_sm_helper_function(ecr_image, sagemaker_regions, test_function, *test
         try:
             test_function(tested_ecr_image, sagemaker_session, *test_function_args)
             return
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except _UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
@@ -235,7 +249,7 @@ def invoke_sm_endpoint_helper_function(
         sagemaker_client = get_sagemaker_client(region)
         boto_session = boto3.Session(region_name=region)
         sagemaker_runtime_client = get_sagemaker_runtime_client(region)
-        sagemaker_session = sagemaker.Session(boto_session=boto3.Session(region_name=region))
+        sagemaker_session = _SageMakerSession(boto_session=boto3.Session(region_name=region))
         # Reupload the image to test region if needed
         tested_ecr_image = (
             get_ecr_image(ecr_image, region) if region != ecr_image_region else ecr_image
@@ -269,7 +283,7 @@ def invoke_sm_endpoint_helper_function(
                 **test_function_args,
             )
             return return_value
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except _UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue

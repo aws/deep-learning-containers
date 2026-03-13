@@ -20,8 +20,13 @@ import sagemaker
 
 try:
     import sagemaker.exceptions
-except ImportError:
-    pass
+
+    _UnexpectedStatusException = sagemaker.exceptions.UnexpectedStatusException
+except (ImportError, AttributeError):
+    # SageMaker SDK v3 removed sagemaker.exceptions
+    class _UnexpectedStatusException(Exception):
+        pass
+
 
 try:
     from sagemaker.pytorch import PyTorch
@@ -29,7 +34,11 @@ except ImportError:
     # SageMaker SDK v3 removed sagemaker.pytorch; v3 tests use ModelTrainer instead
     PyTorch = None
 
-from sagemaker import utils
+try:
+    from sagemaker import utils
+except ImportError:
+    # SageMaker SDK v3 removed sagemaker.utils from top-level namespace
+    utils = None
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
 from .timeout import timeout
@@ -117,7 +126,7 @@ def invoke_pytorch_estimator(
             pytorch.fit(inputs=inputs, job_name=job_name)
             return pytorch, sagemaker_session
 
-        except sagemaker.exceptions.UnexpectedStatusException as e:
+        except _UnexpectedStatusException as e:
             if "CapacityError" in str(e):
                 error = e
                 continue
