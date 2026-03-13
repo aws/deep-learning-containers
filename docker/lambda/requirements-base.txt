@@ -1,4 +1,7 @@
+awslambdaric==3.1.1
+boto3==1.40.4
+pip==26.0.1
 pip-licenses==5.5.1
 requests==2.32.5
-setuptools==78.1.1
+setuptools==82.0.1
 urllib3==2.6.3

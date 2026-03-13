@@ -10,6 +10,7 @@ on:
       - "scripts/common/**"
       - "scripts/telemetry/**"
       - "test/lambda/**"
+      - "test/security/data/ecr_scan_allowlist/lambda/**"
       - ".github/workflows/pr-lambda.yml"
       - "!docs/**"
 
@@ -70,6 +71,7 @@ jobs:
               - "scripts/lambda/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
+              - "test/security/data/ecr_scan_allowlist/lambda/**"
 
   # ============================================================
   # Build all 6 image targets

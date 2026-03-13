@@ -1,177 +1,21 @@
 [
     {
-        "vulnerability_id": "CVE-2022-46908",
-        "reason": "SQLite --safe CLI flag bypass; no fix available in AL2023 repo. Lambda images do not expose SQLite CLI to untrusted input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2024-56171",
-        "reason": "libxml2 use-after-free in xmlSchemaIDCFillNodeTables; fix requires libxml2 >= 2.12.10 not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
         "vulnerability_id": "CVE-2024-6345",
-        "reason": "setuptools package_index RCE; pinned to setuptools==78.1.1 in requirements but ECR scan detects older copy bundled in uv or the Lambda base image's pip, which cannot be patched via requirements.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-13151",
-        "reason": "libtasn1 stack buffer overflow; fix not yet available in AL2023 repo. Lambda images do not parse untrusted ASN.1 input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-13601",
-        "reason": "glib heap buffer overflow in g_escape_uri; fix not yet available in AL2023 repo. Lambda images do not expose glib URI parsing to untrusted input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-1390",
-        "reason": "libcap pam_cap.so group name parsing flaw; Lambda images do not use PAM authentication.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-14087",
-        "reason": "glib buffer underflow in GVariant parsing; fix not yet available in AL2023 repo. Lambda images do not parse untrusted GVariant input.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-15467",
-        "reason": "OpenSSL stack buffer overflow via crafted QUIC packet; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-15468",
-        "reason": "OpenSSL SSL_CIPHER_find crash on unknown cipher in QUIC; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-24928",
-        "reason": "libxml2 stack buffer overflow in xmlSnprintfElements; fix requires libxml2 >= 2.12.10 not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4138",
-        "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4330",
-        "reason": "Python tarfile symlink extraction filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4435",
-        "reason": "Python tarfile errorlevel=0 filter bypass (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4517",
-        "reason": "Python tarfile arbitrary write with filter=data (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
-        "review_by": "2026-03-24"
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA. No such version exists in the image; setuptools==82.0.1 is installed. The actual setuptools 38.5.0 copy is vendored inside pip/_vendor/pkg_resources and is never invoked at Lambda runtime."
     },
     {
         "vulnerability_id": "CVE-2025-47273",
-        "reason": "setuptools path traversal; pinned to setuptools==78.1.1 in requirements but ECR scan detects older copy bundled in uv or the Lambda base image's pip, which cannot be patched via requirements.",
-        "review_by": "2026-03-24"
+        "reason": "ECR scanner false positive: attributes setuptools 38.5.0 to pip_licenses-5.5.1.dist-info/METADATA. No such version exists in the image; setuptools==82.0.1 is installed. The actual setuptools 38.5.0 copy is vendored inside pip/_vendor/pkg_resources and is never invoked at Lambda runtime."
     },
-    {
-        "vulnerability_id": "CVE-2025-47912",
-        "reason": "Go net/url insufficient validation of bracketed IPv6 hostnames; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-4802",
-        "reason": "glibc untrusted LD_LIBRARY_PATH in setuid binaries; Lambda images do not run setuid binaries.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-49794",
-        "reason": "libxml2 heap use-after-free DoS; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-49795",
-        "reason": "libxml2 null pointer dereference DoS; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-49796",
-        "reason": "libxml2 type confusion DoS; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-58188",
-        "reason": "Go crypto/x509 panic on DSA public key certificates; present in NVIDIA CUDA base image Go tooling, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-5914",
-        "reason": "libarchive out-of-bounds read in RAR seek; Lambda images do not extract untrusted RAR archives.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-59375",
-        "reason": "libexpat large dynamic allocation via small document; fix requires expat >= 2.7.2 not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-6021",
-        "reason": "libxml2 integer overflow in xmlBuildQName; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-6052",
-        "reason": "glib GString memory management flaw on very large strings; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-68973",
-        "reason": "GnuPG armor_filter double-increment OOB; fix requires GnuPG >= 2.4.9 not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-69421",
-        "reason": "OpenSSL PKCS#12 null pointer dereference; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-7425",
-        "reason": "libxslt attribute type flag corruption; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2025-8194",
-        "reason": "Python tarfile extraction API defect (stdlib); cannot be patched via pip. Lambda images do not extract untrusted tar archives at runtime.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2026-21441",
-        "reason": "urllib3 decompression bomb on redirect responses; pinned to urllib3==2.6.3 in requirements files but ECR scan may still report against bundled copies in transitive deps.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2026-22796",
-        "reason": "OpenSSL ASN1_TYPE type confusion in PKCS7_digest_from_attributes; fix not yet available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2026-23949",
-        "reason": "CVE details not yet published; present in NVIDIA CUDA base image, no fix available in AL2023 repo.",
-        "review_by": "2026-03-24"
-    },
-    {
-        "vulnerability_id": "CVE-2026-24882",
-        "reason": "GnuPG tpm2daemon stack buffer overflow in PKDECRYPT; fix requires GnuPG >= 2.5.17. Lambda images do not use TPM2.",
-        "review_by": "2026-03-24"
-    },
+
     {
         "vulnerability_id": "CVE-2026-25679",
-        "reason": "Go net/url invalid host/authority parsing; present in NVIDIA CUDA base image Go tooling bundled with pytorch, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go net/url CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     },
     {
         "vulnerability_id": "CVE-2026-27142",
-        "reason": "Go net/html XSS via unescaped URL in meta content attribute; present in NVIDIA CUDA base image Go tooling bundled with pytorch, not exposed by Lambda runtime.",
-        "review_by": "2026-03-24"
+        "reason": "Go net/html CVE in aws-lambda-rie binary (v1.33, built with Go 1.25.7). Fixed in Go 1.25.8 but no new RIE release yet. We download releases/latest so this will auto-resolve on next RIE release.",
+        "review_by": "2026-06-12"
     }
 ]
