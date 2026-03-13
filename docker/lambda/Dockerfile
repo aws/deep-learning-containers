@@ -55,6 +55,8 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     --disable-txtpages \
     --disable-debug \
     --enable-nonfree \
+    --enable-nvenc \
+    --enable-nvdec \
     --enable-cuda-nvcc \
     --enable-libnpp \
     --extra-cflags=-I/usr/local/cuda/include \
