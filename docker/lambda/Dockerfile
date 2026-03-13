@@ -242,7 +242,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
   && printf '\n** FFmpeg; version 6.1 -- https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg 6.1 https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\nFFmpeg 6.1 https://github.com/FFmpeg/FFmpeg\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
