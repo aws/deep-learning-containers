@@ -215,96 +215,283 @@ def test_video_io():
 
 
 def test_ffmpeg_available():
-    """Test FFmpeg availability."""
+    """Test FFmpeg availability and NVENC/NVDEC support."""
     import subprocess
 
-    try:
-        result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, timeout=5)
-        version_line = result.stdout.split("\n")[0]
-        print(f"  {version_line}")
-    except Exception as e:
-        raise Exception(f"FFmpeg not available: {e}")
+    result = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, timeout=5)
+    if result.returncode != 0:
+        raise Exception(f"FFmpeg not available: {result.stderr}")
+    version_line = result.stdout.split("\n")[0]
+    print(f"  {version_line}")
+
+    # Verify NVENC/NVDEC encoders/decoders are compiled in
+    result = subprocess.run(["ffmpeg", "-encoders"], capture_output=True, text=True, timeout=5)
+    if "h264_nvenc" not in result.stdout:
+        # Dump configure flags to help diagnose
+        cfg = subprocess.run(["ffmpeg", "-buildconf"], capture_output=True, text=True, timeout=5)
+        nvenc_flags = [
+            line
+            for line in cfg.stdout.splitlines()
+            if "nvenc" in line.lower() or "nvdec" in line.lower() or "cuda" in line.lower()
+        ]
+        raise Exception(
+            f"h264_nvenc encoder not available — FFmpeg not built with NVENC support\nBuild flags: {nvenc_flags}"
+        )
+    print("  ✓ h264_nvenc encoder available")
+
+    result = subprocess.run(["ffmpeg", "-decoders"], capture_output=True, text=True, timeout=5)
+    if "h264_cuvid" not in result.stdout:
+        raise Exception("h264_cuvid decoder not available — FFmpeg not built with NVDEC support")
+    print("  ✓ h264_cuvid decoder available")
 
 
-def test_ffmpeg_codecs():
-    """Test FFmpeg video/audio encoding and decoding."""
+def test_ffmpeg_gpu_transcode():
+    """Test FFmpeg GPU-accelerated transcode using NVENC/NVDEC.
+
+    Covers NVIDIA Video Codec SDK FFmpeg guide:
+    - §3.1: 1:1 HWACCEL transcode (GPU decode + GPU encode)
+    - §3.2: HWACCEL transcode with scale_npp / scale_cuda GPU scaling
+    - §4.2: Standalone NVDEC decode
+    - §4.3: High-quality latency-tolerant preset (p6, tune hq, B-frames, temporal AQ, lookahead)
+    - §4.4: Low-latency preset (p2, tune ll, CBR)
+    - §5.1: Lookahead (-rc-lookahead)
+    - §5.2: Spatial AQ (-spatial-aq 1) and Temporal AQ (-temporal-aq 1)
+    """
     import os
     import subprocess
     import tempfile
 
+    def run(args, timeout=60):
+        result = subprocess.run(args, capture_output=True, timeout=timeout, check=True)
+        return result
+
     with tempfile.TemporaryDirectory() as tmpdir:
-        input_video = os.path.join(tmpdir, "input.mp4")
-        output_mpeg4 = os.path.join(tmpdir, "output_mpeg4.mp4")
-        output_mjpeg = os.path.join(tmpdir, "output_mjpeg.avi")
-        audio_aac = os.path.join(tmpdir, "audio.aac")
 
-        # Generate test video (5 frames, 320x240)
-        subprocess.run(
+        def path(name):
+            return os.path.join(tmpdir, name)
+
+        # Generate a 2-second 1280x720 H.264 input using NVENC (required for h264_cuvid decode)
+        run(
             [
                 "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
                 "-f",
                 "lavfi",
                 "-i",
-                "testsrc=duration=0.2:size=320x240:rate=25",
-                "-f",
-                "lavfi",
-                "-i",
-                "sine=frequency=1000:duration=0.2",
+                "testsrc=duration=2:size=1280x720:rate=25",
                 "-c:v",
-                "mpeg4",
-                "-c:a",
-                "aac",
-                "-y",
-                input_video,
-            ],
-            capture_output=True,
-            timeout=10,
-            check=True,
+                "h264_nvenc",
+                "-pix_fmt",
+                "yuv420p",
+                path("input.mp4"),
+            ]
         )
 
-        # Test MPEG-4 encoding
-        subprocess.run(
+        # §3.1 — 1:1 HWACCEL transcode: GPU decode (cuvid) → GPU encode (nvenc)
+        run(
             [
                 "ffmpeg",
-                "-i",
-                input_video,
-                "-c:v",
-                "mpeg4",
-                "-q:v",
-                "5",
-                "-c:a",
-                "aac",
                 "-y",
-                output_mpeg4,
-            ],
-            capture_output=True,
-            timeout=10,
-            check=True,
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-c:v",
+                "h264_nvenc",
+                "-b:v",
+                "5M",
+                path("out_31.mp4"),
+            ]
         )
+        assert os.path.getsize(path("out_31.mp4")) > 0
+        print("  ✓ §3.1 1:1 HWACCEL transcode (NVDEC → NVENC)")
 
-        # Test MJPEG encoding
-        subprocess.run(
-            ["ffmpeg", "-i", input_video, "-c:v", "mjpeg", "-q:v", "5", "-an", "-y", output_mjpeg],
-            capture_output=True,
-            timeout=10,
-            check=True,
+        # §3.2 — HWACCEL transcode with scale_npp GPU scaling
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-vf",
+                "scale_npp=640:360",
+                "-c:v",
+                "h264_nvenc",
+                "-b:v",
+                "2M",
+                path("out_32_npp.mp4"),
+            ]
         )
+        assert os.path.getsize(path("out_32_npp.mp4")) > 0
+        print("  ✓ §3.2 scale_npp GPU scaling (1280x720 → 640x360)")
 
-        # Test AAC audio encoding
-        subprocess.run(
-            ["ffmpeg", "-i", input_video, "-vn", "-c:a", "aac", "-b:a", "128k", "-y", audio_aac],
-            capture_output=True,
-            timeout=10,
-            check=True,
+        # §3.2 — HWACCEL transcode with scale_cuda GPU scaling
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-vf",
+                "scale_cuda=640:360",
+                "-c:v",
+                "h264_nvenc",
+                "-b:v",
+                "2M",
+                path("out_32_cuda.mp4"),
+            ]
         )
+        assert os.path.getsize(path("out_32_cuda.mp4")) > 0
+        print("  ✓ §3.2 scale_cuda GPU scaling (1280x720 → 640x360)")
 
-        # Verify outputs exist and have content
-        codecs_tested = []
-        for name, path in [("MPEG-4", output_mpeg4), ("MJPEG", output_mjpeg), ("AAC", audio_aac)]:
-            if os.path.exists(path) and os.path.getsize(path) > 0:
-                codecs_tested.append(name)
+        # §4.2 — Standalone NVDEC decode to raw YUV
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-c:v",
+                "h264_cuvid",
+                "-i",
+                path("input.mp4"),
+                "-f",
+                "rawvideo",
+                "-pix_fmt",
+                "nv12",
+                path("out_42.yuv"),
+            ]
+        )
+        assert os.path.getsize(path("out_42.yuv")) > 0
+        print("  ✓ §4.2 standalone NVDEC decode (h264_cuvid → NV12)")
 
-        print(f"  Codecs: {', '.join(codecs_tested)}")
+        # §4.3 — High-quality latency-tolerant preset
+        # preset p6, tune hq, B-frames, temporal AQ, lookahead (§5.1), VBR
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-c:v",
+                "h264_nvenc",
+                "-preset",
+                "p6",
+                "-tune",
+                "hq",
+                "-b:v",
+                "5M",
+                "-bufsize",
+                "5M",
+                "-maxrate",
+                "10M",
+                "-qmin",
+                "0",
+                "-g",
+                "250",
+                "-bf",
+                "3",
+                "-b_ref_mode",
+                "middle",
+                "-temporal-aq",
+                "1",
+                "-rc-lookahead",
+                "20",
+                "-i_qfactor",
+                "0.75",
+                "-b_qfactor",
+                "1.1",
+                path("out_43_hq.mp4"),
+            ]
+        )
+        assert os.path.getsize(path("out_43_hq.mp4")) > 0
+        print("  ✓ §4.3 high-quality preset (p6, tune hq, B-frames, temporal AQ, lookahead)")
+
+        # §4.4 — Low-latency preset: preset p2, tune ll, CBR, small VBV buffer
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-c:v",
+                "h264_nvenc",
+                "-preset",
+                "p2",
+                "-tune",
+                "ll",
+                "-b:v",
+                "5M",
+                "-bufsize",
+                "167K",
+                "-maxrate",
+                "10M",
+                "-qmin",
+                "0",
+                path("out_44_ll.mp4"),
+            ]
+        )
+        assert os.path.getsize(path("out_44_ll.mp4")) > 0
+        print("  ✓ §4.4 low-latency preset (p2, tune ll, CBR)")
+
+        # §5.2 — Spatial AQ
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-hwaccel",
+                "cuda",
+                "-hwaccel_output_format",
+                "cuda",
+                "-i",
+                path("input.mp4"),
+                "-c:v",
+                "h264_nvenc",
+                "-preset",
+                "p4",
+                "-spatial-aq",
+                "1",
+                "-aq-strength",
+                "8",
+                "-b:v",
+                "5M",
+                path("out_52_saq.mp4"),
+            ]
+        )
+        assert os.path.getsize(path("out_52_saq.mp4")) > 0
+        print("  ✓ §5.2 spatial AQ (-spatial-aq 1 -aq-strength 8)")
 
 
 def test_sam2_segmentation():
@@ -380,6 +567,90 @@ def test_sam2_segmentation():
         print(f"  av video I/O: {frame_count} frames")
 
 
+def test_ffmpeg_gpu_aggregate_performance():
+    """Measure aggregate GPU transcode throughput per NVIDIA guide §6.1/§6.2.
+
+    Runs 4 parallel NVENC sessions simultaneously and reports aggregate FPS.
+    Applies §6.2 env vars (CUDA_DEVICE_MAX_CONNECTIONS=2) to reduce init overhead.
+    The guide recommends >15s input; we use 30s to get a stable measurement.
+    """
+    import concurrent.futures
+    import os
+    import subprocess
+    import tempfile
+    import time
+
+    # §6.2: reduce CUDA context init overhead across parallel sessions
+    env = os.environ.copy()
+    env["CUDA_DEVICE_MAX_CONNECTIONS"] = "2"
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+
+        def p(name):
+            return os.path.join(tmpdir, name)
+
+        # Generate a 30s 1080p input (guide recommends >15s for stable measurement)
+        subprocess.run(
+            [
+                "ffmpeg",
+                "-y",
+                "-vsync",
+                "0",
+                "-f",
+                "lavfi",
+                "-i",
+                "testsrc=duration=30:size=1920x1080:rate=25",
+                "-c:v",
+                "h264_nvenc",
+                p("input.mp4"),
+            ],
+            capture_output=True,
+            timeout=60,
+            check=True,
+        )
+
+        # §6.1: run 4 parallel transcode sessions, measure aggregate FPS
+        def transcode(i):
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-vsync",
+                    "0",
+                    "-hwaccel",
+                    "cuda",
+                    "-hwaccel_output_format",
+                    "cuda",
+                    "-i",
+                    p("input.mp4"),
+                    "-c:v",
+                    "h264_nvenc",
+                    "-b:v",
+                    "5M",
+                    p(f"out_{i}.mp4"),
+                ],
+                capture_output=True,
+                timeout=120,
+                check=True,
+                env=env,
+            )
+
+        n_sessions = 4
+        total_frames = 30 * 25 * n_sessions  # duration * fps * sessions
+
+        start = time.monotonic()
+        with concurrent.futures.ThreadPoolExecutor(max_workers=n_sessions) as ex:
+            futures = [ex.submit(transcode, i) for i in range(n_sessions)]
+            for f in concurrent.futures.as_completed(futures):
+                f.result()  # re-raise any exception
+        elapsed = time.monotonic() - start
+
+        aggregate_fps = total_frames / elapsed
+        print(f"  §6.1 aggregate performance: {n_sessions} sessions × 30s @ 1080p")
+        print(f"  Total frames: {total_frames}, elapsed: {elapsed:.1f}s")
+        print(f"  Aggregate FPS: {aggregate_fps:.1f}")
+
+
 def test_environment():
     """Test environment variables."""
     import os
@@ -427,7 +698,8 @@ def main():
         ("Transformers Pipeline", test_transformers_pipeline),
         ("OpenCV Operations", test_opencv_operations),
         ("FFmpeg Available", test_ffmpeg_available),
-        ("FFmpeg Codecs", test_ffmpeg_codecs),
+        ("FFmpeg GPU Transcode", test_ffmpeg_gpu_transcode),
+        ("FFmpeg GPU Aggregate Perf", test_ffmpeg_gpu_aggregate_performance),
         ("Audio Libraries", test_audio_libraries),
         ("Video I/O", test_video_io),
         ("Environment", test_environment),
