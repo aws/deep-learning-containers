@@ -270,7 +270,7 @@ def test_ffmpeg_gpu_transcode():
         def path(name):
             return os.path.join(tmpdir, name)
 
-        # Generate a 2-second 1280x720 H.264 input (CPU) to feed the GPU decoder
+        # Generate a 2-second 1280x720 H.264 input using NVENC (required for h264_cuvid decode)
         run(
             [
                 "ffmpeg",
@@ -282,7 +282,9 @@ def test_ffmpeg_gpu_transcode():
                 "-i",
                 "testsrc=duration=2:size=1280x720:rate=25",
                 "-c:v",
-                "mpeg4",
+                "h264_nvenc",
+                "-pix_fmt",
+                "yuv420p",
                 path("input.mp4"),
             ]
         )
@@ -599,7 +601,7 @@ def test_ffmpeg_gpu_aggregate_performance():
                 "-i",
                 "testsrc=duration=30:size=1920x1080:rate=25",
                 "-c:v",
-                "mpeg4",
+                "h264_nvenc",
                 p("input.mp4"),
             ],
             capture_output=True,
