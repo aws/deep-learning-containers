@@ -250,10 +250,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg.git\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg.git\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg.git\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg.git\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task
