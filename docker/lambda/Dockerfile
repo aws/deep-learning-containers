@@ -44,7 +44,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
   && curl -L https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar xJ -C /tmp \
   && cd /tmp/ffmpeg-6.1 \
-  && ./configure \
+  && PATH="/usr/local/cuda/bin:$PATH" ./configure \
     --prefix=/usr/local \
     --disable-static \
     --enable-shared \

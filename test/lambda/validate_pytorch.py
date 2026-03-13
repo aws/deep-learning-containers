@@ -273,9 +273,7 @@ def test_ffmpeg_gpu_transcode():
                 "-i",
                 "testsrc=duration=2:size=1280x720:rate=25",
                 "-c:v",
-                "libx264",
-                "-preset",
-                "ultrafast",
+                "mpeg4",
                 path("input.mp4"),
             ]
         )
@@ -592,9 +590,7 @@ def test_ffmpeg_gpu_aggregate_performance():
                 "-i",
                 "testsrc=duration=30:size=1920x1080:rate=25",
                 "-c:v",
-                "libx264",
-                "-preset",
-                "ultrafast",
+                "mpeg4",
                 p("input.mp4"),
             ],
             capture_output=True,
