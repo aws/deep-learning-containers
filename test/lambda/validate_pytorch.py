@@ -227,7 +227,16 @@ def test_ffmpeg_available():
     # Verify NVENC/NVDEC encoders/decoders are compiled in
     result = subprocess.run(["ffmpeg", "-encoders"], capture_output=True, text=True, timeout=5)
     if "h264_nvenc" not in result.stdout:
-        raise Exception("h264_nvenc encoder not available — FFmpeg not built with NVENC support")
+        # Dump configure flags to help diagnose
+        cfg = subprocess.run(["ffmpeg", "-buildconf"], capture_output=True, text=True, timeout=5)
+        nvenc_flags = [
+            line
+            for line in cfg.stdout.splitlines()
+            if "nvenc" in line.lower() or "nvdec" in line.lower() or "cuda" in line.lower()
+        ]
+        raise Exception(
+            f"h264_nvenc encoder not available — FFmpeg not built with NVENC support\nBuild flags: {nvenc_flags}"
+        )
     print("  ✓ h264_nvenc encoder available")
 
     result = subprocess.run(["ffmpeg", "-decoders"], capture_output=True, text=True, timeout=5)
