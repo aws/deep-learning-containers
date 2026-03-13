@@ -37,14 +37,15 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
 # FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
 FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
+ENV PATH="/usr/local/cuda/bin:${PATH}"
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar xz gcc gcc-c++ make cmake pkgconfig nasm yasm git \
+  tar xz gcc gcc-c++ make pkgconfig nasm yasm git diffutils \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && git clone https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
+  && git clone --branch n12.2.72.0 --depth 1 https://github.com/FFmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
   && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
-  && curl -L https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar xJ -C /tmp \
-  && cd /tmp/ffmpeg-6.1 \
-  && PATH="/usr/local/cuda/bin:$PATH" ./configure \
+  && git clone --branch n8.0.1 --depth 1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+  && cd /tmp/ffmpeg \
+  && PKG_CONFIG_PATH="/usr/local/lib/pkgconfig" ./configure \
     --prefix=/usr/local \
     --disable-static \
     --enable-shared \
@@ -55,16 +56,15 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     --disable-txtpages \
     --disable-debug \
     --enable-nonfree \
-    --enable-nvenc \
-    --enable-nvdec \
     --enable-cuda-nvcc \
     --enable-libnpp \
     --extra-cflags=-I/usr/local/cuda/include \
     --extra-ldflags=-L/usr/local/cuda/lib64 \
+    --nvccflags="-gencode arch=compute_75,code=sm_75 -O2" \
   && make -j$(nproc) \
   && make install \
   && strip /usr/local/bin/ffmpeg /usr/local/bin/ffprobe \
-  && rm -rf /tmp/ffmpeg-6.1
+  && rm -rf /tmp/ffmpeg
 
 # ============================================================
 # Base builder (Python 3.13 — awslambdaric, requests, pip-licenses)
@@ -124,6 +124,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as base-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-base-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -168,6 +169,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as cupy-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
 COPY --from=builder-cupy-py3 /var/lang /var/lang
 COPY --from=lambda-python /var/runtime /var/runtime
@@ -212,6 +214,7 @@ CMD ["handler.handler"]
 FROM nvidia/cuda:12.8.1-runtime-amzn2023 as pytorch-py3
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --setopt=install_weak_deps=False \
     libxcb libX11 libXext libXfixes alsa-lib \
@@ -249,10 +252,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash /tmp/setup_oss_compliance.sh python3 \
-  && printf '\n** FFmpeg; version 6.1 -- https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFmpeg 6.1 https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version 6.1 -- https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe 6.1 https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /var/lang/lib/python3.13/ensurepip/_bundled
 WORKDIR /var/task

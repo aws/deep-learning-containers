@@ -41,16 +41,16 @@ Minimal CUDA + Python + Lambda runtime. No ML libraries.
 
 ### gpu-pytorch-py3
 
-| Package      | Version           |
-| ------------ | ----------------- |
-| PyTorch      | 2.10.0            |
-| TorchVision  | 0.25.0            |
-| TorchAudio   | 2.10.0            |
-| Transformers | 5.2.0             |
-| Diffusers    | 0.36.0            |
-| SAM2         | 2b90b9f (git)     |
-| Accelerate   | 1.12.0            |
-| OpenCV       | 4.13.0.92         |
-| FFmpeg       | 6.1 (NVENC/NVDEC) |
-| NumPy        | 2.4.2             |
-| SciPy        | 1.17.1            |
+| Package      | Version              |
+| ------------ | -------------------- |
+| PyTorch      | 2.10.0               |
+| TorchVision  | 0.25.0               |
+| TorchAudio   | 2.10.0               |
+| Transformers | 5.2.0                |
+| Diffusers    | 0.36.0               |
+| SAM2         | 2b90b9f (git)        |
+| Accelerate   | 1.12.0               |
+| OpenCV       | 4.13.0.92            |
+| FFmpeg       | n8.0.1 (NVENC/NVDEC) |
+| NumPy        | 2.4.2                |
+| SciPy        | 1.17.1               |
