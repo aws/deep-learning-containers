@@ -10,5 +10,42 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF
 # ANY KIND, either express or implied. See the License for the specific
 # language governing permissions and limitations under the License.
-# Reuse timeout from v2 sagemaker tests
-from ..sagemaker.timeout import timeout, timeout_and_delete_endpoint, TimeoutError
+#
+# Standalone timeout utilities for SM SDK v3 tests.
+from __future__ import absolute_import
+import signal
+from contextlib import contextmanager
+import logging
+
+LOGGER = logging.getLogger("timeout")
+
+
+class TimeoutError(Exception):
+    pass
+
+
+@contextmanager
+def timeout(seconds=0, minutes=0, hours=0):
+    """Add a signal-based timeout to any block of code.
+    If multiple time units are specified, they will be added together to determine time limit.
+    Usage:
+    with timeout(seconds=5):
+        my_slow_function(...)
+    Args:
+        - seconds: The time limit, in seconds.
+        - minutes: The time limit, in minutes.
+        - hours: The time limit, in hours.
+    """
+
+    limit = seconds + 60 * minutes + 3600 * hours
+
+    def handler(signum, frame):
+        raise TimeoutError("timed out after {} seconds".format(limit))
+
+    try:
+        signal.signal(signal.SIGALRM, handler)
+        signal.alarm(limit)
+
+        yield
+    finally:
+        signal.alarm(0)

@@ -25,7 +25,12 @@ import pytest
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.pytorch import PyTorch
+
+try:
+    from sagemaker.pytorch import PyTorch
+except ImportError:
+    # SageMaker SDK v3 removed sagemaker.pytorch; v3 tests use ModelTrainer instead
+    PyTorch = None
 
 from . import get_efa_test_instance_type
 

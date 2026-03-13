@@ -16,7 +16,11 @@ import time
 
 import botocore.exceptions
 import sagemaker
-import sagemaker.exceptions
+
+try:
+    import sagemaker.exceptions
+except ImportError:
+    pass
 
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 

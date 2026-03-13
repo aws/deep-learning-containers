@@ -16,10 +16,19 @@ import time
 
 import botocore.exceptions
 import pytest
-import sagemaker.exceptions
 import sagemaker
 
-from sagemaker.pytorch import PyTorch
+try:
+    import sagemaker.exceptions
+except ImportError:
+    pass
+
+try:
+    from sagemaker.pytorch import PyTorch
+except ImportError:
+    # SageMaker SDK v3 removed sagemaker.pytorch; v3 tests use ModelTrainer instead
+    PyTorch = None
+
 from sagemaker import utils
 from tenacity import retry, retry_if_exception_type, wait_fixed, stop_after_delay
 
