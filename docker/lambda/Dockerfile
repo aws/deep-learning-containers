@@ -34,15 +34,16 @@ RUN dnf install -y --setopt=install_weak_deps=False tar gzip git findutils \
   && mv /root/.local/bin/uv /usr/local/bin/uv
 
 # ============================================================
-# FFmpeg builder (compiled from source with shared libs)
+# FFmpeg builder (compiled from source with NVENC/NVDEC GPU acceleration)
 # ============================================================
 FROM nvidia/cuda:12.8.1-devel-amzn2023 as ffmpeg-builder
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar xz gcc gcc-c++ make cmake pkgconfig nasm yasm \
+  tar xz gcc gcc-c++ make cmake pkgconfig nasm yasm git \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && cd /tmp \
-  && curl -L https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar xJ \
-  && cd ffmpeg-6.1 \
+  && git clone https://git.videolan.org/git/ffmpeg/nv-codec-headers.git /tmp/nv-codec-headers \
+  && cd /tmp/nv-codec-headers && make install && cd /tmp && rm -rf nv-codec-headers \
+  && curl -L https://ffmpeg.org/releases/ffmpeg-6.1.tar.xz | tar xJ -C /tmp \
+  && cd /tmp/ffmpeg-6.1 \
   && ./configure \
     --prefix=/usr/local \
     --disable-static \
@@ -53,10 +54,15 @@ RUN dnf install -y --setopt=install_weak_deps=False \
     --disable-podpages \
     --disable-txtpages \
     --disable-debug \
+    --enable-nonfree \
+    --enable-cuda-nvcc \
+    --enable-libnpp \
+    --extra-cflags=-I/usr/local/cuda/include \
+    --extra-ldflags=-L/usr/local/cuda/lib64 \
   && make -j$(nproc) \
   && make install \
   && strip /usr/local/bin/ffmpeg /usr/local/bin/ffprobe \
-  && cd /tmp && rm -rf ffmpeg-6.1
+  && rm -rf /tmp/ffmpeg-6.1
 
 # ============================================================
 # Base builder (Python 3.13 — awslambdaric, requests, pip-licenses)
