@@ -20,6 +20,13 @@ runs:
           const required = '${{ inputs.required-level }}';
           const levels = ['none', 'read', 'triage', 'write', 'maintain', 'admin'];
 
+          // Trusted bots bypass the permission check
+          const trustedBots = ['aws-deep-learning-containers-ci[bot]'];
+          if (trustedBots.includes(username) && context.payload.sender.type === 'Bot') {
+            core.info(`✅ ${username} is a trusted bot, skipping permission check.`);
+            return;
+          }
+
           try {
             const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
               owner,
