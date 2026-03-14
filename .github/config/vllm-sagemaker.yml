@@ -5,11 +5,10 @@
 image:
   name: "vllm-sagemaker"
   description: "vLLM for SageMaker"
-
 # Build configuration
 common:
   framework: "vllm"
-  framework_version: "0.17.0"
+  framework_version: "0.17.1"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
@@ -19,7 +18,6 @@ common:
   prod_image: "vllm:0.17-gpu-py312"
   device_type: "gpu"
   contributor: "None"
-
 # Release configuration
 release:
   release: true
@@ -27,4 +25,4 @@ release:
   public_registry: true
   private_registry: true
   enable_soci: true
-  environment: production  # gamma or production
+  environment: production # gamma or production
