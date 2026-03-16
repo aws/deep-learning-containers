@@ -35,6 +35,6 @@ frameworks:
         prod_image_template: "sglang:{major}.{minor}-gpu-py312"
     dockerfiles:
       - path: "docker/sglang/Dockerfile"
-        base_image_template: "lmsysorg/sglang:v{version}-cu129-amd64"
+        base_image_template: "lmsysorg/sglang:v{version}"
     agent:
       version_detection: true
