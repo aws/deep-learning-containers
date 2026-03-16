@@ -8,13 +8,12 @@
 name: Check Upstream Releases
 
 on:
-  # Testing this workflow in PR before merge
+  # Uncomment to test in PR
   # pull_request:
   #   types: [opened, synchronize]
 
-  # Uncomment when ready for full automation
-  # schedule:
-  #   - cron: '0 * * * *'
+  schedule:
+    - cron: '0 * * * *'
   workflow_dispatch:
     inputs:
       framework:
