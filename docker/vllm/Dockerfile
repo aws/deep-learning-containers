@@ -34,6 +34,7 @@ RUN uv pip install --system \
 RUN uv pip install --system \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
+  "PyJWT>=2.12.0" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
