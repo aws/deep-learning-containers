@@ -1,6 +1,6 @@
 # Declare the argument as default to use as input
 # base image: https://hub.docker.com/r/vllm/vllm-openai/tags
-ARG BASE_IMAGE=vllm/vllm-openai:v0.17.0
+ARG BASE_IMAGE=vllm/vllm-openai:v0.17.1
 
 # Use input argument as base image
 FROM $BASE_IMAGE AS base
@@ -34,6 +34,7 @@ RUN uv pip install --system \
 RUN uv pip install --system \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
+  "PyJWT>=2.12.0" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
