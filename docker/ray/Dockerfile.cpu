@@ -59,14 +59,13 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON="python"
-ARG FRAMEWORK="pytorch"
-ARG FRAMEWORK_VERSION="2.10.0"
+ARG FRAMEWORK="ray"
+ARG FRAMEWORK_VERSION="2.54.0"
 ARG CONTAINER_TYPE="inference"
 
 # Copy Python installation and venv from builder
 COPY --from=builder /root/.local/share/uv/python /root/.local/share/uv/python
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /usr/local/bin/uv /usr/local/bin/uv
 COPY --from=builder /opt/ffmpeg /opt/ffmpeg
 
 # Set PATH to use venv and FFmpeg
@@ -74,8 +73,8 @@ ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
   LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}" \
   DLC_CONTAINER_TYPE=inference
 
-# Create model directories
-RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
+RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output \
+  && ln -s /opt/venv/bin/python3 /usr/local/bin/python
 
 WORKDIR /app
 

@@ -9,13 +9,13 @@ image:
 # Build configuration
 common:
   framework: "ray"
-  framework_version: "2.10.0"
+  framework_version: "2.54.0"
   job_type: "inference"
   python_version: "py313"
   os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "ray:2.10-cpu-py313-ec2"
+  prod_image: "ray:2.54-cpu-py313-ec2"
   device_type: "cpu"
   contributor: "None"
 

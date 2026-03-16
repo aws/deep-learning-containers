@@ -82,8 +82,8 @@ LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
 ARG PYTHON="python"
-ARG FRAMEWORK="pytorch"
-ARG FRAMEWORK_VERSION="2.10.0"
+ARG FRAMEWORK="ray"
+ARG FRAMEWORK_VERSION="2.54.0"
 ARG CONTAINER_TYPE="inference"
 
 # Enable video capability to mount NVENC/NVDEC driver libraries
@@ -92,7 +92,6 @@ ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility,video
 # Copy Python installation and venv from python-builder
 COPY --from=python-builder /root/.local/share/uv/python /root/.local/share/uv/python
 COPY --from=python-builder /opt/venv /opt/venv
-COPY --from=python-builder /usr/local/bin/uv /usr/local/bin/uv
 
 # Copy FFmpeg from ffmpeg-builder
 COPY --from=ffmpeg-builder /opt/ffmpeg /opt/ffmpeg
@@ -103,7 +102,8 @@ ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
   DLC_CONTAINER_TYPE=inference
 
 # Create model directories
-RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output
+RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output \
+  && ln -s /opt/venv/bin/python3 /usr/local/bin/python
 
 WORKDIR /app
 
