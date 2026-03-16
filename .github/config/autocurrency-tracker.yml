@@ -22,6 +22,8 @@ frameworks:
     dockerfiles:
       - path: "docker/vllm/Dockerfile"
         base_image_template: "vllm/vllm-openai:v{version}"
+    agent:
+      version_detection: true
 
   sglang:
     github_repo: "sgl-project/sglang"
@@ -34,3 +36,5 @@ frameworks:
     dockerfiles:
       - path: "docker/sglang/Dockerfile"
         base_image_template: "lmsysorg/sglang:v{version}-cu129-amd64"
+    agent:
+      version_detection: true
