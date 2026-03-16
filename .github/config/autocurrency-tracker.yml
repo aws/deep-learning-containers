@@ -24,8 +24,7 @@ frameworks:
         base_image_template: "vllm/vllm-openai:v{version}"
 
   sglang:
-    #github_repo: "sgl-project/sglang"
-    github_repo: "Eren-Jeager123/Algorithm"
+    github_repo: "sgl-project/sglang"
     tag_prefix: "v"
     config_files:
       - path: ".github/config/sglang-ec2.yml"
