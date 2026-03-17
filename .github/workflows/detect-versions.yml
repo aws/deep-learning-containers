@@ -9,7 +9,7 @@ name: Detect Versions
 
 on:
   pull_request:
-    types: [opened, labeled]
+    types: [opened, synchronize]
 
 jobs:
   version-detection:
