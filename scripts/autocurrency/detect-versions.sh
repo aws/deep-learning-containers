@@ -195,7 +195,7 @@ detect_and_update_versions() {
 
   # Check if version detection is enabled for this framework
   local agent_enabled
-  agent_enabled=$(yq eval ".frameworks.${framework}.agent.version_detection // false" "${TRACKER_FILE}")
+  agent_enabled=$(yq eval ".frameworks.${framework}.version_detection // false" "${TRACKER_FILE}")
   if [[ "${agent_enabled}" != "true" ]]; then
     echo "${framework}: Version detection not enabled. Skipping."
     return 1
