@@ -17,9 +17,17 @@ ARGS=()
 while IFS='=' read -r key value; do
     arg_name=$(echo "${key#"${PREFIX}"}" | tr '[:upper:]' '[:lower:]' | tr '_' '-')
 
-    ARGS+=("${ARG_PREFIX}${arg_name}")
-    if [ -n "$value" ]; then
-        ARGS+=("$value")
+    # Handle boolean flags: true -> flag only, false -> skip entirely
+    lower_value=$(echo "$value" | tr '[:upper:]' '[:lower:]')
+    if [ "$lower_value" = "true" ]; then
+        ARGS+=("${ARG_PREFIX}${arg_name}")
+    elif [ "$lower_value" = "false" ]; then
+        continue
+    else
+        ARGS+=("${ARG_PREFIX}${arg_name}")
+        if [ -n "$value" ]; then
+            ARGS+=("$value")
+        fi
     fi
 done < <(env | grep "^${PREFIX}")
 
