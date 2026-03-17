@@ -74,8 +74,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/lib/libnvjpeg* /usr/local/cuda/targets/x86_64-linux/lib/ \
   && cp libnvjpeg-linux-x86_64-12.4.0.76-archive/include/* /usr/local/cuda/targets/x86_64-linux/include/ \
   && rm -rf /tmp/nvjpeg \
-  # remove cuobjdump and nvdisasm
-  && rm -rf /usr/local/cuda/bin/cuobjdump* \
+  # remove nvdisasm (cuobjdump is kept — required by deep_gemm JIT at runtime)
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
