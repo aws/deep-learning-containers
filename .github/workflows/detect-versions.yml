@@ -13,8 +13,10 @@ on:
 
 jobs:
   version-detection:
-    # Only run on auto-update PRs (label added by check-upstream-releases)
-    if: contains(github.event.pull_request.labels.*.name, 'auto-update')
+    # Only run on auto-update PRs: must have label AND matching branch name
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'auto-update') &&
+      startsWith(github.event.pull_request.head.ref, 'auto-update/')
     runs-on: ubuntu-latest
     permissions:
       contents: write
