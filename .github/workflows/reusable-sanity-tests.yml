@@ -135,6 +135,21 @@ jobs:
       # ===== OSS compliance =====================
       # ==========================================
 
+      # ==========================================
+      # ===== vLLM-specific sanity checks ========
+      # ==========================================
+
+      - name: Run inference engine sanity tests
+        if: inputs.framework == 'vllm' || inputs.framework == 'sglang'
+        run: |
+          IMAGE_TAG="${{ inputs.framework }}:${{ inputs.framework-version }}-${{ inputs.device-type }}-${{ inputs.python-version }}-${{ inputs.cuda-version }}-${{ inputs.os-version }}-${{ inputs.customer-type }}"
+          docker exec -e IMAGE_TAG="${IMAGE_TAG}" ${CONTAINER_ID} \
+            python3 /workdir/test/sanity/scripts/test_sanity_vllm_sglang.py
+
+      # ==========================================
+      # ===== OSS compliance =====================
+      # ==========================================
+
       - name: Run OSS compliance check
         run: |
           docker exec ${CONTAINER_ID} /usr/local/bin/testOSSCompliance /root
