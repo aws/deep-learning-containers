@@ -90,6 +90,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && chmod +x /usr/local/bin/bash_telemetry.sh \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} \
   && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
