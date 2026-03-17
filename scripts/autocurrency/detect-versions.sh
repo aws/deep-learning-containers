@@ -269,14 +269,6 @@ main() {
     exit 1
   fi
 
-  # Guard against infinite loop: skip if last commit was from this workflow
-  local last_msg
-  last_msg=$(git log -1 --format='%s' 2>/dev/null || echo "")
-  if [[ "${last_msg}" == "[Detect-Versions]"* ]]; then
-    echo "Last commit is from detect-versions. Skipping to avoid loop."
-    exit 0
-  fi
-
   # Extract framework from PR branch name
   local pr_branch="${PR_BRANCH:-}"
   if [[ -z "${pr_branch}" ]]; then
