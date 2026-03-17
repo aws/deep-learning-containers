@@ -1,4 +1,4 @@
-# auto-update-agent.yml — Detects CUDA/Python/OS version changes in upstream
+# detect-versions.yml — Detects CUDA/Python/OS version changes in upstream
 # base images and updates config files on auto-update PR branches.
 #
 # Triggers when an auto-update PR is opened by check-upstream-releases.yml.
