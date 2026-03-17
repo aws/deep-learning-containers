@@ -270,10 +270,10 @@ main() {
   fi
 
   # Guard against infinite loop: skip if last commit was from this workflow
-  local last_author
-  last_author=$(git log -1 --format='%an' 2>/dev/null || echo "")
-  if [[ "${last_author}" == "github-actions[bot]" ]]; then
-    echo "Last commit was from github-actions[bot]. Skipping to avoid loop."
+  local last_msg
+  last_msg=$(git log -1 --format='%s' 2>/dev/null || echo "")
+  if [[ "${last_msg}" == "[Detect-Versions]"* ]]; then
+    echo "Last commit is from detect-versions. Skipping to avoid loop."
     exit 0
   fi
 
