@@ -31,15 +31,18 @@ WORKDIR /
 
 # Install DLC dependencies
 # ===============
-RUN pip install \
-  botocore
+RUN uv pip install --system \
+  botocore \
+  && uv cache clean
 
 # patch CVEs
-RUN pip install \
+RUN uv pip install --system \
   "black>=26.3.1" \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
-  "xgrammar>=0.1.32"
+  "xgrammar>=0.1.32" \
+  && uv pip check --system \
+  && uv cache clean
 
 # Copy artifacts
 # ===============
