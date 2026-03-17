@@ -351,7 +351,10 @@ class TestEntrypointContract(unittest.TestCase):
     def _find_sagemaker_entrypoint(self):
         for path in self.SAGEMAKER_ENTRYPOINTS:
             if os.path.isfile(path):
-                return path
+                with open(path) as f:
+                    content = f.read()
+                if "SM_VLLM_" in content or "SM_SGLANG_" in content:
+                    return path
         return None
 
     def test_sagemaker_entrypoint_exists_and_executable(self):
