@@ -195,7 +195,7 @@ detect_and_update_versions() {
 
   # Check if version detection is enabled for this framework
   local agent_enabled
-  agent_enabled=$(yq eval ".frameworks.${framework}.agent.version_detection // false" "${TRACKER_FILE}")
+  agent_enabled=$(yq eval ".frameworks.${framework}.version_detection // false" "${TRACKER_FILE}")
   if [[ "${agent_enabled}" != "true" ]]; then
     echo "${framework}: Version detection not enabled. Skipping."
     return 1
@@ -215,6 +215,21 @@ detect_and_update_versions() {
   detected_os=$(extract_os_version "${base_image}")
 
   echo "${framework}: Detected — CUDA: ${detected_cuda:-n/a}, Python: ${detected_python:-n/a}, OS: ${detected_os:-n/a}"
+
+  # Fail if critical versions could not be extracted
+  if [[ -z "${detected_python}" ]]; then
+    echo "::error::${framework}: Failed to extract Python version from ${base_image}"
+    return 1
+  fi
+
+  if [[ -z "${detected_os}" ]]; then
+    echo "::error::${framework}: Failed to extract OS version from ${base_image}"
+    return 1
+  fi
+
+  if [[ -z "${detected_cuda}" ]]; then
+    echo "::warning::${framework}: CUDA version not detected (expected for CPU images)"
+  fi
 
   # Update config files if versions differ
   local updated_files
