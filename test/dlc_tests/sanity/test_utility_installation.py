@@ -102,12 +102,22 @@ def test_utility_packages_using_import(training):
     packages_to_import = SM_TRAINING_UTILITY_PACKAGES_IMPORT
 
     for package in packages_to_import:
+        # SageMaker SDK v3 removed __version__ attribute; use importlib.metadata as fallback
+        if package == "sagemaker":
+            version_cmd = (
+                "import sagemaker; "
+                'v = getattr(sagemaker, "__version__", None); '
+                'v = v or __import__("importlib.metadata", fromlist=["version"]).version("sagemaker"); '
+                "print(v)"
+            )
+        else:
+            version_cmd = f"import {package}; print({package}.__version__)"
         version = re.search(
             r"\d+(\.\d+)+",
             test_utils.run_cmd_on_container(
                 container_name,
                 ctx,
-                f"import {package}; print({package}.__version__)",
+                version_cmd,
                 executable="python",
             ).stdout,
         ).group()

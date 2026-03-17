@@ -25,7 +25,6 @@ import pytest
 
 from botocore.exceptions import ClientError
 from sagemaker import LocalSession, Session
-from sagemaker.pytorch import PyTorch
 
 from . import get_efa_test_instance_type
 
@@ -435,7 +434,8 @@ def skip_smppy_test(
     skip_dict = {
         ">=2.7.1,<2.8": ["cpu", "cu128"],
         ">=2.8,<2.9": ["cpu", "cu129"],
-        ">=2.9,<3.0": ["cpu", "cu130"],
+        ">=2.9,<2.10": ["cpu", "cu130"],
+        ">=2.10,<3.0": ["cpu", "cu130"],
     }
     if _validate_pytorch_framework_version(
         request, processor, ecr_image, "skip_smppy_test", skip_dict
