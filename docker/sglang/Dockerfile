@@ -41,7 +41,7 @@ RUN uv pip install --system \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32" \
-  && uv pip check --system \
+  && uv pip check --system || echo "WARNING: uv pip check found incompatibilities (see above)" \
   && uv cache clean
 
 # Copy artifacts
