@@ -36,6 +36,7 @@ RUN pip install \
 
 # patch CVEs
 RUN pip install \
+  "black>=26.3.1" \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32"
