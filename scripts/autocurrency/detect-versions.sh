@@ -216,6 +216,21 @@ detect_and_update_versions() {
 
   echo "${framework}: Detected — CUDA: ${detected_cuda:-n/a}, Python: ${detected_python:-n/a}, OS: ${detected_os:-n/a}"
 
+  # Fail if critical versions could not be extracted
+  if [[ -z "${detected_python}" ]]; then
+    echo "::error::${framework}: Failed to extract Python version from ${base_image}"
+    return 1
+  fi
+
+  if [[ -z "${detected_os}" ]]; then
+    echo "::error::${framework}: Failed to extract OS version from ${base_image}"
+    return 1
+  fi
+
+  if [[ -z "${detected_cuda}" ]]; then
+    echo "::warning::${framework}: CUDA version not detected (expected for CPU images)"
+  fi
+
   # Update config files if versions differ
   local updated_files
   updated_files=$(update_config_versions "${framework}" "${detected_cuda}" "${detected_python}" "${detected_os}")
