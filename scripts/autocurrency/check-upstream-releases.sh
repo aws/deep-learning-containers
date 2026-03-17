@@ -309,6 +309,7 @@ for framework in ${FRAMEWORKS}; do
       --base main \
       --head "${branch_name}" \
       --title "[Auto-Update] ${framework} ${latest_version}" \
+      --label "auto-update" \
       --body "${pr_body}")
 
     echo "${framework}: PR created: ${pr_url}"

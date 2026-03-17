@@ -231,7 +231,37 @@ detect_and_update_versions() {
 }
 
 ###############################################################################
-# Main — process all frameworks with version_detection enabled
+# extract_framework_from_branch(branch_name)
+#   Extracts the framework name from an auto-update branch name.
+#   Branch format: auto-update/<framework>-<version>
+#   Returns the framework key (e.g., "vllm", "sglang")
+###############################################################################
+extract_framework_from_branch() {
+  local branch="${1:?Usage: extract_framework_from_branch BRANCH_NAME}"
+
+  # Strip "auto-update/" prefix
+  local remainder="${branch#auto-update/}"
+
+  if [[ "${remainder}" == "${branch}" ]]; then
+    echo "Error: branch '${branch}' does not match auto-update/<framework>-<version>" >&2
+    return 1
+  fi
+
+  # Framework is everything before the last -<version> segment
+  # Version starts with a digit, so find the last "-<digit>" boundary
+  local framework
+  framework=$(echo "${remainder}" | sed -E 's/-[0-9][0-9.]*$//')
+
+  if [[ -z "${framework}" ]]; then
+    echo "Error: could not extract framework from branch '${branch}'" >&2
+    return 1
+  fi
+
+  echo "${framework}"
+}
+
+###############################################################################
+# Main — detect versions for the framework from the PR branch
 ###############################################################################
 main() {
   if [[ ! -f "${TRACKER_FILE}" ]]; then
@@ -239,33 +269,44 @@ main() {
     exit 1
   fi
 
-  local frameworks
-  frameworks=$(yq eval '.frameworks | keys | .[]' "${TRACKER_FILE}")
+  # Extract framework from PR branch name
+  local pr_branch="${PR_BRANCH:-}"
+  if [[ -z "${pr_branch}" ]]; then
+    echo "::error::PR_BRANCH environment variable not set"
+    exit 1
+  fi
 
-  local all_updated_files=""
+  local framework
+  framework=$(extract_framework_from_branch "${pr_branch}")
+  echo "Framework from branch: ${framework}"
+
+  # Validate framework exists in tracker
+  local exists
+  exists=$(yq eval ".frameworks.${framework} // null" "${TRACKER_FILE}")
+  if [[ "${exists}" == "null" ]]; then
+    echo "::error::Framework '${framework}' not found in ${TRACKER_FILE}"
+    exit 1
+  fi
+
+  echo ""
+  echo "============================================================"
+  echo "Version Detection: ${framework}"
+  echo "============================================================"
+
   local any_changes=false
 
-  for framework in ${frameworks}; do
-    echo ""
-    echo "============================================================"
-    echo "Version Detection: ${framework}"
-    echo "============================================================"
+  set +e
+  detect_and_update_versions "${framework}" 2>&1
+  local exit_code=$?
+  set -e
 
-    set +e
-    local updated_files
-    updated_files=$(detect_and_update_versions "${framework}" 2>&1 | tee /dev/stderr | grep -E '^\.' || true)
-    local exit_code=${PIPESTATUS[0]}
-    set -e
-
-    # Collect updated files from the function output (config paths start with ".")
-    if [[ ${exit_code} -eq 0 ]]; then
-      any_changes=true
-    fi
-  done
+  if [[ ${exit_code} -eq 0 ]]; then
+    any_changes=true
+  fi
 
   if [[ "${any_changes}" != "true" ]]; then
     echo ""
-    echo "No version changes detected across any framework."
+    echo "No version changes detected for ${framework}."
     exit 0
   fi
 
@@ -275,7 +316,7 @@ main() {
   git config user.name "github-actions[bot]"
   git config user.email "github-actions[bot]@users.noreply.github.com"
   git add -A
-  git commit -m "[Auto-Agent] Update detected CUDA/Python/OS versions" || {
+  git commit -m "[Detect-Versions] Update CUDA/Python/OS versions for ${framework}" || {
     echo "No changes to commit."
     exit 0
   }

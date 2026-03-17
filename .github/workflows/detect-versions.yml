@@ -9,12 +9,12 @@ name: Detect Versions
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, labeled]
 
 jobs:
   version-detection:
-    # Only run on auto-update PRs created by the tracker
-    if: startsWith(github.event.pull_request.title, '[Auto-Update]')
+    # Only run on auto-update PRs (label added by check-upstream-releases)
+    if: contains(github.event.pull_request.labels.*.name, 'auto-update')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -51,4 +51,5 @@ jobs:
       - name: Run version detection
         env:
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: bash scripts/autocurrency/detect-versions.sh
