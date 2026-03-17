@@ -13,10 +13,11 @@ on:
 
 jobs:
   version-detection:
-    # Only run on auto-update PRs: must have label AND matching branch name
+    # Only run on auto-update PRs: must have label, matching branch, and bot author
     if: >-
       contains(github.event.pull_request.labels.*.name, 'auto-update') &&
-      startsWith(github.event.pull_request.head.ref, 'auto-update/')
+      startsWith(github.event.pull_request.head.ref, 'auto-update/') &&
+      github.event.pull_request.user.login == 'aws-deep-learning-containers-ci[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: write
