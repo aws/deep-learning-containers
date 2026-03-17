@@ -38,6 +38,7 @@ RUN pip install \
 RUN pip install \
   "black>=26.3.1" \
   "pillow>=12.1.1" \
+  "pyasn1>=0.6.3" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32"
 
