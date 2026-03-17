@@ -76,7 +76,7 @@ RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
 #############
 FROM nvidia/cuda:12.9.0-runtime-amzn2023 AS base
 
-RUN dnf upgrade -y --security && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf upgrade -y && dnf clean all && rm -rf /var/cache/dnf
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
