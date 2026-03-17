@@ -76,8 +76,7 @@ RUN bash install_efa.sh ${EFA_VERSION} \
   # create symlink for python
   && rm -rf /usr/bin/python \
   && ln -s /usr/bin/python3 /usr/bin/python \
-  # remove cuobjdump and nvdisasm
-  && rm -rf /usr/local/cuda/bin/cuobjdump* \
+  # remove nvdisasm (cuobjdump is kept — required by deep_gemm JIT at runtime)
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # Remove all Rust build-time artifacts to patch CVEs
