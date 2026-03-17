@@ -1,0 +1,250 @@
+name: PR - Lambda
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/lambda/**"
+      - "scripts/lambda/**"
+      - "scripts/common/**"
+      - "scripts/telemetry/**"
+      - "test/lambda/**"
+      - "test/security/data/ecr_scan_allowlist/lambda/**"
+      - ".github/workflows/pr-lambda.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+  DOCKERFILE_PATH: "docker/lambda/Dockerfile"
+
+jobs:
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/lambda/**"
+              - "scripts/lambda/**"
+              - "scripts/common/**"
+              - "scripts/telemetry/**"
+              - "test/security/data/ecr_scan_allowlist/lambda/**"
+
+  # ============================================================
+  # Build all 6 image targets
+  # ============================================================
+  build-images:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ matrix.target.name }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { name: base-py3, tag: gpu-base-py3 }
+          - { name: cupy-py3, tag: gpu-cupy-py3 }
+          - { name: pytorch-py3, tag: gpu-pytorch-py3 }
+    outputs:
+      base-py3: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Build ${{ matrix.target.name }}
+        id: build
+        run: |
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}"
+          echo "Building ${CI_IMAGE_URI}"
+
+          docker buildx build --progress plain \
+            --build-arg CACHE_REFRESH="$(date +"%Y-%m-%d")" \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target ${{ matrix.target.name }} \
+            -f ${{ env.DOCKERFILE_PATH }} .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests — run first after build
+  # ============================================================
+  sanity-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      python-version: py3
+      cuda-version: cu128
+      os-version: amzn2023
+      customer-type: lambda
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: general
+
+  # ============================================================
+  # Security tests — run in parallel with sanity and telemetry
+  # ============================================================
+  security-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+
+  # ============================================================
+  # Telemetry tests — run in parallel with sanity and security
+  # ============================================================
+  telemetry-test:
+    needs: [build-images]
+    if: success()
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: gpu-base-py3 }
+          - { tag: gpu-cupy-py3 }
+          - { tag: gpu-pytorch-py3 }
+    concurrency:
+      group: ${{ github.workflow }}-telemetry-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
+    uses: ./.github/workflows/reusable-telemetry-tests.yml
+    with:
+      image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: lambda
+      framework-version: ""
+      container-type: general
+
+  # ============================================================
+  # Validation tests (base, cupy, pytorch) — all in one job
+  # ============================================================
+  validate-images:
+    needs: [sanity-test, security-test, telemetry-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-validate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Validate base-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-base-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_base.py
+
+      - name: Validate cupy-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-cupy-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_cupy.py
+
+      - name: Validate pytorch-py3
+        run: |
+          IMAGE="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:lambda-gpu-pytorch-py3-pr-${{ github.event.pull_request.number }}"
+          docker pull ${IMAGE}
+          docker run --rm --gpus all --entrypoint python -v $(pwd)/test/lambda:/test ${IMAGE} /test/validate_pytorch.py
+
+

@@ -13,9 +13,15 @@ ______________________________________________________________________
 
 ### 🚀 Release Highlights
 
-- **[2026/02/06]** Released v0.15.1 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
-  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312-ec2`
-  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.15-gpu-py312`
+- **[2026/03/10]** Released v0.17.0 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.17-gpu-py312`
+- **[2026/03/09]** Released v0.5.9 [SGLang DLCs](https://gallery.ecr.aws/deep-learning-containers/sglang)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/sglang:0.5.9-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.9-gpu-py312`
+- **[2026/03/09]** Released v0.16.0 [vLLM DLCs](https://gallery.ecr.aws/deep-learning-containers/vllm)
+  - EC2/EKS/ECS: `public.ecr.aws/deep-learning-containers/vllm:0.16-gpu-py312-ec2`
+  - SageMaker: `public.ecr.aws/deep-learning-containers/vllm:0.16-gpu-py312`
 - **[2025/11/17]** Released first [SGLang DLCs](https://gallery.ecr.aws/deep-learning-containers/sglang)
   - SageMaker: `public.ecr.aws/deep-learning-containers/sglang:0.5.5-gpu-py312`
 

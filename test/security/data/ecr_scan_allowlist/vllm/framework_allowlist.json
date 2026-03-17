@@ -1,5 +1,9 @@
 [
     {
+        "vulnerability_id": "CVE-2026-25537",
+        "reason": "vllm0.17.0 jsonwebtoken 9.3.1 is a RUST package bundled with uv(https://github.com/astral-sh/uv/blob/1cf6247447f9a9e48d65283d85e6b11aa4a6fdfd/Cargo.lock#L2498) cannot be patched"
+    },
+    {
         "vulnerability_id": "CVE-2026-27482",
         "reason": "vllm0.15.1 Base image ray version 2.53.0"
     },
@@ -94,5 +98,9 @@
     {
         "vulnerability_id": "CVE-2026-21441",
         "reason": "vllm 0.10.2 TODO"
+    },
+    {
+        "vulnerability_id": "CVE-2026-31812",
+        "reason": "Coming in as a dependency from the latest uv 0.10.9"
     }
 ]
