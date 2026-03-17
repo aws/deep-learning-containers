@@ -1,0 +1,3 @@
+{
+    "89485": "[pkg: onnx] advisory='Affected versions of the onnx package are vulnerable to Improper Input Validation due to improper trust verification logic in onnx.hub.load(). The silent=True parameter suppresses all security warnings and confirmation prompts, allowing model downloads from untrusted repositories.', reason_to_ignore='GHSA-hqmj-h5c6-369m, onnx.hub.load() is not used in DLC training workflows', spec='<=1.20.1'"
+}
