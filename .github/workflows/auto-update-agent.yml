@@ -5,7 +5,7 @@
 # Pulls the upstream Docker base image, extracts runtime versions, and pushes
 # a follow-up commit if any config values need updating.
 
-name: Auto-Update Agent
+name: Detect Versions
 
 on:
   pull_request:
