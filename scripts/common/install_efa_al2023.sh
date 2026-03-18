@@ -9,13 +9,8 @@ function check_libnccl_net_so {
         OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
         NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
     else
-        case $ARCH in
-            x86_64)  ARCH_DIR="x86_64-linux-gnu" ;;
-            aarch64) ARCH_DIR="aarch64-linux-gnu" ;;
-            *)       echo "Unsupported architecture: $ARCH"; exit 1 ;;
-        esac
-        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH_DIR}"
-        NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net.so"
+        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib64"
+        NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
     fi
 
     if [ ! -f "$NCCL_NET_SO" ]; then
@@ -32,7 +27,7 @@ function install_efa {
     OPEN_MPI_PATH="/opt/amazon/openmpi"
 
     # Install build-time dependencies
-    dnf install -y --setopt=install_weak_deps=False \
+    dnf install -y --allowerasing --setopt=install_weak_deps=False \
         curl tar gzip gcc gcc-c++ cmake make git
 
     # Install EFA

@@ -92,7 +92,7 @@ ENV LANG=C.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   CUDA_HOME="/usr/local/cuda" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/usr/local/lib:/usr/local/cuda/lib64:/opt/amazon/ofi-nccl/lib:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/usr/local/lib:/usr/local/cuda/lib64:/opt/amazon/ofi-nccl/lib64:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:${LD_LIBRARY_PATH}"
 
 WORKDIR /
 
@@ -137,7 +137,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm install_efa.sh \
   # OSS compliance
   && dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False unzip curl \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
   && dnf remove -y unzip curl \
   && dnf clean all && rm -rf /var/cache/dnf \
