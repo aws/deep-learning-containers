@@ -226,6 +226,10 @@ jobs:
           echo "SOURCE_STAGE=${{ vars.SOURCE_STAGE }}" >> ${GITHUB_ENV}
           echo "TARGET_STAGE=${{ vars.TARGET_STAGE }}" >> ${GITHUB_ENV}
 
+      - name: Free disk space for SBOM generation
+        run: |
+          docker system prune -f --filter "until=24h" || true
+
       - name: Generate Release Information
         run: |
           echo "=========================================="
@@ -240,9 +244,15 @@ jobs:
           echo "Release metadata from Step 1:"
           cat ${METADATA_FILE}
 
+          # Use workspace dir for syft temp files to avoid /tmp space issues
+          export TMPDIR="${PWD}/.syft-tmp"
+          mkdir -p "${TMPDIR}"
+
           generate_dlc_image_release_information \
             --metadata-file "${METADATA_FILE}" \
             --run-id "${RUN_IDENTIFIER}"
+
+          rm -rf "${TMPDIR}"
 
           echo "✅ Step 2 completed: Release information generated and uploaded to S3"
 
