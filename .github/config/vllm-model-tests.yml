@@ -7,7 +7,7 @@ models:
     tp: 1
     fleet: "x86-g6xl-runner"
 
-  - name: "oss-20b"
+  - name: "gpt-oss-20b"
     s3_path: "s3://dlc-vllm-models/oss-20b.tar.gz"
     tp: 1
     fleet: "x86-g6-2xl-runner"
