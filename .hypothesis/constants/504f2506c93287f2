@@ -1,4 +1,0 @@
-# file: /Users/sallyseo/workspace/deep-learning-containers/scripts/autocurrency/docs_pr_functions.py
-# hypothesis_version: 6.151.9
-
-['.', ':', 'SGLang', 'Version:', 'ec2', 'release\\s+(\\d+\\.\\d+)', 'sagemaker', 'sglang', 'text', 'vLLM', 'vllm']
