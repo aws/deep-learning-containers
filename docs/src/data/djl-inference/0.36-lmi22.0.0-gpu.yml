@@ -6,4 +6,4 @@ engine: "LMI 22.0.0"
 platform: sagemaker
 
 tags:
-  - "0.36.0-lmi21.0.0-cu129"
+  - "0.36.0-lmi22.0.0-cu129"
