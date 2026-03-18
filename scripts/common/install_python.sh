@@ -17,8 +17,8 @@ function install_python {
     cd ..
     rm -rf Python-${PYTHON_VERSION} Python-${PYTHON_VERSION}.tgz
 
-    ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python
-    ln -s /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3
+    ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python
+    ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3
 
     # clean up history file that causes sanity check failures
     rm -f /root/.python_history

@@ -141,6 +141,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
-  && rm -rf /root/.cache | true
+  && rm -rf /root/.cache || true
 
 CMD ["/bin/bash"]
