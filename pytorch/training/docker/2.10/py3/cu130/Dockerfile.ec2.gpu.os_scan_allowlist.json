@@ -26,7 +26,7 @@
             "reason_to_ignore": "onnx.hub.load() is not used in DLC training workflows"
         },
         {
-            "description": "CVE-2026-28500 - onnx vulnerability detected by ECR enhanced scan",
+            "description": "Open Neural Network Exchange (ONNX) is an open standard for machine learning interoperability. In versions up to and including 1.20.1, a security control bypass exists in onnx.hub.load() due to improper logic in the repository trust verification mechanism. While the function is designed to warn users when loading models from non-official sources, the use of the silent=True parameter completely suppresses all security warnings and confirmation prompts. This vulnerability transforms a standard model-loading function into a vector for Zero-Interaction Supply-Chain Attacks. When chained with file-system vulnerabilities, an attacker can silently exfiltrate sensitive files (SSH keys, cloud credentials) from the victim's machine the moment the model is loaded. As of time of publication, no known patched versions are available.",
             "vulnerability_id": "CVE-2026-28500",
             "name": "CVE-2026-28500",
             "package_name": "onnx",
@@ -38,9 +38,9 @@
                 "release": null
             },
             "remediation": {"recommendation": {"text": "None Provided"}},
-            "cvss_v3_score": 0.0,
+            "cvss_v3_score": 8.6,
             "cvss_v30_score": 0.0,
-            "cvss_v31_score": 0.0,
+            "cvss_v31_score": 8.6,
             "cvss_v2_score": 0.0,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-28500",
@@ -78,7 +78,7 @@
             "reason_to_ignore": "DoS via deeply nested ASN.1 structures - not exploitable in DLC training workflows where ASN.1 input is not user-controlled"
         },
         {
-            "description": "CVE-2026-30922 - pyasn1 vulnerability detected by ECR enhanced scan",
+            "description": "pyasn1 is a generic ASN.1 library for Python. Prior to 0.6.3, the pyasn1 library is vulnerable to a Denial of Service (DoS) attack caused by uncontrolled recursion when decoding ASN.1 data with deeply nested structures. An attacker can supply a crafted payload containing thousands of nested SEQUENCE (0x30) or SET (0x31) tags with Indefinite Length (0x80) markers. This forces the decoder to recursively call itself until the Python interpreter crashes with a RecursionError or consumes all available memory (OOM), crashing the host application. This is a distinct vulnerability from CVE-2026-23490 (which addressed integer overflows in OID decoding). The fix for CVE-2026-23490 (MAX_OID_ARC_CONTINUATION_OCTETS) does not mitigate this recursion issue. Version 0.6.3 fixes this specific issue.",
             "vulnerability_id": "CVE-2026-30922",
             "name": "CVE-2026-30922",
             "package_name": "pyasn1",
@@ -90,9 +90,9 @@
                 "release": null
             },
             "remediation": {"recommendation": {"text": "None Provided"}},
-            "cvss_v3_score": 0.0,
+            "cvss_v3_score": 7.5,
             "cvss_v30_score": 0.0,
-            "cvss_v31_score": 0.0,
+            "cvss_v31_score": 7.5,
             "cvss_v2_score": 0.0,
             "cvss_v3_severity": "HIGH",
             "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-30922",
