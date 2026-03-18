@@ -3,7 +3,7 @@
 # ============================================================
 FROM nvidia/cuda:12.8.1-base-amzn2023 AS base-builder
 
-RUN dnf install -y --setopt=install_weak_deps=False \
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   automake \
   autoconf \
   ca-certificates \
@@ -56,7 +56,9 @@ COPY ./scripts/common/install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 COPY ./docker/base/cu128/al2023/pyproject.toml ./docker/base/cu128/al2023/uv.lock /tmp/
-RUN cd /tmp && uv sync --frozen --no-dev --system --no-cache && rm pyproject.toml uv.lock
+RUN cd /tmp && uv export --frozen --no-dev --no-hashes -o requirements.txt \
+  && uv pip install --system --no-cache -r requirements.txt \
+  && rm pyproject.toml uv.lock requirements.txt
 
 # ============================================================
 # CUDA builder (full toolkit + cuDNN + NCCL)
@@ -90,7 +92,7 @@ ENV LANG=C.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   CUDA_HOME="/usr/local/cuda" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/usr/local/lib:/usr/local/cuda/lib64:/opt/amazon/ofi-nccl/lib:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/usr/local/lib:/usr/local/cuda/lib64:/opt/amazon/ofi-nccl/lib64:/opt/amazon/efa/lib:/opt/amazon/openmpi/lib:${LD_LIBRARY_PATH}"
 
 WORKDIR /
 
@@ -135,13 +137,13 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm install_efa.sh \
   # OSS compliance
   && dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False unzip curl \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && dnf remove -y unzip curl \
+  && dnf remove -y unzip \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
-  && rm -rf /root/.cache || true
+  && rm -rf /root/.cache | true
 
 CMD ["/bin/bash"]
