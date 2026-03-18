@@ -1,5 +1,4 @@
 # Pinned base image Python dependencies
-# Update versions deliberately — unpinned deps violate supply chain security tenets
 awscli==1.44.61
 boto3==1.42.71
 requests==2.32.5
