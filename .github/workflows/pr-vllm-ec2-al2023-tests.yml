@@ -7,7 +7,7 @@ on:
         description: "Full ECR image URI to test"
         required: true
         type: string
-        default: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-sagemaker-pr-5763"
+        default: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
 
 permissions:
   contents: read
