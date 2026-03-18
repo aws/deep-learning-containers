@@ -67,7 +67,8 @@ function install_efa {
     cp /root/.ssh/id_rsa.pub /root/.ssh/authorized_keys
     printf "Host *\n StrictHostKeyChecking no\n" >> /root/.ssh/config
 
-    # Cleanup
+    # Remove build-time deps not needed at runtime
+    dnf remove -y gcc gcc-c++ cmake make git
     dnf clean all
     rm -rf /var/cache/dnf
     ldconfig

@@ -1,10 +1,3 @@
-ARG PYTHON="python3"
-ARG PYTHON_VERSION="3.12.10"
-ARG PYTHON_SHORT_VERSION="3.12"
-ARG CUDA_MAJOR="12"
-ARG CUDA_MINOR="8"
-ARG EFA_VERSION="1.42.0"
-
 # ============================================================
 # Base builder (AL2023 + build tools)
 # ============================================================
@@ -59,7 +52,7 @@ RUN mv /usr/local/cuda/compat /usr/local \
 # ============================================================
 FROM base-builder AS python-builder
 
-ARG PYTHON_VERSION
+ARG PYTHON_VERSION="3.12.10"
 COPY ./scripts/common/install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
@@ -68,8 +61,8 @@ RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 # ============================================================
 FROM base-builder AS cuda-builder
 
-ARG CUDA_MAJOR
-ARG CUDA_MINOR
+ARG CUDA_MAJOR="12"
+ARG CUDA_MINOR="8"
 COPY ./scripts/common/install_cuda.sh install_cuda.sh
 RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "al2023" && rm install_cuda.sh
 
@@ -78,11 +71,11 @@ RUN bash install_cuda.sh "${CUDA_MAJOR}.${CUDA_MINOR}" "al2023" && rm install_cu
 # ============================================================
 FROM nvidia/cuda:12.8.1-base-amzn2023 AS final
 
-ARG PYTHON
-ARG PYTHON_SHORT_VERSION
-ARG CUDA_MAJOR
-ARG CUDA_MINOR
-ARG EFA_VERSION
+ARG PYTHON="python3"
+ARG PYTHON_SHORT_VERSION="3.12"
+ARG CUDA_MAJOR="12"
+ARG CUDA_MINOR="8"
+ARG EFA_VERSION="1.42.0"
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
