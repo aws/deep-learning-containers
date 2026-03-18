@@ -8,6 +8,7 @@ on:
     paths:
       - "**vllm**"
       - "!docs/**"
+      - "!**al2023**"
 
 permissions:
   contents: read
@@ -110,8 +111,11 @@ jobs:
           filters: |
             build-change:
               - "docker/vllm/**"
+              - "!docker/vllm/*.al2023"
               - "scripts/vllm/**"
+              - "!scripts/vllm/al2023/**"
               - "scripts/common/**"
+              - "!scripts/common/*_al2023.*"
               - "scripts/telemetry/**"
               - ".github/config/vllm-ec2.yml"
             sanity-test-change:
