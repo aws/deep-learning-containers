@@ -2,7 +2,7 @@ framework: DJLServing
 version: "0.36"
 accelerator: gpu
 cuda: cu128
-engine: "LMI 19.0.0"
+engine: "LMI 19.0.0, vLLM 0.14.0"
 platform: sagemaker
 
 tags:
