@@ -80,8 +80,7 @@ ARG EFA_VERSION="1.42.0"
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
 
-ENV DEBIAN_FRONTEND=noninteractive \
-  LANG=C.UTF-8 \
+ENV LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
   DLC_CONTAINER_TYPE=base \
   PYTHONDONTWRITEBYTECODE=1 \
