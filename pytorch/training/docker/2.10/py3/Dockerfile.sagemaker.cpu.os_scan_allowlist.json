@@ -1,7 +1,7 @@
 {
     "onnx": [
         {
-            "description": "Improper Input Validation in onnx.hub.load() - silent=True suppresses security warnings allowing downloads from untrusted repos.",
+            "description": "### Summary\n\nA security control bypass exists in onnx.hub.load() due to improper logic in the repository trust verification mechanism. While the function is designed to warn users when loading models from non-official sources, the use of the silent=True parameter completely suppresses all security warnings and confirmation prompts. ### The Technical Flaw The vulnerability is located in onnx/hub.py. The security gate uses a short-circuit evaluation that prioritizes the \"silent\" preference over the trust requirement: ```Python if not _verify_repo_ref(repo) and not silent: # This block (Warning + User Input) is SKIPPED if silent=True print(\"The model repo... is not trusted\") if input().lower() != \"y\": return None ``` **Key Points of Failure**: Complete Suppression: If a developer or a third-party library sets silent=True, the application will download and execute models from any attacker-controlled GitHub repository without notifying the user. **Integrity Verification Bypass**: The SHA256 integrity check validat",
             "vulnerability_id": "GHSA-hqmj-h5c6-369m",
             "name": "GHSA-hqmj-h5c6-369m",
             "package_name": "onnx",
