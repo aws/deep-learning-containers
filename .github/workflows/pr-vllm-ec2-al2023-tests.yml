@@ -117,3 +117,11 @@ jobs:
       setup-script: scripts/vllm/vllm_test_setup.sh
       example-test-script: scripts/vllm/vllm_ec2_examples_test.sh
     secrets: inherit
+
+  model-smoke-tests:
+    uses: ./.github/workflows/reusable-vllm-model-tests.yml
+    with:
+      image-uri: ${{ inputs.image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+    secrets: inherit

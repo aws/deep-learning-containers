@@ -1,0 +1,71 @@
+name: Reusable vLLM Model Smoke Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: "Image URI to test"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: true
+        type: string
+
+jobs:
+  load-models:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.parse.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse model config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/vllm-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          print(json.dumps(cfg['models']))
+          " > matrix.json
+          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+
+  test-model:
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Run model smoke test
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          docker run --rm --gpus all \
+            -v /tmp/models:/tmp/models \
+            ${{ inputs.image-uri }} \
+            bash scripts/vllm/vllm_model_smoke_test.sh \
+              "${{ matrix.s3_path }}" \
+              "${{ matrix.tp }}" \
+              "${{ matrix.name }}"
