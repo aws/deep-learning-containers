@@ -29,7 +29,6 @@ FRAMEWORK_FILTER="${FRAMEWORK_FILTER:-}"
 #     $4 — github_repo (owner/repo)
 #     $5 — tag_name
 #     $6 — html_url (release page URL)
-#     $7 — changed_files_list (newline-separated file paths)
 ###############################################################################
 build_pr_body() {
   local framework="$1"
