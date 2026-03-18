@@ -56,7 +56,9 @@ COPY ./scripts/common/install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 COPY ./docker/base/cu128/al2023/pyproject.toml ./docker/base/cu128/al2023/uv.lock /tmp/
-RUN cd /tmp && uv sync --frozen --no-dev --system --no-cache && rm pyproject.toml uv.lock
+RUN cd /tmp && uv export --frozen --no-dev --no-hashes -o requirements.txt \
+  && uv pip install --system --no-cache -r requirements.txt \
+  && rm pyproject.toml uv.lock requirements.txt
 
 # ============================================================
 # CUDA builder (full toolkit + cuDNN + NCCL)

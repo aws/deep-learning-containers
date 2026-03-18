@@ -42,7 +42,9 @@ function install_cuda128_stack_al2023 {
     NCCL_VERSION="v2.26.2-1"
     CUDA_HOME="/usr/local/cuda"
 
-    # move cuda-compat and remove existing cuda dir from nvidia/cuda:**.*.*-base-*
+    # save cuda-compat from base image before removing existing cuda dirs
+    mv /usr/local/cuda-12.8/compat /tmp/cuda-compat
+
     rm -rf /usr/local/cuda-*
     rm -rf /usr/local/cuda
 
@@ -53,8 +55,8 @@ function install_cuda128_stack_al2023 {
     rm -f cuda_12.8.1_570.124.06_linux.run
     ln -s /usr/local/cuda-12.8 /usr/local/cuda
 
-    # bring back cuda-compat
-    mv /usr/local/compat /usr/local/cuda/compat
+    # restore cuda-compat
+    mv /tmp/cuda-compat /usr/local/cuda/compat
 
     # install cudnn
     mkdir -p /tmp/cudnn
