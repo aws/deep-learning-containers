@@ -25,7 +25,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 ###############################################################################
-# Helpers
+# Helpers (pure functions — sourced by test harness)
 ###############################################################################
 
 get_display_name() {
@@ -40,6 +40,56 @@ get_display_name() {
 parse_major_minor() {
   local version="$1"
   echo "$version" | grep -oE '^[0-9]+\.[0-9]+'
+}
+
+# Generate 4 Docker image tags for a given platform.
+# Usage: generate_tags <version> <device> <python> <cuda> <os> <platform>
+# Outputs one tag per line.
+generate_tags() {
+  local version="$1" device="$2" python="$3" cuda="$4" os_ver="$5" platform="$6"
+  local mm
+  mm=$(parse_major_minor "$version")
+
+  if [ "$platform" = "ec2" ]; then
+    echo "${version}-${device}-${python}-${cuda}-${os_ver}-ec2"
+    echo "${mm}-${device}-${python}-${cuda}-${os_ver}-ec2-v1"
+    echo "${version}-${device}-${python}-ec2"
+    echo "${mm}-${device}-${python}-ec2"
+  elif [ "$platform" = "sagemaker" ]; then
+    echo "${version}-${device}-${python}-${cuda}-${os_ver}-sagemaker"
+    echo "${mm}-${device}-${python}-${cuda}-${os_ver}-sagemaker-v1"
+    echo "${version}-${device}-${python}"
+    echo "${mm}-${device}-${python}"
+  fi
+}
+
+# Generate a release announcement string.
+# Usage: generate_announcement <framework> <version> <platform>
+generate_announcement() {
+  local framework="$1" version="$2" platform="$3"
+  local display
+  display=$(get_display_name "$framework")
+  if [ "$platform" = "ec2" ]; then
+    echo "Introduced ${display} ${version} containers for EC2, ECS, EKS"
+  elif [ "$platform" = "sagemaker" ]; then
+    echo "Introduced ${display} ${version} containers for SageMaker"
+  fi
+}
+
+# Generate the git branch name for a docs-update PR.
+# Usage: generate_branch_name <framework> <version> <platform>
+generate_branch_name() {
+  local framework="$1" version="$2" platform="$3"
+  echo "docs/auto-update-${framework}-${version}-${platform}"
+}
+
+# Generate the PR title.
+# Usage: generate_pr_title <framework> <version> <platform>
+generate_pr_title() {
+  local framework="$1" version="$2" platform="$3"
+  local display
+  display=$(get_display_name "$framework")
+  echo "docs: Add ${display} ${version} ${platform^^} image data"
 }
 
 ###############################################################################
@@ -143,27 +193,18 @@ generate_docs_yaml() {
   local major_minor
   major_minor=$(parse_major_minor "$VERSION")
 
-  # Generate tags based on platform
+  # Generate tags using the helper function
+  local tags
+  tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
   local tag1 tag2 tag3 tag4
-  if [ "$PLATFORM" = "ec2" ]; then
-    tag1="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-ec2"
-    tag2="${major_minor}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-ec2-v1"
-    tag3="${VERSION}-${DEVICE}-${PYTHON}-ec2"
-    tag4="${major_minor}-${DEVICE}-${PYTHON}-ec2"
-  elif [ "$PLATFORM" = "sagemaker" ]; then
-    tag1="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-sagemaker"
-    tag2="${major_minor}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-sagemaker-v1"
-    tag3="${VERSION}-${DEVICE}-${PYTHON}"
-    tag4="${major_minor}-${DEVICE}-${PYTHON}"
-  fi
+  tag1=$(echo "$tags" | sed -n '1p')
+  tag2=$(echo "$tags" | sed -n '2p')
+  tag3=$(echo "$tags" | sed -n '3p')
+  tag4=$(echo "$tags" | sed -n '4p')
 
-  # Generate announcement
+  # Generate announcement using the helper function
   local announcement
-  if [ "$PLATFORM" = "ec2" ]; then
-    announcement="Introduced ${display_name} ${VERSION} containers for EC2, ECS, EKS"
-  elif [ "$PLATFORM" = "sagemaker" ]; then
-    announcement="Introduced ${display_name} ${VERSION} containers for SageMaker"
-  fi
+  announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
   # Write the YAML file
   local output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
@@ -275,8 +316,10 @@ EOF
 create_pr() {
   local display_name
   display_name=$(get_display_name "$FRAMEWORK")
-  local branch_name="docs/auto-update-${FRAMEWORK}-${VERSION}-${PLATFORM}"
-  local pr_title="docs: Add ${display_name} ${VERSION} ${PLATFORM^^} image data"
+  local branch_name
+  branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
+  local pr_title
+  pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
   # Configure git
   git config user.name "asimov-bot[bot]"
@@ -377,4 +420,7 @@ main() {
   esac
 }
 
-main "$@"
+# Only run main when executed directly (not when sourced for testing)
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
+fi
