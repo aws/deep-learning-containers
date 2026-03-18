@@ -1,0 +1,29 @@
+{
+    "onnx": [
+        {
+            "description": "### Summary\n\nA security control bypass exists in onnx.hub.load() due to improper logic in the repository trust verification mechanism. While the function is designed to warn users when loading models from non-official sources, the use of the silent=True parameter completely suppresses all security warnings and confirmation prompts. ### The Technical Flaw The vulnerability is located in onnx/hub.py. The security gate uses a short-circuit evaluation that prioritizes the \"silent\" preference over the trust requirement: ```Python if not _verify_repo_ref(repo) and not silent: # This block (Warning + User Input) is SKIPPED if silent=True print(\"The model repo... is not trusted\") if input().lower() != \"y\": return None ``` **Key Points of Failure**: Complete Suppression: If a developer or a third-party library sets silent=True, the application will download and execute models from any attacker-controlled GitHub repository without notifying the user. **Integrity Verification Bypass**: The SHA256 integrity check validat",
+            "vulnerability_id": "GHSA-hqmj-h5c6-369m",
+            "name": "GHSA-hqmj-h5c6-369m",
+            "package_name": "onnx",
+            "package_details": {
+                "file_path": "/usr/local/lib/python3.13/site-packages/onnx-1.20.1.dist-info/METADATA",
+                "name": "onnx",
+                "package_manager": "PYTHON",
+                "version": "1.20.1",
+                "release": null
+            },
+            "remediation": {"recommendation": {"text": "None Provided"}},
+            "cvss_v3_score": 8.6,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 8.6,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://github.com/advisories/GHSA-hqmj-h5c6-369m",
+            "source": "GITHUB",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "GHSA-hqmj-h5c6-369m - onnx",
+            "reason_to_ignore": "onnx.hub.load() is not used in DLC training workflows"
+        }
+    ]
+}
