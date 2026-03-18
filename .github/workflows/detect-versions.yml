@@ -1,0 +1,58 @@
+# detect-versions.yml — Detects CUDA/Python/OS version changes in upstream
+# base images and updates config files on auto-update PR branches.
+#
+# Triggers when an auto-update PR is opened by check-upstream-releases.yml.
+# Pulls the upstream Docker base image, extracts runtime versions, and pushes
+# a follow-up commit if any config values need updating.
+
+name: Detect Versions
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  version-detection:
+    # Only run on auto-update PRs: must have label, matching branch, and bot author
+    if: >-
+      contains(github.event.pull_request.labels.*.name, 'auto-update') &&
+      startsWith(github.event.pull_request.head.ref, 'auto-update/') &&
+      github.event.pull_request.user.login == 'aws-deep-learning-containers-ci[bot]'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Decode the GitHub App Private Key
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Run version detection
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: bash scripts/autocurrency/detect-versions.sh
