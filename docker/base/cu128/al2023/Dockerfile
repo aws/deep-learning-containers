@@ -56,6 +56,9 @@ ARG PYTHON_VERSION="3.12.10"
 COPY ./scripts/common/install_python.sh install_python.sh
 RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
+COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
+RUN uv pip install --system --no-cache -r /tmp/requirements.txt && rm /tmp/requirements.txt
+
 # ============================================================
 # CUDA builder (full toolkit + cuDNN + NCCL)
 # ============================================================

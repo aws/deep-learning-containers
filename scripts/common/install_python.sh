@@ -23,9 +23,9 @@ function install_python {
     # clean up history file that causes sanity check failures
     rm -f /root/.python_history
 
-    # install pip and base packages
-    python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
-    python -m pip install --no-cache-dir awscli boto3 requests setuptools
+    # install uv and base packages from pinned requirements
+    python -m pip install --no-cache-dir --upgrade pip
+    python -m pip install --no-cache-dir uv
 }
 
 # idiomatic parameter and option handling in sh
