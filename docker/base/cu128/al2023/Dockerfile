@@ -3,7 +3,7 @@
 # ============================================================
 FROM nvidia/cuda:12.8.1-base-amzn2023 AS base-builder
 
-RUN dnf install -y --setopt=install_weak_deps=False \
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   automake \
   autoconf \
   ca-certificates \
