@@ -3,7 +3,7 @@
 # ============================================================
 FROM nvidia/cuda:12.8.1-base-amzn2023 AS base-builder
 
-RUN mv /usr/local/cuda/compat /usr/local \
+RUN [ -d /usr/local/cuda/compat ] && mv /usr/local/cuda/compat /usr/local || true \
   && dnf install -y --setopt=install_weak_deps=False \
     automake \
     autoconf \
