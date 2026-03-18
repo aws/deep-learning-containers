@@ -21,8 +21,33 @@
             "source_url": "https://github.com/advisories/GHSA-hqmj-h5c6-369m",
             "source": "GITHUB",
             "severity": "HIGH",
-            "status": "ACTIVE",
+            "status": "CLOSED",
             "title": "GHSA-hqmj-h5c6-369m - onnx",
+            "reason_to_ignore": "onnx.hub.load() is not used in DLC training workflows"
+        },
+        {
+            "description": "CVE-2026-28500 - onnx vulnerability detected by ECR enhanced scan",
+            "vulnerability_id": "CVE-2026-28500",
+            "name": "CVE-2026-28500",
+            "package_name": "onnx",
+            "package_details": {
+                "file_path": "/usr/local/lib/python3.13/site-packages/onnx-1.20.1.dist-info/METADATA",
+                "name": "onnx",
+                "package_manager": "PYTHON",
+                "version": "1.20.1",
+                "release": null
+            },
+            "remediation": {"recommendation": {"text": "None Provided"}},
+            "cvss_v3_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 0.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-28500",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2026-28500 - onnx",
             "reason_to_ignore": "onnx.hub.load() is not used in DLC training workflows"
         }
     ],
@@ -48,8 +73,33 @@
             "source_url": "https://github.com/advisories/GHSA-jr27-m4p2-rc6r",
             "source": "GITHUB",
             "severity": "HIGH",
-            "status": "ACTIVE",
+            "status": "CLOSED",
             "title": "GHSA-jr27-m4p2-rc6r - pyasn1",
+            "reason_to_ignore": "DoS via deeply nested ASN.1 structures - not exploitable in DLC training workflows where ASN.1 input is not user-controlled"
+        },
+        {
+            "description": "CVE-2026-30922 - pyasn1 vulnerability detected by ECR enhanced scan",
+            "vulnerability_id": "CVE-2026-30922",
+            "name": "CVE-2026-30922",
+            "package_name": "pyasn1",
+            "package_details": {
+                "file_path": "/usr/local/lib/python3.13/site-packages/pyasn1-0.6.2.dist-info/METADATA",
+                "name": "pyasn1",
+                "package_manager": "PYTHON",
+                "version": "0.6.2",
+                "release": null
+            },
+            "remediation": {"recommendation": {"text": "None Provided"}},
+            "cvss_v3_score": 0.0,
+            "cvss_v30_score": 0.0,
+            "cvss_v31_score": 0.0,
+            "cvss_v2_score": 0.0,
+            "cvss_v3_severity": "HIGH",
+            "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2026-30922",
+            "source": "NVD",
+            "severity": "HIGH",
+            "status": "ACTIVE",
+            "title": "CVE-2026-30922 - pyasn1",
             "reason_to_ignore": "DoS via deeply nested ASN.1 structures - not exploitable in DLC training workflows where ASN.1 input is not user-controlled"
         }
     ]
