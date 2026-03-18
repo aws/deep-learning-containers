@@ -1,0 +1,380 @@
+#!/usr/bin/env bash
+# docs-pr.sh — Generate a docs data YAML file from a released Docker image
+# and create a PR via the GitHub CLI.
+#
+# This script is called by the step4-docs-pr job in reusable-release-image.yml.
+# It expects the following environment variables to be set by the workflow:
+#
+#   FRAMEWORK        — framework identifier (e.g. "vllm", "sglang")
+#   VERSION          — framework version (e.g. "0.17.1")
+#   PYTHON           — python version tag (e.g. "py312")
+#   CUDA             — cuda version tag (e.g. "cu129")
+#   OS               — os version (e.g. "ubuntu22.04")
+#   PLATFORM         — customer type (e.g. "ec2", "sagemaker")
+#   DEVICE           — device type (e.g. "gpu")
+#   PUBLIC_REGISTRY  — public ECR registry path
+#   PROD_IMAGE       — production image name
+#   GH_TOKEN         — GitHub App token for push/PR operations
+#
+# Usage:
+#   bash scripts/autocurrency/docs-pr.sh
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+###############################################################################
+# Helpers
+###############################################################################
+
+get_display_name() {
+  local framework="$1"
+  case "$framework" in
+    vllm)   echo "vLLM" ;;
+    sglang) echo "SGLang" ;;
+    *)      echo "$framework" ;;
+  esac
+}
+
+parse_major_minor() {
+  local version="$1"
+  echo "$version" | grep -oE '^[0-9]+\.[0-9]+'
+}
+
+###############################################################################
+# Step 1: Pull image and extract package versions
+###############################################################################
+
+pull_and_extract_packages() {
+  local image_uri="$1"
+
+  echo "Pulling image: ${image_uri}"
+  docker pull "${image_uri}"
+
+  # Define framework-to-package map
+  local pip_packages=""
+  local system_packages=""
+  case "$FRAMEWORK" in
+    vllm)
+      pip_packages="vllm torch torchvision torchaudio"
+      system_packages="cuda nccl efa"
+      ;;
+    sglang)
+      pip_packages="sglang sgl_kernel torch torchvision torchaudio torchao transformers flashinfer"
+      system_packages="cuda cudnn nccl efa gdrcopy"
+      ;;
+    *)
+      echo "::warning::Unknown framework '$FRAMEWORK', using empty package list"
+      ;;
+  esac
+
+  FAILED_PACKAGES=()
+
+  # Extract pip package versions
+  for pkg_name in $pip_packages; do
+    local version=""
+    version=$(docker run --rm "$image_uri" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
+    # Map pip package names to output keys
+    local output_key="$pkg_name"
+    case "$pkg_name" in
+      torch) output_key="pytorch" ;;
+      sgl_kernel) output_key="sgl-kernel" ;;
+    esac
+    if [ -n "$version" ]; then
+      echo "  ✅ ${output_key}: ${version}"
+      echo "PKG_${output_key}=${version}" >> "$GITHUB_ENV"
+    else
+      echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
+      FAILED_PACKAGES+=("$output_key")
+      echo "PKG_${output_key}=" >> "$GITHUB_ENV"
+    fi
+  done
+
+  # Extract system package versions
+  for sys_pkg in $system_packages; do
+    local version=""
+    case "$sys_pkg" in
+      cuda)
+        version=$(docker run --rm "$image_uri" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
+        ;;
+      nccl)
+        version=$(docker run --rm "$image_uri" python3 -c "import torch; print(torch.cuda.nccl.version())" 2>/dev/null) || true
+        ;;
+      efa)
+        version=$(docker run --rm "$image_uri" fi_info --version 2>/dev/null | head -1 | awk '{print $2}') || true
+        ;;
+      cudnn)
+        version=$(docker run --rm "$image_uri" python3 -c "import torch; print(torch.backends.cudnn.version())" 2>/dev/null) || true
+        ;;
+      gdrcopy)
+        version=$(docker run --rm "$image_uri" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
+        ;;
+    esac
+    if [ -n "$version" ]; then
+      echo "  ✅ ${sys_pkg}: ${version}"
+      echo "PKG_${sys_pkg}=${version}" >> "$GITHUB_ENV"
+    else
+      echo "::warning::Failed to extract version for system package '${sys_pkg}'"
+      FAILED_PACKAGES+=("$sys_pkg")
+      echo "PKG_${sys_pkg}=" >> "$GITHUB_ENV"
+    fi
+  done
+
+  # Store failed packages as comma-separated string
+  local failed_str
+  failed_str=$(IFS=,; echo "${FAILED_PACKAGES[*]}")
+  echo "FAILED_PACKAGES=${failed_str}" >> "$GITHUB_ENV"
+  if [ ${#FAILED_PACKAGES[@]} -gt 0 ]; then
+    echo "::warning::Failed to extract versions for: ${failed_str}"
+  else
+    echo "✅ All package versions extracted successfully"
+  fi
+}
+
+###############################################################################
+# Step 2: Generate docs data YAML file
+###############################################################################
+
+generate_docs_yaml() {
+  local display_name
+  display_name=$(get_display_name "$FRAMEWORK")
+
+  local major_minor
+  major_minor=$(parse_major_minor "$VERSION")
+
+  # Generate tags based on platform
+  local tag1 tag2 tag3 tag4
+  if [ "$PLATFORM" = "ec2" ]; then
+    tag1="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-ec2"
+    tag2="${major_minor}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-ec2-v1"
+    tag3="${VERSION}-${DEVICE}-${PYTHON}-ec2"
+    tag4="${major_minor}-${DEVICE}-${PYTHON}-ec2"
+  elif [ "$PLATFORM" = "sagemaker" ]; then
+    tag1="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-sagemaker"
+    tag2="${major_minor}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-sagemaker-v1"
+    tag3="${VERSION}-${DEVICE}-${PYTHON}"
+    tag4="${major_minor}-${DEVICE}-${PYTHON}"
+  fi
+
+  # Generate announcement
+  local announcement
+  if [ "$PLATFORM" = "ec2" ]; then
+    announcement="Introduced ${display_name} ${VERSION} containers for EC2, ECS, EKS"
+  elif [ "$PLATFORM" = "sagemaker" ]; then
+    announcement="Introduced ${display_name} ${VERSION} containers for SageMaker"
+  fi
+
+  # Write the YAML file
+  local output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
+  OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+  mkdir -p "$output_dir"
+
+  case "$FRAMEWORK" in
+    vllm)
+      cat > "$OUTPUT_FILE" <<EOF
+framework: ${display_name}
+version: "${VERSION}"
+accelerator: ${DEVICE}
+python: ${PYTHON}
+cuda: ${CUDA}
+os: ${OS}
+platform: ${PLATFORM}
+public_registry: ${PUBLIC_REGISTRY}
+
+tags:
+  - "${tag1}"
+  - "${tag2}"
+  - "${tag3}"
+  - "${tag4}"
+
+announcements:
+  - "${announcement}"
+
+packages:
+  vllm: "${PKG_vllm}"
+  pytorch: "${PKG_pytorch}"
+  torchvision: "${PKG_torchvision}"
+  torchaudio: "${PKG_torchaudio}"
+  cuda: "${PKG_cuda}"
+  nccl: "${PKG_nccl}"
+  efa: "${PKG_efa}"
+EOF
+      ;;
+    sglang)
+      cat > "$OUTPUT_FILE" <<EOF
+framework: ${display_name}
+version: "${VERSION}"
+accelerator: ${DEVICE}
+python: ${PYTHON}
+cuda: ${CUDA}
+os: ${OS}
+platform: ${PLATFORM}
+public_registry: ${PUBLIC_REGISTRY}
+
+tags:
+  - "${tag1}"
+  - "${tag2}"
+  - "${tag3}"
+  - "${tag4}"
+
+announcements:
+  - "${announcement}"
+
+packages:
+  sglang: "${PKG_sglang}"
+  sgl-kernel: "${PKG_sgl-kernel}"
+  pytorch: "${PKG_pytorch}"
+  torchvision: "${PKG_torchvision}"
+  torchaudio: "${PKG_torchaudio}"
+  torchao: "${PKG_torchao}"
+  transformers: "${PKG_transformers}"
+  flashinfer: "${PKG_flashinfer}"
+  cuda: "${PKG_cuda}"
+  cudnn: "${PKG_cudnn}"
+  nccl: "${PKG_nccl}"
+  efa: "${PKG_efa}"
+  gdrcopy: "${PKG_gdrcopy}"
+EOF
+      ;;
+    *)
+      echo "::warning::Unknown framework '$FRAMEWORK', generating minimal YAML"
+      cat > "$OUTPUT_FILE" <<EOF
+framework: ${display_name}
+version: "${VERSION}"
+accelerator: ${DEVICE}
+python: ${PYTHON}
+cuda: ${CUDA}
+os: ${OS}
+platform: ${PLATFORM}
+public_registry: ${PUBLIC_REGISTRY}
+
+tags:
+  - "${tag1}"
+  - "${tag2}"
+  - "${tag3}"
+  - "${tag4}"
+
+announcements:
+  - "${announcement}"
+
+packages: {}
+EOF
+      ;;
+  esac
+
+  echo "✅ Generated docs data file: ${OUTPUT_FILE}"
+  cat "$OUTPUT_FILE"
+  echo "OUTPUT_FILE=${OUTPUT_FILE}" >> "$GITHUB_ENV"
+}
+
+###############################################################################
+# Step 3: Create branch, commit, and open PR
+###############################################################################
+
+create_pr() {
+  local display_name
+  display_name=$(get_display_name "$FRAMEWORK")
+  local branch_name="docs/auto-update-${FRAMEWORK}-${VERSION}-${PLATFORM}"
+  local pr_title="docs: Add ${display_name} ${VERSION} ${PLATFORM^^} image data"
+
+  # Configure git
+  git config user.name "asimov-bot[bot]"
+  git config user.email "asimov-bot[bot]@users.noreply.github.com"
+
+  # Create and push branch (force-push for idempotency)
+  git checkout -B "$branch_name"
+  git add "$OUTPUT_FILE"
+  git commit -m "$pr_title"
+  git push --force origin "$branch_name"
+
+  # Build PR body
+  local pr_body="Auto-generated by the release workflow.
+
+This PR adds the docs data file for ${display_name} ${VERSION} (${PLATFORM}).
+
+**File:** \`${OUTPUT_FILE}\`"
+
+  # Add failed packages warning if any
+  if [ -n "${FAILED_PACKAGES:-}" ]; then
+    pr_body="${pr_body}
+
+---
+
+⚠️ **Warning: Some package versions could not be extracted:**
+
+$(echo "$FAILED_PACKAGES" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}\`"; done)"
+  fi
+
+  # Create or update PR
+  local existing_pr
+  existing_pr=$(gh pr list --head "$branch_name" --json number --jq '.[0].number' 2>/dev/null) || true
+  if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
+    echo "Updating existing PR #${existing_pr}"
+    gh pr edit "$existing_pr" --title "$pr_title" --body "$pr_body"
+    PR_URL=$(gh pr view "$existing_pr" --json url --jq '.url')
+  else
+    echo "Creating new PR"
+    PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
+  fi
+
+  echo "✅ PR URL: ${PR_URL}"
+  echo "PR_URL=${PR_URL}" >> "$GITHUB_ENV"
+}
+
+###############################################################################
+# Step 4: Send Slack notification
+###############################################################################
+
+send_notification() {
+  local display_name
+  display_name=$(get_display_name "${FRAMEWORK:-unknown}")
+
+  # Skip if webhook not configured
+  if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
+    echo "SLACK_WEBHOOK_URL not set, skipping notification"
+    return 0
+  fi
+
+  # Determine payload based on job outcome
+  local payload
+  if [ -n "${PR_URL:-}" ]; then
+    payload="{\"text\": \"📄 Docs PR created for ${display_name} ${VERSION} (${PLATFORM}): ${PR_URL}\"}"
+  else
+    local run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+    payload="{\"text\": \"❌ Docs PR job failed for ${display_name} ${VERSION:-unknown} (${PLATFORM:-unknown}): ${run_url}\"}"
+  fi
+
+  curl -s -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+}
+
+###############################################################################
+# Main — dispatch based on subcommand
+###############################################################################
+
+main() {
+  local cmd="${1:?Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>}"
+
+  case "$cmd" in
+    extract-packages)
+      local image_uri="${2:?Usage: docs-pr.sh extract-packages <image-uri>}"
+      pull_and_extract_packages "$image_uri"
+      ;;
+    generate-yaml)
+      generate_docs_yaml
+      ;;
+    create-pr)
+      create_pr
+      ;;
+    notify)
+      send_notification
+      ;;
+    *)
+      echo "Unknown command: $cmd"
+      echo "Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>"
+      exit 1
+      ;;
+  esac
+}
+
+main "$@"

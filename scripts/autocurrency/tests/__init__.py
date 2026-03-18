@@ -1,0 +1,1 @@
+# autocurrency tests package

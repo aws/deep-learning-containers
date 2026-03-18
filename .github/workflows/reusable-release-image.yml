@@ -278,3 +278,67 @@ jobs:
           echo "=========================================="
           echo "🎉 All release steps completed successfully!"
           echo "=========================================="
+
+  step4-docs-pr:
+    needs: [step1-publish-images, step3-publish-notifications]
+    if: needs.step1-publish-images.outputs.images-published == '1'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decode the GitHub App Private Key
+        id: decode
+        run: |
+          private_key=$(echo "${{ secrets.ASIMOVBOT_APP_PRIVATE_KEY }}" | base64 -d | awk 'BEGIN {ORS="\\n"} {print}' | head -c -2) &> /dev/null
+          echo "::add-mask::$private_key"
+          echo "private-key=$private_key" >> "$GITHUB_OUTPUT"
+
+      - name: Generate GitHub App Token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.ASIMOVBOT_APP_ID }}
+          private-key: ${{ steps.decode.outputs.private-key }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq \
+            https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Parse release spec
+        id: parse-spec
+        run: |
+          echo '${{ inputs.release-spec }}' > /tmp/release-spec.yml
+          echo "FRAMEWORK=$(yq '.common.framework' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "VERSION=$(yq '.common.framework_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PYTHON=$(yq '.common.python_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "CUDA=$(yq '.common.cuda_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "OS=$(yq '.common.os_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PLATFORM=$(yq '.common.customer_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "DEVICE=$(yq '.common.device_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PUBLIC_REGISTRY=$(yq '.release.public_registry' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PROD_IMAGE=$(yq '.common.prod_image' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+
+      - name: Pull image and extract package versions
+        run: |
+          FULL_TAG="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
+          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_REGISTRY }}:${FULL_TAG}"
+          bash scripts/autocurrency/docs-pr.sh extract-packages "${IMAGE_URI}"
+
+      - name: Generate docs data YAML file
+        run: bash scripts/autocurrency/docs-pr.sh generate-yaml
+
+      - name: Create branch, commit, and open PR
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: bash scripts/autocurrency/docs-pr.sh create-pr
+
+      - name: Send Slack notification
+        if: always()
+        run: bash scripts/autocurrency/docs-pr.sh notify
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
