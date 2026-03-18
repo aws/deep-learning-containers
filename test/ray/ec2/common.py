@@ -156,6 +156,8 @@ def start_container(image_uri, model_dir, model_name, device, docker_run_flags=N
         "-v",
         f"{model_dir}:/opt/ml/model",
     ]
+    # Bind to 0.0.0.0 inside the container so Docker port-forwarding works.
+    env.setdefault("RAY_SERVE_HTTP_HOST", "0.0.0.0")
     for key, val in env.items():
         cmd.extend(["-e", f"{key}={val}"])
     if docker_run_flags:

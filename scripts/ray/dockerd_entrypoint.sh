@@ -21,9 +21,9 @@ if [ -f "/opt/ml/model/code/requirements.txt" ]; then
     pip install -r /opt/ml/model/code/requirements.txt
 fi
 
-# Default to 0.0.0.0 so Serve is reachable outside the container.
-# Can be overridden by: docker run -e RAY_SERVE_HTTP_HOST=... -e RAY_SERVE_HTTP_PORT=...
-export RAY_SERVE_HTTP_HOST="${RAY_SERVE_HTTP_HOST:-0.0.0.0}"
+# Default to 127.0.0.1 to avoid exposing the serving endpoint to the network.
+# Override with: docker run -e RAY_SERVE_HTTP_HOST=0.0.0.0 -e RAY_SERVE_HTTP_PORT=...
+export RAY_SERVE_HTTP_HOST="${RAY_SERVE_HTTP_HOST:-127.0.0.1}"
 SERVE_PORT="${RAY_SERVE_HTTP_PORT:-8000}"
 
 # Start Ray cluster (env var must be set before this so Serve binds correctly)
