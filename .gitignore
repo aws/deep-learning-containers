@@ -5,6 +5,7 @@ __pycache__
 .venv
 .ruff_cache
 .pytest_cache
+.hypothesis
 .vscode
 .kiro
 .gem-config
