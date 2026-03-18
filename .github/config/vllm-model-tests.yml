@@ -10,7 +10,7 @@ models:
   - name: "gpt-oss-20b"
     s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
     tp: 1
-    fleet: "x86-g6-2xl-runner"
+    fleet: "x86-g6exl-runner"
 
   # TODO: Uncomment when models are uploaded to S3
   # - name: "qwen3-32b"
