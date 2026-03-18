@@ -182,13 +182,16 @@ send_slack_notification() {
   # Construct simple key-value JSON payload
   local payload
   payload=$(jq -n \
+    --arg is_auto_currency "true" \
     --arg framework_name "${framework_key}" \
     --arg framework_version "${new_version}" \
     --arg pr_url "${pr_url}" \
     '{
+      is_auto_currency: $is_auto_currency,
+      pr_url: $pr_url,
       framework_name: $framework_name,
       framework_version: $framework_version,
-      pr_url: $pr_url
+      is_docs_updates: ""
     }')
 
   # POST to Slack Workflow webhook
