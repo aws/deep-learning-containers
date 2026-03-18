@@ -38,16 +38,6 @@ build_pr_body() {
   local github_repo="$4"
   local tag_name="$5"
   local html_url="$6"
-  local changed_files_list="$7"
-
-  # Build changed files list as markdown bullets
-  local changed_files_md=""
-  while IFS= read -r file; do
-    if [[ -n "${file}" ]]; then
-      changed_files_md="${changed_files_md}- \`${file}\`
-"
-    fi
-  done <<< "${changed_files_list}"
 
   cat <<PRBODY
 ## Auto-Update: ${framework} ${new_version}
@@ -55,9 +45,6 @@ build_pr_body() {
 **Upstream Release**: [${github_repo} ${tag_name}](${html_url})
 **Previous Version**: ${current_version}
 **New Version**: ${new_version}
-
-### Changed Files
-${changed_files_md}
 
 ### What to Review
 - Verify the upstream base image exists on Docker Hub
@@ -301,8 +288,7 @@ for framework in ${FRAMEWORKS}; do
       "${current_version}" \
       "${github_repo}" \
       "${tag_name}" \
-      "${html_url}" \
-      "${updated_files}")
+      "${html_url}")
 
     # Create PR
     echo "${framework}: Creating pull request..."
