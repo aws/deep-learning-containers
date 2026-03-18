@@ -190,8 +190,7 @@ send_slack_notification() {
       is_auto_currency: $is_auto_currency,
       pr_url: $pr_url,
       framework_name: $framework_name,
-      framework_version: $framework_version,
-      is_docs_updates: ""
+      framework_version: $framework_version
     }')
 
   # POST to Slack Workflow webhook
