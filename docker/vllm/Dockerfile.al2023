@@ -1,0 +1,242 @@
+ARG CUDA_VERSION=12.9.1
+ARG PYTHON_VERSION=3.12
+
+# =============================================================================
+# STAGE 0: source — clone vLLM and apply patches
+# =============================================================================
+FROM alpine/git AS source
+
+ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
+ARG VLLM_REF=v0.16.0
+
+RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
+
+COPY scripts/vllm/al2023/patches/ /tmp/patches/
+RUN cd /src && \
+    for p in /tmp/patches/*.patch; do \
+      [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
+        git apply "$p" && echo "Applied $(basename $p)"; \
+    done; true
+
+# Generate source manifest
+RUN echo "vLLM AL2023 Image Source Manifest" > /src/SOURCE_MANIFEST && \
+    echo "Base: ${VLLM_REPO} @ ${VLLM_REF}" >> /src/SOURCE_MANIFEST && \
+    echo "HEAD: $(cd /src && git rev-parse HEAD)" >> /src/SOURCE_MANIFEST && \
+    echo "Built: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> /src/SOURCE_MANIFEST && \
+    echo "" >> /src/SOURCE_MANIFEST && \
+    echo "Patches:" >> /src/SOURCE_MANIFEST && \
+    (ls /tmp/patches/*.patch 2>/dev/null | xargs -I{} basename {} | sed 's/^/  - /' >> /src/SOURCE_MANIFEST || echo "  (none)" >> /src/SOURCE_MANIFEST) && \
+    echo "" >> /src/SOURCE_MANIFEST && \
+    echo "Git log:" >> /src/SOURCE_MANIFEST && \
+    cd /src && git log --oneline -10 | sed 's/^/  /' >> /src/SOURCE_MANIFEST
+
+# =============================================================================
+# STAGE 1: build — compile vLLM wheel from source
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS build
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+      tar gzip git gcc gcc-c++ make cmake ninja-build \
+      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+      libibverbs-devel && \
+    dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+WORKDIR /workspace/vllm
+
+# Copy source from stage 0
+COPY --from=source /src/ ./
+
+# Install PyTorch + build deps (slow-changing, cached)
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r requirements/cuda.txt -r requirements/build.txt \
+      --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+ARG torch_cuda_arch_list='7.0 7.5 8.0 8.9 9.0 10.0 12.0'
+ENV TORCH_CUDA_ARCH_LIST=${torch_cuda_arch_list}
+
+ARG max_jobs=2
+ENV MAX_JOBS=${max_jobs}
+
+ARG nvcc_threads=8
+ENV NVCC_THREADS=${nvcc_threads}
+
+ENV VLLM_TARGET_DEVICE=cuda
+ENV SETUPTOOLS_SCM_PRETEND_VERSION="0.0.0+al2023"
+
+RUN --mount=type=cache,target=/root/.cache/ccache \
+    --mount=type=cache,target=/root/.cache/uv \
+    python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
+
+# =============================================================================
+# STAGE 2: deps — clean venv with only runtime packages
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS deps
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+      tar gzip gcc gcc-c++ \
+      python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
+      libibverbs-devel && \
+    dnf clean all && rm -rf /var/cache/dnf
+
+RUN python${PYTHON_VERSION} -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+ENV UV_HTTP_TIMEOUT=500
+ENV UV_INDEX_STRATEGY="unsafe-best-match"
+ENV UV_LINK_MODE=copy
+
+# Install PyTorch
+COPY --from=build /workspace/vllm/requirements/common.txt /tmp/common.txt
+COPY --from=build /workspace/vllm/requirements/cuda.txt   /tmp/cuda.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install -r /tmp/cuda.txt \
+      --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install vLLM wheel
+COPY --from=build /workspace/vllm/dist /tmp/vllm-dist
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install /tmp/vllm-dist/*.whl \
+      --extra-index-url ${PYTORCH_CUDA_INDEX_BASE_URL}/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install FlashInfer cubin/jit-cache
+ARG FLASHINFER_VERSION=0.6.3
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install flashinfer-cubin==${FLASHINFER_VERSION} \
+                   flashinfer-jit-cache==${FLASHINFER_VERSION} \
+      --extra-index-url https://flashinfer.ai/whl/cu$(echo $CUDA_VERSION | cut -d. -f1,2 | tr -d '.')
+
+# Install serving extras
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install accelerate hf_transfer modelscope \
+      "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
+
+# =============================================================================
+# STAGE 3: runtime — minimal image with clean venv
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+
+ARG CUDA_VERSION
+ARG PYTHON_VERSION=3.12
+
+WORKDIR /vllm-workspace
+
+RUN dnf install -y --setopt=install_weak_deps=False \
+      python${PYTHON_VERSION} libibverbs shadow-utils && \
+    dnf clean all && rm -rf /var/cache/dnf
+
+# Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
+RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') && \
+    dnf install -y --setopt=install_weak_deps=False \
+      gcc python${PYTHON_VERSION}-devel \
+      cuda-nvcc-${CUDA_DASH} \
+      cuda-cudart-devel-${CUDA_DASH} \
+      cuda-nvrtc-${CUDA_DASH} \
+      cuda-cuobjdump-${CUDA_DASH} \
+      libcurand-devel-${CUDA_DASH} \
+      libcublas-${CUDA_DASH} && \
+    dnf clean all && rm -rf /var/cache/dnf
+
+COPY --from=deps /opt/venv /opt/venv
+COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
+
+ENV PATH="/opt/venv/bin:${PATH}"
+ENV VIRTUAL_ENV="/opt/venv"
+ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
+ENV VLLM_USAGE_SOURCE=production-docker-image
+ENV HF_HUB_ENABLE_HF_TRANSFER=1
+
+# =============================================================================
+# STAGE 4: DLC overlay — Amazon DLC customizations on top of vLLM runtime
+# =============================================================================
+FROM runtime AS base
+
+ARG PYTHON="python3"
+ARG PYTHON_VERSION=3.12
+ARG CUDA_VERSION
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    DLC_CONTAINER_TYPE=general \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=UTF-8 \
+    LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+    PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
+
+# Install DLC Python dependencies
+RUN uv pip install --system botocore && uv cache clean
+
+# Patch CVEs
+RUN uv pip install --system \
+      "pillow>=12.1.1" \
+      "xgrammar>=0.1.32" \
+      "PyJWT>=2.12.0" \
+    && uv cache clean
+
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+    && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+           -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+           -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+           /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+    && chmod +x /usr/local/bin/bash_telemetry.sh \
+    && rm /tmp/bash_telemetry.sh.template \
+    && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+    && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && rm -rf /root/oss_compliance* \
+    && rm -rf /tmp/tmp* \
+    && rm -rf /tmp/uv* \
+    && rm -rf /var/cache/dnf \
+    && rm -rf /root/.cache || true
+
+COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
+ARG EFA_VERSION="1.47.0"
+RUN bash install_efa_al2023.sh ${EFA_VERSION} \
+    && rm install_efa_al2023.sh \
+    && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# ====================== ec2 =========================================
+FROM base AS vllm-ec2-al2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --setopt=install_weak_deps=False && \
+    dnf clean all && rm -rf /var/cache/dnf /tmp/*
+
+COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
