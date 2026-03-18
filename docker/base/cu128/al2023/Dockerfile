@@ -136,9 +136,10 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm install_efa.sh \
   # OSS compliance
   && dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False unzip wget \
-  && dnf clean all && rm -rf /var/cache/dnf \
+  && dnf install -y --setopt=install_weak_deps=False unzip curl \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
+  && dnf remove -y unzip curl \
+  && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
