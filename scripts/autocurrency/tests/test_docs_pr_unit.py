@@ -6,7 +6,7 @@ edge cases and error handling.
 
 from __future__ import annotations
 
-from tests.helpers.docs_pr_functions import (
+from scripts.autocurrency.docs_pr_functions import (
     build_failed_packages_report,
     generate_announcement,
     generate_branch_name,

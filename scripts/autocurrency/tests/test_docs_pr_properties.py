@@ -10,7 +10,7 @@ import string
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from tests.helpers.docs_pr_functions import (
+from scripts.autocurrency.docs_pr_functions import (
     build_failed_packages_report,
     build_failure_slack_payload,
     build_slack_payload,
@@ -47,7 +47,6 @@ _nonempty_printable = st.text(
 # ===================================================================
 # 6.1 — Property 5: Major.minor version extraction
 # ===================================================================
-# Feature: auto-docs-pr, Property 5: Major.minor version extraction
 
 
 class TestMajorMinorExtraction:
@@ -71,7 +70,6 @@ class TestMajorMinorExtraction:
 # ===================================================================
 # 6.2 — Property 4: Tag generation per platform
 # ===================================================================
-# Feature: auto-docs-pr, Property 4: Tag generation per platform
 
 
 class TestTagGeneration:
@@ -101,11 +99,9 @@ class TestTagGeneration:
         tags = generate_tags(version, device, python, cuda, os_ver, "ec2")
 
         assert len(tags) == 4
-        # All ec2 tags must contain "ec2"
         for tag in tags:
             assert "ec2" in tag
 
-        # Tags contain the version/device/python components
         assert tags[0] == f"{version}-{device}-{python}-{cuda}-{os_ver}-ec2"
         mm = f"{major}.{minor}"
         assert tags[1] == f"{mm}-{device}-{python}-{cuda}-{os_ver}-ec2-v1"
@@ -137,14 +133,11 @@ class TestTagGeneration:
         tags = generate_tags(version, device, python, cuda, os_ver, "sagemaker")
 
         assert len(tags) == 4
-        # First 2 tags contain "sagemaker"
         assert "sagemaker" in tags[0]
         assert "sagemaker" in tags[1]
-        # Last 2 tags do NOT have a platform suffix
         assert tags[2] == f"{version}-{device}-{python}"
         assert tags[3] == f"{mm}-{device}-{python}"
 
-        # Verify exact patterns
         assert tags[0] == f"{version}-{device}-{python}-{cuda}-{os_ver}-sagemaker"
         assert tags[1] == f"{mm}-{device}-{python}-{cuda}-{os_ver}-sagemaker-v1"
 
@@ -152,7 +145,6 @@ class TestTagGeneration:
 # ===================================================================
 # 6.3 — Property 6: Announcement message generation
 # ===================================================================
-# Feature: auto-docs-pr, Property 6: Announcement message generation
 
 
 class TestAnnouncementGeneration:
@@ -192,7 +184,6 @@ class TestAnnouncementGeneration:
 # ===================================================================
 # 6.4 — Property 7: Branch name and PR title generation
 # ===================================================================
-# Feature: auto-docs-pr, Property 7: Branch name and PR title generation
 
 
 class TestBranchNameAndPrTitle:
@@ -227,7 +218,6 @@ class TestBranchNameAndPrTitle:
 # ===================================================================
 # 6.5 — Property 2: Version string parsing from command output
 # ===================================================================
-# Feature: auto-docs-pr, Property 2: Version string parsing from command output
 
 
 class TestVersionParsing:
@@ -267,7 +257,6 @@ class TestVersionParsing:
 # ===================================================================
 # 6.6 — Property 3: Docs data file field pass-through correctness
 # ===================================================================
-# Feature: auto-docs-pr, Property 3: Docs data file field pass-through correctness
 
 
 class TestDocsDataFieldPassThrough:
@@ -282,7 +271,6 @@ class TestDocsDataFieldPassThrough:
     @settings(max_examples=100)
     @given(framework=_identifier)
     def test_unknown_display_name_fallback(self, framework: str) -> None:
-        # For unknown frameworks, get_display_name returns the raw framework string
         display = get_display_name(framework)
         if framework not in ("vllm", "sglang"):
             assert display == framework
@@ -298,7 +286,6 @@ class TestDocsDataFieldPassThrough:
         self, framework: str, version: str, device: str, platform: str
     ) -> None:
         expected_path = f"docs/src/data/{framework}/{version}-{device}-{platform}.yml"
-        # Verify the path components are consistent with the inputs
         assert framework in expected_path
         assert version in expected_path
         assert device in expected_path
@@ -324,7 +311,6 @@ class TestDocsDataFieldPassThrough:
     ) -> None:
         tags = generate_tags(version, device, python, cuda, os_ver, platform)
         assert len(tags) == 4
-        # All tags should contain the version or major.minor, device, and python
         mm = parse_major_minor(version)
         for tag in tags:
             assert device in tag
@@ -335,7 +321,6 @@ class TestDocsDataFieldPassThrough:
 # ===================================================================
 # 6.7 — Property 8: Failed packages reported in PR body
 # ===================================================================
-# Feature: auto-docs-pr, Property 8: Failed packages reported in PR body
 
 
 class TestFailedPackagesReport:
@@ -365,7 +350,6 @@ class TestFailedPackagesReport:
 # ===================================================================
 # 6.8 — Property 9: Slack notification payload completeness
 # ===================================================================
-# Feature: auto-docs-pr, Property 9: Slack notification payload completeness
 
 
 class TestSlackPayloadCompleteness:
