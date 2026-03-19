@@ -14,10 +14,6 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: true
-
 env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/vllm-ec2-al2023.yml"
@@ -128,6 +124,9 @@ jobs:
 
   model-smoke-tests:
     needs: [load-config]
+    concurrency:
+      group: ${{ github.workflow }}-model-smoke-tests-${{ github.event.pull_request.number || github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-vllm-model-tests.yml
     with:
       image-uri: ${{ needs.load-config.outputs.image-uri }}
