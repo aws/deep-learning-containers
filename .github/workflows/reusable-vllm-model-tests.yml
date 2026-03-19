@@ -102,8 +102,12 @@ jobs:
     name: test-model (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
     needs: [load-models]
+    concurrency:
+      group: gpu-efa-${{ matrix.name }}
+      cancel-in-progress: false
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         include: ${{ fromJson(needs.load-models.outputs.large-matrix) }}
     runs-on: gpu-efa-runners
@@ -136,6 +140,7 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
+            --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
