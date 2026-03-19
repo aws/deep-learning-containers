@@ -79,23 +79,30 @@ jobs:
             rmdir "${SUBDIRS[0]}"
           fi
 
-      - name: Run model smoke test
+      - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
-          docker run --rm --gpus all \
-            --entrypoint bash \
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             -v /dlc-models:/models \
-            -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
-            ${{ inputs.image-uri }} \
-            /opt/scripts/vllm/vllm_model_smoke_test.sh \
-              "/models/${{ matrix.name }}" \
-              "${{ matrix.tp }}" \
-              "${{ matrix.name }}"
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.tp }}" \
+            "${{ matrix.name }}"
 
       - name: Cleanup
         if: always()
         run: |
-          docker rm -f $(docker ps -q) 2>/dev/null || true
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
 
