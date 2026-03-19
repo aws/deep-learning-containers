@@ -7,7 +7,7 @@ ARG PYTHON_VERSION=3.12
 FROM alpine/git AS source
 
 ARG VLLM_REPO=https://github.com/vllm-project/vllm.git
-ARG VLLM_REF=v0.16.0
+ARG VLLM_REF=v0.17.1
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
 
