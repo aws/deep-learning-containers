@@ -1,0 +1,24 @@
+[project]
+name = "dlc-ray"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "awscli==1.44.49",
+    "boto3==1.42.59",
+    "fastapi==0.133.1",
+    "httpx==0.28.1",
+    "numpy==2.4.2",
+    "opencv-python==4.13.0.92",
+    "pandas==3.0.1",
+    "pillow==12.1.1",
+    "pyyaml==6.0.3",
+    "ray[serve]==2.54.0",
+    "scikit-learn==1.8.0",
+    "soundfile==0.13.1",
+    "torch==2.10.0",
+    "torchaudio==2.10.0",
+    "torchcodec==0.10.0",
+    "torchvision==0.25.0",
+    "transformers==5.2.0",
+    "uvicorn[standard]==0.41.0",
+]
