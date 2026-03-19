@@ -149,29 +149,42 @@ render_prod_image() {
 }
 
 ###############################################################################
-# send_slack_notification(webhook_url, framework_key, new_version, pr_url)
+# send_slack_notification(webhook_url, workflow_name, framework_key, new_version, pr_url)
 #   Sends key-value data to a Slack Workflow webhook after a PR is created.
 #   The Slack Workflow on the receiving end handles message formatting and
-#   channel routing — this function only provides raw data.
+#   channel routing based on the workflow_name field.
 #
 #   Returns 0 (true) if HTTP 200, 1 (false) otherwise.
 #   NEVER fails the workflow — logs warnings on error.
 #
 #   Arguments:
 #     webhook_url    — Slack Workflow webhook URL (from SLACK_WEBHOOK_URL secret)
+#     workflow_name  — Routing key: "auto_currency" or "docs_update"
 #     framework_key  — Framework identifier (e.g., "vllm")
 #     new_version    — New upstream version string (e.g., "0.17.0")
 #     pr_url         — URL of the created pull request
 #
 #   Usage:
-#     send_slack_notification "${SLACK_WEBHOOK_URL}" "vllm" "0.17.0" \
+#     send_slack_notification "${SLACK_WEBHOOK_URL}" "auto_currency" "vllm" "0.17.0" \
 #       "https://github.com/aws/deep-learning-containers/pull/123"
+#     send_slack_notification "${SLACK_WEBHOOK_URL}" "docs_update" "vllm" "0.17.0" \
+#       "https://github.com/aws/deep-learning-containers/pull/456"
 ###############################################################################
 send_slack_notification() {
   local webhook_url="${1:-}"
-  local framework_key="${2:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
-  local new_version="${3:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
-  local pr_url="${4:?Usage: send_slack_notification WEBHOOK_URL FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local workflow_name="${2:?Usage: send_slack_notification WEBHOOK_URL WORKFLOW_NAME FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local framework_key="${3:?Usage: send_slack_notification WEBHOOK_URL WORKFLOW_NAME FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local new_version="${4:?Usage: send_slack_notification WEBHOOK_URL WORKFLOW_NAME FRAMEWORK_KEY NEW_VERSION PR_URL}"
+  local pr_url="${5:?Usage: send_slack_notification WEBHOOK_URL WORKFLOW_NAME FRAMEWORK_KEY NEW_VERSION PR_URL}"
+
+  # Validate workflow_name
+  case "${workflow_name}" in
+    auto_currency|docs_update) ;;
+    *)
+      echo "Warning: Unknown workflow_name '${workflow_name}'. Expected: auto_currency, docs_update. Skipping."
+      return 1
+      ;;
+  esac
 
   # If webhook URL is missing or empty, skip silently
   if [[ -z "${webhook_url}" ]]; then
@@ -179,15 +192,15 @@ send_slack_notification() {
     return 1
   fi
 
-  # Construct simple key-value JSON payload
+  # Construct key-value JSON payload with workflow_name as routing key
   local payload
   payload=$(jq -n \
-    --arg is_auto_currency "true" \
+    --arg workflow_name "${workflow_name}" \
     --arg framework_name "${framework_key}" \
     --arg framework_version "${new_version}" \
     --arg pr_url "${pr_url}" \
     '{
-      is_auto_currency: $is_auto_currency,
+      workflow_name: $workflow_name,
       pr_url: $pr_url,
       framework_name: $framework_name,
       framework_version: $framework_version
@@ -206,7 +219,7 @@ send_slack_notification() {
   }
 
   if [[ "${http_code}" == "200" ]]; then
-    echo "Slack notification sent successfully for ${framework_key} ${new_version}."
+    echo "Slack notification sent successfully (${workflow_name}) for ${framework_key} ${new_version}."
     return 0
   else
     echo "Warning: Slack notification returned HTTP ${http_code} for ${framework_key} ${new_version}. PR was created successfully."
