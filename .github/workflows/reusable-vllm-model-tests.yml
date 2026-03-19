@@ -134,7 +134,9 @@ jobs:
 
       - name: Run model smoke test
         run: |
-          cp scripts/vllm/vllm_model_smoke_test.sh /dlc-models/
+          sudo cp "$GITHUB_WORKSPACE/scripts/vllm/vllm_model_smoke_test.sh" /dlc-models/
+          sudo chmod +x /dlc-models/vllm_model_smoke_test.sh
+          ls -la /dlc-models/vllm_model_smoke_test.sh
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
