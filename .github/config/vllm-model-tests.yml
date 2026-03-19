@@ -12,17 +12,17 @@ models:
     tp: 1
     fleet: "x86-g6exl-runner"
 
+  - name: "qwen3-32b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+    tp: 4
+    fleet: "x86-p4d-runner"
+
+  - name: "qwen3.5-35b-a3b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3.5-35b-a3b.tar.gz"
+    tp: 1
+    fleet: "x86-g6xl-runner"
+
   # TODO: Uncomment when models are uploaded to S3
-  # - name: "qwen3-32b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
-  #   tp: 4
-  #   fleet: "x86-p4d-runner"
-
-  # - name: "qwen3.5-35b-a3b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/qwen3.5-35b-a3b.tar.gz"
-  #   tp: 1
-  #   fleet: "x86-g6xl-runner"
-
   # - name: "llama-3.3-70b"
   #   s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
   #   tp: 4
