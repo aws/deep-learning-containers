@@ -141,7 +141,7 @@ ENV LANG=C.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   CUDA_HOME=/usr/local/cuda \
   DLC_CONTAINER_TYPE=general \
-  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib/python3.12/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.12/site-packages/nvidia/nccl/lib:/usr/local/lib/python3.12/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/lib/python3.12/site-packages/nvidia/nvjitlink/lib:/usr/local/lib/python3.12/site-packages/nvidia/cufft/lib:/usr/local/lib/python3.12/site-packages/nvidia/cusolver/lib:/usr/local/lib/python3.12/site-packages/nvidia/cusparse/lib:/usr/local/lib/python3.12/site-packages/nvidia/cusparselt/lib:/usr/local/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -185,6 +185,12 @@ ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages:/usr/local/lib64/python3
 # Copy Python packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/python3.12/site-packages
+
+# Register all nvidia pip package lib dirs with the dynamic linker so that
+# libraries like libcusparseLt.so, libcupti.so, etc. are found at runtime
+# without maintaining a brittle hardcoded LD_LIBRARY_PATH list.
+RUN python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
+    && ldconfig
 
 # Copy CUDA JIT binaries from builder (nvcc, ptxas needed for deep_gemm, flashinfer, torch inductor)
 COPY --from=builder /usr/local/cuda/bin/nvcc /usr/local/cuda/bin/
@@ -233,6 +239,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # OSS compliance
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bashrc \
+    && echo 'source /usr/local/bin/bash_telemetry.sh' >> /root/.bashrc \
     && HOME_DIR=/root \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" \
