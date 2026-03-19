@@ -239,6 +239,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 # OSS compliance
 RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bashrc \
+    && echo 'source /usr/local/bin/bash_telemetry.sh' >> /root/.bashrc \
     && HOME_DIR=/root \
     && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
     && python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" \
