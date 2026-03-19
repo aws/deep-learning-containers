@@ -1,0 +1,26 @@
+framework: vLLM
+version: "0.17.1"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: ec2
+public_registry: true
+
+tags:
+  - "0.17.1-gpu-py312-cu129-ubuntu22.04-ec2"
+  - "0.17-gpu-py312-cu129-ubuntu22.04-ec2-v1"
+  - "0.17.1-gpu-py312-ec2"
+  - "0.17-gpu-py312-ec2"
+
+announcements:
+  - "Introduced vLLM 0.17.1 containers for EC2, ECS, EKS"
+
+packages:
+  vllm: "0.17.1"
+  pytorch: "2.10.0+cu129"
+  torchvision: "0.25.0+cu129"
+  torchaudio: "2.10.0+cu129"
+  cuda: "12.9"
+  nccl: "(2, 27, 5)"
+  efa: "2.4.0amzn1.0"
