@@ -370,22 +370,28 @@ $(echo "$FAILED_PACKAGES" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}
 ###############################################################################
 
 send_notification() {
-  local display_name
-  display_name=$(get_display_name "${FRAMEWORK:-unknown}")
-
   # Skip if webhook not configured
   if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
     echo "SLACK_WEBHOOK_URL not set, skipping notification"
     return 0
   fi
 
-  # Determine payload based on job outcome
   local payload
   if [ -n "${PR_URL:-}" ]; then
-    payload="{\"text\": \"📄 Docs PR created for ${display_name} ${VERSION} (${PLATFORM}): ${PR_URL}\"}"
+    payload=$(jq -n \
+      --argjson is_docs_updates true \
+      --arg pr_url "${PR_URL}" \
+      --arg framework_name "${FRAMEWORK:-unknown}" \
+      --arg framework_version "${VERSION:-unknown}" \
+      '{is_docs_updates: $is_docs_updates, pr_url: $pr_url, framework_name: $framework_name, framework_version: $framework_version}')
   else
     local run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-    payload="{\"text\": \"❌ Docs PR job failed for ${display_name} ${VERSION:-unknown} (${PLATFORM:-unknown}): ${run_url}\"}"
+    payload=$(jq -n \
+      --argjson is_docs_updates false \
+      --arg pr_url "${run_url}" \
+      --arg framework_name "${FRAMEWORK:-unknown}" \
+      --arg framework_version "${VERSION:-unknown}" \
+      '{is_docs_updates: $is_docs_updates, pr_url: $pr_url, framework_name: $framework_name, framework_version: $framework_version}')
   fi
 
   curl -s -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
