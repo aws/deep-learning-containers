@@ -318,6 +318,4 @@ jobs:
           ${{ inputs.release-spec }}
           EOF
 
-          IMAGE_URI="public.ecr.aws/deep-learning-containers/$(yq '.framework' /tmp/release-spec.yml):$(yq '.version' /tmp/release-spec.yml)-$(yq '.device_type' /tmp/release-spec.yml)-$(yq '.python_version' /tmp/release-spec.yml)-$(yq '.cuda_version' /tmp/release-spec.yml)-$(yq '.os_version' /tmp/release-spec.yml)-$(yq '.customer_type' /tmp/release-spec.yml)"
-
-          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "${IMAGE_URI}"
+          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml
