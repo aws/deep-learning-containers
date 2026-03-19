@@ -12,7 +12,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./scripts/common/install_python.sh install_python.sh
-RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
+RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 # ============================================================
 # Runtime: CUDA runtime libs + Python
@@ -45,14 +45,17 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
+RUN dnf upgrade -y --security --releasever latest \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt
+
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
 ARG PYTHON="python3"
-RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
-  && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && dnf remove -y unzip \
-  && dnf clean all && rm -rf /var/cache/dnf \
+RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
@@ -92,17 +95,17 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --setopt=install_weak_deps=False \
-    automake autoconf cmake gcc gcc-c++ git make tar \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+    unzip curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf clean all && rm -rf /var/cache/dnf
+
+COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
 ARG PYTHON="python3"
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
-  && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && dnf remove -y unzip \
-  && dnf clean all && rm -rf /var/cache/dnf \
+RUN bash /tmp/setup_oss_compliance.sh ${PYTHON} \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
