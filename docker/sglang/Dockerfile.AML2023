@@ -189,8 +189,13 @@ COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/p
 # Register all nvidia pip package lib dirs with the dynamic linker so that
 # libraries like libcusparseLt.so, libcupti.so, etc. are found at runtime
 # without maintaining a brittle hardcoded LD_LIBRARY_PATH list.
-RUN python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
-    && ldconfig
+# We use both ldconfig (for the linker cache) and a saved path list that
+# entrypoints source at runtime (fallback if nvidia-container-toolkit
+# overwrites the ldconfig cache on --gpus=all).
+RUN NVIDIA_LIBS=$(python3.12 -c "import glob; print(':'.join(glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib')))") \
+    && echo "$NVIDIA_LIBS" | tr ':' '\n' > /etc/ld.so.conf.d/nvidia-pip.conf \
+    && ldconfig \
+    && echo "$NVIDIA_LIBS" > /etc/nvidia-pip-lib-paths
 
 # Copy CUDA JIT binaries from builder (nvcc, ptxas needed for deep_gemm, flashinfer, torch inductor)
 COPY --from=builder /usr/local/cuda/bin/nvcc /usr/local/cuda/bin/
