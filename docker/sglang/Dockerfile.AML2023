@@ -1,0 +1,266 @@
+ARG CUDA_VERSION=12.9.1
+
+# =============================================================================
+# Builder stage: compile sglang and all native dependencies from source
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+
+ARG CUDA_VERSION
+ARG SGL_VERSION=0.5.9
+ARG SGL_KERNEL_VERSION=0.3.21
+ARG FLASHINFER_VERSION=0.6.3
+ARG MOONCAKE_VERSION=0.3.9
+ARG GDRCOPY_VERSION=2.5.1
+ARG DEEPEP_COMMIT=9af0e0d0e74f3577af1979c9b9e1ac2cad0104ee
+ARG BUILD_PARALLEL=8
+
+ENV CUDA_HOME=/usr/local/cuda \
+  GDRCOPY_HOME=/usr/src/gdrdrv-${GDRCOPY_VERSION}/ \
+  FLASHINFER_VERSION=${FLASHINFER_VERSION}
+
+# System dependencies for building
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  python3.12 python3.12-devel python3.12-pip \
+  gcc gcc-c++ make git git-lfs \
+  perl patchelf unzip wget curl tar gzip \
+  openmpi-devel numactl-devel numactl \
+  rdma-core-devel libibverbs-devel librdmacm-devel \
+  libnl3-devel infiniband-diags \
+  libunwind-devel boost-devel openssl-devel \
+  protobuf-devel protobuf-compiler \
+  hiredis-devel libcurl-devel \
+  libfabric-devel \
+  ninja-build \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Set Python 3.12 as default, preserve dnf's system python
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
+  && alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf \
+  && python3 -m ensurepip --upgrade \
+  && python3 -m pip install --upgrade pip setuptools wheel \
+  && python3 -m pip install pybind11 cmake
+
+# GDRCopy
+RUN mkdir -p /tmp/gdrcopy && cd /tmp \
+  && curl --retry 3 -fsSL -o v${GDRCOPY_VERSION}.tar.gz \
+    https://github.com/NVIDIA/gdrcopy/archive/refs/tags/v${GDRCOPY_VERSION}.tar.gz \
+  && tar -xzf v${GDRCOPY_VERSION}.tar.gz && rm v${GDRCOPY_VERSION}.tar.gz \
+  && cd gdrcopy-${GDRCOPY_VERSION} \
+  && make -j$(nproc) prefix=/usr/local CUDA=${CUDA_HOME} lib lib_install \
+  && cd / && rm -rf /tmp/gdrcopy*
+
+# DeepEP IBGDA symlink
+RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
+
+WORKDIR /sgl-workspace
+
+# Clone sglang
+RUN git clone --depth=1 --branch v${SGL_VERSION} https://github.com/sgl-project/sglang.git /sgl-workspace/sglang
+
+# Install torch first (needed for sglang build)
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install torch --extra-index-url https://download.pytorch.org/whl/cu129 \
+  && python3 -m pip install scikit-build-core
+
+# Install sgl-kernel from pip (pre-built CUDA kernels)
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install sgl-kernel==${SGL_KERNEL_VERSION}
+
+# Install sglang from source + flashinfer
+# Note: sglang may downgrade torch/nvidia packages, so we discover lib paths dynamically
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd sglang \
+    && python3 -m pip install -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
+    && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
+    && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
+    && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
+       python3 -m flashinfer --download-cubin
+
+# Persist NVIDIA pip lib paths for subsequent build steps
+RUN echo $(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') > /tmp/nvidia_lib_paths
+ENV LD_LIBRARY_PATH_NVIDIA_FILE=/tmp/nvidia_lib_paths
+
+# DeepEP
+RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
+  https://github.com/deepseek-ai/DeepEP/archive/${DEEPEP_COMMIT}.zip \
+  && unzip -q ${DEEPEP_COMMIT}.zip && rm ${DEEPEP_COMMIT}.zip \
+  && mv DeepEP-${DEEPEP_COMMIT} DeepEP \
+  && cd DeepEP \
+  && sed -i 's/#define NUM_CPU_TIMEOUT_SECS 100/#define NUM_CPU_TIMEOUT_SECS 1000/' csrc/kernels/configs.cuh \
+  && sed -i 's/#define NUM_TIMEOUT_CYCLES 200000000000ull/#define NUM_TIMEOUT_CYCLES 2000000000000ull/' csrc/kernels/configs.cuh
+
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd /sgl-workspace/DeepEP \
+    && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+    && TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3' MAX_JOBS=${BUILD_PARALLEL} \
+       pip install --no-build-isolation .
+
+# Mooncake (0.3.9 wheel requires manylinux_2_35 but amzn2023 has glibc 2.34, force install)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m pip install mooncake-transfer-engine==${MOONCAKE_VERSION} --platform manylinux_2_35_x86_64 --only-binary :all: --target /tmp/mooncake \
+    && cp -r /tmp/mooncake/* $(python3 -c "import site; print(site.getsitepackages()[0])") \
+    && rm -rf /tmp/mooncake
+
+# sgl-model-gateway (Rust — patch source for crate API changes)
+RUN --mount=type=cache,target=/root/.cache/pip \
+    export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
+    && export PATH="/root/.cargo/bin:${PATH}" \
+    && python3 -m pip install maturin \
+    && cd /sgl-workspace/sglang/sgl-model-gateway \
+    && sed -i '/\.map_err(|e| format!("Failed to initialize WASM module manager/d' src/app_context.rs \
+    && python3 -c "f=open('src/core/steps/wasm_module_registration.rs'); s=f.read(); f.close(); s=s.replace('wasm_bytes,', 'wasm_bytes: wasm_bytes.into(),', 1); f=open('src/core/steps/wasm_module_registration.rs','w'); f.write(s); f.close(); print('Patch 2 applied')" \
+    && cd bindings/python \
+    && ulimit -n 65536 && maturin build --release --features vendored-openssl --out dist \
+    && python3 -m pip install --force-reinstall dist/*.whl \
+    && cd /sgl-workspace/sglang/sgl-model-gateway \
+    && cargo build --release --bin sgl-model-gateway --features vendored-openssl \
+    && cp target/release/sgl-model-gateway /usr/local/bin/sglang-router \
+    && rm -rf /root/.cargo /root/.rustup target dist
+
+# Patch NCCL/cuDNN versions to match upstream
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
+  && python3 -m pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps
+
+# =============================================================================
+# Runtime stage: minimal production image
+# =============================================================================
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
+
+ARG CUDA_VERSION
+ARG PYTHON=python3
+ARG EFA_VERSION=1.46.0
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ENV LANG=C.UTF-8 \
+  LC_ALL=C.UTF-8 \
+  PYTHONDONTWRITEBYTECODE=1 \
+  PYTHONUNBUFFERED=1 \
+  PYTHONIOENCODING=UTF-8 \
+  CUDA_HOME=/usr/local/cuda \
+  DLC_CONTAINER_TYPE=general \
+  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
+
+WORKDIR /
+
+# Add NVIDIA RHEL9 repo for NCCL packages
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' \
+  >/etc/yum.repos.d/cuda-rhel9.repo
+
+# Runtime system dependencies
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  python3.12 \
+  ca-certificates wget curl git tar gzip \
+  openmpi numactl \
+  rdma-core libibverbs librdmacm \
+  libnl3 infiniband-diags \
+  libunwind \
+  boost-system boost-thread boost-filesystem protobuf hiredis libcurl openssl-libs libfabric \
+  ninja-build \
+  libnccl \
+  gcc gcc-c++ make which hostname findutils \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
+RUN cd /tmp \
+  && curl -O https://efa-installer.amazonaws.com/aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && tar -xf aws-efa-installer-${EFA_VERSION}.tar.gz \
+  && cd aws-efa-installer \
+  && ./efa_installer.sh -y --skip-kmod --skip-limit-conf --no-verify \
+  && cd / && rm -rf /tmp/aws-efa-installer*
+
+# Set Python 3.12 as default (after EFA install since dnf needs system Python)
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
+  && alternatives --set python3 /usr/bin/python3.12 \
+  && ln -sf /usr/bin/python3.12 /usr/bin/python \
+  && sed -i '1s|#!/usr/bin/python3|#!/usr/bin/python3.9|' /usr/bin/dnf \
+  && python3 -m ensurepip --upgrade \
+  && python3 -m pip install --upgrade pip
+
+ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages:/usr/local/lib64/python3.12/site-packages"
+
+# Copy Python packages from builder
+COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
+COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/python3.12/site-packages
+
+# Copy sglang workspace
+COPY --from=builder /sgl-workspace /sgl-workspace
+
+# Copy sglang-router binary
+COPY --from=builder /usr/local/bin/sglang-router /usr/local/bin/sglang-router
+
+# Copy GDRCopy runtime libs
+COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
+
+# DeepEP IBGDA symlink
+RUN ln -sf /usr/lib64/libmlx5.so.1 /usr/lib64/libmlx5.so || true
+
+# DLC dependencies
+RUN pip install botocore
+
+# CVE patches
+RUN pip install \
+  "pillow>=12.1.1" \
+  "python_multipart>=0.0.22" \
+  "xgrammar>=0.1.32"
+
+# Telemetry and common scripts
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/start_cuda_compat.sh /usr/local/bin/start_cuda_compat.sh
+
+ARG FRAMEWORK
+ARG FRAMEWORK_VERSION
+ARG CONTAINER_TYPE
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/start_cuda_compat.sh \
+  && rm /tmp/bash_telemetry.sh.template
+
+# OSS compliance
+RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bashrc \
+    && HOME_DIR=/root \
+    && curl -o ${HOME_DIR}/oss_compliance.zip https://aws-dlinfra-utilities.s3.amazonaws.com/oss_compliance.zip \
+    && python3 -c "import zipfile, os; zipfile.ZipFile('/root/oss_compliance.zip').extractall('/root/'); os.remove('/root/oss_compliance.zip')" \
+    && cp ${HOME_DIR}/oss_compliance/test/testOSSCompliance /usr/local/bin/testOSSCompliance \
+    && chmod +x /usr/local/bin/testOSSCompliance \
+    && chmod +x ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh \
+    && ${HOME_DIR}/oss_compliance/generate_oss_compliance.sh ${HOME_DIR} ${PYTHON} \
+    && rm -rf ${HOME_DIR}/oss_compliance* \
+    && rm -rf /tmp/tmp* \
+    && rm -rf /root/.cache || true
+
+# =============================================================================
+# SageMaker target
+# =============================================================================
+FROM runtime AS sglang-sagemaker
+
+ARG CACHE_REFRESH=0
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
+RUN rm -rf /tmp/*
+
+COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+ENTRYPOINT ["/usr/bin/serve"]
+
+# =============================================================================
+# EC2 target
+# =============================================================================
+FROM runtime AS sglang-ec2
+
+ARG CACHE_REFRESH=0
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
+RUN rm -rf /tmp/*
+
+COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
+RUN chmod +x /usr/bin/serve
+
+ENTRYPOINT ["/usr/bin/serve"]
