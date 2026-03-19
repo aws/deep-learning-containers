@@ -23,6 +23,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+source "${SCRIPT_DIR}/utils.sh"
 
 ###############################################################################
 # Helpers (pure functions — sourced by test harness)
@@ -322,31 +323,19 @@ $(echo "$FAILED_PACKAGES" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}
 ###############################################################################
 
 send_notification() {
-  # Skip if webhook not configured
-  if [ -z "${SLACK_WEBHOOK_URL:-}" ]; then
-    echo "SLACK_WEBHOOK_URL not set, skipping notification"
-    return 0
+  local pr_url_or_run_url="${PR_URL:-}"
+
+  # Fall back to the Actions run URL if no PR was created
+  if [ -z "${pr_url_or_run_url}" ]; then
+    pr_url_or_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
   fi
 
-  local payload
-  if [ -n "${PR_URL:-}" ]; then
-    payload=$(jq -n \
-      --argjson is_docs_updates true \
-      --arg pr_url "${PR_URL}" \
-      --arg framework_name "${FRAMEWORK:-unknown}" \
-      --arg framework_version "${VERSION:-unknown}" \
-      '{is_docs_updates: $is_docs_updates, pr_url: $pr_url, framework_name: $framework_name, framework_version: $framework_version}')
-  else
-    local run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-    payload=$(jq -n \
-      --argjson is_docs_updates false \
-      --arg pr_url "${run_url}" \
-      --arg framework_name "${FRAMEWORK:-unknown}" \
-      --arg framework_version "${VERSION:-unknown}" \
-      '{is_docs_updates: $is_docs_updates, pr_url: $pr_url, framework_name: $framework_name, framework_version: $framework_version}')
-  fi
-
-  curl -s -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+  send_slack_notification \
+    "${SLACK_WEBHOOK_URL:-}" \
+    "docs_update" \
+    "${FRAMEWORK:-unknown}" \
+    "${VERSION:-unknown}" \
+    "${pr_url_or_run_url}" || true
 }
 
 ###############################################################################
