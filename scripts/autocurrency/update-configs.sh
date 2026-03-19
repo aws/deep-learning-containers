@@ -78,7 +78,7 @@ update_config_files() {
 #   Usage:
 #     updated=$(update_dockerfiles "0.17.0" '[
 #       {"path": "docker/vllm/Dockerfile", "base_image_template": "vllm/vllm-openai:v{version}"},
-#       {"path": "docker/sglang/Dockerfile", "base_image_template": "lmsysorg/sglang:v{version}-cu129-amd64"}
+#       {"path": "docker/sglang/Dockerfile", "base_image_template": "lmsysorg/sglang:v{version}"}
 #     ]')
 ###############################################################################
 update_dockerfiles() {
