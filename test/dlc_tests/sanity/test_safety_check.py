@@ -9,7 +9,7 @@ import logging
 import os
 import sys
 
-from packaging.specifiers import SpecifierSet
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import Version
 
 import pytest
@@ -1109,13 +1109,18 @@ def test_safety(image):
             # Get the latest version of the package with vulnerability
             latest_version = _get_latest_package_version(package)
             # If the latest version of the package is also affected, igvnore this vulnerability
-            if Version(latest_version) in SpecifierSet(affected_versions):
-                # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
-                # Comparing two versions as a string has some edge cases which require us to write more code.
-                # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
-                # gives an object that can be easily compared against a Version object.
-                # https://packaging.pypa.io/en/latest/specifiers/
-                ignore_str += f" -i {vulnerability_id}"
+            try:
+                if Version(latest_version) in SpecifierSet(affected_versions):
+                    # Version(x) gives an object that can be easily compared with another version, or with a SpecifierSet.
+                    # Comparing two versions as a string has some edge cases which require us to write more code.
+                    # SpecifierSet(x) takes a version constraint, such as "<=4.5.6", ">1.2.3", or ">=1.2,<3.4.5", and
+                    # gives an object that can be easily compared against a Version object.
+                    # https://packaging.pypa.io/en/latest/specifiers/
+                    ignore_str += f" -i {vulnerability_id}"
+            except (InvalidSpecifier, AttributeError):
+                # If the vulnerable_spec from the safety DB is malformed and cannot be parsed,
+                # do not auto-ignore — let it be handled by IGNORE_SAFETY_IDS or fail explicitly
+                pass
         assert (
             safety_check.run_safety_check_with_ignore_list(docker_exec_cmd, ignore_str) == 0
         ), f"Safety test failed for {image}"
