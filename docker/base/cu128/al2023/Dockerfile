@@ -12,7 +12,7 @@ RUN dnf install -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./scripts/common/install_python.sh install_python.sh
-RUN bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
+RUN --mount=type=cache,target=/root/.cache/pip bash install_python.sh ${PYTHON_VERSION} && rm install_python.sh
 
 # ============================================================
 # Runtime: CUDA runtime libs + Python
