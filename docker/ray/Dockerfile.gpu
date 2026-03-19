@@ -125,6 +125,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && bash setup_oss_compliance.sh ${PYTHON} \
   && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
