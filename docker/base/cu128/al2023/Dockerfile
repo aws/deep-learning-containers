@@ -46,7 +46,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
 RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
@@ -96,7 +96,7 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
-    unzip curl automake autoconf cmake gcc gcc-c++ git make tar \
+    curl automake autoconf cmake gcc gcc-c++ git make tar \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
