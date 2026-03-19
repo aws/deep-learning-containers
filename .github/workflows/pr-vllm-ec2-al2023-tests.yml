@@ -14,6 +14,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/vllm-ec2-al2023.yml"
