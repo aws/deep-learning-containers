@@ -7,11 +7,10 @@
 # can source the helper functions without triggering execution).
 #
 # Usage:
-#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml> <image-uri>
+#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml>
 #
 # Arguments:
 #   release-spec-yaml — Path to the release specification YAML file
-#   image-uri         — Full Docker image URI to pull and inspect
 #
 # Required environment variables (set by the workflow):
 #   GH_TOKEN          — GitHub App token for push/PR operations
@@ -99,8 +98,7 @@ if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
   return 0
 fi
 
-RELEASE_SPEC="${1:?Usage: docs-pr.sh <release-spec-yaml> <image-uri>}"
-IMAGE_URI="${2:?Usage: docs-pr.sh <release-spec-yaml> <image-uri>}"
+RELEASE_SPEC="${1:?Usage: docs-pr.sh <release-spec-yaml>}"
 
 # -----------------------------------------------------------------
 # Parse release spec
@@ -116,6 +114,9 @@ DEVICE=$(yq '.device_type' "$RELEASE_SPEC")
 PUBLIC_REGISTRY=$(yq '.public_registry' "$RELEASE_SPEC")
 
 TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
+
+# Build IMAGE_URI from parsed spec fields
+IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 
 # -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
@@ -316,14 +317,9 @@ echo "============================================================"
 echo "Step 4: Send Slack notification"
 echo "============================================================"
 
-pr_url_or_run_url="${PR_URL:-}"
-if [ -z "${pr_url_or_run_url}" ]; then
-  pr_url_or_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-fi
-
 send_slack_notification \
   "${SLACK_WEBHOOK_URL:-}" \
   "docs_update" \
-  "${FRAMEWORK:-unknown}" \
-  "${VERSION:-unknown}" \
-  "${pr_url_or_run_url}" || true
+  "${FRAMEWORK}" \
+  "${VERSION}" \
+  "${PR_URL}" || true
