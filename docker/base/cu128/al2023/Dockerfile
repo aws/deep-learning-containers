@@ -47,12 +47,14 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
+# requests: needed by OSS compliance, removed after
+# prettytable, wcwidth: installed by piplicenses during compliance, removed after
 ARG PYTHON="python3"
 RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && pip install --no-cache-dir requests \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && pip uninstall -y requests urllib3 charset-normalizer idna certifi uv prettytable wcwidth \
+  && pip uninstall -y requests prettytable wcwidth \
   && dnf remove -y unzip \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
@@ -100,11 +102,13 @@ RUN dnf upgrade -y --security --releasever latest \
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
+# requests: needed by OSS compliance, removed after
+# prettytable, wcwidth: installed by piplicenses during compliance, removed after
 ARG PYTHON="python3"
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && pip install --no-cache-dir requests \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && pip uninstall -y requests urllib3 charset-normalizer idna certifi uv prettytable wcwidth \
+  && pip uninstall -y requests prettytable wcwidth \
   && dnf remove -y unzip \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
