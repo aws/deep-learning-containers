@@ -1,19 +1,18 @@
-name: PR - Documentations
+name: PR - Documentations  # Workflow name
 
 on:
   pull_request:
-    branches: [disabled-for-release-testing]
-    types: [opened, reopened, synchronize]
+    branches: [disabled-for-release-testing]  # Run only for this branch
+    types: [opened, reopened, synchronize]   # Trigger on PR events
     paths:
-      - "**docs**"
+      - "**docs**"  # Run only when docs-related files change
 
 permissions:
   contents: read
   pull-requests: read
 
 env:
-  # CI environment configuration
-  FORCE_COLOR: "1"
+  FORCE_COLOR: "1"  # Enable colored logs
 
 jobs:
   gatekeeper:
@@ -22,14 +21,14 @@ jobs:
       group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     steps:
-      - name: Checkout base branch (safe)
+      - name: Checkout base branch
         uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           fetch-depth: 1
 
-      - name: Run permission gate (from base)
-        uses: ./.github/actions/pr-permission-gate
+      - name: Run permission gate
+        uses: ./.github/actions/pr-permission-gate  # Custom permission check
 
   check-changes:
     needs: [gatekeeper]
@@ -39,22 +38,23 @@ jobs:
       group: ${{ github.workflow }}-check-changes-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
-      docs-change: ${{ steps.changes.outputs.docs-change }}
+      docs-change: ${{ steps.changes.outputs.docs-change }}  # Output flag
+
     steps:
-      - name: Checkout DLC source
+      - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Setup python
+      - name: Setup Python
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
-      - name: Run pre-commit
+      - name: Run pre-commit checks
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
 
-      - name: Detect file changes
+      - name: Detect documentation changes
         id: changes
         uses: dorny/paths-filter@v3
         with:
@@ -66,7 +66,7 @@ jobs:
 
   documentation-test:
     needs: [check-changes]
-    if: needs.check-changes.outputs.docs-change == 'true'
+    if: needs.check-changes.outputs.docs-change == 'true'  # Run only if docs changed
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:default-runner
@@ -74,17 +74,18 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-docs-test-${{ github.event.pull_request.number }}
       cancel-in-progress: true
+
     steps:
-      - name: Checkout DLC source
+      - name: Checkout repository
         uses: actions/checkout@v5
 
-      - name: Install test dependencies
+      - name: Install dependencies
         run: |
           uv venv --python 3.12
           source .venv/bin/activate
           uv pip install -r test/requirements.txt
 
-      - name: Build documentations
+      - name: Build documentation
         run: |
           source .venv/bin/activate
           uv pip install -r docs/requirements.txt
@@ -94,4 +95,4 @@ jobs:
         run: |
           source .venv/bin/activate
           cd test/
-          python3 -m pytest -vs -rA docs
+          python3 -m pytest -vs -rA doc
