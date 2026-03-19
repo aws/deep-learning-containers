@@ -23,7 +23,8 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.parse.outputs.matrix }}
+      codebuild-matrix: ${{ steps.parse.outputs.codebuild }}
+      efa-matrix: ${{ steps.parse.outputs.efa }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -34,18 +35,25 @@ jobs:
           python3 -c "
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
-              cfg = yaml.safe_load(f)
-          print(json.dumps(cfg['models']))
-          " > matrix.json
-          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+              models = yaml.safe_load(f)['models']
+          cb = [m for m in models if m.get('runner') == 'codebuild']
+          efa = [m for m in models if m.get('runner') == 'gpu-efa-runners']
+          print('codebuild=' + json.dumps(cb))
+          print('efa=' + json.dumps(efa))
+          " > parsed.txt
+          grep '^codebuild=' parsed.txt | sed 's/^codebuild=//' > cb.json
+          grep '^efa=' parsed.txt | sed 's/^efa=//' > efa.json
+          echo "codebuild=$(cat cb.json)" >> $GITHUB_OUTPUT
+          echo "efa=$(cat efa.json)" >> $GITHUB_OUTPUT
 
-  test-model:
+  test-model-codebuild:
     name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.codebuild-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.codebuild-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -67,7 +75,6 @@ jobs:
           aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
           tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
           rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
-          # If tar created a single subdirectory, flatten it
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -90,3 +97,53 @@ jobs:
       - name: Cleanup models
         if: always()
         run: rm -rf /dlc-models
+
+  test-model-efa:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.efa-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.efa-matrix) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          sudo mkdir -p "${MODEL_DIR}"
+          sudo chown "$(id -u):$(id -g)" /dlc-models
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Run model smoke test
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          docker run --rm --gpus all \
+            --entrypoint bash \
+            -v /dlc-models:/models \
+            -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
+            ${{ inputs.image-uri }} \
+            /opt/scripts/vllm/vllm_model_smoke_test.sh \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.tp }}" \
+              "${{ matrix.name }}"
+
+      - name: Cleanup models
+        if: always()
+        run: sudo rm -rf /dlc-models
