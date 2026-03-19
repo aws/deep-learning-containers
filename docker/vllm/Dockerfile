@@ -7,9 +7,7 @@ FROM $BASE_IMAGE AS base
 
 # ====================== common =========================================
 ARG PYTHON="python3"
-LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.47.0"
-LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
@@ -79,6 +77,8 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
@@ -94,6 +94,9 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # ====================== ray serve =========================================
 FROM base AS vllm-rayserve-ec2
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 
 RUN uv pip install --system ray[serve]==2.49.0 \
   && uv cache clean
@@ -112,6 +115,8 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
