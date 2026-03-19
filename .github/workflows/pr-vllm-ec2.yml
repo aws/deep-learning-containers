@@ -8,6 +8,7 @@ on:
     paths:
       - "**vllm**"
       - "!docs/**"
+      - "!**al2023**"
 
 permissions:
   contents: read
@@ -109,9 +110,11 @@ jobs:
         with:
           filters: |
             build-change:
-              - "docker/vllm/**"
-              - "scripts/vllm/**"
-              - "scripts/common/**"
+              - "docker/vllm/Dockerfile"
+              - "scripts/vllm/*"
+              - "scripts/common/install_efa.sh"
+              - "scripts/common/setup_oss_compliance.sh"
+              - "scripts/common/start_cuda_compat.sh"
               - "scripts/telemetry/**"
               - ".github/config/vllm-ec2.yml"
             sanity-test-change:

@@ -10,19 +10,17 @@ small:
     tp: 1
     fleet: "x86-g6xl-runner"
 
-  - name: "gpt-oss-20b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
-    tp: 1
-    fleet: "x86-g6exl-runner"
+  # - name: "gpt-oss-20b"
+  #   s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+  #   tp: 1
+  #   fleet: "x86-g6exl-runner"
 
 large:
   - name: "qwen3-32b"
     s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
     tp: 4
 
-  - name: "qwen3.5-35b-a3b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3.5-35b-a3b.tar.gz"
-    tp: 1
+  # ß
 
   # TODO: Uncomment when model is uploaded to S3
   # - name: "llama-3.3-70b"
