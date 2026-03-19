@@ -159,4 +159,3 @@ jobs:
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           sudo rm -rf /dlc-models
-          sudo rm -rf /dlc-models
