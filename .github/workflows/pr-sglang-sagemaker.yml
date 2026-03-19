@@ -127,7 +127,7 @@ jobs:
     if: needs.check-changes.outputs.build-change == 'true'
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-sglang-build-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
