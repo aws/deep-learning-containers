@@ -143,7 +143,7 @@ for i in $(seq 0 $(( pip_count - 1 ))); do
   pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
   output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
 
-  version=$(docker run --rm "$IMAGE_URI" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
+  version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "pip show ${pkg_name} 2>/dev/null" | grep "^Version:" | awk '{print $2}') || true
   if [ -n "$version" ]; then
     echo "  ✅ ${output_key}: ${version}"
     declare "PKG_${output_key}=${version}"
@@ -161,19 +161,19 @@ for i in $(seq 0 $(( system_count - 1 ))); do
 
   case "$sys_pkg" in
     cuda)
-      version=$(docker run --rm "$IMAGE_URI" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "nvcc --version 2>/dev/null" | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
       ;;
     nccl)
-      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.cuda.nccl.version())" 2>/dev/null) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "python3 -c \"import torch; print(torch.cuda.nccl.version())\" 2>/dev/null") || true
       ;;
     efa)
-      version=$(docker run --rm "$IMAGE_URI" fi_info --version 2>/dev/null | head -1 | awk '{print $2}') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "fi_info --version 2>/dev/null" | head -1 | awk '{print $2}') || true
       ;;
     cudnn)
-      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.backends.cudnn.version())" 2>/dev/null) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "python3 -c \"import torch; print(torch.backends.cudnn.version())\" 2>/dev/null") || true
       ;;
     gdrcopy)
-      version=$(docker run --rm "$IMAGE_URI" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null" | grep gdrcopy | awk '{print $3}' | head -1) || true
       ;;
     *)
       echo "::warning::Unknown system package '${sys_pkg}', skipping"
