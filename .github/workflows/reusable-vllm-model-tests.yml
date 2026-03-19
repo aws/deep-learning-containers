@@ -63,9 +63,10 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
+            --entrypoint bash \
             -v /tmp/models:/tmp/models \
             ${{ inputs.image-uri }} \
-            bash scripts/vllm/vllm_model_smoke_test.sh \
+            scripts/vllm/vllm_model_smoke_test.sh \
               "${{ matrix.s3_path }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
