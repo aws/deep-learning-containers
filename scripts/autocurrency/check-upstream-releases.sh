@@ -328,7 +328,7 @@ for framework in ${FRAMEWORKS}; do
   fi
 
   # Return to main branch for next framework iteration
-  git checkout main 2>/dev/null || true
+  git checkout kevin-dev 2>/dev/null || true
 done
 
 # -------------------------------------------------------------------
