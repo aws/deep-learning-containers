@@ -12,8 +12,8 @@
 #   OS               — os version (e.g. "ubuntu22.04")
 #   PLATFORM         — customer type (e.g. "ec2", "sagemaker")
 #   DEVICE           — device type (e.g. "gpu")
-#   PUBLIC_REGISTRY  — public ECR registry path
-#   PROD_IMAGE       — production image name
+#   PUBLIC_REGISTRY  — whether image is in public ECR (true/false)
+#   PROD_IMAGE       — production image name (unused, kept for reference)
 #   GH_TOKEN         — GitHub App token for push/PR operations
 #
 # Usage:

@@ -313,20 +313,22 @@ jobs:
         id: parse-spec
         run: |
           echo '${{ inputs.release-spec }}' > /tmp/release-spec.yml
-          echo "FRAMEWORK=$(yq '.common.framework' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "VERSION=$(yq '.common.framework_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PYTHON=$(yq '.common.python_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "CUDA=$(yq '.common.cuda_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "OS=$(yq '.common.os_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PLATFORM=$(yq '.common.customer_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "DEVICE=$(yq '.common.device_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PUBLIC_REGISTRY=$(yq '.release.public_registry' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PROD_IMAGE=$(yq '.common.prod_image' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "Parsed release spec:"
+          cat /tmp/release-spec.yml
+          echo "FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "VERSION=$(yq '.version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PYTHON=$(yq '.python_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "CUDA=$(yq '.cuda_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "OS=$(yq '.os_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "DEVICE=$(yq '.device_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
+          echo "PUBLIC_REGISTRY=$(yq '.public_registry' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
 
       - name: Pull image and extract package versions
         run: |
           FULL_TAG="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
-          IMAGE_URI="public.ecr.aws/${{ env.PUBLIC_REGISTRY }}:${FULL_TAG}"
+          IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${FULL_TAG}"
+          echo "IMAGE_URI=${IMAGE_URI}"
           bash scripts/autocurrency/docs-pr.sh extract-packages "${IMAGE_URI}"
 
       - name: Generate docs data YAML file
