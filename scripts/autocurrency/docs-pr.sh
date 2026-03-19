@@ -102,35 +102,25 @@ pull_and_extract_packages() {
   echo "Pulling image: ${image_uri}"
   docker pull "${image_uri}"
 
-  # Define framework-to-package map
-  local pip_packages=""
-  local system_packages=""
-  case "$FRAMEWORK" in
-    vllm)
-      pip_packages="vllm torch torchvision torchaudio"
-      system_packages="cuda nccl efa"
-      ;;
-    sglang)
-      pip_packages="sglang sgl_kernel torch torchvision torchaudio torchao transformers flashinfer"
-      system_packages="cuda cudnn nccl efa gdrcopy"
-      ;;
-    *)
-      echo "::warning::Unknown framework '$FRAMEWORK', using empty package list"
-      ;;
-  esac
+  # Read package lists from tracker config
+  local tracker="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
+  local pip_count system_count
+  pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$tracker")
+  system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$tracker")
+
+  if [[ "${pip_count}" == "0" && "${system_count}" == "0" ]]; then
+    echo "::warning::No docs_packages defined for '${FRAMEWORK}' in tracker config"
+  fi
 
   FAILED_PACKAGES=()
 
-  # Extract pip package versions
-  for pkg_name in $pip_packages; do
-    local version=""
+  # Extract pip package versions (name/key from config)
+  for i in $(seq 0 $(( pip_count - 1 ))); do
+    local pkg_name output_key version=""
+    pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$tracker")
+    output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$tracker")
+
     version=$(docker run --rm "$image_uri" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
-    # Map pip package names to output keys
-    local output_key="$pkg_name"
-    case "$pkg_name" in
-      torch) output_key="pytorch" ;;
-      sgl_kernel) output_key="sgl-kernel" ;;
-    esac
     if [ -n "$version" ]; then
       echo "  ✅ ${output_key}: ${version}"
       echo "PKG_${output_key}=${version}" >> "$GITHUB_ENV"
@@ -141,9 +131,11 @@ pull_and_extract_packages() {
     fi
   done
 
-  # Extract system package versions
-  for sys_pkg in $system_packages; do
-    local version=""
+  # Extract system package versions (extraction commands are framework-agnostic)
+  for i in $(seq 0 $(( system_count - 1 ))); do
+    local sys_pkg version=""
+    sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$tracker")
+
     case "$sys_pkg" in
       cuda)
         version=$(docker run --rm "$image_uri" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
@@ -159,6 +151,10 @@ pull_and_extract_packages() {
         ;;
       gdrcopy)
         version=$(docker run --rm "$image_uri" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
+        ;;
+      *)
+        echo "::warning::Unknown system package '${sys_pkg}', skipping"
+        continue
         ;;
     esac
     if [ -n "$version" ]; then
@@ -211,9 +207,33 @@ generate_docs_yaml() {
   OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
   mkdir -p "$output_dir"
 
-  case "$FRAMEWORK" in
-    vllm)
-      cat > "$OUTPUT_FILE" <<EOF
+  # Build packages section dynamically from tracker config
+  local tracker="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
+  local packages_yaml=""
+
+  # Pip packages
+  local pip_count
+  pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$tracker")
+  for i in $(seq 0 $(( pip_count - 1 ))); do
+    local pkg_name output_key
+    pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$tracker")
+    output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$tracker")
+    local env_var="PKG_${output_key}"
+    packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
+  done
+
+  # System packages
+  local system_count
+  system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$tracker")
+  for i in $(seq 0 $(( system_count - 1 ))); do
+    local sys_pkg
+    sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$tracker")
+    local env_var="PKG_${sys_pkg}"
+    packages_yaml="${packages_yaml}  ${sys_pkg}: \"${!env_var:-}\"\n"
+  done
+
+  # Write the YAML using a single template
+  cat > "$OUTPUT_FILE" <<EOF
 framework: ${display_name}
 version: "${VERSION}"
 accelerator: ${DEVICE}
@@ -233,76 +253,8 @@ announcements:
   - "${announcement}"
 
 packages:
-  vllm: "${PKG_vllm}"
-  pytorch: "${PKG_pytorch}"
-  torchvision: "${PKG_torchvision}"
-  torchaudio: "${PKG_torchaudio}"
-  cuda: "${PKG_cuda}"
-  nccl: "${PKG_nccl}"
-  efa: "${PKG_efa}"
+$(echo -e "${packages_yaml}" | sed '/^$/d')
 EOF
-      ;;
-    sglang)
-      cat > "$OUTPUT_FILE" <<EOF
-framework: ${display_name}
-version: "${VERSION}"
-accelerator: ${DEVICE}
-python: ${PYTHON}
-cuda: ${CUDA}
-os: ${OS}
-platform: ${PLATFORM}
-public_registry: ${PUBLIC_REGISTRY}
-
-tags:
-  - "${tag1}"
-  - "${tag2}"
-  - "${tag3}"
-  - "${tag4}"
-
-announcements:
-  - "${announcement}"
-
-packages:
-  sglang: "${PKG_sglang}"
-  sgl-kernel: "${PKG_sgl-kernel}"
-  pytorch: "${PKG_pytorch}"
-  torchvision: "${PKG_torchvision}"
-  torchaudio: "${PKG_torchaudio}"
-  torchao: "${PKG_torchao}"
-  transformers: "${PKG_transformers}"
-  flashinfer: "${PKG_flashinfer}"
-  cuda: "${PKG_cuda}"
-  cudnn: "${PKG_cudnn}"
-  nccl: "${PKG_nccl}"
-  efa: "${PKG_efa}"
-  gdrcopy: "${PKG_gdrcopy}"
-EOF
-      ;;
-    *)
-      echo "::warning::Unknown framework '$FRAMEWORK', generating minimal YAML"
-      cat > "$OUTPUT_FILE" <<EOF
-framework: ${display_name}
-version: "${VERSION}"
-accelerator: ${DEVICE}
-python: ${PYTHON}
-cuda: ${CUDA}
-os: ${OS}
-platform: ${PLATFORM}
-public_registry: ${PUBLIC_REGISTRY}
-
-tags:
-  - "${tag1}"
-  - "${tag2}"
-  - "${tag3}"
-  - "${tag4}"
-
-announcements:
-  - "${announcement}"
-
-packages: {}
-EOF
-      ;;
-  esac
 
   echo "✅ Generated docs data file: ${OUTPUT_FILE}"
   cat "$OUTPUT_FILE"
