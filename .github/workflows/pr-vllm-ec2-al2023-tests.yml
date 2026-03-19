@@ -1,13 +1,15 @@
 name: PR - vLLM EC2 AL2023 Tests
 
 on:
-  workflow_dispatch:
-    inputs:
-      image-uri:
-        description: "Full ECR image URI to test"
-        required: true
-        type: string
-        default: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+  pull_request:
+    branches: [main]
+    paths:
+      - "docker/vllm/**"
+      - "scripts/vllm/**"
+      - ".github/workflows/pr-vllm-ec2-al2023-tests.yml"
+      - ".github/workflows/reusable-vllm-model-tests.yml"
+      - ".github/config/vllm-ec2-al2023.yml"
+      - ".github/config/vllm-model-tests.yml"
 
 permissions:
   contents: read
@@ -15,11 +17,13 @@ permissions:
 env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/vllm-ec2-al2023.yml"
+  IMAGE_URI: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
 
 jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
+      image-uri: ${{ steps.set-image.outputs.image-uri }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       python-version: ${{ steps.parse.outputs.python-version }}
@@ -31,6 +35,10 @@ jobs:
       contributor: ${{ steps.parse.outputs.contributor }}
       customer-type: ${{ steps.parse.outputs.customer-type }}
     steps:
+      - name: Set image URI
+        id: set-image
+        run: echo "image-uri=${{ env.IMAGE_URI }}" >> $GITHUB_OUTPUT
+
       - name: Checkout code
         uses: actions/checkout@v5
 
@@ -62,7 +70,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
-      image-uri: ${{ inputs.image-uri }}
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -83,7 +91,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
-      image-uri: ${{ inputs.image-uri }}
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -96,7 +104,7 @@ jobs:
       cancel-in-progress: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
-      image-uri: ${{ inputs.image-uri }}
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -110,7 +118,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
     with:
-      image-uri: ${{ inputs.image-uri }}
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
@@ -119,9 +127,10 @@ jobs:
     secrets: inherit
 
   model-smoke-tests:
+    needs: [load-config]
     uses: ./.github/workflows/reusable-vllm-model-tests.yml
     with:
-      image-uri: ${{ inputs.image-uri }}
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
