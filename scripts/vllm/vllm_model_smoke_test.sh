@@ -2,28 +2,15 @@
 set -euo pipefail
 
 # vLLM Model Smoke Test
-# Usage: vllm_model_smoke_test.sh <s3_path> <tp> <model_name>
+# Usage: vllm_model_smoke_test.sh <model_dir> <tp> <model_name>
 
-S3_PATH="${1:?Usage: $0 <s3_path> <tp> <model_name>}"
-TP="${2:?Usage: $0 <s3_path> <tp> <model_name>}"
-MODEL_NAME="${3:?Usage: $0 <s3_path> <tp> <model_name>}"
+MODEL_DIR="${1:?Usage: $0 <model_dir> <tp> <model_name>}"
+TP="${2:?Usage: $0 <model_dir> <tp> <model_name>}"
+MODEL_NAME="${3:?Usage: $0 <model_dir> <tp> <model_name>}"
 
-MODEL_DIR="/tmp/models/${MODEL_NAME}"
 VLLM_PORT=8000
 HEALTH_TIMEOUT=600
 HEALTH_INTERVAL=10
-
-echo "=== Downloading model ${MODEL_NAME} from ${S3_PATH} ==="
-mkdir -p "${MODEL_DIR}"
-aws s3 cp "${S3_PATH}" /tmp/"${MODEL_NAME}".tar.gz
-tar xzf /tmp/"${MODEL_NAME}".tar.gz -C "${MODEL_DIR}"
-rm -f /tmp/"${MODEL_NAME}".tar.gz
-
-# If tar created a single subdirectory, use that as MODEL_DIR
-SUBDIRS=("${MODEL_DIR}"/*)
-if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-  MODEL_DIR="${SUBDIRS[0]}"
-fi
 
 echo "=== Model directory: ${MODEL_DIR} ==="
 ls -la "${MODEL_DIR}"
