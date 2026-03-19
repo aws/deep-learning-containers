@@ -35,11 +35,9 @@ jobs:
           python3 -c "
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
-              models = yaml.safe_load(f)['models']
-          cb = [m for m in models if m.get('runner') == 'codebuild']
-          efa = [m for m in models if m.get('runner') == 'gpu-efa-runners']
-          print('small=' + json.dumps(cb))
-          print('large=' + json.dumps(efa))
+              cfg = yaml.safe_load(f)
+          print('small=' + json.dumps(cfg.get('small', [])))
+          print('large=' + json.dumps(cfg.get('large', [])))
           " > parsed.txt
           grep '^small=' parsed.txt | sed 's/^small=//' > small.json
           grep '^large=' parsed.txt | sed 's/^large=//' > large.json
