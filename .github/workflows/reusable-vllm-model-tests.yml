@@ -102,9 +102,6 @@ jobs:
     name: test-model (${{ matrix.name }})
     if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
     needs: [load-models]
-    concurrency:
-      group: model-test-large-${{ github.event.pull_request.number || github.run_id }}-${{ matrix.name }}
-      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
