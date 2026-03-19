@@ -96,6 +96,7 @@ jobs:
         if: always()
         run: |
           docker rm -f $(docker ps -q) 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf /dlc-models
 
   test-model-large:
@@ -149,4 +150,5 @@ jobs:
         if: always()
         run: |
           docker rm -f $(docker ps -q) 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           sudo rm -rf /dlc-models
