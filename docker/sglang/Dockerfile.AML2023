@@ -152,7 +152,7 @@ WORKDIR /
 # need to be installed as RPMs.
 RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
-    python3.12 \
+    python3.12 python3.12-devel \
     ca-certificates wget curl git tar gzip \
     openmpi numactl \
     rdma-core libibverbs librdmacm \
