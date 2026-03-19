@@ -9,8 +9,8 @@ name: Check Upstream Releases
 
 on:
   # Uncomment to test in PR
-  # pull_request:
-  #   types: [opened, synchronize]
+  pull_request:
+    types: [opened, synchronize]
 
   schedule:
     - cron: '0 * * * *'
