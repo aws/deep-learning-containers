@@ -103,8 +103,8 @@ jobs:
     if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
     needs: [load-models]
     concurrency:
-      group: gpu-efa-${{ matrix.name }}
-      cancel-in-progress: false
+      group: model-test-large-${{ github.event.pull_request.number || github.run_id }}-${{ matrix.name }}
+      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
