@@ -8,6 +8,10 @@ on:
     paths:
       - "**vllm**"
       - "!docs/**"
+      - "!.github/workflows/pr-vllm-ec2-al2023-tests.yml"
+      - "!.github/workflows/reusable-vllm-model-tests.yml"
+      - "!.github/config/vllm-model-tests.yml"
+      - "!.github/config/vllm-ec2-al2023.yml"
 
 permissions:
   contents: read
