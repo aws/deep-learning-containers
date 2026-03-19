@@ -59,6 +59,20 @@ jobs:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
 
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/tmp/models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" /tmp/${{ matrix.name }}.tar.gz
+          tar xzf /tmp/${{ matrix.name }}.tar.gz -C "${MODEL_DIR}"
+          rm -f /tmp/${{ matrix.name }}.tar.gz
+          # If tar created a single subdirectory, flatten it
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
       - name: Run model smoke test
         run: |
           docker pull ${{ inputs.image-uri }}
@@ -68,6 +82,6 @@ jobs:
             -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
             /opt/scripts/vllm/vllm_model_smoke_test.sh \
-              "${{ matrix.s3_path }}" \
+              "/tmp/models/${{ matrix.name }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
