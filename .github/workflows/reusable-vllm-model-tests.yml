@@ -137,12 +137,12 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
+            -v /dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Copy files into container
+      - name: Copy scripts into container
         run: |
-          docker cp /dlc-models ${CONTAINER_ID}:/models
           docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
 
       - name: Run model smoke test
