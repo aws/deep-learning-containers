@@ -133,8 +133,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { name: runtime, tag: cu128-runtime-py312-al2023 }
-          - { name: devel, tag: cu128-devel-py312-al2023 }
+          - { name: runtime, tag: cuda128-runtime-al2023 }
+          - { name: devel, tag: cuda128-devel-al2023 }
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -176,8 +176,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: cu128-runtime-py312-al2023 }
-          - { tag: cu128-devel-py312-al2023 }
+          - { tag: cuda128-runtime-al2023 }
+          - { tag: cuda128-devel-al2023 }
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -207,8 +207,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: cu128-runtime-py312-al2023 }
-          - { tag: cu128-devel-py312-al2023 }
+          - { tag: cuda128-runtime-al2023 }
+          - { tag: cuda128-devel-al2023 }
     concurrency:
       group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
