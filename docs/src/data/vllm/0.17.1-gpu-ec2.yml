@@ -1,0 +1,27 @@
+framework: vLLM
+version: "0.17.1"
+accelerator: gpu
+python: py312
+cuda: cu129
+os: ubuntu22.04
+platform: ec2
+public_registry: true
+
+tags:
+  - "0.17.1-gpu-py312-cu129-ubuntu22.04-ec2"
+  - "0.17-gpu-py312-cu129-ubuntu22.04-ec2-v1"
+  - "0.17.1-gpu-py312-ec2"
+  - "0.17-gpu-py312-ec2"
+
+announcements:
+  - "Introduced vLLM 0.17.1 containers for EC2, ECS, EKS"
+
+packages:
+  vllm: ""
+  pytorch: ""
+  torchvision: ""
+  torchaudio: ""
+  cuda: ""
+  nccl: "INFO 03-19 23:08:59 [importing.py:44] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 03-19 23:08:59 [importing.py:68] Triton not installed or not compatible; certain GPU-related functions will not be available."
+  efa: "03-19"
