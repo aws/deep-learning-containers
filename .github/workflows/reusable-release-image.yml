@@ -318,16 +318,6 @@ jobs:
           ${{ inputs.release-spec }}
           EOF
 
-          FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)
-          VERSION=$(yq '.version' /tmp/release-spec.yml)
-          PYTHON=$(yq '.python_version' /tmp/release-spec.yml)
-          CUDA=$(yq '.cuda_version' /tmp/release-spec.yml)
-          OS=$(yq '.os_version' /tmp/release-spec.yml)
-          PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)
-          DEVICE=$(yq '.device_type' /tmp/release-spec.yml)
-          PUBLIC_REGISTRY=$(yq '.public_registry' /tmp/release-spec.yml)
+          IMAGE_URI="public.ecr.aws/deep-learning-containers/$(yq '.framework' /tmp/release-spec.yml):$(yq '.version' /tmp/release-spec.yml)-$(yq '.device_type' /tmp/release-spec.yml)-$(yq '.python_version' /tmp/release-spec.yml)-$(yq '.cuda_version' /tmp/release-spec.yml)-$(yq '.os_version' /tmp/release-spec.yml)-$(yq '.customer_type' /tmp/release-spec.yml)"
 
-          FULL_TAG="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
-          IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${FULL_TAG}"
-
-          bash scripts/autocurrency/docs-pr.sh run-all /tmp/release-spec.yml "${IMAGE_URI}"
+          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "${IMAGE_URI}"
