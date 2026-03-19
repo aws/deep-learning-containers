@@ -65,8 +65,9 @@ jobs:
           docker run --rm --gpus all \
             --entrypoint bash \
             -v /tmp/models:/tmp/models \
+            -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
-            scripts/vllm/vllm_model_smoke_test.sh \
+            /opt/scripts/vllm/vllm_model_smoke_test.sh \
               "${{ matrix.s3_path }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
