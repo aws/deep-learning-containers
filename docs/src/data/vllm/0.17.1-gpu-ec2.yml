@@ -22,6 +22,6 @@ packages:
   torchvision: ""
   torchaudio: ""
   cuda: ""
-  nccl: "INFO 03-19 23:08:59 [importing.py:44] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
-INFO 03-19 23:08:59 [importing.py:68] Triton not installed or not compatible; certain GPU-related functions will not be available."
+  nccl: "INFO 03-19 23:13:22 [importing.py:44] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 03-19 23:13:22 [importing.py:68] Triton not installed or not compatible; certain GPU-related functions will not be available."
   efa: "03-19"
