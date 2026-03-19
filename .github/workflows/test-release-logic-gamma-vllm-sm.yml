@@ -1,4 +1,4 @@
-name: Test Release Logic - Gamma - vLLM RayServe
+name: Test Release Logic - Gamma - vLLM SageMaker
 
 on:
   pull_request:
@@ -15,7 +15,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-rayserve.yml"
+  CONFIG_FILE: ".github/config/vllm-sagemaker.yml"
 
 jobs:
   load-config:
@@ -74,13 +74,13 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-rayserve-ec2
+          target: vllm-sagemaker
           base-image: vllm/vllm-openai:v${{ needs.load-config.outputs.framework-version }}
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-rayserve-ec2-${{ github.run_id }}
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}
           dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}

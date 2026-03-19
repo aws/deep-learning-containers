@@ -96,7 +96,6 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 FROM base AS vllm-rayserve-ec2
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
 
 RUN uv pip install --system ray[serve]==2.49.0 \
   && uv cache clean
@@ -117,6 +116,7 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 FROM base AS vllm-sagemaker
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \

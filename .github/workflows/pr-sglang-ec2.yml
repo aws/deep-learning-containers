@@ -3,7 +3,7 @@ name: PR - SGLang EC2
 on:
   # Direct execution on pull requests
   pull_request:
-    branches: [main]
+    branches: [disabled-for-release-testing]
     types: [opened, reopened, synchronize]
     paths:
       - "**sglang**"

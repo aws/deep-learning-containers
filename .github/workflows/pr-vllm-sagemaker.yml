@@ -3,7 +3,7 @@ name: PR - vLLM SageMaker
 on:
   # Direct execution on pull requests
   pull_request:
-    branches: [main]
+    branches: [disabled-for-release-testing]
     types: [opened, reopened, synchronize]
     paths:
       - "**vllm**"
