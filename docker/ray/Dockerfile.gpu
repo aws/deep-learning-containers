@@ -59,16 +59,10 @@ ARG PYTHON_VERSION=3.13
 RUN uv python install ${PYTHON_VERSION} \
   && uv venv /opt/venv --python ${PYTHON_VERSION}
 
-# Copy requirements and generate lock file
-COPY ./scripts/ray/requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/uv uv pip compile /tmp/requirements.txt \
-  --python ${PYTHON_VERSION} \
-  -o /tmp/requirements.lock
-
-# Install dependencies from lock file
-RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
-  && uv pip install -r /tmp/requirements.lock \
-  && uv pip install pip
+# Install pinned dependencies
+COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
+RUN --mount=type=cache,target=/root/.cache/pip . /opt/venv/bin/activate \
+  && pip install -r /tmp/requirements.lock
 
 
 #############
