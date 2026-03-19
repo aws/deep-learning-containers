@@ -8,7 +8,7 @@ image:
 # Build configuration
 common:
   framework: "vllm"
-  framework_version: "0.1.5"
+  framework_version: "0.17.1"
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
