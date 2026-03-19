@@ -182,6 +182,10 @@ ENV LANG=C.UTF-8 \
 
 WORKDIR /
 
+# Install uv for package management
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
+
 # Install DLC Python dependencies
 RUN uv pip install --system botocore && uv cache clean
 
