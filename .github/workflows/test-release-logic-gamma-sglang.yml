@@ -1,0 +1,214 @@
+name: Test Release Logic - Gamma - SGLang
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/reusable-release-image.yml"
+      - ".github/actions/setup-release-package/**"
+      - ".github/actions/generate-release-spec/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ====================== SGLang EC2 (3-part versioning) ======================
+  load-config-ec2:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/sglang-ec2.yml
+
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+
+  build-image-ec2:
+    needs: [load-config-ec2]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-ec2.outputs.framework }}
+          target: sglang-ec2
+          base-image: lmsysorg/sglang:v${{ needs.load-config-ec2.outputs.framework-version }}
+          framework-version: ${{ needs.load-config-ec2.outputs.framework-version }}
+          container-type: ${{ needs.load-config-ec2.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-ec2.outputs.framework }}-${{ needs.load-config-ec2.outputs.framework-version }}-gpu-${{ needs.load-config-ec2.outputs.python-version }}-${{ needs.load-config-ec2.outputs.cuda-version }}-${{ needs.load-config-ec2.outputs.os-version }}-ec2-${{ github.run_id }}
+          dockerfile-path: docker/${{ needs.load-config-ec2.outputs.framework }}/Dockerfile
+          arch-type: ${{ needs.load-config-ec2.outputs.arch-type }}
+          device-type: ${{ needs.load-config-ec2.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-ec2.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-ec2.outputs.python-version }}
+          os-version: ${{ needs.load-config-ec2.outputs.os-version }}
+          contributor: ${{ needs.load-config-ec2.outputs.contributor }}
+          customer-type: ${{ needs.load-config-ec2.outputs.customer-type }}
+
+  generate-release-spec-ec2:
+    needs: [load-config-ec2, build-image-ec2]
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Generate release spec
+        id: generate
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-ec2.outputs.config }}
+
+  release-image-gamma-ec2:
+    needs: [build-image-ec2, generate-release-spec-ec2]
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image-ec2.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-ec2.outputs.release-spec }}
+      environment: gamma
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
+
+  # ====================== SGLang SageMaker (2-part versioning) ======================
+  load-config-sm:
+    runs-on: ubuntu-latest
+    outputs:
+      config: ${{ steps.load.outputs.config }}
+      framework: ${{ steps.parse.outputs.framework }}
+      framework-version: ${{ steps.parse.outputs.framework-version }}
+      python-version: ${{ steps.parse.outputs.python-version }}
+      cuda-version: ${{ steps.parse.outputs.cuda-version }}
+      os-version: ${{ steps.parse.outputs.os-version }}
+      container-type: ${{ steps.parse.outputs.container-type }}
+      device-type: ${{ steps.parse.outputs.device-type }}
+      arch-type: ${{ steps.parse.outputs.arch-type }}
+      contributor: ${{ steps.parse.outputs.contributor }}
+      customer-type: ${{ steps.parse.outputs.customer-type }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Load configuration
+        id: load
+        uses: ./.github/actions/load-config
+        with:
+          config-file: .github/config/sglang-sagemaker.yml
+
+      - name: Parse configuration
+        id: parse
+        run: |
+          echo '${{ steps.load.outputs.config }}' > config.json
+          echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
+          echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
+          echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
+          echo "cuda-version=$(jq -r '.common.cuda_version' config.json)" >> $GITHUB_OUTPUT
+          echo "os-version=$(jq -r '.common.os_version' config.json)" >> $GITHUB_OUTPUT
+          echo "container-type=$(jq -r '.common.job_type' config.json)" >> $GITHUB_OUTPUT
+          echo "device-type=$(jq -r '.common.device_type // "gpu"' config.json)" >> $GITHUB_OUTPUT
+          echo "arch-type=$(jq -r '.common.arch_type // "x86"' config.json)" >> $GITHUB_OUTPUT
+          echo "contributor=$(jq -r '.common.contributor // "None"' config.json)" >> $GITHUB_OUTPUT
+          echo "customer-type=$(jq -r '.common.customer_type // ""' config.json)" >> $GITHUB_OUTPUT
+
+  build-image-sm:
+    needs: [load-config-sm]
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    outputs:
+      ci-image: ${{ steps.build.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Build image
+        id: build
+        uses: ./.github/actions/build-image
+        with:
+          framework: ${{ needs.load-config-sm.outputs.framework }}
+          target: sglang-sagemaker
+          base-image: lmsysorg/sglang:v${{ needs.load-config-sm.outputs.framework-version }}
+          framework-version: ${{ needs.load-config-sm.outputs.framework-version }}
+          container-type: ${{ needs.load-config-sm.outputs.container-type }}
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          tag-pr: ${{ needs.load-config-sm.outputs.framework }}-${{ needs.load-config-sm.outputs.framework-version }}-gpu-${{ needs.load-config-sm.outputs.python-version }}-${{ needs.load-config-sm.outputs.cuda-version }}-${{ needs.load-config-sm.outputs.os-version }}-sagemaker-${{ github.run_id }}
+          dockerfile-path: docker/${{ needs.load-config-sm.outputs.framework }}/Dockerfile
+          arch-type: ${{ needs.load-config-sm.outputs.arch-type }}
+          device-type: ${{ needs.load-config-sm.outputs.device-type }}
+          cuda-version: ${{ needs.load-config-sm.outputs.cuda-version }}
+          python-version: ${{ needs.load-config-sm.outputs.python-version }}
+          os-version: ${{ needs.load-config-sm.outputs.os-version }}
+          contributor: ${{ needs.load-config-sm.outputs.contributor }}
+          customer-type: ${{ needs.load-config-sm.outputs.customer-type }}
+
+  generate-release-spec-sm:
+    needs: [load-config-sm, build-image-sm]
+    runs-on: ubuntu-latest
+    outputs:
+      release-spec: ${{ steps.generate.outputs.release-spec }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Generate release spec
+        id: generate
+        uses: ./.github/actions/generate-release-spec
+        with:
+          config-json: ${{ needs.load-config-sm.outputs.config }}
+
+  release-image-gamma-sm:
+    needs: [build-image-sm, generate-release-spec-sm]
+    uses: ./.github/workflows/reusable-release-image.yml
+    with:
+      source-image-uri: ${{ needs.build-image-sm.outputs.ci-image }}
+      release-spec: ${{ needs.generate-release-spec-sm.outputs.release-spec }}
+      environment: gamma
+      aws-region: ${{ vars.AWS_REGION }}
+      runner-fleet: default-runner
