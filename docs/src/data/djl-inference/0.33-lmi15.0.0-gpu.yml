@@ -2,7 +2,7 @@ framework: DJLServing
 version: "0.33"
 accelerator: gpu
 cuda: cu128
-engine: "LMI 15.0.0"
+engine: "LMI 15.0.0, vLLM 0.8.4"
 platform: sagemaker
 
 # Image tags (first tag is used in available_images.md)
