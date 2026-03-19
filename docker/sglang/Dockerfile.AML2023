@@ -67,7 +67,8 @@ RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install torch --ex
 RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install sgl-kernel==${SGL_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
-# Note: sglang may downgrade torch/nvidia packages, so we discover lib paths dynamically
+# Pip nvidia-* packages (installed by torch) provide CUDA libs needed for imports.
+# We discover their lib paths dynamically for build steps that import torch.
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd sglang \
     && python3 -m pip install -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
@@ -76,9 +77,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
        python3 -m flashinfer --download-cubin
 
-# Persist NVIDIA pip lib paths for subsequent build steps
+# Persist nvidia pip lib paths for subsequent build steps that import torch
 RUN echo $(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') > /tmp/nvidia_lib_paths
-ENV LD_LIBRARY_PATH_NVIDIA_FILE=/tmp/nvidia_lib_paths
 
 # DeepEP
 RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
@@ -146,22 +146,24 @@ ENV LANG=C.UTF-8 \
 
 WORKDIR /
 
-# Add NVIDIA RHEL9 repo for NCCL packages
-RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' \
-  >/etc/yum.repos.d/cuda-rhel9.repo
-
-# Runtime system dependencies
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-  python3.12 \
-  ca-certificates wget curl git tar gzip \
-  openmpi numactl \
-  rdma-core libibverbs librdmacm \
-  libnl3 infiniband-diags \
-  libunwind \
-  boost-system boost-thread boost-filesystem protobuf hiredis libcurl openssl-libs libfabric \
-  ninja-build \
-  libnccl \
-  gcc gcc-c++ make which hostname findutils \
+# Runtime system dependencies + CUDA JIT tools
+# Note: cuDNN, NCCL, cuSparseLt are provided by pip nvidia-* packages
+# (copied with site-packages from builder). Only JIT compilation tools
+# need to be installed as RPMs.
+RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+    python3.12 python3.12-devel \
+    ca-certificates wget curl git tar gzip \
+    openmpi numactl \
+    rdma-core libibverbs librdmacm \
+    libnl3 infiniband-diags \
+    libunwind \
+    boost-system boost-thread boost-filesystem protobuf hiredis libcurl openssl-libs libfabric \
+    ninja-build \
+    cuda-nvcc-${CUDA_DASH} \
+    cuda-cuobjdump-${CUDA_DASH} \
+    cuda-cudart-devel-${CUDA_DASH} \
+    gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
@@ -182,22 +184,15 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
 
 ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages:/usr/local/lib64/python3.12/site-packages"
 
-# Copy Python packages from builder
+# Copy Python packages from builder (includes pip nvidia-* packages for CUDA libs)
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/python3.12/site-packages
 
-# Register all nvidia pip package lib dirs with the dynamic linker so that
-# libraries like libcusparseLt.so, libcupti.so, etc. are found at runtime
-# without maintaining a brittle hardcoded LD_LIBRARY_PATH list.
+# Register nvidia pip package lib dirs with the dynamic linker so that
+# libraries like libcusparseLt.so, libcupti.so, libnvshmem.so, etc. are
+# found at runtime. These come from pip nvidia-* packages (PyTorch deps).
 RUN python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
     && ldconfig
-
-# Copy CUDA JIT binaries from builder (nvcc, ptxas needed for deep_gemm, flashinfer, torch inductor)
-COPY --from=builder /usr/local/cuda/bin/nvcc /usr/local/cuda/bin/
-COPY --from=builder /usr/local/cuda/bin/ptxas /usr/local/cuda/bin/
-COPY --from=builder /usr/local/cuda/bin/cuobjdump /usr/local/cuda/bin/
-COPY --from=builder /usr/local/cuda/bin/fatbinary /usr/local/cuda/bin/
-COPY --from=builder /usr/local/cuda/bin/nvlink /usr/local/cuda/bin/
 
 # Copy sglang workspace
 COPY --from=builder /sgl-workspace /sgl-workspace
@@ -219,6 +214,10 @@ RUN pip install \
   "pillow>=12.1.1" \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32"
+
+# Re-pin NCCL/cuDNN after CVE patches (xgrammar pulls older transitive deps)
+RUN pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
+  && pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps
 
 # Telemetry and common scripts
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
