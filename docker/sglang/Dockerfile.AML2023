@@ -33,13 +33,6 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   ninja-build \
   && dnf clean all && rm -rf /var/cache/dnf
 
-# CUDA libraries not included in the devel base image
-RUN dnf install -y --setopt=install_weak_deps=False \
-  libcudnn9-devel-cuda-12 \
-  libnccl-devel \
-  libcusparselt0-devel-cuda-12 \
-  && dnf clean all && rm -rf /var/cache/dnf
-
 # Set Python 3.12 as default, preserve dnf's system python
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
   && alternatives --set python3 /usr/bin/python3.12 \
@@ -74,17 +67,18 @@ RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install torch --ex
 RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install sgl-kernel==${SGL_KERNEL_VERSION}
 
 # Install sglang from source + flashinfer
-RUN --mount=type=cache,target=/root/.cache/pip cd sglang \
-  && python3 -m pip install -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
-  && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
-    python3 -m flashinfer --download-cubin
+# Pip nvidia-* packages (installed by torch) provide CUDA libs needed for imports.
+# We discover their lib paths dynamically for build steps that import torch.
+RUN --mount=type=cache,target=/root/.cache/pip \
+    cd sglang \
+    && python3 -m pip install -e "python[all]" --extra-index-url https://download.pytorch.org/whl/cu129 \
+    && NVIDIA_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') \
+    && export LD_LIBRARY_PATH="${NVIDIA_LIBS}:${LD_LIBRARY_PATH}" \
+    && FLASHINFER_CUBIN_DOWNLOAD_THREADS=${BUILD_PARALLEL} FLASHINFER_LOGGING_LEVEL=warning \
+       python3 -m flashinfer --download-cubin
 
-# Remove pip nvidia-* packages — system CUDA RPMs provide these libraries.
-# PyTorch installs them as dependencies but they conflict with system CUDA.
-RUN pip uninstall -y nvidia-cuda-runtime-cu12 nvidia-cuda-cupti-cu12 nvidia-cuda-nvrtc-cu12 \
-  nvidia-cublas-cu12 nvidia-cudnn-cu12 nvidia-cufft-cu12 nvidia-curand-cu12 \
-  nvidia-cusolver-cu12 nvidia-cusparse-cu12 nvidia-cusparselt-cu12 \
-  nvidia-nccl-cu12 nvidia-nvjitlink-cu12 nvidia-nvtx-cu12 2>/dev/null || true
+# Persist nvidia pip lib paths for subsequent build steps that import torch
+RUN echo $(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))') > /tmp/nvidia_lib_paths
 
 # DeepEP
 RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
@@ -97,6 +91,7 @@ RUN curl --retry 3 -fsSL -o ${DEEPEP_COMMIT}.zip \
 
 RUN --mount=type=cache,target=/root/.cache/pip \
     cd /sgl-workspace/DeepEP \
+    && export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
     && TORCH_CUDA_ARCH_LIST='9.0;10.0;10.3' MAX_JOBS=${BUILD_PARALLEL} \
        pip install --no-build-isolation .
 
@@ -108,7 +103,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # sgl-model-gateway (Rust — patch source for crate API changes)
 RUN --mount=type=cache,target=/root/.cache/pip \
-    curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
+    export LD_LIBRARY_PATH="$(cat /tmp/nvidia_lib_paths):${LD_LIBRARY_PATH}" \
+    && curl --proto '=https' --tlsv1.2 --retry 3 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.90.0 \
     && export PATH="/root/.cargo/bin:${PATH}" \
     && python3 -m pip install maturin \
     && cd /sgl-workspace/sglang/sgl-model-gateway \
@@ -121,6 +117,10 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     && cargo build --release --bin sgl-model-gateway --features vendored-openssl \
     && cp target/release/sgl-model-gateway /usr/local/bin/sglang-router \
     && rm -rf /root/.cargo /root/.rustup target dist
+
+# Patch NCCL/cuDNN versions to match upstream
+RUN --mount=type=cache,target=/root/.cache/pip python3 -m pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
+  && python3 -m pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps
 
 # =============================================================================
 # Runtime stage: minimal production image
@@ -146,25 +146,23 @@ ENV LANG=C.UTF-8 \
 
 WORKDIR /
 
-# Runtime system dependencies
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-  python3.12 \
-  ca-certificates wget curl git tar gzip \
-  openmpi numactl \
-  rdma-core libibverbs librdmacm \
-  libnl3 infiniband-diags \
-  libunwind \
-  boost-system boost-thread boost-filesystem protobuf hiredis libcurl openssl-libs libfabric \
-  ninja-build \
-  # CUDA libraries not included in the runtime base image
-  libcudnn9-cuda-12 \
-  libnccl \
-  libnccl-devel \
-  libcusparselt0-cuda-12 \
-  # CUDA JIT tools (needed by deep_gemm, flashinfer, torch inductor at runtime)
-  cuda-nvcc-12-9 \
-  cuda-cudart-devel-12-9 \
-  gcc gcc-c++ make which hostname findutils \
+# Runtime system dependencies + CUDA JIT tools
+# Note: cuDNN, NCCL, cuSparseLt are provided by pip nvidia-* packages
+# (copied with site-packages from builder). Only JIT compilation tools
+# need to be installed as RPMs.
+RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+    python3.12 \
+    ca-certificates wget curl git tar gzip \
+    openmpi numactl \
+    rdma-core libibverbs librdmacm \
+    libnl3 infiniband-diags \
+    libunwind \
+    boost-system boost-thread boost-filesystem protobuf hiredis libcurl openssl-libs libfabric \
+    ninja-build \
+    cuda-nvcc-${CUDA_DASH} \
+    cuda-cudart-devel-${CUDA_DASH} \
+    gcc gcc-c++ make which hostname findutils \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
@@ -185,9 +183,15 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 \
 
 ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages:/usr/local/lib64/python3.12/site-packages"
 
-# Copy Python packages from builder
+# Copy Python packages from builder (includes pip nvidia-* packages for CUDA libs)
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/python3.12/site-packages
+
+# Register nvidia pip package lib dirs with the dynamic linker so that
+# libraries like libcusparseLt.so, libcupti.so, libnvshmem.so, etc. are
+# found at runtime. These come from pip nvidia-* packages (PyTorch deps).
+RUN python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
+    && ldconfig
 
 # Copy sglang workspace
 COPY --from=builder /sgl-workspace /sgl-workspace
@@ -247,7 +251,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bashrc \
 FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
-RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*,libcudnn*,libcusparselt*' && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
@@ -261,7 +265,7 @@ ENTRYPOINT ["/usr/bin/serve"]
 FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
-RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*,libcudnn*,libcusparselt*' && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
