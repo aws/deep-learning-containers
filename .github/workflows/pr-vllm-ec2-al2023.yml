@@ -122,6 +122,7 @@ jobs:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:x86-vllm-build-runner
         buildspec-override:true
+    timeout-minutes: 720
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number }}
       cancel-in-progress: true
