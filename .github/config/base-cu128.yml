@@ -10,8 +10,7 @@ image:
 common:
   framework: "base"
   framework_version: "12.8.1"
-  job_type: "base"
-  container_type: "general"
+  job_type: "general"
   python_version: "py312"
   cuda_version: "cu128"
   os_version: "al2023"
