@@ -62,11 +62,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="/opt/dlc-models/${{ matrix.name }}"
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/opt/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/opt/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/opt/dlc-models/${{ matrix.name }}.tar.gz"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
           # If tar created a single subdirectory, flatten it
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
@@ -79,7 +79,7 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
-            -v /opt/dlc-models:/models \
+            -v /dlc-models:/models \
             -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
             /opt/scripts/vllm/vllm_model_smoke_test.sh \
@@ -89,4 +89,4 @@ jobs:
 
       - name: Cleanup models
         if: always()
-        run: rm -rf /opt/dlc-models
+        run: rm -rf /dlc-models
