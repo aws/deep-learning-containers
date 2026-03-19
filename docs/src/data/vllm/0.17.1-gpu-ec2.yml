@@ -17,10 +17,11 @@ announcements:
   - "Introduced vLLM 0.17.1 containers for EC2, ECS, EKS"
 
 packages:
-  vllm: "0.17.1"
-  pytorch: "2.10.0"
-  torchvision: "0.25.0"
-  torchaudio: "2.10.0"
-  cuda: "12.9"
-  nccl: "2.27.5"
-  efa: "1.47.0"
+  vllm: ""
+  pytorch: ""
+  torchvision: ""
+  torchaudio: ""
+  cuda: ""
+  nccl: "INFO 03-19 23:18:07 [importing.py:44] Triton is installed but 0 active driver(s) found (expected 1). Disabling Triton to prevent runtime errors.
+INFO 03-19 23:18:07 [importing.py:68] Triton not installed or not compatible; certain GPU-related functions will not be available."
+  efa: "03-19"
