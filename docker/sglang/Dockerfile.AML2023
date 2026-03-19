@@ -141,7 +141,7 @@ ENV LANG=C.UTF-8 \
   PYTHONIOENCODING=UTF-8 \
   CUDA_HOME=/usr/local/cuda \
   DLC_CONTAINER_TYPE=general \
-  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}" \
+  LD_LIBRARY_PATH="/usr/local/lib:/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib/python3.12/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.12/site-packages/nvidia/nccl/lib:/usr/local/lib/python3.12/site-packages/nvidia/cublas/lib:/usr/local/lib/python3.12/site-packages/nvidia/cuda_nvrtc/lib:/usr/local/lib/python3.12/site-packages/nvidia/nvjitlink/lib:/usr/local/lib/python3.12/site-packages/nvidia/cufft/lib:/usr/local/lib/python3.12/site-packages/nvidia/cusolver/lib:/usr/local/lib/python3.12/site-packages/nvidia/cusparse/lib:/usr/local/lib/python3.12/site-packages/nvidia/cuda_runtime/lib:${LD_LIBRARY_PATH}" \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
@@ -185,6 +185,13 @@ ENV PYTHONPATH="/usr/local/lib/python3.12/site-packages:/usr/local/lib64/python3
 # Copy Python packages from builder
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/lib64/python3.12/site-packages /usr/local/lib64/python3.12/site-packages
+
+# Copy CUDA JIT binaries from builder (nvcc, ptxas needed for deep_gemm, flashinfer, torch inductor)
+COPY --from=builder /usr/local/cuda/bin/nvcc /usr/local/cuda/bin/
+COPY --from=builder /usr/local/cuda/bin/ptxas /usr/local/cuda/bin/
+COPY --from=builder /usr/local/cuda/bin/cuobjdump /usr/local/cuda/bin/
+COPY --from=builder /usr/local/cuda/bin/fatbinary /usr/local/cuda/bin/
+COPY --from=builder /usr/local/cuda/bin/nvlink /usr/local/cuda/bin/
 
 # Copy sglang workspace
 COPY --from=builder /sgl-workspace /sgl-workspace
