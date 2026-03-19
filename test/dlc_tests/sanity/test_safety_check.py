@@ -670,6 +670,8 @@ IGNORE_SAFETY_IDS = {
                 "42772",
                 "42814",
                 "42815",
+                # pyasn1 < 0.6.3 DoS via deeply nested ASN.1 structures - not exploitable in DLC training workflows
+                "89623",
             ],
         },
         "training-neuron": {
