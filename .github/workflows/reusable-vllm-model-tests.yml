@@ -81,13 +81,13 @@ jobs:
 
       - name: Run model smoke test
         run: |
-          cp scripts/vllm/vllm_model_smoke_test.sh /dlc-models/
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
             -v /dlc-models:/models \
+            -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
-            /models/vllm_model_smoke_test.sh \
+            /opt/scripts/vllm/vllm_model_smoke_test.sh \
               "/models/${{ matrix.name }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
