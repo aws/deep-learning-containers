@@ -2,22 +2,20 @@
 # docs-pr.sh — Generate a docs data YAML file from a released Docker image
 # and create a PR via the GitHub CLI.
 #
-# This script is called by the step4-docs-pr job in reusable-release-image.yml.
-# It expects the following environment variables to be set by the workflow:
-#
-#   FRAMEWORK        — framework identifier (e.g. "vllm", "sglang")
-#   VERSION          — framework version (e.g. "0.17.1")
-#   PYTHON           — python version tag (e.g. "py312")
-#   CUDA             — cuda version tag (e.g. "cu129")
-#   OS               — os version (e.g. "ubuntu22.04")
-#   PLATFORM         — customer type (e.g. "ec2", "sagemaker")
-#   DEVICE           — device type (e.g. "gpu")
-#   PUBLIC_REGISTRY  — whether image is in public ECR (true/false)
-#   PROD_IMAGE       — production image name (unused, kept for reference)
-#   GH_TOKEN         — GitHub App token for push/PR operations
+# Called by the step4-docs-pr job in reusable-release-image.yml.
+# Main logic lives at the bottom (guarded by BASH_SOURCE check so tests
+# can source the helper functions without triggering execution).
 #
 # Usage:
-#   bash scripts/autocurrency/docs-pr.sh
+#   bash scripts/autocurrency/docs-pr.sh <release-spec-yaml> <image-uri>
+#
+# Arguments:
+#   release-spec-yaml — Path to the release specification YAML file
+#   image-uri         — Full Docker image URI to pull and inspect
+#
+# Required environment variables (set by the workflow):
+#   GH_TOKEN          — GitHub App token for push/PR operations
+#   SLACK_WEBHOOK_URL — Slack webhook URL (optional)
 
 set -euo pipefail
 
@@ -94,147 +92,150 @@ generate_pr_title() {
 }
 
 ###############################################################################
+# Main logic — only runs when executed directly (not when sourced for testing)
+###############################################################################
+
+if [[ "${BASH_SOURCE[0]}" != "${0}" ]]; then
+  return 0
+fi
+
+RELEASE_SPEC="${1:?Usage: docs-pr.sh <release-spec-yaml> <image-uri>}"
+IMAGE_URI="${2:?Usage: docs-pr.sh <release-spec-yaml> <image-uri>}"
+
+# -----------------------------------------------------------------
+# Parse release spec
+# -----------------------------------------------------------------
+echo "Parsing release spec: ${RELEASE_SPEC}"
+FRAMEWORK=$(yq '.framework' "$RELEASE_SPEC")
+VERSION=$(yq '.version' "$RELEASE_SPEC")
+PYTHON=$(yq '.python_version' "$RELEASE_SPEC")
+CUDA=$(yq '.cuda_version' "$RELEASE_SPEC")
+OS=$(yq '.os_version' "$RELEASE_SPEC")
+PLATFORM=$(yq '.customer_type' "$RELEASE_SPEC")
+DEVICE=$(yq '.device_type' "$RELEASE_SPEC")
+PUBLIC_REGISTRY=$(yq '.public_registry' "$RELEASE_SPEC")
+
+TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
+
+# -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
-###############################################################################
+# -----------------------------------------------------------------
+echo ""
+echo "============================================================"
+echo "Step 1: Pull image and extract package versions"
+echo "============================================================"
 
-pull_and_extract_packages() {
-  local image_uri="$1"
+echo "Pulling image: ${IMAGE_URI}"
+docker pull "${IMAGE_URI}"
 
-  echo "Pulling image: ${image_uri}"
-  docker pull "${image_uri}"
+pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$TRACKER")
+system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$TRACKER")
 
-  # Read package lists from tracker config
-  local tracker="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
-  local pip_count system_count
-  pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$tracker")
-  system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$tracker")
+if [[ "${pip_count}" == "0" && "${system_count}" == "0" ]]; then
+  echo "::warning::No docs_packages defined for '${FRAMEWORK}' in tracker config"
+fi
 
-  if [[ "${pip_count}" == "0" && "${system_count}" == "0" ]]; then
-    echo "::warning::No docs_packages defined for '${FRAMEWORK}' in tracker config"
-  fi
+FAILED_PACKAGES=()
 
-  FAILED_PACKAGES=()
+# Extract pip package versions
+for i in $(seq 0 $(( pip_count - 1 ))); do
+  pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
+  output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
 
-  # Extract pip package versions (name/key from config)
-  for i in $(seq 0 $(( pip_count - 1 ))); do
-    local pkg_name output_key version=""
-    pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$tracker")
-    output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$tracker")
-
-    version=$(docker run --rm "$image_uri" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
-    if [ -n "$version" ]; then
-      echo "  ✅ ${output_key}: ${version}"
-      echo "PKG_${output_key}=${version}" >> "$GITHUB_ENV"
-    else
-      echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
-      FAILED_PACKAGES+=("$output_key")
-      echo "PKG_${output_key}=" >> "$GITHUB_ENV"
-    fi
-  done
-
-  # Extract system package versions (extraction commands are framework-agnostic)
-  for i in $(seq 0 $(( system_count - 1 ))); do
-    local sys_pkg version=""
-    sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$tracker")
-
-    case "$sys_pkg" in
-      cuda)
-        version=$(docker run --rm "$image_uri" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
-        ;;
-      nccl)
-        version=$(docker run --rm "$image_uri" python3 -c "import torch; print(torch.cuda.nccl.version())" 2>/dev/null) || true
-        ;;
-      efa)
-        version=$(docker run --rm "$image_uri" fi_info --version 2>/dev/null | head -1 | awk '{print $2}') || true
-        ;;
-      cudnn)
-        version=$(docker run --rm "$image_uri" python3 -c "import torch; print(torch.backends.cudnn.version())" 2>/dev/null) || true
-        ;;
-      gdrcopy)
-        version=$(docker run --rm "$image_uri" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
-        ;;
-      *)
-        echo "::warning::Unknown system package '${sys_pkg}', skipping"
-        continue
-        ;;
-    esac
-    if [ -n "$version" ]; then
-      echo "  ✅ ${sys_pkg}: ${version}"
-      echo "PKG_${sys_pkg}=${version}" >> "$GITHUB_ENV"
-    else
-      echo "::warning::Failed to extract version for system package '${sys_pkg}'"
-      FAILED_PACKAGES+=("$sys_pkg")
-      echo "PKG_${sys_pkg}=" >> "$GITHUB_ENV"
-    fi
-  done
-
-  # Store failed packages as comma-separated string
-  local failed_str
-  failed_str=$(IFS=,; echo "${FAILED_PACKAGES[*]}")
-  echo "FAILED_PACKAGES=${failed_str}" >> "$GITHUB_ENV"
-  if [ ${#FAILED_PACKAGES[@]} -gt 0 ]; then
-    echo "::warning::Failed to extract versions for: ${failed_str}"
+  version=$(docker run --rm "$IMAGE_URI" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
+  if [ -n "$version" ]; then
+    echo "  ✅ ${output_key}: ${version}"
+    declare "PKG_${output_key}=${version}"
   else
-    echo "✅ All package versions extracted successfully"
+    echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
+    FAILED_PACKAGES+=("$output_key")
+    declare "PKG_${output_key}="
   fi
-}
+done
 
-###############################################################################
+# Extract system package versions
+for i in $(seq 0 $(( system_count - 1 ))); do
+  sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$TRACKER")
+  version=""
+
+  case "$sys_pkg" in
+    cuda)
+      version=$(docker run --rm "$IMAGE_URI" nvcc --version 2>/dev/null | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
+      ;;
+    nccl)
+      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.cuda.nccl.version())" 2>/dev/null) || true
+      ;;
+    efa)
+      version=$(docker run --rm "$IMAGE_URI" fi_info --version 2>/dev/null | head -1 | awk '{print $2}') || true
+      ;;
+    cudnn)
+      version=$(docker run --rm "$IMAGE_URI" python3 -c "import torch; print(torch.backends.cudnn.version())" 2>/dev/null) || true
+      ;;
+    gdrcopy)
+      version=$(docker run --rm "$IMAGE_URI" dpkg -l 2>/dev/null | grep gdrcopy | awk '{print $3}' | head -1) || true
+      ;;
+    *)
+      echo "::warning::Unknown system package '${sys_pkg}', skipping"
+      continue
+      ;;
+  esac
+  if [ -n "$version" ]; then
+    echo "  ✅ ${sys_pkg}: ${version}"
+    declare "PKG_${sys_pkg}=${version}"
+  else
+    echo "::warning::Failed to extract version for system package '${sys_pkg}'"
+    FAILED_PACKAGES+=("$sys_pkg")
+    declare "PKG_${sys_pkg}="
+  fi
+done
+
+FAILED_PACKAGES_STR=$(IFS=,; echo "${FAILED_PACKAGES[*]}")
+if [ ${#FAILED_PACKAGES[@]} -gt 0 ]; then
+  echo "::warning::Failed to extract versions for: ${FAILED_PACKAGES_STR}"
+else
+  echo "✅ All package versions extracted successfully"
+fi
+
+# -----------------------------------------------------------------
 # Step 2: Generate docs data YAML file
-###############################################################################
+# -----------------------------------------------------------------
+echo ""
+echo "============================================================"
+echo "Step 2: Generate docs data YAML file"
+echo "============================================================"
 
-generate_docs_yaml() {
-  local display_name
-  display_name=$(get_display_name "$FRAMEWORK")
+display_name=$(get_display_name "$FRAMEWORK")
+major_minor=$(parse_major_minor "$VERSION")
 
-  local major_minor
-  major_minor=$(parse_major_minor "$VERSION")
+tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
+tag1=$(echo "$tags" | sed -n '1p')
+tag2=$(echo "$tags" | sed -n '2p')
+tag3=$(echo "$tags" | sed -n '3p')
+tag4=$(echo "$tags" | sed -n '4p')
 
-  # Generate tags using the helper function
-  local tags
-  tags=$(generate_tags "$VERSION" "$DEVICE" "$PYTHON" "$CUDA" "$OS" "$PLATFORM")
-  local tag1 tag2 tag3 tag4
-  tag1=$(echo "$tags" | sed -n '1p')
-  tag2=$(echo "$tags" | sed -n '2p')
-  tag3=$(echo "$tags" | sed -n '3p')
-  tag4=$(echo "$tags" | sed -n '4p')
+announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
-  # Generate announcement using the helper function
-  local announcement
-  announcement=$(generate_announcement "$FRAMEWORK" "$VERSION" "$PLATFORM")
+output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
+OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
+mkdir -p "$output_dir"
 
-  # Write the YAML file
-  local output_dir="${REPO_ROOT}/docs/src/data/${FRAMEWORK}"
-  OUTPUT_FILE="${output_dir}/${VERSION}-${DEVICE}-${PLATFORM}.yml"
-  mkdir -p "$output_dir"
+# Build packages section dynamically from tracker config
+packages_yaml=""
 
-  # Build packages section dynamically from tracker config
-  local tracker="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}"
-  local packages_yaml=""
+for i in $(seq 0 $(( pip_count - 1 ))); do
+  pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
+  output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
+  env_var="PKG_${output_key}"
+  packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
+done
 
-  # Pip packages
-  local pip_count
-  pip_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip | length" "$tracker")
-  for i in $(seq 0 $(( pip_count - 1 ))); do
-    local pkg_name output_key
-    pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$tracker")
-    output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$tracker")
-    local env_var="PKG_${output_key}"
-    packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
-  done
+for i in $(seq 0 $(( system_count - 1 ))); do
+  sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$TRACKER")
+  env_var="PKG_${sys_pkg}"
+  packages_yaml="${packages_yaml}  ${sys_pkg}: \"${!env_var:-}\"\n"
+done
 
-  # System packages
-  local system_count
-  system_count=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system | length" "$tracker")
-  for i in $(seq 0 $(( system_count - 1 ))); do
-    local sys_pkg
-    sys_pkg=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.system[$i]" "$tracker")
-    local env_var="PKG_${sys_pkg}"
-    packages_yaml="${packages_yaml}  ${sys_pkg}: \"${!env_var:-}\"\n"
-  done
-
-  # Write the YAML using a single template
-  cat > "$OUTPUT_FILE" <<EOF
+cat > "$OUTPUT_FILE" <<EOF
 framework: ${display_name}
 version: "${VERSION}"
 accelerator: ${DEVICE}
@@ -257,117 +258,72 @@ packages:
 $(echo -e "${packages_yaml}" | sed '/^$/d')
 EOF
 
-  echo "✅ Generated docs data file: ${OUTPUT_FILE}"
-  cat "$OUTPUT_FILE"
-  echo "OUTPUT_FILE=${OUTPUT_FILE}" >> "$GITHUB_ENV"
-}
+echo "✅ Generated docs data file: ${OUTPUT_FILE}"
+cat "$OUTPUT_FILE"
 
-###############################################################################
+# -----------------------------------------------------------------
 # Step 3: Create branch, commit, and open PR
-###############################################################################
+# -----------------------------------------------------------------
+echo ""
+echo "============================================================"
+echo "Step 3: Create branch, commit, and open PR"
+echo "============================================================"
 
-create_pr() {
-  local display_name
-  display_name=$(get_display_name "$FRAMEWORK")
-  local branch_name
-  branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
-  local pr_title
-  pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
+branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
+pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
 
-  # Configure git
-  git config user.name "asimov-bot[bot]"
-  git config user.email "asimov-bot[bot]@users.noreply.github.com"
+git config user.name "asimov-bot[bot]"
+git config user.email "asimov-bot[bot]@users.noreply.github.com"
 
-  # Create and push branch (force-push for idempotency)
-  git checkout -B "$branch_name"
-  git add "$OUTPUT_FILE"
-  git commit -m "$pr_title"
-  git push --force origin "$branch_name"
+git checkout -B "$branch_name"
+git add "$OUTPUT_FILE"
+git commit -m "$pr_title"
+git push --force origin "$branch_name"
 
-  # Build PR body
-  local pr_body="Auto-generated by the release workflow.
+pr_body="Auto-generated by the release workflow.
 
 This PR adds the docs data file for ${display_name} ${VERSION} (${PLATFORM}).
 
 **File:** \`${OUTPUT_FILE}\`"
 
-  # Add failed packages warning if any
-  if [ -n "${FAILED_PACKAGES:-}" ]; then
-    pr_body="${pr_body}
+if [ -n "${FAILED_PACKAGES_STR}" ]; then
+  pr_body="${pr_body}
 
 ---
 
 ⚠️ **Warning: Some package versions could not be extracted:**
 
-$(echo "$FAILED_PACKAGES" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}\`"; done)"
-  fi
-
-  # Create or update PR
-  local existing_pr
-  existing_pr=$(gh pr list --head "$branch_name" --json number --jq '.[0].number' 2>/dev/null) || true
-  if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
-    echo "Updating existing PR #${existing_pr}"
-    gh pr edit "$existing_pr" --title "$pr_title" --body "$pr_body"
-    PR_URL=$(gh pr view "$existing_pr" --json url --jq '.url')
-  else
-    echo "Creating new PR"
-    PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
-  fi
-
-  echo "✅ PR URL: ${PR_URL}"
-  echo "PR_URL=${PR_URL}" >> "$GITHUB_ENV"
-}
-
-###############################################################################
-# Step 4: Send Slack notification
-###############################################################################
-
-send_notification() {
-  local pr_url_or_run_url="${PR_URL:-}"
-
-  # Fall back to the Actions run URL if no PR was created
-  if [ -z "${pr_url_or_run_url}" ]; then
-    pr_url_or_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-  fi
-
-  send_slack_notification \
-    "${SLACK_WEBHOOK_URL:-}" \
-    "docs_update" \
-    "${FRAMEWORK:-unknown}" \
-    "${VERSION:-unknown}" \
-    "${pr_url_or_run_url}" || true
-}
-
-###############################################################################
-# Main — dispatch based on subcommand
-###############################################################################
-
-main() {
-  local cmd="${1:?Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>}"
-
-  case "$cmd" in
-    extract-packages)
-      local image_uri="${2:?Usage: docs-pr.sh extract-packages <image-uri>}"
-      pull_and_extract_packages "$image_uri"
-      ;;
-    generate-yaml)
-      generate_docs_yaml
-      ;;
-    create-pr)
-      create_pr
-      ;;
-    notify)
-      send_notification
-      ;;
-    *)
-      echo "Unknown command: $cmd"
-      echo "Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>"
-      exit 1
-      ;;
-  esac
-}
-
-# Only run main when executed directly (not when sourced for testing)
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main "$@"
+$(echo "$FAILED_PACKAGES_STR" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}\`"; done)"
 fi
+
+existing_pr=$(gh pr list --head "$branch_name" --json number --jq '.[0].number' 2>/dev/null) || true
+if [ -n "$existing_pr" ] && [ "$existing_pr" != "null" ]; then
+  echo "Updating existing PR #${existing_pr}"
+  gh pr edit "$existing_pr" --title "$pr_title" --body "$pr_body"
+  PR_URL=$(gh pr view "$existing_pr" --json url --jq '.url')
+else
+  echo "Creating new PR"
+  PR_URL=$(gh pr create --title "$pr_title" --body "$pr_body" --head "$branch_name" --base main)
+fi
+
+echo "✅ PR URL: ${PR_URL}"
+
+# -----------------------------------------------------------------
+# Step 4: Send Slack notification
+# -----------------------------------------------------------------
+echo ""
+echo "============================================================"
+echo "Step 4: Send Slack notification"
+echo "============================================================"
+
+pr_url_or_run_url="${PR_URL:-}"
+if [ -z "${pr_url_or_run_url}" ]; then
+  pr_url_or_run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+fi
+
+send_slack_notification \
+  "${SLACK_WEBHOOK_URL:-}" \
+  "docs_update" \
+  "${FRAMEWORK:-unknown}" \
+  "${VERSION:-unknown}" \
+  "${pr_url_or_run_url}" || true

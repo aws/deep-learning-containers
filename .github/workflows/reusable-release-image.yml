@@ -309,38 +309,15 @@ jobs:
             https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
-      - name: Parse release spec
-        id: parse-spec
-        run: |
-          echo '${{ inputs.release-spec }}' > /tmp/release-spec.yml
-          echo "Parsed release spec:"
-          cat /tmp/release-spec.yml
-          echo "FRAMEWORK=$(yq '.framework' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "VERSION=$(yq '.version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PYTHON=$(yq '.python_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "CUDA=$(yq '.cuda_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "OS=$(yq '.os_version' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PLATFORM=$(yq '.customer_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "DEVICE=$(yq '.device_type' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-          echo "PUBLIC_REGISTRY=$(yq '.public_registry' /tmp/release-spec.yml)" >> "$GITHUB_ENV"
-
-      - name: Pull image and extract package versions
-        run: |
-          FULL_TAG="${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
-          IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${FULL_TAG}"
-          echo "IMAGE_URI=${IMAGE_URI}"
-          bash scripts/autocurrency/docs-pr.sh extract-packages "${IMAGE_URI}"
-
-      - name: Generate docs data YAML file
-        run: bash scripts/autocurrency/docs-pr.sh generate-yaml
-
-      - name: Create branch, commit, and open PR
+      - name: Create docs PR
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: bash scripts/autocurrency/docs-pr.sh create-pr
-
-      - name: Send Slack notification
-        if: always()
-        run: bash scripts/autocurrency/docs-pr.sh notify
-        env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          cat > /tmp/release-spec.yml <<'EOF'
+          ${{ inputs.release-spec }}
+          EOF
+
+          IMAGE_URI="public.ecr.aws/deep-learning-containers/$(yq '.framework' /tmp/release-spec.yml):$(yq '.version' /tmp/release-spec.yml)-$(yq '.device_type' /tmp/release-spec.yml)-$(yq '.python_version' /tmp/release-spec.yml)-$(yq '.cuda_version' /tmp/release-spec.yml)-$(yq '.os_version' /tmp/release-spec.yml)-$(yq '.customer_type' /tmp/release-spec.yml)"
+
+          bash scripts/autocurrency/docs-pr.sh /tmp/release-spec.yml "${IMAGE_URI}"
