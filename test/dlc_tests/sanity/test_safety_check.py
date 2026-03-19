@@ -672,6 +672,17 @@ IGNORE_SAFETY_IDS = {
                 "42815",
                 # pyasn1 < 0.6.3 DoS via deeply nested ASN.1 structures - not exploitable in DLC training workflows
                 "89623",
+                # skops deserialization of untrusted data (CVE-2024-37065) - no fix available, affects all versions >= 0.6
+                "71782",
+                # mlflow deserialization CVEs - no fix available, affects broad version ranges of mlflow
+                "71579",  # CVE-2024-37060
+                "71584",  # CVE-2024-37056
+                "71577",  # CVE-2024-37052
+                "71578",  # CVE-2024-37053
+                "71587",  # CVE-2024-37054
+                "71691",  # CVE-2024-37059
+                "71693",  # CVE-2024-37055
+                "71692",  # CVE-2024-37057
             ],
         },
         "training-neuron": {
