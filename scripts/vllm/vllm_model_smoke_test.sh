@@ -16,8 +16,17 @@ HEALTH_INTERVAL=10
 echo "=== Downloading model ${MODEL_NAME} from ${S3_PATH} ==="
 mkdir -p "${MODEL_DIR}"
 aws s3 cp "${S3_PATH}" /tmp/"${MODEL_NAME}".tar.gz
-tar xzf /tmp/"${MODEL_NAME}".tar.gz -C "${MODEL_DIR}" --strip-components=1
+tar xzf /tmp/"${MODEL_NAME}".tar.gz -C "${MODEL_DIR}"
 rm -f /tmp/"${MODEL_NAME}".tar.gz
+
+# If tar created a single subdirectory, use that as MODEL_DIR
+SUBDIRS=("${MODEL_DIR}"/*)
+if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+  MODEL_DIR="${SUBDIRS[0]}"
+fi
+
+echo "=== Model directory: ${MODEL_DIR} ==="
+ls -la "${MODEL_DIR}"
 
 echo "=== Starting vLLM server (tp=${TP}) ==="
 vllm serve "${MODEL_DIR}" \
