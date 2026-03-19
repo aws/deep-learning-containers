@@ -52,7 +52,6 @@ RUN dnf upgrade -y --security --releasever latest \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && pip install --no-cache-dir requests \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && dnf remove -y unzip \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
@@ -103,7 +102,6 @@ ARG PYTHON="python3"
 RUN dnf install -y --allowerasing --setopt=install_weak_deps=False unzip curl \
   && pip install --no-cache-dir requests \
   && bash /tmp/setup_oss_compliance.sh ${PYTHON} \
-  && dnf remove -y unzip \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm /tmp/setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
