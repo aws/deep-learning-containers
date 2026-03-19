@@ -1,0 +1,6 @@
+[
+    {
+        "vulnerability_id": "GHSA-72hv-8253-57qq",
+        "reason": "ray 2.54.0 bundles jackson-core 2.16.1 in ray_dist.jar"
+    }
+]
