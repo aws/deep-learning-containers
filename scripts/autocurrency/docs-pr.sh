@@ -124,10 +124,12 @@ pull_and_extract_packages() {
     version=$(docker run --rm "$image_uri" pip show "$pkg_name" 2>/dev/null | grep "^Version:" | awk '{print $2}') || true
     if [ -n "$version" ]; then
       echo "  ✅ ${output_key}: ${version}"
+      export "PKG_${output_key}=${version}"
       echo "PKG_${output_key}=${version}" >> "$GITHUB_ENV"
     else
       echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
       FAILED_PACKAGES+=("$output_key")
+      export "PKG_${output_key}="
       echo "PKG_${output_key}=" >> "$GITHUB_ENV"
     fi
   done
@@ -160,10 +162,12 @@ pull_and_extract_packages() {
     esac
     if [ -n "$version" ]; then
       echo "  ✅ ${sys_pkg}: ${version}"
+      export "PKG_${sys_pkg}=${version}"
       echo "PKG_${sys_pkg}=${version}" >> "$GITHUB_ENV"
     else
       echo "::warning::Failed to extract version for system package '${sys_pkg}'"
       FAILED_PACKAGES+=("$sys_pkg")
+      export "PKG_${sys_pkg}="
       echo "PKG_${sys_pkg}=" >> "$GITHUB_ENV"
     fi
   done
@@ -171,6 +175,7 @@ pull_and_extract_packages() {
   # Store failed packages as comma-separated string
   local failed_str
   failed_str=$(IFS=,; echo "${FAILED_PACKAGES[*]}")
+  export FAILED_PACKAGES="${failed_str}"
   echo "FAILED_PACKAGES=${failed_str}" >> "$GITHUB_ENV"
   if [ ${#FAILED_PACKAGES[@]} -gt 0 ]; then
     echo "::warning::Failed to extract versions for: ${failed_str}"
@@ -259,6 +264,7 @@ EOF
 
   echo "✅ Generated docs data file: ${OUTPUT_FILE}"
   cat "$OUTPUT_FILE"
+  export OUTPUT_FILE
   echo "OUTPUT_FILE=${OUTPUT_FILE}" >> "$GITHUB_ENV"
 }
 
@@ -315,6 +321,7 @@ $(echo "$FAILED_PACKAGES" | tr ',' '\n' | while read -r pkg; do echo "- \`${pkg}
   fi
 
   echo "✅ PR URL: ${PR_URL}"
+  export PR_URL
   echo "PR_URL=${PR_URL}" >> "$GITHUB_ENV"
 }
 
@@ -339,13 +346,44 @@ send_notification() {
 }
 
 ###############################################################################
+# Run all steps: parse spec → extract packages → generate YAML → PR → notify
+###############################################################################
+
+run_all() {
+  local release_spec="${1:?Usage: docs-pr.sh run-all <release-spec-yaml> <image-uri>}"
+  local image_uri="${2:?Usage: docs-pr.sh run-all <release-spec-yaml> <image-uri>}"
+
+  # Parse release spec into environment variables
+  echo "Parsing release spec: ${release_spec}"
+  FRAMEWORK=$(yq '.framework' "$release_spec")
+  VERSION=$(yq '.version' "$release_spec")
+  PYTHON=$(yq '.python_version' "$release_spec")
+  CUDA=$(yq '.cuda_version' "$release_spec")
+  OS=$(yq '.os_version' "$release_spec")
+  PLATFORM=$(yq '.customer_type' "$release_spec")
+  DEVICE=$(yq '.device_type' "$release_spec")
+  PUBLIC_REGISTRY=$(yq '.public_registry' "$release_spec")
+  export FRAMEWORK VERSION PYTHON CUDA OS PLATFORM DEVICE PUBLIC_REGISTRY
+
+  pull_and_extract_packages "$image_uri"
+  generate_docs_yaml
+  create_pr
+  send_notification
+}
+
+###############################################################################
 # Main — dispatch based on subcommand
 ###############################################################################
 
 main() {
-  local cmd="${1:?Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>}"
+  local cmd="${1:?Usage: docs-pr.sh <run-all|extract-packages|generate-yaml|create-pr|notify>}"
 
   case "$cmd" in
+    run-all)
+      local release_spec="${2:?Usage: docs-pr.sh run-all <release-spec-yaml> <image-uri>}"
+      local image_uri="${3:?Usage: docs-pr.sh run-all <release-spec-yaml> <image-uri>}"
+      run_all "$release_spec" "$image_uri"
+      ;;
     extract-packages)
       local image_uri="${2:?Usage: docs-pr.sh extract-packages <image-uri>}"
       pull_and_extract_packages "$image_uri"
@@ -361,7 +399,7 @@ main() {
       ;;
     *)
       echo "Unknown command: $cmd"
-      echo "Usage: docs-pr.sh <extract-packages|generate-yaml|create-pr|notify>"
+      echo "Usage: docs-pr.sh <run-all|extract-packages|generate-yaml|create-pr|notify>"
       exit 1
       ;;
   esac
