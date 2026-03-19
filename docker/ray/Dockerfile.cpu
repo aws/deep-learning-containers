@@ -1,0 +1,136 @@
+# Multi-stage build for PyTorch Ray inference container (SageMaker + EC2)
+# CPU variant - Amazon Linux 2023 base
+
+#############
+# Stage 1: Builder
+#############
+FROM amazonlinux:2023 AS builder
+
+# Install build dependencies
+RUN dnf install -y --setopt=install_weak_deps=False \
+  gcc \
+  gcc-c++ \
+  git \
+  tar \
+  gzip \
+  make \
+  nasm \
+  yasm \
+  zlib-devel \
+  && dnf clean all && rm -rf /var/cache/dnf
+
+# Build FFmpeg from source
+RUN git clone --depth 1 --branch n8.0.1 https://github.com/FFmpeg/FFmpeg.git /tmp/ffmpeg \
+  && cd /tmp/ffmpeg \
+  && ./configure --prefix=/opt/ffmpeg --enable-shared --disable-static --disable-doc \
+  && make -j$(nproc) \
+  && make install \
+  && rm -rf /tmp/ffmpeg
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
+  && mv /root/.local/bin/uv /usr/local/bin/uv
+
+# Create virtual environment
+ARG PYTHON_VERSION=3.13
+RUN uv python install ${PYTHON_VERSION} \
+  && uv venv /opt/venv --python ${PYTHON_VERSION}
+
+# Copy requirements and generate lock file
+COPY ./scripts/ray/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip compile /tmp/requirements.txt \
+  --python ${PYTHON_VERSION} \
+  -o /tmp/requirements.lock
+
+# Install dependencies from lock file
+RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
+  && uv pip install -r /tmp/requirements.lock \
+  && uv pip install pip
+
+
+#############
+# Stage 2: Runtime base - shared by SageMaker and EC2
+#############
+FROM amazonlinux:2023 AS base
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /var/cache/dnf
+
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
+ARG PYTHON="python"
+ARG FRAMEWORK="ray"
+ARG FRAMEWORK_VERSION="2.54.0"
+ARG CONTAINER_TYPE="inference"
+
+# Copy Python installation and venv from builder
+COPY --from=builder /root/.local/share/uv/python /root/.local/share/uv/python
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /opt/ffmpeg /opt/ffmpeg
+
+# Set PATH to use venv and FFmpeg
+ENV PATH="/opt/venv/bin:/opt/ffmpeg/bin:$PATH" \
+  LD_LIBRARY_PATH="/opt/ffmpeg/lib:${LD_LIBRARY_PATH}" \
+  DLC_CONTAINER_TYPE=inference
+
+RUN mkdir -p /opt/ml/model /opt/ml/input /opt/ml/output \
+  && ln -s /opt/venv/bin/python3 /usr/local/bin/python
+
+WORKDIR /app
+
+# Telemetry and OSS compliance
+COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
+COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
+COPY ./scripts/common/setup_oss_compliance.sh setup_oss_compliance.sh
+RUN chmod +x /usr/local/bin/deep_learning_container.py \
+  && sed -e "s/{{FRAMEWORK}}/${FRAMEWORK}/g" \
+    -e "s/{{FRAMEWORK_VERSION}}/${FRAMEWORK_VERSION}/g" \
+    -e "s/{{CONTAINER_TYPE}}/${CONTAINER_TYPE}/g" \
+    /tmp/bash_telemetry.sh.template >/usr/local/bin/bash_telemetry.sh \
+  && chmod +x /usr/local/bin/bash_telemetry.sh \
+  && rm /tmp/bash_telemetry.sh.template \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
+  && echo 'source /usr/local/bin/bash_telemetry.sh' >>/root/.bashrc \
+  && bash setup_oss_compliance.sh ${PYTHON} \
+  && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
+  && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
+  && rm setup_oss_compliance.sh \
+  && rm -rf /root/oss_compliance* \
+  && rm -rf /tmp/tmp* \
+  && rm -rf /root/.cache | true
+
+#############
+# Stage 3: SageMaker image
+#############
+FROM base AS ray-sagemaker-cpu
+
+# SageMaker environment variables
+ENV SM_MODEL_DIR=/opt/ml/model \
+  SM_INPUT=/opt/ml/input \
+  SM_INPUT_TRAINING_CONFIG_FILE=/opt/ml/input/config/hyperparameters.json \
+  SM_INPUT_DATA_CONFIG_FILE=/opt/ml/input/config/inputdataconfig.json \
+  SM_CHECKPOINT_CONFIG_FILE=/opt/ml/input/config/checkpointconfig.json
+
+COPY ./scripts/ray/sagemaker_serve.py /app/
+COPY ./scripts/ray/sagemaker_entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+EXPOSE 8080
+
+LABEL com.amazonaws.sagemaker.capabilities.accept-bind-to-port=true
+LABEL com.amazonaws.sagemaker.capabilities.multi-models=false
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
+CMD ["serve"]
+
+#############
+# Stage 4: EC2 image
+#############
+FROM base AS ray-ec2-cpu
+
+COPY ./scripts/ray/dockerd_entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
