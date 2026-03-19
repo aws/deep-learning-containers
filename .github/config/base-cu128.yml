@@ -4,7 +4,7 @@
 # Image identification
 image:
   name: "base-cu128"
-  description: "Base GPU image with CUDA 12.8, cuDNN, NCCL, EFA on AL2023"
+  description: "Base GPU image with CUDA 12.8 and Python on AL2023 (runtime and devel variants)"
 
 # Build configuration
 common:
