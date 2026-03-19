@@ -18,8 +18,7 @@ ls -la "${MODEL_DIR}"
 echo "=== Starting vLLM server (tp=${TP}) ==="
 vllm serve "${MODEL_DIR}" \
   --tensor-parallel-size "${TP}" \
-  --port "${VLLM_PORT}" \
-  --disable-log-requests &
+  --port "${VLLM_PORT}" &
 VLLM_PID=$!
 
 cleanup() {
