@@ -22,6 +22,7 @@ jobs:
   load-config:
     runs-on: ubuntu-latest
     outputs:
+      image-uri: ${{ steps.parse.outputs.image-uri }}
       framework: ${{ steps.parse.outputs.framework }}
       framework-version: ${{ steps.parse.outputs.framework-version }}
       python-version: ${{ steps.parse.outputs.python-version }}
@@ -46,6 +47,7 @@ jobs:
         id: parse
         run: |
           echo '${{ steps.load.outputs.config }}' > config.json
+          echo "image-uri=404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763" >> $GITHUB_OUTPUT
           echo "framework=$(jq -r '.common.framework' config.json)" >> $GITHUB_OUTPUT
           echo "framework-version=$(jq -r '.common.framework_version' config.json)" >> $GITHUB_OUTPUT
           echo "python-version=$(jq -r '.common.python_version' config.json)" >> $GITHUB_OUTPUT
@@ -64,7 +66,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
-      image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -85,7 +87,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
-      image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -98,7 +100,7 @@ jobs:
       cancel-in-progress: false
     uses: ./.github/workflows/reusable-telemetry-tests.yml
     with:
-      image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
@@ -112,7 +114,7 @@ jobs:
       cancel-in-progress: true
     uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
     with:
-      image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
@@ -121,9 +123,10 @@ jobs:
     secrets: inherit
 
   model-smoke-tests:
+    needs: [load-config]
     uses: ./.github/workflows/reusable-vllm-model-tests.yml
     with:
-      image-uri: "404426647817.dkr.ecr.us-west-2.amazonaws.com/ci:vllm-0.17.1-gpu-py312-cu129-ubuntu22.04-ec2-pr-5763"
+      image-uri: ${{ needs.load-config.outputs.image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
     secrets: inherit
