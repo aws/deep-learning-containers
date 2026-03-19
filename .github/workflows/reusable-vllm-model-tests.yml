@@ -61,11 +61,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="/tmp/models/${{ matrix.name }}"
+          MODEL_DIR="${{ github.workspace }}/models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" /tmp/${{ matrix.name }}.tar.gz
-          tar xzf /tmp/${{ matrix.name }}.tar.gz -C "${MODEL_DIR}"
-          rm -f /tmp/${{ matrix.name }}.tar.gz
+          aws s3 cp "${{ matrix.s3_path }}" "${{ github.workspace }}/${{ matrix.name }}.tar.gz"
+          tar xzf "${{ github.workspace }}/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${{ github.workspace }}/${{ matrix.name }}.tar.gz"
           # If tar created a single subdirectory, flatten it
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
@@ -78,10 +78,14 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
-            -v /tmp/models:/tmp/models \
+            -v ${{ github.workspace }}/models:/models \
             -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
             /opt/scripts/vllm/vllm_model_smoke_test.sh \
-              "/tmp/models/${{ matrix.name }}" \
+              "/models/${{ matrix.name }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
+
+      - name: Cleanup models
+        if: always()
+        run: rm -rf "${{ github.workspace }}/models"
