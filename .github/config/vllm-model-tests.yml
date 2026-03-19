@@ -1,7 +1,10 @@
 # vLLM Model Smoke Test Configuration
 # Shared across all vLLM PR workflows
+#
+# small: Runs on CodeBuild fleet runners (single GPU instances)
+# large: Runs on self-hosted runner scale sets (multi-GPU instances)
 
-models:
+small:
   - name: "qwen3-0.6b"
     s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-0.6b.tar.gz"
     tp: 1
@@ -12,18 +15,16 @@ models:
     tp: 1
     fleet: "x86-g6exl-runner"
 
-  # TODO: Uncomment when models are uploaded to S3
-  # - name: "qwen3-32b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
-  #   tp: 4
-  #   fleet: "x86-p4d-runner"
+large:
+  - name: "qwen3-32b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
+    tp: 4
 
-  # - name: "qwen3.5-35b-a3b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/qwen3.5-35b-a3b.tar.gz"
-  #   tp: 1
-  #   fleet: "x86-g6xl-runner"
+  - name: "qwen3.5-35b-a3b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3.5-35b-a3b.tar.gz"
+    tp: 1
 
+  # TODO: Uncomment when model is uploaded to S3
   # - name: "llama-3.3-70b"
   #   s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
   #   tp: 4
-  #   fleet: "x86-p4d-runner"

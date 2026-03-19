@@ -23,7 +23,8 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.parse.outputs.matrix }}
+      small-matrix: ${{ steps.parse.outputs.small }}
+      large-matrix: ${{ steps.parse.outputs.large }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -35,16 +36,22 @@ jobs:
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          print(json.dumps(cfg['models']))
-          " > matrix.json
-          echo "matrix=$(cat matrix.json)" >> $GITHUB_OUTPUT
+          print('small=' + json.dumps(cfg.get('small', [])))
+          print('large=' + json.dumps(cfg.get('large', [])))
+          " > parsed.txt
+          grep '^small=' parsed.txt | sed 's/^small=//' > small.json
+          grep '^large=' parsed.txt | sed 's/^large=//' > large.json
+          echo "small=$(cat small.json)" >> $GITHUB_OUTPUT
+          echo "large=$(cat large.json)" >> $GITHUB_OUTPUT
 
-  test-model:
+  test-model-small:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.small-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.small-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -61,12 +68,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="/tmp/models/${{ matrix.name }}"
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" /tmp/${{ matrix.name }}.tar.gz
-          tar xzf /tmp/${{ matrix.name }}.tar.gz -C "${MODEL_DIR}"
-          rm -f /tmp/${{ matrix.name }}.tar.gz
-          # If tar created a single subdirectory, flatten it
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -78,10 +84,69 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           docker run --rm --gpus all \
             --entrypoint bash \
-            -v /tmp/models:/tmp/models \
+            -v /dlc-models:/models \
             -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
             ${{ inputs.image-uri }} \
             /opt/scripts/vllm/vllm_model_smoke_test.sh \
-              "/tmp/models/${{ matrix.name }}" \
+              "/models/${{ matrix.name }}" \
               "${{ matrix.tp }}" \
               "${{ matrix.name }}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f $(docker ps -q) 2>/dev/null || true
+          rm -rf /dlc-models
+
+  test-model-large:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.large-matrix) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          sudo mkdir -p "${MODEL_DIR}"
+          sudo chown "$(id -u):$(id -g)" /dlc-models
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Run model smoke test
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          docker run --rm --gpus all \
+            --entrypoint bash \
+            --ipc=host --shm-size=10g \
+            -v /dlc-models:/models \
+            -v ${{ github.workspace }}/scripts/vllm:/opt/scripts/vllm \
+            ${{ inputs.image-uri }} \
+            /opt/scripts/vllm/vllm_model_smoke_test.sh \
+              "/models/${{ matrix.name }}" \
+              "${{ matrix.tp }}" \
+              "${{ matrix.name }}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f $(docker ps -q) 2>/dev/null || true
+          sudo rm -rf /dlc-models

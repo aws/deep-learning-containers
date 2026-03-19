@@ -124,6 +124,9 @@ jobs:
 
   model-smoke-tests:
     needs: [load-config]
+    concurrency:
+      group: ${{ github.workflow }}-model-smoke-tests-${{ github.run_id }}
+      cancel-in-progress: true
     uses: ./.github/workflows/reusable-vllm-model-tests.yml
     with:
       image-uri: ${{ needs.load-config.outputs.image-uri }}
