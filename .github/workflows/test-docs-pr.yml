@@ -7,6 +7,7 @@ name: Test - Docs PR (step4)
 on:
   pull_request:
     types: [opened, synchronize]
+    branches: [test-docs-update]
 
 permissions:
   contents: write
