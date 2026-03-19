@@ -23,8 +23,8 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      codebuild-matrix: ${{ steps.parse.outputs.codebuild }}
-      efa-matrix: ${{ steps.parse.outputs.efa }}
+      small-matrix: ${{ steps.parse.outputs.small }}
+      large-matrix: ${{ steps.parse.outputs.large }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -38,22 +38,22 @@ jobs:
               models = yaml.safe_load(f)['models']
           cb = [m for m in models if m.get('runner') == 'codebuild']
           efa = [m for m in models if m.get('runner') == 'gpu-efa-runners']
-          print('codebuild=' + json.dumps(cb))
-          print('efa=' + json.dumps(efa))
+          print('small=' + json.dumps(cb))
+          print('large=' + json.dumps(efa))
           " > parsed.txt
-          grep '^codebuild=' parsed.txt | sed 's/^codebuild=//' > cb.json
-          grep '^efa=' parsed.txt | sed 's/^efa=//' > efa.json
-          echo "codebuild=$(cat cb.json)" >> $GITHUB_OUTPUT
-          echo "efa=$(cat efa.json)" >> $GITHUB_OUTPUT
+          grep '^small=' parsed.txt | sed 's/^small=//' > small.json
+          grep '^large=' parsed.txt | sed 's/^large=//' > large.json
+          echo "small=$(cat small.json)" >> $GITHUB_OUTPUT
+          echo "large=$(cat large.json)" >> $GITHUB_OUTPUT
 
-  test-model-codebuild:
+  test-model-small:
     name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.codebuild-matrix)[0] != null }}
+    if: ${{ fromJson(needs.load-models.outputs.small-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.codebuild-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.small-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -98,14 +98,14 @@ jobs:
         if: always()
         run: rm -rf /dlc-models
 
-  test-model-efa:
+  test-model-large:
     name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.efa-matrix)[0] != null }}
+    if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.efa-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.large-matrix) }}
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
