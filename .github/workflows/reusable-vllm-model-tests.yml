@@ -1,0 +1,168 @@
+name: Reusable vLLM Model Smoke Tests
+
+permissions:
+  contents: read
+
+on:
+  workflow_call:
+    inputs:
+      image-uri:
+        description: "Image URI to test"
+        required: true
+        type: string
+      aws-account-id:
+        description: "AWS account ID for ECR authentication"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for ECR authentication"
+        required: true
+        type: string
+
+jobs:
+  load-models:
+    runs-on: ubuntu-latest
+    outputs:
+      small-matrix: ${{ steps.parse.outputs.small }}
+      large-matrix: ${{ steps.parse.outputs.large }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Parse model config
+        id: parse
+        run: |
+          python3 -c "
+          import yaml, json
+          with open('.github/config/vllm-model-tests.yml') as f:
+              cfg = yaml.safe_load(f)
+          print('small=' + json.dumps(cfg.get('small', [])))
+          print('large=' + json.dumps(cfg.get('large', [])))
+          " > parsed.txt
+          grep '^small=' parsed.txt | sed 's/^small=//' > small.json
+          grep '^large=' parsed.txt | sed 's/^large=//' > large.json
+          echo "small=$(cat small.json)" >> $GITHUB_OUTPUT
+          echo "large=$(cat large.json)" >> $GITHUB_OUTPUT
+
+  test-model-small:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.small-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.small-matrix) }}
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:${{ matrix.fleet }}
+        buildspec-override:true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            -v /dlc-models:/models \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.tp }}" \
+            "${{ matrix.name }}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf /dlc-models
+
+  test-model-large:
+    name: test-model (${{ matrix.name }})
+    if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
+    needs: [load-models]
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.load-models.outputs.large-matrix) }}
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR authenticate
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ inputs.aws-account-id }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          sudo mkdir -p "${MODEL_DIR}"
+          sudo chown "$(id -u):$(id -g)" /dlc-models
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
+      - name: Start container
+        run: |
+          docker pull ${{ inputs.image-uri }}
+          CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
+            --ipc=host --shm-size=10g \
+            -v /dlc-models:/models \
+            ${{ inputs.image-uri }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Copy scripts into container
+        run: |
+          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.tp }}" \
+            "${{ matrix.name }}"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop ${CONTAINER_ID} 2>/dev/null || true
+          docker rm -f ${CONTAINER_ID} 2>/dev/null || true
+          docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          sudo rm -rf /dlc-models
