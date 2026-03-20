@@ -180,7 +180,7 @@ for i in $(seq 0 $(( system_count - 1 ))); do
       version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "cat /opt/amazon/efa_installed_packages 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'") || true
       ;;
     cudnn)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]*' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
       ;;
     gdrcopy)
       version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null" | grep gdrcopy | awk '{print $3}' | head -1) || true
