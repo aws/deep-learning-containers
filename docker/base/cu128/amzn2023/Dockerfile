@@ -49,9 +49,9 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/cu128/amzn2023/requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt \
-  && rm /tmp/requirements.txt
+COPY ./docker/base/cu128/amzn2023/requirements.lock /tmp/requirements.lock
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
+  && rm /tmp/requirements.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
@@ -100,9 +100,9 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
-COPY ./docker/base/cu128/amzn2023/requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt \
-  && rm /tmp/requirements.txt
+COPY ./docker/base/cu128/amzn2023/requirements.lock /tmp/requirements.lock
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.lock \
+  && rm /tmp/requirements.lock
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
