@@ -203,10 +203,10 @@ ENV LANG=C.UTF-8 \
 WORKDIR /
 
 # Install DLC Python dependencies
-RUN pip install --no-cache-dir botocore
+RUN uv pip install --no-cache-dir botocore
 
 # Patch CVEs
-RUN pip install --no-cache-dir \
+RUN uv pip install --no-cache-dir \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0"
