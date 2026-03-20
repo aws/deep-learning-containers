@@ -216,9 +216,12 @@ RUN pip install \
   "xgrammar>=0.1.32"
 
 # Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
+# cuSparseLt installed without --no-deps in case it wasn't present from builder
 RUN pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
   && pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps \
-  && pip install nvidia-cusparselt-cu12 --force-reinstall --no-deps
+  && pip install nvidia-cusparselt-cu12 --force-reinstall \
+  && python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
+  && ldconfig
 
 # Telemetry and common scripts
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
