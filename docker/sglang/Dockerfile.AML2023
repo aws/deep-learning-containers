@@ -24,7 +24,7 @@ RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
   gcc gcc-c++ make git git-lfs \
   perl patchelf unzip wget curl tar gzip \
   openmpi-devel numactl-devel numactl \
-  rdma-core-devel libibverbs-devel librdmacm-devel \
+  rdma-core-devel \
   libnl3-devel infiniband-diags \
   libunwind-devel boost-devel openssl-devel \
   protobuf-devel protobuf-compiler \
