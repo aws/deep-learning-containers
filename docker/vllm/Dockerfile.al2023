@@ -217,9 +217,11 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
 ARG EFA_VERSION="1.47.0"
-RUN NCCL_DIR=$(python3 -c "import os,torch;print(os.path.dirname(torch.__file__)+'/lib')") \
-  && LD_LIBRARY_PATH="${NCCL_DIR}:${LD_LIBRARY_PATH}" \
-  bash install_efa_al2023.sh ${EFA_VERSION} \
+RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --setopt=install_weak_deps=False \
+    libnccl-${CUDA_DASH} libnccl-devel-${CUDA_DASH} \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && bash install_efa_al2023.sh ${EFA_VERSION} \
   && rm install_efa_al2023.sh \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
