@@ -90,7 +90,7 @@ ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 RUN dnf install -y --setopt=install_weak_deps=False \
   tar gzip gcc gcc-c++ \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
-  libibverbs-devel \
+  libibverbs-devel libnccl libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf
 
 RUN python${PYTHON_VERSION} -m venv /opt/venv
