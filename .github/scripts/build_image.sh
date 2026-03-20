@@ -60,8 +60,8 @@ if [[ "${DEVICE_TYPE}" == "gpu" && -n "${CUDA_VERSION}" ]]; then
 fi
 
 # Build base command
-# --build-arg CACHE_REFRESH=\"$(date +"%Y-%m-%d")\" \
 BUILD_CMD="docker buildx build --progress plain \
+  --build-arg CACHE_REFRESH=\"$(date +"%Y-%m-%d")\" \
   --build-arg BASE_IMAGE=\"${BASE_IMAGE}\" \
   --build-arg CONTAINER_TYPE=\"${CONTAINER_TYPE}\" \
   --build-arg FRAMEWORK=\"${FRAMEWORK}\" \
@@ -108,8 +108,8 @@ fi
 
 # Complete the build command
 BUILD_CMD="${BUILD_CMD} \
-  --cache-to=type=inline \
-  --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+  --cache-to=type=registry,ref=${CI_IMAGE_URI}-cache,mode=max \
+  --cache-from=type=registry,ref=${CI_IMAGE_URI}-cache \
   --tag ${CI_IMAGE_URI} \
   --push \
   --target ${TARGET} \
