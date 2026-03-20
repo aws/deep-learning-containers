@@ -221,7 +221,8 @@ RUN pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
   && pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps \
   && pip install nvidia-cusparselt-cu12 --force-reinstall \
   && python3.12 -c "import glob; libs=glob.glob('/usr/local/lib*/python3.12/site-packages/nvidia/*/lib'); f=open('/etc/ld.so.conf.d/nvidia-pip.conf','w'); f.write('\n'.join(libs)+'\n')" \
-  && ldconfig
+  && ldconfig \
+  && find / -name 'libcusparseLt.so*' 2>/dev/null || echo "WARNING: libcusparseLt.so not found anywhere"
 
 # Telemetry and common scripts
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
