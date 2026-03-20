@@ -6,7 +6,6 @@ set -euo pipefail
 # Example: cuda_devel_test.sh 12.8
 
 CUDA_VERSION="${1:?Usage: cuda_devel_test.sh <cuda_version>}"
-CUDA_MAJOR="${CUDA_VERSION%%.*}"
 FAILED=0
 
 # --- nvidia-smi detects GPU(s) ---
