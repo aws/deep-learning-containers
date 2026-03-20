@@ -46,7 +46,7 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          # Hardcoded release spec for vllm 0.17.1 sagemaker
+          # Hardcoded release spec for vllm 0.17.1 ec2
           cat > /tmp/release-spec.yml <<'EOF'
           framework: "vllm"
           version: "0.17.1"
@@ -54,7 +54,7 @@ jobs:
           python_version: "py312"
           cuda_version: "cu129"
           os_version: "ubuntu22.04"
-          customer_type: "sagemaker"
+          customer_type: "ec2"
           public_registry: true
           EOF
 
