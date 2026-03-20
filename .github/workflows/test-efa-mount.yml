@@ -1,0 +1,26 @@
+name: Test EFA Volume Mount
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-mount:
+    runs-on: gpu-efa-runners
+    steps:
+      - name: Create test file
+        run: |
+          mkdir -p ${{ github.workspace }}/test-models
+          echo "hello from host" > ${{ github.workspace }}/test-models/test.txt
+          echo "=== Host ==="
+          cat ${{ github.workspace }}/test-models/test.txt
+          ls -la ${{ github.workspace }}/test-models/
+
+      - name: Test volume mount
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}/test-models:/models \
+            alpine cat /models/test.txt
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf ${{ github.workspace }}/test-models

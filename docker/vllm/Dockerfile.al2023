@@ -74,7 +74,7 @@ ARG nvcc_threads=16
 ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="0.0.0+al2023"
+ENV SETUPTOOLS_SCM_PRETEND_VERSION="0.17.1+al2023"
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
 
@@ -135,8 +135,12 @@ ARG PYTHON_VERSION=3.12
 WORKDIR /vllm-workspace
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  python${PYTHON_VERSION} libibverbs shadow-utils \
+  python${PYTHON_VERSION} libibverbs shadow-utils tar gzip \
   && dnf clean all && rm -rf /var/cache/dnf
+
+# Install uv
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
 RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
