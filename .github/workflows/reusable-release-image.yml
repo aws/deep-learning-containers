@@ -209,6 +209,12 @@ jobs:
           name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
           path: /tmp/
 
+      - name: Install syft
+        run: |
+          echo "Installing syft for SBOM generation..."
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          syft --version
+
       - name: Setup environment
         run: |
           RUN_IDENTIFIER="${{ needs.step1-publish-images.outputs.run-identifier }}"
