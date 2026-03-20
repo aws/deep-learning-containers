@@ -19,7 +19,7 @@ permissions:
 env:
   FORCE_COLOR: "1"
   CONFIG_FILE: ".github/config/base-cu128.yml"
-  DOCKERFILE_PATH: "docker/base/cu128/al2023/Dockerfile"
+  DOCKERFILE_PATH: "docker/base/cu128/amzn2023/Dockerfile"
 
 jobs:
   gatekeeper:
@@ -133,8 +133,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { name: runtime, tag: cuda128-runtime-al2023 }
-          - { name: devel, tag: cuda128-devel-al2023 }
+          - { name: runtime, tag: cuda128-runtime-amzn2023 }
+          - { name: devel, tag: cuda128-devel-amzn2023 }
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -176,8 +176,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: cuda128-runtime-al2023 }
-          - { tag: cuda128-devel-al2023 }
+          - { tag: cuda128-runtime-amzn2023 }
+          - { tag: cuda128-devel-amzn2023 }
     concurrency:
       group: ${{ github.workflow }}-sanity-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -207,8 +207,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: cuda128-runtime-al2023 }
-          - { tag: cuda128-devel-al2023 }
+          - { tag: cuda128-runtime-amzn2023 }
+          - { tag: cuda128-devel-amzn2023 }
     concurrency:
       group: ${{ github.workflow }}-security-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true
@@ -234,8 +234,8 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - { tag: cuda128-runtime-al2023, script: cuda_runtime_test.sh, cuda: "12.8" }
-          - { tag: cuda128-devel-al2023, script: cuda_devel_test.sh, cuda: "12.8" }
+          - { tag: cuda128-runtime-amzn2023, script: cuda_runtime_test.sh, cuda: "12.8" }
+          - { tag: cuda128-devel-amzn2023, script: cuda_devel_test.sh, cuda: "12.8" }
     concurrency:
       group: ${{ github.workflow }}-cuda-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
       cancel-in-progress: true

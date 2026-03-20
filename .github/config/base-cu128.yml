@@ -13,10 +13,10 @@ common:
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu128"
-  os_version: "al2023"
+  os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "base:12.8-gpu-py312-al2023"
+  prod_image: "base:12.8-gpu-py312-amzn2023"
   device_type: "gpu"
   contributor: "None"
 
