@@ -219,3 +219,43 @@ jobs:
       aws-region: ${{ vars.AWS_REGION }}
       framework: ${{ needs.load-config.outputs.framework }}
       framework-version: ${{ needs.load-config.outputs.framework-version }}
+
+  # ============================================================
+  # CUDA tests — GPU sanity checks for both targets
+  # ============================================================
+  cuda-test:
+    needs: [check-changes, build-images]
+    if: needs.check-changes.outputs.build-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - { tag: cuda128-runtime-al2023, script: cuda_runtime_test.sh, cuda: "12.8" }
+          - { tag: cuda128-devel-al2023, script: cuda_devel_test.sh, cuda: "12.8" }
+    concurrency:
+      group: ${{ github.workflow }}-cuda-${{ matrix.target.tag }}-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout DLC source
+        uses: actions/checkout@v5
+
+      - name: Container pull
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+          image-uri: ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }}
+
+      - name: Start container
+        run: |
+          CONTAINER_ID=$(docker run -d -it --rm --gpus=all --entrypoint /bin/bash \
+            -v .:/workdir --workdir /workdir \
+            ${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:base-${{ matrix.target.tag }}-pr-${{ github.event.pull_request.number }})
+          echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+
+      - name: Run CUDA test
+        run: docker exec ${CONTAINER_ID} bash /workdir/test/cuda/scripts/${{ matrix.target.script }} ${{ matrix.target.cuda }}
