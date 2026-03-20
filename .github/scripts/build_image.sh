@@ -115,6 +115,13 @@ BUILD_CMD="${BUILD_CMD} \
   --target ${TARGET} \
   -f ${DOCKERFILE_PATH} ."
 
+# Ensure buildx uses the running buildkitd
+if ! docker buildx inspect dlc-builder >/dev/null 2>&1; then
+  docker buildx create --name dlc-builder --driver remote --use unix:///run/buildkit/buildkitd.sock
+else
+  docker buildx use dlc-builder
+fi
+
 # Execute build
 echo "Executing build command..."
 echo "${BUILD_CMD}"
