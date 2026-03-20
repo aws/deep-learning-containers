@@ -167,3 +167,11 @@ echo "🔍 Verifying workers..."
 buildctl debug workers || (echo "⚠️ buildctl failed to connect" && exit 1)
 
 echo "✅ BuildKit daemon setup complete!"
+
+# -----------------------------
+# Step 7. Register buildx builder
+# -----------------------------
+echo "🔗 Connecting docker buildx to standalone buildkitd..."
+docker buildx create --name dlc-builder --driver remote unix:///run/buildkit/buildkitd.sock 2>/dev/null || true
+docker buildx use dlc-builder
+echo "✅ docker buildx now using standalone buildkitd"
