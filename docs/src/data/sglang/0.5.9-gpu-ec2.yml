@@ -4,17 +4,17 @@ accelerator: gpu
 python: py312
 cuda: cu129
 os: ubuntu24.04
-platform: sagemaker
+platform: ec2
 public_registry: true
 
 tags:
-  - "0.5.9-gpu-py312-cu129-ubuntu24.04-sagemaker"
-  - "0.5-gpu-py312-cu129-ubuntu24.04-sagemaker-v1"
-  - "0.5.9-gpu-py312"
-  - "0.5-gpu-py312"
+  - "0.5.9-gpu-py312-cu129-ubuntu24.04-ec2"
+  - "0.5-gpu-py312-cu129-ubuntu24.04-ec2-v1"
+  - "0.5.9-gpu-py312-ec2"
+  - "0.5-gpu-py312-ec2"
 
 announcements:
-  - "Introduced SGLang 0.5.9 containers for SageMaker"
+  - "Introduced SGLang 0.5.9 containers for EC2, ECS, EKS"
   - "Added Python 3.12 support"
 
 packages:
