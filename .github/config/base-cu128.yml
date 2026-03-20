@@ -1,10 +1,10 @@
-# Base cu128 AL2023 Image Configuration
+# Base cu128 amzn2023 Image Configuration
 # This file contains all configuration for building, testing, and releasing the base GPU image
 
 # Image identification
 image:
   name: "base-cu128"
-  description: "Base GPU image with CUDA 12.8 and Python on AL2023 (runtime and devel variants)"
+  description: "Base GPU image with CUDA 12.8 and Python on amzn2023 (runtime and devel variants)"
 
 # Build configuration
 common:
