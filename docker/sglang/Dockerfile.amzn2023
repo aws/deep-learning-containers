@@ -164,6 +164,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
+  && dnf remove -y --noautoremove kernel-headers \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
@@ -261,7 +262,7 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bashrc \
 FROM runtime AS sglang-sagemaker
 
 ARG CACHE_REFRESH=0
-RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*,kernel*' && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/sagemaker_entrypoint.sh /usr/bin/serve
@@ -275,7 +276,7 @@ ENTRYPOINT ["/usr/bin/serve"]
 FROM runtime AS sglang-ec2
 
 ARG CACHE_REFRESH=0
-RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*' && dnf clean all && rm -rf /var/cache/dnf
+RUN dnf update -y --exclude='cuda*,nvidia*,libnv*,libnccl*,kernel*' && dnf clean all && rm -rf /var/cache/dnf
 RUN rm -rf /tmp/*
 
 COPY ./scripts/sglang/dockerd_entrypoint.sh /usr/bin/serve
