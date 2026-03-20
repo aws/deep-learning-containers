@@ -83,22 +83,20 @@ RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/roo
 
 # Build DeepGEMM wheel
 ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
-COPY tools/install_deepgemm.sh /tmp/install_deepgemm.sh
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
   && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
-    /tmp/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
+    tools/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
     ${DEEPGEMM_GIT_REF:+--ref "$DEEPGEMM_GIT_REF"} \
     --wheel-dir /tmp/deepgemm/dist \
   || echo "DeepGEMM build skipped (CUDA version requirement not met)"
 RUN mkdir -p /tmp/deepgemm/dist
 
 # Build DeepEP wheels
-COPY tools/ep_kernels/install_python_libraries.sh /tmp/install_python_libraries.sh
 ARG DEEPEP_COMMIT_HASH=73b6ea4
 ARG NVSHMEM_VER
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
   && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
-  && /tmp/install_python_libraries.sh \
+  && tools/ep_kernels/install_python_libraries.sh \
     --workspace /tmp/ep_kernels_workspace \
     --mode wheel \
     ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
