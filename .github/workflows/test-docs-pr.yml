@@ -46,14 +46,14 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          # Hardcoded release spec for sglang 0.5.9 sagemaker
+          # Hardcoded release spec for vllm 0.17.1 sagemaker
           cat > /tmp/release-spec.yml <<'EOF'
-          framework: "sglang"
-          version: "0.5.9"
+          framework: "vllm"
+          version: "0.17.1"
           device_type: "gpu"
           python_version: "py312"
           cuda_version: "cu129"
-          os_version: "ubuntu24.04"
+          os_version: "ubuntu22.04"
           customer_type: "sagemaker"
           public_registry: true
           EOF
