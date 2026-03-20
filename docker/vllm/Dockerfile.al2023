@@ -125,8 +125,20 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==$
 
 # Install serving extras
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3" \
-  "deep-gemm>=1.0.0"
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
+
+# Build and install DeepGEMM
+COPY --from=source /src/tools/install_deepgemm.sh /tmp/install_deepgemm.sh
+RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
+  && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
+    /tmp/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" --wheel-dir /tmp/deepgemm/dist \
+  || echo "DeepGEMM build skipped (CUDA version requirement not met)"
+RUN --mount=type=cache,target=/root/.cache/uv \
+  if ls /tmp/deepgemm/dist/*.whl >/dev/null 2>&1; then \
+    uv pip install /tmp/deepgemm/dist/*.whl; \
+  else \
+    echo "No DeepGEMM wheels to install; skipping."; \
+  fi
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
