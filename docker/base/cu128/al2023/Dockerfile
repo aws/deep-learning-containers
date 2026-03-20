@@ -45,12 +45,13 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
-RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False curl \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt \
+  && rm /tmp/requirements.txt
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
@@ -94,13 +95,14 @@ RUN ln -sf /usr/local/bin/python${PYTHON_SHORT_VERSION} /usr/local/bin/python3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip3 \
   && ln -sf /usr/local/bin/pip${PYTHON_SHORT_VERSION} /usr/local/bin/pip
 
-RUN dnf upgrade -y --security --releasever latest \
-  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
-    curl automake autoconf cmake gcc gcc-c++ git make tar \
+RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
+  curl automake autoconf cmake gcc gcc-c++ git make tar \
+  && dnf upgrade -y --security --releasever latest \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY ./docker/base/cu128/al2023/requirements.txt /tmp/requirements.txt
-RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/requirements.txt \
+  && rm /tmp/requirements.txt
 
 COPY ./scripts/common/setup_oss_compliance.sh /tmp/setup_oss_compliance.sh
 
