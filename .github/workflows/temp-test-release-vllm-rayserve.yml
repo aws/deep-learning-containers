@@ -97,58 +97,8 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
-  sanity-test:
-    needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-sanity-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-sanity-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      python-version: ${{ needs.load-config.outputs.python-version }}
-      cuda-version: ${{ needs.load-config.outputs.cuda-version }}
-      os-version: ${{ needs.load-config.outputs.os-version }}
-      customer-type: ${{ needs.load-config.outputs.customer-type }}
-      arch-type: ${{ needs.load-config.outputs.arch-type }}
-      device-type: ${{ needs.load-config.outputs.device-type }}
-      contributor: ${{ needs.load-config.outputs.contributor }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
-
-  telemetry-test:
-    needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-telemetry-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/reusable-telemetry-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework: ${{ needs.load-config.outputs.framework }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      container-type: ${{ needs.load-config.outputs.container-type }}
-
-  upstream-tests:
-    needs: [build-image, load-config]
-    concurrency:
-      group: ${{ github.workflow }}-upstream-tests-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: true
-    uses: ./.github/workflows/reusable-vllm-upstream-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.outputs.ci-image }}
-      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
-      aws-region: ${{ vars.AWS_REGION }}
-      framework-version: ${{ needs.load-config.outputs.framework-version }}
-      setup-script: scripts/vllm/vllm_0_10_2_test_setup.sh
-      example-test-script: scripts/vllm/vllm_rayserve_examples_test.sh
-    secrets: inherit
-
   generate-release-spec:
-    needs: [load-config, build-image, sanity-test, upstream-tests]
+    needs: [load-config, build-image]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}
@@ -185,7 +135,7 @@ jobs:
     with:
       source-image-uri: ${{ needs.build-image.outputs.ci-image }}
       release-spec: ${{ needs.generate-release-spec.outputs.release-spec }}
-      environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
+      environment: gamma
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
     # secrets: inherit
