@@ -68,11 +68,11 @@ jobs:
 
       - name: Download model from S3
         run: |
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          MODEL_DIR="${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}"
           mkdir -p "${MODEL_DIR}"
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          aws s3 cp "${{ matrix.s3_path }}" "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -83,7 +83,7 @@ jobs:
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
-            -v /dlc-models:/models \
+            -v ${GITHUB_WORKSPACE}/dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
@@ -104,7 +104,7 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          rm -rf /dlc-models
+          rm -rf ${GITHUB_WORKSPACE}/dlc-models
 
   test-model-large:
     name: test-model (${{ matrix.name }})
@@ -128,14 +128,14 @@ jobs:
       - name: Download model from S3
         run: |
           echo "=== PWD: $(pwd) ==="
-          MODEL_DIR="/dlc-models/${{ matrix.name }}"
-          sudo mkdir -p "${MODEL_DIR}"
-          sudo chown -R "$(id -u):$(id -g)" /dlc-models
-          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          MODEL_DIR="${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+
+          aws s3 cp "${{ matrix.s3_path }}" "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
           echo "=== Downloaded to ==="
-          ls -la /dlc-models/
-          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
-          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          ls -la ${GITHUB_WORKSPACE}/dlc-models/
+          tar xzf "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
           SUBDIRS=("${MODEL_DIR}"/*)
           if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
             mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
@@ -149,7 +149,7 @@ jobs:
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
-            -v /dlc-models:/models \
+            -v ${GITHUB_WORKSPACE}/dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
           echo "=== Container /models ==="
@@ -172,4 +172,4 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
-          sudo rm -rf /dlc-models
+          rm -rf ${GITHUB_WORKSPACE}/dlc-models
