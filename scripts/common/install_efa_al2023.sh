@@ -5,7 +5,7 @@ ARCH=$(uname -m)
 
 function check_libnccl_net_so {
     if [[ "$EFA_VERSION" > "1.44.0" ]] || [[ "$EFA_VERSION" == "1.44.0" ]]; then
-        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/"
+        OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib64/"
         NCCL_NET_SO="$OFI_LIB_DIR/libnccl-net-ofi.so"
     else
         OFI_LIB_DIR="/opt/amazon/ofi-nccl/lib/${ARCH}-linux-gnu"
