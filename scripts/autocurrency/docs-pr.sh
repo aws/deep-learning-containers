@@ -174,13 +174,13 @@ for i in $(seq 0 $(( system_count - 1 ))); do
       version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "nvcc --version 2>/dev/null" | grep "release" | sed 's/.*release //' | sed 's/,.*//') || true
       ;;
     nccl)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libnccl2' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "python3 -c \"import torch; v=torch.cuda.nccl.version(); print(f'{v[0]}.{v[1]}.{v[2]}')\" 2>/dev/null") || true
       ;;
     efa)
       version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "cat /opt/amazon/efa_installed_packages 2>/dev/null | head -1 | grep -oE '[0-9]+\.[0-9]+\.[0-9]+'") || true
       ;;
     cudnn)
-      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
+      version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null | grep 'libcudnn[0-9]*' | head -1 | awk '{print \$3}'" | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+') || true
       ;;
     gdrcopy)
       version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "dpkg -l 2>/dev/null" | grep gdrcopy | awk '{print $3}' | head -1) || true
@@ -298,6 +298,7 @@ pr_body=$(cat <<PRBODY
 **Platform**: ${PLATFORM^^}
 
 ### What to Review
+- Verify the generated image tags
 - Confirm package versions are present and correct
 - Adjust the \`announcements\` section if needed
 
