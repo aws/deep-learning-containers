@@ -153,43 +153,6 @@ jobs:
           contributor: ${{ needs.load-config.outputs.contributor }}
           customer-type: ${{ needs.load-config.outputs.customer-type }}
 
-      - name: Save vLLM wheels to S3
-        if: success()
-        run: |
-          IMAGE_URI="${{ steps.build.outputs.image-uri }}"
-          WHEEL_CACHE_BUCKET="dlc-cicd-models"
-          WHEEL_CACHE_PREFIX="vllm-wheels/al2023"
-
-          # Compute cache key from inputs that affect the vLLM wheel
-          # (vLLM ref, patches, CUDA arch list, CUDA version)
-          CACHE_KEY=$(echo \
-            "vllm=${{ needs.load-config.outputs.framework-version }}" \
-            "cuda=${{ needs.load-config.outputs.cuda-version }}" \
-            "$(cat scripts/vllm/al2023/patches/*.patch 2>/dev/null | sha256sum | cut -d' ' -f1)" \
-            | sha256sum | cut -d' ' -f1)
-          CACHE_KEY="${{ needs.load-config.outputs.framework-version }}-${CACHE_KEY:0:16}"
-
-          # Check if wheels already cached
-          if aws s3 ls "s3://${WHEEL_CACHE_BUCKET}/${WHEEL_CACHE_PREFIX}/${CACHE_KEY}/" >/dev/null 2>&1; then
-            echo "Wheels already cached for ${CACHE_KEY}, skipping upload"
-            exit 0
-          fi
-
-          # Extract wheels from build stage
-          CONTAINER_ID=$(docker create ${IMAGE_URI})
-          mkdir -p /tmp/vllm-wheels
-          docker cp ${CONTAINER_ID}:/opt/venv/lib/python3.12/site-packages/vllm/version.py /tmp/vllm-version.py 2>/dev/null || true
-          docker cp ${CONTAINER_ID}:/workspace/vllm/dist/ /tmp/vllm-wheels/ 2>/dev/null || true
-          docker rm ${CONTAINER_ID}
-
-          # Upload wheels
-          if ls /tmp/vllm-wheels/*.whl >/dev/null 2>&1; then
-            aws s3 cp /tmp/vllm-wheels/ "s3://${WHEEL_CACHE_BUCKET}/${WHEEL_CACHE_PREFIX}/${CACHE_KEY}/" --recursive
-            echo "Uploaded wheels to s3://${WHEEL_CACHE_BUCKET}/${WHEEL_CACHE_PREFIX}/${CACHE_KEY}/"
-          else
-            echo "No wheels found to upload"
-          fi
-          rm -rf /tmp/vllm-wheels
 
   sanity-test:
     needs: [check-changes, build-image, load-config]
