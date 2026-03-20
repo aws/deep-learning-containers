@@ -124,12 +124,6 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==$
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
   "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
 
-# Install EFA (devel image has NCCL needed for OFI plugin build)
-COPY ./scripts/common/install_efa_al2023.sh /tmp/install_efa_al2023.sh
-ARG EFA_VERSION="1.47.0"
-RUN bash /tmp/install_efa_al2023.sh ${EFA_VERSION} \
-  && rm /tmp/install_efa_al2023.sh
-
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
 # =============================================================================
@@ -157,14 +151,7 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
   && dnf clean all && rm -rf /var/cache/dnf
 
 COPY --from=deps /opt/venv /opt/venv
-COPY --from=deps /opt/amazon /opt/amazon
-COPY --from=deps /etc/nccl.conf /etc/nccl.conf
-COPY --from=deps /etc/ld.so.conf.d/000_efa.conf /etc/ld.so.conf.d/000_efa.conf
-COPY --from=deps /root/.ssh /root/.ssh
-COPY --from=deps /etc/ssh/ssh_config /etc/ssh/ssh_config
 COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
-
-RUN ldconfig
 
 ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
@@ -227,6 +214,15 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /tmp/uv* \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
+
+COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
+ARG EFA_VERSION="1.47.0"
+RUN dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+  && bash install_efa_al2023.sh ${EFA_VERSION} \
+  && rm install_efa_al2023.sh \
+  && dnf remove -y libnccl-devel \
+  && dnf clean all && rm -rf /var/cache/dnf \
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2-al2023
