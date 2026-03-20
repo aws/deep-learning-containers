@@ -4,7 +4,15 @@
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
 if command -v nvidia-smi >/dev/null 2>&1 && command -v nvcc >/dev/null 2>&1; then
-    bash /usr/local/bin/start_cuda_compat.sh
+    source /usr/local/bin/start_cuda_compat.sh
+fi
+
+# Add nvidia pip package lib dirs to LD_LIBRARY_PATH so that libraries like
+# libcusparseLt.so, libcudnn.so, libnccl.so are found at runtime even if
+# the ldconfig cache is not available (e.g., SageMaker read-only rootfs).
+NVIDIA_PIP_LIBS=$(python3 -c 'import glob; print(":".join(glob.glob("/usr/local/lib*/python3.12/site-packages/nvidia/*/lib")))' 2>/dev/null)
+if [ -n "${NVIDIA_PIP_LIBS}" ]; then
+    export LD_LIBRARY_PATH="${NVIDIA_PIP_LIBS}:${LD_LIBRARY_PATH}"
 fi
 
 echo "Starting server"
