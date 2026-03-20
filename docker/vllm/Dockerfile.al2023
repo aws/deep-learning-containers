@@ -153,8 +153,11 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
 COPY --from=deps /opt/venv /opt/venv
 COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
 
-ENV PATH="/opt/venv/bin:${PATH}"
+ENV PATH="/opt/venv/bin:/root/.local/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
+
+# Install uv (needed by DLC overlay for package management)
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
@@ -181,10 +184,6 @@ ENV LANG=C.UTF-8 \
   PATH="/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}"
 
 WORKDIR /
-
-# Install uv for package management
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
-ENV PATH="/root/.local/bin:${PATH}"
 
 # Install DLC Python dependencies
 RUN uv pip install --system botocore && uv cache clean
