@@ -160,8 +160,12 @@ jobs:
           WHEEL_CACHE_BUCKET="dlc-cicd-models"
           WHEEL_CACHE_PREFIX="vllm-wheels/al2023"
 
-          # Compute cache key from build inputs
-          CACHE_KEY=$(echo "${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.python-version }}-${{ github.sha }}" | sha256sum | cut -d' ' -f1)
+          # Compute cache key from build inputs (includes patches and Dockerfile)
+          CACHE_KEY=$(cat \
+            docker/vllm/Dockerfile.al2023 \
+            scripts/vllm/al2023/patches/*.patch 2>/dev/null \
+            | sha256sum | cut -d' ' -f1)
+          CACHE_KEY="${{ needs.load-config.outputs.framework-version }}-${CACHE_KEY:0:16}"
 
           # Check if wheels already cached
           if aws s3 ls "s3://${WHEEL_CACHE_BUCKET}/${WHEEL_CACHE_PREFIX}/${CACHE_KEY}/" >/dev/null 2>&1; then
