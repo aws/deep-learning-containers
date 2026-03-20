@@ -41,7 +41,7 @@ ARG PYTHON_VERSION
 ARG PYTORCH_CUDA_INDEX_BASE_URL=https://download.pytorch.org/whl
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  tar gzip git gcc gcc-c++ make cmake ninja-build \
+  tar gzip xz git gcc gcc-c++ make cmake ninja-build \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   libibverbs-devel \
   && dnf clean all && rm -rf /var/cache/dnf
