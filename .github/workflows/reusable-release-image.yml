@@ -209,11 +209,19 @@ jobs:
           name: release-metadata-${{ needs.step1-publish-images.outputs.run-identifier }}
           path: /tmp/
 
-      - name: Install syft
+      - name: Install inspector-sbomgen
         run: |
-          echo "Installing syft for SBOM generation..."
-          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          syft --version
+          if command -v inspector-sbomgen &> /dev/null; then
+            echo "inspector-sbomgen already installed:"
+            inspector-sbomgen --version
+          else
+            echo "Installing inspector-sbomgen for SBOM generation..."
+            curl -Lo /tmp/inspector-sbomgen.zip https://amazon-inspector-sbomgen.s3.amazonaws.com/latest/linux/amd64/inspector-sbomgen.zip
+            unzip -o /tmp/inspector-sbomgen.zip -d /tmp/sbomgen
+            sudo install "$(find /tmp/sbomgen -name inspector-sbomgen -type f)" /usr/local/bin/inspector-sbomgen
+            rm -rf /tmp/inspector-sbomgen.zip /tmp/sbomgen
+            inspector-sbomgen --version
+          fi
 
       - name: Setup environment
         run: |
