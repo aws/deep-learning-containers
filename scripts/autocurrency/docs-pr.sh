@@ -87,7 +87,7 @@ generate_pr_title() {
   local framework="$1" version="$2" platform="$3"
   local display
   display=$(get_display_name "$framework")
-  echo "[Docs] ${display} ${version} ${platform^^} image data"
+  echo "[Docs Update] ${display} ${version} ${platform^^}"
 }
 
 ###############################################################################
