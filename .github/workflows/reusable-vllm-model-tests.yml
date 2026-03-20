@@ -125,37 +125,46 @@ jobs:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
 
+      - name: Download model from S3
+        run: |
+          echo "=== PWD: $(pwd) ==="
+          MODEL_DIR="/dlc-models/${{ matrix.name }}"
+          sudo mkdir -p "${MODEL_DIR}"
+          sudo chown -R "$(id -u):$(id -g)" /dlc-models
+          aws s3 cp "${{ matrix.s3_path }}" "/dlc-models/${{ matrix.name }}.tar.gz"
+          echo "=== Downloaded to ==="
+          ls -la /dlc-models/
+          tar xzf "/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+          echo "=== Model dir ==="
+          ls -la "${MODEL_DIR}" | head -10
+
       - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
-            -e AWS_DEFAULT_REGION=${{ inputs.aws-region }} \
+            -v /dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "=== Container /models ==="
+          docker exec $CONTAINER_ID ls -la /models/
 
       - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/tmp/
+          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
 
-      - name: Download model and run test
+      - name: Run model smoke test
         run: |
-          docker exec ${CONTAINER_ID} bash -c '
-            pip install awscli --quiet
-            mkdir -p /models/${{ matrix.name }}
-            aws s3 cp "${{ matrix.s3_path }}" /tmp/${{ matrix.name }}.tar.gz
-            tar xzf /tmp/${{ matrix.name }}.tar.gz -C /models/${{ matrix.name }}
-            rm -f /tmp/${{ matrix.name }}.tar.gz
-            SUBDIRS=(/models/${{ matrix.name }}/*)
-            if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-              mv "${SUBDIRS[0]}"/* /models/${{ matrix.name }}/
-              rmdir "${SUBDIRS[0]}"
-            fi
-            bash /tmp/vllm_model_smoke_test.sh \
-              "/models/${{ matrix.name }}" \
-              "${{ matrix.tp }}" \
-              "${{ matrix.name }}"
-          '
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.tp }}" \
+            "${{ matrix.name }}"
 
       - name: Cleanup
         if: always()
