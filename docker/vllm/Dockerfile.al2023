@@ -135,7 +135,7 @@ ARG PYTHON_VERSION=3.12
 WORKDIR /vllm-workspace
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  python${PYTHON_VERSION} libibverbs shadow-utils tar gzip \
+  python${PYTHON_VERSION} libibverbs shadow-utils \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
@@ -153,11 +153,8 @@ RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
 COPY --from=deps /opt/venv /opt/venv
 COPY --from=source /src/SOURCE_MANIFEST /vllm-workspace/
 
-ENV PATH="/opt/venv/bin:/root/.local/bin:${PATH}"
+ENV PATH="/opt/venv/bin:${PATH}"
 ENV VIRTUAL_ENV="/opt/venv"
-
-# Install uv (needed by DLC overlay for package management)
-RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 ENV LD_LIBRARY_PATH=/usr/local/nvidia/lib64:/usr/local/cuda/lib64:${LD_LIBRARY_PATH}
 ENV VLLM_USAGE_SOURCE=production-docker-image
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
@@ -186,14 +183,13 @@ ENV LANG=C.UTF-8 \
 WORKDIR /
 
 # Install DLC Python dependencies
-RUN uv pip install --system botocore && uv cache clean
+RUN pip install --no-cache-dir botocore
 
 # Patch CVEs
-RUN uv pip install --system \
+RUN pip install --no-cache-dir \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
-  "PyJWT>=2.12.0" \
-  && uv cache clean
+  "PyJWT>=2.12.0"
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
 COPY ./scripts/telemetry/bash_telemetry.sh.template /tmp/bash_telemetry.sh.template
