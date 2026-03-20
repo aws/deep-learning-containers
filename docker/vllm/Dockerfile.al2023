@@ -86,7 +86,9 @@ ARG DEEPGEMM_GIT_REF=477618cd51baffca09c4b0b87e97c03fe827ef03
 COPY tools/install_deepgemm.sh /tmp/install_deepgemm.sh
 RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
   && VLLM_DOCKER_BUILD_CONTEXT=1 TORCH_CUDA_ARCH_LIST="9.0a 10.0a" \
-    /tmp/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" --wheel-dir /tmp/deepgemm/dist \
+    /tmp/install_deepgemm.sh --cuda-version "${CUDA_VERSION}" \
+    ${DEEPGEMM_GIT_REF:+--ref "$DEEPGEMM_GIT_REF"} \
+    --wheel-dir /tmp/deepgemm/dist \
   || echo "DeepGEMM build skipped (CUDA version requirement not met)"
 RUN mkdir -p /tmp/deepgemm/dist
 
