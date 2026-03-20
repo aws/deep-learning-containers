@@ -160,10 +160,12 @@ jobs:
           WHEEL_CACHE_BUCKET="dlc-cicd-models"
           WHEEL_CACHE_PREFIX="vllm-wheels/al2023"
 
-          # Compute cache key from build inputs (includes patches and Dockerfile)
-          CACHE_KEY=$(cat \
-            docker/vllm/Dockerfile.al2023 \
-            scripts/vllm/al2023/patches/*.patch 2>/dev/null \
+          # Compute cache key from inputs that affect the vLLM wheel
+          # (vLLM ref, patches, CUDA arch list, CUDA version)
+          CACHE_KEY=$(echo \
+            "vllm=${{ needs.load-config.outputs.framework-version }}" \
+            "cuda=${{ needs.load-config.outputs.cuda-version }}" \
+            "$(cat scripts/vllm/al2023/patches/*.patch 2>/dev/null | sha256sum | cut -d' ' -f1)" \
             | sha256sum | cut -d' ' -f1)
           CACHE_KEY="${{ needs.load-config.outputs.framework-version }}-${CACHE_KEY:0:16}"
 
