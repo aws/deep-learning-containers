@@ -228,7 +228,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bash.bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  && ln -sf /usr/bin/python3 /usr/bin/python \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
