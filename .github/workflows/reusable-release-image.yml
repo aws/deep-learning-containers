@@ -287,7 +287,6 @@ jobs:
 
   step4-docs-pr:
     needs: [step1-publish-images, step3-publish-notifications]
-    environment: ${{ inputs.environment }}
     if: needs.step1-publish-images.outputs.images-published == '1'
     runs-on: ubuntu-latest
     steps:
