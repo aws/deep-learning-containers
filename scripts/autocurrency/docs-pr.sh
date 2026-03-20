@@ -119,6 +119,15 @@ TRACKER="${REPO_ROOT}/${TRACKER_FILE:-".github/config/autocurrency-tracker.yml"}
 IMAGE_URI="public.ecr.aws/deep-learning-containers/${FRAMEWORK}:${VERSION}-${DEVICE}-${PYTHON}-${CUDA}-${OS}-${PLATFORM}"
 
 # -----------------------------------------------------------------
+# Early exit: check if docs PR branch already exists
+# -----------------------------------------------------------------
+branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
+if git ls-remote --exit-code --heads origin "${branch_name}" &>/dev/null; then
+  echo "${FRAMEWORK}: Branch '${branch_name}' already exists. PR likely in progress. Skipping."
+  exit 0
+fi
+
+# -----------------------------------------------------------------
 # Step 1: Pull image and extract package versions
 # -----------------------------------------------------------------
 echo ""
@@ -274,14 +283,7 @@ echo "============================================================"
 echo "Step 3: Create branch, commit, and open PR"
 echo "============================================================"
 
-branch_name=$(generate_branch_name "$FRAMEWORK" "$VERSION" "$PLATFORM")
 pr_title=$(generate_pr_title "$FRAMEWORK" "$VERSION" "$PLATFORM")
-
-# Check if branch already exists (idempotency guard)
-if git ls-remote --exit-code --heads origin "${branch_name}" &>/dev/null; then
-  echo "${FRAMEWORK}: Branch '${branch_name}' already exists. PR likely in progress. Skipping."
-  exit 0
-fi
 
 git config user.name "asimov-bot[bot]"
 git config user.email "asimov-bot[bot]@users.noreply.github.com"
