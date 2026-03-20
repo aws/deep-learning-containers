@@ -90,6 +90,19 @@ RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/deepgemm/dist \
   || echo "DeepGEMM build skipped (CUDA version requirement not met)"
 RUN mkdir -p /tmp/deepgemm/dist
 
+# Build DeepEP wheels
+COPY tools/ep_kernels/install_python_libraries.sh /tmp/install_python_libraries.sh
+ARG DEEPEP_COMMIT_HASH=73b6ea4
+ARG NVSHMEM_VER
+RUN --mount=type=cache,target=/root/.cache/uv mkdir -p /tmp/ep_kernels_workspace/dist \
+  && export TORCH_CUDA_ARCH_LIST='9.0a 10.0a' \
+  && /tmp/install_python_libraries.sh \
+    --workspace /tmp/ep_kernels_workspace \
+    --mode wheel \
+    ${DEEPEP_COMMIT_HASH:+--deepep-ref "$DEEPEP_COMMIT_HASH"} \
+    ${NVSHMEM_VER:+--nvshmem-ver "$NVSHMEM_VER"} \
+  && find /tmp/ep_kernels_workspace/nvshmem -name '*.a' -delete
+
 # =============================================================================
 # STAGE 2: deps — clean venv with only runtime packages
 # =============================================================================
@@ -144,6 +157,15 @@ RUN --mount=type=cache,target=/root/.cache/uv \
   else \
     echo "No DeepGEMM wheels to install; skipping."; \
   fi && rm -rf /tmp/deepgemm
+
+# Install DeepEP wheels from build stage
+COPY --from=build /tmp/ep_kernels_workspace/dist /tmp/ep_kernels/dist
+RUN --mount=type=cache,target=/root/.cache/uv \
+  if ls /tmp/ep_kernels/dist/*.whl >/dev/null 2>&1; then \
+    uv pip install /tmp/ep_kernels/dist/*.whl; \
+  else \
+    echo "No DeepEP wheels to install; skipping."; \
+  fi && rm -rf /tmp/ep_kernels
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
