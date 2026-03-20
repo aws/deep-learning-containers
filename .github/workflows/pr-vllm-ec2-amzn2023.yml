@@ -14,7 +14,7 @@ permissions:
 
 env:
   FORCE_COLOR: "1"
-  CONFIG_FILE: ".github/config/vllm-ec2-al2023.yml"
+  CONFIG_FILE: ".github/config/vllm-ec2-amzn2023.yml"
 
 jobs:
   gatekeeper:
@@ -105,11 +105,11 @@ jobs:
         with:
           filters: |
             build-change:
-              - "docker/vllm/Dockerfile.al2023"
+              - "docker/vllm/Dockerfile.amzn2023"
               - "scripts/vllm/**"
               - "scripts/common/**"
               - "scripts/telemetry/**"
-              - ".github/config/vllm-ec2-al2023.yml"
+              - ".github/config/vllm-ec2-amzn2023.yml"
             sanity-test-change:
               - "test/sanity/**"
             telemetry-test-change:
@@ -137,14 +137,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: vllm-ec2-al2023
+          target: vllm-ec2-amzn2023
           base-image: nvidia/cuda:12.9.1-devel-amzn2023
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-pr-${{ github.event.pull_request.number }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.al2023
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}

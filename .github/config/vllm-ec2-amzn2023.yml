@@ -3,7 +3,7 @@
 
 # Image identification
 image:
-  name: "vllm-ec2-al2023"
+  name: "vllm-ec2-amzn2023"
   description: "vLLM for EC2 instances (AL2023, built from source)"
 
 # Build configuration
@@ -13,7 +13,7 @@ common:
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
-  os_version: "al2023"
+  os_version: "amzn2023"
   customer_type: "ec2"
   arch_type: "x86"
   prod_image: "vllm:0.17-gpu-py312-ec2"
