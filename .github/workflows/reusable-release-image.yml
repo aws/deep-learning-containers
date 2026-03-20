@@ -214,7 +214,7 @@ jobs:
           echo "Installing inspector-sbomgen for SBOM generation..."
           curl -Lo inspector-sbomgen.zip https://amazon-inspector-sbomgen.s3.amazonaws.com/latest/linux/amd64/inspector-sbomgen.zip \
             && unzip inspector-sbomgen.zip -d /tmp/sbomgen \
-            && install /tmp/sbomgen/inspector-sbomgen /usr/local/bin/inspector-sbomgen \
+            && install "$(find /tmp/sbomgen -name inspector-sbomgen -type f)" /usr/local/bin/inspector-sbomgen \
             && rm -rf inspector-sbomgen.zip /tmp/sbomgen
           inspector-sbomgen --version
 
