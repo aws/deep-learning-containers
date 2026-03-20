@@ -217,9 +217,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
 ARG EFA_VERSION="1.47.0"
-RUN CUDA_DASH=$(echo $CUDA_VERSION | cut -d. -f1,2 | tr '.' '-') \
-  && dnf install -y --setopt=install_weak_deps=False \
-    libnccl-${CUDA_DASH} libnccl-devel-${CUDA_DASH} \
+RUN dnf install -y --setopt=install_weak_deps=False \
+  libnccl libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && bash install_efa_al2023.sh ${EFA_VERSION} \
   && rm install_efa_al2023.sh \
