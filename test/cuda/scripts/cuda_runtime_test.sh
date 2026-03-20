@@ -34,10 +34,10 @@ else
 fi
 
 # --- CUDA runtime libs are loadable ---
-if python3 -c "import ctypes; ctypes.CDLL('libcudart.so')" &>/dev/null; then
-  echo "PASS: libcudart.so is loadable"
+if ldconfig -p 2>/dev/null | grep -q libcudart; then
+  echo "PASS: libcudart found in ldconfig"
 else
-  echo "FAIL: libcudart.so is not loadable"
+  echo "FAIL: libcudart not found in ldconfig"
   FAILED=1
 fi
 

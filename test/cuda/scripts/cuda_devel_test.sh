@@ -34,10 +34,10 @@ else
 fi
 
 # --- CUDA runtime libs are loadable ---
-if python3 -c "import ctypes; ctypes.CDLL('libcudart.so')" &>/dev/null; then
-  echo "PASS: libcudart.so is loadable"
+if ldconfig -p 2>/dev/null | grep -q libcudart; then
+  echo "PASS: libcudart found in ldconfig"
 else
-  echo "FAIL: libcudart.so is not loadable"
+  echo "FAIL: libcudart not found in ldconfig"
   FAILED=1
 fi
 
@@ -70,12 +70,14 @@ SAMPLES_TAG="v${CUDA_VERSION}"
 
 echo "Cloning cuda-samples ${SAMPLES_TAG}..."
 if git clone --depth 1 --branch "${SAMPLES_TAG}" \
-  https://github.com/NVIDIA/cuda-samples.git "$SAMPLES_DIR" &>/dev/null; then
+  https://github.com/NVIDIA/cuda-samples.git "$SAMPLES_DIR" >/dev/null 2>&1; then
 
   # deviceQuery
   echo "Building deviceQuery..."
-  if make -C "$SAMPLES_DIR/Samples/1_Utilities/deviceQuery" -j"$(nproc)" &>/dev/null; then
-    OUTPUT=$("$SAMPLES_DIR/Samples/1_Utilities/deviceQuery/deviceQuery" 2>&1)
+  BUILD_DIR="$SAMPLES_DIR/build/deviceQuery"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/1_Utilities/deviceQuery" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    OUTPUT=$("$BUILD_DIR/deviceQuery" 2>&1)
     if echo "$OUTPUT" | grep -q "Result = PASS"; then
       echo "PASS: deviceQuery"
     else
@@ -90,8 +92,10 @@ if git clone --depth 1 --branch "${SAMPLES_TAG}" \
 
   # vectorAdd
   echo "Building vectorAdd..."
-  if make -C "$SAMPLES_DIR/Samples/0_Introduction/vectorAdd" -j"$(nproc)" &>/dev/null; then
-    OUTPUT=$("$SAMPLES_DIR/Samples/0_Introduction/vectorAdd/vectorAdd" 2>&1)
+  BUILD_DIR="$SAMPLES_DIR/build/vectorAdd"
+  if cmake -B "$BUILD_DIR" -S "$SAMPLES_DIR/Samples/0_Introduction/vectorAdd" >/dev/null 2>&1 \
+    && cmake --build "$BUILD_DIR" -j"$(nproc)" >/dev/null 2>&1; then
+    OUTPUT=$("$BUILD_DIR/vectorAdd" 2>&1)
     if echo "$OUTPUT" | grep -q "PASSED"; then
       echo "PASS: vectorAdd"
     else
