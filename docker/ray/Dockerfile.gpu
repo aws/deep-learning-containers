@@ -59,11 +59,16 @@ ARG PYTHON_VERSION=3.13
 RUN uv python install ${PYTHON_VERSION} \
   && uv venv /opt/venv --python ${PYTHON_VERSION}
 
-# Install pinned dependencies
-COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
+# Copy requirements and generate lock file
+COPY ./scripts/ray/requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv uv pip compile /tmp/requirements.txt \
+  --python ${PYTHON_VERSION} \
+  -o /tmp/requirements.lock
+
+# Install dependencies from lock file
 RUN --mount=type=cache,target=/root/.cache/uv . /opt/venv/bin/activate \
   && uv pip install -r /tmp/requirements.lock \
-  && uv pip install pip==26.0.1
+  && uv pip install pip
 
 
 #############
@@ -120,8 +125,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && bash setup_oss_compliance.sh ${PYTHON} \
   && printf '\n** FFmpeg; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
   && printf '\nFFmpeg n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
-  && printf '\n** FFprobe; version n8.0.1 -- https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/BUILD_FROM_SOURCE_PACKAGES_LICENCES \
-  && printf '\nFFprobe n8.0.1 https://github.com/FFmpeg/FFmpeg/tree/n8.0.1\n' >> /root/THIRD_PARTY_SOURCE_CODE_URLS \
   && rm setup_oss_compliance.sh \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
