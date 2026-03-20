@@ -76,6 +76,7 @@ RUN dnf upgrade -y --security --releasever latest && dnf clean all && rm -rf /va
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="1"
+LABEL dlc_minor_version="0"
 
 ARG PYTHON="python"
 ARG FRAMEWORK="ray"
