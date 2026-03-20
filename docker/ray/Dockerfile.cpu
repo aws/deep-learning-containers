@@ -39,7 +39,7 @@ RUN uv python install ${PYTHON_VERSION} \
 # Install pinned dependencies
 COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
 RUN --mount=type=cache,target=/root/.cache/pip . /opt/venv/bin/activate \
-  && pip install -r /tmp/requirements.lock
+  && uv pip install -r /tmp/requirements.lock
 
 
 #############
