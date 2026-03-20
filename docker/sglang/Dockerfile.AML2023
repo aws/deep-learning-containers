@@ -215,9 +215,10 @@ RUN pip install \
   "python_multipart>=0.0.22" \
   "xgrammar>=0.1.32"
 
-# Re-pin NCCL/cuDNN after CVE patches (xgrammar pulls older transitive deps)
+# Re-pin NCCL/cuDNN/cuSparseLt after CVE patches (transitive deps may downgrade or remove them)
 RUN pip install nvidia-nccl-cu12==2.28.3 --force-reinstall --no-deps \
-  && pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps
+  && pip install nvidia-cudnn-cu12==9.16.0.29 --force-reinstall --no-deps \
+  && pip install nvidia-cusparselt-cu12 --force-reinstall --no-deps
 
 # Telemetry and common scripts
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
