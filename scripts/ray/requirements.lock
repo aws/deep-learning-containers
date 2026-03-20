@@ -234,6 +234,8 @@ pillow==12.1.1
     # via
     #   dlc-ray
     #   torchvision
+pip==26.0.1
+    # via dlc-ray
 platformdirs==4.9.4
     # via
     #   python-discovery

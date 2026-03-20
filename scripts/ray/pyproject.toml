@@ -4,6 +4,7 @@ version = "1.0.0"
 requires-python = "==3.13.*"
 dependencies = [
     "awscli==1.44.49",
+    "pip==26.0.1",
     "boto3==1.42.59",
     "fastapi==0.133.1",
     "httpx==0.28.1",
