@@ -141,12 +141,17 @@ jobs:
 
       - name: Start container
         run: |
+          echo "=== Host /dlc-models contents ==="
+          ls -la /dlc-models/
+          ls -la /dlc-models/${{ matrix.name }}/ | head -10
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
             -v /dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
+          echo "=== Container /models contents ==="
+          docker exec $CONTAINER_ID ls -la /models/
 
       - name: Copy scripts into container
         run: |
