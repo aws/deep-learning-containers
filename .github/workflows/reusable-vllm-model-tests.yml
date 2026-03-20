@@ -125,33 +125,38 @@ jobs:
           aws-account-id: ${{ inputs.aws-account-id }}
           aws-region: ${{ inputs.aws-region }}
 
+      - name: Download model from S3
+        run: |
+          MODEL_DIR="${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}"
+          mkdir -p "${MODEL_DIR}"
+          aws s3 cp "${{ matrix.s3_path }}" "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
+          tar xzf "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz" -C "${MODEL_DIR}"
+          rm -f "${GITHUB_WORKSPACE}/dlc-models/${{ matrix.name }}.tar.gz"
+          SUBDIRS=("${MODEL_DIR}"/*)
+          if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
+            mv "${SUBDIRS[0]}"/* "${MODEL_DIR}"/
+            rmdir "${SUBDIRS[0]}"
+          fi
+
       - name: Start container
         run: |
           docker pull ${{ inputs.image-uri }}
           CONTAINER_ID=$(docker run -d -it --gpus all --entrypoint /bin/bash \
             --ipc=host --shm-size=10g \
+            -v ${GITHUB_WORKSPACE}/dlc-models:/models \
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
-      - name: Download model and run test
+      - name: Copy scripts into container
         run: |
-          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/tmp/
-          docker exec ${CONTAINER_ID} bash -c '
-            pip install -q awscli
-            mkdir -p /models/${{ matrix.name }}
-            aws s3 cp "${{ matrix.s3_path }}" /tmp/${{ matrix.name }}.tar.gz
-            tar xzf /tmp/${{ matrix.name }}.tar.gz -C /models/${{ matrix.name }}
-            rm -f /tmp/${{ matrix.name }}.tar.gz
-            SUBDIRS=(/models/${{ matrix.name }}/*)
-            if [ ${#SUBDIRS[@]} -eq 1 ] && [ -d "${SUBDIRS[0]}" ]; then
-              mv "${SUBDIRS[0]}"/* /models/${{ matrix.name }}/
-              rmdir "${SUBDIRS[0]}"
-            fi
-            bash /tmp/vllm_model_smoke_test.sh \
-              /models/${{ matrix.name }} \
-              ${{ matrix.tp }} \
-              ${{ matrix.name }}
-          '
+          docker cp scripts/vllm/vllm_model_smoke_test.sh ${CONTAINER_ID}:/models/
+
+      - name: Run model smoke test
+        run: |
+          docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
+            "/models/${{ matrix.name }}" \
+            "${{ matrix.tp }}" \
+            "${{ matrix.name }}"
 
       - name: Cleanup
         if: always()
@@ -159,3 +164,4 @@ jobs:
           docker stop ${CONTAINER_ID} 2>/dev/null || true
           docker rm -f ${CONTAINER_ID} 2>/dev/null || true
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
+          rm -rf ${GITHUB_WORKSPACE}/dlc-models
