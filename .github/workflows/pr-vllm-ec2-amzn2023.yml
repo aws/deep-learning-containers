@@ -1,4 +1,4 @@
-name: PR - vLLM EC2 AL2023
+name: PR - vLLM EC2 AMZN2023
 
 on:
   pull_request:
