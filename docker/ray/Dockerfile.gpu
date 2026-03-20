@@ -57,12 +57,12 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh \
 # Create virtual environment
 ARG PYTHON_VERSION=3.13
 RUN uv python install ${PYTHON_VERSION} \
-  && uv venv /opt/venv --seed --python ${PYTHON_VERSION}
+  && uv venv /opt/venv --python ${PYTHON_VERSION}
 
 # Install pinned dependencies
 COPY ./scripts/ray/requirements.lock /tmp/requirements.lock
 RUN --mount=type=cache,target=/root/.cache/pip . /opt/venv/bin/activate \
-  && pip install -r /tmp/requirements.lock
+  && uv pip install -r /tmp/requirements.lock
 
 
 #############
