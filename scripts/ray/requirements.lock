@@ -368,8 +368,6 @@ typer-slim==0.24.0
     # via transformers
 typing-extensions==4.15.0
     # via
-    #   aiosignal
-    #   anyio
     #   fastapi
     #   grpcio
     #   huggingface-hub
@@ -378,8 +376,6 @@ typing-extensions==4.15.0
     #   opentelemetry-semantic-conventions
     #   pydantic
     #   pydantic-core
-    #   referencing
-    #   starlette
     #   torch
     #   typing-inspection
 typing-inspection==0.4.2
