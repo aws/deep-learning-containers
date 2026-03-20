@@ -198,7 +198,13 @@ def generate_sagemaker_pytest_cmd(image, sagemaker_test_type):
                         "311"
                         if py_version == "py311"
                         else (
-                            "312" if py_version == "py312" else "2" if py_version == "py27" else "3"
+                            "312"
+                            if py_version == "py312"
+                            else (
+                                "313"
+                                if py_version == "py313"
+                                else "2" if py_version == "py27" else "3"
+                            )
                         )
                     )
                 )
