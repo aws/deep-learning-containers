@@ -8,7 +8,7 @@ on:
     paths:
       - "**vllm**"
       - "!docs/**"
-      - "!**al2023**"
+      - "!**amzn2023**"
 
 permissions:
   contents: read

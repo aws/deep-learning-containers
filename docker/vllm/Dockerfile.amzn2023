@@ -12,7 +12,7 @@ ARG VLLM_REF=v${VLLM_VERSION}
 
 RUN git clone --depth 50 --branch ${VLLM_REF} ${VLLM_REPO} /src
 
-COPY scripts/vllm/al2023/patches/ /tmp/patches/
+COPY scripts/vllm/amzn2023/patches/ /tmp/patches/
 RUN cd /src && \
     for p in /tmp/patches/*.patch; do \
       [ -f "$p" ] && [ "$(basename "$p")" != ".gitkeep" ] && \
@@ -77,7 +77,7 @@ ENV NVCC_THREADS=${nvcc_threads}
 ENV VLLM_TARGET_DEVICE=cuda
 ARG VLLM_REF
 ARG VLLM_VERSION=0.17.1
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+al2023"
+ENV SETUPTOOLS_SCM_PRETEND_VERSION="${VLLM_VERSION}+amzn2023"
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
 
@@ -263,19 +263,19 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm -rf /var/cache/dnf \
   && rm -rf /root/.cache || true
 
-COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
+COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.47.0"
 RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
-  && bash install_efa_al2023.sh ${EFA_VERSION} \
-  && rm install_efa_al2023.sh \
+  && bash install_efa_amzn2023.sh ${EFA_VERSION} \
+  && rm install_efa_amzn2023.sh \
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
-FROM base AS vllm-ec2-al2023
+FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --setopt=install_weak_deps=False \
