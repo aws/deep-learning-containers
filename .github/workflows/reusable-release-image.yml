@@ -211,12 +211,17 @@ jobs:
 
       - name: Install inspector-sbomgen
         run: |
-          echo "Installing inspector-sbomgen for SBOM generation..."
-          curl -Lo inspector-sbomgen.zip https://amazon-inspector-sbomgen.s3.amazonaws.com/latest/linux/amd64/inspector-sbomgen.zip \
-            && unzip inspector-sbomgen.zip -d /tmp/sbomgen \
-            && install /tmp/sbomgen/inspector-sbomgen /usr/local/bin/inspector-sbomgen \
-            && rm -rf inspector-sbomgen.zip /tmp/sbomgen
-          inspector-sbomgen --version
+          if command -v inspector-sbomgen &> /dev/null; then
+            echo "inspector-sbomgen already installed:"
+            inspector-sbomgen --version
+          else
+            echo "Installing inspector-sbomgen for SBOM generation..."
+            curl -Lo /tmp/inspector-sbomgen.zip https://amazon-inspector-sbomgen.s3.amazonaws.com/latest/linux/amd64/inspector-sbomgen.zip
+            unzip -o /tmp/inspector-sbomgen.zip -d /tmp/sbomgen
+            sudo install "$(find /tmp/sbomgen -name inspector-sbomgen -type f)" /usr/local/bin/inspector-sbomgen
+            rm -rf /tmp/inspector-sbomgen.zip /tmp/sbomgen
+            inspector-sbomgen --version
+          fi
 
       - name: Setup environment
         run: |
