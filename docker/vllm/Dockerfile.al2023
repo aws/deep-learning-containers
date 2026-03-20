@@ -74,7 +74,7 @@ ARG nvcc_threads=16
 ENV NVCC_THREADS=${nvcc_threads}
 
 ENV VLLM_TARGET_DEVICE=cuda
-ENV SETUPTOOLS_SCM_PRETEND_VERSION="0.0.0+al2023"
+ENV SETUPTOOLS_SCM_PRETEND_VERSION="0.17.1+al2023"
 
 RUN --mount=type=cache,target=/root/.cache/ccache --mount=type=cache,target=/root/.cache/uv --mount=type=cache,target=/root/.cache/uv python3 setup.py bdist_wheel --dist-dir=dist --py-limited-api=cp38
 
