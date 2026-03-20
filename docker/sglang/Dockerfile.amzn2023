@@ -19,18 +19,20 @@ ENV CUDA_HOME=/usr/local/cuda \
   FLASHINFER_VERSION=${FLASHINFER_VERSION}
 
 # System dependencies for building
-RUN dnf install -y --allowerasing --setopt=install_weak_deps=False \
-  python3.12 python3.12-devel python3.12-pip \
-  gcc gcc-c++ make git git-lfs \
-  perl patchelf unzip wget curl tar gzip \
-  openmpi-devel numactl-devel numactl \
-  rdma-core-devel \
-  libnl3-devel infiniband-diags \
-  libunwind-devel boost-devel openssl-devel \
-  protobuf-devel protobuf-compiler \
-  hiredis-devel libcurl-devel \
-  libfabric-devel \
-  ninja-build \
+# Set CUDA repo to lower priority so AL2023-vended packages are preferred
+RUN dnf config-manager --save --setopt=cuda.priority=50 \
+  && dnf install -y --allowerasing --setopt=install_weak_deps=False \
+    python3.12 python3.12-devel python3.12-pip \
+    gcc gcc-c++ make git git-lfs \
+    perl patchelf unzip wget curl tar gzip \
+    openmpi-devel numactl-devel numactl \
+    rdma-core-devel \
+    libnl3-devel infiniband-diags \
+    libunwind-devel boost-devel openssl-devel \
+    protobuf-devel protobuf-compiler \
+    hiredis-devel libcurl-devel \
+    libfabric-devel \
+    ninja-build \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Set Python 3.12 as default, preserve dnf's system python
@@ -150,7 +152,10 @@ WORKDIR /
 # Note: cuDNN, NCCL, cuSparseLt are provided by pip nvidia-* packages
 # (copied with site-packages from builder). Only JIT compilation tools
 # need to be installed as RPMs.
+# Set CUDA repo to lower priority so AL2023-vended packages (kernel-headers,
+# glib2, etc.) are preferred over NVIDIA's versions when both repos provide them.
 RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
+  && dnf config-manager --save --setopt=cuda.priority=50 \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python3.12 python3.12-devel \
     ca-certificates wget curl git tar gzip \
@@ -164,7 +169,6 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
-  && dnf install -y --allowerasing kernel-headers-\*.amzn2023 \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
