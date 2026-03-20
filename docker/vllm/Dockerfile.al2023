@@ -125,7 +125,8 @@ RUN --mount=type=cache,target=/root/.cache/uv uv pip install flashinfer-cubin==$
 
 # Install serving extras
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install accelerate hf_transfer modelscope \
-  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3"
+  "bitsandbytes>=0.46.1" "timm>=1.0.17" "runai-model-streamer[s3,gcs]>=0.15.3" \
+  "deep-gemm>=1.0.0"
 
 # =============================================================================
 # STAGE 3: runtime — minimal image with clean venv
