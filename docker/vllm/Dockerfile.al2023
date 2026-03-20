@@ -135,7 +135,7 @@ ARG PYTHON_VERSION=3.12
 WORKDIR /vllm-workspace
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-  python${PYTHON_VERSION} libibverbs shadow-utils \
+  python${PYTHON_VERSION} libibverbs shadow-utils curl tar \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Runtime JIT compilation tools (Triton/Inductor, FlashInfer, DeepGEMM)
