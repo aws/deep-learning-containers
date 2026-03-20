@@ -25,7 +25,7 @@ function install_efa {
     EFA_VERSION=$1
     OPEN_MPI_PATH="/opt/amazon/openmpi"
 
-    dnf install -y --setopt=install_weak_deps=False \
+    dnf install -y --allowerasing --setopt=install_weak_deps=False \
         curl tar gzip gcc gcc-c++ make cmake git
 
     mkdir /tmp/efa
