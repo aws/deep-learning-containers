@@ -98,7 +98,7 @@ jobs:
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
           tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.AML2023
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
