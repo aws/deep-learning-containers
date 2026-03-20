@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# CUDA devel sanity checks
+# Usage: cuda_devel_test.sh <cuda_version>
+# Example: cuda_devel_test.sh 12.8
+
+CUDA_VERSION="${1:?Usage: cuda_devel_test.sh <cuda_version>}"
+CUDA_MAJOR="${CUDA_VERSION%%.*}"
+FAILED=0
+
+# --- nvidia-smi detects GPU(s) ---
+if nvidia-smi &>/dev/null; then
+  GPU_COUNT=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
+  echo "PASS: nvidia-smi detected $GPU_COUNT GPU(s)"
+else
+  echo "FAIL: nvidia-smi not found or no GPUs detected"
+  FAILED=1
+fi
+
+# --- CUDA_HOME is set ---
+if [ -n "${CUDA_HOME:-}" ] && [ -d "$CUDA_HOME" ]; then
+  echo "PASS: CUDA_HOME=$CUDA_HOME"
+else
+  echo "FAIL: CUDA_HOME is not set or does not exist"
+  FAILED=1
+fi
+
+# --- LD_LIBRARY_PATH contains cuda lib64 ---
+if [[ "${LD_LIBRARY_PATH:-}" == */usr/local/cuda/lib64* ]]; then
+  echo "PASS: LD_LIBRARY_PATH contains /usr/local/cuda/lib64"
+else
+  echo "FAIL: LD_LIBRARY_PATH missing /usr/local/cuda/lib64"
+  FAILED=1
+fi
+
+# --- CUDA runtime libs are loadable ---
+if python3 -c "import ctypes; ctypes.CDLL('libcudart.so')" &>/dev/null; then
+  echo "PASS: libcudart.so is loadable"
+else
+  echo "FAIL: libcudart.so is not loadable"
+  FAILED=1
+fi
+
+# --- nvcc is present and reports correct version ---
+if command -v nvcc &>/dev/null; then
+  NVCC_OUT=$(nvcc --version 2>&1)
+  if echo "$NVCC_OUT" | grep -q "release ${CUDA_VERSION}"; then
+    echo "PASS: nvcc reports CUDA $CUDA_VERSION"
+  else
+    echo "FAIL: nvcc version mismatch (expected $CUDA_VERSION)"
+    echo "$NVCC_OUT"
+    FAILED=1
+  fi
+else
+  echo "FAIL: nvcc not found in devel image"
+  FAILED=1
+fi
+
+# --- CUDA headers exist ---
+if [ -f /usr/local/cuda/include/cuda.h ]; then
+  echo "PASS: CUDA headers found"
+else
+  echo "FAIL: /usr/local/cuda/include/cuda.h not found"
+  FAILED=1
+fi
+
+# --- Compile and run cuda-samples (deviceQuery, vectorAdd) ---
+SAMPLES_DIR=$(mktemp -d)
+SAMPLES_TAG="v${CUDA_VERSION}"
+
+echo "Cloning cuda-samples ${SAMPLES_TAG}..."
+if git clone --depth 1 --branch "${SAMPLES_TAG}" \
+  https://github.com/NVIDIA/cuda-samples.git "$SAMPLES_DIR" &>/dev/null; then
+
+  # deviceQuery
+  echo "Building deviceQuery..."
+  if make -C "$SAMPLES_DIR/Samples/1_Utilities/deviceQuery" -j"$(nproc)" &>/dev/null; then
+    OUTPUT=$("$SAMPLES_DIR/Samples/1_Utilities/deviceQuery/deviceQuery" 2>&1)
+    if echo "$OUTPUT" | grep -q "Result = PASS"; then
+      echo "PASS: deviceQuery"
+    else
+      echo "FAIL: deviceQuery did not report PASS"
+      echo "$OUTPUT" | tail -5
+      FAILED=1
+    fi
+  else
+    echo "FAIL: deviceQuery failed to compile"
+    FAILED=1
+  fi
+
+  # vectorAdd
+  echo "Building vectorAdd..."
+  if make -C "$SAMPLES_DIR/Samples/0_Introduction/vectorAdd" -j"$(nproc)" &>/dev/null; then
+    OUTPUT=$("$SAMPLES_DIR/Samples/0_Introduction/vectorAdd/vectorAdd" 2>&1)
+    if echo "$OUTPUT" | grep -q "PASSED"; then
+      echo "PASS: vectorAdd"
+    else
+      echo "FAIL: vectorAdd did not report PASSED"
+      echo "$OUTPUT" | tail -5
+      FAILED=1
+    fi
+  else
+    echo "FAIL: vectorAdd failed to compile"
+    FAILED=1
+  fi
+else
+  echo "FAIL: could not clone cuda-samples ${SAMPLES_TAG}"
+  FAILED=1
+fi
+
+rm -rf "$SAMPLES_DIR"
+
+exit $FAILED
