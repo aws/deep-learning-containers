@@ -12,6 +12,9 @@ FROM $BASE_IMAGE AS base
 ARG PYTHON="python3"
 ARG EFA_VERSION="1.46.0"
 
+LABEL maintainer="Amazon AI"
+LABEL dlc_major_version="1"
+
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
@@ -109,8 +112,6 @@ RUN echo 'source /usr/local/bin/bash_telemetry.sh' >> /etc/bash.bashrc \
 # =======================================================
 
 FROM base AS sglang-sagemaker
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
@@ -130,9 +131,6 @@ ENTRYPOINT ["/usr/bin/serve"]
 # =======================================================
 
 FROM base AS sglang-ec2
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
