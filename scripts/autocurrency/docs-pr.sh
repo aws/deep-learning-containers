@@ -153,13 +153,14 @@ for i in $(seq 0 $(( pip_count - 1 ))); do
   output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
 
   version=$(docker run --rm --entrypoint /bin/bash "$IMAGE_URI" -c "pip show ${pkg_name} 2>/dev/null" | grep "^Version:" | awk '{print $2}' | sed 's/+.*//') || true
+  safe_key="${output_key//-/_}"
   if [ -n "$version" ]; then
     echo "  ✅ ${output_key}: ${version}"
-    declare "PKG_${output_key}=${version}"
+    declare "PKG_${safe_key}=${version}"
   else
     echo "::warning::Failed to extract version for pip package '${pkg_name}' (key: ${output_key})"
     FAILED_PACKAGES+=("$output_key")
-    declare "PKG_${output_key}="
+    declare "PKG_${safe_key}="
   fi
 done
 
@@ -239,7 +240,7 @@ packages_yaml=""
 for i in $(seq 0 $(( pip_count - 1 ))); do
   pkg_name=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].name" "$TRACKER")
   output_key=$(yq eval ".frameworks.${FRAMEWORK}.docs_packages.pip[$i].key // \"${pkg_name}\"" "$TRACKER")
-  env_var="PKG_${output_key}"
+  env_var="PKG_${output_key//-/_}"
   packages_yaml="${packages_yaml}  ${output_key}: \"${!env_var:-}\"\n"
 done
 
