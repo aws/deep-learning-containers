@@ -217,7 +217,8 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/common/install_efa_al2023.sh install_efa_al2023.sh
 ARG EFA_VERSION="1.47.0"
-RUN dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
+RUN dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64/cuda-rhel9.repo \
+  && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && bash install_efa_al2023.sh ${EFA_VERSION} \
   && rm install_efa_al2023.sh \
   && dnf remove -y libnccl-devel \
