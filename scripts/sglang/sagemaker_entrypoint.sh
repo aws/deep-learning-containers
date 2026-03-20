@@ -4,7 +4,7 @@
 bash /usr/local/bin/bash_telemetry.sh >/dev/null 2>&1 || true
 
 if command -v nvidia-smi >/dev/null 2>&1 && command -v nvcc >/dev/null 2>&1; then
-    bash /usr/local/bin/start_cuda_compat.sh
+    source /usr/local/bin/start_cuda_compat.sh
 fi
 
 echo "Starting server"
