@@ -2,7 +2,7 @@ name: PR - Lambda
 
 on:
   pull_request:
-    branches: [disabled-for-release-testing]
+    branches: [main]
     types: [opened, reopened, synchronize]
     paths:
       - "docker/lambda/**"

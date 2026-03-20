@@ -7,7 +7,9 @@ FROM $BASE_IMAGE AS base
 
 # ====================== common =========================================
 ARG PYTHON="python3"
+LABEL maintainer="Amazon AI"
 ARG EFA_VERSION="1.47.0"
+LABEL dlc_major_version="1"
 ENV DEBIAN_FRONTEND=noninteractive \
   LANG=C.UTF-8 \
   LC_ALL=C.UTF-8 \
@@ -28,13 +30,11 @@ RUN uv pip install --system \
   botocore \
   && uv cache clean
 
-# patch CVEs and sauron
+# patch CVEs
 RUN uv pip install --system \
   "pillow>=12.1.1" \
   "xgrammar>=0.1.32" \
   "PyJWT>=2.12.0" \
-  "model-hosting-container-standards>=0.1.14,<1.0.0" \
-  "pyasn1>=0.6.3" \
   && uv cache clean
 
 COPY ./scripts/telemetry/deep_learning_container.py /usr/local/bin/deep_learning_container.py
@@ -79,8 +79,6 @@ RUN bash install_efa.sh ${EFA_VERSION} \
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
@@ -96,8 +94,6 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # ====================== ray serve =========================================
 FROM base AS vllm-rayserve-ec2
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
 
 RUN uv pip install --system ray[serve]==2.49.0 \
   && uv cache clean
@@ -116,9 +112,6 @@ ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
 
 # ====================== sagemaker =========================================
 FROM base AS vllm-sagemaker
-LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
-LABEL dlc_minor_version="0"
 
 ARG CACHE_REFRESH=0
 RUN dpkg -l | grep -E "cuda|nvidia|libnv" | awk '{print $2}' | xargs apt-mark hold \
