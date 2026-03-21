@@ -1,6 +1,6 @@
 # Integration Tests — PyTorch AL2023 DLC
 
-These tests require real multi-node infrastructure (placement groups, EFA devices, multiple instances) and cannot run in the current DevBox or CI environment.
+These tests require real multi-node infrastructure (placement groups, EFA devices, multiple instances) and cannot run in the current CI environment.
 
 ## Planned Tests
 
