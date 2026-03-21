@@ -1,5 +1,7 @@
 """Verify filesystem layout: SageMaker paths, EFA, NCCL, GDRCopy, venv."""
 
+import os
+
 import pytest
 
 SAGEMAKER_PATHS = [
@@ -16,23 +18,23 @@ EFA_BINARIES = [
 
 
 @pytest.mark.parametrize("path", SAGEMAKER_PATHS)
-def test_sagemaker_path_exists(container_exec, path):
-    container_exec(f"test -d {path}")
+def test_sagemaker_path_exists(path):
+    assert os.path.isdir(path), f"{path} does not exist"
 
 
 @pytest.mark.parametrize("binary", EFA_BINARIES)
-def test_efa_binary_exists(container_exec, binary):
-    container_exec(f"test -x {binary}")
+def test_efa_binary_exists(binary):
+    assert os.access(binary, os.X_OK), f"{binary} not found or not executable"
 
 
-def test_nccl_config(container_exec):
-    out = container_exec("cat /etc/nccl.conf")
-    assert "NCCL_DEBUG=INFO" in out
+def test_nccl_config():
+    with open("/etc/nccl.conf") as f:
+        assert "NCCL_DEBUG=INFO" in f.read()
 
 
-def test_gdrcopy_lib(container_exec):
-    container_exec("test -f /usr/local/lib/libgdrapi.so")
+def test_gdrcopy_lib():
+    assert os.path.isfile("/usr/local/lib/libgdrapi.so")
 
 
-def test_venv_exists(container_exec):
-    container_exec("test -d /opt/venv/bin")
+def test_venv_exists():
+    assert os.path.isdir("/opt/venv/bin")
