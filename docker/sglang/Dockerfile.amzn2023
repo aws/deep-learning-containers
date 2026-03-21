@@ -19,8 +19,9 @@ ENV CUDA_HOME=/usr/local/cuda \
   FLASHINFER_VERSION=${FLASHINFER_VERSION}
 
 # System dependencies for building
-# Set CUDA repo to lower priority so AL2023-vended packages are preferred
-RUN dnf config-manager --save --setopt=cuda.priority=50 \
+# Set CUDA repo to lower priority so AL2023-vended packages (kernel-headers,
+# glib2, etc.) are preferred over NVIDIA's versions when both repos provide them.
+RUN sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python3.12 python3.12-devel python3.12-pip \
     gcc gcc-c++ make git git-lfs \
@@ -155,7 +156,7 @@ WORKDIR /
 # Set CUDA repo to lower priority so AL2023-vended packages (kernel-headers,
 # glib2, etc.) are preferred over NVIDIA's versions when both repos provide them.
 RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
-  && dnf config-manager --save --setopt=cuda.priority=50 \
+  && sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
   && dnf install -y --allowerasing --setopt=install_weak_deps=False \
     python3.12 python3.12-devel \
     ca-certificates wget curl git tar gzip \
