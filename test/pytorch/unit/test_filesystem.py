@@ -16,23 +16,23 @@ EFA_BINARIES = [
 
 
 @pytest.mark.parametrize("path", SAGEMAKER_PATHS)
-def test_sagemaker_path_exists(run_in_container, path):
-    run_in_container(f"test -d {path}")
+def test_sagemaker_path_exists(container_exec, path):
+    container_exec(f"test -d {path}")
 
 
 @pytest.mark.parametrize("binary", EFA_BINARIES)
-def test_efa_binary_exists(run_in_container, binary):
-    run_in_container(f"test -x {binary}")
+def test_efa_binary_exists(container_exec, binary):
+    container_exec(f"test -x {binary}")
 
 
-def test_nccl_config(run_in_container):
-    out = run_in_container("cat /etc/nccl.conf")
+def test_nccl_config(container_exec):
+    out = container_exec("cat /etc/nccl.conf")
     assert "NCCL_DEBUG=INFO" in out
 
 
-def test_gdrcopy_lib(run_in_container):
-    run_in_container("test -f /usr/local/lib/libgdrapi.so")
+def test_gdrcopy_lib(container_exec):
+    container_exec("test -f /usr/local/lib/libgdrapi.so")
 
 
-def test_venv_exists(run_in_container):
-    run_in_container("test -d /opt/venv/bin")
+def test_venv_exists(container_exec):
+    container_exec("test -d /opt/venv/bin")

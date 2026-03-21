@@ -1,75 +1,33 @@
-"""Fixtures for multi-node tests using a Docker bridge network with 2 containers."""
+"""Fixtures for multi-node tests.
 
+The workflow creates a Docker bridge network with 2 GPU containers and sets:
+  NODE0_CONTAINER_ID, NODE1_CONTAINER_ID
+"""
+
+import os
 import subprocess
-import uuid
 
 import pytest
 
-NETWORK_PREFIX = "dlc-test"
-
-
-def _run(cmd, **kwargs):
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=kwargs.get("timeout", 60))
-
 
 @pytest.fixture(scope="module")
-def multinode_cluster(image_uri):
-    """Spin up 2 GPU containers on a shared Docker network.
+def multinode_cluster():
+    """Provide exec access to the 2 containers started by the workflow."""
+    containers = {
+        "node0": os.environ.get("NODE0_CONTAINER_ID"),
+        "node1": os.environ.get("NODE1_CONTAINER_ID"),
+    }
+    if not all(containers.values()):
+        pytest.skip("NODE0_CONTAINER_ID / NODE1_CONTAINER_ID not set — run via workflow")
 
-    Yields a helper with .exec(node, cmd) and .get_logs(node) methods.
-    Cleans up containers and network on teardown.
-    """
-    net = f"{NETWORK_PREFIX}-{uuid.uuid4().hex[:8]}"
-    nodes = ["node0", "node1"]
-    containers = {}
-
-    # Create network
-    _run(["docker", "network", "create", net])
-
-    try:
-        # Start 2 detached containers with GPUs, sleeping forever
-        for name in nodes:
-            result = _run(
-                [
-                    "docker",
-                    "run",
-                    "-d",
-                    "--rm",
-                    f"--name={name}-{net}",
-                    f"--hostname={name}",
-                    f"--network={net}",
-                    "--gpus=all",
-                    "--shm-size=1g",
-                    image_uri,
-                    "sleep",
-                    "infinity",
-                ]
+    class Cluster:
+        def exec(self, node, cmd, timeout=120):
+            cid = containers[node]
+            return subprocess.run(
+                ["docker", "exec", cid, "bash", "-c", cmd],
+                capture_output=True,
+                text=True,
+                timeout=timeout,
             )
-            if result.returncode != 0:
-                raise RuntimeError(f"Failed to start {name}: {result.stderr}")
-            containers[name] = f"{name}-{net}"
 
-        class Cluster:
-            def exec(self, node, cmd, timeout=120):
-                """Run a command in the specified node container."""
-                cid = containers[node]
-                result = subprocess.run(
-                    ["docker", "exec", cid, "bash", "-c", cmd],
-                    capture_output=True,
-                    text=True,
-                    timeout=timeout,
-                )
-                return result
-
-            def get_logs(self, node):
-                cid = containers[node]
-                result = _run(["docker", "logs", cid])
-                return result.stdout
-
-        yield Cluster()
-
-    finally:
-        # Cleanup: stop containers, remove network
-        for cid in containers.values():
-            _run(["docker", "kill", cid])
-        _run(["docker", "network", "rm", net])
+    yield Cluster()

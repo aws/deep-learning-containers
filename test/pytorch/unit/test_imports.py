@@ -17,5 +17,5 @@ REQUIRED_PACKAGES = [
 
 
 @pytest.mark.parametrize("package", REQUIRED_PACKAGES)
-def test_import(run_in_container, package):
-    run_in_container(f"python -c 'import {package}'")
+def test_import(container_exec, package):
+    container_exec(f"python -c 'import {package}'")
