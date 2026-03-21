@@ -146,6 +146,8 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
+      # on runner scales sets, container run inside container cannot mount
+      # we need to copy models to the container
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
