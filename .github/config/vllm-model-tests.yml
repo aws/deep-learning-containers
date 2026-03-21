@@ -22,10 +22,6 @@ large:
     s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
     extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
 
-  - name: "llama-3.3-70b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
-    extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
-
 # upstream
 # facebook/opt-125m
 # meta-llama/Llama-3.2-1B-Instruct
