@@ -1,6 +1,12 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023
-# Multi-stage: builder → runtime → runtime-eks
+# Multi-stage build with parallel builder stages:
+#
+#   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
+#                  └── builder-te           (torch + cuDNN + transformer-engine)
+#   builder-gdrcopy ── (independent, parallel with all above)
+#
+#   runtime ── runtime-eks
 #
 # All version defaults match versions.env. Workflows pass --build-arg after
 # sourcing versions.env so there is a single source of truth.
@@ -17,41 +23,48 @@ ARG FLASH_ATTN_VERSION=2.7.4.post1
 ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
-# Compiler parallelism cap — prevents OOM on hosts where nproc > available RAM.
-# Default 8 is safe for 32GB+; override with --build-arg MAX_JOBS=16 on larger hosts.
+# Compiler parallelism cap per stage — prevents OOM when nproc > available RAM.
+# Default 8 is safe for 128GB builders; override with --build-arg MAX_JOBS=16.
 ARG MAX_JOBS=8
 
-# ── Stage: builder ──────────────────────────────────────────────────────────
-FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
-ARG PYTHON_VERSION
-ARG CUDNN_VERSION
-ARG FLASH_ATTN_VERSION
-ARG TRANSFORMER_ENGINE_VERSION
-ARG GDRCOPY_VERSION
-ARG MAX_JOBS
 
-# System build deps
+# ── Stage: builder-base (shared Python venv with lockfile deps) ─────────────
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-base
+ARG PYTHON_VERSION
+
 RUN dnf install -y --allowerasing \
   python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   gcc gcc-c++ make cmake git openssl-devel ninja-build \
   tar xz curl \
   && dnf clean all
 
-# uv package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-# Python venv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-# Install Python deps from lockfile (changes only when pyproject.toml/uv.lock change)
 COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# cuDNN devel headers — placed after uv sync so a cuDNN bump doesn't
-# invalidate the (expensive) lockfile install layer above.
+
+# ── Stage: builder-flash-attn (parallel — needs torch only) ─────────────────
+FROM builder-base AS builder-flash-attn
+ARG FLASH_ATTN_VERSION
+ARG MAX_JOBS
+
+RUN --mount=type=cache,target=/root/.cache/uv MAX_JOBS=${MAX_JOBS} \
+  uv pip install --no-build-isolation flash-attn==${FLASH_ATTN_VERSION}
+
+
+# ── Stage: builder-te (parallel — needs torch + cuDNN headers) ──────────────
+FROM builder-base AS builder-te
+ARG CUDNN_VERSION
+ARG TRANSFORMER_ENGINE_VERSION
+ARG MAX_JOBS
+
+# cuDNN devel headers for transformer-engine compilation
 RUN cd /tmp \
   && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz | tar xJ \
   && cp -a cudnn-*/include/* /usr/local/cuda/include/ \
@@ -59,16 +72,15 @@ RUN cd /tmp \
   && rm -rf /tmp/cudnn-* \
   && ldconfig
 
-# flash-attn and transformer-engine — compiled together in a single layer.
-# MAX_JOBS caps compiler parallelism to prevent OOM (each process ~2GB peak;
-# default 8 is safe for 128GB builders running both compilations in parallel).
 RUN --mount=type=cache,target=/root/.cache/uv MAX_JOBS=${MAX_JOBS} \
   uv pip install --no-build-isolation \
-  flash-attn==${FLASH_ATTN_VERSION} \
   transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}
-WORKDIR /
 
-# GDRCopy userspace library
+
+# ── Stage: builder-gdrcopy (parallel — independent of Python) ───────────────
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder-gdrcopy
+ARG GDRCOPY_VERSION
+
 COPY scripts/pytorch/install_gdrcopy.sh /tmp/install_gdrcopy.sh
 RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
@@ -102,14 +114,16 @@ RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
     util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
   && dnf clean all
 
-# Python venv from builder
-COPY --from=builder /opt/venv /opt/venv
+# Python venv (base packages from builder-base, then overlay compiled packages)
+COPY --from=builder-base /opt/venv /opt/venv
+COPY --from=builder-flash-attn /opt/venv/lib /opt/venv/lib
+COPY --from=builder-te /opt/venv/lib /opt/venv/lib
 
-# cuDNN runtime libs from builder (needed by transformer-engine)
-COPY --from=builder /usr/local/cuda/lib64/libcudnn* /usr/local/cuda/lib64/
+# cuDNN runtime libs (from builder-te where they were downloaded)
+COPY --from=builder-te /usr/local/cuda/lib64/libcudnn* /usr/local/cuda/lib64/
 
-# GDRCopy userspace lib from builder
-COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
+# GDRCopy userspace lib
+COPY --from=builder-gdrcopy /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ldconfig
 
 # EFA + OpenMPI
