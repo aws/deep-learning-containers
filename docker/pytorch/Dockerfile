@@ -63,10 +63,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   LC_ALL=C.UTF-8 \
   DLC_CONTAINER_TYPE=training
 
-# Minimal runtime deps
+# Minimal runtime deps (gcc needed for Triton/torch.compile JIT)
 RUN dnf install -y --allowerasing \
   python3.12 shadow-utils tar gzip curl which findutils \
-  util-linux cuda-nvcc-12-8 \
+  util-linux cuda-nvcc-12-8 gcc gcc-c++ \
   && dnf clean all
 
 # Python venv from builder
