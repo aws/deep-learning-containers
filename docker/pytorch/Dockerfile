@@ -1,6 +1,6 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023
-# Multi-stage: builder → base → eks
+# Multi-stage: builder → ec2 → eks
 #
 # All version defaults match versions.env. Workflows pass --build-arg after
 # sourcing versions.env so there is a single source of truth.
