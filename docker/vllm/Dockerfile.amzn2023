@@ -271,15 +271,15 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && rm install_efa_amzn2023.sh \
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
-  && rm -rf /usr/local/cuda/bin/nvdisasm* \
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+  && rm -rf /usr/local/cuda/bin/nvdisasm*
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --setopt=install_weak_deps=False \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
