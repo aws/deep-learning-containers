@@ -1,4 +1,4 @@
-name: Auto Release - SGLang SageMaker
+name: Auto Release - SGLang AML2023 EC2
 
 on:
   # schedule run must be on the default branch
@@ -24,7 +24,7 @@ env:
   FORCE_COLOR: "1"
 
   # Config file path
-  CONFIG_FILE: '.github/config/sglang-sagemaker.yml'
+  CONFIG_FILE: ".github/config/sglang-amzn2023-ec2.yml"
 
 jobs:
   load-config:
@@ -75,7 +75,7 @@ jobs:
     needs: [load-config]
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
-        fleet:x86-build-runner
+        fleet:x86-sglang-build-runner
         buildspec-override:true
     concurrency:
       group: ${{ github.workflow }}-build-image-${{ github.event.pull_request.number || github.run_id }}
@@ -91,14 +91,14 @@ jobs:
         uses: ./.github/actions/build-image
         with:
           framework: ${{ needs.load-config.outputs.framework }}
-          target: sglang-sagemaker
+          target: sglang-ec2
           base-image: lmsysorg/sglang:v${{ needs.load-config.outputs.framework-version }}-${{ needs.load-config.outputs.cuda-version }}-amd64
           framework-version: ${{ needs.load-config.outputs.framework-version }}
           container-type: ${{ needs.load-config.outputs.container-type }}
           aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
           aws-region: ${{ vars.AWS_REGION }}
-          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-sagemaker-${{ github.run_id }}
-          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile
+          tag-pr: ${{ needs.load-config.outputs.framework }}-${{ needs.load-config.outputs.framework-version }}-gpu-${{ needs.load-config.outputs.python-version }}-${{ needs.load-config.outputs.cuda-version }}-${{ needs.load-config.outputs.os-version }}-ec2-${{ github.run_id }}
+          dockerfile-path: docker/${{ needs.load-config.outputs.framework }}/Dockerfile.amzn2023
           arch-type: ${{ needs.load-config.outputs.arch-type }}
           device-type: ${{ needs.load-config.outputs.device-type }}
           cuda-version: ${{ needs.load-config.outputs.cuda-version }}
@@ -158,25 +158,16 @@ jobs:
         -v ${HOME}/.cache/huggingface:/root/.cache/huggingface
         -v ${TEST_ARTIFACTS_DIRECTORY}/dataset:/dataset
         -p 30000:30000
-        -e SM_SGLANG_MODEL_PATH=Qwen/Qwen3-0.6B
-        -e SM_SGLANG_REASONING_PARSER=qwen3
-        -e SM_SGLANG_HOST=127.0.0.1
-        -e SM_SGLANG_PORT=30000
         -e HF_TOKEN=${HF_TOKEN}
         ${IMAGE}
+        --model-path Qwen/Qwen3-0.6B
+        --reasoning-parser qwen3
+        --host 127.0.0.1
+        --port 30000
     secrets: inherit
 
-  endpoint-test:
-    needs: [build-image]
-    concurrency:
-      group: ${{ github.workflow }}-endpoint-test-${{ github.event.pull_request.number || github.run_id }}
-      cancel-in-progress: false
-    uses: ./.github/workflows/reusable-sglang-sagemaker-tests.yml
-    with:
-      image-uri: ${{ needs.build-image.outputs.ci-image }}
-
   generate-release-spec:
-    needs: [load-config, build-image, sanity-test, upstream-tests, endpoint-test]
+    needs: [load-config, build-image, sanity-test, upstream-tests]
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-generate-release-spec-${{ github.event.pull_request.number || github.run_id }}

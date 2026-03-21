@@ -1,10 +1,10 @@
-# SGLang SageMaker Image Configuration
-# This file contains all configuration for building, testing, and releasing the SGLang SageMaker image
+# SGLang AML2023 EC2 Image Configuration
+# This file contains all configuration for building, testing, and releasing the SGLang AML2023 EC2 image
 
 # Image identification
 image:
-  name: "sglang-sagemaker"
-  description: "SGLang for SageMaker"
+  name: "sglang-amzn2023-ec2"
+  description: "SGLang for EC2 instances (Amazon Linux 2023)"
 
 # Build configuration
 common:
@@ -13,10 +13,10 @@ common:
   job_type: "general"
   python_version: "py312"
   cuda_version: "cu129"
-  os_version: "ubuntu24.04"
-  customer_type: "sagemaker"
+  os_version: "amzn2023"
+  customer_type: "ec2"
   arch_type: "x86"
-  prod_image: "sglang:0.5-gpu-py312"
+  prod_image: "sglang:0.5-gpu-py312-amzn2023-ec2"
   device_type: "gpu"
   contributor: "None"
 
