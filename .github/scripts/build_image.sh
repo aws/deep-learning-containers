@@ -115,6 +115,9 @@ BUILD_CMD="${BUILD_CMD} \
   --target ${TARGET} \
   -f ${DOCKERFILE_PATH} ."
 
+# Ensure default docker builder is used
+docker buildx use default 2>/dev/null || true
+
 # Execute build
 echo "Executing build command..."
 echo "${BUILD_CMD}"
