@@ -17,6 +17,9 @@ ARG FLASH_ATTN_VERSION=2.7.4.post1
 ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 ARG GDRCOPY_VERSION=2.4.4
 ARG EFA_VERSION=1.47.0
+# Compiler parallelism cap — prevents OOM on hosts where nproc > available RAM.
+# Default 8 is safe for 32GB+; override with --build-arg MAX_JOBS=16 on larger hosts.
+ARG MAX_JOBS=8
 
 # ── Stage: builder ──────────────────────────────────────────────────────────
 FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
@@ -25,6 +28,7 @@ ARG CUDNN_VERSION
 ARG FLASH_ATTN_VERSION
 ARG TRANSFORMER_ENGINE_VERSION
 ARG GDRCOPY_VERSION
+ARG MAX_JOBS
 
 # System build deps
 RUN dnf install -y --allowerasing \
@@ -32,14 +36,6 @@ RUN dnf install -y --allowerasing \
   gcc gcc-c++ make cmake git openssl-devel ninja-build \
   tar xz curl \
   && dnf clean all
-
-# Install cuDNN devel headers (needed for transformer-engine compilation)
-RUN cd /tmp \
-  && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz | tar xJ \
-  && cp -a cudnn-*/include/* /usr/local/cuda/include/ \
-  && cp -a cudnn-*/lib/* /usr/local/cuda/lib64/ \
-  && rm -rf /tmp/cudnn-* \
-  && ldconfig
 
 # uv package manager
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
@@ -49,16 +45,26 @@ ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
 RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
-# Install Python deps from lockfile
+# Install Python deps from lockfile (changes only when pyproject.toml/uv.lock change)
 COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# Install flash-attn and transformer-engine sequentially to avoid OOM during
-# parallel compilation on memory-constrained CI runners.
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation \
-  flash-attn==${FLASH_ATTN_VERSION}
-RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation \
+# cuDNN devel headers — placed after uv sync so a cuDNN bump doesn't
+# invalidate the (expensive) lockfile install layer above.
+RUN cd /tmp \
+  && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz | tar xJ \
+  && cp -a cudnn-*/include/* /usr/local/cuda/include/ \
+  && cp -a cudnn-*/lib/* /usr/local/cuda/lib64/ \
+  && rm -rf /tmp/cudnn-* \
+  && ldconfig
+
+# flash-attn and transformer-engine — compiled together in a single layer.
+# MAX_JOBS caps compiler parallelism to prevent OOM (each process ~2GB peak;
+# default 8 is safe for 128GB builders running both compilations in parallel).
+RUN --mount=type=cache,target=/root/.cache/uv MAX_JOBS=${MAX_JOBS} \
+  uv pip install --no-build-isolation \
+  flash-attn==${FLASH_ATTN_VERSION} \
   transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}
 WORKDIR /
 
