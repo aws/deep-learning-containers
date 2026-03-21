@@ -198,4 +198,4 @@ jobs:
       environment: ${{ github.event_name == 'pull_request' && 'gamma' || fromJson(needs.load-config.outputs.config).release.environment }}
       aws-region: ${{ vars.AWS_REGION }}
       runner-fleet: default-runner
-    # secrets: inherit
+    secrets: inherit

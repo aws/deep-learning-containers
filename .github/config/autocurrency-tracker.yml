@@ -61,7 +61,8 @@ frameworks:
         - name: torchaudio
         - name: torchao
         - name: transformers
-        - name: flashinfer
+        - name: flashinfer-python
+          key: flashinfer
       system:
         - cuda
         - cudnn
