@@ -1,5 +1,7 @@
 """Verify key Python packages import successfully."""
 
+import importlib
+
 import pytest
 
 REQUIRED_PACKAGES = [
@@ -17,5 +19,5 @@ REQUIRED_PACKAGES = [
 
 
 @pytest.mark.parametrize("package", REQUIRED_PACKAGES)
-def test_import(run_in_container, package):
-    run_in_container(f"python -c 'import {package}'")
+def test_import(package):
+    importlib.import_module(package)

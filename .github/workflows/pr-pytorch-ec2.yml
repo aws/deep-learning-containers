@@ -1,0 +1,398 @@
+name: PR - PyTorch EC2
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize]
+    paths:
+      - "docker/pytorch/**"
+      - "scripts/pytorch/**"
+      - "test/pytorch/**"
+      - ".github/workflows/pr-pytorch-ec2.yml"
+      - "!docs/**"
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  FORCE_COLOR: "1"
+
+jobs:
+  # ============================================================
+  # Gate: permission check on base branch
+  # ============================================================
+  gatekeeper:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-gate-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout base branch (safe)
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          fetch-depth: 1
+
+      - name: Run permission gate (from base)
+        uses: ./.github/actions/pr-permission-gate
+
+  # ============================================================
+  # Pre-commit + change detection
+  # ============================================================
+  check-changes:
+    needs: [gatekeeper]
+    if: success()
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-check-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      build-change: ${{ steps.changes.outputs.build-change }}
+      test-only-change: ${{ steps.changes.outputs.test-only-change }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --all-files
+
+      - name: Detect file changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            build-change:
+              - "docker/pytorch/**"
+              - "scripts/pytorch/**"
+            test-only-change:
+              - "test/pytorch/**"
+
+  # ============================================================
+  # Build base + eks images
+  # ============================================================
+  build-images:
+    needs: [check-changes]
+    if: needs.check-changes.outputs.build-change == 'true' || needs.check-changes.outputs.test-only-change == 'true'
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-build-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-build-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    outputs:
+      base-image-uri: ${{ steps.build-base.outputs.image-uri }}
+      eks-image-uri: ${{ steps.build-eks.outputs.image-uri }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup buildkitd
+        run: .github/scripts/buildkitd.sh
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Source versions
+        id: versions
+        run: |
+          source docker/pytorch/versions.env
+          echo "torch-version=${TORCH_VERSION}" >> $GITHUB_OUTPUT
+          echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
+          echo "python-version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Build base image
+        id: build-base
+        run: |
+          source docker/pytorch/versions.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-base-pr-${{ github.event.pull_request.number }}"
+
+          docker buildx build --progress plain \
+            --build-arg CUDA_VERSION=${CUDA_VERSION} \
+            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
+            --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+            --build-arg TORCH_VERSION=${TORCH_VERSION} \
+            --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
+            --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
+            --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
+            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
+            --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
+            --build-arg EFA_VERSION=${EFA_VERSION} \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target base \
+            -f docker/pytorch/Dockerfile .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+      - name: Build EKS image
+        id: build-eks
+        run: |
+          source docker/pytorch/versions.env
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-eks-pr-${{ github.event.pull_request.number }}"
+
+          docker buildx build --progress plain \
+            --build-arg CUDA_VERSION=${CUDA_VERSION} \
+            --build-arg CUDNN_VERSION=${CUDNN_VERSION} \
+            --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+            --build-arg TORCH_VERSION=${TORCH_VERSION} \
+            --build-arg DLC_MAJOR_VERSION=${DLC_MAJOR_VERSION} \
+            --build-arg DLC_MINOR_VERSION=${DLC_MINOR_VERSION} \
+            --build-arg FLASH_ATTN_VERSION=${FLASH_ATTN_VERSION} \
+            --build-arg TRANSFORMER_ENGINE_VERSION=${TRANSFORMER_ENGINE_VERSION} \
+            --build-arg GDRCOPY_VERSION=${GDRCOPY_VERSION} \
+            --build-arg EFA_VERSION=${EFA_VERSION} \
+            --cache-to=type=inline \
+            --cache-from=type=registry,ref=${CI_IMAGE_URI} \
+            --tag ${CI_IMAGE_URI} \
+            --push \
+            --target eks \
+            -f docker/pytorch/Dockerfile .
+
+          echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
+
+  # ============================================================
+  # Sanity tests (labels, filesystem, OSS compliance)
+  # ============================================================
+  sanity-test:
+    needs: [build-images]
+    if: success()
+    uses: ./.github/workflows/reusable-sanity-tests.yml
+    with:
+      image-uri: ${{ needs.build-images.outputs.base-image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: pytorch
+      framework-version: ""
+      python-version: py312
+      cuda-version: cu128
+      os-version: amzn2023
+      arch-type: x86
+      device-type: gpu
+      contributor: None
+      container-type: training
+
+  # ============================================================
+  # Security tests (ECR scan, CVE allowlist)
+  # ============================================================
+  security-test:
+    needs: [build-images]
+    if: success()
+    uses: ./.github/workflows/reusable-security-tests.yml
+    with:
+      image-uri: ${{ needs.build-images.outputs.base-image-uri }}
+      aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+      aws-region: ${{ vars.AWS_REGION }}
+      framework: pytorch
+      framework-version: ""
+
+  # ============================================================
+  # Unit tests (CPU-only, no GPU needed)
+  # ============================================================
+  unit-test:
+    needs: [build-images]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:default-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-unit-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run unit tests (base image)
+        run: |
+          IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/ -v \
+            --ignore=/workdir/test/pytorch/unit/test_eks.py
+          docker kill ${CONTAINER_ID}
+
+      - name: Run unit tests (EKS image)
+        run: |
+          IMAGE="${{ needs.build-images.outputs.eks-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --user 1000:1000 --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/unit/test_eks.py -v
+          docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # Single-GPU tests
+  # ============================================================
+  single-gpu-test:
+    needs: [build-images, sanity-test, security-test, unit-test]
+    if: success()
+    runs-on:
+      - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+        fleet:x86-g6xl-runner
+        buildspec-override:true
+    concurrency:
+      group: ${{ github.workflow }}-single-gpu-${{ github.event.pull_request.number }}
+      cancel-in-progress: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: ECR login
+        uses: ./.github/actions/ecr-authenticate
+        with:
+          aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Run single-GPU tests
+        run: |
+          IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+          docker pull ${IMAGE}
+          CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+            --entrypoint /bin/bash \
+            -e DLC_WORKDIR=/workdir \
+            -v $(pwd):/workdir --workdir /workdir \
+            ${IMAGE} -c 'sleep infinity')
+          docker exec ${CONTAINER_ID} pip install pytest -q
+          docker exec ${CONTAINER_ID} pytest /workdir/test/pytorch/single_gpu/ -v
+          docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # Multi-GPU tests (need >=2 GPUs)
+  # TODO: Enable when multi-GPU CI runner fleet is available
+  # ============================================================
+  # multi-gpu-test:
+  #   needs: [single-gpu-test]
+  #   if: success()
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:x86-g6-12xl-runner
+  #       buildspec-override:true
+  #   concurrency:
+  #     group: ${{ github.workflow }}-multi-gpu-${{ github.event.pull_request.number }}
+  #     cancel-in-progress: true
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
+  #
+  #     - name: ECR login
+  #       uses: ./.github/actions/ecr-authenticate
+  #       with:
+  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #         aws-region: ${{ vars.AWS_REGION }}
+  #
+  #     - name: Run multi-GPU tests
+  #       run: |
+  #         IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+  #         docker pull ${IMAGE}
+  #         CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
+  #           --entrypoint /bin/bash \
+  #           -v $(pwd):/workdir --workdir /workdir \
+  #           ${IMAGE} -c 'sleep infinity')
+  #
+  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29500 \
+  #           /workdir/test/pytorch/multi_gpu/test_ddp.py
+  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29501 \
+  #           /workdir/test/pytorch/multi_gpu/test_fsdp.py
+  #         docker exec ${CONTAINER_ID} torchrun --nproc_per_node=2 --master_port=29502 \
+  #           /workdir/test/pytorch/multi_gpu/test_deepspeed.py
+  #
+  #         docker kill ${CONTAINER_ID}
+
+  # ============================================================
+  # Multi-node tests (need 2+ containers on Docker network)
+  # TODO: Enable when multi-node CI runner fleet is available
+  # ============================================================
+  # multi-node-test:
+  #   needs: [multi-gpu-test]
+  #   if: success()
+  #   runs-on:
+  #     - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
+  #       fleet:x86-g6-12xl-runner
+  #       buildspec-override:true
+  #   concurrency:
+  #     group: ${{ github.workflow }}-multi-node-${{ github.event.pull_request.number }}
+  #     cancel-in-progress: true
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v5
+  #
+  #     - name: ECR login
+  #       uses: ./.github/actions/ecr-authenticate
+  #       with:
+  #         aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
+  #         aws-region: ${{ vars.AWS_REGION }}
+  #
+  #     - name: Run multi-node tests
+  #       run: |
+  #         IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+  #         docker pull ${IMAGE}
+  #         docker network create testnet
+  #
+  #         NODE0=$(docker run -d --rm --gpus '"device=0"' --shm-size=2g \
+  #           --network=testnet --hostname=node0 --name=node0 \
+  #           --entrypoint /bin/bash \
+  #           -v $(pwd):/workdir --workdir /workdir \
+  #           ${IMAGE} -c 'sleep infinity')
+  #
+  #         NODE1=$(docker run -d --rm --gpus '"device=1"' --shm-size=2g \
+  #           --network=testnet --hostname=node1 --name=node1 \
+  #           --entrypoint /bin/bash \
+  #           -v $(pwd):/workdir --workdir /workdir \
+  #           ${IMAGE} -c 'sleep infinity')
+  #
+  #         # DDP multi-node
+  #         docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
+  #           --master_addr=node0 --master_port=29400 \
+  #           /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
+  #         docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
+  #           --master_addr=node0 --master_port=29400 \
+  #           /workdir/test/pytorch/multi_node/test_multinode_ddp.py &
+  #         wait
+  #
+  #         # NCCL all_reduce
+  #         docker exec node0 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=0 \
+  #           --master_addr=node0 --master_port=29401 \
+  #           /workdir/test/pytorch/multi_node/test_nccl_efa.py &
+  #         docker exec node1 torchrun --nnodes=2 --nproc_per_node=1 --node_rank=1 \
+  #           --master_addr=node0 --master_port=29401 \
+  #           /workdir/test/pytorch/multi_node/test_nccl_efa.py &
+  #         wait
+  #
+  #         docker kill node0 node1
+  #         docker network rm testnet
+
+  # ============================================================
+  # Integration tests (EFA, SageMaker, EKS)
+  # TODO: Enable when integration test infrastructure is available
+  # See test/pytorch/integration/TODO.md for planned tests
+  # ============================================================
+  # integration-test:
+  #   needs: [multi-node-test]
+  #   ...

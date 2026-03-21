@@ -1,21 +1,41 @@
 # ============================================================================
-# PyTorch 2.10.0 DLC — Amazon Linux 2023
+# PyTorch DLC — Amazon Linux 2023
 # Multi-stage: builder → base → eks
+#
+# All version defaults match versions.env. Workflows pass --build-arg after
+# sourcing versions.env so there is a single source of truth.
 # ============================================================================
 
+# ── Global ARGs (available to all stages) ───────────────────────────────────
+ARG CUDA_VERSION=12.8.1
+ARG CUDNN_VERSION=9.8.0.87
+ARG PYTHON_VERSION=3.12
+ARG TORCH_VERSION=2.10.0
+ARG DLC_MAJOR_VERSION=1
+ARG DLC_MINOR_VERSION=0
+ARG FLASH_ATTN_VERSION=2.7.4.post1
+ARG TRANSFORMER_ENGINE_VERSION=2.3.0
+ARG GDRCOPY_VERSION=2.4.4
+ARG EFA_VERSION=1.47.0
+
 # ── Stage: builder ──────────────────────────────────────────────────────────
-FROM nvidia/cuda:12.8.1-devel-amzn2023 AS builder
+FROM nvidia/cuda:${CUDA_VERSION}-devel-amzn2023 AS builder
+ARG PYTHON_VERSION
+ARG CUDNN_VERSION
+ARG FLASH_ATTN_VERSION
+ARG TRANSFORMER_ENGINE_VERSION
+ARG GDRCOPY_VERSION
 
 # System build deps
 RUN dnf install -y --allowerasing \
-  python3.12 python3.12-devel python3.12-pip \
+  python${PYTHON_VERSION} python${PYTHON_VERSION}-devel python${PYTHON_VERSION}-pip \
   gcc gcc-c++ make cmake git openssl-devel ninja-build \
   tar xz curl \
   && dnf clean all
 
 # Install cuDNN devel headers (needed for transformer-engine compilation)
 RUN cd /tmp \
-  && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-9.8.0.87_cuda12-archive.tar.xz | tar xJ \
+  && curl -sL https://developer.download.nvidia.com/compute/cudnn/redist/cudnn/linux-x86_64/cudnn-linux-x86_64-${CUDNN_VERSION}_cuda12-archive.tar.xz | tar xJ \
   && cp -a cudnn-*/include/* /usr/local/cuda/include/ \
   && cp -a cudnn-*/lib/* /usr/local/cuda/lib64/ \
   && rm -rf /tmp/cudnn-* \
@@ -26,7 +46,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Python venv
 ENV UV_PROJECT_ENVIRONMENT="/opt/venv"
-RUN python3.12 -m venv /opt/venv
+RUN python${PYTHON_VERSION} -m venv /opt/venv
 ENV PATH="/opt/venv/bin:${PATH}"
 
 # Install Python deps from lockfile
@@ -35,26 +55,30 @@ WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
 # Install flash-attn and transformer-engine (need torch, no build isolation)
-ARG FLASH_ATTN_VERSION=2.7.4.post1
-ARG TRANSFORMER_ENGINE_VERSION=2.3.0
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation \
   flash-attn==${FLASH_ATTN_VERSION} \
   transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}
 WORKDIR /
 
 # GDRCopy userspace library
-ARG GDRCOPY_VERSION=2.4.4
 COPY scripts/pytorch/install_gdrcopy.sh /tmp/install_gdrcopy.sh
 RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
 
 # ── Stage: base ─────────────────────────────────────────────────────────────
-FROM nvidia/cuda:12.8.1-runtime-amzn2023 AS base
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS base
+ARG CUDA_VERSION
+ARG PYTHON_VERSION
+ARG TORCH_VERSION
+ARG DLC_MAJOR_VERSION
+ARG DLC_MINOR_VERSION
+ARG EFA_VERSION
 
 LABEL maintainer="Amazon AI"
-LABEL dlc_major_version="1"
+LABEL dlc_major_version="${DLC_MAJOR_VERSION}"
+LABEL dlc_minor_version="${DLC_MINOR_VERSION}"
 LABEL framework="pytorch"
-LABEL framework_version="2.10.0"
+LABEL framework_version="${TORCH_VERSION}"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
   PYTHONUNBUFFERED=1 \
@@ -63,10 +87,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
   LC_ALL=C.UTF-8 \
   DLC_CONTAINER_TYPE=training
 
-# Minimal runtime deps (gcc + python3.12-devel needed for Triton/torch.compile JIT)
-RUN dnf install -y --allowerasing \
-  python3.12 python3.12-devel shadow-utils tar gzip curl which findutils \
-  util-linux cuda-nvcc-12-8 gcc gcc-c++ \
+# Derive cuda-nvcc package name: 12.8.1 → cuda-nvcc-12-8
+RUN CUDA_MAJOR_MINOR=$(echo "${CUDA_VERSION}" | cut -d. -f1,2 | tr '.' '-') \
+  && dnf install -y --allowerasing \
+    python${PYTHON_VERSION} python${PYTHON_VERSION}-devel shadow-utils tar gzip curl which findutils \
+    util-linux cuda-nvcc-${CUDA_MAJOR_MINOR} gcc gcc-c++ \
   && dnf clean all
 
 # Python venv from builder
@@ -80,7 +105,6 @@ COPY --from=builder /usr/local/lib/libgdrapi.so* /usr/local/lib/
 RUN ldconfig
 
 # EFA + OpenMPI
-ARG EFA_VERSION=1.47.0
 COPY scripts/pytorch/install_efa.sh /tmp/install_efa.sh
 RUN bash /tmp/install_efa.sh ${EFA_VERSION} && rm /tmp/install_efa.sh
 
@@ -101,7 +125,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # PATH and LD_LIBRARY_PATH
 ENV PATH="/opt/venv/bin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/cuda/bin:${PATH}" \
-  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
+  LD_LIBRARY_PATH="/opt/amazon/ofi-nccl/lib64:/opt/amazon/openmpi/lib:/opt/amazon/efa/lib:/usr/local/cuda/lib64:/usr/local/lib:${LD_LIBRARY_PATH}"
 
 EXPOSE 22
 WORKDIR /workspace

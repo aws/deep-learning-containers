@@ -1,14 +1,16 @@
 """Verify SSH configuration for base and EKS images."""
 
-
-def test_sshd_binary(run_in_container):
-    run_in_container("test -x /usr/sbin/sshd")
+import os
 
 
-def test_root_authorized_keys(run_in_container):
-    run_in_container("test -f /root/.ssh/authorized_keys")
+def test_sshd_binary():
+    assert os.access("/usr/sbin/sshd", os.X_OK)
 
 
-def test_strict_host_key_checking_disabled(run_in_container):
-    out = run_in_container("cat /root/.ssh/config")
-    assert "StrictHostKeyChecking no" in out
+def test_root_authorized_keys():
+    assert os.path.isfile("/root/.ssh/authorized_keys")
+
+
+def test_strict_host_key_checking_disabled():
+    with open("/root/.ssh/config") as f:
+        assert "StrictHostKeyChecking no" in f.read()
