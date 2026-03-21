@@ -121,8 +121,8 @@ echo "Executing build command..."
 echo "${BUILD_CMD}"
 eval ${BUILD_CMD}
 
-# Clean up local image
-docker rmi ${CI_IMAGE_URI}
+# Clean up local image (may not exist when using remote buildkitd)
+docker rmi ${CI_IMAGE_URI} 2>/dev/null || true
 
 echo "Build completed successfully!"
 echo "CI_IMAGE_URI=${CI_IMAGE_URI}"
