@@ -1,30 +1,26 @@
 # vLLM Model Smoke Test Configuration
 # Shared across all vLLM PR workflows
 #
-# small: Runs on CodeBuild fleet runners (single GPU instances)
-# large: Runs on self-hosted runner scale sets (multi-GPU instances)
+# codebuild-fleet: Runs on CodeBuild fleet runners (single GPU instances)
+# runner-scale-sets: Runs on self-hosted runner scale sets (multi-GPU instances)
+#
+# extra_args: passed directly to vllm serve (includes --tensor-parallel-size)
 
-small:
-  - name: "qwen3-0.6b"
-    s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-0.6b.tar.gz"
-    tp: 1
-    fleet: "x86-g6xl-runner"
+codebuild-fleet:
+  - name: "gpt-oss-20b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
+    fleet: "x86-g6exl-runner"
+    extra_args: "--tensor-parallel-size 1 --max-model-len 4096 --dtype float16"
 
-  # - name: "gpt-oss-20b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/gpt-oss-20b.tar.gz"
-  #   tp: 1
-  #   fleet: "x86-g6exl-runner"
+  - name: "llama-3.3-70b"
+    s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
+    fleet: "x86-g6e12xl-runner"
+    extra_args: "--tensor-parallel-size 4 --max-model-len 4096"
 
-large:
+runner-scale-sets:
   - name: "qwen3-32b"
     s3_path: "s3://dlc-cicd-models/vllm_models/qwen3-32b.tar.gz"
-    tp: 4
-
-   # TODO: Uncomment when model is uploaded to S3
-  # - name: "llama-3.3-70b"
-  #   s3_path: "s3://dlc-cicd-models/vllm_models/llama-3.3-70b.tar.gz"
-  #   tp: 4
-
+    extra_args: "--tensor-parallel-size 4 --max-model-len 8192"
 
 # upstream
 # facebook/opt-125m

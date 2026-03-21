@@ -23,8 +23,8 @@ jobs:
   load-models:
     runs-on: ubuntu-latest
     outputs:
-      small-matrix: ${{ steps.parse.outputs.small }}
-      large-matrix: ${{ steps.parse.outputs.large }}
+      codebuild-fleet-matrix: ${{ steps.parse.outputs.codebuild-fleet }}
+      runner-scale-sets-matrix: ${{ steps.parse.outputs.runner-scale-sets }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -36,22 +36,22 @@ jobs:
           import yaml, json
           with open('.github/config/vllm-model-tests.yml') as f:
               cfg = yaml.safe_load(f)
-          print('small=' + json.dumps(cfg.get('small', [])))
-          print('large=' + json.dumps(cfg.get('large', [])))
+          print('codebuild-fleet=' + json.dumps(cfg.get('codebuild-fleet', [])))
+          print('runner-scale-sets=' + json.dumps(cfg.get('runner-scale-sets', [])))
           " > parsed.txt
-          grep '^small=' parsed.txt | sed 's/^small=//' > small.json
-          grep '^large=' parsed.txt | sed 's/^large=//' > large.json
-          echo "small=$(cat small.json)" >> $GITHUB_OUTPUT
-          echo "large=$(cat large.json)" >> $GITHUB_OUTPUT
+          grep '^codebuild-fleet=' parsed.txt | sed 's/^codebuild-fleet=//' > cb.json
+          grep '^runner-scale-sets=' parsed.txt | sed 's/^runner-scale-sets=//' > rss.json
+          echo "codebuild-fleet=$(cat cb.json)" >> $GITHUB_OUTPUT
+          echo "runner-scale-sets=$(cat rss.json)" >> $GITHUB_OUTPUT
 
-  test-model-small:
+  test-model-codebuild-fleet:
     name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.small-matrix)[0] != null }}
+    if: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.small-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.codebuild-fleet-matrix) }}
     runs-on:
       - codebuild-runner-${{ github.run_id }}-${{ github.run_attempt }}
         fleet:${{ matrix.fleet }}
@@ -95,8 +95,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
             "/models/${{ matrix.name }}" \
-            "${{ matrix.tp }}" \
-            "${{ matrix.name }}"
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
 
       - name: Cleanup
         if: always()
@@ -106,14 +106,14 @@ jobs:
           docker rmi ${{ inputs.image-uri }} 2>/dev/null || true
           rm -rf ${{ github.workspace }}/dlc-models
 
-  test-model-large:
+  test-model-runner-scale-sets:
     name: test-model (${{ matrix.name }})
-    if: ${{ fromJson(needs.load-models.outputs.large-matrix)[0] != null }}
+    if: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix)[0] != null }}
     needs: [load-models]
     strategy:
       fail-fast: false
       matrix:
-        include: ${{ fromJson(needs.load-models.outputs.large-matrix) }}
+        include: ${{ fromJson(needs.load-models.outputs.runner-scale-sets-matrix) }}
     runs-on: gpu-efa-runners
     steps:
       - name: Checkout code
@@ -146,6 +146,8 @@ jobs:
             ${{ inputs.image-uri }})
           echo "CONTAINER_ID=$CONTAINER_ID" >> $GITHUB_ENV
 
+      # on runner scales sets, container run inside container cannot mount
+      # we need to copy models to the container
       - name: Copy files into container
         run: |
           docker exec ${CONTAINER_ID} mkdir -p /models
@@ -157,8 +159,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
             "/models/${{ matrix.name }}" \
-            "${{ matrix.tp }}" \
-            "${{ matrix.name }}"
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
 
       - name: Cleanup
         if: always()
