@@ -2,11 +2,12 @@
 set -euo pipefail
 
 # vLLM Model Smoke Test
-# Usage: vllm_model_smoke_test.sh <model_dir> <tp> <model_name>
+# Usage: vllm_model_smoke_test.sh <model_dir> <model_name> [extra_args...]
 
-MODEL_DIR="${1:?Usage: $0 <model_dir> <tp> <model_name>}"
-TP="${2:?Usage: $0 <model_dir> <tp> <model_name>}"
-MODEL_NAME="${3:?Usage: $0 <model_dir> <tp> <model_name>}"
+MODEL_DIR="${1:?Usage: $0 <model_dir> <model_name> [extra_args...]}"
+MODEL_NAME="${2:?Usage: $0 <model_dir> <model_name> [extra_args...]}"
+shift 2
+EXTRA_ARGS="$*"
 
 VLLM_PORT=8000
 HEALTH_TIMEOUT=600
@@ -15,10 +16,11 @@ HEALTH_INTERVAL=10
 echo "=== Model directory: ${MODEL_DIR} ==="
 ls -la "${MODEL_DIR}"
 
-echo "=== Starting vLLM server (tp=${TP}) ==="
+echo "=== Starting vLLM server ==="
+# shellcheck disable=SC2086
 vllm serve "${MODEL_DIR}" \
-  --tensor-parallel-size "${TP}" \
-  --port "${VLLM_PORT}" &
+  --port "${VLLM_PORT}" \
+  ${EXTRA_ARGS} &
 VLLM_PID=$!
 
 cleanup() {

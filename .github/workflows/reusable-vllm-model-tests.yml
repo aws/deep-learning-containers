@@ -95,8 +95,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
             "/models/${{ matrix.name }}" \
-            "${{ matrix.tp }}" \
-            "${{ matrix.name }}"
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
 
       - name: Cleanup
         if: always()
@@ -157,8 +157,8 @@ jobs:
         run: |
           docker exec ${CONTAINER_ID} bash /models/vllm_model_smoke_test.sh \
             "/models/${{ matrix.name }}" \
-            "${{ matrix.tp }}" \
-            "${{ matrix.name }}"
+            "${{ matrix.name }}" \
+            ${{ matrix.extra_args }}
 
       - name: Cleanup
         if: always()
