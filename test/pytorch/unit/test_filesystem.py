@@ -29,7 +29,9 @@ def test_efa_binary_exists(binary):
 
 def test_nccl_config():
     with open("/etc/nccl.conf") as f:
-        assert "NCCL_DEBUG=INFO" in f.read()
+        content = f.read()
+    assert "NCCL_DEBUG=INFO" in content
+    assert "NCCL_SOCKET_IFNAME" in content
 
 
 def test_gdrcopy_lib():

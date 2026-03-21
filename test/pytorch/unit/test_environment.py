@@ -1,5 +1,6 @@
 """Verify environment variables, critical binaries, and NCCL/EFA setup."""
 
+import ctypes
 import os
 import shutil
 import subprocess
@@ -7,7 +8,23 @@ import subprocess
 import pytest
 
 
-class TestEnvironment:
+class TestContainerEnv:
+    """Verify container-level environment variables set in the Dockerfile."""
+
+    def test_dlc_container_type(self):
+        assert os.environ.get("DLC_CONTAINER_TYPE") == "training"
+
+    def test_pythondontwritebytecode(self):
+        assert os.environ.get("PYTHONDONTWRITEBYTECODE") == "1"
+
+    def test_pythonunbuffered(self):
+        assert os.environ.get("PYTHONUNBUFFERED") == "1"
+
+    def test_lang(self):
+        assert os.environ.get("LANG") == "C.UTF-8"
+
+
+class TestPath:
     """Verify PATH and LD_LIBRARY_PATH contain required directories."""
 
     @pytest.mark.parametrize(
@@ -46,8 +63,19 @@ class TestNCCLAndEFA:
     """Verify NCCL and OFI NCCL plugin are properly installed."""
 
     def test_ofi_nccl_plugin_exists(self):
-        assert os.path.isfile("/opt/amazon/ofi-nccl/lib/libnccl-net.so")
+        assert os.path.isfile("/opt/amazon/ofi-nccl/lib64/libnccl-net.so")
 
     def test_efa_libfabric_provider(self):
         out = subprocess.check_output(["fi_info", "--version"], text=True, stderr=subprocess.STDOUT)
         assert "libfabric" in out.lower()
+
+
+class TestCuDNN:
+    """Verify cuDNN runtime libraries are present and loadable."""
+
+    def test_cudnn_lib_exists(self):
+        libs = [f for f in os.listdir("/usr/local/cuda/lib64") if f.startswith("libcudnn")]
+        assert len(libs) > 0, "No cuDNN libraries found in /usr/local/cuda/lib64"
+
+    def test_cudnn_loadable(self):
+        ctypes.CDLL("libcudnn.so")
