@@ -7,7 +7,7 @@ Pre-built Deep Learning Container for PyTorch training on AWS.
 | Component | Version |
 |---|---|
 | PyTorch | 2.10.0 |
-| CUDA | 12.8.1 |
+| CUDA | 12.9.1 |
 | cuDNN | 9.8.0 |
 | NCCL | 2.26.2 |
 | Python | 3.12 |
@@ -44,10 +44,10 @@ installed via `uv` from a locked dependency set.
 ## Tag Scheme
 
 ```text
-pytorch-al2023:2.10.0-cu128-al2023-YYYYMMDD      # date-stamped base
-pytorch-al2023:2.10.0-cu128-al2023                # latest base
-pytorch-al2023:2.10.0-cu128-al2023-eks-YYYYMMDD   # date-stamped EKS
-pytorch-al2023:2.10.0-cu128-al2023-eks             # latest EKS
+pytorch-al2023:2.10.0-cu129-al2023-YYYYMMDD      # date-stamped base
+pytorch-al2023:2.10.0-cu129-al2023                # latest base
+pytorch-al2023:2.10.0-cu129-al2023-eks-YYYYMMDD   # date-stamped EKS
+pytorch-al2023:2.10.0-cu129-al2023-eks             # latest EKS
 pytorch-al2023:latest                              # latest base
 ```
 
@@ -58,12 +58,12 @@ source docker/pytorch/versions.env
 
 # Runtime image (root — EC2, ECS, Batch, SageMaker)
 docker build --target runtime \
-  -t pytorch-al2023:${TORCH_VERSION}-cu128-al2023 \
+  -t pytorch-al2023:${TORCH_VERSION}-cu129-al2023 \
   -f docker/pytorch/Dockerfile .
 
 # Runtime-EKS image (non-root)
 docker build --target runtime-eks \
-  -t pytorch-al2023:${TORCH_VERSION}-cu128-al2023-eks \
+  -t pytorch-al2023:${TORCH_VERSION}-cu129-al2023-eks \
   -f docker/pytorch/Dockerfile .
 ```
 
@@ -73,7 +73,7 @@ docker build --target runtime-eks \
 
 ```bash
 docker run --gpus all --shm-size=1g -v /data:/data \
-  pytorch-al2023:2.10.0-cu128-al2023 \
+  pytorch-al2023:2.10.0-cu129-al2023 \
   torchrun --nproc_per_node=8 /data/train.py
 ```
 
@@ -89,7 +89,7 @@ spec:
         spec:
           containers:
             - name: pytorch
-              image: pytorch-al2023:2.10.0-cu128-al2023-eks
+              image: pytorch-al2023:2.10.0-cu129-al2023-eks
               resources:
                 limits:
                   nvidia.com/gpu: 4
@@ -99,7 +99,7 @@ spec:
         spec:
           containers:
             - name: pytorch
-              image: pytorch-al2023:2.10.0-cu128-al2023-eks
+              image: pytorch-al2023:2.10.0-cu129-al2023-eks
               resources:
                 limits:
                   nvidia.com/gpu: 4
@@ -111,7 +111,7 @@ spec:
 from sagemaker.estimator import Estimator
 
 estimator = Estimator(
-    image_uri="<account>.dkr.ecr.<region>.amazonaws.com/pytorch-al2023:2.10.0-cu128-al2023",
+    image_uri="<account>.dkr.ecr.<region>.amazonaws.com/pytorch-al2023:2.10.0-cu129-al2023",
     role="<role-arn>",
     instance_count=2,
     instance_type="ml.p4d.24xlarge",

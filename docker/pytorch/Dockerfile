@@ -13,7 +13,7 @@
 # ============================================================================
 
 # ── Global ARGs (available to all stages) ───────────────────────────────────
-ARG CUDA_VERSION=12.8.1
+ARG CUDA_VERSION=12.9.1
 ARG CUDNN_VERSION=9.8.0.87
 ARG PYTHON_VERSION=3.12
 ARG TORCH_VERSION=2.10.0
