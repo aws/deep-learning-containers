@@ -34,6 +34,7 @@ RUN sed -i '/^\[cuda\]/a priority=50' /etc/yum.repos.d/cuda.repo \
     hiredis-devel libcurl-devel \
     libfabric-devel \
     ninja-build \
+  && dnf --repo=amazonlinux downgrade -y kernel-headers \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Set Python 3.12 as default, preserve dnf's system python
@@ -170,6 +171,7 @@ RUN CUDA_DASH=$(echo ${CUDA_VERSION} | cut -d. -f1,2 | tr '.' '-') \
     cuda-cuobjdump-${CUDA_DASH} \
     cuda-cudart-devel-${CUDA_DASH} \
     gcc gcc-c++ make which hostname findutils \
+  && dnf --repo=amazonlinux downgrade -y kernel-headers \
   && dnf clean all && rm -rf /var/cache/dnf
 
 # Install EFA (must be before Python 3.12 becomes default — dnf needs system Python 3.9)
