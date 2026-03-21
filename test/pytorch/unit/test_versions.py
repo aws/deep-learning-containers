@@ -1,12 +1,15 @@
 """Verify installed package versions match pins from versions.env."""
 
+import os
 import re
 import subprocess
 
 import pytest
 
-# versions.env is volume-mounted at /workdir/docker/pytorch/versions.env
-VERSIONS_ENV = "/workdir/docker/pytorch/versions.env"
+# The workflow sets DLC_WORKDIR to the repo root inside the container.
+VERSIONS_ENV = os.path.join(
+    os.environ.get("DLC_WORKDIR", "/workdir"), "docker", "pytorch", "versions.env"
+)
 
 
 def _parse_versions_env():

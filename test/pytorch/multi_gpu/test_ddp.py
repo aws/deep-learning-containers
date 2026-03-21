@@ -17,6 +17,7 @@ def test_ddp_training():
     rank = dist.get_rank()
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
+    torch.manual_seed(42)
 
     model = DDP(nn.Linear(32, 1).cuda(), device_ids=[local_rank])
     opt = torch.optim.SGD(model.parameters(), lr=0.01)

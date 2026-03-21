@@ -24,11 +24,14 @@ def test_gpu_memory_cleanup():
     torch.cuda.empty_cache()
     baseline = torch.cuda.memory_allocated()
     x = torch.randn(1024, 1024, device="cuda")
-    assert torch.cuda.memory_allocated() > baseline
+    peak = torch.cuda.memory_allocated()
+    assert peak > baseline
     del x
     gc.collect()
     torch.cuda.empty_cache()
-    assert torch.cuda.memory_allocated() <= baseline + 1024
+    freed = torch.cuda.memory_allocated()
+    # Allow up to 1MB slack for CUDA allocator fragmentation
+    assert freed <= baseline + 1024 * 1024, f"Memory not freed: baseline={baseline}, after={freed}"
 
 
 def test_amp_grad_scaler():

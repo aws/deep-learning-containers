@@ -8,6 +8,11 @@ def test_cuda_available():
     assert torch.cuda.is_available()
 
 
+def test_nccl_library_loadable():
+    """Verify NCCL can be loaded by PyTorch."""
+    assert torch.cuda.nccl.is_available((torch.randn(1),))
+
+
 def test_device_count():
     assert torch.cuda.device_count() >= 1
 

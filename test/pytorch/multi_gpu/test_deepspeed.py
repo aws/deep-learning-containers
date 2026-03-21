@@ -17,6 +17,7 @@ DS_CONFIG = {
 
 
 def main():
+    torch.manual_seed(42)
     model = nn.Sequential(nn.Linear(32, 128), nn.ReLU(), nn.Linear(128, 1))
     opt = torch.optim.Adam(model.parameters(), lr=1e-2)
     engine, opt, _, _ = deepspeed.initialize(model=model, optimizer=opt, config=DS_CONFIG)

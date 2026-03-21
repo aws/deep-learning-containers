@@ -7,6 +7,7 @@ import torch.nn as nn
 
 
 def test_training_loss_decreases():
+    torch.manual_seed(42)
     m = nn.Sequential(nn.Linear(32, 64), nn.ReLU(), nn.Linear(64, 1)).cuda()
     opt = torch.optim.Adam(m.parameters())
     x = torch.randn(128, 32, device="cuda")

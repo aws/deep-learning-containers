@@ -17,6 +17,7 @@ def main():
     rank = dist.get_rank()
     local_rank = int(os.environ["LOCAL_RANK"])
     torch.cuda.set_device(local_rank)
+    torch.manual_seed(42)
 
     model = FSDP(nn.Sequential(nn.Linear(32, 64), nn.ReLU(), nn.Linear(64, 1)).cuda())
     opt = torch.optim.Adam(model.parameters(), lr=1e-3)

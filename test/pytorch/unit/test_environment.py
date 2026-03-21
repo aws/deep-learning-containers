@@ -48,11 +48,6 @@ class TestNCCLAndEFA:
     def test_ofi_nccl_plugin_exists(self):
         assert os.path.isfile("/opt/amazon/ofi-nccl/lib/libnccl-net.so")
 
-    def test_nccl_library_loadable(self):
-        import torch
-
-        assert torch.cuda.nccl.is_available((torch.randn(1),))
-
     def test_efa_libfabric_provider(self):
         out = subprocess.check_output(["fi_info", "--version"], text=True, stderr=subprocess.STDOUT)
         assert "libfabric" in out.lower()
