@@ -54,9 +54,11 @@ COPY docker/pytorch/pyproject.toml docker/pytorch/uv.lock /tmp/build/
 WORKDIR /tmp/build
 RUN --mount=type=cache,target=/root/.cache/uv uv sync --frozen --no-dev --no-install-project
 
-# Install flash-attn and transformer-engine (need torch, no build isolation)
+# Install flash-attn and transformer-engine sequentially to avoid OOM during
+# parallel compilation on memory-constrained CI runners.
 RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation \
-  flash-attn==${FLASH_ATTN_VERSION} \
+  flash-attn==${FLASH_ATTN_VERSION}
+RUN --mount=type=cache,target=/root/.cache/uv uv pip install --no-build-isolation \
   transformer-engine[pytorch]==${TRANSFORMER_ENGINE_VERSION}
 WORKDIR /
 
