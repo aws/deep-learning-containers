@@ -108,8 +108,9 @@ fi
 
 # Complete the build command
 BUILD_CMD="${BUILD_CMD} \
-  --cache-to=type=registry,ref=${CI_IMAGE_URI}-cache,mode=max \
+  --cache-to=type=inline \
   --cache-from=type=registry,ref=${CI_IMAGE_URI}-cache \
+  --cache-from=type=registry,ref=${CI_IMAGE_URI} \
   --tag ${CI_IMAGE_URI} \
   --push \
   --target ${TARGET} \

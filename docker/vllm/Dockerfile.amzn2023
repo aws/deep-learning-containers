@@ -279,9 +279,24 @@ FROM base AS vllm-ec2-amzn2023
 ARG CACHE_REFRESH=0
 RUN dnf upgrade -y --setopt=install_weak_deps=False \
   && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  # dnf needs system python 3.9
   && ln -sf /opt/venv/bin/python3 /usr/bin/python3
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/dockerd_entrypoint.sh"]
+
+# ====================== sagemaker =========================================
+FROM base AS vllm-sagemaker-amzn2023
+
+ARG CACHE_REFRESH=0
+RUN dnf upgrade -y --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
+  # dnf needs system python 3.9
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+
+COPY ./scripts/vllm/sagemaker_entrypoint.sh /usr/local/bin/sagemaker_entrypoint.sh
+RUN chmod +x /usr/local/bin/sagemaker_entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/sagemaker_entrypoint.sh"]
