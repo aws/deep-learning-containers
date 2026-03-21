@@ -255,8 +255,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
   && rm -rf /tmp/uv* \
@@ -273,6 +271,10 @@ RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.n
   && dnf remove -y libnccl-devel \
   && dnf clean all && rm -rf /var/cache/dnf \
   && rm -rf /usr/local/cuda/bin/nvdisasm*
+
+# Symlink python3 to venv after all dnf operations are done
+RUN ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
+  && ln -sf /opt/venv/bin/python3 /usr/bin/python
 
 # ====================== ec2 =========================================
 FROM base AS vllm-ec2-amzn2023
