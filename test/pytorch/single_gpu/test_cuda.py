@@ -28,16 +28,15 @@ def test_gpu_tensor_matmul(run_in_container):
 
 @pytest.mark.parametrize("dtype", ["float16", "bfloat16"])
 def test_amp_autocast(run_in_container, dtype):
-    run_in_container(
-        f'python -c "'
-        f"import torch; "
-        f"with torch.amp.autocast('cuda', dtype=torch.{dtype}): "
-        f"  x = torch.randn(64, 64, device='cuda'); "
-        f"  y = x @ x; "
-        f"assert y.dtype == torch.{dtype}; "
-        f"print('ok')\"",
-        gpu=True,
+    script = (
+        "import torch\n"
+        f"with torch.amp.autocast('cuda', dtype=torch.{dtype}):\n"
+        "    x = torch.randn(64, 64, device='cuda')\n"
+        "    y = x @ x\n"
+        f"assert y.dtype == torch.{dtype}\n"
+        "print('ok')"
     )
+    run_in_container(f'python -c "{script}"', gpu=True)
 
 
 def test_torch_compile(run_in_container):
