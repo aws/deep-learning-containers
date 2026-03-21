@@ -21,6 +21,7 @@ def main():
     torch.cuda.set_device(local_rank)
     torch.manual_seed(42)
 
+    # --- Test 1: training loss decreases ---
     model = DDP(nn.Linear(32, 1).cuda(), device_ids=[local_rank])
     opt = torch.optim.SGD(model.parameters(), lr=0.01)
     x = torch.randn(64, 32, device="cuda")
@@ -35,11 +36,27 @@ def main():
         loss.backward()
         opt.step()
 
-    if rank == 0:
-        assert loss.item() < first, f"Loss did not decrease: {first} -> {loss.item()}"
-        print("ok")
+    assert loss.item() < first, f"Loss did not decrease: {first} -> {loss.item()}"
+
+    # --- Test 2: gradients are synchronized across nodes ---
+    torch.manual_seed(42)
+    model2 = DDP(nn.Linear(32, 1).cuda(), device_ids=[local_rank])
+    x2 = torch.randn(16, 32, device="cuda") * (rank + 1)
+    y2 = torch.randn(16, 1, device="cuda")
+    loss2 = nn.functional.mse_loss(model2(x2), y2)
+    loss2.backward()
+
+    grad = model2.module.weight.grad.clone()
+    gathered = [torch.zeros_like(grad) for _ in range(dist.get_world_size())]
+    dist.all_gather(gathered, grad)
+    for i in range(1, len(gathered)):
+        assert torch.allclose(gathered[0], gathered[i], atol=1e-6), (
+            f"Gradients differ between rank 0 and rank {i}"
+        )
 
     dist.destroy_process_group()
+    if rank == 0:
+        print("ok")
 
 
 if __name__ == "__main__":
