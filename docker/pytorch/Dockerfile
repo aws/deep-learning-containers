@@ -1,5 +1,5 @@
 # ============================================================================
-# PyTorch DLC — Amazon Linux 2023
+# PyTorch DLC — Amazon Linux 2023 (CUDA 12.9)
 # Multi-stage build with parallel builder stages:
 #
 #   builder-base ──┬── builder-flash-attn   (torch + flash-attn)
