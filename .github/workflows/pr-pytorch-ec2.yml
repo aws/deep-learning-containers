@@ -89,8 +89,8 @@ jobs:
       group: ${{ github.workflow }}-build-${{ github.event.pull_request.number }}
       cancel-in-progress: true
     outputs:
-      base-image-uri: ${{ steps.build-base.outputs.image-uri }}
-      eks-image-uri: ${{ steps.build-eks.outputs.image-uri }}
+      runtime-image-uri: ${{ steps.build-runtime.outputs.image-uri }}
+      runtime-eks-image-uri: ${{ steps.build-runtime-eks.outputs.image-uri }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -112,11 +112,11 @@ jobs:
           echo "cuda-version=${CUDA_VERSION}" >> $GITHUB_OUTPUT
           echo "python-version=${PYTHON_VERSION}" >> $GITHUB_OUTPUT
 
-      - name: Build base image
-        id: build-base
+      - name: Build runtime image
+        id: build-runtime
         run: |
           source docker/pytorch/versions.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-base-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
@@ -134,16 +134,16 @@ jobs:
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
             --push \
-            --target base \
+            --target runtime \
             -f docker/pytorch/Dockerfile .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
 
-      - name: Build EKS image
-        id: build-eks
+      - name: Build runtime-eks image
+        id: build-runtime-eks
         run: |
           source docker/pytorch/versions.env
-          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-eks-pr-${{ github.event.pull_request.number }}"
+          CI_IMAGE_URI="${{ vars.CI_AWS_ACCOUNT_ID }}.dkr.ecr.${{ vars.AWS_REGION }}.amazonaws.com/ci:pytorch-runtime-eks-pr-${{ github.event.pull_request.number }}"
 
           docker buildx build --progress plain \
             --build-arg CUDA_VERSION=${CUDA_VERSION} \
@@ -161,7 +161,7 @@ jobs:
             --cache-from=type=registry,ref=${CI_IMAGE_URI} \
             --tag ${CI_IMAGE_URI} \
             --push \
-            --target eks \
+            --target runtime-eks \
             -f docker/pytorch/Dockerfile .
 
           echo "image-uri=${CI_IMAGE_URI}" >> $GITHUB_OUTPUT
@@ -174,7 +174,7 @@ jobs:
     if: success()
     uses: ./.github/workflows/reusable-sanity-tests.yml
     with:
-      image-uri: ${{ needs.build-images.outputs.base-image-uri }}
+      image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: pytorch
@@ -195,7 +195,7 @@ jobs:
     if: success()
     uses: ./.github/workflows/reusable-security-tests.yml
     with:
-      image-uri: ${{ needs.build-images.outputs.base-image-uri }}
+      image-uri: ${{ needs.build-images.outputs.runtime-image-uri }}
       aws-account-id: ${{ vars.CI_AWS_ACCOUNT_ID }}
       aws-region: ${{ vars.AWS_REGION }}
       framework: pytorch
@@ -226,7 +226,7 @@ jobs:
 
       - name: Run unit tests (base image)
         run: |
-          IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+          IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --entrypoint /bin/bash \
             -e DLC_WORKDIR=/workdir \
@@ -239,7 +239,7 @@ jobs:
 
       - name: Run unit tests (EKS image)
         run: |
-          IMAGE="${{ needs.build-images.outputs.eks-image-uri }}"
+          IMAGE="${{ needs.build-images.outputs.runtime-eks-image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --user 1000:1000 --entrypoint /bin/bash \
             -e DLC_WORKDIR=/workdir \
@@ -274,7 +274,7 @@ jobs:
 
       - name: Run single-GPU tests
         run: |
-          IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+          IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
           docker pull ${IMAGE}
           CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
             --entrypoint /bin/bash \
@@ -311,7 +311,7 @@ jobs:
   #
   #     - name: Run multi-GPU tests
   #       run: |
-  #         IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+  #         IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
   #         docker pull ${IMAGE}
   #         CONTAINER_ID=$(docker run -d --rm --gpus all --shm-size=2g \
   #           --entrypoint /bin/bash \
@@ -353,7 +353,7 @@ jobs:
   #
   #     - name: Run multi-node tests
   #       run: |
-  #         IMAGE="${{ needs.build-images.outputs.base-image-uri }}"
+  #         IMAGE="${{ needs.build-images.outputs.runtime-image-uri }}"
   #         docker pull ${IMAGE}
   #         docker network create testnet
   #

@@ -1,6 +1,6 @@
 # ============================================================================
 # PyTorch DLC — Amazon Linux 2023
-# Multi-stage: builder → ec2 → eks
+# Multi-stage: builder → runtime → runtime-eks
 #
 # All version defaults match versions.env. Workflows pass --build-arg after
 # sourcing versions.env so there is a single source of truth.
@@ -73,8 +73,8 @@ COPY scripts/pytorch/install_gdrcopy.sh /tmp/install_gdrcopy.sh
 RUN bash /tmp/install_gdrcopy.sh ${GDRCOPY_VERSION} && rm /tmp/install_gdrcopy.sh
 
 
-# ── Stage: base ─────────────────────────────────────────────────────────────
-FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS base
+# ── Stage: runtime (EC2 / ECS / Batch / SageMaker) ──────────────────────────
+FROM nvidia/cuda:${CUDA_VERSION}-runtime-amzn2023 AS runtime
 ARG CUDA_VERSION
 ARG PYTHON_VERSION
 ARG TORCH_VERSION
@@ -141,8 +141,8 @@ ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["bash"]
 
 
-# ── Stage: eks ──────────────────────────────────────────────────────────────
-FROM base AS eks
+# ── Stage: runtime-eks ───────────────────────────────────────────────────────
+FROM runtime AS runtime-eks
 
 # Non-root user
 RUN groupadd -g 1000 mluser \

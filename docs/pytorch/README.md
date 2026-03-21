@@ -56,13 +56,13 @@ pytorch-al2023:latest                              # latest base
 ```bash
 source docker/pytorch/versions.env
 
-# Base image (root, all platforms)
-docker build --target base \
+# Runtime image (root — EC2, ECS, Batch, SageMaker)
+docker build --target runtime \
   -t pytorch-al2023:${TORCH_VERSION}-cu128-al2023 \
   -f docker/pytorch/Dockerfile .
 
-# EKS image (non-root)
-docker build --target eks \
+# Runtime-EKS image (non-root)
+docker build --target runtime-eks \
   -t pytorch-al2023:${TORCH_VERSION}-cu128-al2023-eks \
   -f docker/pytorch/Dockerfile .
 ```
@@ -175,5 +175,5 @@ uv lock --upgrade
 # Rebuild image — dnf update runs during build
 
 # Update system packages only
-docker build --no-cache --target base ...
+docker build --no-cache --target runtime ...
 ```
