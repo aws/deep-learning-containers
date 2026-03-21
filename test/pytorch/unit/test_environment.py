@@ -37,7 +37,7 @@ class TestPath:
     @pytest.mark.parametrize(
         "directory",
         [
-            "/opt/amazon/ofi-nccl/lib",
+            "/opt/amazon/ofi-nccl/lib64",
             "/opt/amazon/openmpi/lib",
             "/opt/amazon/efa/lib",
             "/usr/local/cuda/lib64",
