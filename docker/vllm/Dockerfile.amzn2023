@@ -255,7 +255,6 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
   && rm /tmp/bash_telemetry.sh.template \
   && echo 'source /usr/local/bin/bash_telemetry.sh' >>/etc/bashrc \
   && bash setup_oss_compliance.sh ${PYTHON} && rm setup_oss_compliance.sh \
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3 \
   && ln -sf /opt/venv/bin/python3 /usr/bin/python \
   && rm -rf /root/oss_compliance* \
   && rm -rf /tmp/tmp* \
@@ -265,8 +264,7 @@ RUN chmod +x /usr/local/bin/deep_learning_container.py \
 
 COPY ./scripts/common/install_efa_amzn2023.sh install_efa_amzn2023.sh
 ARG EFA_VERSION="1.47.0"
-RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 \
-  && echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
+RUN echo -e '[cuda-rhel9]\nname=cuda-rhel9\nbaseurl=https://developer.download.nvidia.com/compute/cuda/repos/rhel9/x86_64\nenabled=1\ngpgcheck=0' >/etc/yum.repos.d/cuda-rhel9.repo \
   && dnf install -y --setopt=install_weak_deps=False libnccl libnccl-devel \
   && ldconfig \
   && bash install_efa_amzn2023.sh ${EFA_VERSION} \
@@ -280,10 +278,8 @@ RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 \
 FROM base AS vllm-ec2-amzn2023
 
 ARG CACHE_REFRESH=0
-RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 \
-  && dnf upgrade -y --setopt=install_weak_deps=False \
-  && dnf clean all && rm -rf /var/cache/dnf /tmp/* \
-  && ln -sf /opt/venv/bin/python3 /usr/bin/python3
+RUN dnf upgrade -y --setopt=install_weak_deps=False \
+  && dnf clean all && rm -rf /var/cache/dnf /tmp/*
 
 COPY ./scripts/vllm/dockerd_entrypoint.sh /usr/local/bin/dockerd_entrypoint.sh
 RUN chmod +x /usr/local/bin/dockerd_entrypoint.sh
