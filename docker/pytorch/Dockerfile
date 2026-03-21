@@ -74,6 +74,7 @@ ARG EFA_VERSION
 
 LABEL maintainer="Amazon AI"
 LABEL dlc_major_version="${IMAGE_VERSION}"
+LABEL dlc_minor_version="0"
 LABEL framework="pytorch"
 LABEL framework_version="${TORCH_VERSION}"
 
