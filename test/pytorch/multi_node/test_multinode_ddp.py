@@ -13,10 +13,14 @@ model = DDP(nn.Linear(32, 1).cuda(), device_ids=[local_rank])
 opt = torch.optim.SGD(model.parameters(), lr=0.01)
 x = torch.randn(64, 32, device="cuda")
 y = torch.randn(64, 1, device="cuda")
-for _ in range(5):
+first = None
+for i in range(10):
     loss = nn.functional.mse_loss(model(x), y)
+    if i == 0:
+        first = loss.item()
     opt.zero_grad(); loss.backward(); opt.step()
 if rank == 0:
+    assert loss.item() < first, f"Loss did not decrease: {first} -> {loss.item()}"
     print("ok")
 dist.destroy_process_group()
 """
@@ -33,7 +37,7 @@ def _write_and_run(cluster, node, rank):
 
 
 def test_multinode_ddp(multinode_cluster):
-    """Run DDP across 2 containers, verify rank 0 prints ok."""
+    """Run DDP across 2 containers, verify loss decreases on rank 0."""
     with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
         f0 = pool.submit(_write_and_run, multinode_cluster, "node0", 0)
         f1 = pool.submit(_write_and_run, multinode_cluster, "node1", 1)

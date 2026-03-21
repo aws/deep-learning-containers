@@ -40,13 +40,18 @@ def test_amp_autocast(run_in_container, dtype):
 
 
 def test_torch_compile(run_in_container):
-    run_in_container(
-        'python -c "'
-        "import torch; "
-        "m = torch.nn.Linear(32, 32).cuda(); "
-        "m = torch.compile(m); "
-        "out = m(torch.randn(4, 32, device='cuda')); "
-        "assert out.shape == (4, 32); "
-        "print('ok')\"",
-        gpu=True,
+    """Verify torch.compile runs a compiled graph, not eager fallback."""
+    script = (
+        "import torch\n"
+        "import torch._dynamo as dynamo\n"
+        "m = torch.nn.Linear(32, 32).cuda()\n"
+        "m_compiled = torch.compile(m)\n"
+        "x = torch.randn(4, 32, device='cuda')\n"
+        "out = m_compiled(x)\n"
+        "assert out.shape == (4, 32)\n"
+        "# Verify dynamo actually captured the graph\n"
+        "explanation = dynamo.explain(m)(x)\n"
+        "assert explanation.graph_count >= 1, f'No graphs captured: {explanation}'\n"
+        "print('ok')"
     )
+    run_in_container(f'python -c "{script}"', gpu=True)
